@@ -1,16 +1,52 @@
 'use strict';
 
-/* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , current = Support.sequelize
-  , sinon = require('sinon')
-  , DataTypes = require(__dirname + '/../../../lib/data-types');
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const current = Support.sequelize;
+const sinon = require('sinon');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const Utils = require('../../../lib/utils.js');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
+  describe.only('throws warnings on bad input', () => {
+    beforeEach(() => {
+      this.loggerSpy = sinon.spy(Utils, 'warn');
+    });
+
+    afterEach(() => {
+      this.loggerSpy.restore();
+    });
+
+    it('Warns the user if they use unrecognized options', () => {
+      const User = current.define('User');
+      User.warnOnInvalidOptions({fakeOption1 : 12, fakeOption2 : 'hi', order: []});
+      const expectedError = 'Invalid selections (fakeOption1, fakeOption2) passed into finder method options. These selections will be ignored.';
+      expect(this.loggerSpy.calledWith(expectedError)).to.be.true;
+    });
+
+    it('Warns the user if they a model attribute without a where clause', () => {
+      const User = current.define('User', {name: 'string'});
+      User.warnOnInvalidOptions({name : 12, order: []}, ['name']);
+      const expectedError = 'Model attributes (name) passed into finder method options, but the options.where object is empty. Did you forget to use options.where?';
+      expect(this.loggerSpy.calledWith(expectedError)).to.be.true;
+    });
+
+    it('Does not warn the user if they use a model attribute without a where clause that shares its name with a query option', () => {
+      const User = current.define('User', {order: 'string'});
+      User.warnOnInvalidOptions({order: []});
+      expect(this.loggerSpy.called).to.be.false;
+    });
+
+    it('Does not warn the user if they use valid query options', () => {
+      const User = current.define('User', {order: 'string'});
+      User.warnOnInvalidOptions({where: {order: 1}, order: []});
+      expect(this.loggerSpy.called).to.be.false;
+    });
+  });
+
   describe('method findAll', function () {
-    var Model = current.define('model', {
+    const Model = current.define('model', {
       name: DataTypes.STRING
     }, { timestamps: false });
 
@@ -70,8 +106,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('works for models without PK #4607', function () {
-        var Model = current.define('model', {}, { timestamps: false });
-        var Foo = current.define('foo');
+        const Model = current.define('model', {}, { timestamps: false });
+        const Foo = current.define('foo');
         Model.hasOne(Foo);
 
         Model.removeAttribute('id');
