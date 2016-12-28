@@ -18,23 +18,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.loggerSpy.restore();
     });
 
-    it('Warns the user if they use unrecognized options', () => {
-      const User = current.define('User');
-      User.warnOnInvalidOptions({fakeOption1 : 12, fakeOption2 : 'hi', order: []});
-      const expectedError = 'Invalid selections (fakeOption1, fakeOption2) passed into finder method options. These selections will be ignored.';
-      expect(this.loggerSpy.calledWith(expectedError)).to.equal(true);
-    });
-
-    it('Warns the user if they a model attribute without a where clause', () => {
-      const User = current.define('User', {name: 'string'});
-      User.warnOnInvalidOptions({name : 12, order: []}, ['name']);
-      const expectedError = 'Model attributes (name) passed into finder method options, but the options.where object is empty. Did you forget to use options.where?';
+    it('Warns the user if they use a model attribute without a where clause', () => {
+      const User = current.define('User', {firstName: 'string'});
+      User.warnOnInvalidOptions({firstName : 12, order: []}, ['firstName']);
+      const expectedError = 'Model attributes (firstName) passed into finder method options, but the options.where object is empty. Did you forget to use options.where?';
       expect(this.loggerSpy.calledWith(expectedError)).to.equal(true);
     });
 
     it('Does not warn the user if they use a model attribute without a where clause that shares its name with a query option', () => {
       const User = current.define('User', {order: 'string'});
-      User.warnOnInvalidOptions({order: []});
+      User.warnOnInvalidOptions({order: []}, ['order']);
       expect(this.loggerSpy.called).to.equal(false);
     });
 
