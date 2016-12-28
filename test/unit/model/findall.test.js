@@ -8,7 +8,7 @@ const sinon = require('sinon');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const Utils = require('../../../lib/utils.js');
 
-describe.only(Support.getTestDialectTeaser('Model'), () => {
+describe(Support.getTestDialectTeaser('Model'), () => {
   describe('warnOnInvalidOptions', () => {
     beforeEach(() => {
       this.loggerSpy = sinon.spy(Utils, 'warn');
