@@ -31,6 +31,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         mssql: 'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));UPDATE [users] SET [user_name]=N\'triggertest\' OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp WHERE [id] = 2;select * from @tmp',
         postgres:'UPDATE "users" SET "user_name"=\'triggertest\' WHERE "id" = 2 RETURNING *',
         default: "UPDATE `users` SET `user_name`=\'triggertest\' WHERE `id` = 2",
+        oracle: "UPDATE users SET user_name='triggertest' WHERE id = 2"
       });
     });
 

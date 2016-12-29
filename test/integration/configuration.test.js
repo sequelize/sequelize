@@ -131,4 +131,12 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
     }
   });
 
+  describe("TESTING ORACLE", function() {
+    it.only('testing oracle connection', function() {
+      let sequelize = new Sequelize(null, 'DEV_RD', 'DEV_RD', {dialect : "oracle", database : "vm2008ora12hot:1521/ORCL12HOT.kimdomain.local"});
+      let config = sequelize.config;
+      expect(config.username).to.not.be.ok;
+      expect(config.password).to.be.null;
+    });
+  });
 });
