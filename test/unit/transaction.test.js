@@ -44,6 +44,9 @@ describe('Transaction', function() {
       ],
       mssql: [
         'BEGIN TRANSACTION;'
+      ],
+      oracle: [
+        'BEGIN TRANSACTION;'
       ]
     };
     return current.transaction(() => {
