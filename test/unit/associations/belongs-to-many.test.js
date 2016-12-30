@@ -1,17 +1,19 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , sinon = require('sinon')
-  , expect = chai.expect
-  , stub = sinon.stub
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , BelongsTo = require(__dirname + '/../../../lib/associations/belongs-to')
-  , HasMany = require(__dirname + '/../../../lib/associations/has-many')
-  , HasOne = require(__dirname + '/../../../lib/associations/has-one')
-  , current   = Support.sequelize
-  , Promise   = current.Promise;
+const chai = require('chai');
+const sinon = require('sinon');
+const expect = chai.expect;
+const stub = sinon.stub;
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const BelongsTo = require(__dirname + '/../../../lib/associations/belongs-to');
+const HasMany = require(__dirname + '/../../../lib/associations/has-many');
+const HasOne = require(__dirname + '/../../../lib/associations/has-one');
+const current = Support.sequelize;
+/* global -Promise */
+const Promise = current.Promise; 
+const AssociationError = require(__dirname + '/../../../lib/errors').AssociationError;
 
 describe(Support.getTestDialectTeaser('belongsToMany'), function() {
   it('should not inherit scopes from parent to join table', function () {
@@ -88,6 +90,26 @@ describe(Support.getTestDialectTeaser('belongsToMany'), function() {
 
     current.Utils._.each(methods, (alias, method) => {
       expect(user[method]()).to.be.a('function');
+    });
+  });
+
+  describe('proper syntax', function() {
+    it('throws an AssociationError if the through option is undefined, true, or null', function() {
+      const User = current.define('User', {});
+      const Task = current.define('Task', {});
+
+      const errorFunction1 = User.belongsToMany.bind(User, Task, { through: true });
+      const errorFunction2 = User.belongsToMany.bind(User, Task, { through: undefined });
+      const errorFunction3 = User.belongsToMany.bind(User, Task, { through: null });
+      for (const errorFunction of [errorFunction1, errorFunction2, errorFunction3]) {
+        expect(errorFunction).to.throw(AssociationError, 'belongsToMany must be given a through option, either a string or a model');
+      }
+    });
+    it('throws an AssociationError for a self-association defined without an alias', function() {
+      const User = current.define('User', {});
+
+      const errorFunction = User.belongsToMany.bind(User, User, {through: 'jointable'});
+      expect(errorFunction).to.throw(AssociationError, '\'as\' must be defined for many-to-many self-associations');
     });
   });
 

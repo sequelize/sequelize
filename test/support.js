@@ -97,7 +97,7 @@ var Support = {
       dialect: options.dialect,
       port: options.port || process.env.SEQ_PORT || config.port,
       pool: config.pool,
-      dialectOptions: options.dialectOptions || {}
+      dialectOptions: options.dialectOptions || config.dialectOptions || {}
     });
 
     if (process.env.DIALECT === 'postgres-native') {
@@ -218,6 +218,5 @@ if (typeof beforeEach !== 'undefined') {
     this.sequelize = Support.sequelize;
   });
 }
-
 Support.sequelize = Support.createSequelizeInstance();
 module.exports = Support;

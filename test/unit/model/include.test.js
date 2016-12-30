@@ -285,6 +285,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    describe('_getIncludedAssociation', function () {
+      it('returns an association when there is a single unaliased association', function () {
+        expect(this.User._getIncludedAssociation(this.Task)).to.equal(this.User.Tasks);
+      });
+
+      it('returns an association when there is a single aliased association', function () {
+        const User = this.sequelize.define('User');
+        const Task = this.sequelize.define('Task');
+        const Tasks = Task.belongsTo(User, {as: 'owner'});
+        expect(Task._getIncludedAssociation(User, 'owner')).to.equal(Tasks);
+      });
+
+      it('returns an association when there are multiple aliased associations', function () {
+        expect(this.Company._getIncludedAssociation(this.User, 'Owner')).to.equal(this.Company.Owner);
+      });
+    });
+
     describe('subQuery', function () {
       it('should be true if theres a duplicating association', function () {
         var options = Sequelize.Model._validateIncludedElements({

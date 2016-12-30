@@ -389,6 +389,30 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             });
         });
       });
+      
+      if (dialect === 'mssql') {
+        it('Should throw foreignKey violation for MERGE statement as ForeignKeyConstraintError', function () {
+          const User = this.sequelize.define('User', {
+            username: {
+              type: DataTypes.STRING,
+              primaryKey: true
+            }
+          });
+          const Posts = this.sequelize.define('Posts', {
+            title: {
+              type: DataTypes.STRING,
+              primaryKey: true
+            },
+            username: DataTypes.STRING
+          });
+          Posts.belongsTo(User, { foreignKey: 'username' });
+          return this.sequelize.sync({ force: true })
+            .then(() => User.create({ username: 'user1' }))
+            .then(() => {
+              return expect(Posts.upsert({ title: 'Title', username: 'user2' })).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+            });
+        });
+      }
     });
   }
 });
