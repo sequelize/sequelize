@@ -243,7 +243,7 @@ JSONB can be queried in three different ways.
 
 ### Relations / Associations
 ```js
-// Find all projects with a least one task where task.state === project.task
+// Find all projects with a least one task where task.state === project.state
 Project.findAll({
     include: [{
         model: Task,

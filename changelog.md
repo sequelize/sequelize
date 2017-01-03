@@ -1,4 +1,13 @@
 # Future
+- [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
+- [FIXED] Properly apply paranoid condition when `groupedLimit.on` association is `paranoid`
+- [FIXED] Throw MSSQL MERGE Statement foreignKey violations as ForeignKeyConstraintError [#7011](https://github.com/sequelize/sequelize/pull/7011)
+- [FIXED] Transaction Name too long, transaction savepoints for SQL Server [#6972](https://github.com/sequelize/sequelize/pull/6972)
+- [FIXED] Issue with sync hooks (before/afterInit, before/afterDefine) [#6680](https://github.com/sequelize/sequelize/issues/6680)
+- [FIXED] MSSQL handle large bulk inserts [#6866](https://github.com/sequelize/sequelize/issues/6866)
+- [FIXED] describeTable returns a wrong value for primaryKey [#5756] (https://github.com/sequelize/sequelize/issues/5756)
+- [FIXED] MSSQL LIMIT IN UPDATE [#6636](https://github.com/sequelize/sequelize/issues/6636)
+- [FIXED] Custom error message not used for `notNull` validation [#6531](https://github.com/sequelize/sequelize/issues/6531)
 - [FIXED] N:M `through` option naming collisions [#4597](https://github.com/sequelize/sequelize/issues/4597)
  [#6444](https://github.com/sequelize/sequelize/issues/6444)
 - [CHANGED] Updated deprecated `node-uuid` package to `uuid` [#6919](https://github.com/sequelize/sequelize/pull/6919)
@@ -8,6 +17,7 @@
 - [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed
 - [FIXED] `DATEONLY` now returns `YYYY-MM-DD` date string [#4858] (https://github.com/sequelize/sequelize/issues/4858)
 - [FIXED] Issues with `createFunction` and `dropFunction` (PostgresSQL)
+- [ADDED] Optimistic locking support [#6637] (https://github.com/sequelize/sequelize/pull/6637)
 - [FIXED] Issue with belongsTo association and foreign keys [#6400](https://github.com/sequelize/sequelize/issues/6400)
 - [FIXED] Issue with query generation in MSSQL, an identifier was not escaped [#6686] (https://github.com/sequelize/sequelize/pull/6686)
 - [FIXED] GroupedLimit when foreignKey has a field alias
@@ -20,7 +30,10 @@
 - [ADDED] Support condition objects in utility functions [#6685](https://github.com/sequelize/sequelize/pull/6685)
 - [FIXED] HSTORE and JSON fields being renamed when `options.field` is specified on a matching model attribute
 - [FIXED] Soft-delete not returning number of affected rows on mssql [#6930](https://github.com/sequelize/sequelize/pull/6930)
-
+- [FIXED] No `value` in built-in/custom validation errors [#3899](https://github.com/sequelize/sequelize/pull/3899)
+- [FIXED] Custom error messages used for incorrect eager loading [#7005](https://github.com/sequelize/sequelize/pull/7005)
+- [FIXED] Enforce unique association aliases [#7025](https://github.com/sequelize/sequelize/pull/7025)
+- [FIXED] Information warnings when findAll is given incorrect inputs [#7047](https://github.com/sequelize/sequelize/pull/7047)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type

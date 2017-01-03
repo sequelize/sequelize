@@ -331,6 +331,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('does not update when setting current values', function() {
+        return this.User.create({ id: 42, username: 'john' }).bind(this).then(function() {
+          return this.User.findById(42);
+        }).then(function(user) {
+          return this.User.upsert({ id: user.id, username: user.username });
+        }).then(function(created) {
+          if (dialect === 'sqlite') {
+            expect(created).to.be.undefined;
+          } else {
+            // After set node-mysql flags = '-FOUND_ROWS' in connection of mysql,
+            // result from upsert should be false when upsert a row to its current value
+            // https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html
+            expect(created).to.equal(false);
+          }
+        });
+      });
+
       it('Works when two separate uniqueKeys are passed', function() {
         var User = this.sequelize.define('User', {
           username: {
@@ -352,18 +369,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               if (dialect === 'sqlite') {
                 expect(created).to.be.undefined;
               } else {
-                expect(created).to.be.ok;              
+                expect(created).to.be.ok;
               }
-              clock.tick(1000);            
+              clock.tick(1000);
               return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
             }).then(function(created) {
               if (dialect === 'sqlite') {
                 expect(created).to.be.undefined;
               } else {
-                expect(created).not.to.be.ok;              
+                expect(created).not.to.be.ok;
               }
               clock.tick(1000);
-              return User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' }});              
+              return User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' }});
             })
             .then(function(user) {
               expect(user.createdAt).to.be.ok;
@@ -373,7 +390,29 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
       
-
+      if (dialect === 'mssql') {
+        it('Should throw foreignKey violation for MERGE statement as ForeignKeyConstraintError', function () {
+          const User = this.sequelize.define('User', {
+            username: {
+              type: DataTypes.STRING,
+              primaryKey: true
+            }
+          });
+          const Posts = this.sequelize.define('Posts', {
+            title: {
+              type: DataTypes.STRING,
+              primaryKey: true
+            },
+            username: DataTypes.STRING
+          });
+          Posts.belongsTo(User, { foreignKey: 'username' });
+          return this.sequelize.sync({ force: true })
+            .then(() => User.create({ username: 'user1' }))
+            .then(() => {
+              return expect(Posts.upsert({ title: 'Title', username: 'user2' })).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+            });
+        });
+      }
     });
   }
 });

@@ -206,6 +206,43 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         });
       });
     });
+
+    it('should correctly determine the primary key columns', function () {
+      var self = this;
+      var Country = self.sequelize.define('_Country', {
+        code:     {type: DataTypes.STRING, primaryKey: true },
+        name:     {type: DataTypes.STRING, allowNull: false}
+      }, { freezeTableName: true });
+      var Alumni = self.sequelize.define('_Alumni', {
+        year:     {type: DataTypes.INTEGER, primaryKey: true },
+        num:      {type: DataTypes.INTEGER, primaryKey: true },
+        username: {type: DataTypes.STRING, allowNull: false, unique: true },
+        dob:      {type: DataTypes.DATEONLY, allowNull: false },
+        dod:      {type: DataTypes.DATEONLY, allowNull: true },
+        city:     {type: DataTypes.STRING, allowNull: false},
+        ctrycod:  {type: DataTypes.STRING, allowNull: false,
+                    references: { model: Country, key: 'code'}}
+      }, { freezeTableName: true });
+
+      return Country.sync({ force: true }).then(function() {
+        return self.queryInterface.describeTable('_Country').then(function(metacountry) {
+          expect(metacountry.code.primaryKey).to.eql(true);
+          expect(metacountry.name.primaryKey).to.eql(false);
+        
+          return Alumni.sync({ force: true }).then(function() {
+            return self.queryInterface.describeTable('_Alumni').then(function(metalumni) {
+              expect(metalumni.year.primaryKey).to.eql(true);
+              expect(metalumni.num.primaryKey).to.eql(true);
+              expect(metalumni.username.primaryKey).to.eql(false);
+              expect(metalumni.dob.primaryKey).to.eql(false);
+              expect(metalumni.dod.primaryKey).to.eql(false);
+              expect(metalumni.ctrycod.primaryKey).to.eql(false);
+              expect(metalumni.city.primaryKey).to.eql(false);
+            });
+          });
+        });
+      });
+    });
   });
 
   // FIXME: These tests should make assertions against the created table using describeTable
@@ -218,7 +255,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           autoIncrement: true
         }
       }).bind(this).then(function() {
-        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(function(response) {
+        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(function(results) {
+          var response = _.head(results);
           expect(response.table_id || (typeof response !== 'object' && response)).to.be.ok;
         });
       });
