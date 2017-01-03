@@ -1,4 +1,6 @@
 # Future
+- [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
+- [FIXED] Properly apply paranoid condition when `groupedLimit.on` association is `paranoid`
 - [FIXED] Throw MSSQL MERGE Statement foreignKey violations as ForeignKeyConstraintError [#7011](https://github.com/sequelize/sequelize/pull/7011)
 - [FIXED] Transaction Name too long, transaction savepoints for SQL Server [#6972](https://github.com/sequelize/sequelize/pull/6972)
 - [FIXED] Issue with sync hooks (before/afterInit, before/afterDefine) [#6680](https://github.com/sequelize/sequelize/issues/6680)
