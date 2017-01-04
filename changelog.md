@@ -1,5 +1,7 @@
 # Future
 - [ADDED] Filtered Indexes support for SQL Server [#7016](https://github.com/sequelize/sequelize/issues/7016)
+- [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
+- [FIXED] Properly apply paranoid condition when `groupedLimit.on` association is `paranoid`
 - [FIXED] Throw MSSQL MERGE Statement foreignKey violations as ForeignKeyConstraintError [#7011](https://github.com/sequelize/sequelize/pull/7011)
 - [FIXED] Transaction Name too long, transaction savepoints for SQL Server [#6972](https://github.com/sequelize/sequelize/pull/6972)
 - [FIXED] Issue with sync hooks (before/afterInit, before/afterDefine) [#6680](https://github.com/sequelize/sequelize/issues/6680)
@@ -31,6 +33,9 @@
 - [FIXED] Soft-delete not returning number of affected rows on mssql [#6930](https://github.com/sequelize/sequelize/pull/6930)
 - [FIXED] No `value` in built-in/custom validation errors [#3899](https://github.com/sequelize/sequelize/pull/3899)
 - [FIXED] Custom error messages used for incorrect eager loading [#7005](https://github.com/sequelize/sequelize/pull/7005)
+- [FIXED] Enforce unique association aliases [#7025](https://github.com/sequelize/sequelize/pull/7025)
+- [FIXED] Information warnings when findAll is given incorrect inputs [#7047](https://github.com/sequelize/sequelize/pull/7047)
+- [FIXED] scope method syntax loses parameters when used multiple times [#7058](https://github.com/sequelize/sequelize/issues/7058)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
