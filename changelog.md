@@ -1,4 +1,5 @@
 # Future
+- [ADDED] Filtered Indexes support for SQL Server [#7016](https://github.com/sequelize/sequelize/issues/7016)
 - [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
 - [FIXED] Properly apply paranoid condition when `groupedLimit.on` association is `paranoid`
 - [FIXED] Throw MSSQL MERGE Statement foreignKey violations as ForeignKeyConstraintError [#7011](https://github.com/sequelize/sequelize/pull/7011)
