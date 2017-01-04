@@ -161,7 +161,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it.only('should work with consecutive function scopes', function () {
+    it('should work with consecutive function scopes', function () {
       var scope = {method: ['actualValue', 11]};
       expect(Company.scope(scope)._scope).to.deep.equal({
         where: {
