@@ -45,6 +45,21 @@ if (current.dialect.supports.tmpTableTrigger) {
         });
       });
 
+      it('should return output rows after bulk insert', function() {
+        return User.bulkCreate([{
+          username: 'triggertest1'
+        }, {
+          username: 'triggertest2'
+        }, {
+          username: 'triggertest3'
+        }, {
+          username: 'triggertest4'
+        }], {returning: true}).then(function (users) {
+          // This assumes that if the first instance's Id is not null, all subsequent instances' Id is also not null.
+          return expect(users[0].Id).to.not.equals(null);
+        });
+      });
+
       it('should return output rows after instance update', function() {
         return User.create({
           username: 'triggertest'
