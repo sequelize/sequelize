@@ -25,7 +25,7 @@ env:
     - SEQ_PG_USER: sequelize_test
     - SEQ_PG_PW: sequelize_test
     - SEQ_PG_HOST: 127.0.0.1
-    - SEQ_PG_PORT: 8999
+    - SEQ_PG_PORT: 8998
 
   matrix:
     - DIALECT=sqlite COVERAGE=true

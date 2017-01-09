@@ -22,6 +22,7 @@ module.exports = {
     return parseInt(Math.random() * 999, 10);
   },
 
+<<<<<<< HEAD
   // mssql: mssqlConfig || {
   //   database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || (function () {
   //     var db = 'sequelize-test-' + ~~(Math.random() * 100);
@@ -44,6 +45,10 @@ module.exports = {
     password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || 'aqw123zsx',
     host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || 'vm2008sql2012st',
     port:     process.env.SEQ_MSSQL_PORT || process.env.SEQ_PORT || 1433,
+    dialectOptions: {
+      // big insert queries need a while
+      requestTimeout: 60000
+    },
     pool:     {
       max: process.env.SEQ_MSSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
       idle: process.env.SEQ_MSSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000

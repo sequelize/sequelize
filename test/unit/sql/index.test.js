@@ -95,7 +95,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     }
 
-    if (current.dialect.supports.index.using === 2) {
+    if (current.dialect.supports.index.where) {
       test('WHERE', function () {
         expectsql(sql.addIndexQuery('table', {
           fields: ['type'],
@@ -103,7 +103,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: 'public'
           }
         }), {
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\''
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
+          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'public\''
         });
 
         expectsql(sql.addIndexQuery('table', {
@@ -117,7 +118,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         }), {
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')'
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
+          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N\'group\' OR [type] = N\'private\')'
+        });
+
+        expectsql(sql.addIndexQuery('table', {
+          fields: ['type'],
+          where: {
+            type: {
+              $ne: null
+            }
+          }
+        }), {
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
+          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL'
         });
       });
     }

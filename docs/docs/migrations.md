@@ -271,12 +271,25 @@ queryInterface.addIndex('Person', ['firstname', 'lastname'])
 // - parser: For FULLTEXT columns set your parser
 // - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect
 // - logging: A function that receives the sql query, e.g. console.log
+// - where: A hash of attributes to limit your index(Filtered Indexes - MSSQL & PostgreSQL only)
 queryInterface.addIndex(
   'Person',
   ['firstname', 'lastname'],
   {
     indexName: 'SuperDuperIndex',
     indicesType: 'UNIQUE'
+  }
+)
+
+queryInterface.addIndex(
+  'Person',
+  ['firstname', 'lastname'],
+  {
+    where: {
+      lastname: {
+        $ne: null
+      }
+    }
   }
 )
 ```

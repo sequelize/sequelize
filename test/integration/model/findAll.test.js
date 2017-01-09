@@ -601,14 +601,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         it('throws an error if included DaoFactory is not referenced by alias', function() {
           var self = this;
           return self.Worker.findAll({ include: [self.Task] }).catch (function(err) {
-            expect(err.message).to.equal('Task is not associated to Worker!');
+            expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
+            'You must use the \'as\' keyword to specify the alias within your include statement.');
           });
         });
 
         it('throws an error if alias is not associated', function() {
           var self = this;
           return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch (function(err) {
-            expect(err.message).to.equal('Task (Work) is not associated to Worker!');
+            expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
+            'You\'ve included an alias (Work), but it does not match the alias defined in your association.');
           });
         });
 
@@ -693,14 +695,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         it('throws an error if included DaoFactory is not referenced by alias', function() {
           var self = this;
           return self.Worker.findAll({ include: [self.Task] }).catch (function(err) {
-            expect(err.message).to.equal('Task is not associated to Worker!');
+            expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
+            'You must use the \'as\' keyword to specify the alias within your include statement.');
           });
         });
 
         it('throws an error if alias is not associated', function() {
           var self = this;
           return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch (function(err) {
-            expect(err.message).to.equal('Task (Work) is not associated to Worker!');
+            expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
+            'You\'ve included an alias (Work), but it does not match the alias defined in your association.');
           });
         });
 
@@ -1121,10 +1125,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               });
 
               return self.sequelize.Promise.all([
-                self.england.addIndustry(self.energy, {numYears: 20}),
-                self.england.addIndustry(self.media, {numYears: 40}),
-                self.france.addIndustry(self.media, {numYears: 80}),
-                self.korea.addIndustry(self.tech, {numYears: 30})
+                self.england.addIndustry(self.energy, { through: { numYears: 20 }}),
+                self.england.addIndustry(self.media, { through: { numYears: 40 }}),
+                self.france.addIndustry(self.media, { through: { numYears: 80 }}),
+                self.korea.addIndustry(self.tech, { through: { numYears: 30 }})
               ]);
             });
           });

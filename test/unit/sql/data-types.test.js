@@ -1,14 +1,14 @@
 'use strict';
 
-const Support   = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
-const Sequelize = Support.Sequelize;
-const chai = require('chai');
-const util = require('util');
-const uuid = require('node-uuid');
-const expectsql = Support.expectsql;
-const current   = Support.sequelize;
-const expect = chai.expect;
+var Support   = require(__dirname + '/../support')
+  , DataTypes = require(__dirname + '/../../../lib/data-types')
+  , Sequelize = Support.Sequelize
+  , chai = require('chai')
+  , util = require('util')
+  , uuid = require('uuid')
+  , expectsql = Support.expectsql
+  , current   = Support.sequelize
+  , expect = chai.expect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -221,7 +221,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
             expect(function () {
               type.validate('foobar');
-            }).to.throw(Sequelize.ValidationError, 'foobar is not a valid hstore');
+            }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid hstore');
           });
 
           test('should return `true` if `value` is an hstore', function() {

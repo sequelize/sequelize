@@ -73,17 +73,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             autoIncrement: true,
             field: 'commentId'
           },
-          text: {
-            type: DataTypes.STRING,
-            field: 'comment_text'
-          },
-          notes: {
-            type: DataTypes.STRING,
-            field: 'notes'
-          }
+          text: { type: DataTypes.STRING, field: 'comment_text' },
+          notes: { type: DataTypes.STRING, field: 'notes' },
+          likes: { type: DataTypes.INTEGER, field: 'like_count' },
+          createdAt: { type: DataTypes.DATE, field: 'created_at', allowNull: false },
+          updatedAt: { type: DataTypes.DATE, field: 'updated_at', allowNull: false }
         }, {
           tableName: 'comments',
-          timestamps: false
+          timestamps: true
         });
 
         this.User.hasMany(this.Task, {
@@ -145,6 +142,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             },
             notes: {
               type: DataTypes.STRING
+            },
+            like_count: {
+              type: DataTypes.INTEGER
+            },
+            created_at: {
+              type: DataTypes.DATE,
+              allowNull: false
+            },
+            updated_at: {
+              type: DataTypes.DATE
             }
           })
         ]);
@@ -229,6 +236,35 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(comment.notes).to.equal('new note');
           });
         });
+      });
+
+      it('increment should work', function() {
+        return this.Comment.destroy({ truncate: true })
+          .then(() => this.Comment.create({ note: 'oh boy, here I go again', likes: 23 }))
+          .then(comment => comment.increment('likes'))
+          .then(comment => comment.reload())
+          .then(comment => {
+            expect(comment.likes).to.be.equal(24);
+          });
+      });
+
+      it('decrement should work', function() {
+        return this.Comment.destroy({ truncate: true })
+          .then(() => this.Comment.create({ note: 'oh boy, here I go again', likes: 23 }))
+          .then(comment => comment.decrement('likes'))
+          .then(comment => comment.reload())
+          .then(comment => {
+            expect(comment.likes).to.be.equal(22);
+          });
+      });
+
+      it('sum should work', function() {
+        return this.Comment.destroy({ truncate: true })
+          .then(() => this.Comment.create({ note: 'oh boy, here I go again', likes: 23 }))
+          .then(() => this.Comment.sum('likes'))
+          .then(likes => {
+            expect(likes).to.be.equal(23);
+          });
       });
 
       it('should create, fetch and update with alternative field names from a simple model', function() {

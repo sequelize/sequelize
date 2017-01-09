@@ -161,6 +161,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('should work with consecutive function scopes', function () {
+      var scope = {method: ['actualValue', 11]};
+      expect(Company.scope(scope)._scope).to.deep.equal({
+        where: {
+          other_value: 11
+        }
+      });
+
+      expect(Company.scope(scope)._scope).to.deep.equal({
+        where: {
+          other_value: 11
+        }
+      });
+    });
+
     it('should be able to merge two scoped includes', function () {
       expect(Company.scope('users', 'projects')._scope).to.deep.equal({
         include: [
