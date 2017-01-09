@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                         products[(i * 5) + 3].setTags([
                           tags[0]
                         ])
-                      ),
+                    ),
                       Promise.join(
                         products[(i * 5) + 0].setCompany(companies[4]),
                         products[(i * 5) + 1].setCompany(companies[3]),
@@ -192,6 +192,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
       };
     });
 
+    //TODO Oracle - identifier too long
     it('should support an include with multiple different association types', function() {
       var self = this;
 
@@ -484,6 +485,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
         });
       });
     });
+
 
     it('should include attributes from through models', function() {
       var Product = this.sequelize.define('Product', {
@@ -907,6 +909,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
       });
     });
 
+    //TODO Oracle - identifier too long
     it('should be possible to extend the on clause with a where option on nested includes', function() {
       var User = this.sequelize.define('User', {
             name: DataTypes.STRING
@@ -1145,7 +1148,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
       });
     });
 
-    it('should be possible to use limit and a where on a hasMany with a through model with additional includes', function() {
+    it.only('should be possible to use limit and a where on a hasMany with a through model with additional includes', function() {
       var self = this;
       return this.fixtureA().then(function () {
         return self.models.Product.findAll({

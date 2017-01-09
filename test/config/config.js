@@ -22,15 +22,27 @@ module.exports = {
     return parseInt(Math.random() * 999, 10);
   },
 
-  mssql: mssqlConfig || {
-    database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || (function () {
-      var db = 'sequelize-test-' + ~~(Math.random() * 100);
-      console.log('Using database: ', db);
-      return db;
-    }()),
-    username: process.env.SEQ_MSSQL_USER || process.env.SEQ_USER || 'sequelize',
-    password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || 'nEGkLma26gXVHFUAHJxcmsrK',
-    host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || 'mssql.sequelizejs.com',
+  // mssql: mssqlConfig || {
+  //   database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || (function () {
+  //     var db = 'sequelize-test-' + ~~(Math.random() * 100);
+  //     console.log('Using database: ', db);
+  //     return db;
+  //   }()),
+  //   username: process.env.SEQ_MSSQL_USER || process.env.SEQ_USER || 'sequelize',
+  //   password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || 'nEGkLma26gXVHFUAHJxcmsrK',
+  //   host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || 'mssql.sequelizejs.com',
+  //   port:     process.env.SEQ_MSSQL_PORT || process.env.SEQ_PORT || 1433,
+  //   pool:     {
+  //     max: process.env.SEQ_MSSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
+  //     idle: process.env.SEQ_MSSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
+  //   }
+  // },
+
+    mssql: mssqlConfig || {
+    database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || 'CELDATA7',
+    username: process.env.SEQ_MSSQL_USER || process.env.SEQ_USER || 'sa',
+    password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || 'aqw123zsx',
+    host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || 'vm2008sql2012st',
     port:     process.env.SEQ_MSSQL_PORT || process.env.SEQ_PORT || 1433,
     pool:     {
       max: process.env.SEQ_MSSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
@@ -55,10 +67,17 @@ module.exports = {
   },
 
   oracle: {
-    user : process.env.NODE_ORACLEDB_USER || 'DEV_RD',
-    password : process.env.NODE_ORACLEDB_PASSWORD || 'DEV_RD',
+    // username : process.env.NODE_ORACLEDB_USER || 'system',
+    // password : process.env.NODE_ORACLEDB_PASSWORD || 'oracle',
+    // // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
+    // database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'xe.oracle.docker',
+    // host : process.env.NODE_ORACLEDB_HOST || 'vmugit.kimdomain.local',
+    username : process.env.NODE_ORACLEDB_USER || 'sequelize',
+    password : process.env.NODE_ORACLEDB_PASSWORD || 'sequelize',
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
-    database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'vm2008ora12hot:1521/ORCL12HOT.kimdomain.local',
+    database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'xe.oracle.docker',
+    host : process.env.NODE_ORACLEDB_HOST || 'vmugit.kimdomain.local',
+    port : process.env.NODE_ORACLEDB_PORT || 1521,
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
     externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
   },

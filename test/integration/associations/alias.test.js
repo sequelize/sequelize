@@ -46,7 +46,12 @@ describe(Support.getTestDialectTeaser('Alias'), function() {
     }).then(function(user) {
       expect(user.getASSIGNMENTS).to.be.ok;
 
-      return Task.create({ id: 1, userId: 1 });
+      // return User.find({ where: { id: 1 }})
+      // .then(result => {
+        return Task.create({ id: 1, userId: 1 });
+      // });
+
+      
     }).then(function(task) {
       expect(task.getOWNER).to.be.ok;
 

@@ -183,6 +183,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
     });
   });
 
+  //TODO Oracle - identifier too long
   it('can filter through hasMany connector', function() {
     var User = this.sequelize.define('User', {username: DataTypes.STRING })
       , Project = this.sequelize.define('Project', { title: DataTypes.STRING });

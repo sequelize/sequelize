@@ -98,26 +98,29 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       });
     }
 
-    it('should be able to handle a where object that\'s a first class citizen.', function() {
-      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
-        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });
+    //NOTE : oracle does not support where clause with non quoted column name
+    if(Support.getTestDialect() !== 'oracle') {
+      it('should be able to handle a where object that\'s a first class citizen.', function() {
+        var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
+          , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });
 
-      User.hasOne(Task);
+        User.hasOne(Task);
 
-      return User.sync({ force: true }).then(function() {
-        return Task.sync({ force: true }).then(function() {
-          return User.create({ username: 'foo' }).then(function(user) {
-            return Task.create({ title: 'task', status: 'inactive' }).then(function(task) {
-              return user.setTaskXYZ(task).then(function() {
-                return user.getTaskXYZ({where: ['status = ?', 'active']}).then(function(task) {
-                  expect(task).to.be.null;
+        return User.sync({ force: true }).then(function() {
+          return Task.sync({ force: true }).then(function() {
+            return User.create({ username: 'foo' }).then(function(user) {
+              return Task.create({ title: 'task', status: 'inactive' }).then(function(task) {
+                return user.setTaskXYZ(task).then(function() {
+                  return user.getTaskXYZ({where: ['status = ?', 'active']}).then(function(task) {
+                    expect(task).to.be.null;
+                  });
                 });
               });
             });
           });
         });
       });
-    });
+    }
   });
 
   describe('setAssociation', function() {
@@ -508,7 +511,8 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
     });
 
     // NOTE: mssql does not support changing an autoincrement primary key
-    if (Support.getTestDialect() !== 'mssql') {
+    // oracle neither
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'oracle') {
       it('can cascade updates', function() {
         var Task = this.sequelize.define('Task', { title: Sequelize.STRING })
           , User = this.sequelize.define('User', { username: Sequelize.STRING });

@@ -140,13 +140,16 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
     });
 
-    it('only gets objects that fulfill options with a formatted value', function() {
-      return this.User.find({where: {username: 'John'}}).then(function(john) {
-        return john.getTasks({where: ['active = ?', true]});
-      }).then(function(tasks) {
-        expect(tasks).to.have.length(1);
+    if(current.dialect.name !== 'oracle') {
+      //Oracle doesn't support column names non quoted by "
+      it('only gets objects that fulfill options with a formatted value', function() {
+        return this.User.find({where: {username: 'John'}}).then(function(john) {
+          return john.getTasks({where: ['active = ?', true]});
+        }).then(function(tasks) {
+          expect(tasks).to.have.length(1);
+        });
       });
-    });
+    }
 
     it('get associated objects with an eager load', function() {
       return this.User.find({where: {username: 'John'}, include: [this.Task]}).then(function(john) {
@@ -176,6 +179,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
     });
 
+    //TODO Oracle - identifier too long
     it('should support schemas', function() {
       var self = this
         , AcmeUser = self.sequelize.define('User', {
@@ -268,6 +272,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
     });
 
+    //TODO Oracle - identifier too long
     it('supports primary key attributes with different field names', function () {
       var User = this.sequelize.define('User', {
         id: {
@@ -322,6 +327,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
     });
 
+    //TODO Oracle - identifier too long
     it('supports primary key attributes with different field names where parent include is required', function () {
       var User = this.sequelize.define('User', {
         id: {
@@ -1204,6 +1210,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
     });
 
+    //TODO Oracle - identifier too long
     it('should correctly get associations even after a child instance is deleted', function() {
       var self = this;
       var spy = sinon.spy();
@@ -1277,6 +1284,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
     });
 
+    //TODO Oracle - identifier too long
     it('should be able to handle nested includes properly', function() {
       var self = this;
       this.Group = this.sequelize.define('Group', { groupName: DataTypes.STRING});
@@ -1789,8 +1797,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       return this.sequelize.sync({force: true}).then(function() {
         return self.sequelize.getQueryInterface().showAllTables();
       }).then(function(result) {
-        if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
+        if (dialect === 'mssql') {
           result = _.map(result, 'tableName');
+        } else if(dialect === 'oracle') {
+          //oracle returns the table names in UpperCase
+          result = _.map(result, table => {
+            return table.tableName.toLowerCase();
+          });
         }
 
         expect(result.indexOf('group_user')).not.to.equal(-1);
@@ -1809,8 +1822,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       return this.sequelize.sync({force: true}).then(function() {
         return self.sequelize.getQueryInterface().showAllTables();
       }).then(function(result) {
-        if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
+        if (dialect === 'mssql') {
           result = _.map(result, 'tableName');
+        } else if(dialect === 'oracle') {
+          //oracle returns the table names in UpperCase
+          result = _.map(result, table => {
+            return table.tableName.toLowerCase();
+          });
         }
 
         expect(result.indexOf('user_groups')).not.to.equal(-1);
