@@ -96,29 +96,32 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
       });
     }
 
-    it('should be able to handle a where object that\'s a first class citizen.', function() {
-      var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING })
-        , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });
+    if(current.dialect.name !== 'oracle') {
+    //Oracle doesn't support column names non quoted by "
+      it('should be able to handle a where object that\'s a first class citizen.', function() {
+        var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING })
+          , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });
 
-      Task.belongsTo(User);
+        Task.belongsTo(User);
 
-      return User.sync({ force: true }).then(function() {
-        // Can't use Promise.all cause of foreign key references
-        return Task.sync({ force: true });
-      }).then(function() {
-        return Promise.all([
-          User.create({ username: 'foo', gender: 'male' }),
-          User.create({ username: 'bar', gender: 'female' }),
-          Task.create({ title: 'task', status: 'inactive' })
-        ]);
-      }).spread(function(userA, userB, task) {
-        return task.setUserXYZ(userA).then(function() {
-          return task.getUserXYZ({where: ['gender = ?', 'female']});
+        return User.sync({ force: true }).then(function() {
+          // Can't use Promise.all cause of foreign key references
+          return Task.sync({ force: true });
+        }).then(function() {
+          return Promise.all([
+            User.create({ username: 'foo', gender: 'male' }),
+            User.create({ username: 'bar', gender: 'female' }),
+            Task.create({ title: 'task', status: 'inactive' })
+          ]);
+        }).spread(function(userA, userB, task) {
+          return task.setUserXYZ(userA).then(function() {
+            return task.getUserXYZ({where: ['gender = ?', 'female']});
+          });
+        }).then(function(user) {
+          expect(user).to.be.null;
         });
-      }).then(function(user) {
-        expect(user).to.be.null;
       });
-    });
+    }
 
     it('supports schemas', function() {
       var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING }).schema('archive')
@@ -603,8 +606,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 
     }
 
-    // NOTE: mssql does not support changing an autoincrement primary key
-    if (Support.getTestDialect() !== 'mssql') {
+    // NOTE: mssql does not support changing an autoincrement primary key / oracle does not support cascade update
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'oracle') {
       it('can cascade updates', function() {
         var Task = this.sequelize.define('Task', { title: DataTypes.STRING })
           , User = this.sequelize.define('User', { username: DataTypes.STRING });

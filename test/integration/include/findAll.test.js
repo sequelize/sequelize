@@ -197,6 +197,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       };
     });
 
+    //TODO Oracle - identifier too long
     it('should work on a nested set of relations with a where condition in between relations', function() {
       var User = this.sequelize.define('User', {})
         , SubscriptionForm = this.sequelize.define('SubscriptionForm', {})
@@ -255,6 +256,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    //TODO Oracle - identifier too long
     it('should accept nested `where` and `limit` at the same time', function() {
       var Product = this.sequelize.define('Product', {
             title: DataTypes.STRING
@@ -326,6 +328,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    //TODO Oracle - identifier too long
     it('should support an include with multiple different association types', function() {
       var User = this.sequelize.define('User', {})
         , Product = this.sequelize.define('Product', {
@@ -1193,6 +1196,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    //TODO Oracle - identifier too long
     it('should be possible to extend the on clause with a where option on nested includes', function() {
       var User = this.sequelize.define('User', {
             name: DataTypes.STRING
@@ -1615,6 +1619,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             ['id', 'ASC']
           ]
         }).then(function(products) {
+          //Oracle, sometimes strange behavior, some requests are not made... don't know why'
           expect(products.length).to.equal(10);
 
           products.forEach(function(product) {
@@ -1650,8 +1655,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                 },
                 include: [Group]
               }).then(function(users) {
-                expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
-                expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
+                  expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
+                  expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
               });
             });
           });

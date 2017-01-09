@@ -44,7 +44,12 @@
     "env-cmd": "^4.0.0",
     "generic-pool": "^3.1.6",
     "inflection": "1.10.0",
+<<<<<<< 22ac23dd95e40e728fc0222d1fa0dbee81dfb3c9
     "lodash": "^4.17.1",
+=======
+    "js-crc": "^0.1.0",
+    "lodash": "4.16.2",
+>>>>>>> feat(oracle) : passing some integration tests
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
     "retry-as-promised": "^2.0.0",
@@ -114,6 +119,7 @@
     "test-unit-all": "npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite",
     "test-integration": "mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 30000 --reporter spec \"test/integration/**/*.test.js\"",
     "test-integration-mysql": "cross-env DIALECT=mysql npm run test-integration",
+    "test-integration-oracle": "cross-env DIALECT=oracle npm run test-integration",
     "test-integration-postgres": "cross-env DIALECT=postgres npm run test-integration",
     "test-integration-postgres-native": "cross-env DIALECT=postgres-native npm run test-integration",
     "test-integration-sqlite": "cross-env DIALECT=sqlite npm run test-integration",
