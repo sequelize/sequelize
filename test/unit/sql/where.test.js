@@ -719,7 +719,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       suite('JSON', function () {
         test('sequelize.json("profile.id"), sequelize.cast(2, \'text\')")', function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.json("profile.id", this.sequelize.cast('12346-78912', 'text'))), {
-            default: "profile->>'id' = CAST('12346-78912' AS TEXT)",
+            default: "\"profile\"#>>'{id}' = CAST('12346-78912' AS TEXT)",
             sqlite: "json_extract(`profile`, '$.id') = CAST('12346-78912' AS TEXT)"
           });
         });
