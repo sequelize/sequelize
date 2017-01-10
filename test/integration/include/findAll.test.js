@@ -1967,6 +1967,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
       });
     });
 
+    //TODO Oracle - identifier too long
     it('Should return posts with nested include with inner join with a m:n association', function () {
 
       const User = this.sequelize.define('User', {

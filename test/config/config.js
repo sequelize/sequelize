@@ -22,7 +22,6 @@ module.exports = {
     return parseInt(Math.random() * 999, 10);
   },
 
-<<<<<<< HEAD
   // mssql: mssqlConfig || {
   //   database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || (function () {
   //     var db = 'sequelize-test-' + ~~(Math.random() * 100);

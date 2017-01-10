@@ -1536,105 +1536,109 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         .then(function(user) {
           user.NiceProjectId = 1;
           expect(user.NiceProjectId).to.equal(1);
-        });
+      });
     });
   });
 
-  describe('toJSON', function() {
-    beforeEach(function() {
-      var self = this;
-      this.User = this.sequelize.define('UserWithUsernameAndAgeAndIsAdmin', {
-        username: DataTypes.STRING,
-        age: DataTypes.INTEGER,
-        isAdmin: DataTypes.BOOLEAN
-      }, { timestamps: false });
+  if(dialect !== 'oracle') {
+    //Cannot work with Oracle, table length is too long
+    describe('toJSON', function() {
+      beforeEach(function() {
+        var self = this;
+        this.User = this.sequelize.define('UserWithUsernameAndAgeAndIsAdmin', {
+          username: DataTypes.STRING,
+          age: DataTypes.INTEGER,
+          isAdmin: DataTypes.BOOLEAN
+        }, { timestamps: false });
 
-      this.Project = this.sequelize.define('NiceProject', { title: DataTypes.STRING }, { timestamps: false });
+        this.Project = this.sequelize.define('NiceProject', { title: DataTypes.STRING }, { timestamps: false });
 
-      this.User.hasMany(this.Project, { as: 'Projects', foreignKey: 'lovelyUserId' });
-      this.Project.belongsTo(this.User, { as: 'LovelyUser', foreignKey: 'lovelyUserId' });
+        this.User.hasMany(this.Project, { as: 'Projects', foreignKey: 'lovelyUserId' });
+        this.Project.belongsTo(this.User, { as: 'LovelyUser', foreignKey: 'lovelyUserId' });
 
-      return this.User.sync({ force: true }).then(function() {
-        return self.Project.sync({ force: true });
+        return this.User.sync({ force: true }).then(function() {
+          return self.Project.sync({ force: true });
+        });
       });
-    });
 
-    it("dont return instance that isn't defined", function() {
-      var self = this;
-      return self.Project.create({ lovelyUserId: null })
-        .then(function(project) {
-          return self.Project.findOne({
-            where: {
-              id: project.id
-            },
-            include: [
-              { model: self.User, as: 'LovelyUser' }
-            ]
+      it("dont return instance that isn't defined", function() {
+        var self = this;
+        return self.Project.create({ lovelyUserId: null })
+          .then(function(project) {
+            return self.Project.findOne({
+              where: {
+                id: project.id
+              },
+              include: [
+                { model: self.User, as: 'LovelyUser' }
+              ]
+            });
+          })
+          .then(function(project) {
+            var json = project.toJSON();
+            expect(json.LovelyUser).to.be.equal(null);
           });
-        })
-        .then(function(project) {
-          var json = project.toJSON();
-          expect(json.LovelyUser).to.be.equal(null);
-        });
-    });
+      });
 
-    it("dont return instances that aren't defined", function() {
-      var self = this;
-      return self.User.create({ username: 'cuss' })
-        .then(function(user) {
-          return self.User.findOne({
-            where: {
-              id: user.id
-            },
-            include: [
-              { model: self.Project, as: 'Projects' }
-            ]
+      it("dont return instances that aren't defined", function() {
+        var self = this;
+        return self.User.create({ username: 'cuss' })
+          .then(function(user) {
+            return self.User.findOne({
+              where: {
+                id: user.id
+              },
+              include: [
+                { model: self.Project, as: 'Projects' }
+              ]
+            });
+          })
+          .then(function(user) {
+            expect(user.Projects).to.be.instanceof(Array);
+            expect(user.Projects).to.be.length(0);
           });
-        })
-        .then(function(user) {
-          expect(user.Projects).to.be.instanceof(Array);
-          expect(user.Projects).to.be.length(0);
-        });
-    });
+      });
 
-    it('returns an object containing all values', function() {
-      var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true });
-      expect(user.toJSON()).to.deep.equal({ username: 'test.user', age: 99, isAdmin: true, id: null });
-    });
+      it('returns an object containing all values', function() {
+        var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true });
+        expect(user.toJSON()).to.deep.equal({ username: 'test.user', age: 99, isAdmin: true, id: null });
+      });
 
-    it('returns a response that can be stringified', function() {
-      var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true });
-      expect(JSON.stringify(user)).to.deep.equal('{"id":null,"username":"test.user","age":99,"isAdmin":true}');
-    });
+      it('returns a response that can be stringified', function() {
+        var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true });
+        expect(JSON.stringify(user)).to.deep.equal('{"id":null,"username":"test.user","age":99,"isAdmin":true}');
+      });
 
-    it('returns a response that can be stringified and then parsed', function() {
-      var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true });
-      expect(JSON.parse(JSON.stringify(user))).to.deep.equal({ username: 'test.user', age: 99, isAdmin: true, id: null });
-    });
+      it('returns a response that can be stringified and then parsed', function() {
+        var user = this.User.build({ username: 'test.user', age: 99, isAdmin: true });
+        expect(JSON.parse(JSON.stringify(user))).to.deep.equal({ username: 'test.user', age: 99, isAdmin: true, id: null });
+      });
 
-    it('includes the eagerly loaded associations', function() {
-      var self = this;
-      return this.User.create({ username: 'fnord', age: 1, isAdmin: true }).then(function(user) {
-        return self.Project.create({ title: 'fnord' }).then(function(project) {
-          return user.setProjects([project]).then(function() {
-            return self.User.findAll({include: [{ model: self.Project, as: 'Projects' }]}).then(function(users) {
-              var _user = users[0];
+      it('includes the eagerly loaded associations', function() {
+        var self = this;
+        return this.User.create({ username: 'fnord', age: 1, isAdmin: true }).then(function(user) {
+          return self.Project.create({ title: 'fnord' }).then(function(project) {
+            return user.setProjects([project]).then(function() {
+              return self.User.findAll({include: [{ model: self.Project, as: 'Projects' }]}).then(function(users) {
+                var _user = users[0];
 
-              expect(_user.Projects).to.exist;
-              expect(JSON.parse(JSON.stringify(_user)).Projects).to.exist;
+                expect(_user.Projects).to.exist;
+                expect(JSON.parse(JSON.stringify(_user)).Projects).to.exist;
 
-              return self.Project.findAll({include: [{ model: self.User, as: 'LovelyUser' }]}).then(function(projects) {
-                var _project = projects[0];
+                return self.Project.findAll({include: [{ model: self.User, as: 'LovelyUser' }]}).then(function(projects) {
+                  var _project = projects[0];
 
-                expect(_project.LovelyUser).to.exist;
-                expect(JSON.parse(JSON.stringify(_project)).LovelyUser).to.exist;
+                  expect(_project.LovelyUser).to.exist;
+                  expect(JSON.parse(JSON.stringify(_project)).LovelyUser).to.exist;
+                });
               });
             });
           });
         });
       });
     });
-  });
+
+  }
 
   describe('findAll', function() {
     beforeEach(function() {

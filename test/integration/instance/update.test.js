@@ -430,8 +430,19 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             expect(download.canceledAt instanceof Date).to.be.true;
             expect(download.finishedAt).to.not.be.ok;
 
+            var whereClause = "";
+
+            if(dialect === 'postgres' || dialect === 'mssql') {
+              whereClause = ['"finishedAt" IS NULL'];
+            } else if(dialect === 'oracle') {
+              //Nothing for Oracle as the column has been defined without anything
+              whereClause = ['finishedAt IS NULL'];
+            } else {
+              whereClause = ['`finishedAt` IS NULL'];
+            }
+
             return Download.findAll({
-              where: (dialect === 'postgres' || dialect === 'mssql' ? ['"finishedAt" IS NULL'] : ['`finishedAt` IS NULL'])
+              where: whereClause
             }).then(function(downloads) {
               downloads.forEach(function(download) {
                 expect(download.startedAt instanceof Date).to.be.true;
