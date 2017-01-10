@@ -311,7 +311,7 @@ CTEs (Common Table Expressions) are special expressions that preceded a query. T
 something.findAll({
     cte: [{
         name: 'a',
-        intial: {
+        initial: {
             where: {
                 name: 'Jane'
             }

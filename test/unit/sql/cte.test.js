@@ -29,9 +29,7 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
         expectsql(sql.selectQuery(User.getTableName(), options, User), expected);
       };
 
-
       it('automatically connects to single CTE', function () {
-
         selectTest(
           {
             cte: [{
@@ -41,13 +39,11 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
           });
-
       });
 
       it('removes empty CTE', function () {
-
         selectTest(
           {
             cte: []
@@ -55,11 +51,9 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
           {
             default: 'SELECT * FROM [users] AS [user];'
           });
-
       });
 
       it('handles single, non-array cte', function () {
-
         selectTest(
           {
             cte: {
@@ -69,13 +63,11 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
           });
-
       });
       
       it('correctly adds additional attributes to CTE', function () {
-
         selectTest(
           {
           cte: [{
@@ -92,13 +84,11 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
           }]
         },
         {
-          default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId],[total] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+          default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId],[total]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
         });
-      
       });
       
       it('correctly includes associated models in intial statement and uses it to select', function () {
-
         selectTest(
           {
             cte: [{
@@ -116,13 +106,11 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [user].[id], [user].[amount], [user].[createdAt], [user].[updatedAt], [user].[reportId] FROM [users] AS [user] INNER JOIN [projects] AS [assigned] ON [user].[id] = [assigned].[userId] AND [assigned].[name] = \'Rebuilding\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId]) AS (SELECT [user].[id], [user].[amount], [user].[createdAt], [user].[updatedAt], [user].[reportId] FROM [users] AS [user] INNER JOIN [projects] AS [assigned] ON [user].[id] = [assigned].[userId] AND [assigned].[name] = \'Rebuilding\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
           });
-
       });
       
       it('correctly handles a non-unique result', function () {
-
         selectTest(
           {
             cte: [{
@@ -137,12 +125,11 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION ALL SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION ALL SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
           });
       });     
       
       it('correctly handles a recursive include', function () {
-
         selectTest(
           {
             cte: [{
@@ -160,12 +147,11 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId] INNER JOIN [projects] AS [assigned] ON [report].[id] = [assigned].[userId]  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId] INNER JOIN [projects] AS [assigned] ON [report].[id] = [assigned].[userId]) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
           });
       });
       
       it('correctly handles a recursive where with model attributes', function () {
-
         selectTest(
           {
             cte: [{
@@ -182,12 +168,11 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  WHERE [user].[amount] > 30  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId] WHERE [user].[amount] > 30) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
           });
       });
       
       it('correctly handles a recursive where with cte attributes', function () {
-
         selectTest(
           {
             cte: [{
@@ -207,12 +192,11 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId],[total] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  WHERE [a].[total] < 500  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId],[total]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId] WHERE [a].[total] < 500) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
           });
       });
       
       it('correctly handles a recursive where with model & cte attributes', function () {
-
         selectTest(
           {
             cte: [{
@@ -233,12 +217,11 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             }]
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId],[total] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  WHERE [user].[amount] > 30 AND [a].[total] < 500  ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId],[total]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId] WHERE [user].[amount] > 30 AND [a].[total] < 500) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
           });
       });
       
       it('correctly selects attributes from the CTE in the final result', function () {
-
         selectTest(
           {
             cte: [{
@@ -259,14 +242,13 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
             includeCTEAttributes: ['total']
           },
           {
-            default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId],[total] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  WHERE [a].[total] < 500  ) SELECT [user].*, [a].[total] FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+            default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId],[total]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId], [user].[amount] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId], ([a].[total] + [report].[amount]) FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId] WHERE [a].[total] < 500) SELECT [user].*, [a].[total] FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
           });
       });
       
       if (current.dialect.supports.cteLimitOffsetOrder) {
 
         it('correctly adds order to recursion', function () {
-
           selectTest(
             {
               cte: [{
@@ -281,12 +263,11 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
               }]
             },
             {
-              default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  ORDER BY 2 ASC ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+              default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId] ORDER BY 2 ASC) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
             });
         });
 
         it('correctly adds limit & offset to recursion', function () {
-
           selectTest(
             {
               cte: [{
@@ -302,13 +283,11 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
               }]
             },
             {
-              default: 'WITH RECURSIVE a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId]  LIMIT 2, 2 ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+              default: 'WITH RECURSIVE a([id],[amount],[createdAt],[updatedAt],[reportId]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' UNION SELECT [report].[id], [report].[amount], [report].[createdAt], [report].[updatedAt], [report].[reportId] FROM [a] INNER JOIN [users] AS [report] ON [a].[id] = [report].[reportId] LIMIT 2, 2) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
             });
         });
       
-      
         it('correctly adds order to CTE with no recursion', function () {
-
           selectTest(
             {
               cte: [{
@@ -320,7 +299,7 @@ describe(Support.getTestDialectTeaser('SQL'), function () {
               }]
             },
             {
-              default: 'WITH a( [id],[amount],[createdAt],[updatedAt],[reportId] ) AS ( SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\'  ORDER BY 2 ASC ) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
+              default: 'WITH a([id],[amount],[createdAt],[updatedAt],[reportId]) AS (SELECT [id], [amount], [createdAt], [updatedAt], [reportId] FROM [users] AS [user] WHERE [user].[username] = \'user3\' ORDER BY 2 ASC) SELECT [user].* FROM [users] AS [user] INNER JOIN [a] ON [user].[id] = [a].[id];'
             });
         });
 
