@@ -415,6 +415,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(idx2.fields).to.deep.equal([
             { attribute: 'fieldC', length: undefined, order: undefined}
           ]);
+      } else if (dialect === 'oracle') {
+          // And finally mysql returns the primary first, and then the rest in the order they were defined
+          primary = arguments[0];
+          idx1 = arguments[1];
+          idx2 = arguments[2];
+
+          expect(primary.primary).to.be.ok;
+
+          expect(idx1.fields).to.deep.equal([
+            { attribute: 'FIELDB', collate:undefined, length: undefined, order: 'ASC'},
+            //As it is not an asc index, the field name is replaced, Oracle considered this column as a function an replace the name
+            { attribute: 'SYS_NC00008$', collate:undefined, length: undefined, order: 'DESC'} 
+          ]);
+
+          expect(idx2.fields).to.deep.equal([
+            { attribute: 'FIELDC', collate:undefined, length: undefined, order: 'ASC'}
+          ]);
         } else if (dialect === 'mssql') {
           idx1 = arguments[0];
 
