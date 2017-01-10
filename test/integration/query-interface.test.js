@@ -605,7 +605,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         });
       });
 
-      it('Should be able to remove a column with primaryKey', function () {
+      it('should be able to remove a column with primaryKey', function () {
         return this.queryInterface.removeColumn('users', 'manager').bind(this).then(function() {
           return this.queryInterface.describeTable('users');
         }).then(function(table) {
@@ -672,7 +672,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           });
       });
 
-      it('Should be able to remove a column with primaryKey', function () {
+      it('should be able to remove a column with primaryKey', function () {
         return this.queryInterface.removeColumn({
           tableName: 'users',
           schema: 'archive'
