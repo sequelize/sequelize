@@ -99,5 +99,11 @@ if (current.dialect.name === 'mssql') {
         mssql: "SELECT TOP 100 PERCENT id, name FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, *  FROM myTable AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName"
       });
     });
+
+    test('getPrimaryKeyConstraintQuery', function () {
+      expectsql(QueryGenerator.getPrimaryKeyConstraintQuery('myTable', 'myColumnName'), {
+        mssql: 'SELECT K.TABLE_NAME AS tableName, K.COLUMN_NAME AS columnName, K.CONSTRAINT_NAME AS constraintName FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON C.TABLE_NAME = K.TABLE_NAME AND C.CONSTRAINT_CATALOG = K.CONSTRAINT_CATALOG AND C.CONSTRAINT_SCHEMA = K.CONSTRAINT_SCHEMA AND C.CONSTRAINT_NAME = K.CONSTRAINT_NAME WHERE C.CONSTRAINT_TYPE = \'PRIMARY KEY\' AND K.COLUMN_NAME = \'myColumnName\' AND K.TABLE_NAME = \'myTable\';'
+      });
+    });
   });
 }
