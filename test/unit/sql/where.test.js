@@ -718,14 +718,25 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     if (current.dialect.supports.JSON) {
       suite('JSON', function () {
         if (current.dialect.name === 'mysql') {
-          test('sequelize.json("profile->>\'$.id\', sequelize.cast(2, \'text\')")', function () {
-
+          test('sequelize.json("profile->>\'$.id\'", sequelize.cast(2, \'text\'))', function () {
             expectsql(sql.whereItemQuery(undefined, this.sequelize.json("profile->>'$.id'", this.sequelize.cast('12346-78912', 'text'))), {
               mysql: "profile->>'$.id' = CAST('12346-78912' AS TEXT)"
             });
           });
+
+          test('sequelize.json("profile.id", sequelize.cast(2, \'text\'))', function () {
+            expectsql(sql.whereItemQuery(undefined, this.sequelize.json("profile.id", this.sequelize.cast('12346-78912', 'text'))), {
+              mysql: "`profile`->>'$.id' = CAST('12346-78912' AS TEXT)"
+            });
+          });
+
+          test('sequelize.json({profile: {id: "12346-78912", name: "test"}})', function () {
+            expectsql(sql.whereItemQuery(undefined, this.sequelize.json({profile: {id: "12346-78912", name: "test"}})), {
+              mysql: "`profile`->>'$.id' = '12346-78912' and `profile`->>'$.name' = 'test'"
+            });
+          });
         } else {
-          test('sequelize.json("profile->>\'id\', sequelize.cast(2, \'text\')")', function () {
+          test('sequelize.json("profile->>\'id\'", sequelize.cast(2, \'text\'))', function () {
             expectsql(sql.whereItemQuery(undefined, this.sequelize.json("profile->>'id'", this.sequelize.cast('12346-78912', 'text'))), {
               postgres: "profile->>'id' = CAST('12346-78912' AS TEXT)"
             });
@@ -757,7 +768,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           field: {
             type: new DataTypes.JSONB()
           },
-          prefix: 'User'
+          prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {tableName: 'User'}))
         }, {
           default: "(([User].[data]#>>'{nested, attribute}') = 'value' AND ([User].[data]#>>'{nested, prop}') != 'None')",
           mysql: "(`User`.`data`->>'$.nested.attribute' = 'value' AND `User`.`data`->>'$.nested.prop' != 'None')"
