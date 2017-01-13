@@ -717,11 +717,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
     if (current.dialect.supports.JSON) {
       suite('JSON', function () {
-        test('sequelize.json("profile->>\'id\', sequelize.cast(2, \'text\')")', function () {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.json("profile->>'id'", this.sequelize.cast('12346-78912', 'text'))), {
-            postgres: "profile->>'id' = CAST('12346-78912' AS TEXT)"
+        if (current.dialect.name === 'mysql') {
+          test('sequelize.json("profile->>\'$.id\', sequelize.cast(2, \'text\')")', function () {
+
+            expectsql(sql.whereItemQuery(undefined, this.sequelize.json("profile->>'$.id'", this.sequelize.cast('12346-78912', 'text'))), {
+              mysql: "profile->>'$.id' = CAST('12346-78912' AS TEXT)"
+            });
           });
-        });
+        } else {
+          test('sequelize.json("profile->>\'id\', sequelize.cast(2, \'text\')")', function () {
+            expectsql(sql.whereItemQuery(undefined, this.sequelize.json("profile->>'id'", this.sequelize.cast('12346-78912', 'text'))), {
+              postgres: "profile->>'id' = CAST('12346-78912' AS TEXT)"
+            });
+          });
+        }
 
         testsql('data', {
           nested: {
@@ -733,7 +742,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           },
           prefix: 'User'
         }, {
-          default: "([User].[data]#>>'{nested, attribute}') = 'value'"
+          default: "([User].[data]#>>'{nested, attribute}') = 'value'",
+          mysql: "`User`.`data`->>'$.nested.attribute' = 'value'"
         });
 
         testsql('data', {
@@ -749,7 +759,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           },
           prefix: 'User'
         }, {
-          default: "(([User].[data]#>>'{nested, attribute}') = 'value' AND ([User].[data]#>>'{nested, prop}') != 'None')"
+          default: "(([User].[data]#>>'{nested, attribute}') = 'value' AND ([User].[data]#>>'{nested, prop}') != 'None')",
+          mysql: "(`User`.`data`->>'$.nested.attribute' = 'value' AND `User`.`data`->>'$.nested.prop' != 'None')"
         });
 
         testsql('data', {
@@ -765,7 +776,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           },
           prefix: 'User'
         }, {
-          default: "(([User].[data]#>>'{name, last}') = 'Simpson' AND ([User].[data]#>>'{employment}') != 'None')"
+          default: "(([User].[data]#>>'{name, last}') = 'Simpson' AND ([User].[data]#>>'{employment}') != 'None')",
+          mysql: "(`User`.`data`->>'$.name.last' = 'Simpson' AND `User`.`data`->>'$.employment' != 'None')"
         });
 
         testsql('data.nested.attribute', 'value', {
@@ -777,7 +789,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         }, {
-          default: "([data]#>>'{nested, attribute}') = 'value'"
+          default: "([data]#>>'{nested, attribute}') = 'value'",
+          mysql: "`data`->>'$.nested.attribute' = 'value'"
         });
 
         testsql('data.nested.attribute', 4, {
@@ -789,7 +802,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::double precision = 4"
+          default: "([data]#>>'{nested, attribute}')::double precision = 4",
+          mysql: "`data`->>'$.nested.attribute' = 4"
         });
 
         testsql('data.nested.attribute', {
@@ -803,7 +817,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         }, {
-          default: "([data]#>>'{nested, attribute}') IN (3, 7)"
+          default: "([data]#>>'{nested, attribute}') IN (3, 7)",
+          mysql: "`data`->>'$.nested.attribute' IN (3, 7)"
         });
 
         testsql('data', {
@@ -817,7 +832,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::double precision > 2"
+          default: "([data]#>>'{nested, attribute}')::double precision > 2",
+          mysql: "`data`->>'$.nested.attribute' > 2"
         });
 
         testsql('data', {
@@ -831,7 +847,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::integer > 2"
+          default: "([data]#>>'{nested, attribute}')::integer > 2",
+          mysql: "`data`->>'$.nested.attribute' > 2"
         });
 
         var dt = new Date();
@@ -846,7 +863,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::timestamptz > "+sql.escape(dt)
+          default: "([data]#>>'{nested, attribute}')::timestamptz > "+sql.escape(dt),
+          mysql: "`data`->>'$.nested.attribute' > "+sql.escape(dt)
         });
 
         testsql('data', {
@@ -858,7 +876,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::boolean = true"
+          default: "([data]#>>'{nested, attribute}')::boolean = true",
+          mysql: "`data`->>'$.nested.attribute' = true"
         });
 
         testsql('data', {
@@ -870,7 +889,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: '[data] @> \'{"company":"Magnafone"}\''
+          default: '[data] @> \'{"company":"Magnafone"}\'',
+          mysql: 'JSON_CONTAINS(`data`, \'{"company":"Magnafone"}\')'
         });
 
         testsql('metaData.nested.attribute', 'value', {
@@ -884,7 +904,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         }, {
-          default: "([meta_data]#>>'{nested, attribute}') = 'value'"
+          default: "([meta_data]#>>'{nested, attribute}') = 'value'",
+          mysql: "`meta_data`->>'$.nested.attribute' = 'value'"
         });
       });
     }

@@ -129,15 +129,17 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     }
 
     if (current.dialect.supports.JSON) {
-      test('operator', function () {
-        expectsql(sql.addIndexQuery('table', {
-          fields: ['event'],
-          using: 'gin',
-          operator: 'jsonb_path_ops'
-        }), {
-          postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)'
+      if (current.dialect.name !== 'mysql') {
+        test('operator', function () {
+          expectsql(sql.addIndexQuery('table', {
+            fields: ['event'],
+            using: 'gin',
+            operator: 'jsonb_path_ops'
+          }), {
+            postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)'
+          });
         });
-      });
+      }
     }
 
     if (current.dialect.name === 'postgres') {
