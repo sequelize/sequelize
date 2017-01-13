@@ -8,7 +8,6 @@ var Support   = require(__dirname + '/../support')
   , current = Support.sequelize;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
-//console.log('DataTypes',DataTypes);process.exit(1);
 if (current.dialect.supports.JSON) {
   const type = DataTypes[current.dialect.name].JSON ?
     new DataTypes[current.dialect.name].JSON() :
