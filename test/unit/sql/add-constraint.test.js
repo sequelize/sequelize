@@ -8,7 +8,7 @@ const sql = current.dialect.QueryGenerator;
 const expect = require('chai').expect;
 const dialect = Support.getTestDialect();
 
-if (dialect === 'mssql' || dialect === 'postgres') {
+if (dialect !== 'sqlite') {
   describe(Support.getTestDialectTeaser('SQL'), function() {
     describe('addConstraint', function() {
       describe('unique', function() {
