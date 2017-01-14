@@ -306,6 +306,74 @@ queryInterface.removeIndex('Person', 'SuperDuperIndex')
 queryInterface.removeIndex('Person', ['firstname', 'lastname'])
 ```
 
+### addConstraint(tableName, indexNameOrAttributes, options)
+This method adds a new constraint of the specified type.
+
+Available constraints:
+ - UNIQUE
+ - DEFAULT (MSSQL only)
+ - CHECK (MySQL - Ignored by the database engine )
+ - FOREIGN KEY
+ - PRIMARY KEY
+
+```js
+//UNIQUE
+queryInterface.addConstraint('Users', ['email'], {
+  type: 'unique',
+  name: 'custom_unique_constraint_name' //If not specifed, sequelize automatically creates a named constraint based on constraint type, table & column names
+});
+
+//CHECK
+queryInterface.addConstraint('Users', ['roles'], {
+  type: 'check',
+  where: {
+    roles: ['user', 'admin', 'moderator', 'guest']
+  }
+});
+//Constraint name is automatically constructed.
+
+//Default - MSSQL only
+queryInterface.addConstraint('Users', ['roles'], {
+  type: 'default',
+  defaultValue: 'guest'
+});
+
+//Primary Key
+queryInterface.addConstraint('Users', ['username'], {
+  type: 'primary key',
+  name: 'custom_primary_constraint_name'
+});
+
+//Foreign Key
+queryInterface.addConstraint('Posts', ['username'], {
+  type: 'FOREIGN KEY',
+  references: { //Required field
+    model: 'target_table_name',
+    key: 'target_column_name',
+    onDelete: 'cascade',
+    onUpdate: 'cascade'
+  }
+});
+```
+
+### removeConstraint(tableName, constraintName, options)
+
+This method deletes an existing constraint of a table
+
+```js
+queryInterface.removeConstraint('Users', 'my_constraint_name');
+
+```
+
+### showConstraint(tableName, options)
+
+Lists all the constraints on the given table.
+
+```js
+queryInterface.showConstraint('Users');
+// Returns array of objects/constraints
+```
+
 ## Programmatic use
 Sequelize has a [sister library](https://github.com/sequelize/umzug) for programmatically handling execution and logging of migration tasks.
 
