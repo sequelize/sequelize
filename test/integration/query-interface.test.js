@@ -912,7 +912,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
     if (dialect !== 'mysql') {
       it('should add, read & remove check constraint', function() {
-        return this.queryInterface.addConstraint('users', ['email'], {
+        return this.queryInterface.addConstraint('users', ['roles'], {
           type: 'check',
           where: {
             roles: ['user', 'admin', 'guest', 'moderator']
