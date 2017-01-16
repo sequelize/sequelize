@@ -1,8 +1,54 @@
 # Future
-- [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
+- [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
+- [ADDED] Support `sourceKey` for `hasMany` relationships [#4258](https://github.com/sequelize/sequelize/issues/4258)
+
+# 3.29.0
+- [FIXED] Transaction Name too long, transaction savepoints for SQL Server [#6972](https://github.com/sequelize/sequelize/pull/6972)
+
+# 3.28.0
+- [FIXED] Soft-delete not returning number of affected rows on mssql [#6916](https://github.com/sequelize/sequelize/pull/6916)
+- [ADDED] `afterConnect` hook
+- [FIXED] Range integer parsing [#6897](https://github.com/sequelize/sequelize/pull/6897)
+- [FIXED] Upsert return value for mysql [#6963](https://github.com/sequelize/sequelize/pull/6963)
+
+# 3.27.0
+- [FIXED] Incorrect column name for generateThroughJoin [#6878](https://github.com/sequelize/sequelize/pull/6878)
+- [ADDED] Support condition objects in utility functions [#6685](https://github.com/sequelize/sequelize/pull/6685)
+
+# 3.26.0
+- [ADDED] Backport of mssql upsert [#6875](https://github.com/sequelize/sequelize/pull/6875)
+
+# 3.25.1
+- [FIXED] fix instance.set '1970-01-01' to null field [#6839](https://github.com/sequelize/sequelize/pull/6839)
+- [FIXED] Can not execute raw SQL queries for sqlite3 [#6865](https://github.com/sequelize/sequelize/pull/6865)
+
+# 3.25.0
+- [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
+- [FIXED] Properly apply paranoid condition when `groupedLimit.on` association is `paranoid`
+- [FIXED] `restore` now uses `field` from `deletedAt`
+- [ADDED] `option.silent` for increment and decrement [#6793](https://github.com/sequelize/sequelize/pull/6793)
+
+# 3.24.7
+- [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed [#6782]
+
+# 3.24.6
+- [FIXED] groupedLimit.through.where support
+
+# 3.24.5
+- [FIXED] GroupedLimit when foreignKey has a field alias
+
+# 3.24.4
 - [FIXED] - ORDER clause was not included in subquery if `order` option value was provided as plain string (not as an array value)
 - [FIXED] Issue with belongsTo association and foreign keys [#6400](https://github.com/sequelize/sequelize/issues/6400)
-- [ADDED] Support `sourceKey` for `hasMany` relationships [#4258](https://github.com/sequelize/sequelize/issues/4258)
+- [FIXED] Check that parent exists before appending attributes [#6472](https://github.com/sequelize/sequelize/issues/6472)
+- [FIXED] Default options for insert queries [#6644](https://github.com/sequelize/sequelize/pull/6644)
+
+# 3.24.3
+- [ADDED] Backport of grouped limit include support
+- [ADDED] Export datatypes [#6578](https://github.com/sequelize/sequelize/pull/6578)
+
+# 3.24.2
+- [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
 
 # 3.24.1
 - [FIXED] Add `parent`, `original` and `sql` properties to `UniqueConstraintError`

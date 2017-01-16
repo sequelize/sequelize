@@ -24,9 +24,18 @@ if (current.dialect.supports['UNION ALL']) {
           this.Task = this.sequelize.define('task');
 
           this.ProjectUser = this.sequelize.define('project_user', {}, {timestamps: false});
+          this.ProjectUserParanoid = this.sequelize.define('project_user_paranoid', {}, {
+            timestamps: true,
+            paranoid: true,
+            createdAt: false,
+            updatedAt: false
+          });
 
           this.User.Projects = this.User.belongsToMany(this.Project, {through: this.ProjectUser});
           this.Project.belongsToMany(this.User, {as: 'members', through: this.ProjectUser});
+
+          this.User.ParanoidProjects = this.User.belongsToMany(this.Project, {through: this.ProjectUserParanoid});
+          this.Project.belongsToMany(this.User, {as: 'paranoidMembers', through: this.ProjectUserParanoid});
 
           this.User.Tasks = this.User.hasMany(this.Task);
 
@@ -43,6 +52,8 @@ if (current.dialect.supports['UNION ALL']) {
               return Promise.join(
                 projects[0].setMembers(users.slice(0, 4)),
                 projects[1].setMembers(users.slice(2)),
+                projects[0].setParanoidMembers(users.slice(0, 4)),
+                projects[1].setParanoidMembers(users.slice(2)),
                 users[2].setTasks(tasks)
               );
             });
@@ -137,6 +148,55 @@ if (current.dialect.supports['UNION ALL']) {
                */
               expect(users).to.have.length(5);
               expect(users.map(function (u) { return u.get('id'); })).to.deep.equal([1, 3, 5, 7, 4]);
+            });
+          });
+
+          it('works with paranoid junction models', function () {
+            return this.User.findAll({
+              attributes: ['id'],
+              groupedLimit: {
+                limit: 3,
+                on: this.User.ParanoidProjects,
+                values: this.projects.map(function (item) { return item.get('id'); })
+              },
+              order: [
+                Sequelize.fn('ABS', Sequelize.col('age')),
+                ['id', 'DESC']
+              ],
+              include: [this.User.Tasks]
+            }).bind(this).then(function (users) {
+              /*
+                project1 - 1, 3, 4
+                project2 - 3, 5, 7
+               */
+              expect(users).to.have.length(5);
+              expect(users.map(function (u) { return u.get('id'); })).to.deep.equal([1, 3, 5, 7, 4]);
+
+              return Sequelize.Promise.join(
+                this.projects[0].setParanoidMembers(users.slice(0, 2)),
+                this.projects[1].setParanoidMembers(users.slice(4))
+              );
+            }).then(function () {
+              return this.User.findAll({
+                attributes: ['id'],
+                groupedLimit: {
+                  limit: 3,
+                  on: this.User.ParanoidProjects,
+                  values: this.projects.map(function (item) { return item.get('id'); })
+                },
+                order: [
+                  Sequelize.fn('ABS', Sequelize.col('age')),
+                  ['id', 'DESC']
+                ],
+                include: [this.User.Tasks]
+              });
+            }).then(function (users) {
+              /*
+                project1 - 1, 3
+                project2 - 4
+               */
+              expect(users).to.have.length(3);
+              expect(users.map(function (u) { return u.get('id'); })).to.deep.equal([1, 3, 4]);
             });
           });
         });
