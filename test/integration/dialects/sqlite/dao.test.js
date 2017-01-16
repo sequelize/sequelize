@@ -41,7 +41,7 @@ if (dialect === 'sqlite') {
           return self.User.create({ username: 'new user' }).then(() => {
             return self.User.findAll({
               where: { createdAt: { $gt: new Date(2012, 1, 1) }}
-            }).then((users) => {
+            }).then(users => {
               expect(users).to.have.length(1);
             });
           });
@@ -53,7 +53,7 @@ if (dialect === 'sqlite') {
           dateField: new Date(2010, 10, 10)
         }).then(() => {
           return this.User.findAll().get(0);
-        }).then((user) => {
+        }).then(user => {
           expect(user.get('dateField')).to.be.an.instanceof(Date);
           expect(user.get('dateField')).to.equalTime(new Date(2010, 10, 10));
         });
@@ -68,7 +68,7 @@ if (dialect === 'sqlite') {
           return this.User.findAll({
             include: [this.Project]
           }).get(0);
-        }).then((user) => {
+        }).then(user => {
           expect(user.projects[0].get('dateField')).to.be.an.instanceof(Date);
           expect(user.projects[0].get('dateField')).to.equalTime(new Date(1990, 5, 5));
         });
@@ -78,7 +78,7 @@ if (dialect === 'sqlite') {
     describe('json', function() {
       it('should tell me that a column is json', function() {
         return this.sequelize.queryInterface.describeTable('Users')
-          .then((table) => {
+          .then(table => {
             expect(table.emergency_contact.type).to.equal('JSON');
           });
       });
@@ -89,7 +89,7 @@ if (dialect === 'sqlite') {
           emergency_contact: { name: 'joe', phones: [1337, 42] }
         }, {
           fields: ['id', 'username', 'document', 'emergency_contact'],
-          logging: (sql) => {
+          logging: sql => {
             const expected = '\'{"name":"joe","phones":[1337,42]}\'';
             expect(sql.indexOf(expected)).not.to.equal(-1);
           }
@@ -105,7 +105,7 @@ if (dialect === 'sqlite') {
         return this.UserFields.sync({ force: true }).then(() => {
           return self.UserFields.create({
             emergencyContact: { name: 'joe', phones: [1337, 42] }
-          }).then((user) => {
+          }).then(user => {
             expect(user.emergencyContact.name).to.equal('joe');
           });
         });
@@ -120,10 +120,10 @@ if (dialect === 'sqlite') {
         return this.UserFields.sync({ force: true }).then(() => {
           return self.UserFields.create({
             emergencyContact: { name: 'joe', phones: [1337, 42] }
-          }).then((user) => {
+          }).then(user => {
             user.emergencyContact = { name: 'larry' };
             return user.save();
-          }).then((user) => {
+          }).then(user => {
             expect(user.emergencyContact.name).to.equal('larry');
           });
         });
@@ -134,12 +134,12 @@ if (dialect === 'sqlite') {
         const emergencyContact = { name: 'kate', phone: 1337 };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then((user) => {
+          .then(user => {
             expect(user.emergency_contact).to.eql(emergencyContact); // .eql does deep value comparison instead of
                                                                      // strict equal comparison
             return self.User.find({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
           })
-          .then((user) => {
+          .then(user => {
             expect(user.emergency_contact).to.eql(emergencyContact);
           });
       });
@@ -149,11 +149,11 @@ if (dialect === 'sqlite') {
         const emergencyContact = { name: 'kate', phones: [1337, 42] };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then((user) => {
+          .then(user => {
             expect(user.emergency_contact).to.eql(emergencyContact);
             return self.User.find({ where: { username: 'swen' }, attributes: [[Sequelize.json('emergency_contact.phones[1]'), 'firstEmergencyNumber']] });
           })
-          .then((user) => {
+          .then(user => {
             expect(parseInt(user.getDataValue('firstEmergencyNumber'))).to.equal(42);
           });
       });
@@ -163,11 +163,11 @@ if (dialect === 'sqlite') {
         const emergencyContact = { kate: 1337 };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then((user) => {
+          .then(user => {
             expect(user.emergency_contact).to.eql(emergencyContact);
             return self.User.find({ where: { username: 'swen' }, attributes: [[Sequelize.json('emergency_contact.kate'), 'katesNumber']] });
           })
-          .then((user) => {
+          .then(user => {
             expect(parseInt(user.getDataValue('katesNumber'))).to.equal(1337);
           });
       });
@@ -177,17 +177,17 @@ if (dialect === 'sqlite') {
         const emergencyContact = { kate: { email: 'kate@kate.com', phones: [1337, 42] } };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then((user) => {
+          .then(user => {
             expect(user.emergency_contact).to.eql(emergencyContact);
             return self.User.find({ where: { username: 'swen' }, attributes: [[Sequelize.json('emergency_contact.kate.email'), 'katesEmail']] });
           })
-          .then((user) => {
+          .then(user => {
             expect(user.getDataValue('katesEmail')).to.equal('kate@kate.com');
           })
           .then(() => {
             return self.User.find({ where: { username: 'swen' }, attributes: [[Sequelize.json('emergency_contact.kate.phones[1]'), 'katesFirstPhone']] });
           })
-          .then((user) => {
+          .then(user => {
             expect(parseInt(user.getDataValue('katesFirstPhone'))).to.equal(42);
           });
       });
@@ -201,7 +201,7 @@ if (dialect === 'sqlite') {
           .then(() => {
             return self.User.find({ where: Sequelize.json(`json_extract(emergency_contact, '$.name')`, 'kate'), attributes: ['username', 'emergency_contact'] });
           })
-          .then((user) => {
+          .then(user => {
             expect(user.emergency_contact.name).to.equal('kate');
           });
       });
@@ -217,7 +217,7 @@ if (dialect === 'sqlite') {
               where: Sequelize.json({ emergency_contact: { name: 'kate' } })
             });
           })
-          .then((user) => {
+          .then(user => {
             expect(user.emergency_contact.name).to.equal('kate');
           });
       });
@@ -231,7 +231,7 @@ if (dialect === 'sqlite') {
           .then(() => {
             return self.User.find({ where: Sequelize.json('emergency_contact.name', 'joe') });
           })
-          .then((user) => {
+          .then(user => {
             expect(user.emergency_contact.name).to.equal('joe');
           });
       });
@@ -248,7 +248,7 @@ if (dialect === 'sqlite') {
               where: Sequelize.json('emergencyContact.name', 'joe')
             });
           })
-          .then((user) => {
+          .then(user => {
             expect(user.get('contactName')).to.equal('joe');
           });
       });
@@ -258,7 +258,7 @@ if (dialect === 'sqlite') {
         const text = `Multi-line '$string' needing "escaping" for $$ and $1 type values`;
 
         return this.User.create({ username: 'swen', emergency_contact: { value: text } })
-          .then((user) => {
+          .then(user => {
             expect(user.isNewRecord).to.equal(false);
           })
           .then(() => {
@@ -267,7 +267,7 @@ if (dialect === 'sqlite') {
           .then(() => {
             return self.User.find({ where: Sequelize.json('emergency_contact.value', text) });
           })
-          .then((user) => {
+          .then(user => {
             expect(user.username).to.equal('swen');
           });
       });
@@ -277,7 +277,7 @@ if (dialect === 'sqlite') {
         const text = `Multi-line '$string' needing "escaping" for $$ and $1 type values`;
 
         return this.User.findOrCreate({ where: { username: 'swen' }, defaults: { emergency_contact: { value: text } } })
-          .then((user) => {
+          .then(user => {
             expect(!user.isNewRecord).to.equal(true);
           })
           .then(() => {
@@ -286,7 +286,7 @@ if (dialect === 'sqlite') {
           .then(() => {
             return self.User.find({ where: Sequelize.json('emergency_contact.value', text) });
           })
-          .then((user) => {
+          .then(user => {
             expect(user.username).to.equal('swen');
           });
       });
