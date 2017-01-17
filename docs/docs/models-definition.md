@@ -521,7 +521,7 @@ var Foo = sequelize.define('foo',  { /* bla */ }, {
   createdAt: false,
 
   // I want updatedAt to actually be called updateTimestamp
-  updatedAt: 'updateTimestamp'
+  updatedAt: 'updateTimestamp',
 
   // And deletedAt to be called destroyTime (remember to enable paranoid for this to work)
   deletedAt: 'destroyTime',
