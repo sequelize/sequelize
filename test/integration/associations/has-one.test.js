@@ -704,8 +704,8 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
   describe.only('source key', function() {
     it('uses source key on select', function () {
-      var User = this.sequelize.define('User', { activeTaskName: Sequelize.STRING })
-        , Task = this.sequelize.define('Task', { name: Sequelize.STRING });
+      var User = this.sequelize.define('User', { activeTaskId: Sequelize.STRING })
+        , Task = this.sequelize.define('Task', { id: {type: Sequelize.STRING, primaryKey: true} });
 
       User.hasOne(Task, {as: 'activeTask', sourceKey: 'activeTaskName'});
 
