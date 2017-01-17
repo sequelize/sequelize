@@ -714,15 +714,16 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
               type: Sequelize.STRING, allowNull: true,
               references: {
                 model: Task,
+                sourceKey: 'activeTaskId',
                 deferrable: Sequelize.Deferrable.INITIALLY_DEFERRED
               }
             }
           });
 
-      User.hasOne(Task, {
-        as: 'activeTask',
-        sourceKey: 'activeTaskId',
-      });
+      // Task.belongsTo(User, {
+      //   as: 'activeTask',
+      //   sourceKey: 'activeTaskId',
+      // });
 
       var that = this;
       return this.sequelize.sync({ force: true }).then(function() {
