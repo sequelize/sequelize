@@ -841,94 +841,98 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
 });
 
 describe('Association', function() {
-  it('should set foreignKey on foreign table', function () {
-    const Mail = this.sequelize.define('mail', {}, { timestamps: false });
-    const Entry = this.sequelize.define('entry', {}, { timestamps: false });
-    const User = this.sequelize.define('user', {}, { timestamps: false });
-    Entry.belongsTo(User, { as: 'owner', foreignKey: { name: 'ownerId', allowNull: false } });
-    Entry.belongsTo(Mail, {
-      as: 'mail',
-      foreignKey: {
-        name: 'mailId',
-        allowNull: false
-      }
-    });
-    Mail.belongsToMany(User, {
-      as: 'recipients',
-      through: 'MailRecipients',
-      otherKey: {
-        name: 'recipientId',
-        allowNull: false
-      },
-      foreignKey: {
-        name: 'mailId',
-        allowNull: false
-      },
-      timestamps: false
-    });
-    Mail.hasMany(Entry, {
-      as: 'entries',
-      foreignKey: {
-        name: 'mailId',
-        allowNull: false
-      }
-    });
-    User.hasMany(Entry, {
-      as: 'entries',
-      foreignKey: {
-        name: 'ownerId',
-        allowNull: false
-      }
-    });
-    return this.sequelize.sync({ force: true })
-      .then(() => User.create({}))
-      .then(() => Mail.create({}))
-      .then(mail =>
-        Entry.create({ mailId: mail.id, ownerId: 1 })
-          .then(() => Entry.create({ mailId: mail.id, ownerId: 1 }))
-          // set recipients
-          .then(() => mail.setRecipients([1]))
-      )
-      .then(() => Entry.findAndCount({
-        offset: 0,
-        limit: 10,
-        order: [['id', 'DESC']],
-        include: [
-          {
-            association: Entry.associations.mail,
-            include: [
-              {
-                association: Mail.associations.recipients,
-                through: {
-                  where: {
+
+  //Oracle - identifier too long
+  if(Support.getTestDialect() !== 'oracle') {
+    it('should set foreignKey on foreign table', function () {
+      const Mail = this.sequelize.define('mail', {}, { timestamps: false });
+      const Entry = this.sequelize.define('entry', {}, { timestamps: false });
+      const User = this.sequelize.define('user', {}, { timestamps: false });
+      Entry.belongsTo(User, { as: 'owner', foreignKey: { name: 'ownerId', allowNull: false } });
+      Entry.belongsTo(Mail, {
+        as: 'mail',
+        foreignKey: {
+          name: 'mailId',
+          allowNull: false
+        }
+      });
+      Mail.belongsToMany(User, {
+        as: 'recipients',
+        through: 'MailRecipients',
+        otherKey: {
+          name: 'recipientId',
+          allowNull: false
+        },
+        foreignKey: {
+          name: 'mailId',
+          allowNull: false
+        },
+        timestamps: false
+      });
+      Mail.hasMany(Entry, {
+        as: 'entries',
+        foreignKey: {
+          name: 'mailId',
+          allowNull: false
+        }
+      });
+      User.hasMany(Entry, {
+        as: 'entries',
+        foreignKey: {
+          name: 'ownerId',
+          allowNull: false
+        }
+      });
+      return this.sequelize.sync({ force: true })
+        .then(() => User.create({}))
+        .then(() => Mail.create({}))
+        .then(mail =>
+          Entry.create({ mailId: mail.id, ownerId: 1 })
+            .then(() => Entry.create({ mailId: mail.id, ownerId: 1 }))
+            // set recipients
+            .then(() => mail.setRecipients([1]))
+        )
+        .then(() => Entry.findAndCount({
+          offset: 0,
+          limit: 10,
+          order: [['id', 'DESC']],
+          include: [
+            {
+              association: Entry.associations.mail,
+              include: [
+                {
+                  association: Mail.associations.recipients,
+                  through: {
+                    where: {
+                      recipientId: 1
+                    }
+                  },
+                  required: true
+                }
+              ],
+              required: true
+            }
+          ]
+        })).then(result => {
+          expect(result.count).to.equal(2);
+          expect(result.rows[0].get({ plain: true })).to.deep.equal(
+            {
+              id: 2,
+              ownerId: 1,
+              mailId: 1,
+              mail: {
+                id: 1,
+                recipients: [{
+                  id: 1,
+                  MailRecipients: {
+                    mailId: 1,
                     recipientId: 1
                   }
-                },
-                required: true
+                }]
               }
-            ],
-            required: true
-          }
-        ]
-      })).then(result => {
-        expect(result.count).to.equal(2);
-        expect(result.rows[0].get({ plain: true })).to.deep.equal(
-          {
-            id: 2,
-            ownerId: 1,
-            mailId: 1,
-            mail: {
-              id: 1,
-              recipients: [{
-                id: 1,
-                MailRecipients: {
-                  mailId: 1,
-                  recipientId: 1
-                }
-              }]
             }
-          }
-        );
-      });
-  });
+          );
+        });
+    });
+  }
 });

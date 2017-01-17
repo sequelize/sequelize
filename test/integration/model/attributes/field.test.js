@@ -481,6 +481,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someProperty"'),
               [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2']
             ];
+          } else if (dialect === 'oracle') {
+            findAttributes = [
+              Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END AS NUMBER) AS "someProperty"'),
+              [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END AS NUMBER)'), 'someProperty2']
+            ];
           } else {
             findAttributes = [
               Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),

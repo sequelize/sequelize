@@ -71,11 +71,6 @@ module.exports = {
   },
 
   oracle: {
-    // username : process.env.NODE_ORACLEDB_USER || 'system',
-    // password : process.env.NODE_ORACLEDB_PASSWORD || 'oracle',
-    // // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
-    // database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'xe.oracle.docker',
-    // host : process.env.NODE_ORACLEDB_HOST || 'vmugit.kimdomain.local',
     username : process.env.NODE_ORACLEDB_USER || 'sequelize',
     password : process.env.NODE_ORACLEDB_PASSWORD || 'sequelize',
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
@@ -85,6 +80,17 @@ module.exports = {
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
     externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
   },
+
+  // oracle: {
+  //   username : process.env.NODE_ORACLEDB_USER || 'DEV_RD',
+  //   password : process.env.NODE_ORACLEDB_PASSWORD || 'DEV_RD',
+  //   // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
+  //   database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'ORCL12HOT.kimdomain.local',
+  //   host : process.env.NODE_ORACLEDB_HOST || 'vm2008ora12hot',
+  //   port : process.env.NODE_ORACLEDB_PORT || 1521,
+  //   // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
+  //   externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
+  // },
 
   postgres: {
     database: process.env.SEQ_PG_DB   || process.env.SEQ_DB    || 'sequelize_test',

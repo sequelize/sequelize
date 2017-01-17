@@ -39,6 +39,9 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         return expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
       } else {
+        if(dialect === 'oracle') {
+          return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionAccessDeniedError);  
+        }
         return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionRefusedError, 'connect ECONNREFUSED');
       }
     });
@@ -46,7 +49,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
     it('when we don\'t have a valid dialect.', function() {
       expect(function() {
         new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {host: '0.0.0.1', port: config[dialect].port, dialect: 'some-fancy-dialect'});
-      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mysql, postgres, and sqlite.');
+      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mysql, postgres, oracle and sqlite.');
     });
   });
 
@@ -131,12 +134,4 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
     }
   });
 
-  describe("TESTING ORACLE", function() {
-    it('testing oracle connection', function() {
-      let sequelize = new Sequelize(null, 'DEV_RD', 'DEV_RD', {dialect : "oracle", database : "vm2008ora12hot:1521/ORCL12HOT.kimdomain.local"});
-      let config = sequelize.config;
-      expect(config.username).to.not.be.ok;
-      expect(config.password).to.be.null;
-    });
-  });
 });
