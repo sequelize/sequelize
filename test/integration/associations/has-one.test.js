@@ -700,6 +700,33 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
     });
   });
 
+  // TODO: Verify that test fails without new features
+
+  describe.only('source key', function() {
+    it('uses source key on select', function () {
+      var User = this.sequelize.define('User', { activeTaskName: Sequelize.STRING })
+        , Task = this.sequelize.define('Task', { name: Sequelize.STRING });
+
+      User.hasOne(Task, {as: 'activeTask', sourceKey: 'activeTaskName'});
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return Task.create({ name: 'foo-inactive' }).then(function(inactiveTask) {
+          return Task.create({ name: 'foo-active' }).then(function(activeTask) {
+            return User.create({ activeTaskName: 'foo-active' }).then(function(user) {
+              return user.getActiveTask().then(function(activeTask) {
+                expect(activeTask.name).to.equal('foo-active');
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('sets source key with association helpers', function () {
+
+    });
+  });
+
   describe('Counter part', function() {
     describe('BelongsTo', function() {
       it('should only generate one foreign key', function() {
