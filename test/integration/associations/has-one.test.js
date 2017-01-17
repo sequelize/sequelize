@@ -729,7 +729,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
       console.log(Task.associations);
       console.log(User.associations);
-      console.log('nnn', User.build({}).getActiveTask);
+      console.log(User.build({}).getActiveTask);
 
       var that = this;
       return this.sequelize.sync({ force: true }).then(function() {
