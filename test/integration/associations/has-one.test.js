@@ -732,10 +732,14 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
       var that = this;
       return that.sequelize.transaction(function (t) {
+        return Promise.all([
+          User.sync({transaction: t}),
+          Task.sync({transaction: t})
+        ]);
+      }).then(function() {
+        return that.sequelize.transaction(function (t) {
         // return User.drop({transaction: t}).then(function() {
         //   return Task.drop({transaction: t}).then(function() {
-            return User.sync({transaction: t}).then(function() {
-              return Task.sync({transaction: t}).then(function() {
                 // Create items in parallel due to cyclic foreign keys between task/user
                 return Promise.all([
                   Task.create({ id: 'foo-inactive' }, {transaction: t}),
@@ -751,10 +755,9 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
                   });
                 });
               });
-            });
         //   });
-        // });
-      });
+        });
+      // });
     });
 
     it('sets source key with association helpers', function () {
