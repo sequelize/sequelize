@@ -701,13 +701,14 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
   });
 
   // TODO: Verify that test fails without new features
+  // TODO: Add foreign key for `activeTaskId`
 
   describe.only('source key', function() {
     it('uses source key on select', function () {
       var Task = this.sequelize.define('Task', { id: {type: Sequelize.STRING, primaryKey: true} })
         , User = this.sequelize.define('User', {
             id: {type: Sequelize.STRING, primaryKey: true},
-            activeTaskId: Sequelize.STRING
+            activeTaskId: {type: Sequelize.STRING, allowNull: true}
           });
 
       User.hasOne(Task, {
@@ -721,10 +722,10 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
           return Task.create({ id: 'foo-active' }).then(function(activeTask) {
             return User.create({ id: 'foo', activeTaskId: 'foo-active' }).then(function(user) {
               return User.findOne({include: [{model: Task, as: 'activeTask'}]}).then(function(user2) {
-                return user2.getActiveTask().then(function(activeTask) {
-                  console.log('huh', activeTask);
+                // return user2.getActiveTask().then(function(activeTask) {
+                console.log('huh', user.get('activeTask'));
                   // expect(activeTask.name).to.equal('foo-active');
-                });
+                // });
               });
             });
           });
