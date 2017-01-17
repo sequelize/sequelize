@@ -703,7 +703,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
   // TODO: Verify that test fails without new features
   // TODO: Add foreign key for `activeTaskId`
 
-  describe.only('source key', function() {
+  describe.skip('source key', function() {
     it('uses source key on select', function () {
       var Task = this.sequelize.define('Task', {
             id: {type: Sequelize.STRING, primaryKey: true},
