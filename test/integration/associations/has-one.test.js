@@ -703,7 +703,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
   // TODO: Verify that test fails without new features
   // TODO: Add foreign key for `activeTaskId`
 
-  describe.skip('source key', function() {
+  describe.only('source key', function() {
     it('uses source key on select', function () {
       var Task = this.sequelize.define('Task', {
             id: {type: Sequelize.STRING, primaryKey: true},
@@ -715,7 +715,6 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
               type: Sequelize.STRING, allowNull: true,
               references: {
                 model: Task,
-                sourceKey: 'activeTaskId',
                 deferrable: Sequelize.Deferrable.INITIALLY_DEFERRED
               }
             },
@@ -727,28 +726,34 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
         foreignKey: 'id'
       });
 
-      console.log(Task.associations);
-      console.log(User.associations);
-      console.log(User.build({}).getActiveTask);
+      // console.log(Task.associations);
+      // console.log(User.associations);
+      // console.log(User.build({}).getActiveTask);
 
       var that = this;
-      return this.sequelize.sync({ force: true }).then(function() {
-        // Create items in parallel due to cyclic foreign keys between task/user
-        return that.sequelize.transaction(function (t) {
-          return Promise.all([
-            Task.create({ id: 'foo-inactive' }, {transaction: t}),
-            Task.create({ id: 'foo-active' }, {transaction: t}),
-            User.create({ id: 'foo', activeTaskId: 'foo-active' }, {transaction: t})
-          ]);
-        }).then(function(results) {
-          // console.log(results);
-          return User.findOne({include: [{model: Task, as: 'activeTask'}]}).then(function(user) {
-            // return user2.getActiveTask().then(function(activeTask) {
-            console.log('huh', user.get('activeTask'));
-              // expect(activeTask.name).to.equal('foo-active');
-            // });
-          });
-        });
+      return that.sequelize.transaction(function (t) {
+        // return User.drop({transaction: t}).then(function() {
+        //   return Task.drop({transaction: t}).then(function() {
+            return User.sync({transaction: t}).then(function() {
+              return Task.sync({transaction: t}).then(function() {
+                // Create items in parallel due to cyclic foreign keys between task/user
+                return Promise.all([
+                  Task.create({ id: 'foo-inactive' }, {transaction: t}),
+                  Task.create({ id: 'foo-active' }, {transaction: t}),
+                  User.create({ id: 'foo', activeTaskId: 'foo-active' }, {transaction: t})
+                ]).then(function(results) {
+                  // console.log(results);
+                  return User.findOne({include: [{model: Task, as: 'activeTask'}]}).then(function(user) {
+                    // return user2.getActiveTask().then(function(activeTask) {
+                    console.log('huh', user.get('activeTask'));
+                      // expect(activeTask.name).to.equal('foo-active');
+                    // });
+                  });
+                });
+              });
+            });
+        //   });
+        // });
       });
     });
 
