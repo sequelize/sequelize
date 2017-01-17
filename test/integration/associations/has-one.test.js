@@ -704,15 +704,15 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
   describe.only('source key', function() {
     it('uses source key on select', function () {
-      var User = this.sequelize.define('User', { activeTaskId: Sequelize.STRING })
+      var User = this.sequelize.define('User', { id: {type: Sequelize.STRING, primaryKey: true}, activeTaskId: Sequelize.STRING })
         , Task = this.sequelize.define('Task', { id: {type: Sequelize.STRING, primaryKey: true} });
 
-      User.hasOne(Task, {as: 'activeTask', sourceKey: 'activeTaskName'});
+      User.hasOne(Task, {as: 'activeTask', sourceKey: 'activeTaskId'});
 
       return this.sequelize.sync({ force: true }).then(function() {
-        return Task.create({ name: 'foo-inactive' }).then(function(inactiveTask) {
-          return Task.create({ name: 'foo-active' }).then(function(activeTask) {
-            return User.create({ activeTaskName: 'foo-active' }).then(function(user) {
+        return Task.create({ id: 'foo-inactive' }).then(function(inactiveTask) {
+          return Task.create({ id: 'foo-active' }).then(function(activeTask) {
+            return User.create({ id: 'foo', activeTaskId: 'foo-active' }).then(function(user) {
               return user.getActiveTask().then(function(activeTask) {
                 expect(activeTask.name).to.equal('foo-active');
               });
