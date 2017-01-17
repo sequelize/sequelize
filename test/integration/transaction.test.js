@@ -10,6 +10,17 @@ var chai = require('chai')
   , sinon = require('sinon')
   , current = Support.sequelize;
 
+//Function adding the from dual clause for requests
+var formatQuery = function(qry, force) {
+  if((dialect === 'oracle' && qry.indexOf('FROM') === -1) || (force != undefined && force)) {
+    if(qry.charAt(qry.length - 1) === ';') {
+      qry = qry.substr(0,qry.length -1);
+    }
+    return qry + ' FROM DUAL';
+  }
+  return qry;
+};
+
 if (current.dialect.supports.transactions) {
 
 describe(Support.getTestDialectTeaser('Transaction'), function() {
@@ -118,15 +129,15 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
   it('does not allow queries after commit', function() {
     var self = this;
     return this.sequelize.transaction().then(function(t) {
-      return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(function() {
+      return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).then(function() {
         return t.commit();
       }).then(function() {
-        return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true});
+        return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true});
       });
     }).throw(new Error('Expected error not thrown'))
     .catch (function (err) {
       expect (err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
-      expect (err.sql).to.equal('SELECT 1+1');
+      expect (err.sql).to.equal(formatQuery('SELECT 1+1'));
     });
   });
 
@@ -134,14 +145,14 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     var self = this;
     return expect(
       this.sequelize.transaction().then(function(t) {
-        return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(function() {
+        return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).then(function() {
           return Promise.join(
             expect(t.commit()).to.eventually.be.fulfilled,
-            self.sequelize.query('SELECT 1+1', {transaction: t, raw: true})
+            self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true})
               .throw(new Error('Expected error not thrown'))
               .catch (function (err) {
                 expect (err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
-                expect (err.sql).to.equal('SELECT 1+1');
+                expect (err.sql).to.equal(formatQuery('SELECT 1+1'));
               })
           );
         });
@@ -153,10 +164,10 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
     var self = this;
     return expect(
       this.sequelize.transaction().then(function(t) {
-        return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(function() {
+        return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).then(function() {
           return t.rollback();
         }).then(function() {
-          return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true});
+          return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true});
         });
       })
     ).to.eventually.be.rejected;
@@ -168,11 +179,11 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
       this.sequelize.transaction().then(function(t) {
         return Promise.join(
           expect(t.rollback()).to.eventually.be.fulfilled,
-          self.sequelize.query('SELECT 1+1', {transaction: t, raw: true})
+          self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true})
             .throw(new Error('Expected error not thrown'))
             .catch (function (err) {
               expect (err.message).to.match(/rollback has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
-              expect (err.sql).to.equal('SELECT 1+1');
+              expect (err.sql).to.equal(formatQuery('SELECT 1+1'));
             })
         );
       })

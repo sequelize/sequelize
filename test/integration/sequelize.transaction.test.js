@@ -74,6 +74,9 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
           case 'mssql':
             query = 'WAITFOR DELAY \'00:00:02\';';
             break;
+          case 'oracle':
+            query = 'BEGIN DBMS_LOCK.sleep(2); END;';
+            break;
           default:
             break;
           }

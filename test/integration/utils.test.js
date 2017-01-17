@@ -254,7 +254,7 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
       });
     });
 
-    if (Support.getTestDialect() !== 'mssql') {
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'oracle') {
       it('accepts condition object (with cast)', function() {
         const type = (Support.getTestDialect() === 'mysql') ? 'unsigned': 'int';
 
@@ -281,7 +281,7 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
       });
     }
 
-    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres') {
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres' && Support.getTestDialect() !== 'oracle') {
       it('accepts condition object (auto casting)', function() {
         return Airplane.findAll({
           attributes: [
