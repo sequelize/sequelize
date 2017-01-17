@@ -762,10 +762,11 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
 
       var that = this;
       return that.sequelize.sync({force: true}).then(function() {
-        return Task.create({ id: 'foo' }).then(function(task) {
-          var user = User.build({ id: 'bar' });
+        return Task.create({ id: 'task-foo' }).then(function(task) {
+          var user = User.build({ id: 'user-bar' });
           return user.setActiveTask(task).then(function() {
-            console.log(user.get('activeTask'));
+            // This doesn't work out properly due to `hasOne` updating the target and not source
+            expect(user.get('activeTask').get('id')).to.equal('task-foo');
           });
         });
       });
