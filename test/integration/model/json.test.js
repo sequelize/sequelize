@@ -1,8 +1,9 @@
 'use strict';
 
 /* jshint -W030 */
+/* jshint -W079 */
 /* jshint -W110 */
-var chai = require('chai')
+const chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
@@ -10,13 +11,13 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), function() {
-  if (current.dialect.supports.JSONB) {
-    describe('JSONB', function () {
+describe(Support.getTestDialectTeaser('Model'), function () {
+  if (current.dialect.supports.JSON) {
+    describe('JSON', function () {
       beforeEach(function () {
         this.Event = this.sequelize.define('Event', {
           data: {
-            type: DataTypes.JSONB,
+            type: DataTypes.JSON,
             field: 'event_data',
             index: true
           },
@@ -27,10 +28,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       if (current.dialect.supports.lock) {
-        it('findOrCreate supports transactions, json and locks', function() {
-          var self = this;
-          return current.transaction().then(function(t) {
-            return self.Event.findOrCreate({
+        it('findOrCreate supports transactions, json and locks', function () {
+          return current.transaction().then(transaction => {
+            return this.Event.findOrCreate({
               where: {
                 json: { some: { input: 'Hello' } }
               },
@@ -38,18 +38,18 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                 json: { some: { input: 'Hello' }, input: [1, 2, 3] },
                 data: { some: { input: 'There' }, input: [4, 5, 6] }
               },
-              transaction: t,
-              lock: t.LOCK.UPDATE,
-              logging: function (sql) {
+              transaction: transaction,
+              lock: transaction.LOCK.UPDATE,
+              logging: sql => {
                 if (sql.indexOf('SELECT') !== -1 && sql.indexOf('CREATE') === -1) {
                   expect(sql.indexOf('FOR UPDATE')).not.to.be.equal(-1);
                 }
               }
-            }).then(function() {
-              return self.Event.count().then(function(count) {
+            }).then(() => {
+              return this.Event.count().then(count => {
                 expect(count).to.equal(0);
-                return t.commit().then(function() {
-                  return self.Event.count().then(function(count) {
+                return transaction.commit().then(() => {
+                  return this.Event.count().then(count => {
                     expect(count).to.equal(1);
                   });
                 });
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       }
 
-      it('should create an instance with JSONB data', function () {
+      it('should create an instance with JSON data', function () {
         return this.Event.create({
           data: {
             name: {
@@ -68,9 +68,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             },
             employment: 'Nuclear Safety Inspector'
           }
-        }).bind(this).then(function () {
-          return this.Event.findAll().then(function (events) {
-            var event = events[0];
+        }).then(() => {
+          return this.Event.findAll().then(events => {
+            const event = events[0];
 
             expect(event.get('data')).to.eql({
               name: {
@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('should update an instance with JSONB data', function () {
+      it('should update an instance with JSON data', function () {
         return this.Event.create({
           data: {
             name: {
@@ -92,7 +92,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             },
             employment: 'Nuclear Safety Inspector'
           }
-        }).bind(this).then(function (event) {
+        }).then(event => {
           return event.update({
             data: {
               name: {
@@ -102,9 +102,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               employment: null
             }
           });
-        }).then(function () {
-          return this.Event.findAll().then(function (events) {
-            var event = events[0];
+        }).then(() => {
+          return this.Event.findAll().then(events => {
+            const event = events[0];
 
             expect(event.get('data')).to.eql({
               name: {
@@ -137,15 +137,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               employment: 'Housewife'
             }
           })
-        ).bind(this).then(function () {
+        ).then(() => {
           return this.Event.findAll({
             where: {
               data: {
                 employment: 'Housewife'
               }
             }
-          }).then(function (events) {
-            var event = events[0];
+          }).then(events => {
+            const event = events[0];
 
             expect(events.length).to.equal(1);
             expect(event.get('data')).to.eql({
@@ -179,7 +179,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               age: 37
             }
           })
-        ).bind(this).then(function () {
+        ).then(() => {
           return this.Event.findAll({
             where: {
               data: {
@@ -188,8 +188,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                 }
               }
             }
-          }).then(function (events) {
-            var event = events[0];
+          }).then(events => {
+            const event = events[0];
 
             expect(events.length).to.equal(1);
             expect(event.get('data')).to.eql({
@@ -223,14 +223,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               employment: null
             }
           })
-        ).bind(this).then(function () {
+        ).then(() => {
           return this.Event.findAll({
             where: {
               data: {
                 employment: null
               }
             }
-          }).then(function (events) {
+          }).then(events => {
             expect(events.length).to.equal(1);
             expect(events[0].get('data')).to.eql({
               name: {
@@ -244,7 +244,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should be possible to query multiple nested values', function () {
-        var self = this;
         return this.Event.create({
           data: {
             name: {
@@ -253,9 +252,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             },
             employment: 'Nuclear Safety Inspector'
           }
-        }).then(function() {
+        }).then(() => {
           return Promise.join(
-            self.Event.create({
+            this.Event.create({
               data: {
                 name: {
                   first: 'Marge',
@@ -264,7 +263,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                 employment: 'Housewife'
               }
             }),
-            self.Event.create({
+            this.Event.create({
               data: {
                 name: {
                   first: 'Bart',
@@ -274,8 +273,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               }
             })
           );
-        }).then(function () {
-          return self.Event.findAll({
+        }).then(() => {
+          return this.Event.findAll({
             where: {
               data: {
                 name: {
@@ -289,7 +288,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             order: [
               ['id', 'ASC']
             ]
-          }).then(function (events) {
+          }).then(events => {
             expect(events.length).to.equal(2);
 
             expect(events[0].get('data')).to.eql({
@@ -312,7 +311,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('should be possible to destroy with where', function () {
-        var conditionSearch = {
+        const conditionSearch = {
           where: {
             data: {
               employment : 'Hacker'
@@ -348,11 +347,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               employment: 'CTO'
             }
           })
-        ).bind(this).then(function () {
+        ).then(() => {
             return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
-          }).then(function() {
+          }).then(() => {
             return this.Event.destroy(conditionSearch);
-          }).then(function(){
+          }).then(() => {
             return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
           });
       });
