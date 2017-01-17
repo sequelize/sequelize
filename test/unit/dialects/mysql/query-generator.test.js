@@ -11,6 +11,28 @@ var chai = require('chai')
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', function() {
     var suites = {
+      arithmeticQuery: [
+        {
+          title:'Should use the plus operator',
+          arguments: ['+', 'myTable', { foo: 'bar' }, {}],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`+\'bar\' '
+        },
+        {
+          title:'Should use the plus operator with where clause',
+          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`+\'bar\' WHERE `bar` = \'biz\''
+        },
+        {
+          title:'Should use the minus operator',
+          arguments: ['-', 'myTable', { foo: 'bar' }],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`-\'bar\' '
+        },
+        {
+          title:'Should use the minus operator with where clause',
+          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`-\'bar\' WHERE `bar` = \'biz\''
+        }
+      ],
       attributesToSQL: [
         {
           arguments: [{id: 'INTEGER'}],
