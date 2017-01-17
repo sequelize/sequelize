@@ -706,18 +706,11 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
   describe.only('source key', function() {
     it('uses source key on select', function () {
       var Task = this.sequelize.define('Task', {
-            id: {type: Sequelize.STRING, primaryKey: true},
-            userId: {type: Sequelize.STRING}
+            id: {type: Sequelize.STRING, primaryKey: true}
           })
         , User = this.sequelize.define('User', {
             id: {type: Sequelize.STRING, primaryKey: true},
-            activeTaskId: {
-              type: Sequelize.STRING, allowNull: true,
-              references: {
-                model: Task,
-                deferrable: Sequelize.Deferrable.INITIALLY_DEFERRED
-              }
-            },
+            activeTaskId: Sequelize.STRING
           });
 
       User.hasOne(Task, {
@@ -726,38 +719,21 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
         foreignKey: 'id'
       });
 
-      // console.log(Task.associations);
-      // console.log(User.associations);
-      // console.log(User.build({}).getActiveTask);
+      // TODO: Figure out how to stop `Task.id` from being bound to `User.id``
+      delete Task.rawAttributes.id.references;
 
       var that = this;
-      return that.sequelize.transaction(function (t) {
-        return Promise.all([
-          User.sync({transaction: t}),
-          Task.sync({transaction: t})
-        ]);
-      }).then(function() {
-        return that.sequelize.transaction(function (t) {
-        // return User.drop({transaction: t}).then(function() {
-        //   return Task.drop({transaction: t}).then(function() {
-                // Create items in parallel due to cyclic foreign keys between task/user
-                return Promise.all([
-                  Task.create({ id: 'foo-inactive' }, {transaction: t}),
-                  Task.create({ id: 'foo-active' }, {transaction: t}),
-                  User.create({ id: 'foo', activeTaskId: 'foo-active' }, {transaction: t})
-                ]).then(function(results) {
-                  // console.log(results);
-                  return User.findOne({include: [{model: Task, as: 'activeTask'}]}).then(function(user) {
-                    // return user2.getActiveTask().then(function(activeTask) {
-                    console.log('huh', user.get('activeTask'));
-                      // expect(activeTask.name).to.equal('foo-active');
-                    // });
-                  });
-                });
+      return that.sequelize.sync({force: true}).then(function() {
+        return Task.create({ id: 'foo-inactive' }).then(function() {
+          return Task.create({ id: 'foo-active' }).then(function() {
+            return User.create({ id: 'foo', activeTaskId: 'foo-active' }).then(function(user) {
+              return user.getActiveTask().then(function(activeTask) {
+                expect(activeTask.get('id')).to.equal('foo-active');
               });
-        //   });
+            });
+          });
         });
-      // });
+      });
     });
 
     it('sets source key with association helpers', function () {
