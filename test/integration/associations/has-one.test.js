@@ -737,7 +737,38 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
     });
 
     it('sets source key with association helpers', function () {
+      var Task = this.sequelize.define('Task', {
+            id: {type: Sequelize.STRING, primaryKey: true}
+          })
+        , User = this.sequelize.define('User', {
+            id: {type: Sequelize.STRING, primaryKey: true},
+            activeTaskId: {
+              type: Sequelize.STRING,
+              references: {
+                model: Task,
+                as: 'activeTask'
+              }
+            }
+          });
 
+      User.hasOne(Task, {
+        as: 'activeTask',
+        sourceKey: 'activeTaskId',
+        foreignKey: 'id'
+      });
+
+      // TODO: Figure out how to stop `Task.id` from being bound to `User.id``
+      delete Task.rawAttributes.id.references;
+
+      var that = this;
+      return that.sequelize.sync({force: true}).then(function() {
+        return Task.create({ id: 'foo' }).then(function(task) {
+          var user = User.build({ id: 'bar' });
+          return user.setActiveTask(task).then(function() {
+            console.log(user.get('activeTask'));
+          });
+        });
+      });
     });
   });
 
