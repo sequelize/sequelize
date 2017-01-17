@@ -707,13 +707,14 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       var Task = this.sequelize.define('Task', { id: {type: Sequelize.STRING, primaryKey: true} })
         , User = this.sequelize.define('User', {
             id: {type: Sequelize.STRING, primaryKey: true},
-            activeTaskId: {
-              type: Sequelize.STRING,
-              references: {model: 'Tasks', key: 'id'}
-            }
+            activeTaskId: Sequelize.STRING
           });
 
-      User.hasOne(Task, {as: 'activeTask', sourceKey: 'activeTaskId'});
+      User.hasOne(Task, {
+        as: 'activeTask',
+        sourceKey: 'activeTaskId',
+        foreignKey: 'id'
+      });
 
       return this.sequelize.sync({ force: true }).then(function() {
         return Task.create({ id: 'foo-inactive' }).then(function(inactiveTask) {
