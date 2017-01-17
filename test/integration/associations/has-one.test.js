@@ -706,7 +706,8 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
   describe.only('source key', function() {
     it('uses source key on select', function () {
       var Task = this.sequelize.define('Task', {
-            id: {type: Sequelize.STRING, primaryKey: true}
+            id: {type: Sequelize.STRING, primaryKey: true},
+            userId: {type: Sequelize.STRING}
           })
         , User = this.sequelize.define('User', {
             id: {type: Sequelize.STRING, primaryKey: true},
@@ -717,13 +718,17 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
                 sourceKey: 'activeTaskId',
                 deferrable: Sequelize.Deferrable.INITIALLY_DEFERRED
               }
-            }
+            },
           });
 
-      // Task.belongsTo(User, {
-      //   as: 'activeTask',
-      //   sourceKey: 'activeTaskId',
-      // });
+      User.hasOne(Task, {
+        as: 'activeTask',
+        sourceKey: 'activeTaskId',
+        foreignKey: 'id'
+      });
+
+      console.log(Task.associations);
+      console.log(User.associations);
       console.log('nnn', User.build({}).getActiveTask);
 
       var that = this;
@@ -736,7 +741,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
             User.create({ id: 'foo', activeTaskId: 'foo-active' }, {transaction: t})
           ]);
         }).then(function(results) {
-          console.log(results);
+          // console.log(results);
           return User.findOne({include: [{model: Task, as: 'activeTask'}]}).then(function(user) {
             // return user2.getActiveTask().then(function(activeTask) {
             console.log('huh', user.get('activeTask'));
