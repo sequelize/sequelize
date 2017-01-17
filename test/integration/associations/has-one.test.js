@@ -724,6 +724,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
       //   as: 'activeTask',
       //   sourceKey: 'activeTaskId',
       // });
+      console.log('nnn', User.build({}).getActiveTask);
 
       var that = this;
       return this.sequelize.sync({ force: true }).then(function() {
