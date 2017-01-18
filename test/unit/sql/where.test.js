@@ -35,13 +35,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
     testsql({id: 1}, {prefix: 'User'}, {
       default: 'WHERE [User].[id] = 1',
-      oracle : 'WHERE User.id = 1'
+      oracle : 'WHERE "User".id = 1'
     });
 
     test("{ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'})) }", function () {
       expectsql(sql.whereQuery({id: 1}, {prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'}))}), {
         default: 'WHERE [yolo.User].[id] = 1',
-        oracle: 'WHERE yolo.User.id = 1',
+        oracle: 'WHERE yolo."User".id = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
         mssql: 'WHERE [yolo].[User].[id] = 1',
       });
@@ -132,7 +132,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('Buffer', function () {
       testsql('field', new Buffer('Sequelize'), {
         postgres: '"field" = E\'\\\\x53657175656c697a65\'',
-        oracle: 'field = 0x53657175656c697a65',
+        oracle: 'field = hextoraw(\'53657175656c697a65\')',
         sqlite: "`field` = X'53657175656c697a65'",
         mysql: "`field` = X'53657175656c697a65'",
         mssql: '[field] = 0x53657175656c697a65'
@@ -255,7 +255,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           }
         ], {
           default: "([roleName] = 'NEW' OR ([roleName] = 'CLIENT' AND [type] = 'CLIENT'))",
-          oracle: "(roleName = 'NEW' OR (roleName = 'CLIENT' AND type = 'CLIENT'))",
+          oracle: "(roleName = 'NEW' OR (roleName = 'CLIENT' AND \"type\" = 'CLIENT'))",
           mssql: "([roleName] = N'NEW' OR ([roleName] = N'CLIENT' AND [type] = N'CLIENT'))"
         });
 
@@ -269,7 +269,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         test("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})), {
             default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))",
-            oracle: "(group_id = 1 OR (user_id = 2 AND role = 'admin'))",
+            oracle: "(group_id = 1 OR (user_id = 2 AND \"role\" = 'admin'))",
             mssql: "([group_id] = 1 OR ([user_id] = 2 AND [role] = N'admin'))"
           });
         });
@@ -298,7 +298,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           }
         }, {
           default: "([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))",
-          oracle: "(shared = 1 AND (group_id = 1 OR user_id = 2))"
+          oracle: "(\"shared\" = 1 AND (group_id = 1 OR user_id = 2))"
         });
 
         testsql('$and', [
@@ -342,7 +342,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         test('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function () {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.and({shared: 1}, this.sequelize.or({group_id: 1}, {user_id: 2}))), {
             default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))',
-            oracle: '(shared = 1 AND (group_id = 1 OR user_id = 2))'
+            oracle: '(\"shared\" = 1 AND (group_id = 1 OR user_id = 2))'
           });
         });
       });
@@ -355,7 +355,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             user_id: 2
           }
         }, {
-          default: 'NOT ([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
+          default: 'NOT ([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))',
+          oracle : 'NOT ("shared" = 1 AND (group_id = 1 OR user_id = 2))'
         });
 
         testsql('$not', [], {
@@ -372,7 +373,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('userId', {
         $col: 'user.id'
       }, {
-        default: '[userId] = [user].[id]'
+        default: '[userId] = [user].[id]',
+        oracle : 'userId = "user".id'
       });
 
       testsql('userId', {
@@ -381,7 +383,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         }
       }, {
         default: '[userId] = [user].[id]',
-        oracle: 'userId = user.id'
+        oracle: 'userId = "user".id'
       });
 
       testsql('userId', {
@@ -390,7 +392,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         }
       }, {
         default: '[userId] > [user].[id]',
-        oracle: 'userId > user.id'
+        oracle: 'userId > "user".id'
       });
 
       testsql('$or', [
@@ -398,21 +400,21 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         {'ownerId': {$col: 'organization.id'}}
       ], {
         default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])',
-        oracle: '(ownerId = user.id OR ownerId = organization.id)'
+        oracle: '(ownerId = "user".id OR ownerId = "organization".id)'
       });
 
       testsql('$organization.id$', {
         $col: 'user.organizationId'
       }, {
         default: '[organization].[id] = [user].[organizationId]',
-        oracle: 'organization.id = user.organizationId'
+        oracle: '"organization".id = "user".organizationId'
       });
 
       testsql('$offer.organization.id$', {
         $col: 'offer.user.organizationId'
       }, {
         default: '[offer.organization].[id] = [offer.user].[organizationId]',
-        oracle: '"offer->organization".id = "offer->user".organizationId' //TODO
+        oracle: '"offer->organization".id = "offer->user".organizationId'
       });
     });
 
@@ -458,7 +460,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         $between: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] BETWEEN '2013-01-01' AND '2013-01-11'",
-        oracle: "date BETWEEN '2013-01-01' AND '2013-01-11'",
+        oracle: "\"date\" BETWEEN TO_DATE('2013-01-01','YYYY-MM-DD') AND TO_DATE('2013-01-11','YYYY-MM-DD')",
         mssql: "[date] BETWEEN N'2013-01-01' AND N'2013-01-11'"
       });
 
@@ -467,7 +469,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         nbetween: ['2013-01-04', '2013-01-20']
       }, {
         default: "([date] BETWEEN '2012-12-10' AND '2013-01-02' AND [date] NOT BETWEEN '2013-01-04' AND '2013-01-20')",
-        oracle: "(date BETWEEN '2012-12-10' AND '2013-01-02' AND date NOT BETWEEN '2013-01-04' AND '2013-01-20')",
+        oracle: "(\"date\" BETWEEN TO_DATE('2012-12-10','YYYY-MM-DD') AND TO_DATE('2013-01-02','YYYY-MM-DD') AND \"date\" NOT BETWEEN TO_DATE('2013-01-04','YYYY-MM-DD') AND TO_DATE('2013-01-20','YYYY-MM-DD'))",
         mssql: "([date] BETWEEN N'2012-12-10' AND N'2013-01-02' AND [date] NOT BETWEEN N'2013-01-04' AND N'2013-01-20')"
       });
     });
@@ -477,7 +479,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         $notBetween: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] NOT BETWEEN '2013-01-01' AND '2013-01-11'",
-        oracle: "date NOT BETWEEN '2013-01-01' AND '2013-01-11'",
+        oracle: "\"date\" NOT BETWEEN TO_DATE('2013-01-01','YYYY-MM-DD') AND TO_DATE('2013-01-11','YYYY-MM-DD')",
         mssql: "[date] NOT BETWEEN N'2013-01-01' AND N'2013-01-11'"
       });
     });

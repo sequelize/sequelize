@@ -46,7 +46,7 @@ describe('Transaction', function() {
         'BEGIN TRANSACTION;'
       ],
       oracle: [
-        'BEGIN TRANSACTION;'
+        'BEGIN TRANSACTION'
       ]
     };
     return current.transaction(() => {
