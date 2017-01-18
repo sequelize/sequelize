@@ -1369,7 +1369,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(users[0].username).to.equal('Peter');
         expect(users[1].username).to.equal('Paul');
 
-        if(dialect === 'oracle') {
+        if (dialect === 'oracle') {
           //As we have a select * query, we cannot map the name of the fields returned. Oracle returns everything in uppercase, but we change to lowercase
           expect(moment(new Date(users[0].deletedat)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
           expect(moment(new Date(users[1].deletedat)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
@@ -2490,7 +2490,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           data: new Buffer('Sequelize')
         }).then(function(user) {
           return self.BlobUser.findById(user.id).then(function(user) {
-            if(dialect !== 'oracle') {
+            if (dialect !== 'oracle') {
               expect(user.data).to.be.an.instanceOf(Buffer);
               expect(user.data.toString()).to.have.string('Sequelize');
             } else {
@@ -2537,7 +2537,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             data: 'Sequelize'
           }).then(function(user) {
             return self.BlobUser.findById(user.id).then(function(user) {
-              if(dialect !== 'oracle') {
+              if (dialect !== 'oracle') {
                 expect(user.data).to.be.an.instanceOf(Buffer);
                 expect(user.data.toString()).to.have.string('Sequelize');
               } else {

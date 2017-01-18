@@ -630,6 +630,7 @@ Insert or update a single row. An update will be executed if a row which matches
 * MySQL - Implemented as a single query `INSERT values ON DUPLICATE KEY UPDATE values`
 * PostgreSQL - Implemented as a temporary function with exception handling: INSERT EXCEPTION WHEN unique_constraint UPDATE
 * SQLite - Implemented as two queries `INSERT; UPDATE`. This means that the update is executed regardless of whether the row already existed or not
+* Oracle - Not impletmented yet
 
 **Note** that SQLite returns undefined for created, no matter if the row was created or updated. This is because SQLite always runs INSERT OR IGNORE + UPDATE, in a single query, so there is no way to know whether the row was inserted or not.
 
@@ -658,7 +659,7 @@ __Aliases:__ insertOrUpdate
 Create and insert multiple instances in bulk.
 
 The success handler is passed an array of instances, but please notice that these may not completely represent the state of the rows in the DB. This is because MySQL
-and SQLite do not make it easy to obtain back automatically generated IDs and other default values in a way that can be mapped to multiple records.
+, SQLite and Oracle do not make it easy to obtain back automatically generated IDs and other default values in a way that can be mapped to multiple records.
 To obtain Instances for the newly created values, you will need to query for them again.
 
 **Params:**

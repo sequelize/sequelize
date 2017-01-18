@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     //Oracle passes it, without any error, the update queries are launched one at a time, don't know why it should fail
-    if(Support.getTestDialect() !== 'oracle') {
+    if (Support.getTestDialect() !== 'oracle') {
       it('prevents stale instances from being saved', function() {
         return expect(Account.create({number: 1}).then(accountA => {
           return Account.findById(accountA.id).then(accountB => {

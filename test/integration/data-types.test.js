@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         value = this._applyTimezone(value, options);
       }
 
-      if(dialect === 'oracle') {
+      if (dialect === 'oracle') {
         return `TO_TIMESTAMP('${value.format('YYYY-MM-DD HH:mm:ss')}','YYYY-MM-DD HH24:MI:SS.FFTZH')`; 
       }
       return value.format('YYYY-MM-DD HH:mm:ss');
@@ -472,7 +472,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         expect(record.stamp).to.be.eql(testDate);
         return Model.findById(record.id);
       }).then(record => {
-        if(dialect !== 'oracle') {
+        if (dialect !== 'oracle') {
           //Not working neither with mssql...
           expect(typeof record.stamp).to.be.eql('string');
           expect(record.stamp).to.be.eql(testDate);

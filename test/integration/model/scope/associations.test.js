@@ -295,7 +295,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         //Oracle - identifier too long
-        if(Support.getTestDialect() !== 'oracle') {
+        if (Support.getTestDialect() !== 'oracle') {
           it('should scope columns properly', function () {
             return expect(this.ScopeMe.scope('includeActiveProjects').findAll()).not.to.be.rejected;
           });

@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('Configuration'), function() {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         return expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
       } else {
-        if(dialect === 'oracle') {
+        if (dialect === 'oracle') {
           return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionAccessDeniedError);  
         }
         return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionRefusedError, 'connect ECONNREFUSED');

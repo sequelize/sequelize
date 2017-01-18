@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(users.length).to.be.eql(2);
 
         // have attributes
-        if(this.sequelize.dialect.name === 'oracle') {
+        if (this.sequelize.dialect.name === 'oracle') {
           expect(users[0].createdat).to.exist;
           expect(users[1].createdat).to.exist;
         }  else {

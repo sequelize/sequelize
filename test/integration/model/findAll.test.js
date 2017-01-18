@@ -189,7 +189,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         
         if(dialect === 'postgres' || dialect === 'mssql'){
           escapeChar = '"';
-        } else if(dialect === 'oracle') {
+        } else if (dialect === 'oracle') {
           //Oracle doesn't need aBool to be escaped
           escapeChar = '';
         }
@@ -218,7 +218,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
         if(dialect === 'postgres' || dialect === 'mssql'){
           escapeChar = '"';
-        } else if(dialect === 'oracle') {
+        } else if (dialect === 'oracle') {
           //Oracle doesn't need aBool to be escaped
           escapeChar = '';
         }
@@ -1328,7 +1328,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return this.User.findAll().then(function(users) {
           expect(users.length).to.equal(2);
           //Oracle - no order by is setted, as for mssql, so how can it be ordered ?
-          if(dialect !== 'oracle') {
+          if (dialect !== 'oracle') {
             expect(users[0].id).to.be.below(users[1].id);
           }
         });
@@ -1491,7 +1491,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     //Oracle - identifier too long
-    if(dialect !== 'oracle') {
+    if (dialect !== 'oracle') {
       it('handles offset with includes', function() {
         var Election = this.sequelize.define('Election', {
           name: Sequelize.STRING

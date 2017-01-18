@@ -66,18 +66,6 @@ module.exports = {
     externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
   },
 
-  // oracle: {
-  //   username : process.env.NODE_ORACLEDB_USER || 'DEV_RD',
-  //   password : process.env.NODE_ORACLEDB_PASSWORD || 'DEV_RD',
-  //   // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
-  //   database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'ORCL12HOT.kimdomain.local',
-  //   host : process.env.NODE_ORACLEDB_HOST || 'vm2008ora12hot',
-  //   port : process.env.NODE_ORACLEDB_PORT || 1521,
-  //   dialectOptions : {stmtCacheSize:0},
-  //   // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
-  //   externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
-  // },
-
   postgres: {
     database: process.env.SEQ_PG_DB   || process.env.SEQ_DB    || 'sequelize_test',
     username: process.env.SEQ_PG_USER || process.env.SEQ_USER  || 'postgres',

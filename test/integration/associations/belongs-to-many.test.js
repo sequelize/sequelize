@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
     });
 
-    if(current.dialect.name !== 'oracle') {
+    if (current.dialect.name !== 'oracle') {
       //Oracle doesn't support column names non quoted by "
       it('only gets objects that fulfill options with a formatted value', function() {
         return this.User.find({where: {username: 'John'}}).then(function(john) {
@@ -334,7 +334,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     //Oracle - identifier too long
-    if(Support.getTestDialect() !== 'oracle') {
+    if (Support.getTestDialect() !== 'oracle') {
       it('supports primary key attributes with different field names where parent include is required', function () {
       var User = this.sequelize.define('User', {
         id: {
@@ -1878,7 +1878,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       }).then(function(result) {
         if (dialect === 'mssql') {
           result = _.map(result, 'tableName');
-        } else if(dialect === 'oracle') {
+        } else if (dialect === 'oracle') {
           //oracle returns the table names in UpperCase
           result = _.map(result, table => {
             return table.tableName.toLowerCase();
@@ -1903,7 +1903,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       }).then(function(result) {
         if (dialect === 'mssql') {
           result = _.map(result, 'tableName');
-        } else if(dialect === 'oracle') {
+        } else if (dialect === 'oracle') {
           //oracle returns the table names in UpperCase
           result = _.map(result, table => {
             return table.tableName.toLowerCase();

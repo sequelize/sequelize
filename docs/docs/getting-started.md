@@ -10,7 +10,10 @@ $ npm install --save pg pg-hstore
 $ npm install --save mysql2
 $ npm install --save sqlite3
 $ npm install --save tedious // MSSQL
+$ npm install --save oracledb #for oracle
 ```
+
+Note : Oracle needs extra stuff, see part installation of [Node OracleDB installation](https://github.com/oracle/node-oracledb)
 
 ## Setting up a connection
 
@@ -19,7 +22,7 @@ Sequelize will setup a connection pool on initialization so you should ideally o
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
-  dialect: 'mysql'|'sqlite'|'postgres'|'mssql',
+  dialect: 'mysql'|'sqlite'|'postgres'|'mssql'|'oracle',
 
   pool: {
     max: 5,

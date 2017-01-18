@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
               tableNames = _.map(tableNames, 'tableName');
             }
 
-            if(dialect === 'oracle') {
+            if (dialect === 'oracle') {
               //AS always, everything is upper case with Oracle
               tableNames = _.map(tableNames, 'tableName');
               expect(tableNames).to.contain('SKIPME');
@@ -290,7 +290,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         }
       }).bind(this).then(function() {
         return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(function(results) {
-          if(dialect !== 'oracle') {
+          if (dialect !== 'oracle') {
             var response = _.head(results);
             expect(response.table_id || (typeof response !== 'object' && response)).to.be.ok;
           } else {
