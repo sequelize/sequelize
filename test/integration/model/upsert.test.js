@@ -2,6 +2,7 @@
 
 /* jshint -W030 */
 var chai = require('chai')
+  , semver = require('semver')
   , sinon = require('sinon')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
@@ -10,6 +11,10 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , dialect = Support.getTestDialect()
   , current = Support.sequelize;
+
+var supportsOnConflict = function() {
+  return dialect === 'postgres' && semver.gte(current.options.databaseVersion, '9.5.0');
+};
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   before(function () {
@@ -70,6 +75,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
+          } else if (supportsOnConflict()) {
+            expect(created).to.be.ok;
           } else {
             expect(created).not.to.be.ok;
           }
@@ -83,7 +90,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('works with upsert on a composite key', function() {
-        return this.User.upsert({ foo: 'baz', bar: 19, username: 'john' }).bind(this).then(function(created) {
+        var options = { conflict: { constraint: 'users_foo_bar_key' } };
+        return this.User.upsert({ foo: 'baz', bar: 19, username: 'john' }, options).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
           } else {
@@ -91,10 +99,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           }
 
           this.clock.tick(1000);
-          return this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
+          return this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' }, options);
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
+          } else if (supportsOnConflict()) {
+            expect(created).to.be.ok;
           } else {
             expect(created).not.to.be.ok;
           }
@@ -162,6 +172,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
+          } else if (supportsOnConflict()) {
+            expect(created).to.be.ok;
           } else {
             expect(created).not.to.be.ok;
           }
@@ -208,6 +220,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
+          } else if (supportsOnConflict()) {
+            expect(created).to.be.ok;
           } else {
             expect(created).not.to.be.ok;
           }
@@ -225,6 +239,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return this.User.upsert({ id: 42, baz: 'foo' }).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
+          } else if (supportsOnConflict()) {
+            expect(created).to.be.ok;
           } else {
             expect(created).to.be.ok;
           }
@@ -233,6 +249,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
+          } else if (supportsOnConflict()) {
+            expect(created).to.be.ok;
           } else {
             expect(created).not.to.be.ok;
           }
@@ -247,6 +265,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'first' }).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
+          } else if (supportsOnConflict()) {
+            expect(created).to.be.ok;
           } else {
             expect(created).to.be.ok;
           }
@@ -257,6 +277,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
+          } else if (supportsOnConflict()) {
+            expect(created).to.be.ok;
           } else {
             expect(created).not.to.be.ok;
           }
@@ -271,6 +293,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return this.User.upsert({ id: 42, username: 'john', foo: this.sequelize.fn('upper', 'mixedCase1')}).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
+          } else if (supportsOnConflict()) {
+            expect(created).to.be.ok;
           } else {
             expect(created).to.be.ok;
           }
@@ -281,6 +305,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
+          } else if (supportsOnConflict()) {
+            expect(created).to.be.ok;
           } else {
             expect(created).not.to.be.ok;
           }
@@ -341,7 +367,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).then(function(created) {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
-
+          } else if (supportsOnConflict()) {
+            expect(created).to.be.ok;
           } else {
             // After set node-mysql flags = '-FOUND_ROWS' in connection of mysql,
             // result from upsert should be false when upsert a row to its current value
