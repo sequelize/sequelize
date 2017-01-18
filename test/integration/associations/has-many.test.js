@@ -222,7 +222,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           });
         });
 
-        it.only('should fetch associations for multiple instances with limit and order and a belongsTo relation', function () {
+        it('should fetch associations for multiple instances with limit and order and a belongsTo relation', function () {
           var User = this.sequelize.define('User', {})
             , Task = this.sequelize.define('Task', {
               title: DataTypes.STRING,
