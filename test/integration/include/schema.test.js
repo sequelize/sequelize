@@ -1121,10 +1121,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
             ['id', 'ASC']
           ]
         }).then(function(products) {
-          //Oracle - fixtureA() seems to have problems with Oracle - see https://github.com/sequelize/sequelize/issues/7092
-          if(Support.getTestDialect() !== 'oracle') {
-            expect(products.length).to.equal(3);
-          }
+          expect(products.length).to.equal(3);
 
           products.forEach(function(product) {
             expect(product.Company.name).to.equal('NYSE');
@@ -1151,10 +1148,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
             ['id', 'ASC']
           ]
         }).then(function(products) {
-          //Oracle - fixtureA() seems to have problems with Oracle - see https://github.com/sequelize/sequelize/issues/7092
-          if(Support.getTestDialect() !== 'oracle') {
-            expect(products.length).to.equal(6);
-          }
+          expect(products.length).to.equal(6);
 
           products.forEach(function(product) {
             expect(product.Tags.length).to.be.ok;
@@ -1182,8 +1176,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
             ['id', 'ASC']
           ]
         }).then(function(products) {
-          //Oracle - as fixtureA() seems to have problems with Oracle, forced to protect if it hasn't work properly
-          if(dialect !== 'oracle') {
             expect(products.length).to.equal(10);
             products.forEach(function(product) {
               expect(product.Tags.length).to.be.ok;
@@ -1193,7 +1185,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                 expect(['A', 'B', 'C']).to.include(tag.name);
               });
             });
-          }
         });
       });
     });

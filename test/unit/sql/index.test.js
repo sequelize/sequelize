@@ -14,13 +14,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       expectsql(sql.addIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
         default: 'CREATE INDEX [table_column1_column2] ON [table] ([column1], [column2])',
         mysql: 'ALTER TABLE `table` ADD INDEX `table_column1_column2` (`column1`, `column2`)',
-        oracle: 'CREATE INDEX table_column1_column2 ON table (column1, column2)'
+        oracle: 'CREATE INDEX table_column1_column2 ON "table" (column1, column2)'
       });
 
       if (current.dialect.supports.schemas) {
         expectsql(sql.addIndexQuery('schema.table', ['column1', 'column2'], {}), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          oracle: 'CREATE INDEX schema_table_column1_column2 ON schema.table (column1, column2)'
+          oracle: 'CREATE INDEX schema_table_column1_column2 ON "schema"."table" (column1, column2)'
         });
 
         expectsql(sql.addIndexQuery({
@@ -28,7 +28,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           tableName: 'table'
         }, ['column1', 'column2'], {}, 'schema_table'), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          oracle: 'CREATE INDEX schema_table_column1_column2 ON schema.table (column1, column2)'
+          oracle: 'CREATE INDEX schema_table_column1_column2 ON "schema"."table" (column1, column2)'
         });
 
         expectsql(sql.addIndexQuery(sql.quoteTable(sql.addSchema({
@@ -36,7 +36,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           tableName: 'table'
         })), ['column1', 'column2'], {}), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          oracle: 'CREATE INDEX schema_table_column1_column2 ON schema.table (column1, column2)'
+          oracle: 'CREATE INDEX schema_table_column1_column2 ON "schema"."table" (column1, column2)'
         });
       }
     });
@@ -49,7 +49,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
         mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
         postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
-        oracle: 'CREATE INDEX user_field_c ON User (fieldC)',
+        oracle: 'CREATE INDEX user_field_c ON "User" (fieldC)',
         mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)'
       });
 
@@ -61,7 +61,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         }), {
         sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
         mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
-        oracle: 'CREATE UNIQUE INDEX a_b_uniq ON User (fieldB, fieldA DESC)',
+        oracle: 'CREATE UNIQUE INDEX a_b_uniq ON "User" (fieldB, fieldA DESC)',
         postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
         mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
       });
@@ -71,7 +71,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC'}], {}, 'table'), {
         default: 'CREATE INDEX [table_column] ON [table] ([column] COLLATE [BINARY] DESC)',
         mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC)',
-        oracle: 'CREATE INDEX table_column ON table (column DESC)',
+        oracle: 'CREATE INDEX table_column ON "table" ("column" DESC)',
         mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)'
       });
     });
@@ -79,7 +79,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     test('function', function () {
       expectsql(sql.addIndexQuery('table', [current.fn('UPPER', current.col('test'))], { name: 'myindex'}), {
         default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]))',
-        oracle: 'CREATE INDEX myindex ON table (UPPER(test))',
+        oracle: 'CREATE INDEX myindex ON "table" (UPPER(test))',
         mysql: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))'
       });
     });

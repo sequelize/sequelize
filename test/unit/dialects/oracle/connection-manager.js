@@ -9,8 +9,6 @@ describe('[ORACLE] Connection Manager', function () {
 
   var instance, config;
 
-  this.timeout(50000);
-
   it('full database, should connect to Oracle', done => {
     //  expect(config.dialectOptions.domain).to.equal('TEST.COM');
     config = {

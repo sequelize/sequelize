@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
               {name: 'Designers'},
               {name: 'Managers'}
             ]).then(function() {
-              return Group.findAll();
+              return Group.findAll({order : 'id'}); //Order is mandatory, Oracle doesn't sort in any way if not specified
             }),
             companies: Company.bulkCreate([
               {name: 'Sequelize'},
@@ -100,14 +100,14 @@ describe(Support.getTestDialectTeaser('Include'), function() {
               {name: 'NYSE'},
               {name: 'Coshopr'}
             ]).then(function() {
-              return Company.findAll();
+              return Company.findAll({order : 'id'});
             }),
             ranks: Rank.bulkCreate([
               {name: 'Admin', canInvite: 1, canRemove: 1, canPost: 1},
               {name: 'Trustee', canInvite: 1, canRemove: 0, canPost: 1},
               {name: 'Member', canInvite: 1, canRemove: 0, canPost: 0}
             ]).then(function() {
-              return Rank.findAll();
+              return Rank.findAll({order : 'id'});
             }),
             tags: Tag.bulkCreate([
               {name: 'A'},
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
               {name: 'D'},
               {name: 'E'}
             ]).then(function() {
-              return Tag.findAll();
+              return Tag.findAll({order : 'id'});
             })
           }).then(function (results) {
             var groups = results.groups
@@ -134,7 +134,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                   {title: 'Pen'},
                   {title: 'Monitor'}
                 ]).then(function() {
-                  return Product.findAll();
+                  return Product.findAll({order : 'id'});
                 })
               }).then(function (results) {
                 var user = results.user
@@ -195,6 +195,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           });
         });
       };
+
     });
 
     //Oracle - identifier too long
@@ -301,8 +302,8 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         ).then(function() {
           return Promise.join(
             Set.findAll(),
-            Product.findAll(),
-            Tag.findAll()
+            Product.findAll({order : 'id'}),
+            Tag.findAll({order : 'id'})
           );
         }).spread(function(sets, products, tags) {
           return Promise.join(
@@ -394,20 +395,20 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             {name: 'Developers'},
             {name: 'Designers'}
           ]).then(function() {
-            return Group.findAll();
+            return Group.findAll({order : 'id'});
           }),
           Rank.bulkCreate([
             {name: 'Admin', canInvite: 1, canRemove: 1},
             {name: 'Member', canInvite: 1, canRemove: 0}
           ]).then(function() {
-            return Rank.findAll();
+            return Rank.findAll({order : 'id'});
           }),
           Tag.bulkCreate([
             {name: 'A'},
             {name: 'B'},
             {name: 'C'}
           ]).then(function() {
-            return Tag.findAll();
+            return Tag.findAll({order : 'id'});
           })
         ]).spread(function(groups, ranks, tags) {
           return Promise.each([0, 1, 2, 3, 4], function (i) {
@@ -417,7 +418,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                 {title: 'Chair'},
                 {title: 'Desk'}
               ]).then(function() {
-                return Product.findAll();
+                return Product.findAll({order : 'id'});
               })
             ]).spread(function(user, products) {
               return Promise.all([
@@ -783,14 +784,14 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             {title: 'Desk'},
             {title: 'Dress'}
           ]).then(function() {
-            return Product.findAll();
+            return Product.findAll({order : 'id'});
           }),
           tags: Tag.bulkCreate([
             {name: 'A'},
             {name: 'B'},
             {name: 'C'}
           ]).then(function() {
-            return Tag.findAll();
+            return Tag.findAll({order : 'id'});
           })
         }).then(function (results) {
           return Promise.join(
@@ -1294,7 +1295,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
                 {title: 'Chair'},
                 {title: 'Desk'}
               ]).then(function() {
-                return Product.findAll();
+                return Product.findAll({order : 'id'});
               })
             }).then(function (results) {
               return Promise.join(
@@ -1425,9 +1426,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           ]
         }).then(function(products) {
           //Protection for Oracle strange behavior with fixtureA
-          if(Support.getTestDialect() !== 'oracle') {
             expect(products.length).to.equal(3);
-          }
 
           products.forEach(function(product) {
             expect(product.Company.name).to.equal('NYSE');
@@ -1650,10 +1649,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
             ['id', 'ASC']
           ]
         }).then(function(products) {
-          //Oracle, sometimes strange behavior, some requests are not made... don't know why
-          if(Support.getTestDialect() !== 'oracle') {
-            expect(products.length).to.equal(10);
-          }
+          expect(products.length).to.equal(10);
 
           products.forEach(function(product) {
             expect(product.Tags.length).to.be.ok;

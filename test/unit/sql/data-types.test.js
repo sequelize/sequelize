@@ -42,7 +42,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
         default: 'VARCHAR(1234) BINARY',
         sqlite: 'VARCHAR BINARY(1234)',
-        oracle: 'VARBINARY(1234)',
+        oracle: 'RAW(1234)',
         mssql: 'BINARY(1234)',
         postgres: 'BYTEA'
       });
@@ -50,7 +50,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('STRING.BINARY', DataTypes.STRING.BINARY, {
         default: 'VARCHAR(255) BINARY',
         sqlite: 'VARCHAR BINARY(255)',
-        oracle: 'VARBINARY(255)',
+        oracle: 'RAW(255)',
         mssql: 'BINARY(255)',
         postgres: 'BYTEA'
       });
@@ -71,7 +71,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('TEXT', function () {
       testsql('TEXT', DataTypes.TEXT, {
         default: 'TEXT',
-        oracle: 'NVARCHAR2(MAX)',
+        oracle: 'NVARCHAR2(2000)',
         mssql: 'NVARCHAR(MAX)' // in mssql text is actually representing a non unicode text field
       });
 
@@ -92,14 +92,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('TEXT("medium")', DataTypes.TEXT('medium'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
-        oracle: 'NVARCHAR2(MAX)',
+        oracle: 'NVARCHAR2(2000)',
         mysql: 'MEDIUMTEXT'
       });
 
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
-        default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
-        oracle: 'NVARCHAR2(MAX)',
+        oracle: 'NVARCHAR2(2000)',
         mysql: 'LONGTEXT'
       });
 
@@ -136,14 +135,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('CHAR(12).BINARY', DataTypes.CHAR(12).BINARY, {
         default: 'CHAR(12) BINARY',
         sqlite: 'CHAR BINARY(12)',
-        oracle: 'VARBINARY(12)',
+        oracle: 'RAW(12)',
         postgres: 'BYTEA'
       });
 
       testsql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
         default: 'CHAR(255) BINARY',
         sqlite: 'CHAR BINARY(255)',
-        oracle: 'VARBINARY(255)',
+        oracle: 'RAW(255)',
         postgres: 'BYTEA'
       });
     });
@@ -182,7 +181,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('DATE', function () {
       testsql('DATE', DataTypes.DATE, {
         postgres: 'TIMESTAMP WITH TIME ZONE',
-        oracle: 'TIMESTAMP',
+        oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
         mssql: 'DATETIME2',
         mysql: 'DATETIME',
         sqlite: 'DATETIME'
@@ -191,7 +190,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('DATE(6)', DataTypes.DATE(6), {
         postgres: 'TIMESTAMP WITH TIME ZONE',
         mssql: 'DATETIME2',
-        oracle: 'TIMESTAMP',
+        oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
         mysql: 'DATETIME(6)',
         sqlite: 'DATETIME'
       });
@@ -237,7 +236,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('UUID', DataTypes.UUID, {
         postgres: 'UUID',
         mssql: 'CHAR(36)',
-        oracle: 'RAW(16)',
+        oracle: 'NVARCHAR2(36)',
         mysql: 'CHAR(36) BINARY',
         sqlite: 'UUID'
       });
@@ -337,7 +336,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('NOW', function () {
       testsql('NOW', DataTypes.NOW, {
         default: 'NOW',
-        oracle: 'SYSDATE',
+        oracle: "SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') \"NOW\" FROM DUAL;",
         mssql: 'GETDATE()'
       });
     });
@@ -350,14 +349,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('INTEGER.UNSIGNED', DataTypes.INTEGER.UNSIGNED, {
         default: 'INTEGER UNSIGNED',
         postgres: 'INTEGER',
-        oracle: 'UNSIGNED INT',
+        oracle: 'INTEGER',
         mssql: 'INTEGER'
       });
 
       testsql('INTEGER.UNSIGNED.ZEROFILL', DataTypes.INTEGER.UNSIGNED.ZEROFILL, {
         default: 'INTEGER UNSIGNED ZEROFILL',
         postgres: 'INTEGER',
-        oracle: 'UNSIGNED INT',
+        oracle: 'INTEGER',
         mssql: 'INTEGER'
       });
 
@@ -378,7 +377,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('INTEGER(11).UNSIGNED', DataTypes.INTEGER(11).UNSIGNED, {
         default: 'INTEGER(11) UNSIGNED',
         sqlite: 'INTEGER UNSIGNED(11)',
-        oracle: 'UNSIGNED INT(11)',
+        oracle: 'INTEGER(11)',
         postgres: 'INTEGER',
         mssql: 'INTEGER'
       });
@@ -386,7 +385,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('INTEGER(11).UNSIGNED.ZEROFILL', DataTypes.INTEGER(11).UNSIGNED.ZEROFILL, {
         default: 'INTEGER(11) UNSIGNED ZEROFILL',
         sqlite: 'INTEGER UNSIGNED ZEROFILL(11)',
-        oracle: 'UNSIGNED INT(11)',
+        oracle: 'INTEGER(11)',
         postgres: 'INTEGER',
         mssql: 'INTEGER'
       });
@@ -402,7 +401,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('INTEGER(11).ZEROFILL.UNSIGNED', DataTypes.INTEGER(11).ZEROFILL.UNSIGNED, {
         default: 'INTEGER(11) UNSIGNED ZEROFILL',
         sqlite: 'INTEGER UNSIGNED ZEROFILL(11)',
-        oracle: 'UNSIGNED INT(11)',
+        oracle: 'INTEGER(11)',
         postgres: 'INTEGER',
         mssql: 'INTEGER'
       });
@@ -848,11 +847,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
     if (current.dialect.supports.NUMERIC) {
       testsql('NUMERIC', DataTypes.NUMERIC, {
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle : 'NUMBER'
       });
 
       testsql('NUMERIC(15,5)', DataTypes.NUMERIC(15,5), {
-        default: 'DECIMAL(15,5)'
+        default: 'DECIMAL(15,5)',
+        oracle : 'NUMBER(15,5)'
       });
     }
 
@@ -965,7 +966,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
       testsql('BLOB("tiny")', DataTypes.BLOB('tiny'), {
         default: 'TINYBLOB',
-        oracle:'VARBINARY(256)',
+        oracle:'RAW(256)',
         mssql: 'VARBINARY(256)',
         postgres: 'BYTEA'
       });
@@ -973,21 +974,21 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('BLOB("medium")', DataTypes.BLOB('medium'), {
         default: 'MEDIUMBLOB',
         mssql: 'VARBINARY(MAX)',
-        oracle: 'VARBINARY(MAX)',
+        oracle: 'RAW(2000)',
         postgres: 'BYTEA'
       });
 
       testsql('BLOB({ length: "medium" })', DataTypes.BLOB({ length: 'medium' }), {
         default: 'MEDIUMBLOB',
         mssql: 'VARBINARY(MAX)',
-        oracle: 'VARBINARY(MAX)',
+        oracle: 'RAW(2000)',
         postgres: 'BYTEA'
       });
 
       testsql('BLOB("long")', DataTypes.BLOB('long'), {
         default: 'LONGBLOB',
         mssql: 'VARBINARY(MAX)',
-        oracle: 'VARBINARY(MAX)',
+        oracle: 'RAW(2000)',
         postgres: 'BYTEA'
       });
 

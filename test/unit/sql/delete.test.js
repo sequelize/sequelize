@@ -37,7 +37,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             postgres: 'TRUNCATE "public"."test_users" CASCADE',
             mssql:    "TRUNCATE TABLE [public].[test_users]",
             mysql:    'TRUNCATE `public.test_users`',
-            oracle: 'TRUNCATE TABLE public.test_users',
+            oracle: 'TRUNCATE TABLE "public".test_users',
             sqlite:   'DELETE FROM `public.test_users`'
           }
         );
@@ -65,7 +65,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             postgres: 'TRUNCATE "public"."test_users" RESTART IDENTITY CASCADE',
             mssql:    'TRUNCATE TABLE [public].[test_users]',
             mysql:    'TRUNCATE `public.test_users`',
-            oracle:    'TRUNCATE TABLE public.test_users',
+            oracle:    'TRUNCATE TABLE "public".test_users',
             sqlite:   'DELETE FROM `public.test_users`'
           }
         );
@@ -90,7 +90,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo'",
             postgres: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
             mssql:    "DELETE FROM [public].[test_users] WHERE [name] = N'foo'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
-            oracle:    "DELETE FROM public.test_users WHERE name = 'foo';"
+            oracle:    "DELETE FROM \"public\".test_users WHERE name = 'foo';"
           }
         );
       });
@@ -115,7 +115,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             sqlite:   "DELETE FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;'",
             mssql:    "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
             default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10",
-            oracle: "DELETE FROM public.test_users WHERE name = 'foo'';DROP TABLE mySchema.myTable;' AND rowid IN(SELECT rowid FROM <%= table %> WHERE rownum <=10);"
+            oracle: "DELETE FROM \"public\".test_users WHERE name = 'foo'';DROP TABLE mySchema.myTable;' AND rowid IN(SELECT rowid FROM <%= table %> WHERE rownum <=10);"
           }
         );
       });
@@ -146,7 +146,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             postgres: new Error("Cannot LIMIT delete without a model."),
             sqlite:   "DELETE FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;'",
             mssql:    "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
-            oracle: "DELETE FROM public.test_users WHERE name = 'foo'';DROP TABLE mySchema.myTable;' AND rowid IN(SELECT rowid FROM <%= table %> WHERE rownum <=10);",
+            oracle: "DELETE FROM \"public\".test_users WHERE name = 'foo'';DROP TABLE mySchema.myTable;' AND rowid IN(SELECT rowid FROM <%= table %> WHERE rownum <=10);",
             default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"
           }
         );

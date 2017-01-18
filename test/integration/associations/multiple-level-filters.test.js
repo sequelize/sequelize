@@ -52,7 +52,8 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
                   ],
                   required: true,
                 }
-              ]
+              ],
+              order : 'id'
             }).then(function(tasks) {
 
               expect(tasks.length).to.be.equal(2);
@@ -114,7 +115,8 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
                   ],
                   required: true,
                 }
-              ]
+              ],
+              order : 'id'
             }).then(function(tasks) {
               expect(tasks.length).to.be.equal(2);
               expect(tasks[0].title).to.be.equal('fight empire');
@@ -172,7 +174,8 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
                   ],
                   required: true,
                 }
-              ]
+              ],
+              order : 'id'
             }).then(function(users) {
               expect(users.length).to.be.equal(1);
               expect(users[0].username).to.be.equal('leia');
@@ -211,7 +214,8 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
                       return User.findAll({
                         include: [
                           {model: Project, where: {title: 'republic'}}
-                        ]
+                        ],
+                        order : 'id'
                       }).then(function(users) {
                         expect(users.length).to.be.equal(1);
                         expect(users[0].username).to.be.equal('leia');

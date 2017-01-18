@@ -76,6 +76,7 @@ module.exports = {
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
     database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'xe.oracle.docker',
     host : process.env.NODE_ORACLEDB_HOST || 'vmugit.kimdomain.local',
+    dialectOptions : {stmtCacheSize:0},
     port : process.env.NODE_ORACLEDB_PORT || 1521,
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
     externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
@@ -88,6 +89,7 @@ module.exports = {
   //   database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'ORCL12HOT.kimdomain.local',
   //   host : process.env.NODE_ORACLEDB_HOST || 'vm2008ora12hot',
   //   port : process.env.NODE_ORACLEDB_PORT || 1521,
+  //   dialectOptions : {stmtCacheSize:0},
   //   // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
   //   externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
   // },
