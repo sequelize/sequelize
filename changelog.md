@@ -1,5 +1,5 @@
 # Future
-- [ADDED] New DBMS supported : Oracle
+- [ADDED] New DBMS supported : Oracle [#7123](https://github.com/sequelize/sequelize/pull/7123)
 - [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
 - [ADDED] Filtered Indexes support for SQL Server [#7016](https://github.com/sequelize/sequelize/issues/7016)
 - [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
