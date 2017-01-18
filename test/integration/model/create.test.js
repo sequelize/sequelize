@@ -189,33 +189,30 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      if(current.dialect.name !== 'oracle') {
-        //With Oracle, this test pass alone but deadlock if all tests are called - This needs investigations
-        it('should not deadlock with concurrency duplicate entries and no outer transaction', function () {
-          var User = this.sequelize.define('User', {
-            email: {
-              type: DataTypes.STRING,
-              unique: 'company_user_email'
-            },
-            companyId: {
-              type: DataTypes.INTEGER,
-              unique: 'company_user_email'
-            }
-          });
+      it('should not deadlock with concurrency duplicate entries and no outer transaction', function () {
+        var User = this.sequelize.define('User', {
+          email: {
+            type: DataTypes.STRING,
+            unique: 'company_user_email'
+          },
+          companyId: {
+            type: DataTypes.INTEGER,
+            unique: 'company_user_email'
+          }
+        });
 
-          return User.sync({force: true}).then(function () {
-            return Promise.map(_.range(50), function () {
-              return User.findOrCreate({
-                where: {
-                  email: 'unique.email.1@sequelizejs.com',
-                  companyId: 2
-                }
-              });
+        return User.sync({force: true}).then(function () {
+          return Promise.map(_.range(50), function () {
+            return User.findOrCreate({
+              where: {
+                email: 'unique.email.1@sequelizejs.com',
+                companyId: 2
+              }
             });
           });
         });
-       }
-      }
+      });
+    }
       
 
     it('should support special characters in defaults', function () {
@@ -398,7 +395,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       }
 
-      (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'oracle' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', function() {
+      (dialect !== 'sqlite' && dialect !== 'mssql' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', function() {
         var User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
