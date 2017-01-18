@@ -1,5 +1,5 @@
-site_name: Sequelize | The Node.js ORM for PostgreSQL, MySQL, SQLite and MSSQL
-site_description: Sequelize is an ORM for Node.js. It supports the dialects PostgreSQL, MySQL, SQLite and MSSQL.
+site_name: Sequelize | The Node.js ORM for PostgreSQL, MySQL, SQLite, Oracle and MSSQL
+site_description: Sequelize is an ORM for Node.js. It supports the dialects PostgreSQL, MySQL, SQLite, Oracle and MSSQL.
 repo_url: https://github.com/sequelize/sequelize
 site_favicon: favicon.ico
 site_url: http://docs.sequelizejs.com

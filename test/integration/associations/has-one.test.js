@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('HasOne'), function() {
     }
 
     //NOTE : oracle does not support where clause with non quoted column name
-    if(Support.getTestDialect() !== 'oracle') {
+    if (Support.getTestDialect() !== 'oracle') {
       it('should be able to handle a where object that\'s a first class citizen.', function() {
         var User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING })
           , Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });

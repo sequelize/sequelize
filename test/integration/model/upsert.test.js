@@ -215,7 +215,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).then(function(user) {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
-          if(dialect === 'oracle') {
+          if (dialect === 'oracle') {
             user.blob.iLob.read((err, lobData) => {
               expect(lobData).to.be.an.instanceOf(Buffer)
               expect(lobData.toString()).to.have.string('Sequelize');

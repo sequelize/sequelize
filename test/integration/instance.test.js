@@ -1540,7 +1540,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
     });
   });
 
-  if(dialect !== 'oracle') {
+  if (dialect !== 'oracle') {
     //Cannot work with Oracle, table length is too long
     describe('toJSON', function() {
       beforeEach(function() {

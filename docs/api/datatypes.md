@@ -205,6 +205,13 @@ A default value of the current timestamp
 
 Binary storage. Available lengths: `tiny`, `medium`, `long`
 
+Note : Carefull with this kind of column with Oracle. You will need to read the Blob column by yourself
+```js
+myBlobProperty.iLob.read(function (err, data) {
+		myBlobProperty = data;
+});
+```
+
 ***
 
 <a name="range"></a>

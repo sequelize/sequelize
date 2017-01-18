@@ -29,7 +29,7 @@ if (dialect !== 'sqlite') {
       }
 
       var query = 'SELECT ' + now + ' as now';
-      if(dialect === 'oracle') {
+      if (dialect === 'oracle') {
         query = 'SELECT CURRENT_DATE AS now FROM DUAL';
       }
 

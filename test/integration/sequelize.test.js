@@ -255,7 +255,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       this.insertQuery = 'INSERT INTO ' + qq(this.User.tableName) + ' (username, email_address, ' +
         qq('createdAt') + ', ' + qq('updatedAt');
 
-      if(dialect === 'oracle') {
+      if (dialect === 'oracle') {
         this.insertQuery += ") VALUES ('john', 'john@gmail.com', TO_TIMESTAMP_TZ('2012-01-01 10:10:10','YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'), TO_TIMESTAMP_TZ('2012-01-01 10:10:10','YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'))";
       } else {
         this.insertQuery += ") VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')";
@@ -283,7 +283,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
         return sequelize.query(formatQuery('select 1;')).then(function() {
           expect(logger.calledOnce).to.be.true;
-          if(dialect === 'oracle') {
+          if (dialect === 'oracle') {
             expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1 FROM DUAL Elapsed time: \d+ms/);  
           } else {
             expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
@@ -327,7 +327,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
         return sequelize.query(formatQuery('select 1;')).then(function() {
           expect(logger.calledOnce).to.be.true;
-          if(dialect === 'oracle') {
+          if (dialect === 'oracle') {
             expect(logger.args[0][0]).to.be.equal('Executed (default): select 1 FROM DUAL');
           } else {
             expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
@@ -343,7 +343,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           benchmark: true
         }).then(function() {
           expect(logger.calledOnce).to.be.true;
-          if(dialect === 'oracle') {
+          if (dialect === 'oracle') {
             expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1 FROM DUAL Elapsed time: \d+ms/);
           } else {
             expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
@@ -359,7 +359,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
           benchmark: true
         }).then(function() {
           expect(logger.calledOnce).to.be.true;
-           if(dialect === 'oracle') {
+           if (dialect === 'oracle') {
             expect(logger.args[0][0]).to.be.equal('Executed (default): select 1 FROM DUAL');
           } else {
             expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
@@ -497,7 +497,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
     });
 
     //node-oracledb doesn't support this request (NJS-010 invalid data type in select list)
-    if(dialect !== 'oracle') {
+    if (dialect !== 'oracle') {
       it('properly adds and escapes replacement value', function () {
         var logSql,
             number  = 1,
@@ -770,7 +770,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       if (dialect === 'mssql') {
         datetime = 'GETDATE()';
       }
-      if(dialect === 'oracle') {
+      if (dialect === 'oracle') {
         datetime = '(SELECT SYSDATE FROM DUAL)';
       }
 
@@ -956,7 +956,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
             tableNames = _.map(tableNames, 'tableName');
           }
 
-          if(dialect === 'oracle') {
+          if (dialect === 'oracle') {
             expect(tableNames).to.include('PHOTOS');
           } else {
             expect(tableNames).to.include('photos');

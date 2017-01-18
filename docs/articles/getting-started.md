@@ -35,7 +35,10 @@ $ npm install --save sequelize
 $ npm install --save pg       # for postgres
 $ npm install --save mysql2   # for mysql
 $ npm install --save sqlite3  # for sqlite
+$ npm install --save oracledb #for oracle
 ```
+
+Note : Oracle needs extra stuff, see part installation of [Node OracleDB installation](https://github.com/oracle/node-oracledb)
 
 ## Connecting to the database
 
@@ -44,7 +47,7 @@ Open the created directory in your favorite text editor and add a new file calle
 ```js
 var Sequelize = require('sequelize')
   , sequelize = new Sequelize('database_name', 'username', 'password', {
-      dialect: "mysql", // or 'sqlite', 'postgres', 'mssql'
+      dialect: "mysql", // or 'sqlite', 'postgres', 'mssql', 'oracle'
       port:    3306 // or 5432 (for postgres)
     });
 

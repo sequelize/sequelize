@@ -733,7 +733,7 @@ describe(Support.getTestDialectTeaser('Include'), function() {
           include: [Group]
         });
       }).then(function(user) {
-        if(dialect !== 'oracle') {
+        if (dialect !== 'oracle') {
           expect(user.dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
           expect(user.groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
         }

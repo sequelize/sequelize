@@ -103,7 +103,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }
 
         //Oracle doesn't suport if ASC is stuck to the identifier
-        if(current.dialect.name !== 'oracle') {
+        if (current.dialect.name !== 'oracle') {
           it('should not throw on a literal', function () {
             return this.User.findAll({
               order: [

@@ -434,7 +434,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
             if(dialect === 'postgres' || dialect === 'mssql') {
               whereClause = ['"finishedAt" IS NULL'];
-            } else if(dialect === 'oracle') {
+            } else if (dialect === 'oracle') {
               //Nothing for Oracle as the column has been defined without anything
               whereClause = ['finishedAt IS NULL'];
             } else {

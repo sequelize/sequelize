@@ -1906,7 +1906,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
   
     //Oracle does not return anything on bulk create, due to the specific form of inserting
-    if(dialect !== 'oracle') {
+    if (dialect !== 'oracle') {
       it('should return autoIncrement primary key (bulkCreate)', function() {
           var Maya = this.sequelize.define('Maya', {});
 
