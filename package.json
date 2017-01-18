@@ -139,7 +139,7 @@
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce"
   },
   "engines": {
-    "node": ">=0.6.21"
+    "node": ">=4.0.0"
   },
   "license": "MIT"
 }

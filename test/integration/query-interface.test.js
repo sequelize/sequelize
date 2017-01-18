@@ -659,6 +659,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
             expect(table).to.not.have.property('manager');
         });
       });
+
+      it('should be able to remove a column with primaryKey', function () {
+        return this.queryInterface.removeColumn('users', 'manager').bind(this).then(function() {
+          return this.queryInterface.describeTable('users');
+        }).then(function(table) {
+          expect(table).to.not.have.property('manager');
+          return this.queryInterface.removeColumn('users', 'id');
+        }).then(function() {
+          return this.queryInterface.describeTable('users');
+        }).then(function(table) {
+          expect(table).to.not.have.property('id');
+        });
+      });
+      
     });
 
     describe('(with a schema)', function() {
@@ -712,6 +726,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           }).then(function(table) {
             expect(table).to.not.have.property('lastName');
           });
+      });
+
+      it('should be able to remove a column with primaryKey', function () {
+        return this.queryInterface.removeColumn({
+          tableName: 'users',
+          schema: 'archive'
+        }, 'id').bind(this).then(function() {
+          return this.queryInterface.describeTable({
+            tableName: 'users',
+            schema: 'archive'
+          });
+        }).then(function(table) {
+          expect(table).to.not.have.property('id');
+        });
       });
     });
   });
