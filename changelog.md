@@ -7,7 +7,7 @@
 - [FIXED] MSSQL tedious debug regression fix when dialectOptions are not passed [#7130](https://github.com/sequelize/sequelize/pull/7130)
 - [CHANGED] `setIsolationLevelQuery` to skip under MSSQL dialect, added debug listener for tedious [#7130](https://github.com/sequelize/sequelize/pull/7130)
 - [FIXED] `sourceKey` FOR `hasMany` now also works if a `where` was specified in an `include` [#7141](https://github.com/sequelize/sequelize/issues/7141)
-- [ADDED] New DBMS supported : Oracle
+- [ADDED] New DBMS supported : Oracle [#7123](https://github.com/sequelize/sequelize/pull/7123)
 - [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
 - [ADDED] Filtered Indexes support for SQL Server [#7016](https://github.com/sequelize/sequelize/issues/7016)
 - [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
