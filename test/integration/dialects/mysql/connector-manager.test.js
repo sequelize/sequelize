@@ -9,7 +9,7 @@ var chai = require('chai')
   , DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 if (dialect === 'mysql') {
-  describe('[MYSQL Specific] Connector Manager', function() {
+  describe('[MYSQL Specific] Connection Manager', function() {
     it('works correctly after being idle', function() {
       var User = this.sequelize.define('User', { username: DataTypes.STRING })
         , spy = sinon.spy()
