@@ -44,12 +44,8 @@
     "env-cmd": "^4.0.0",
     "generic-pool": "^3.1.6",
     "inflection": "1.10.0",
-<<<<<<< 22ac23dd95e40e728fc0222d1fa0dbee81dfb3c9
     "lodash": "^4.17.1",
-=======
     "js-crc": "^0.1.0",
-    "lodash": "4.16.2",
->>>>>>> feat(oracle) : passing some integration tests
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
     "retry-as-promised": "^2.0.0",
@@ -77,7 +73,6 @@
     "lcov-result-merger": "^1.2.0",
     "mocha": "^3.0.2",
     "mysql2": "^1.1.0",
-    "oracledb": "^1.11.0",
     "pg": "^6.1.0",
     "pg-hstore": "^2.3.2",
     "pg-native": "^1.8.0",
@@ -88,6 +83,9 @@
     "sqlite3": "^3.1.4",
     "tedious": "^1.14.0",
     "uuid-validate": "^0.0.2"
+  },
+  "optionalDependencies": {
+    "oracledb": "^1.11.0"
   },
   "keywords": [
     "mysql",
