@@ -8,6 +8,8 @@ If `force: true` it will first drop tables before recreating them.
 Sequelize has a [sister library](https://github.com/sequelize/umzug) for handling execution and logging of migration tasks.
 Sequelize provides a list of ways to programmatically create or change a table schema.
 
+To read more about below functions go to [Migrations section of docs.](migrations)
+
 ### createTable
 
 ### addColumn
