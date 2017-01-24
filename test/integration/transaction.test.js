@@ -31,6 +31,14 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
       var transaction = new Transaction(this.sequelize);
       expect(transaction.id).to.exist;
     });
+
+    it('should call dialect specific generateTransactionId method', function() {
+      var transaction = new Transaction(this.sequelize);
+      expect(transaction.id).to.exist;      
+      if (dialect === 'mssql') {
+        expect(transaction.id).to.have.lengthOf(20);
+      }
+    });
   });
 
   describe('commit', function() {
@@ -81,7 +89,7 @@ describe(Support.getTestDialectTeaser('Transaction'), function() {
       });
     });
 
-    if (dialect === 'postgres' || dialect === 'mssql') {
+    if (dialect === 'postgres') {
       it('do not rollback if already committed', function() {
         var SumSumSum = this.sequelize.define('transaction', {
               value: {

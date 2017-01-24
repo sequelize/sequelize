@@ -1961,5 +1961,113 @@ describe(Support.getTestDialectTeaser('Include'), function() {
         expect(parseInt(post["comments.commentCount"], 10)).to.equal(3);
       });
     });
+
+    it('Should return posts with nested include with inner join with a m:n association', function () {
+
+      var User = this.sequelize.define('User', {
+        username: {
+          type: DataTypes.STRING,
+          primaryKey: true
+        }
+      });
+
+      var Entity = this.sequelize.define('Entity', {
+        entity_id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
+        creator: {
+          type: DataTypes.STRING,
+          allowNull: false
+        },
+        votes: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          defaultValue: 0
+        }
+      });
+
+      var Post = this.sequelize.define('Post', {
+        post_id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          primaryKey: true
+        }
+      });
+
+      var TaggableSentient = this.sequelize.define('TaggableSentient', {
+        nametag: {
+          type: DataTypes.STRING,
+          primaryKey: true
+        }
+      });
+
+      Entity.belongsTo(User, { foreignKey: 'creator', targetKey: 'username' });
+      Post.belongsTo(Entity, { foreignKey: 'post_id', targetKey: 'entity_id' });
+
+      Entity.belongsToMany(TaggableSentient, {
+        as: 'tags',
+        through: { model: 'EntityTag', unique: false },
+        foreignKey: 'entity_id',
+        otherKey: 'tag_name'
+      });
+
+      TaggableSentient.belongsToMany(Entity, {
+        as: 'tags',
+        through: { model: 'EntityTag', unique: false },
+        foreignKey: 'tag_name',
+        otherKey: 'entity_id'
+      });
+
+      return this.sequelize.sync({ force: true })
+        .then(function () {
+          return User.create({ username: 'bob' });
+        })
+        .then(function () {
+          return TaggableSentient.create({ nametag: 'bob' });
+        })
+        .then(function () {
+          return Entity.create({ creator: 'bob' });
+        })
+        .then(function(entity) {
+          return Promise.all([
+            Post.create({ post_id: entity.entity_id }),
+            entity.addTags('bob')
+          ]);
+        })
+        .then(function() {
+          var options = {
+            include: [{
+              model: Entity,
+              required: true,
+              include: [{
+                model: User,
+                required: true
+              }, {
+                model: TaggableSentient,
+                as: 'tags',
+                required: true,
+                through: {
+                  where: {
+                    tag_name: ['bob']
+                  }
+                }
+              }]
+            }],
+            limit: 5,
+            offset: 0
+          };
+          return Post.findAll(options);
+        })
+        .then(function(posts) {
+          expect(posts.length).to.equal(1);
+          expect(posts[0].Entity.creator).to.equal('bob');
+          expect(posts[0].Entity.tags.length).to.equal(1);
+          expect(posts[0].Entity.tags[0].EntityTag.tag_name).to.equal('bob');
+          expect(posts[0].Entity.tags[0].EntityTag.entity_id).to.equal(posts[0].post_id);
+        });
+    });
+
   });
 });
