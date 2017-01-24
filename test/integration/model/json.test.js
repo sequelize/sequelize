@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
           json: DataTypes.JSON
         });
 
-        return this.Event.sync({force: true});
+        return this.Event.sync({ force: true });
       });
 
       if (current.dialect.supports.lock) {
@@ -314,7 +314,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         const conditionSearch = {
           where: {
             data: {
-              employment : 'Hacker'
+              employment: 'Hacker'
             }
           }
         };
@@ -348,14 +348,71 @@ describe(Support.getTestDialectTeaser('Model'), function () {
             }
           })
         ).then(() => {
-            return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
-          }).then(() => {
-            return this.Event.destroy(conditionSearch);
-          }).then(() => {
-            return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
-          });
+          return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
+        }).then(() => {
+          return this.Event.destroy(conditionSearch);
+        }).then(() => {
+          return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
+        });
       });
 
+      describe('sql injection attacks', function () {
+        beforeEach(function () {
+          this.Model = this.sequelize.define('Model', {
+            data: DataTypes.JSON
+          });
+          return this.sequelize.sync({ force: true });
+        });
+
+        it('should properly escape the single quotes', function () {
+          return this.Model.create({
+            data: {
+              type: 'Point',
+              properties: {
+                exploit: "'); DELETE YOLO INJECTIONS; -- "
+              }
+            }
+          });
+        });
+
+        it('should properly escape the single quotes in array', function () {
+          return this.Model.create({
+            data: {
+              type: 'Point',
+              coordinates: [39.807222, "'); DELETE YOLO INJECTIONS; --"]
+            }
+          });
+        });
+
+        it('should be possible to find with properly escaped select query', function () {
+          return this.Model.create({
+            data: {
+              type: 'Point',
+              properties: {
+                exploit: "'); DELETE YOLO INJECTIONS; -- "
+              },
+            }
+          }).then(() => {
+            return this.Model.findOne({
+              where: {
+                data: {
+                  type: 'Point',
+                  properties: {
+                    exploit: "'); DELETE YOLO INJECTIONS; -- "
+                  },
+                }
+              }
+            });
+          }).then(result => {
+            expect(result.get('data')).to.deep.equal({
+              type: 'Point',
+              properties: {
+                exploit: "'); DELETE YOLO INJECTIONS; -- "
+              }
+            });
+          });
+        });
+      });
     });
   }
 });

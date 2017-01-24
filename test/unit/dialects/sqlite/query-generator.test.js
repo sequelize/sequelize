@@ -507,5 +507,35 @@ if (dialect === 'sqlite') {
         });
       });
     });
+
+    describe('JSON1 extension', function () {
+      it(`SQLite correctly generate query for json dot notation: sequelize.json('profile.id')`, function () {
+        const query = QueryGenerator.whereItemQuery(this.sequelize.json(`profile.id`), 1);
+        expect(query).to.equals("json_extract(`profile`, '$.id') = 1");
+      });
+
+      it("SQLite correctly generate query for json statement: sequelize.json('json_extract(`profile`, '$.id')')", function () {
+        const query = QueryGenerator.whereItemQuery(this.sequelize.json("json_extract(`profile`, '$.id')"), 1);
+        expect(query).to.equals("json_extract(`profile`, '$.id') = 1");
+      });
+
+      it(`SQLite correctly generate query for nested json statement: sequelize.json('json_extract(json('{"profile":"null"}'), "$.profile")')`, function () {
+        const query = QueryGenerator.whereItemQuery(this.sequelize.json(`json_extract(json('{"profile":null}'), "$.profile")`), null);
+        expect(query).to.equals(`json_extract(json('{"profile":null}'), "$.profile") IS NULL`);
+      });
+
+      it(`SQLite correctly generate query with string escape: sequelize.json('json('{"quote":{"single":"''","double":""""},"parenthesis":"())("}'))`, function () {
+        const query = QueryGenerator.handleSequelizeMethod(this.sequelize.json(`json('{"quote":{"single":"''","double":""""},"parenthesis":"())("}')`));
+        expect(query).to.equals(`json('{"quote":{"single":"''","double":""""},"parenthesis":"())("}')`);
+      });
+
+      it(`SQLite throw an error for unbalnced statement: sequelize.json('json_extract(json_array(1,2,3), "$.1"))`, function () {
+        expect(() => QueryGenerator.handleSequelizeMethod(this.sequelize.json('json_extract(json_array(1,2,3), "$.1"))'))).to.throw();
+      });
+
+      it(`SQLite throw an error for seperator injections: sequelize.json('json(); DELETE YOLO INJECTIONS; -- ')`, function () {
+        expect(() => QueryGenerator.handleSequelizeMethod(this.sequelize.json('json(); DELETE YOLO INJECTIONS; -- '))).to.throw();
+      });
+    });
   });
 }
