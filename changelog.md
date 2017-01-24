@@ -1,4 +1,6 @@
 # Future
+- [ADDED] SQLite JSON datatype support [#7094](https://github.com/sequelize/sequelize/pull/7094)
+- [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
 - [ADDED] Filtered Indexes support for SQL Server [#7016](https://github.com/sequelize/sequelize/issues/7016)
 - [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
 - [FIXED] Properly apply paranoid condition when `groupedLimit.on` association is `paranoid`
@@ -36,7 +38,7 @@
 - [FIXED] Enforce unique association aliases [#7025](https://github.com/sequelize/sequelize/pull/7025)
 - [FIXED] Information warnings when findAll is given incorrect inputs [#7047](https://github.com/sequelize/sequelize/pull/7047)
 - [FIXED] scope method syntax loses parameters when used multiple times [#7058](https://github.com/sequelize/sequelize/issues/7058)
-- [ADDED] SQLite JSON datatype support [#7094](https://github.com/sequelize/sequelize/pull/7094)
+- [INTERNAL] Updated to `generic-pool@3.1.6` [#7109](https://github.com/sequelize/sequelize/issues/7109)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
@@ -91,6 +93,7 @@
 - [FIXED] Nested query return correct result when quoteIdentifiers is false. (Postgres) [#6363](https://github.com/sequelize/sequelize/issues/6363)
 - [FIXED] Fixed an issue where changing multiple ENUM columns in PostgreSQL could break. [#6203] (https://github.com/sequelize/sequelize/issues/6203)
 - [FIXED] Add `parent`, `original` and `sql` properties to `UniqueConstraintError`
+- [ADDED] Support `sourceKey` for `hasMany` relationships [#4258](https://github.com/sequelize/sequelize/issues/4258)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)

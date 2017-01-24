@@ -192,6 +192,18 @@ Project.hasMany(User, {as: 'Workers'})
 This will add the attribute `projectId` or `project_id` to User. Instances of Project will get the accessors `getWorkers` and `setWorkers`. We could just leave it the way it is and let it be a one-way association.
 But we want more! Let's define it the other way around by creating a many to many association in the next section:
 
+Sometimes you may need to associate records on different columns, you may use `sourceKey` option:
+
+```js
+var City = sequelize.define('city', { countryCode: Sequelize.STRING });
+var Country = sequelize.define('country', { isoCode: Sequelize.STRING });
+
+// Here we can connect countries and cities base on country code
+Country.hasMany(City, {foreignKey: 'countryCode', sourceKey: 'isoCode'});
+City.belongsTo(Country, {foreignKey: 'countryCode', targetKey: 'isoCode'});
+```
+
+
 ## Belongs-To-Many associations
 
 Belongs-To-Many associations are used to connect sources with multiple targets. Furthermore the targets can also have connections to multiple sources.
@@ -203,7 +215,7 @@ User.belongsToMany(Project, {through: 'UserProject'});
 
 This will create a new model called UserProject with the equivalent foreign keys `projectId` and `userId`. Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
 
-Defining `through` is required. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
+Defining `through` is **required**. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
 
 This will add methods `getUsers`, `setUsers`, `addUser`,`addUsers` to `Project`, and `getProjects`, `setProjects`, `addProject`, and `addProjects` to `User`.
 

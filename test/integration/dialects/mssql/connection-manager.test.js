@@ -22,10 +22,8 @@ if (dialect.match(/^mssql/)) {
           conn = connection;
 
           // simulate a unexpected end
-          connection.unwrap().emit('error', {code: 'ECONNRESET'});
-        })
-        .then(function() {
-          return cm.releaseConnection(conn);
+          // connection removed from pool by MSSQL Conn Manager
+          conn.unwrap().emit('error', {code: 'ECONNRESET'});
         })
         .then(function() {
           // Get next available connection
