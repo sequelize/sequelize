@@ -1,3 +1,5 @@
+- [FIXED] `after` hook removed so `test/integration/assets/es6project.js` is no longer removed when running tests.
+
 # 3.30.0
 - [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
 - [ADDED] Support `sourceKey` for `hasMany` relationships [#4258](https://github.com/sequelize/sequelize/issues/4258)
