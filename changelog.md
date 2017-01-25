@@ -1,3 +1,4 @@
+# Future
 - [FIXED] `after` hook removed so `test/integration/assets/es6project.js` is no longer removed when running tests [#7143](https://github.com/sequelize/sequelize/issues/7143)
 
 # 3.30.0
