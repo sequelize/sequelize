@@ -1287,14 +1287,14 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
 
   describe('sourceKey with where clause in include', function() {
     beforeEach(function() {
-      var User = this.sequelize.define('UserXYZ',
+      var User = this.sequelize.define('User',
         { username: Sequelize.STRING, email: Sequelize.STRING },
         { indexes: [ {fields: ['email'], unique: true} ] }
       );
-      var Task = this.sequelize.define('TaskXYZ',
-        { title: Sequelize.STRING, userEmail: { type: Sequelize.STRING, field: 'user_email_xyz', taskStatus: Sequelize.STRING} });
+      var Task = this.sequelize.define('Task',
+        { title: Sequelize.STRING, userEmail: Sequelize.STRING, taskStatus: Sequelize.STRING });
 
-      User.hasMany(Task, {foreignKey: 'userEmail', sourceKey: 'email', as: 'tasks'});
+      User.hasMany(Task, {foreignKey: 'userEmail', sourceKey: 'email'});
 
       this.User = User;
       this.Task = Task;
@@ -1305,22 +1305,21 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
     it('should use the specified sourceKey instead of the primary key', function() {
       var User = this.User, Task = this.Task;
 
-      return User.create({ username: 'John', email: 'john@example.com'}).then(function(user) {
+      return User.create({ username: 'John', email: 'john@example.com'}).then(function() {
         return Task.bulkCreate([
           { title: 'Active Task', userEmail: 'john@example.com', taskStatus: 'Active'},
-          { title: 'Inactive Task', userEmail: 'john@example.com', taskStatus: 'Inactive'}]).then(function(tasks) {
-          return user.find({
-            where: { username: 'John' },
+          { title: 'Inactive Task', userEmail: 'john@example.com', taskStatus: 'Inactive'}]).then(function() {
+          return User.find({
             include: [
               {
                 model: Task,
-                where: { taskStatus: 'Active'}
+                where: {taskStatus: 'Active'}
               }
-            ]
-          }).then(function(results) {
-            expect(results.length).to.equal(1);
-            expect(results.Tasks.length).to.equal(1);
-            expect(results.Tasks[0].title).to.equal('Active Task');
+            ],
+            where: { username: 'John' }
+          }).then(function(user) {
+            expect(user).to.be.ok;
+            expect(user.Tasks.length).to.equal(1);
           });
         });
       });
