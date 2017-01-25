@@ -1,3 +1,7 @@
+# 3.30.1
+- [FIXED] `sourceKey` FOR `hasMany` now also works if a `where` was specified in an `include` [#7141](https://github.com/sequelize/sequelize/issues/7141)
+- [FIXED] Removes `after` hook in `/test/integration/sequeleze.test.js` that unlinks `/test/assets/es6project.js` [#7143](https://github.com/sequelize/sequelize/issues/7143)
+
 # 3.30.0
 - [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
 - [ADDED] Support `sourceKey` for `hasMany` relationships [#4258](https://github.com/sequelize/sequelize/issues/4258)
