@@ -510,8 +510,13 @@ if (dialect === 'sqlite') {
 
     describe('JSON1 extension', function () {
       it(`SQLite correctly generate query for json dot notation: sequelize.json('profile.id')`, function () {
-        const query = QueryGenerator.whereItemQuery(this.sequelize.json(`profile.id`), 1);
+        const query = QueryGenerator.whereItemQuery(this.sequelize.json('profile.id'), 1);
         expect(query).to.equals("json_extract(`profile`, '$.id') = 1");
+      });
+
+      it(`SQLite correctly generate query for json with json1 method name: sequelize.json('json')`, function () {
+        const query = QueryGenerator.whereItemQuery(this.sequelize.json(`json`), '{}');
+        expect(query).to.equals("json_extract(`json`, '$') = '{}'");
       });
 
       it("SQLite correctly generate query for json statement: sequelize.json('json_extract(`profile`, '$.id')')", function () {
@@ -535,6 +540,10 @@ if (dialect === 'sqlite') {
 
       it(`SQLite throw an error for seperator injections: sequelize.json('json(); DELETE YOLO INJECTIONS; -- ')`, function () {
         expect(() => QueryGenerator.handleSequelizeMethod(this.sequelize.json('json(); DELETE YOLO INJECTIONS; -- '))).to.throw();
+      });
+
+      it(`SQLite throw an error for seperator injections: sequelize.json('json(; DELETE YOLO INJECTIONS; -- )')`, function () {
+        expect(() => QueryGenerator.handleSequelizeMethod(this.sequelize.json('json(; DELETE YOLO INJECTIONS; -- )'))).to.throw();
       });
     });
   });
