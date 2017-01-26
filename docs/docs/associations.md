@@ -192,6 +192,18 @@ Project.hasMany(User, {as: 'Workers'})
 This will add the attribute `projectId` or `project_id` to User. Instances of Project will get the accessors `getWorkers` and `setWorkers`. We could just leave it the way it is and let it be a one-way association.
 But we want more! Let's define it the other way around by creating a many to many association in the next section:
 
+Sometimes you may need to associate records on different columns, you may use `sourceKey` option:
+
+```js
+var City = sequelize.define('city', { countryCode: Sequelize.STRING });
+var Country = sequelize.define('country', { isoCode: Sequelize.STRING });
+
+// Here we can connect countries and cities base on country code
+Country.hasMany(City, {foreignKey: 'countryCode', sourceKey: 'isoCode'});
+City.belongsTo(Country, {foreignKey: 'countryCode', targetKey: 'isoCode'});
+```
+
+
 ## Belongs-To-Many associations
 
 Belongs-To-Many associations are used to connect sources with multiple targets. Furthermore the targets can also have connections to multiple sources.
@@ -203,7 +215,7 @@ User.belongsToMany(Project, {through: 'UserProject'});
 
 This will create a new model called UserProject with the equivalent foreign keys `projectId` and `userId`. Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
 
-Defining `through` is required. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
+Defining `through` is **required**. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
 
 This will add methods `getUsers`, `setUsers`, `addUser`,`addUsers` to `Project`, and `getProjects`, `setProjects`, `addProject`, and `addProjects` to `User`.
 
@@ -240,10 +252,10 @@ User.belongsToMany(Project, { through: UserProjects })
 Project.belongsToMany(User, { through: UserProjects })
 ```
 
-To add a new project to a user and set its status, you pass an extra object to the setter, which contains the attributes for the join table
+To add a new project to a user and set its status, you pass extra `options.through` to the setter, which contains the attributes for the join table
 
 ```js
-user.addProject(project, { status: 'started' })
+user.addProject(project, { through: { status: 'started' }})
 ```
 
 By default the code above will add projectId and userId to the UserProjects table, and _remove any previously defined primary key attribute_ - the table will be uniquely identified by the combination of the keys of the two tables, and there is no reason to have other PK columns. To enforce a primary key on the `UserProjects` model you can add it manually.
@@ -542,8 +554,8 @@ project.UserProjects = {
 }
 u.addProject(project)
  
-// Or by providing a second argument when adding the association, containing the data that should go in the join table
-u.addProject(project, { status: 'active' })
+// Or by providing a second options.through argument when adding the association, containing the data that should go in the join table
+u.addProject(project, { through: { status: 'active' }})
  
  
 // When associating multiple objects, you can combine the two options above. In this case the second argument
@@ -552,7 +564,7 @@ project1.UserProjects = {
     status: 'inactive'
 }
  
-u.setProjects([project1, project2], { status: 'active' })
+u.setProjects([project1, project2], { through: { status: 'active' }})
 // The code above will record inactive for project one, and active for project two in the join table
 ```
 
@@ -727,7 +739,7 @@ Trainer.hasMany(Series);
 
 An instance can be created with nested association in one step, provided all elements are new.
 
-### Creating elements of a "BelongsTo" or "HasOne" association
+### Creating elements of a "BelongsTo", "Has Many" or "HasOne" association
 
 Consider the following models:
 
@@ -739,26 +751,45 @@ var User = this.sequelize.define('user', {
   first_name: Sequelize.STRING,
   last_name: Sequelize.STRING
 });
+var Address = this.sequelize.define('address', {
+  type: Sequelize.STRING,
+  line_1: Sequelize.STRING,
+  line_2: Sequelize.STRING,
+  city: Sequelize.STRING,
+  state: Sequelize.STRING,
+  zip: Sequelize.STRING,
+});
 
-Product.belongsTo(User);
+var Product.User = Product.belongsTo(User);
+var User.Addresses = User.hasMany(Address);
 // Also works for `hasOne`
 ```
 
-A new `Product` and `User` can be created in one step in the following way:
+A new `Product`, `User`, and one or more `Address` can be created in one step in the following way:
 
 ```js
 return Product.create({
   title: 'Chair',
   user: {
     first_name: 'Mick',
-    last_name: 'Broadstone'
+    last_name: 'Broadstone',
+    addresses: [{
+      type: 'home',
+      line_1: '100 Main St.',
+      city: 'Austin',
+      state: 'TX',
+      zip: '78704'
+    }]
   }
 }, {
-  include: [ User ]
+  include: [{
+    association: Product.User,
+    include: [ User.Addresses ]
+  }]
 });
 ```
 
-Here, our user model is called `user`, with a lowercase u - This means that the property in the object should also be `user`. If the name given to `sequelize.define` was `User`, the key in the object should also be `User`.
+Here, our user model is called `user`, with a lowercase u - This means that the property in the object should also be `user`. If the name given to `sequelize.define` was `User`, the key in the object should also be `User`. Likewise for `addresses`, except it's pluralized being a `hasMany` association.
 
 ### Creating elements of a "BelongsTo" association with an alias
 

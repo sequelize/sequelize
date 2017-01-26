@@ -1004,7 +1004,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(str2.str).to.equal('http://sequelizejs.org');
             return StringIsNullOrUrl.create({ str: '' }).catch(function(err) {
               expect(err).to.exist;
-              expect(err.get('str')[0].message).to.match(/Validation isURL failed/);
+              expect(err.get('str')[0].message).to.match(/Validation isURL on str failed/);
             });
           });
         });
@@ -1244,6 +1244,28 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
+    it('Works even when SQL query has a values of transaction keywords such as BEGIN TRANSACTION', function () {
+      const Task = this.sequelize.define('task', {
+        title: DataTypes.STRING
+      });
+      return Task.sync({ force: true })
+        .then(() => {
+          return Sequelize.Promise.all([
+            Task.create({ title: 'BEGIN TRANSACTION' }),
+            Task.create({ title: 'COMMIT TRANSACTION' }),
+            Task.create({ title: 'ROLLBACK TRANSACTION' }),
+            Task.create({ title: 'SAVE TRANSACTION' }),
+          ]);
+        })
+        .then(newTasks => {
+          expect(newTasks).to.have.lengthOf(4);
+          expect(newTasks[0].title).to.equal('BEGIN TRANSACTION');
+          expect(newTasks[1].title).to.equal('COMMIT TRANSACTION');
+          expect(newTasks[2].title).to.equal('ROLLBACK TRANSACTION');
+          expect(newTasks[3].title).to.equal('SAVE TRANSACTION');
+        });
+    });
+
     describe('enums', function() {
       it('correctly restores enum values', function() {
         var self = this
@@ -1366,20 +1388,26 @@ describe(Support.getTestDialectTeaser('Model'), function() {
   describe('bulkCreate', function() {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        var self = this;
-        return this.sequelize.transaction().then(function(t) {
-          return self.User
-            .bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction: t })
-            .then(function() {
-              return self.User.count().then(function(count1) {
-                return self.User.count({ transaction: t }).then(function(count2) {
-                  expect(count1).to.equal(0);
-                  expect(count2).to.equal(2);
-                  return t.rollback();
-                });
-              });
-            });
+        const User = this.sequelize.define('User', {
+          username: DataTypes.STRING
         });
+        let transaction, count1;
+        return User.sync({ force: true })
+          .then(() => this.sequelize.transaction())
+          .then(t => {
+            transaction = t;
+            return User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction });
+          })
+          .then(() => User.count())
+          .then((count) => {
+            count1 = count;
+            return User.count({ transaction });
+          })
+          .then((count2) => {
+              expect(count1).to.equal(0);
+              expect(count2).to.equal(2);
+              return transaction.rollback();
+          });
       });
     }
 
@@ -1619,7 +1647,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(errors[0].errors.get('name')[0].type).to.equal('notNull Violation');
           expect(errors[1].record.name).to.equal('bar');
           expect(errors[1].record.code).to.equal('1');
-          expect(errors[1].errors.get('code')[0].message).to.equal('Validation len failed');
+          expect(errors[1].errors.get('code')[0].message).to.equal('Validation len on code failed');
         });
       });
     });
@@ -1850,6 +1878,30 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(m.id).to.be.eql(M2.id);
         expect(m.name).to.be.eql(M2.name);
         expect(m.secret).to.be.eql(M2.secret);
+      });
+    });
+    
+    it('should return autoIncrement primary key (create)', function() {
+      var Maya = this.sequelize.define('Maya', {});
+
+      var M1 = {};
+
+      return Maya.sync({ force: true }).then(() => Maya.create(M1, {returning: true}))
+      .then((m) => {
+        expect(m.id).to.be.eql(1);
+      });
+    });
+  
+    it('should return autoIncrement primary key (bulkCreate)', function() {
+      var Maya = this.sequelize.define('Maya', {});
+
+      var M1 = {};
+      var M2 = {};
+
+      return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true}))
+      .then((ms) => {
+        expect(ms[0].id).to.be.eql(1);
+        expect(ms[1].id).to.be.eql(2);
       });
     });
   });

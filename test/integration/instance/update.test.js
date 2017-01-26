@@ -141,6 +141,37 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
+    if(dialect === 'mysql') {
+      it('should update timestamps w milliseconds', function() {
+        var User = this.sequelize.define('User' + config.rand(), {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          email: DataTypes.STRING,
+          createdAt: {type: DataTypes.DATE(6), allowNull: false},
+          updatedAt: {type: DataTypes.DATE(6), allowNull: false}
+        }, {
+          timestamps: true
+        });
+
+      this.clock.tick(2100); //move the clock forward 2100 ms. 
+
+      return User.sync({force: true}).then(function() {
+          return User.create({
+            name: 'snafu',
+            email: 'email'
+          }).then(function(user) {
+            return user.reload();
+          }).then(function(user) {
+            expect(user.get('name')).to.equal('snafu');
+            expect(user.get('email')).to.equal('email');
+            var testDate = new Date();
+            testDate.setTime(2100);
+            expect(user.get('createdAt')).to.equalTime(testDate);
+          });
+        });
+      });
+    }
+
     it('should only save passed attributes', function () {
       var user = this.User.build();
       return user.save().then(function () {

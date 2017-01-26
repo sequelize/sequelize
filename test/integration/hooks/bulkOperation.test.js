@@ -5,7 +5,8 @@ var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , sinon = require('sinon');
+  , sinon = require('sinon')
+  , Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Hooks'), function() {
   beforeEach(function() {
@@ -101,24 +102,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         var beforeBulkCreate = false
           , afterBulkCreate = false;
 
-        this.User.beforeBulkCreate(function(daos, options, fn) {
+        this.User.beforeBulkCreate(function(daos, options) {
           beforeBulkCreate = true;
-          fn();
+          return Promise.resolve();
         });
 
-        this.User.afterBulkCreate(function(daos, options, fn) {
+        this.User.afterBulkCreate(function(daos, options) {
           afterBulkCreate = true;
-          fn();
+          return Promise.resolve();
         });
 
-        this.User.beforeCreate(function(user, options, fn) {
+        this.User.beforeCreate(function(user, options) {
           user.beforeHookTest = true;
-          fn();
+          return Promise.resolve();
         });
 
-        this.User.afterCreate(function(user, options, fn) {
+        this.User.afterCreate(function(user, options) {
           user.username = 'User' + user.id;
-          fn();
+          return Promise.resolve();
         });
 
         return this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).then(function(records) {
@@ -135,23 +136,23 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         var beforeBulkCreate = false
           , afterBulkCreate = false;
 
-        this.User.beforeBulkCreate(function(daos, options, fn) {
+        this.User.beforeBulkCreate(function(daos, options) {
           beforeBulkCreate = true;
-          fn();
+          return Promise.resolve();
         });
 
-        this.User.afterBulkCreate(function(daos, options, fn) {
+        this.User.afterBulkCreate(function(daos, options) {
           afterBulkCreate = true;
-          fn();
+          return Promise.resolve();
         });
 
-        this.User.beforeCreate(function(user, options, fn) {
-          fn(new Error('You shall not pass!'));
+        this.User.beforeCreate(function(user, options) {
+          return Promise.reject(new Error('You shall not pass!'));
         });
 
-        this.User.afterCreate(function(user, options, fn) {
+        this.User.afterCreate(function(user, options) {
           user.username = 'User' + user.id;
-          fn();
+          return Promise.resolve();
         });
 
         return this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).catch(function(err) {
@@ -380,24 +381,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           , beforeHook = false
           , afterHook = false;
 
-        this.User.beforeBulkDestroy(function(options, fn) {
+        this.User.beforeBulkDestroy(function(options) {
           beforeBulk = true;
-          fn();
+          return Promise.resolve();
         });
 
-        this.User.afterBulkDestroy(function(options, fn) {
+        this.User.afterBulkDestroy(function(options) {
           afterBulk = true;
-          fn();
+          return Promise.resolve();
         });
 
-        this.User.beforeDestroy(function(user, options, fn) {
+        this.User.beforeDestroy(function(user, options) {
           beforeHook = true;
-          fn();
+          return Promise.resolve();
         });
 
-        this.User.afterDestroy(function(user, options, fn) {
+        this.User.afterDestroy(function(user, options) {
           afterHook = true;
-          fn();
+          return Promise.resolve();
         });
 
         return this.User.bulkCreate([
@@ -419,24 +420,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
           , beforeHook = false
           , afterHook = false;
 
-        this.User.beforeBulkDestroy(function(options, fn) {
+        this.User.beforeBulkDestroy(function(options) {
           beforeBulk = true;
-          fn();
+          return Promise.resolve();
         });
 
-        this.User.afterBulkDestroy(function(options, fn) {
+        this.User.afterBulkDestroy(function(options) {
           afterBulk = true;
-          fn();
+          return Promise.resolve();
         });
 
-        this.User.beforeDestroy(function(user, options, fn) {
+        this.User.beforeDestroy(function(user, options) {
           beforeHook = true;
-          fn(new Error('You shall not pass!'));
+          return Promise.reject(new Error('You shall not pass!'));
         });
 
-        this.User.afterDestroy(function(user, options, fn) {
+        this.User.afterDestroy(function(user, options) {
           afterHook = true;
-          fn();
+          return Promise.resolve();
         });
 
         return this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(function() {
@@ -544,9 +545,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
 
         this.ParanoidUser.beforeBulkRestore(beforeBulk);
         this.ParanoidUser.afterBulkRestore(afterBulk);
-        this.ParanoidUser.beforeRestore(function(user, options, fn) {
+        this.ParanoidUser.beforeRestore(function(user, options) {
           beforeHook();
-          fn(new Error('You shall not pass!'));
+          return Promise.reject(new Error('You shall not pass!'));
         });
 
         this.ParanoidUser.afterRestore(afterHook);

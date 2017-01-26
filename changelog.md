@@ -1,4 +1,60 @@
 # Future
+- [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
+- [ADDED] Filtered Indexes support for SQL Server [#7016](https://github.com/sequelize/sequelize/issues/7016)
+- [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
+- [FIXED] Properly apply paranoid condition when `groupedLimit.on` association is `paranoid`
+- [FIXED] Throw MSSQL MERGE Statement foreignKey violations as ForeignKeyConstraintError [#7011](https://github.com/sequelize/sequelize/pull/7011)
+- [FIXED] Transaction Name too long, transaction savepoints for SQL Server [#6972](https://github.com/sequelize/sequelize/pull/6972)
+- [FIXED] Issue with sync hooks (before/afterInit, before/afterDefine) [#6680](https://github.com/sequelize/sequelize/issues/6680)
+- [FIXED] MSSQL handle large bulk inserts [#6866](https://github.com/sequelize/sequelize/issues/6866)
+- [FIXED] describeTable returns a wrong value for primaryKey [#5756] (https://github.com/sequelize/sequelize/issues/5756)
+- [FIXED] MSSQL LIMIT IN UPDATE [#6636](https://github.com/sequelize/sequelize/issues/6636)
+- [FIXED] Custom error message not used for `notNull` validation [#6531](https://github.com/sequelize/sequelize/issues/6531)
+- [FIXED] N:M `through` option naming collisions [#4597](https://github.com/sequelize/sequelize/issues/4597)
+ [#6444](https://github.com/sequelize/sequelize/issues/6444)
+- [CHANGED] Updated deprecated `node-uuid` package to `uuid` [#6919](https://github.com/sequelize/sequelize/pull/6919)
+- [ADDED] UPSERT Support for MSSQL [#6842](https://github.com/sequelize/sequelize/pull/6842)
+- [FIXED] Execute queries parallel in findAndCount [#6695](https://github.com/sequelize/sequelize/issues/6695)
+- [FIXED] `restore` now uses `field` from `deletedAt`
+- [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed
+- [FIXED] `DATEONLY` now returns `YYYY-MM-DD` date string [#4858] (https://github.com/sequelize/sequelize/issues/4858)
+- [FIXED] Issues with `createFunction` and `dropFunction` (PostgresSQL)
+- [ADDED] Optimistic locking support [#6637] (https://github.com/sequelize/sequelize/pull/6637)
+- [FIXED] Issue with belongsTo association and foreign keys [#6400](https://github.com/sequelize/sequelize/issues/6400)
+- [FIXED] Issue with query generation in MSSQL, an identifier was not escaped [#6686] (https://github.com/sequelize/sequelize/pull/6686)
+- [FIXED] GroupedLimit when foreignKey has a field alias
+- [FIXED] groupedLimit.through.where support
+- [ADDED] `option.silent` for increment and decrement [#6795](https://github.com/sequelize/sequelize/pull/6795)
+- [CHANGED] `now` function allow milliseconds in timestamps on mysql [#6441](https://github.com/sequelize/sequelize/issues/6441)
+- [ADDED] `options.rowFormat` added to Query Generator for MySQL dialect using InnoDB engines [#6824] (https://github.com/sequelize/sequelize/issues/6824)
+- [FIXED] `Increment` / `Decrement` properly maps to timestamp fields [#6296](https://github.com/sequelize/sequelize/issues/6296)
+- [FIXED] Issue with overrriding custom methods with association mixins (all association methods are now exposed) [#6682](https://github.com/sequelize/sequelize/issues/6682)
+- [ADDED] Support condition objects in utility functions [#6685](https://github.com/sequelize/sequelize/pull/6685)
+- [FIXED] HSTORE and JSON fields being renamed when `options.field` is specified on a matching model attribute
+- [FIXED] Soft-delete not returning number of affected rows on mssql [#6930](https://github.com/sequelize/sequelize/pull/6930)
+- [FIXED] No `value` in built-in/custom validation errors [#3899](https://github.com/sequelize/sequelize/pull/3899)
+- [FIXED] Custom error messages used for incorrect eager loading [#7005](https://github.com/sequelize/sequelize/pull/7005)
+- [FIXED] Enforce unique association aliases [#7025](https://github.com/sequelize/sequelize/pull/7025)
+- [FIXED] Information warnings when findAll is given incorrect inputs [#7047](https://github.com/sequelize/sequelize/pull/7047)
+- [FIXED] scope method syntax loses parameters when used multiple times [#7058](https://github.com/sequelize/sequelize/issues/7058)
+- [INTERNAL] Updated to `generic-pool@3.1.6` [#7109](https://github.com/sequelize/sequelize/issues/7109)
+
+## BC breaks:
+- `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
+- With `BelongsToMany` relationships `add/set/create` setters now set `through` attributes by passing them as `options.through` (previously second argument was used as `through` attributes, now its considered `options` with `through` being a sub option)
+
+# 4.0.0-2
+- [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations
+- [FIXED] Accept dates as string while using `typeValidation` [#6453](https://github.com/sequelize/sequelize/issues/6453)
+- [FIXED] - ORDER clause was not included in subquery if `order` option value was provided as plain string (not as an array value)
+- [FIXED] support for CLS with `cls-bluebird` module
+
+# 4.0.0-1
+- [CHANGED] Removed `modelManager` parameter from `Model.init()` [#6437](https://github.com/sequelize/sequelize/issues/6437)
+- [FIXED] Made `Model.init()` behave like `sequelize.define()` (hooks are called and options have proper defaults) [#6437](https://github.com/sequelize/sequelize/issues/6437)
+- [ADDED] `restartIdentity` option for truncate in postgres [#5356](https://github.com/sequelize/sequelize/issues/5356)
+- [INTERNAL] Migrated to `node-mysql2` for prepared statements [#6354](https://github.com/sequelize/sequelize/issues/6354)
+- [ADDED] SQLCipher support via the SQLite connection manager
 - [CHANGED] Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive) [#5990](https://github.com/sequelize/sequelize/issues/5990)
 - [ADDED] Support for range operators [#5990](https://github.com/sequelize/sequelize/issues/5990)
 - [FIXED] Broken transactions in `MySQL` [#3568](https://github.com/sequelize/sequelize/issues/3568)
@@ -30,6 +86,13 @@
 - [FIXED] `attribute:[]` throw errors with `include` or `through` [#5078](https://github.com/sequelize/sequelize/issues/5078) [#4222](https://github.com/sequelize/sequelize/issues/4222) [#5958](https://github.com/sequelize/sequelize/issues/5958) [#5590](https://github.com/sequelize/sequelize/issues/5590) [#6139](https://github.com/sequelize/sequelize/issues/6139) [#4866](https://github.com/sequelize/sequelize/issues/4866) [#6242](https://github.com/sequelize/sequelize/issues/6242)
 - [SECURITY] `GEOMETRY` and `GEOGRAPHY` SQL injection attacks [#6194](https://github.com/sequelize/sequelize/issues/6194)
 - [FIXED] `DECIMAL` now supports `UNSIGNED` / `ZEROFILL` (MySQL) [#2038](https://github.com/sequelize/sequelize/issues/2038)
+- [FIXED] Generate correct SQL of nested include when quoteIdentifiers is false. (Postgres) [#6351](https://github.com/sequelize/sequelize/issues/6351)
+- [FIXED] Generate correct SQL for JSON attributes with quote.
+[#6406](https://github.com/sequelize/sequelize/issues/6406)
+- [FIXED] Nested query return correct result when quoteIdentifiers is false. (Postgres) [#6363](https://github.com/sequelize/sequelize/issues/6363)
+- [FIXED] Fixed an issue where changing multiple ENUM columns in PostgreSQL could break. [#6203] (https://github.com/sequelize/sequelize/issues/6203)
+- [FIXED] Add `parent`, `original` and `sql` properties to `UniqueConstraintError`
+- [ADDED] Support `sourceKey` for `hasMany` relationships [#4258](https://github.com/sequelize/sequelize/issues/4258)
 
 ## BC breaks:
 - Range type bounds now default to [postgres default](https://www.postgresql.org/docs/9.5/static/rangetypes.html#RANGETYPES-CONSTRUCT) `[)` (inclusive, exclusive), previously was `()` (exclusive, exclusive)
@@ -61,6 +124,7 @@
 - [FIXED] All associations now prefer aliases to construct foreign key [#5267](https://github.com/sequelize/sequelize/issues/5267)
 - [REMOVED] Default transaction auto commit [#5094](https://github.com/sequelize/sequelize/issues/5094)
 - [REMOVED] Callback support for hooks [#5228](https://github.com/sequelize/sequelize/issues/5228)
+- [FIXED] Setting required in a nested include will not force the parent include to be required as well [#5999](https://github.com/sequelize/sequelize/issues/5999)
 
 ## BC breaks:
 - `hookValidate` removed in favor of `validate` with `hooks: true | false`. `validate` returns a promise which is rejected if validation fails
@@ -78,6 +142,7 @@
 - All associations type will prefer `as` when constructing the `foreignKey` name. You can override this by `foreignKey` option.
 - Removed default `AUTO COMMIT` for transaction. Its only sent if explicitly set by user or required by dialects (like `mysql`)
 - Hooks no longer provide a callback - you can return a `then`-able instead if you are doing async stuff
+- Table names of a select query have change internally from 'originModel.associatedModel.field' to 'originModel->associatedModel.field'
 
 # 3.23.2
 - [FIXED] Type validation now works with non-strings due to updated validator@5.0.0 [#5861](https://github.com/sequelize/sequelize/pull/5861)

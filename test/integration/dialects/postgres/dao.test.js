@@ -5,6 +5,8 @@
 var chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../../support')
+  , Sequelize = Support.Sequelize
+  , Promise   = Sequelize.Promise
   , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../../lib/data-types')
   , sequelize = require(__dirname + '/../../../../lib/sequelize');
@@ -20,6 +22,7 @@ if (dialect.match(/^postgres/)) {
         document: { type: DataTypes.HSTORE, defaultValue: { default: "'value'" } },
         phones: DataTypes.ARRAY(DataTypes.HSTORE),
         emergency_contact: DataTypes.JSON,
+        emergencyContact: DataTypes.JSON,
         friends: {
           type: DataTypes.ARRAY(DataTypes.JSON),
           defaultValue: []
@@ -251,6 +254,23 @@ if (dialect.match(/^postgres/)) {
             expect(user.emergency_contact.name).to.equal('joe');
           });
       });
+      
+      it('should be able to query using dot syntax with uppercase name', function() {
+        var self = this;
+
+        return this.sequelize.Promise.all([
+          this.User.create({ username: 'swen', emergencyContact: { name: 'kate' } }),
+          this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })])
+          .then(function() {
+            return self.User.find({
+              attributes: [[sequelize.json('emergencyContact.name'), 'contactName']],
+              where: sequelize.json('emergencyContact.name', 'joe')
+            });
+          })
+          .then(function(user) {
+            expect(user.get("contactName")).to.equal('joe');
+          });
+      });
 
       it('should be able to store values that require JSON escaping', function() {
         var self = this;
@@ -309,6 +329,56 @@ if (dialect.match(/^postgres/)) {
             var expected = '\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
             expect(sql.indexOf(expected)).not.to.equal(-1);
           }
+        });
+      });
+
+      it('should not rename hstore fields', function() {
+        const Equipment = this.sequelize.define('Equipment', {
+          grapplingHook: {
+            type: DataTypes.STRING,
+            field: 'grappling_hook'
+          },
+          utilityBelt: {
+            type: DataTypes.HSTORE
+          }
+        });
+
+        return Equipment.sync({ force: true }).then(() => {
+          return Equipment.findAll({
+            where: {
+              utilityBelt: {
+                grapplingHook: true
+              }
+            },
+            logging(sql) {
+              expect(sql).to.equal('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE "Equipment"."utilityBelt" = \'"grapplingHook"=>"true"\';');
+            }
+          });
+        });
+      });
+
+      it('should not rename json fields', function() {
+        const Equipment = this.sequelize.define('Equipment', {
+          grapplingHook: {
+            type: DataTypes.STRING,
+            field: 'grappling_hook'
+          },
+          utilityBelt: {
+            type: DataTypes.JSON
+          }
+        });
+
+        return Equipment.sync({ force: true }).then(() => {
+          return Equipment.findAll({
+            where: {
+              utilityBelt: {
+                grapplingHook: true
+              }
+            },
+            logging(sql) {
+              expect(sql).to.equal('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE ("Equipment"."utilityBelt"#>>\'{grapplingHook}\')::boolean = true;');
+            }
+          });
         });
       });
 
@@ -938,6 +1008,143 @@ if (dialect.match(/^postgres/)) {
               });
             });
         });
+      });
+      it('can select nested include', function() {
+        this.sequelize.options.quoteIdentifiers = false;
+        this.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = false;
+        this.Professor  = this.sequelize.define('Professor', {
+          fullName: DataTypes.STRING
+        }, {
+          quoteIdentifiers: false
+        });
+        this.Class = this.sequelize.define('Class', {
+          name: DataTypes.STRING
+        }, {
+          quoteIdentifiers: false
+        });
+        this.Student = this.sequelize.define('Student', {
+          fullName: DataTypes.STRING
+        }, {
+          quoteIdentifiers: false
+        });
+        this.ClassStudent = this.sequelize.define('ClassStudent', {
+        }, {
+          quoteIdentifiers: false,
+	        tableName: 'class_student'
+        });
+        this.Professor.hasMany(this.Class);
+        this.Class.belongsTo(this.Professor);
+        this.Class.belongsToMany(this.Student,{through: this.ClassStudent});
+        this.Student.belongsToMany(this.Class,{through: this.ClassStudent});
+        return this.Professor.sync({ force: true })
+          .then(()=> {
+            return this.Student.sync({ force: true });
+          })
+          .then(()=> {
+            return this.Class.sync({ force: true });
+          })
+          .then(()=> {
+            return this.ClassStudent.sync({ force: true });
+          })
+          .then(()=> {
+              return this.Professor.bulkCreate([
+                {
+                  id: 1,
+                  fullName: 'Albus Dumbledore'
+                },
+                {
+                  id: 2,
+                  fullName: 'Severus Snape'
+                }
+              ]);
+            })
+          .then(()=> {
+            return this.Class.bulkCreate([
+              {
+                id: 1,
+                name: 'Transfiguration',
+                ProfessorId: 1
+              },
+              {
+                id: 2,
+                name: 'Potions',
+                ProfessorId: 2
+              },
+              {
+                id: 3,
+                name: 'Defence Against the Dark Arts',
+                ProfessorId: 2
+              }
+            ]);
+          })
+          .then(()=> {
+            return this.Student.bulkCreate([
+              {
+                id: 1,
+                fullName: 'Harry Potter',
+              },
+              {
+                id: 2,
+                fullName: 'Ron Weasley',
+              },
+              {
+                id: 3,
+                fullName: 'Ginny Weasley',
+              },
+              {
+                id: 4,
+                fullName: 'Hermione Granger',
+              }
+            ]);
+          })
+          .then(()=> {
+            return Promise.all([
+              this.Student.findById(1)
+                .then((Harry)=> {
+                  return Harry.setClasses([1,2,3]);
+                }),
+              this.Student.findById(2)
+                .then((Ron)=> {
+                  return Ron.setClasses([1,2]);
+                }),
+              this.Student.findById(3)
+                .then((Ginny)=> {
+                  return Ginny.setClasses([2,3]);
+                }),
+              this.Student.findById(4)
+                .then((Hermione)=> {
+                  return Hermione.setClasses([1,2,3]);
+                })
+            ]);
+          })
+          .then(()=> {
+            return this.Professor.findAll({
+              include:[
+                {
+                  model: this.Class,
+                  include: [
+                    {
+                      model: this.Student
+                    }
+                  ]
+                }
+              ],
+              order: [
+                ['id'],
+                [this.Class, 'id'],
+                [this.Class, this.Student, 'id']
+              ]
+            });
+          })
+          .then((professors)=> {
+            expect(professors.length).to.eql(2);
+            expect(professors[0].fullName).to.eql('Albus Dumbledore');
+            expect(professors[0].Classes.length).to.eql(1);
+            expect(professors[0].Classes[0].Students.length).to.eql(3);
+          })
+          .finally(()=> {
+            this.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = true;
+          });
       });
     });
   });

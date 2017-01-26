@@ -130,8 +130,8 @@ Sequelize.RANGE(Sequelize.DECIMAL)    // Defines numrange range. PostgreSQL only
 Sequelize.ARRAY(Sequelize.RANGE(Sequelize.DATE)) // Defines array of tstzrange ranges. PostgreSQL only.
 
 Sequelize.GEOMETRY                    // Spatial column.  PostgreSQL (with PostGIS) or MySQL only.
-Sequelize.GEOMETRY('POINT')           // Spatial column with geomerty type.  PostgreSQL (with PostGIS) or MySQL only.
-Sequelize.GEOMETRY('POINT', 4326)     // Spatial column with geomerty type and SRID.  PostgreSQL (with PostGIS) or MySQL only.
+Sequelize.GEOMETRY('POINT')           // Spatial column with geometry type. PostgreSQL (with PostGIS) or MySQL only.
+Sequelize.GEOMETRY('POINT', 4326)     // Spatial column with geometry type and SRID.  PostgreSQL (with PostGIS) or MySQL only.
 ```
 
 The BLOB data type allows you to insert data both as strings and as buffers. When you do a find or findAll on a model which has a BLOB column. that data will always be returned as a buffer.
@@ -387,7 +387,6 @@ var ValidateMe = sequelize.define('foo', {
       isBefore: "2011-11-05",   // only allow date strings before a specific date
       max: 23,                  // only allow values
       min: 23,                  // only allow values >= 23
-      isArray: true,            // only allow arrays
       isCreditCard: true,       // check for valid credit card numbers
 
       // custom validations are also possible:
@@ -502,7 +501,12 @@ var Bar = sequelize.define('bar', { /* bla */ }, {
   freezeTableName: true,
 
   // define the table's name
-  tableName: 'my_very_custom_table_name'
+  tableName: 'my_very_custom_table_name',
+
+  // Enable optimistic locking.  When enabled, sequelize will add a version count attriubte
+  // to the model and throw an OptimisticLockingError error when stale instances are saved.
+  // Set to true or a string with the attribute name you want to use to enable.
+  version: true
 })
 ```
 
@@ -517,7 +521,7 @@ var Foo = sequelize.define('foo',  { /* bla */ }, {
   createdAt: false,
 
   // I want updatedAt to actually be called updateTimestamp
-  updatedAt: 'updateTimestamp'
+  updatedAt: 'updateTimestamp',
 
   // And deletedAt to be called destroyTime (remember to enable paranoid for this to work)
   deletedAt: 'destroyTime',
@@ -574,6 +578,13 @@ sequelize.import('project', function(sequelize, DataTypes) {
   })
 })
 ```
+
+## Optimistic Locking
+
+Sequelize has built-in support for optimistic locking through a model instance version count.
+Optimistic locking is disabled by default and can be enabled by setting the `version` property to true in a specific model definition or global model configuration.  See [model configuration][0] for more details.
+
+Optimistic locking allows concurrent access to model records for edits and prevents conflicts from overwriting data.  It does this by checking whether another process has made changes to a record since it was read and throws an OptimisticLockError when a conflict is detected.
 
 ## Database synchronization
 

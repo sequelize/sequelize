@@ -1,19 +1,19 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/support')
-  , DataTypes = require(__dirname + '/../../lib/data-types')
-  , dialect = Support.getTestDialect()
-  , _ = require('lodash')
-  , count = 0
-  , log = function (sql) {
-    // sqlite fires a lot more querys than the other dbs. this is just a simple hack, since i'm lazy
-    if (dialect !== 'sqlite' || count === 0) {
-      count++;
-    }
-  };
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/support');
+const DataTypes = require(__dirname + '/../../lib/data-types');
+const dialect = Support.getTestDialect();
+const _ = require('lodash');
+let count = 0;
+const log = function() {
+  // sqlite fires a lot more querys than the other dbs. this is just a simple hack, since i'm lazy
+  if (dialect !== 'sqlite' || count === 0) {
+    count++;
+  }
+};
 
 describe(Support.getTestDialectTeaser('QueryInterface'), function() {
   beforeEach(function() {
@@ -25,17 +25,41 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     return this.sequelize.dropAllSchemas();
   });
 
+  describe('renameTable', function() {
+    it('should rename table', function() {
+      return this.queryInterface
+        .createTable('myTestTable', {
+          name: DataTypes.STRING
+        })
+        .then(() => this.queryInterface.renameTable('myTestTable', 'myTestTableNew'))
+        .then(() => this.queryInterface.showAllTables())
+        .then((tableNames) => {
+          if (dialect === 'mssql') {
+            tableNames = _.map(tableNames, 'tableName');
+          }
+          expect(tableNames).to.contain('myTestTableNew');
+          expect(tableNames).to.not.contain('myTestTable');
+        });
+    });
+  });
+
   describe('dropAllTables', function() {
     it('should drop all tables', function() {
-      var self = this;
+      const filterMSSQLDefault = tableNames => tableNames.filter(t => t.tableName !== 'spt_values');
+      const self = this;
       return this.queryInterface.dropAllTables().then(function() {
         return self.queryInterface.showAllTables().then(function(tableNames) {
+          // MSSQL include spt_values table which is system defined, hence cant be dropped
+          tableNames = filterMSSQLDefault(tableNames);
           expect(tableNames).to.be.empty;
           return self.queryInterface.createTable('table', { name: DataTypes.STRING }).then(function() {
             return self.queryInterface.showAllTables().then(function(tableNames) {
+              tableNames = filterMSSQLDefault(tableNames);
               expect(tableNames).to.have.length(1);
               return self.queryInterface.dropAllTables().then(function() {
                 return self.queryInterface.showAllTables().then(function(tableNames) {
+                  // MSSQL include spt_values table which is system defined, hence cant be dropped
+                  tableNames = filterMSSQLDefault(tableNames);
                   expect(tableNames).to.be.empty;
                 });
               });
@@ -200,6 +224,43 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         });
       });
     });
+
+    it('should correctly determine the primary key columns', function () {
+      var self = this;
+      var Country = self.sequelize.define('_Country', {
+        code:     {type: DataTypes.STRING, primaryKey: true },
+        name:     {type: DataTypes.STRING, allowNull: false}
+      }, { freezeTableName: true });
+      var Alumni = self.sequelize.define('_Alumni', {
+        year:     {type: DataTypes.INTEGER, primaryKey: true },
+        num:      {type: DataTypes.INTEGER, primaryKey: true },
+        username: {type: DataTypes.STRING, allowNull: false, unique: true },
+        dob:      {type: DataTypes.DATEONLY, allowNull: false },
+        dod:      {type: DataTypes.DATEONLY, allowNull: true },
+        city:     {type: DataTypes.STRING, allowNull: false},
+        ctrycod:  {type: DataTypes.STRING, allowNull: false,
+                    references: { model: Country, key: 'code'}}
+      }, { freezeTableName: true });
+
+      return Country.sync({ force: true }).then(function() {
+        return self.queryInterface.describeTable('_Country').then(function(metacountry) {
+          expect(metacountry.code.primaryKey).to.eql(true);
+          expect(metacountry.name.primaryKey).to.eql(false);
+
+          return Alumni.sync({ force: true }).then(function() {
+            return self.queryInterface.describeTable('_Alumni').then(function(metalumni) {
+              expect(metalumni.year.primaryKey).to.eql(true);
+              expect(metalumni.num.primaryKey).to.eql(true);
+              expect(metalumni.username.primaryKey).to.eql(false);
+              expect(metalumni.dob.primaryKey).to.eql(false);
+              expect(metalumni.dod.primaryKey).to.eql(false);
+              expect(metalumni.ctrycod.primaryKey).to.eql(false);
+              expect(metalumni.city.primaryKey).to.eql(false);
+            });
+          });
+        });
+      });
+    });
   });
 
   // FIXME: These tests should make assertions against the created table using describeTable
@@ -212,7 +273,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           autoIncrement: true
         }
       }).bind(this).then(function() {
-        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(function(response) {
+        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(function(results) {
+          var response = _.head(results);
           expect(response.table_id || (typeof response !== 'object' && response)).to.be.ok;
         });
       });
@@ -594,6 +656,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
             expect(table).to.not.have.property('manager');
         });
       });
+
+      it('should be able to remove a column with primaryKey', function () {
+        return this.queryInterface.removeColumn('users', 'manager').bind(this).then(function() {
+          return this.queryInterface.describeTable('users');
+        }).then(function(table) {
+          expect(table).to.not.have.property('manager');
+          return this.queryInterface.removeColumn('users', 'id');
+        }).then(function() {
+          return this.queryInterface.describeTable('users');
+        }).then(function(table) {
+          expect(table).to.not.have.property('id');
+        });
+      });
+
     });
 
     describe('(with a schema)', function() {
@@ -647,6 +723,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           }).then(function(table) {
             expect(table).to.not.have.property('lastName');
           });
+      });
+
+      it('should be able to remove a column with primaryKey', function () {
+        return this.queryInterface.removeColumn({
+          tableName: 'users',
+          schema: 'archive'
+        }, 'id').bind(this).then(function() {
+          return this.queryInterface.describeTable({
+            tableName: 'users',
+            schema: 'archive'
+          });
+        }).then(function(table) {
+          expect(table).to.not.have.property('id');
+        });
       });
     });
   });

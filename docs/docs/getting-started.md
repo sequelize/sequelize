@@ -7,14 +7,14 @@ $ npm install --save sequelize
 
 # And one of the following:
 $ npm install --save pg pg-hstore
-$ npm install --save mysql
+$ npm install --save mysql2
 $ npm install --save sqlite3
 $ npm install --save tedious // MSSQL
 ```
 
 ## Setting up a connection
 
-Sequelize will setup a connection pool on initialization so you should ideally only ever create one instance per database.
+Sequelize will setup a connection pool on initialization so you should ideally only ever create one instance per database if you're connecting to the DB from a single process. If you're connecting to the DB from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of "max connection pool size divided by number of instances".  So, if you wanted a max connection pool size of 90 and you had 3 worker processes, each process's instance should have a max connection pool size of 30.
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
@@ -107,7 +107,7 @@ var Post = sequelize.define('post', {}, {
 
 ## Promises
 
-Sequelize uses promises to control async control-flow. If you are unfamiliar with how promises work, don't worry, you can read up on them here, [here](https://github.com/wbinnssmith/awesome-promises) and [here](http://bluebirdjs.com/docs/why-promises.html)
+Sequelize uses promises to control async control-flow. If you are unfamiliar with how promises work, don't worry, you can read up on them [here](https://github.com/wbinnssmith/awesome-promises) and [here](http://bluebirdjs.com/docs/why-promises.html).
 
 Basically, a promise represents a value which will be present at some point - "I promise you I will give you a result or an error at some point". This means that
 

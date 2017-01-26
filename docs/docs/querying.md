@@ -123,6 +123,7 @@ $gte: 6,               // >= 6
 $lt: 10,               // < 10
 $lte: 10,              // <= 10
 $ne: 20,               // != 20
+$eq: 3,                // = 3
 $not: true,            // IS NOT TRUE
 $between: [6, 10],     // BETWEEN 6 AND 10
 $notBetween: [11, 15], // NOT BETWEEN 11 AND 15
@@ -151,7 +152,7 @@ Keep in mind, the provided range value can
 as well.
 
 ```js
-// All the above equlity and inequality operators plus the following:
+// All the above equality and inequality operators plus the following:
 
 $contains: 2           // @> '2'::integer (PG range contains element operator)
 $contains: [1, 2]      // @> [1, 2) (PG range contains range operator)
@@ -242,7 +243,7 @@ JSONB can be queried in three different ways.
 
 ### Relations / Associations
 ```js
-// Find all projects with a least one task where task.state === project.task
+// Find all projects with a least one task where task.state === project.state
 Project.findAll({
     include: [{
         model: Task,

@@ -60,6 +60,17 @@ Project.scope('deleted').findAll(); // Removes the default scope
 SELECT * FROM projects WHERE deleted = true
 ```
 
+It is also possible to include scoped models in a scope definition. This allows you to avoid duplicating `include`, `attributes` or `where` definitions.
+Using the above example, and invoking the `active` scope on the included User model (rather than specifying the condition directly in that include object):
+
+```js
+activeUsers: {
+  include: [
+    { model: User.scope('active')}
+  ]
+}
+```
+
 # Usage
 Scopes are applied by calling `.scope` on the model definition, passing the name of one or more scopes. `.scope` returns a fully functional model instance with all the regular methods: `.findAll`, `.update`, `.count`, `.destroy` etc. You can save this model instance and reuse it later:
 

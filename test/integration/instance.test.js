@@ -10,7 +10,7 @@ var chai = require('chai')
   , dialect = Support.getTestDialect()
   , config = require(__dirname + '/../config/config')
   , sinon = require('sinon')
-  , uuid = require('node-uuid')
+  , validateUUID = require('uuid-validate')
   , current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
@@ -264,6 +264,23 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
       });
     });
+
+    it('with timestamps set to true and options.silent set to true', function() {
+      var User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true })
+        , oldDate;
+
+      return User.sync({ force: true }).bind(this).then(function() {
+        return User.create({aNumber: 1});
+      }).then(function(user) {
+        oldDate = user.updatedAt;
+        this.clock.tick(1000);
+        return user.increment('aNumber', {by: 1, silent: true});
+      }).then(function() {
+        return expect(User.findById(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+      });
+    });
   });
 
   describe('decrement', function() {
@@ -387,6 +404,23 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         return user.decrement('aNumber', {by: 1});
       }).then(function() {
         return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
+      });
+    });
+
+    it('with timestamps set to true and options.silent set to true', function() {
+      var User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true })
+        , oldDate;
+
+      return User.sync({ force: true }).bind(this).then(function() {
+        return User.create({aNumber: 1});
+      }).then(function(user) {
+        oldDate = user.updatedAt;
+        this.clock.tick(1000);
+        return user.decrement('aNumber', {by: 1, silent: true});
+      }).then(function() {
+        return expect(User.findById(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
       });
     });
   });
@@ -669,10 +703,10 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         expect(user.uuidv4).to.have.length(36);
       });
 
-      it('should store a valid uuid in uuidv1 and uuidv4 that can be parsed to something of length 16', function() {
+      it('should store a valid uuid in uuidv1 and uuidv4 that conforms to the UUID v1 and v4 specifications', function() {
         var user = this.User.build({ username: 'a user'});
-        expect(uuid.parse(user.uuidv1)).to.have.length(16);
-        expect(uuid.parse(user.uuidv4)).to.have.length(16);
+        expect(validateUUID(user.uuidv1, 1)).to.be.true;
+        expect(validateUUID(user.uuidv4, 4)).to.be.true;
       });
 
       it('should store a valid uuid if the field is a primary key named id', function() {
@@ -1275,7 +1309,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         expect(err).to.be.instanceof(Object);
         expect(err.get('validateTest')).to.be.instanceof(Array);
         expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       });
     });
 
@@ -1285,7 +1319,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         expect(err).to.be.instanceof(Object);
         expect(err.get('validateTest')).to.be.instanceof(Array);
         expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       });
     });
 
@@ -1309,7 +1343,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           expect(err.get('validateTest')).to.exist;
           expect(err.get('validateTest')).to.be.instanceof(Array);
           expect(err.get('validateTest')[0]).to.exist;
-          expect(err.get('validateTest')[0].message).to.equal('Validation isInt failed');
+          expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
         });
       });
     });
