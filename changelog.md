@@ -1,5 +1,5 @@
 # Future
-- [CHANGED] Updated deprecated `node-uuid` package to `uuid` [#6919](https://github.com/sequelize/sequelize/pull/6919)
+- [CHANGED] Updated deprecated `node-uuid` package to `uuid` [#7148](https://github.com/sequelize/sequelize/pull/7148)
 
 # 3.30.0
 - [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
