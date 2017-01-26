@@ -122,6 +122,9 @@ Team.hasOne(Game, {as: 'HomeTeam', foreignKey : 'homeTeamId'});
 Team.hasOne(Game, {as: 'AwayTeam', foreignKey : 'awayTeamId'});
 
 Game.belongsTo(Team);
+
+// If you need to use a non-primary key for the source table, use `sourceKey`
+Person.hasOne(Task, {as: 'ActiveTask', sourceKey : 'activeTaskId'});
 ```
 
 Even though it is called a HasOne association, for most 1:1 relations you usually want the BelongsTo association since BelongsTo will add the foreignKey on the source where hasOne will add on the target.
