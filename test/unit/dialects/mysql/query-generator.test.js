@@ -164,8 +164,12 @@ if (dialect === 'mysql') {
           expectation: "SELECT * FROM `myTable` WHERE foo='bar';",
           context: QueryGenerator
         }, {
+          arguments: ['myTable', {order: 'id; DROP TABLE myTable;'}],
+          expectation: 'SELECT * FROM `myTable` ORDER BY `id; DROP TABLE myTable;`;',
+          context: QueryGenerator
+        }, {
           arguments: ['myTable', {order: 'id DESC'}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY id DESC;',
+          expectation: 'SELECT * FROM `myTable` ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: ['id']}],
@@ -265,7 +269,7 @@ if (dialect === 'mysql') {
           needsSequelize: true
         }, {
           arguments: ['myTable', {group: 'name', order: 'id DESC'}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY id DESC;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
           title: 'HAVING clause works with string replacements',
