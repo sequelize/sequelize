@@ -753,7 +753,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         intVal: this.sequelize.cast('1', type)
       }, {
         logging: function(sql) {
-          expect(sql).to.match(new RegExp("CAST\\(N?'1' AS " + type.toUpperCase() + '\\)'));
+          if (dialect === 'postgres') {
+            expect(sql).to.match(new RegExp("N?'1'::" + type));
+          } else {
+            expect(sql).to.match(new RegExp("CAST\\(N?'1' AS " + type.toUpperCase() + '\\)'));
+          }
           match = true;
         }
       }).then(function(user) {
@@ -779,6 +783,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         logging: function(sql) {
           if (dialect === 'mysql') {
             expect(sql).to.contain('CAST(CAST(1-2 AS UNSIGNED) AS SIGNED)');
+          } else if (dialect === 'postgres') {
+            expect(sql).to.contain('1-2::integer::integer');
           } else {
             expect(sql).to.contain('CAST(CAST(1-2 AS INTEGER) AS INTEGER)');
           }
@@ -1880,7 +1886,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(m.secret).to.be.eql(M2.secret);
       });
     });
-    
+
     it('should return autoIncrement primary key (create)', function() {
       var Maya = this.sequelize.define('Maya', {});
 
@@ -1891,7 +1897,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(m.id).to.be.eql(1);
       });
     });
-  
+
     it('should return autoIncrement primary key (bulkCreate)', function() {
       var Maya = this.sequelize.define('Maya', {});
 
