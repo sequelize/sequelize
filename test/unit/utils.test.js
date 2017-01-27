@@ -472,7 +472,8 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
         }
       }, 'int'))), {
         default: 'SUM(CAST(([foo] = \'foo\' OR [bar] = \'bar\') AS INT))',
-        mssql: 'SUM(CAST(([foo] = N\'foo\' OR [bar] = N\'bar\') AS INT))'
+        mssql: 'SUM(CAST(([foo] = N\'foo\' OR [bar] = N\'bar\') AS INT))',
+        postgres: 'SUM(("foo" = \'foo\' OR "bar" = \'bar\')::int)',
       });
     });
 });
