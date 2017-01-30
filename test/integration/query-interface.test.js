@@ -6,6 +6,7 @@ const expect = chai.expect;
 const Support = require(__dirname + '/support');
 const DataTypes = require(__dirname + '/../../lib/data-types');
 const dialect = Support.getTestDialect();
+const Sequelize = Support.Sequelize;
 const _ = require('lodash');
 let count = 0;
 const log = function() {
@@ -1036,7 +1037,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     
     describe('error handling', function () {
       it('should throw non existent constraints as UnknownConstraintError', function () {
-        expect(this.queryInterface.removeConstraint('users', 'unknown__contraint__name', {
+        return expect(this.queryInterface.removeConstraint('users', 'unknown__contraint__name', {
           type: 'unique'
         })).to.eventually.be.rejectedWith(Sequelize.UnknownConstraintError);
       });
