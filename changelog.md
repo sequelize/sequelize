@@ -1,5 +1,6 @@
 # Future
 - [FIXED] Removed `Sequelize.literal()` support for order strings [#6935](https://github.com/sequelize/sequelize/issues/6935)
+- [CHANGED] `setIsolationLevelQuery` to skip under MSSQL dialect, added debug listener for tedious [#7130](https://github.com/sequelize/sequelize/pull/7130)
 - [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
 - [ADDED] Filtered Indexes support for SQL Server [#7016](https://github.com/sequelize/sequelize/issues/7016)
 - [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
