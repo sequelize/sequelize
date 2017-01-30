@@ -619,67 +619,31 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
     it('using scope to set associations', function() {
       var ItemTag = this.sequelize.define('ItemTag', {
-                      id : {
-                            type: DataTypes.INTEGER,
-                            primaryKey: true,
-                            autoIncrement: true
-                           },
-                      tag_id: {
-                            type: DataTypes.INTEGER,
-                            unique: false
-                      },
-                      taggable: {
-                        type: DataTypes.STRING,
-                      },
-                      taggable_id: {
-                        type: DataTypes.INTEGER,
-                        unique: false
-                      }
+                      id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+                      tag_id: { type: DataTypes.INTEGER, unique: false },
+                      taggable: { type: DataTypes.STRING },
+                      taggable_id: { type: DataTypes.INTEGER, unique: false }
       }),
       Tag = this.sequelize.define('Tag', {
-        id : {
-              type: DataTypes.INTEGER,
-              primaryKey: true,
-              autoIncrement: true
-             },
+        id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         name: DataTypes.STRING
       }),
       Comment = this.sequelize.define('Comment', {
-        id : {
-              type: DataTypes.INTEGER,
-              primaryKey: true,
-              autoIncrement: true
-             },
+        id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         name: DataTypes.STRING
       }),
       Post = this.sequelize.define('Post', {
-        id : {
-              type: DataTypes.INTEGER,
-              primaryKey: true,
-              autoIncrement: true
-             },
+        id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         name: DataTypes.STRING
       });
 
       Post.belongsToMany(Tag, {
-        through: {
-          model: ItemTag,
-          unique: false,
-          scope: {
-            taggable: 'post'
-          }
-        },
+        through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
         foreignKey: 'taggable_id'
       });
 
       Comment.belongsToMany(Tag, {
-        through: {
-          model: ItemTag,
-          unique: false,
-          scope: {
-            taggable: 'comment'
-          }
-        },
+        through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
        foreignKey: 'taggable_id'
       });
 
@@ -687,14 +651,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         return Promise.all([
           Post.create({ name: 'post1' }),
           Comment.create({ name: 'comment1' }),
+          Tag.create({ name: 'tag1' })
         ]);
-      }).bind({}).spread(function(post, comment) {
+      }).bind({}).spread(function(post, comment, tag) {
         this.post = post;
         this.comment = comment;
-        return Tag.create({ name: 'tag1' });
-      }).then(function(tag) {
         this.tag = tag;
-        return this.post.setTags([tag]);
+        return this.post.setTags([this.tag]);
       }).then(function() {
         return this.comment.setTags([this.tag]);
       }).then(function() {
