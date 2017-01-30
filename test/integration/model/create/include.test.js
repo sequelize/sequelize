@@ -317,7 +317,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         var ItemTag = this.sequelize.define('ItemTag', {
           tag_id: {
             type: DataTypes.INTEGER,
-            unique: 'item_tag',
             references: {
               model: 'tags',
               key: 'id'
@@ -325,12 +324,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           },
           taggable_id: {
             type: DataTypes.INTEGER,
-            unique: 'item_tag',
             references: null
           },
           taggable: {
             type: DataTypes.STRING,
-            unique: 'item_tag'
           },
         }, {
             tableName: 'item_tag',
@@ -343,7 +340,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           constraints: false,
           through: {
             model: ItemTag,
-            unique: false,
             scope: {
               taggable: 'post'
             }
@@ -356,7 +352,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           constraints: false,
           through: {
             model: ItemTag,
-            unique: false,
             scope: {
               taggable: 'post'
             }
