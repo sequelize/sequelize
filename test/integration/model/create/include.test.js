@@ -299,6 +299,110 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
+      it('should create data for polymorphic BelongsToMany relations', function () {
+        var Post = this.sequelize.define('Post', {
+          title: DataTypes.STRING
+        }, {
+            tableName: 'posts',
+            underscored: true
+          });
+
+        var Tag = this.sequelize.define('Tag', {
+          name: DataTypes.STRING,
+        }, {
+            tableName: 'tags',
+            underscored: true
+          });
+
+        var ItemTag = this.sequelize.define('ItemTag', {
+          tag_id: {
+            type: DataTypes.INTEGER,
+            unique: 'item_tag',
+            references: {
+              model: 'tags',
+              key: 'id'
+            }
+          },
+          taggable_id: {
+            type: DataTypes.INTEGER,
+            unique: 'item_tag'
+          },
+          taggable: {
+            type: DataTypes.STRING,
+            unique: 'item_tag'
+          },
+        }, {
+            tableName: 'item_tag',
+            underscored: true
+          });
+
+        Post.belongsToMany(Tag, {
+          as: 'tags',
+          foreignKey: 'taggable_id',
+          constraints: false,
+          through: {
+            model: ItemTag,
+            unique: false,
+            scope: {
+              taggable: 'post'
+            }
+          }
+        });
+
+        Tag.belongsToMany(Post, {
+          as: 'posts',
+          foreignKey: 'tag_id',
+          constraints: false,
+          through: {
+            model: ItemTag,
+            unique: false,
+            scope: {
+              taggable: 'post'
+            }
+          }
+        });
+
+        return this.sequelize.sync({ force: true }).then(function () {
+          return Post.create({
+            title: 'Polymorphic Associations',
+            tags: [
+              {
+                name: 'polymorphic'
+              },
+              {
+                name: 'associations'
+              }
+            ]
+          }, {
+              include: [{
+                model: Tag,
+                as: 'tags',
+                through: {
+                  model: ItemTag
+                }
+              }]
+            }
+          );
+        }).then(function (savedPost) {
+          // The saved post should include the two tags
+          expect(savedPost.tags.length).to.equal(2);
+          // The saved post should be able to retrieve the two tags
+          // using the convenience accessor methods
+          return savedPost.getTags();
+        }).then(function (savedTags) {
+          // All nested tags should be returned
+          expect(savedTags.length).to.equal(2);
+        }).then(function () {
+          return ItemTag.findAll();
+        }).then(function (itemTags) {
+          // Two "through" models should be created
+          expect(itemTags.length).to.equal(2);
+          // And their polymorphic field should be correctly set to 'post'
+          expect(itemTags[0].taggable).to.equal('post');
+          expect(itemTags[1].taggable).to.equal('post');
+        });
+      });
+
       it('should create data for BelongsToMany relations with alias', function() {
         var User = this.sequelize.define('User', {
           username: DataTypes.STRING
