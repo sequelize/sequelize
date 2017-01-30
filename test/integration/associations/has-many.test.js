@@ -1288,13 +1288,13 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
   describe('sourceKey with where clause in include', function() {
     beforeEach(function() {
       var User = this.sequelize.define('User',
-        { username: Sequelize.STRING, email: Sequelize.STRING },
-        { indexes: [ {fields: ['email'], unique: true} ] }
+        { username: Sequelize.STRING, email: { type: Sequelize.STRING, field: 'mail'} },
+        { indexes: [ {fields: ['mail'], unique: true} ] }
       );
       var Task = this.sequelize.define('Task',
         { title: Sequelize.STRING, userEmail: Sequelize.STRING, taskStatus: Sequelize.STRING });
 
-      User.hasMany(Task, {foreignKey: 'userEmail', sourceKey: 'email'});
+      User.hasMany(Task, {foreignKey: 'userEmail', sourceKey: 'mail'});
 
       this.User = User;
       this.Task = Task;
@@ -1320,6 +1320,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
           }).then(function(user) {
             expect(user).to.be.ok;
             expect(user.Tasks.length).to.equal(1);
+            expect(user.Tasks[0].title).to.equal('Active Task');
           });
         });
       });
