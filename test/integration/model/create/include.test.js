@@ -325,7 +325,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           },
           taggable_id: {
             type: DataTypes.INTEGER,
-            unique: 'item_tag'
+            unique: 'item_tag',
+            references: null
           },
           taggable: {
             type: DataTypes.STRING,
