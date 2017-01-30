@@ -73,7 +73,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-
     describe('attributes include / exclude', () => {
       it('allows me to include additional attributes', () => {
         return Model.findAll({
