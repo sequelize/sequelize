@@ -349,10 +349,10 @@ queryInterface.addConstraint('Posts', ['username'], {
   type: 'FOREIGN KEY',
   references: { //Required field
     model: 'target_table_name',
-    key: 'target_column_name',
-    onDelete: 'cascade',
-    onUpdate: 'cascade'
-  }
+    key: 'target_column_name'
+  },
+  onDelete: 'cascade',
+  onUpdate: 'cascade'
 });
 ```
 

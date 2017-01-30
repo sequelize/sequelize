@@ -1004,6 +1004,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
             model: 'users',
             key: 'username'
           },
+          onDelete: 'cascade',
+          onUpdate: 'cascade',
           type: 'foreign key'
         });
       })

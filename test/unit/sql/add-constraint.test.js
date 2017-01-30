@@ -150,10 +150,10 @@ if (dialect !== 'sqlite') {
             fields: ['myColumn'],
             references: {
               model: 'myOtherTable',
-              key: 'id',
-              onUpdate: 'cascade',
-              onDelete: 'cascade'            
-            }
+              key: 'id'           
+            },
+            onUpdate: 'cascade',
+            onDelete: 'cascade'
           }), {
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [FK__myTable__myColumn__myOtherTable] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;'
           });
