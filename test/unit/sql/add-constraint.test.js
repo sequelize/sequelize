@@ -6,9 +6,8 @@ const current   = Support.sequelize;
 const expectsql = Support.expectsql;
 const sql = current.dialect.QueryGenerator;
 const expect = require('chai').expect;
-const dialect = Support.getTestDialect();
 
-if (dialect !== 'sqlite') {
+if (current.dialect.supports.constraints.addConstraint) {
   describe(Support.getTestDialectTeaser('SQL'), function() {
     describe('addConstraint', function() {
       describe('unique', function() {
@@ -75,7 +74,7 @@ if (dialect !== 'sqlite') {
         
       });
 
-      if(current.dialect.name === 'mssql') {
+      if(current.dialect.supports.constraints.default) {
         describe('default', function() {
           it('naming', function() {
             expectsql(sql.addConstraintQuery('myTable', {

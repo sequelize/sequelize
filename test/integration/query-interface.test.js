@@ -7,6 +7,7 @@ const Support = require(__dirname + '/support');
 const DataTypes = require(__dirname + '/../../lib/data-types');
 const dialect = Support.getTestDialect();
 const Sequelize = Support.Sequelize;
+const current = Support.sequelize;
 const _ = require('lodash');
 let count = 0;
 const log = function() {
@@ -914,7 +915,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     });
 
-    if (dialect !== 'mysql') {
+    if (current.dialect.supports.constraints.check) {
       describe('check', function () {
         it('should add, read & remove check constraint', function() {
           return this.queryInterface.addConstraint('users', ['roles'], {
@@ -939,7 +940,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     }
 
-    if (dialect === 'mssql') {
+    if (current.dialect.supports.constraints.default) {
       describe('default', function () {
         it('should add, read & remove default constraint', function() {
           return this.queryInterface.addConstraint('users', ['roles'], {
