@@ -45,7 +45,9 @@ if (dialect === 'sqlite') {
         it('naming', function() {
           expectsql(sql.getConstraintSnippet('myTable', {
             type: 'CHECK',
-            fields: ['myColumn'],
+            fields: [{
+              attribute: 'myColumn'
+            }],
             where: {
               myColumn: ['value1', 'value2', 'value3']
             }
@@ -145,7 +147,7 @@ if (dialect === 'sqlite') {
       });
       
       describe('validation', function() {
-        it('throw error on invalid type', function () {
+        it('throw error on invalid type', function() {
           expect(sql.getConstraintSnippet.bind(sql, 'myTable', { type: 'some type', fields: [] })).to.throw('some type is invalid');
         });
       });

@@ -74,7 +74,7 @@ if (current.dialect.supports.constraints.addConstraint) {
         
       });
 
-      if(current.dialect.supports.constraints.default) {
+      if (current.dialect.supports.constraints.default) {
         describe('default', function() {
           it('naming', function() {
             expectsql(sql.addConstraintQuery('myTable', {
@@ -96,6 +96,19 @@ if (current.dialect.supports.constraints.addConstraint) {
               mssql: "ALTER TABLE [myTable] ADD CONSTRAINT [default_mytable_null] DEFAULT (N'some default value') FOR [myColumn];"
             });
           });
+          
+          it('validation', function() {
+            expect(sql.addConstraintQuery.bind(sql, {
+              tableName: 'myTable',
+              schema: 'mySchema'
+            }, {
+              type: 'default',
+              fields: [{
+                attribute: 'myColumn'
+              }]
+            })).to.throw('Default value must be specifed for DEFAULT CONSTRAINT');
+          });
+          
         });
       }
       describe('primary key', function() {
@@ -169,9 +182,14 @@ if (current.dialect.supports.constraints.addConstraint) {
       });
       
       describe('validation', function() {
-        it('throw error on invalid type', function () {
+        it('throw error on invalid type', function() {
           expect(sql.addConstraintQuery.bind(sql, 'myTable', { type: 'some type', fields: [] })).to.throw('some type is invalid');
         });
+        if (!current.dialect.supports.constraints.default) {
+          it('should throw error if default constraints are used in other dialects', function() {
+            expect(sql.addConstraintQuery.bind(sql, 'myTable', { type: 'default', defaultValue: 0, fields: [] })).to.throw('Default constraints are supported only for MSSQL dialect.');
+          });
+        }
       });
     });
   });

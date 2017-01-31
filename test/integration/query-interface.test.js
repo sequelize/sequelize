@@ -882,7 +882,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
   });
   
   describe('constraints', function() {
-    beforeEach(function () {
+    beforeEach(function() {
       this.users = this.sequelize.define('users', {
         username: DataTypes.STRING,
         email: DataTypes.STRING,
@@ -896,7 +896,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     });
 
     
-    describe('unique', function () {
+    describe('unique', function() {
       it('should add, read & remove unique constraint', function() {
         return this.queryInterface.addConstraint('users', ['email'], {
           type: 'unique'
@@ -916,7 +916,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     });
 
     if (current.dialect.supports.constraints.check) {
-      describe('check', function () {
+      describe('check', function() {
         it('should add, read & remove check constraint', function() {
           return this.queryInterface.addConstraint('users', ['roles'], {
             type: 'check',
@@ -941,7 +941,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     }
 
     if (current.dialect.supports.constraints.default) {
-      describe('default', function () {
+      describe('default', function() {
         it('should add, read & remove default constraint', function() {
           return this.queryInterface.addConstraint('users', ['roles'], {
             type: 'default',
@@ -963,7 +963,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     }
 
     
-    describe('primary key', function () {
+    describe('primary key', function() {
       it('should add, read & remove primary key constraint', function() {
         return this.queryInterface.removeColumn('users', 'id')
         .then(() => {
@@ -997,7 +997,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     });
     
-    describe('foreign key', function () {
+    describe('foreign key', function() {
       it('should add, read & remove foreign key constraint', function() {
         return this.queryInterface.removeColumn('users', 'id')
         .then(() => {
@@ -1007,8 +1007,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           });
         })
         .then(() => {
-          return this.queryInterface.addConstraint('users', ['username'], {
-            type: 'PRIMARY KEY'
+          return this.queryInterface.addConstraint('users', {
+            type: 'PRIMARY KEY',
+            fields: ['username']
           });
         })
         .then(() => {
@@ -1036,8 +1037,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     });
     
-    describe('error handling', function () {
-      it('should throw non existent constraints as UnknownConstraintError', function () {
+    describe('error handling', function() {
+      it('should throw non existent constraints as UnknownConstraintError', function() {
         return expect(this.queryInterface.removeConstraint('users', 'unknown__contraint__name', {
           type: 'unique'
         })).to.eventually.be.rejectedWith(Sequelize.UnknownConstraintError);

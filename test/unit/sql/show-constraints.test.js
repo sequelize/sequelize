@@ -7,8 +7,8 @@ const expectsql = Support.expectsql;
 const sql = current.dialect.QueryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), function() {
-  describe('showConstraint', function () {
-    it('naming', function () {
+  describe('showConstraint', function() {
+    it('naming', function() {
       expectsql(sql.showConstraintsQuery('myTable'), {
         mssql: "EXEC sp_helpconstraint @objname = N'[myTable]';",
         postgres: "SELECT * from INFORMATION_SCHEMA.table_constraints WHERE table_name='myTable';",
@@ -17,7 +17,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    it('should add constraint_name to where clause if passed in case of mysql', function () {
+    it('should add constraint_name to where clause if passed in case of mysql', function() {
       expectsql(sql.showConstraintsQuery('myTable', 'myConstraintName'), {
         mssql: "EXEC sp_helpconstraint @objname = N'[myTable]';",
         postgres: "SELECT * from INFORMATION_SCHEMA.table_constraints WHERE table_name='myTable';",
