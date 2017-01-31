@@ -1304,4 +1304,41 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
 
   });
 
+  describe('sourceKey with where clause in include', function() {
+    beforeEach(function() {
+      this.User = this.sequelize.define('User',
+        { username: Sequelize.STRING, email: { type: Sequelize.STRING, field: 'mail'} },
+        { indexes: [ {fields: ['mail'], unique: true} ] }
+      );
+      this.Task = this.sequelize.define('Task',
+        { title: Sequelize.STRING, userEmail: Sequelize.STRING, taskStatus: Sequelize.STRING });
+
+      this.User.hasMany(this.Task, {foreignKey: 'userEmail', sourceKey: 'mail'});
+
+      return this.sequelize.sync({ force: true });
+    });
+
+    it('should use the specified sourceKey instead of the primary key', function() {
+      return this.User.create({ username: 'John', email: 'john@example.com'}).then(() =>
+        this.Task.bulkCreate([
+          {title: 'Active Task', userEmail: 'john@example.com', taskStatus: 'Active'},
+          {title: 'Inactive Task', userEmail: 'john@example.com', taskStatus: 'Inactive'}
+        ])
+      ).then(() =>
+        this.User.find({
+          include: [
+            {
+              model: this.Task,
+              where: {taskStatus: 'Active'}
+            }
+          ],
+          where: {username: 'John'}
+        })
+      ).then(user => {
+        expect(user).to.be.ok;
+        expect(user.Tasks.length).to.equal(1);
+        expect(user.Tasks[0].title).to.equal('Active Task');
+      });
+    });
+  });
 });
