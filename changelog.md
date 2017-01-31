@@ -1,5 +1,5 @@
 # Future
-- [FIXED] MSSQL tedious debug error when dialectOptions are not passed
+- [FIXED] MSSQL tedious debug regression fix when dialectOptions are not passed [#7130](https://github.com/sequelize/sequelize/pull/7130)
 - [CHANGED] `setIsolationLevelQuery` to skip under MSSQL dialect, added debug listener for tedious [#7130](https://github.com/sequelize/sequelize/pull/7130)
 - [FIXED] `sourceKey` FOR `hasMany` now also works if a `where` was specified in an `include` [#7141](https://github.com/sequelize/sequelize/issues/7141)
 - [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
