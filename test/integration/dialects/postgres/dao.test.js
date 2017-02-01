@@ -172,7 +172,7 @@ if (dialect.match(/^postgres/)) {
               }
             },
             logging(sql) {
-              expect(sql).to.equal('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE ("Equipment"."utilityBelt"#>>\'{grapplingHook}\')::boolean = true;');
+              expect(sql).to.equal('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE CAST(("Equipment"."utilityBelt"#>>\'{grapplingHook}\') AS BOOLEAN) = true;');
             }
           });
         });
