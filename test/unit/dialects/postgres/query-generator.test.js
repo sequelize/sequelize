@@ -14,6 +14,28 @@ var chai = require('chai')
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', function() {
     var suites = {
+      arithmeticQuery: [
+        {
+          title:'Should use the plus operator',
+          arguments: ['+', 'myTable', { foo: 'bar' }, {}],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\'  RETURNING *'
+        },
+        {
+          title:'Should use the plus operator with where clause',
+          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\' WHERE "bar" = \'biz\' RETURNING *'
+        },
+        {
+          title:'Should use the minus operator',
+          arguments: ['-', 'myTable', { foo: 'bar' }],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\'  RETURNING *'
+        },
+        {
+          title:'Should use the minus operator with where clause',
+          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\' WHERE "bar" = \'biz\' RETURNING *'
+        }
+      ],
       attributesToSQL: [
         {
           arguments: [{id: 'INTEGER'}],
