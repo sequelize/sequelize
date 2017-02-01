@@ -196,13 +196,13 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
           },
           another_json_field: { x: 1 }
         };
-        var expected = `"metadata"#>>'{language}' = 'icelandic' and "metadata"#>>'{pg_rating,dk}' = 'G' and "another_json_field"#>>'{x}' = '1'`;
+        var expected = `("metadata"#>>'{language}') = 'icelandic' and ("metadata"#>>'{pg_rating,dk}') = 'G' and ("another_json_field"#>>'{x}') = '1'`;
         expect(queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))).to.deep.equal(expected);
       });
 
       it('successfully parses a string using dot notation', function() {
         var path = 'metadata.pg_rating.dk';
-        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(`"metadata"#>>'{pg_rating,dk}'`);
+        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(`("metadata"#>>'{pg_rating,dk}')`);
       });
 
       it('allows postgres json syntax', function() {
@@ -213,7 +213,7 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
       it('can take a value to compare against', function() {
         var path = 'metadata.pg_rating.is';
         var value = 'U';
-        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal(`"metadata"#>>'{pg_rating,is}' = 'U'`);
+        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal(`("metadata"#>>'{pg_rating,is}') = 'U'`);
       });
     });
   }
@@ -259,6 +259,7 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
         const type = (Support.getTestDialect() === 'mysql') ? 'unsigned': 'int';
 
         return Airplane.findAll({
+          logging:true,
           attributes: [
             [this.sequelize.fn('COUNT', '*'), 'count'],
             [Sequelize.fn('SUM', Sequelize.cast({
