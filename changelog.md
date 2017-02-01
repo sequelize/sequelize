@@ -1,4 +1,5 @@
 # Future
+- [FIXED] MSSQL tedious debug regression fix when dialectOptions are not passed [#7130](https://github.com/sequelize/sequelize/pull/7130)
 - [CHANGED] `setIsolationLevelQuery` to skip under MSSQL dialect, added debug listener for tedious [#7130](https://github.com/sequelize/sequelize/pull/7130)
 - [FIXED] `sourceKey` FOR `hasMany` now also works if a `where` was specified in an `include` [#7141](https://github.com/sequelize/sequelize/issues/7141)
 - [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
@@ -40,6 +41,7 @@
 - [FIXED] Information warnings when findAll is given incorrect inputs [#7047](https://github.com/sequelize/sequelize/pull/7047)
 - [FIXED] scope method syntax loses parameters when used multiple times [#7058](https://github.com/sequelize/sequelize/issues/7058)
 - [INTERNAL] Updated to `generic-pool@3.1.6` [#7109](https://github.com/sequelize/sequelize/issues/7109)
+- [FIXED] findAll throws error if attributes option is formatted incorrectly [#7162](https://github.com/sequelize/sequelize/issues/7163)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
