@@ -1428,7 +1428,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
                   return self.ProjectEager.create({ title: 'exam2', overdue_days: 0 }).then(function(exam2)  {
                     return bart.setProjects([detention1, detention2]).then(function() {
                       return lisa.setProjects([exam1, exam2]).then(function() {
-                        return self.UserEager.findAll({where: {age: 20}, order: 'username ASC', include: [{model: self.ProjectEager, as: 'Projects'}]}).then(function(simpsons) {
+                        return self.UserEager.findAll({where: {age: 20}, order: [['username', 'ASC']], include: [{model: self.ProjectEager, as: 'Projects'}]}).then(function(simpsons) {
                           var _bart, _lisa;
 
                           expect(simpsons.length).to.equal(2);
