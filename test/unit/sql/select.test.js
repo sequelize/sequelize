@@ -285,7 +285,9 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           ['first_name', 'firstName'],
           ['last_name', 'lastName']
         ],
-        order: '[user].[last_name] ASC'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+        // order by string is no longer supported as of (4.0.0)
+        // order: '[user].[last_name] ASC'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+        order: [['last_name', 'ASC']],
         limit: 30,
         offset: 10,
         hasMultiAssociation: true,//must be set only for mssql dialect here

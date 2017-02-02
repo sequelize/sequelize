@@ -168,14 +168,6 @@ if (dialect === 'sqlite') {
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {order: 'id; DROP TABLE myTable;'}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY `id; DROP TABLE myTable;`;',
-          context: QueryGenerator
-        }, {
-          arguments: ['myTable', {order: 'id DESC'}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY `id` DESC;',
-          context: QueryGenerator
-        }, {
           arguments: ['myTable', {order: ['id']}],
           expectation: 'SELECT * FROM `myTable` ORDER BY `id`;',
           context: QueryGenerator

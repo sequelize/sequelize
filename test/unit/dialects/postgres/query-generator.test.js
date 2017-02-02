@@ -259,12 +259,6 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: ["foo='bar'"]}],
           expectation: "SELECT * FROM \"myTable\" WHERE foo='bar';"
         }, {
-          arguments: ['myTable', {order: 'id; DROP TABLE myTable;'}],
-          expectation: 'SELECT * FROM \"myTable\" ORDER BY "id; DROP TABLE myTable;";'
-        }, {
-          arguments: ['myTable', {order: 'id DESC'}],
-          expectation: 'SELECT * FROM \"myTable\" ORDER BY "id" DESC;'
-        }, {
           arguments: ['myTable', {order: ['id']}],
           expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
           context: QueryGenerator
