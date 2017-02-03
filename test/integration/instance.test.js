@@ -1213,6 +1213,21 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           });
         });
       });
+
+      it('should not throw ER_EMPTY_QUERY if changed only virtual fields', function() {
+        const User = this.sequelize.define('User' + config.rand(), {
+          name: DataTypes.STRING,
+          bio: {
+            type: DataTypes.VIRTUAL,
+            get: () => 'swag'
+          }
+        }, {
+          timestamps: false
+        });
+        return User.sync({force: true}).then(() => (
+          User.create({ name: 'John', bio: 'swag 1' }).then((user) => user.update({ bio: 'swag 2' }).should.be.fulfilled)
+        ));
+      });
     });
 
     it('updates with function and column value', function() {
