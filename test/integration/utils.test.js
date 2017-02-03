@@ -259,7 +259,6 @@ describe(Support.getTestDialectTeaser('Utils'), function() {
         const type = (Support.getTestDialect() === 'mysql') ? 'unsigned': 'int';
 
         return Airplane.findAll({
-          logging:true,
           attributes: [
             [this.sequelize.fn('COUNT', '*'), 'count'],
             [Sequelize.fn('SUM', Sequelize.cast({
