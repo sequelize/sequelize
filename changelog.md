@@ -1,6 +1,7 @@
 # 3.30.1
 - [FIXED] `sourceKey` FOR `hasMany` now also works if a `where` was specified in an `include` [#7141](https://github.com/sequelize/sequelize/issues/7141)
 - [CHANGED] Updated deprecated `node-uuid` package to `uuid` [#7148](https://github.com/sequelize/sequelize/pull/7148)
+- [FIXED] Updating `VIRTUAL` field throw `ER_EMPTY_QUERY` [#6356](https://github.com/sequelize/sequelize/issues/6356)
 
 # 3.30.0
 - [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
