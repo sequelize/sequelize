@@ -883,13 +883,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
   
   describe('constraints', function() {
     beforeEach(function() {
-      this.users = this.sequelize.define('users', {
+      this.User = this.sequelize.define('users', {
         username: DataTypes.STRING,
         email: DataTypes.STRING,
         roles: DataTypes.STRING
       });
 
-      this.posts = this.sequelize.define('posts', {
+      this.Post = this.sequelize.define('posts', {
         username: DataTypes.STRING
       });
       return this.sequelize.sync({ force: true });
@@ -903,14 +903,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         })
         .then(() => this.queryInterface.showConstraint('users'))
         .then(constraints => {
-          constraints = constraints.map(constraint => constraint.constraint_name);
-          expect(constraints).to.include('UK__users__email');
-          return this.queryInterface.removeConstraint('users', 'UK__users__email');
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.include('users_email_uk');
+          return this.queryInterface.removeConstraint('users', 'users_email_uk');
         })
         .then(() => this.queryInterface.showConstraint('users'))
         .then(constraints => {
-          constraints = constraints.map(constraint => constraint.constraint_name);
-          expect(constraints).to.not.include('UK__users__email');
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.not.include('users_email_uk');
         });
       });
     });
@@ -927,13 +927,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           })
           .then(() => this.queryInterface.showConstraint('users'))
           .then(constraints => {
-            constraints = constraints.map(constraint => constraint.constraint_name);
+            constraints = constraints.map(constraint => constraint.constraintName);
             expect(constraints).to.include('check_user_roles');
             return this.queryInterface.removeConstraint('users', 'check_user_roles');
           })
           .then(() => this.queryInterface.showConstraint('users'))
           .then(constraints => {
-            constraints = constraints.map(constraint => constraint.constraint_name);
+            constraints = constraints.map(constraint => constraint.constraintName);
             expect(constraints).to.not.include('check_user_roles');
           });
         });
@@ -949,14 +949,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           })
           .then(() => this.queryInterface.showConstraint('users'))
           .then(constraints => {
-            constraints = constraints.map(constraint => constraint.constraint_name);
-            expect(constraints).to.include('DF__users__roles');
-            return this.queryInterface.removeConstraint('users', 'DF__users__roles');
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.include('users_roles_df');
+            return this.queryInterface.removeConstraint('users', 'users_roles_df');
           })
           .then(() => this.queryInterface.showConstraint('users'))
           .then(constraints => {
-            constraints = constraints.map(constraint => constraint.constraint_name);
-            expect(constraints).to.not.include('DF__users__roles');
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('users_roles_df');
           });
         });
       });
@@ -979,20 +979,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         })
         .then(() => this.queryInterface.showConstraint('users'))
         .then(constraints => {
-          constraints = constraints.map(constraint => constraint.constraint_name);
+          constraints = constraints.map(constraint => constraint.constraintName);
           //The name of primaryKey constraint is always PRIMARY in case of mysql
           if (dialect === 'mysql') {
             expect(constraints).to.include('PRIMARY');
             return this.queryInterface.removeConstraint('users', 'PRIMARY');
           } else {
-            expect(constraints).to.include('PK__users__username');
-            return this.queryInterface.removeConstraint('users', 'PK__users__username');      
+            expect(constraints).to.include('users_username_pk');
+            return this.queryInterface.removeConstraint('users', 'users_username_pk');      
           }
         })
         .then(() => this.queryInterface.showConstraint('users'))
         .then(constraints => {
-          constraints = constraints.map(constraint => constraint.constraint_name);
-          expect(constraints).to.not.include('PK__users__username');
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.not.include('users_username_pk');
         });
       });
     });
@@ -1025,14 +1025,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         })
         .then(() => this.queryInterface.showConstraint('posts'))
         .then(constraints => {
-          constraints = constraints.map(constraint => constraint.constraint_name);
-          expect(constraints).to.include('FK__posts__username__users');
-          return this.queryInterface.removeConstraint('posts', 'FK__posts__username__users');
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.include('posts_username_users_fk');
+          return this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
         })
         .then(() => this.queryInterface.showConstraint('posts'))
         .then(constraints => {
-          constraints = constraints.map(constraint => constraint.constraint_name);
-          expect(constraints).to.not.include('FK__posts__username__users');
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.not.include('posts_username_users_fk');
         });
       });
     });

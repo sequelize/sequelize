@@ -306,9 +306,20 @@ queryInterface.removeIndex('Person', 'SuperDuperIndex')
 queryInterface.removeIndex('Person', ['firstname', 'lastname'])
 ```
 
-### addConstraint(tableName, indexNameOrAttributes, options)
+### addConstraint(tableName, attributes, options)
 This method adds a new constraint of the specified type.
+ - tableName - Name of the table to add the constraint on
+ - attributes - Array of column names to apply the constraint over
+ - options - An object to define the constraint name, type etc.
 
+Avalable options:
+ - type - Type of constraint. One of the values in available constraints(case insensitive)
+ - name - Name of the constraint. If not specifed, sequelize automatically creates a named constraint based on constraint type, table & column names
+ - defaultValue - The value for the default constraint
+ - where - Where clause/expression for the CHECK constraint
+ - references - Object specifying target table, column name to create foreign key constraint
+ - references.model - Target table name or model
+ - references.key - Target column name
 Available constraints:
  - UNIQUE
  - DEFAULT (MSSQL only)
@@ -320,7 +331,7 @@ Available constraints:
 //UNIQUE
 queryInterface.addConstraint('Users', ['email'], {
   type: 'unique',
-  name: 'custom_unique_constraint_name' //If not specifed, sequelize automatically creates a named constraint based on constraint type, table & column names
+  name: 'custom_unique_constraint_name'
 });
 
 //CHECK
@@ -330,7 +341,6 @@ queryInterface.addConstraint('Users', ['roles'], {
     roles: ['user', 'admin', 'moderator', 'guest']
   }
 });
-//Constraint name is automatically constructed.
 
 //Default - MSSQL only
 queryInterface.addConstraint('Users', ['roles'], {

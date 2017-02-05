@@ -6,6 +6,7 @@ const current   = Support.sequelize;
 const expectsql = Support.expectsql;
 const sql = current.dialect.QueryGenerator;
 const expect = require('chai').expect;
+const sinon = require('sinon');
 
 if (current.dialect.supports.constraints.addConstraint) {
   describe(Support.getTestDialectTeaser('SQL'), function() {
@@ -26,7 +27,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             type: 'UNIQUE',
             fields: ['myColumn']
           }), {
-            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [UK__myTable__myColumn] UNIQUE ([myColumn]);'
+            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_uk] UNIQUE ([myColumn]);'
           });
         });
 
@@ -35,7 +36,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             type: 'UNIQUE',
             fields: ['myColumn1', 'myColumn2']
           }), {
-            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [UK__myTable__myColumn1_myColumn2] UNIQUE ([myColumn1], [myColumn2]);'
+            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn1_myColumn2_uk] UNIQUE ([myColumn1], [myColumn2]);'
           });
         }); 
       });
@@ -49,8 +50,8 @@ if (current.dialect.supports.constraints.addConstraint) {
               myColumn: ['value1', 'value2', 'value3']
             }
           }), {
-            mssql: "ALTER TABLE [myTable] ADD CONSTRAINT [CK__myTable__myColumn] CHECK ([myColumn] IN (N'value1', N'value2', N'value3'));",
-            default: "ALTER TABLE [myTable] ADD CONSTRAINT [CK__myTable__myColumn] CHECK ([myColumn] IN ('value1', 'value2', 'value3'));"
+            mssql: "ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (N'value1', N'value2', N'value3'));",
+            default: "ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN ('value1', 'value2', 'value3'));"
           });
         });
 
@@ -82,7 +83,7 @@ if (current.dialect.supports.constraints.addConstraint) {
               fields: ['myColumn'],
               defaultValue: 0
             }), {
-              mssql: 'ALTER TABLE [myTable] ADD CONSTRAINT [DF__myTable__myColumn] DEFAULT (0) FOR [myColumn];'
+              mssql: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_df] DEFAULT (0) FOR [myColumn];'
             });
           });
 
@@ -127,7 +128,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             type: 'PRIMARY KEY',
             fields: ['myColumn']
           }), {
-            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [PK__myTable__myColumn] PRIMARY KEY ([myColumn]);'
+            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_pk] PRIMARY KEY ([myColumn]);'
           });
         });
 
@@ -136,7 +137,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             type: 'PRIMARY KEY',
             fields: ['myColumn1', 'myColumn2']
           }), {
-            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [PK__myTable__myColumn1_myColumn2] PRIMARY KEY ([myColumn1], [myColumn2]);'
+            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn1_myColumn2_pk] PRIMARY KEY ([myColumn1], [myColumn2]);'
           });
         }); 
       });
@@ -167,7 +168,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             onUpdate: 'cascade',
             onDelete: 'cascade'
           }), {
-            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [FK__myTable__myColumn__myOtherTable] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;'
+            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;'
           });
         });
         
@@ -185,6 +186,15 @@ if (current.dialect.supports.constraints.addConstraint) {
         it('throw error on invalid type', function() {
           expect(sql.addConstraintQuery.bind(sql, 'myTable', { type: 'some type', fields: [] })).to.throw('some type is invalid');
         });
+        
+        it('calls getConstraintSnippet function', function() {
+          const options = { type: 'unique', fields: ['myColumn'] };
+          const addConstraintQuerySpy = sinon.stub(sql, 'addConstraintQuery');
+          sql.addConstraintQuery('myTable', options);
+          expect(sql.addConstraintQuery).to.have.been.calledWith('myTable', options);
+          addConstraintQuerySpy.restore();
+        });
+
         if (!current.dialect.supports.constraints.default) {
           it('should throw error if default constraints are used in other dialects', function() {
             expect(sql.addConstraintQuery.bind(sql, 'myTable', { type: 'default', defaultValue: 0, fields: [] })).to.throw('Default constraints are supported only for MSSQL dialect.');
