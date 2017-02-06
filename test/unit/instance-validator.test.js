@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require(__dirname + '/support');
 const InstanceValidator = require('../../lib/instance-validator');
 const sinon = require('sinon');
-Promise = require('../../lib/promise');
+var Promise = Support.sequelize.Promise;
 const SequelizeValidationError = require('../../lib/errors').ValidationError;
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
