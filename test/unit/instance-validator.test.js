@@ -8,7 +8,7 @@ const sinon = require('sinon');
 Promise = require('../../lib/promise');
 const SequelizeValidationError = require('../../lib/errors').ValidationError;
 
-describe.only(Support.getTestDialectTeaser('InstanceValidator'), () => {
+describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
   it('configures itself to run hooks by default', () => {
     const instanceValidator = new InstanceValidator();
