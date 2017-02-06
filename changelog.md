@@ -1,4 +1,6 @@
 # Future
+- [FIXED] Properly pass options to `sequelize.query` in `removeColumn` [MSSQL] [#7193](https://github.com/sequelize/sequelize/pull/7193)
+- [FIXED] Updating `VIRTUAL` field throw `ER_EMPTY_QUERY` [#6356](https://github.com/sequelize/sequelize/issues/6356)
 - [FIXED] Fix `Instance.decrement` precision problems [#7112](https://github.com/sequelize/sequelize/pull/7112)
 - [FIXED] MSSQL tedious debug regression fix when dialectOptions are not passed [#7130](https://github.com/sequelize/sequelize/pull/7130)
 - [CHANGED] `setIsolationLevelQuery` to skip under MSSQL dialect, added debug listener for tedious [#7130](https://github.com/sequelize/sequelize/pull/7130)
@@ -44,6 +46,8 @@
 - [INTERNAL] Updated to `generic-pool@3.1.6` [#7109](https://github.com/sequelize/sequelize/issues/7109)
 - [FIXED] findAll throws error if attributes option is formatted incorrectly [#7162](https://github.com/sequelize/sequelize/issues/7163)
 - [FIXED] model validation instance method now runs hooks by default [#7182](https://github.com/sequelize/sequelize/pull/7182)
+- [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
+
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
