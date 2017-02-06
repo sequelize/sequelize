@@ -1,5 +1,6 @@
 # Future
 - [FIXED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
+- [FIXED] Properly pass options to `sequelize.query` in `removeColumn` [MSSQL] [#7193](https://github.com/sequelize/sequelize/pull/7193)
 - [FIXED] Updating `VIRTUAL` field throw `ER_EMPTY_QUERY` [#6356](https://github.com/sequelize/sequelize/issues/6356)
 - [FIXED] Fix `Instance.decrement` precision problems [#7112](https://github.com/sequelize/sequelize/pull/7112)
 - [FIXED] MSSQL tedious debug regression fix when dialectOptions are not passed [#7130](https://github.com/sequelize/sequelize/pull/7130)
@@ -45,6 +46,7 @@
 - [FIXED] scope method syntax loses parameters when used multiple times [#7058](https://github.com/sequelize/sequelize/issues/7058)
 - [INTERNAL] Updated to `generic-pool@3.1.6` [#7109](https://github.com/sequelize/sequelize/issues/7109)
 - [FIXED] findAll throws error if attributes option is formatted incorrectly [#7162](https://github.com/sequelize/sequelize/issues/7163)
+- [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
