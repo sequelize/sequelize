@@ -400,7 +400,7 @@ Tag.belongsToMany(Post, {
 
 Notice that the scoped column (`taggable`) is now on the through model (`ItemTag`).
 
-We could also define a more restrictive association, for example to get all pending tags for a post by applying a scope of both the through model (`ItemTag`) and the target model (`Tag`):
+We could also define a more restrictive association, for example, to get all pending tags for a post by applying a scope of both the through model (`ItemTag`) and the target model (`Tag`):
 
 ```js
 Post.hasMany(Tag, {
