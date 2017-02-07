@@ -134,6 +134,8 @@ return sequelize.transaction({
   });
 ```
 
+Note: The SET ISOLATION LEVEL queries are not logged in case of MSSQL as the specified isolationLevel is passed directly to tedious
+
 # Unmanaged transaction (then-callback)
 Unmanaged transactions force you to manually rollback or commit the transaction. If you don't do that, the transaction will hang until it times out. To start an unmanaged transaction, call `sequelize.transaction()` without a callback (you can still pass an options object) and call `then` on the returned promise. Notice that `commit()` and `rollback()` returns a promise.
 
