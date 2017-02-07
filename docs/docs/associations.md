@@ -689,7 +689,7 @@ CREATE TABLE IF NOT EXISTS `Version` (
 
 ### Enforcing a foreign key reference without constraints
 
-Some times you may want to reference another table, without adding any constraints, or associations. In that case you can manually add the reference attributes to your schema definition, and mark the relations between them.
+Sometimes you may want to reference another table, without adding any constraints, or associations. In that case you can manually add the reference attributes to your schema definition, and mark the relations between them.
 
 ```js
 var Series, Trainer, Video
