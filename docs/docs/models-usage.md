@@ -279,7 +279,7 @@ Project.findAll({ offset: 10, limit: 2 })
 The syntax for grouping and ordering are equal, so below it is only explained with a single example for group, and the rest for order. Everything you see below can also be done for group
 
 ```js
-Project.findAll({order: 'title DESC'})
+Project.findAll({order: [['title', 'DESC']]})
 // yields ORDER BY title DESC
 
 Project.findAll({group: 'name'})
@@ -291,10 +291,6 @@ Notice how in the two examples above, the string provided is inserted verbatim i
 ```js
 something.findOne({
   order: [
-    'name',
-    // will return `name`
-    'username DESC',
-    // will return `username DESC` -- i.e. don't do it!
     ['username', 'DESC'],
     // will return `username` DESC
     sequelize.fn('max', sequelize.col('age')),
@@ -305,20 +301,16 @@ something.findOne({
     // will return otherfunction(`col1`, 12, 'lalala') DESC
     [sequelize.fn('otherfunction', sequelize.fn('awesomefunction', sequelize.col('col'))), 'DESC']
     // will return otherfunction(awesomefunction(`col`)) DESC, This nesting is potentially infinite!
-    [{ raw: 'otherfunction(awesomefunction(`col`))' }, 'DESC']
-    // This won't be quoted, but direction will be added
   ]
 })
 ```
 
 To recap, the elements of the order/group array can be the following:
 
-* String - will be quoted
+* String - will fail
+* Object - will fail
 * Array - first element will be quoted, second will be appended verbatim
-* Object -
-  * Raw will be added verbatim without quoting
-  * Everything else is ignored, and if raw is not set, the query will fail
-* Sequelize.fn and Sequelize.col returns functions and quoted cools
+* Sequelize.literal, Sequelize.fn, and Sequelize.col returns literals, functions, and quoted cols
 
 ### Raw queries
 

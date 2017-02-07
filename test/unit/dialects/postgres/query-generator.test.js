@@ -294,11 +294,17 @@ if (dialect.match(/^postgres/)) {
          arguments: ['myTable', {offset: 0}],
          expectation: 'SELECT * FROM "myTable" OFFSET 0;',
          context: QueryGenerator
-       }, {
-         title: 'raw arguments are neither quoted nor escaped',
-          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'},'DESC']]}],
-          expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2(id)) DESC;',
-          context: QueryGenerator
+        }, {
+          title: 'model attributes are accepted',
+          arguments: ['myTable', function(sequelize) {
+            const mytable = sequelize.define('myTable', {name: sequelize.Sequelize.STRING});
+            return {
+              order: [[mytable.attributes.name, 'DESC']]
+            };
+          }],
+          expectation: 'SELECT * FROM "myTable" ORDER BY "myTable"."name" DESC;',
+          context: QueryGenerator,
+          needsSequelize: true
         }, {
           title: 'sequelize.where with .fn as attribute and default comparator',
           arguments: ['myTable', function(sequelize) {
