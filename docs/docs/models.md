@@ -251,7 +251,7 @@ which needs no argument can be given a custom message with
       msg: "Must be an integer number of pennies"
     }
 
-or if arguments need to also be passed add an`args`property&colon;
+or if arguments need to also be passed add an `args` property&colon;
     
     isIn: {
       args: [['en', 'zh']],
