@@ -168,20 +168,29 @@ if (dialect === 'sqlite') {
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {order: 'id DESC'}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY id DESC;',
-          context: QueryGenerator
-        }, {
           arguments: ['myTable', {order: ['id']}],
           expectation: 'SELECT * FROM `myTable` ORDER BY `id`;',
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: ['id', 'DESC']}],
+          expectation: 'SELECT * FROM `myTable` ORDER BY `id`, `DESC`;',
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: ['myTable.id']}],
           expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id`;',
           context: QueryGenerator
         }, {
+          arguments: ['myTable', {order: [['myTable.id', 'DESC']]}],
+          expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id` DESC;',
+          context: QueryGenerator
+        }, {
           arguments: ['myTable', {order: [['id', 'DESC']]}, function(sequelize) {return sequelize.define('myTable', {});}],
           expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC;',
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          arguments: ['myTable', {order: [['id', 'DESC'], ['name']]}, function(sequelize) {return sequelize.define('myTable', {});}],
+          expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC, `myTable`.`name`;',
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -272,8 +281,8 @@ if (dialect === 'sqlite') {
           expectation: 'SELECT * FROM `myTable` GROUP BY `name`, `title`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {group: 'name', order: 'id DESC'}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY id DESC;',
+          arguments: ['myTable', {group: 'name', order: [['id', 'DESC']]}],
+          expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
           title: 'HAVING clause works with string replacements',

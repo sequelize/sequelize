@@ -169,14 +169,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('DATE', function () {
       testsql('DATE', DataTypes.DATE, {
         postgres: 'TIMESTAMP WITH TIME ZONE',
-        mssql: 'DATETIME2',
+        mssql: 'DATETIMEOFFSET',
         mysql: 'DATETIME',
         sqlite: 'DATETIME'
       });
 
       testsql('DATE(6)', DataTypes.DATE(6), {
         postgres: 'TIMESTAMP WITH TIME ZONE',
-        mssql: 'DATETIME2',
+        mssql: 'DATETIMEOFFSET',
         mysql: 'DATETIME(6)',
         sqlite: 'DATETIME'
       });

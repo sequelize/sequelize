@@ -1,4 +1,6 @@
 # Future
+- [FIXED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
+- [CHANGED] `DataTypes.DATE` to use `DATETIMEOFFSET` [MSSQL] [#5403](https://github.com/sequelize/sequelize/issues/5403)
 - [FIXED] Properly pass options to `sequelize.query` in `removeColumn` [MSSQL] [#7193](https://github.com/sequelize/sequelize/pull/7193)
 - [FIXED] Updating `VIRTUAL` field throw `ER_EMPTY_QUERY` [#6356](https://github.com/sequelize/sequelize/issues/6356)
 - [FIXED] Fix `Instance.decrement` precision problems [#7112](https://github.com/sequelize/sequelize/pull/7112)
@@ -50,6 +52,8 @@
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 - With `BelongsToMany` relationships `add/set/create` setters now set `through` attributes by passing them as `options.through` (previously second argument was used as `through` attributes, now its considered `options` with `through` being a sub option)
+- `options.order` Now only excepts values with type of array or Sequelize method.  Support for string values (ie `{order: 'name DESC'}`) has been deprecated.
+- `DataTypes.DATE` now uses `DATETIMEOFFSET` instead of `DATETIME2` sql datatype in case of MSSQL to record timezone [#5403](https://github.com/sequelize/sequelize/issues/5403)
 
 # 4.0.0-2
 - [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations

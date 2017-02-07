@@ -532,7 +532,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             where: { title: 'homework' },
             include: [this.Worker],
             limit: 1,
-            order: 'title DESC'
+            order: [['title', 'DESC']]
           }).then(function(tasks) {
             expect(tasks).to.exist;
             expect(tasks[0].Worker).to.exist;
@@ -1222,7 +1222,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
       it('sorts the results via id in descending order', function() {
-        return this.User.findAll({ order: 'id DESC' }).then(function(users) {
+        return this.User.findAll({ order: [['id', 'DESC']] }).then(function(users) {
           expect(users[0].id).to.be.above(users[1].id);
         });
       });
@@ -1346,7 +1346,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('handles where clause with ordering [only]', function() {
-      return this.User.findAndCountAll({where: ['id != ' + this.users[0].id], order: 'id ASC'}).then(function(info) {
+      return this.User.findAndCountAll({where: ['id != ' + this.users[0].id], order: [['id', 'ASC']]}).then(function(info) {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
