@@ -429,7 +429,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      it('works when indexes are created via indexes array', function() {
+      it('works when composite indexes are created via indexes array', function() {
         const User = current.define('User', {
           name: DataTypes.STRING,
           address: DataTypes.STRING,
