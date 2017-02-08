@@ -1,5 +1,8 @@
-# Future
+# 3.30.2
 - [FIXED] `previous` method gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
+- [FIXED] Fixes setAssociation with scope [#7223](https://github.com/sequelize/sequelize/pull/7223)
+- [FIXED] Including a virtual field can give an empty query [#7164](https://github.com/sequelize/sequelize/pull/7164)
+- [FIXED] Fixes creation of polymorphic belongsToMany associations in one step #7159 [#7181](https://github.com/sequelize/sequelize/pull/7181)
 
 # 3.30.1
 - [FIXED] `sourceKey` FOR `hasMany` now also works if a `where` was specified in an `include` [#7141](https://github.com/sequelize/sequelize/issues/7141)
