@@ -105,6 +105,83 @@ if (dialect.match(/^postgres/)) {
             expect(user.emergency_contact.name).to.equal('kate');
           });
       });
+
+      it('should be able to query using the nested query language', function () {
+        return this.sequelize.Promise.all([
+          this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
+          this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
+          .then(() => {
+            return this.User.find({
+              where: sequelize.json({ emergency_contact: { name: 'kate' } })
+            });
+          })
+          .then(user => {
+            expect(user.emergency_contact.name).to.equal('kate');
+          });
+      });
+
+      it('should be able to query using dot syntax', function () {
+        return this.sequelize.Promise.all([
+          this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
+          this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
+          .then(() => {
+            return this.User.find({ where: sequelize.json('emergency_contact.name', 'joe') });
+          })
+          .then(user => {
+            expect(user.emergency_contact.name).to.equal('joe');
+          });
+      });
+
+      it('should be able to query using dot syntax with uppercase name', function () {
+        return this.sequelize.Promise.all([
+          this.User.create({ username: 'swen', emergencyContact: { name: 'kate' } }),
+          this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })])
+          .then(() => {
+            return this.User.find({
+              attributes: [[sequelize.json('emergencyContact.name'), 'contactName']],
+              where: sequelize.json('emergencyContact.name', 'joe')
+            });
+          })
+          .then(user => {
+            expect(user.get("contactName")).to.equal('joe');
+          });
+      });
+
+      it('should be able to store values that require JSON escaping', function () {
+        const text = "Multi-line '$string' needing \"escaping\" for $$ and $1 type values";
+        
+        return this.User.create({ username: 'swen', emergency_contact: { value: text } })
+          .then(user => {
+            expect(user.isNewRecord).to.equal(false);
+          })
+          .then(() => {
+            return this.User.find({ where: { username: 'swen' } });
+          })
+          .then(() => {
+            return this.User.find({ where: sequelize.json('emergency_contact.value', text) });
+          })
+          .then(user => {
+            expect(user.username).to.equal('swen');
+          });
+      });
+
+      it('should be able to findOrCreate with values that require JSON escaping', function () {
+        const text = "Multi-line '$string' needing \"escaping\" for $$ and $1 type values";
+        
+        return this.User.findOrCreate({ where: { username: 'swen' }, defaults: { emergency_contact: { value: text } } })
+          .then(user => {
+            expect(!user.isNewRecord).to.equal(true);
+          })
+          .then(() => {
+            return this.User.find({ where: { username: 'swen' } });
+          })
+          .then(() => {
+            return this.User.find({ where: sequelize.json('emergency_contact.value', text) });
+          })
+          .then(user => {
+            expect(user.username).to.equal('swen');
+          });
+      });
     });
 
     describe('hstore', function () {
@@ -459,7 +536,7 @@ if (dialect.match(/^postgres/)) {
           })
           .then(() => {
             // Check that the hstore fields are the same when retrieving the user
-            return this.User.findAll({ order: 'username' });
+            return this.User.findAll({ order: ['username'] });
           })
           .then(users => {
             expect(users[0].settings).to.deep.equal({ test: '"value"' });
@@ -673,7 +750,7 @@ if (dialect.match(/^postgres/)) {
           })
           .then(() => {
             // Check that the range fields are the same when retrieving the user
-            return User.findAll({ order: 'username' });
+            return User.findAll({ order: ['username'] });
           })
           .then(users => {
             expect(users[0].course_period[0]).to.equalTime(periods[0][0]); // lower bound
