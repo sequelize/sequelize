@@ -2,12 +2,12 @@
 
 const chai = require('chai')
   , expect = chai.expect
-  , Support = require(__dirname + '/../../support')
+  , Support = require('./support')
   , Sequelize = Support.Sequelize
   , current = Support.sequelize
-  , DataTypes = require(__dirname + '/../../../../lib/data-types');
+  , DataTypes = Sequelize.DataTypes;
 
-describe('DAO', function () {
+describe('model', function () {
   if (current.dialect.supports.JSON) {
     describe('json', function () {
       beforeEach(function () {
