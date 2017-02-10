@@ -1,5 +1,6 @@
 'use strict';
 
+/*jshint -W110 */
 const Support = require(__dirname + '/../support')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , expect = require('chai').expect
@@ -110,7 +111,7 @@ if (current.dialect.supports.JSON) {
             sqlite: "json_extract(`json`, '$') = '{}'"
           });
         });
-      })
+      });
 
       suite('raw json query', function () {
         if (current.dialect.name === 'postgres') {
