@@ -897,53 +897,5 @@ if (dialect.match(/^postgres/)) {
         });
       });
     });
-
-    describe('JSON', function () {
-      it(`Postgres correctly generate query for json dot notation: sequelize.json('profile.id')`, function () {
-        const query = QueryGenerator.whereItemQuery(this.sequelize.json('profile.id'), 1);
-        expect(query).to.equals(`("profile"#>>'{id}') = 1`);
-      });
-
-      it(`Postgres correctly generate query for json with json method name: sequelize.json('to_json')`, function () {
-        const query = QueryGenerator.whereItemQuery(this.sequelize.json(`to_json`), '{}');
-        expect(query).to.equals(`("to_json"#>>'{}') = '{}'`);
-      });
-
-      it(`Postgres correctly generate query for json with json operator: sequelize.json("data"#>>'{id}')`, function () {
-        const query = QueryGenerator.whereItemQuery(this.sequelize.json(`("data"#>>'{id}')`), 'some_id');
-        expect(query).to.equals(`("data"#>>'{id}') = 'some_id'`);
-      });
-
-      it("Postgres correctly generate query for json statement: sequelize.json('json_extract_path(`profile`, 'id')')", function () {
-        const query = QueryGenerator.whereItemQuery(this.sequelize.json(`json_extract_path("profile", 'id')`), 1);
-        expect(query).to.equals(`json_extract_path("profile", 'id') = 1`);
-      });
-
-      it(`Postgres correctly generate query for nested json statement: sequelize.json('json_extract(json_object('{"profile":"null"}'), "profile")')`, function () {
-        const query = QueryGenerator.whereItemQuery(this.sequelize.json(`json_extract_path(json_object('{"profile":null}'), "profile")`), null);
-        expect(query).to.equals(`json_extract_path(json_object('{"profile":null}'), "profile") IS NULL`);
-      });
-
-      it(`Postgres correctly generate query with string escape: sequelize.json('json_object('{"quote":{"single":"''","double":""""},"parenthesis":"())("}'))`, function () {
-        const query = QueryGenerator.handleSequelizeMethod(this.sequelize.json(`json_object('{"quote":{"single":"''","double":""""},"parenthesis":"())("}')`));
-        expect(query).to.equals(`json_object('{"quote":{"single":"''","double":""""},"parenthesis":"())("}')`);
-      });
-
-      it(`Postgres throw an error for unbalnced statement: sequelize.json('json_extract_path(json_build_array(1,2,3), 1))`, function () {
-        expect(() => QueryGenerator.handleSequelizeMethod(this.sequelize.json('json_extract_path(json_build_array(1,2,3), 1))'))).to.throw();
-      });
-
-      it(`Postgres throw an error for seperator injections: sequelize.json("data"#>>'{id}'; DELETE YOLO INJECTIONS; -- ')`, function () {
-        expect(() => QueryGenerator.handleSequelizeMethod(this.sequelize.json('json_object(); DELETE YOLO INJECTIONS; -- '))).to.throw();
-      });
-
-      it(`Postgres throw an error for seperator injections: sequelize.json('json_object(); DELETE YOLO INJECTIONS; -- ')`, function () {
-        expect(() => QueryGenerator.handleSequelizeMethod(this.sequelize.json('json_object(); DELETE YOLO INJECTIONS; -- '))).to.throw();
-      });
-
-      it(`Postgres throw an error for seperator injections: sequelize.json('json_object(; DELETE YOLO INJECTIONS; -- )')`, function () {
-        expect(() => QueryGenerator.handleSequelizeMethod(this.sequelize.json('json_object(; DELETE YOLO INJECTIONS; -- )'))).to.throw();
-      });
-    });
   });
 }
