@@ -790,6 +790,7 @@ Sync all defined models to the DB.
 | [options.schema='public'] | String | The schema that the tables should be created in. This can be overriden for each table in sequelize.define |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
 | [options.hooks=true] | Boolean | If hooks is true then beforeSync, afterSync, beforBulkSync, afterBulkSync hooks will be called |
+| [options.alter=false] | Boolean | Modify existing tables to fit models |
 
 
 ***
