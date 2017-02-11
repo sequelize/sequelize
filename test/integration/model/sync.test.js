@@ -60,21 +60,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('should change a column if it exists in the model but is different in the database', function() {
       var testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
-        age: Sequelize.STRING
+        age: Sequelize.INTEGER
       });
       return this.sequelize.sync()
         .bind(this)
         .then(function() {
           this.sequelize.define('testSync', {
             name: Sequelize.STRING,
-            age: Sequelize.INTEGER
+            age: Sequelize.STRING
           });
         })
         .then(() => this.sequelize.sync({alter: true}))
         .then(function() {
           return testSync.describe().then((data) => {
             expect(data).to.ownProperty('age');
-            expect(data.age.type).to.eql('INT(11)');
+            expect(data.age.type).to.have.string('CHAR'); // CHARACTER VARYING, VARCHAR(n)
           });
         });
     });
