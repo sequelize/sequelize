@@ -732,7 +732,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
     });
 
     it('should get a list of foreign keys for the table', function() {
-      var sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
+      var sql = '';
+      if (dialect === 'postgres' || dialect === 'postgres-native') {
+        sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.schema);
+      } else {
+        sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
+      }
       var self = this;
       return this.sequelize.query(sql, {type: this.sequelize.QueryTypes.FOREIGNKEYS}).then(function(fks) {
         expect(fks).to.have.length(3);
