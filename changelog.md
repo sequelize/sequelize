@@ -1,3 +1,6 @@
+# 3.30.3
+- [FIXED] instance model callback beforeUpdate with model.update and individualHooks:true not providing the changed value updates in callback. Utils._.extend was overriding changed values before they were copied to _previousDataValues with Utils._.forIn in model.js.
+
 # 3.30.2
 - [FIXED] `previous` method gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
 - [FIXED] Fixes setAssociation with scope [#7223](https://github.com/sequelize/sequelize/pull/7223)
