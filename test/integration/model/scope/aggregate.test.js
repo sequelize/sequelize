@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               }
             },
             withOrder: {
-              order: 'username'
+              order: ['username']
             },
             withInclude: {
               include: [{

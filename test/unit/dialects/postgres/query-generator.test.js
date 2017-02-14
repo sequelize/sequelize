@@ -14,6 +14,28 @@ var chai = require('chai')
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', function() {
     var suites = {
+      arithmeticQuery: [
+        {
+          title:'Should use the plus operator',
+          arguments: ['+', 'myTable', { foo: 'bar' }, {}],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\'  RETURNING *'
+        },
+        {
+          title:'Should use the plus operator with where clause',
+          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\' WHERE "bar" = \'biz\' RETURNING *'
+        },
+        {
+          title:'Should use the minus operator',
+          arguments: ['-', 'myTable', { foo: 'bar' }],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\'  RETURNING *'
+        },
+        {
+          title:'Should use the minus operator with where clause',
+          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\' WHERE "bar" = \'biz\' RETURNING *'
+        }
+      ],
       attributesToSQL: [
         {
           arguments: [{id: 'INTEGER'}],
@@ -237,19 +259,29 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: ["foo='bar'"]}],
           expectation: "SELECT * FROM \"myTable\" WHERE foo='bar';"
         }, {
-          arguments: ['myTable', {order: 'id DESC'}],
-          expectation: 'SELECT * FROM \"myTable\" ORDER BY id DESC;'
-        }, {
           arguments: ['myTable', {order: ['id']}],
           expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: ['id', 'DESC']}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY "id", "DESC";',
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: ['myTable.id']}],
           expectation: 'SELECT * FROM "myTable" ORDER BY "myTable"."id";',
           context: QueryGenerator
         }, {
+          arguments: ['myTable', {order: [['myTable.id', 'DESC']]}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY "myTable"."id" DESC;',
+          context: QueryGenerator
+        }, {
           arguments: ['myTable', {order: [['id', 'DESC']]}, function(sequelize) {return sequelize.define('myTable', {});}],
           expectation: 'SELECT * FROM "myTable" AS "myTable" ORDER BY "myTable"."id" DESC;',
+          context: QueryGenerator,
+          needsSequelize: true
+        },{
+        arguments: ['myTable', {order: [['id', 'DESC'], ['name']]}, function(sequelize) {return sequelize.define('myTable', {});}],
+          expectation: 'SELECT * FROM "myTable" AS "myTable" ORDER BY "myTable"."id" DESC, "myTable"."name";',
           context: QueryGenerator,
           needsSequelize: true
         },{
@@ -439,7 +471,7 @@ if (dialect.match(/^postgres/)) {
           expectation: "SELECT * FROM myTable WHERE foo='bar';",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['myTable', {order: 'id DESC'}],
+          arguments: ['myTable', {order: ['id DESC']}],
           expectation: 'SELECT * FROM myTable ORDER BY id DESC;',
           context: {options: {quoteIdentifiers: false}}
         }, {

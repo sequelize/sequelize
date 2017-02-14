@@ -395,7 +395,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         engine: 'MyISAM'
       });
 
-      return this.sequelize.sync({ force: true }).bind(this).then(function() {
+      return this.sequelize.sync().bind(this).then(function() {
         return this.sequelize.sync(); // The second call should not try to create the indices again
       }).then(function() {
         return this.sequelize.queryInterface.showIndex(Model.tableName);
@@ -900,7 +900,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       return this.User.bulkCreate(data).then(function() {
         return self.User.update({username: 'Bill'}, {where: {secretValue: '42'}}).then(function() {
-          return self.User.findAll({order: 'id'}).then(function(users) {
+          return self.User.findAll({order: ['id']}).then(function(users) {
             expect(users.length).to.equal(3);
 
             users.forEach(function(user) {
@@ -922,7 +922,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       return this.User.bulkCreate(data).then(function() {
         return self.User.update({username: 'Bill', secretValue: '43'}, {where: {secretValue: '42'}, fields: ['username']}).then(function() {
-          return self.User.findAll({order: 'id'}).then(function(users) {
+          return self.User.findAll({order: ['id']}).then(function(users) {
             expect(users.length).to.equal(1);
 
             var user = users[0];
@@ -1077,7 +1077,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                   { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).bind(this).then(function() {
-        return this.User.findAll({order: 'id'});
+        return this.User.findAll({order: ['id']});
       }).then(function(users) {
         this.updatedAt = users[0].updatedAt;
 
@@ -1088,7 +1088,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         this.clock.tick(1000);
         return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}});
       }).then(function() {
-        return this.User.findAll({order: 'id'});
+        return this.User.findAll({order: ['id']});
       }).then(function(users) {
         expect(users[0].username).to.equal('Bill');
         expect(users[1].username).to.equal('Bill');
@@ -1255,7 +1255,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return this.User.bulkCreate(data).then(function() {
         return self.User.destroy({where: {secretValue: '42'}})
           .then(function() {
-            return self.User.findAll({order: 'id'}).then(function(users) {
+            return self.User.findAll({order: ['id']}).then(function(users) {
               expect(users.length).to.equal(1);
               expect(users[0].username).to.equal('Bob');
             });
@@ -1337,7 +1337,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         this.date = moment().utc().format('YYYY-MM-DD h:mm');
         return ParanoidUser.destroy({where: {secretValue: '42'}});
       }).then(function() {
-        return ParanoidUser.findAll({order: 'id'});
+        return ParanoidUser.findAll({order: ['id']});
       }).then(function(users) {
         expect(users.length).to.equal(1);
         expect(users[0].username).to.equal('Bob');
@@ -1554,7 +1554,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return prefixUser.sync({ force: true }).then(function() {
           return prefixUser.bulkCreate(data).then(function() {
             return prefixUser.destroy({where: {secretValue: '42'}}).then(function() {
-              return prefixUser.findAll({order: 'id'}).then(function(users) {
+              return prefixUser.findAll({order: ['id']}).then(function(users) {
                 expect(users.length).to.equal(1);
                 expect(users[0].username).to.equal('Bob');
               });

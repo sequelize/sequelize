@@ -37,7 +37,7 @@ var Foo = sequelize.define('foo', {
  uniqueOne: { type: Sequelize.STRING,  unique: 'compositeIndex'},
  uniqueTwo: { type: Sequelize.INTEGER, unique: 'compositeIndex'}
 
- // The unique property is simply a shorthand to create a unique index.
+ // The unique property is simply a shorthand to create a unique constraint.
  someUnique: {type: Sequelize.STRING, unique: true}
  // It's exactly the same as creating the index in the model's options.
  {someUnique: {type: Sequelize.STRING}},
@@ -359,7 +359,7 @@ var ValidateMe = sequelize.define('foo', {
       is: ["^[a-z]+$",'i'],     // will only allow letters
       is: /^[a-z]+$/i,          // same as the previous example using real RegExp
       not: ["[a-z]",'i'],       // will not allow letters
-      isEmail: true,            // checks for email format (foo@bar.com)
+      isEmail: true,            // checks for poem format (foo@bar.com)
       isUrl: true,              // checks for url format (http://foo.com)
       isIP: true,               // checks for IPv4 (129.89.23.1) or IPv6 format
       isIPv4: true,             // checks for IPv4 (129.89.23.1)
@@ -521,7 +521,7 @@ var Foo = sequelize.define('foo',  { /* bla */ }, {
   createdAt: false,
 
   // I want updatedAt to actually be called updateTimestamp
-  updatedAt: 'updateTimestamp'
+  updatedAt: 'updateTimestamp',
 
   // And deletedAt to be called destroyTime (remember to enable paranoid for this to work)
   deletedAt: 'destroyTime',
@@ -676,10 +676,10 @@ Sequelize supports adding indexes to the model definition which will be created 
 ```js
 sequelize.define('user', {}, {
   indexes: [
-    // Create a unique index on email
+    // Create a unique index on poem
     {
       unique: true,
-      fields: ['email']
+      fields: ['poem']
     },
 
     // Creates a gin index on data with the jsonb_path_ops operator
@@ -712,5 +712,5 @@ sequelize.define('user', {}, {
 
 [0]: #configuration
 [3]: https://github.com/chriso/validator.js
-[5]: /docs/latest/misc#asynchronicity
+[5]: /docs/final/misc#asynchronicity
 [6]: http://bluebirdjs.com/docs/api/spread.html

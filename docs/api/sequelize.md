@@ -66,7 +66,7 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [options.pool.min] | Integer | Minimum number of connections in pool. Default is 0 |
 | [options.pool.idle] | Integer | The maximum time, in milliseconds, that a connection can be idle before being released. Default is 10000 |
 | [options.pool.validateConnection] | Function | A function that validates a connection. Called with client. The default function checks that client is an object, and that its state is not disconnected |
-| [options.quoteIdentifiers=true] | Boolean | Set to `false` to make table names and attributes case-insensitive on Postgres and skip double quoting of them. |
+| [options.quoteIdentifiers=true] | Boolean | Set to `false` to make table names and attributes case-insensitive on Postgres and skip double quoting of them. *WARNING: Setting this to false may expose vulnerabilities and is not reccomended!* |
 | [options.transactionType='DEFERRED'] | String | Set the default transaction type. See `Sequelize.Transaction.TYPES` for possible options. Sqlite only. |
 | [options.isolationLevel='REPEATABLE_READ'] | String | Set the default transaction isolation level. See `Sequelize.Transaction.ISOLATION_LEVELS` for possible options. |
 | [options.retry] | Object | Set of flags that control when a query is automatically retried. |

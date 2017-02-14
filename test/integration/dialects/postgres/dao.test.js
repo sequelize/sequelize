@@ -254,7 +254,7 @@ if (dialect.match(/^postgres/)) {
             expect(user.emergency_contact.name).to.equal('joe');
           });
       });
-      
+
       it('should be able to query using dot syntax with uppercase name', function() {
         var self = this;
 
@@ -671,7 +671,7 @@ if (dialect.match(/^postgres/)) {
           })
           .then(function() {
             // Check that the hstore fields are the same when retrieving the user
-            return self.User.findAll({ order: 'username' });
+            return self.User.findAll({ order: ['username'] });
           })
           .then(function(users) {
             expect(users[0].settings).to.deep.equal({ test: '"value"' });
@@ -886,7 +886,7 @@ if (dialect.match(/^postgres/)) {
           })
           .then(function() {
             // Check that the range fields are the same when retrieving the user
-            return User.findAll({ order: 'username' });
+            return User.findAll({ order: ['username'] });
           })
           .then(function(users) {
             expect(users[0].course_period[0]).to.equalTime(periods[0][0]); // lower bound
