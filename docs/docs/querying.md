@@ -308,6 +308,47 @@ something.findOne({
 
 CTEs (Common Table Expressions) are special expressions that preceded a query. They create a named expression that can be referenced later in a query. Some dialects allow a CTE to perform a recursive query, a query that repeats itself as long as it is able to. There may be many CTEs with a single query, and each CTE can build on the results of the one that came before.
 
+### Motivating example
+
+Here is a simple example of using a non-recursive query as a filter
+First, we set up some data 
+
+```js 
+Bank.create({ name: 'Tri-County Bank', amount: 10000 }),
+Bank.create({ name: 'Valley Bank', amount: 30000 }),
+Bank.create({ name: 'Hill City Bank', amount: 50000 })
+```
+then using a CTE as a filter, we can perform a simple where with the cteSelect and merely gather the results in the main query
+```js
+return Bank.findAll({
+    cte: [{
+        name: "greaterThan20kBanks",
+        initial: {
+            where: {
+                amount: {
+                    $gt: 20000
+                }
+            }
+        }
+    }],
+    cteSelect: "greaterThan20kBanks",
+}).then((banks) => {
+    banks.forEach(bank => {
+        console.log(`${bank.name} : $${bank.amount}`);
+    });
+});
+```
+
+which will give us the output
+
+```
+Valley Bank : $30000
+Hill City Bank : $50000
+```
+
+This example could have easily be done by a `where` on the main query. However, CTEs have many features like chaining and recursive queries that give them unique abilities when used to query data.
+
+### CTEs in a findAll
 
 `cte` takes an array of objects that each describe a common table expression or CTE. CTEs run before the main query and can be made recursive.
 
