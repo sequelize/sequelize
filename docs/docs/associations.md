@@ -192,6 +192,18 @@ Project.hasMany(User, {as: 'Workers'})
 This will add the attribute `projectId` or `project_id` to User. Instances of Project will get the accessors `getWorkers` and `setWorkers`. We could just leave it the way it is and let it be a one-way association.
 But we want more! Let's define it the other way around by creating a many to many association in the next section:
 
+Sometimes you may need to associate records on different columns, you may use `sourceKey` option:
+
+```js
+var City = sequelize.define('city', { countryCode: Sequelize.STRING });
+var Country = sequelize.define('country', { isoCode: Sequelize.STRING });
+
+// Here we can connect countries and cities base on country code
+Country.hasMany(City, {foreignKey: 'countryCode', sourceKey: 'isoCode'});
+City.belongsTo(Country, {foreignKey: 'countryCode', targetKey: 'isoCode'});
+```
+
+
 ## Belongs-To-Many associations
 
 Belongs-To-Many associations are used to connect sources with multiple targets. Furthermore the targets can also have connections to multiple sources.
@@ -203,7 +215,7 @@ User.belongsToMany(Project, {through: 'UserProject'});
 
 This will create a new model called UserProject with the equivalent foreign keys `projectId` and `userId`. Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
 
-Defining `through` is required. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
+Defining `through` is **required**. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
 
 This will add methods `getUsers`, `setUsers`, `addUser`,`addUsers` to `Project`, and `getProjects`, `setProjects`, `addProject`, and `addProjects` to `User`.
 
@@ -278,7 +290,7 @@ This section concerns association scopes. For a definition of association scopes
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
 #### 1:m
-Assume we have tables Comment, Post and Image. A comment can be associated to either an image or a post via `commentable_id` and `commentable` - we say that Post and Image are `Commentable`
+Assume we have tables Comment, Post, and Image. A comment can be associated to either an image or a post via `commentable_id` and `commentable` - we say that Post and Image are `Commentable`
 
 ```js
 this.Comment = this.sequelize.define('comment', {
@@ -388,7 +400,7 @@ Tag.belongsToMany(Post, {
 
 Notice that the scoped column (`taggable`) is now on the through model (`ItemTag`).
 
-We could also define a more restrictive association, for example to get all pending tags for a post by applying a scope of both the through model (`ItemTag`) and the target model (`Tag`):
+We could also define a more restrictive association, for example, to get all pending tags for a post by applying a scope of both the through model (`ItemTag`) and the target model (`Tag`):
 
 ```js
 Post.hasMany(Tag, {
@@ -677,7 +689,7 @@ CREATE TABLE IF NOT EXISTS `Version` (
 
 ### Enforcing a foreign key reference without constraints
 
-Some times you may want to reference another table, without adding any constraints, or associations. In that case you can manually add the reference attributes to your schema definition, and mark the relations between them.
+Sometimes you may want to reference another table, without adding any constraints, or associations. In that case you can manually add the reference attributes to your schema definition, and mark the relations between them.
 
 ```js
 var Series, Trainer, Video

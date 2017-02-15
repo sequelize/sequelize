@@ -7,6 +7,7 @@ const current = Support.sequelize;
 const sinon = require('sinon');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const Utils = require('../../../lib/utils.js');
+const sequelizeErrors = require('../../../lib/errors');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('warnOnInvalidOptions', () => {
@@ -64,6 +65,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('calls warnOnInvalidOptions', () => {
         Model.findAll();
         expect(this.warnOnInvalidOptionsStub.calledOnce).to.equal(true);
+      });
+
+      it('Throws an error when the attributes option is formatted incorrectly', () => {
+        const errorFunction = Model.findAll.bind(Model, {attributes: 'name'});
+        expect(errorFunction).to.throw(sequelizeErrors.QueryError);
       });
     });
 

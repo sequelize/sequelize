@@ -3,21 +3,14 @@ version: '2'
 services:
   # PostgreSQL
   postgres-95:
-    image: mdillon/postgis:9.5
+    image: camptocamp/postgis:9.5
     environment:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
+      POSTGRES_DB: sequelize_test
     ports:
       - "127.0.0.1:8998:5432"
     container_name: postgres-95
-  postgres-94:
-    image: mdillon/postgis:9.4
-    environment:
-      POSTGRES_USER: sequelize_test
-      POSTGRES_PASSWORD: sequelize_test
-    ports:
-      - "127.0.0.1:8998:5432"
-    container_name: postgres-94
 
   # MySQL
   mysql-57:
@@ -30,23 +23,3 @@ services:
     ports:
       - "127.0.0.1:8999:3306"
     container_name: mysql-57
-  mysql-56:
-    image: mysql:5.6
-    environment:
-      MYSQL_ROOT_PASSWORD: lollerskates
-      MYSQL_DATABASE: sequelize_test
-      MYSQL_USER: sequelize_test
-      MYSQL_PASSWORD: sequelize_test
-    ports:
-      - "127.0.0.1:8999:3306"
-    container_name: mysql-56
-  mysql-55:
-    image: mysql:5.5
-    environment:
-      MYSQL_ROOT_PASSWORD: lollerskates
-      MYSQL_DATABASE: sequelize_test
-      MYSQL_USER: sequelize_test
-      MYSQL_PASSWORD: sequelize_test
-    ports:
-      - "127.0.0.1:8999:3306"
-    container_name: mysql-55

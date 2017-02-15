@@ -267,7 +267,7 @@ Project.findAll({ offset: 5, limit: 5 })
 
 ## Ordering
 
-`order` takes an array of items to order the query by. Generally you will want to use a tuple/array of either attribute, direction or just direction to ensure proper escaping.
+`order` takes an array of items to order the query by or a sequelize method. Generally you will want to use a tuple/array of either attribute, direction or just direction to ensure proper escaping.
 
 ```js
 something.findOne({
@@ -293,10 +293,14 @@ something.findOne({
     // Will order by name on a nested associated Company of an associated User
     [User, Company, 'name', 'DESC'],
   ]
-  // All the following statements will be treated literally so should be treated with care
-  order: 'convert(user_name using gbk)'
-  order: 'username DESC'
-  order: sequelize.literal('convert(user_name using gbk)')
+  // Will order by max age descending
+  order: sequelize.literal('max(age) DESC')
+
+  // Will order by max age ascencding assuming ascencding is the default order when direction is omitted
+  order: sequelize.fn('max', sequelize.col('age'))
+
+  // Will order by age ascencding assuming ascencding is the default order when direction is omitted
+  order: sequelize.col('age')
 })
 ```
 

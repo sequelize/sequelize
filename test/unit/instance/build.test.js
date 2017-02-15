@@ -9,7 +9,7 @@ var chai = require('chai')
 
 describe(Support.getTestDialectTeaser('Instance'), function() {
   describe('build', function () {
-    it('should popuplate NOW default values', function () {
+    it('should populate NOW default values', function () {
       var Model = current.define('Model', {
           created_time: {
             type: DataTypes.DATE,
@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       return instance.validate();
     });
 
-    it('should popuplate explicitely undefined UUID primary keys', function () {
+    it('should populate explicitly undefined UUID primary keys', function () {
       var Model = current.define('Model', {
         id: {
           type: DataTypes.UUID,
