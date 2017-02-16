@@ -46,7 +46,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
             return Task.findAll({
               include: [
                 {
-                  model: Project, 
+                  model: Project,
                   include: [
                     {model: User, where: {username: 'leia'}}
                   ],
@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
             return Task.findAll({
               include: [
                 {
-                  model: Project, 
+                  model: Project,
                   include: [
                     {model: User, where: {
                     username: 'leia',
@@ -168,7 +168,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), function() {
             return User.findAll({
               include: [
                 {
-                  model: Project, 
+                  model: Project,
                   include: [
                     {model: Task, where: {title: 'fight empire'}}
                   ],

@@ -42,10 +42,11 @@
     "depd": "^1.1.0",
     "dottie": "^2.0.0",
     "env-cmd": "^4.0.0",
-    "generic-pool": "^2.4.4",
+    "generic-pool": "^3.1.6",
     "inflection": "1.10.0",
     "js-crc": "^0.1.0",
     "lodash": "^4.17.1",
+    "js-crc": "^0.1.0",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
     "retry-as-promised": "^2.0.0",
@@ -84,6 +85,9 @@
     "sqlite3": "^3.1.4",
     "tedious": "^1.14.0",
     "uuid-validate": "^0.0.2"
+  },
+  "optionalDependencies": {
+    "oracledb": "^1.11.0"
   },
   "keywords": [
     "mysql",

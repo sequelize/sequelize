@@ -274,7 +274,7 @@ The success listener is called with an array of instances if the query succeeds.
 | [options.include[].through.where] | Object | Filter on the join model for belongsToMany relations |
 | [options.include[].through.attributes] | Array | A list of attributes to select from the join model for belongsToMany relations |
 | [options.include[].include] | Array.&lt;Object &#124; Model &#124; String&gt; | Load further nested related models |
-| [options.order] | String &#124; Array &#124; Sequelize.fn | Specifies an ordering. If a string is provided, it will be escaped. Using an array, you can provide several columns / functions to order by. Each element can be further wrapped in a two-element array. The first element is the column / function to order by, the second is the direction. For example: `order: [['name', 'DESC']]`. In this way the column will be escaped, but the direction will not. |
+| [options.order] | Array &#124; Sequelize.fn &#124; Sequelize.col &#124; Sequelize.literal | Specifies an ordering.  Using an array, you can provide several columns / functions to order by. Each element can be further wrapped in a two-element array. The first element is the column / function to order by, the second is the direction. For example: `order: [['name', 'DESC']]`. In this way the column will be escaped, but the direction will not. |
 | [options.limit] | Number |  |
 | [options.offset] | Number |  |
 | [options.transaction] | Transaction | Transaction to run query under |

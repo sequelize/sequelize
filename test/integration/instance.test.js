@@ -1213,6 +1213,21 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           });
         });
       });
+
+      it('should not throw ER_EMPTY_QUERY if changed only virtual fields', function() {
+        const User = this.sequelize.define('User' + config.rand(), {
+          name: DataTypes.STRING,
+          bio: {
+            type: DataTypes.VIRTUAL,
+            get: () => 'swag'
+          }
+        }, {
+          timestamps: false
+        });
+        return User.sync({force: true}).then(() => (
+          User.create({ name: 'John', bio: 'swag 1' }).then((user) => user.update({ bio: 'swag 2' }).should.be.fulfilled)
+        ));
+      });
     });
 
     it('updates with function and column value', function() {
@@ -1428,7 +1443,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
                   return self.ProjectEager.create({ title: 'exam2', overdue_days: 0 }).then(function(exam2)  {
                     return bart.setProjects([detention1, detention2]).then(function() {
                       return lisa.setProjects([exam1, exam2]).then(function() {
-                        return self.UserEager.findAll({where: {age: 20}, order: 'username ASC', include: [{model: self.ProjectEager, as: 'Projects'}]}).then(function(simpsons) {
+                        return self.UserEager.findAll({where: {age: 20}, order: [['username', 'ASC']], include: [{model: self.ProjectEager, as: 'Projects'}]}).then(function(simpsons) {
                           var _bart, _lisa;
 
                           expect(simpsons.length).to.equal(2);

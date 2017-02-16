@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         this.User.count({
           where: { age: 10 },
           group: ['age'],
-          order: 'age'
+          order: ['age']
         })
       )
       .then((result) => {

@@ -26,17 +26,46 @@ env:
     - SEQ_PG_PW: sequelize_test
     - SEQ_PG_HOST: 127.0.0.1
     - SEQ_PG_PORT: 8998
+    # oracle info
+
+    - NODE_ORACLEDB_HOST: localhost
 
   matrix:
     - DIALECT=sqlite COVERAGE=true
     - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
     - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
     - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
+    - ORACLE_VER=oracle-12c DIALECT=oracle COVERAGE=true
+
+before_install:
+  - |
+    if [ $ORACLE_VER ]; then 
+      mkdir -p /opt/oracle && 
+      cd /opt/oracle && 
+      wget https://s3.amazonaws.com/sequelize/instantclient-basic-linux.x64-12.1.0.2.0.zip &&
+      wget https://s3.amazonaws.com/sequelize/instantclient-sdk-linux.x64-12.1.0.2.0.zip &&
+      unzip instantclient-basic-linux.x64-12.1.0.2.0.zip &&
+      unzip instantclient-sdk-linux.x64-12.1.0.2.0.zip &&
+      mv instantclient_12_1 instantclient &&
+      cd instantclient && 
+      ln -s libclntsh.so.12.1 libclntsh.so &&
+      export LD_LIBRARY_PATH=/opt/oracle/instantclient:$LD_LIBRARY_PATH &&
+      cd $TRAVIS_BUILD_DIR;
+    fi
 
 before_script:
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
+  - |
+    if [ $ORACLE_VER ]; then 
+      wget https://s3.amazonaws.com/sequelize/data.tar.gz
+      mkdir oracle-data
+      sudo tar xvf data.tar.gz -C ./oracle-data
+      sudo chmod -R +rw ./oracle-data
+      docker-compose up -d oracle-12c
+      sleep 30
+    fi
 
 script:
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"

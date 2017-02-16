@@ -1,14 +1,14 @@
 'use strict';
 
-var Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , Sequelize = Support.Sequelize
-  , chai = require('chai')
-  , util = require('util')
-  , uuid = require('uuid')
-  , expectsql = Support.expectsql
-  , current   = Support.sequelize
-  , expect = chai.expect;
+const Support   = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const Sequelize = Support.Sequelize;
+const chai = require('chai');
+const util = require('util');
+const uuid = require('uuid');
+const expectsql = Support.expectsql;
+const current   = Support.sequelize;
+const expect = chai.expect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -181,15 +181,15 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('DATE', function () {
       testsql('DATE', DataTypes.DATE, {
         postgres: 'TIMESTAMP WITH TIME ZONE',
+        mssql: 'DATETIMEOFFSET',
         oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
-        mssql: 'DATETIME2',
         mysql: 'DATETIME',
         sqlite: 'DATETIME'
       });
 
       testsql('DATE(6)', DataTypes.DATE(6), {
         postgres: 'TIMESTAMP WITH TIME ZONE',
-        mssql: 'DATETIME2',
+        mssql: 'DATETIMEOFFSET',
         oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
         mysql: 'DATETIME(6)',
         sqlite: 'DATETIME'

@@ -1,19 +1,19 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/support')
-  , DataTypes = require(__dirname + '/../../lib/data-types')
-  , dialect = Support.getTestDialect()
-  , _ = require('lodash')
-  , count = 0
-  , log = function (sql) {
-    // sqlite fires a lot more querys than the other dbs. this is just a simple hack, since i'm lazy
-    if (dialect !== 'sqlite' || count === 0) {
-      count++;
-    }
-  };
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/support');
+const DataTypes = require(__dirname + '/../../lib/data-types');
+const dialect = Support.getTestDialect();
+const _ = require('lodash');
+let count = 0;
+const log = function() {
+  // sqlite fires a lot more querys than the other dbs. this is just a simple hack, since i'm lazy
+  if (dialect !== 'sqlite' || count === 0) {
+    count++;
+  }
+};
 
 describe(Support.getTestDialectTeaser('QueryInterface'), function() {
   beforeEach(function() {
@@ -23,6 +23,24 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
 
   afterEach(function() {
     return this.sequelize.dropAllSchemas();
+  });
+
+  describe('renameTable', function() {
+    it('should rename table', function() {
+      return this.queryInterface
+        .createTable('myTestTable', {
+          name: DataTypes.STRING
+        })
+        .then(() => this.queryInterface.renameTable('myTestTable', 'myTestTableNew'))
+        .then(() => this.queryInterface.showAllTables())
+        .then((tableNames) => {
+          if (dialect === 'mssql') {
+            tableNames = _.map(tableNames, 'tableName');
+          }
+          expect(tableNames).to.contain('myTestTableNew');
+          expect(tableNames).to.not.contain('myTestTable');
+        });
+    });
   });
 
   describe('dropAllTables', function() {
@@ -244,7 +262,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         return self.queryInterface.describeTable('_Country').then(function(metacountry) {
           expect(metacountry.code.primaryKey).to.eql(true);
           expect(metacountry.name.primaryKey).to.eql(false);
-        
+
           return Alumni.sync({ force: true }).then(function() {
             return self.queryInterface.describeTable('_Alumni').then(function(metalumni) {
               expect(metalumni.year.primaryKey).to.eql(true);
@@ -672,7 +690,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
           expect(table).to.not.have.property('id');
         });
       });
-      
+
     });
 
     describe('(with a schema)', function() {
