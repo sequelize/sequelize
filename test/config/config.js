@@ -58,6 +58,18 @@ module.exports = {
     }
   },
 
+  vertica: {
+    database: process.env.SEQ_PG_DB   || process.env.SEQ_DB    || 'sequelize_test',
+    username: process.env.SEQ_PG_USER || process.env.SEQ_USER  || 'vertica',
+    password: process.env.SEQ_PG_PW   || process.env.SEQ_PW    || 'vertica',
+    host:     process.env.POSTGRES_PORT_5432_TCP_ADDR || process.env.SEQ_PG_HOST || process.env.SEQ_HOST  || '127.0.0.1',
+    port:     process.env.POSTGRES_PORT_5432_TCP_PORT || process.env.SEQ_PG_PORT || process.env.SEQ_PORT  || 5432,
+    pool:     {
+      maxConnections: process.env.SEQ_PG_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
+      maxIdleTime:    process.env.SEQ_PG_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
+    }
+  },
+
   mariadb: {
     database: process.env.SEQ_MYSQL_DB   || process.env.SEQ_DB   || 'sequelize_test',
     username: process.env.SEQ_MYSQL_USER || process.env.SEQ_USER || 'root',

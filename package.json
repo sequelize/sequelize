@@ -97,6 +97,7 @@
     "test-unit": "./node_modules/.bin/mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 15000 --reporter spec 'test/unit/**/*.js'",
     "test-unit-mysql": "DIALECT=mysql npm run test-unit",
     "test-unit-postgres": "DIALECT=postgres npm run test-unit",
+    "test-unit-vertica": "DIALECT=vertica npm run test-unit",
     "test-unit-postgres-native": "DIALECT=postgres-native npm run test-unit",
     "test-unit-mariadb": "DIALECT=mariadb npm run test-unit",
     "test-unit-sqlite": "DIALECT=sqlite npm run test-unit",
