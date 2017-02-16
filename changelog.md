@@ -1,5 +1,5 @@
 # Future
-- [FIXED] Formatting `Date` objects through via associative bind parameters caused error.
+- [FIXED] Using `Date` objects in associative bind parameters caused error.
 
 # 3.30.2
 - [FIXED] `previous` method gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
