@@ -49,6 +49,7 @@
 - [INTERNAL] Updated to `generic-pool@3.1.6` [#7109](https://github.com/sequelize/sequelize/issues/7109)
 - [FIXED] findAll throws error if attributes option is formatted incorrectly [#7162](https://github.com/sequelize/sequelize/issues/7163)
 - [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
+- [FIXED] Add quotes around column names for unique constraints in sqlite [#4407](https://github.com/sequelize/sequelize/pull/4407)
 - [FIXED] Connection error when fetching OIDs for unspported types in Postgres 8.2 or below [POSTGRES] [#5254](https://github.com/sequelize/sequelize/issues/5254)
 
 ## BC breaks:
