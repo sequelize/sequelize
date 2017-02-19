@@ -49,6 +49,7 @@
 - [INTERNAL] Updated to `generic-pool@3.1.6` [#7109](https://github.com/sequelize/sequelize/issues/7109)
 - [FIXED] findAll throws error if attributes option is formatted incorrectly [#7162](https://github.com/sequelize/sequelize/issues/7163)
 - [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
+- [FIXED] Fix error at connection on PostgreSQL 8.2 [#5254](https://github.com/sequelize/sequelize/issues/5254)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
