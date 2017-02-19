@@ -39,13 +39,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           instance.increment(['id']);
         }).to.not.throw();
       });
-
-      it('should not modify options when it given to increment', function () {
-        instance = Model.build({id: 1}, {isNewRecord: false});
-        var options = { by: 2 };
-        instance.increment(['id'], options);
-        expect(options).to.deep.equal({ by: 2 });
-      });
     });
   });
 });

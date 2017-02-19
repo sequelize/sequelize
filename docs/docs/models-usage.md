@@ -117,7 +117,7 @@ User.findAndCountAll({
   include: [
      { model: Profile, required: true}
   ],
-  limit 3
+  limit: 3
 });
 ```
 
@@ -128,7 +128,7 @@ User.findAndCountAll({
   include: [
      { model: Profile, where: { active: true }}
   ],
-  limit 3
+  limit: 3
 });
 ```
 
@@ -501,6 +501,50 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
 })
 ```
 
+You can also include by alias name by specifying a string that matches the association alias:
+
+```js
+User.findAll({ include: ['Instruments'] }).then(function(users) {
+  console.log(JSON.stringify(users))
+
+  /*
+    [{
+      "name": "John Doe",
+      "id": 1,
+      "createdAt": "2013-03-20T20:31:45.000Z",
+      "updatedAt": "2013-03-20T20:31:45.000Z",
+      "Instruments": [{
+        "name": "Toothpick",
+        "id": 1,
+        "createdAt": null,
+        "updatedAt": null,
+        "userId": 1
+      }]
+    }]
+  */
+})
+
+User.findAll({ include: [{ association: 'Instruments' }] }).then(function(users) {
+  console.log(JSON.stringify(users))
+
+  /*
+    [{
+      "name": "John Doe",
+      "id": 1,
+      "createdAt": "2013-03-20T20:31:45.000Z",
+      "updatedAt": "2013-03-20T20:31:45.000Z",
+      "Instruments": [{
+        "name": "Toothpick",
+        "id": 1,
+        "createdAt": null,
+        "updatedAt": null,
+        "userId": 1
+      }]
+    }]
+  */
+})
+```
+
 When eager loading we can also filter the associated model using `where`. This will return all `User`s in which the `where` clause of `Tool` model matches rows.
 
 ```js
@@ -580,6 +624,10 @@ Company.findAll({ include: [ Division ], order: [ [ Division, 'name', 'DESC' ] ]
 Company.findAll({
   include: [ { model: Division, as: 'Div' } ],
   order: [ [ { model: Division, as: 'Div' }, 'name' ] ]
+});
+Company.findAll({
+  include: [ { model: Division, as: 'Div' } ],
+  order: [ [ { model: Division, as: 'Div' }, 'name', 'DESC' ] ]
 });
 Company.findAll({
   include: [ { model: Division, include: [ Department ] } ],

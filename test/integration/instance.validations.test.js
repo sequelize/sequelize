@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         return Model.create({name: 'World'}).then(function(model) {
           return model.updateAttributes({name: ''}).catch(function(err) {
             expect(err).to.be.an.instanceOf(Error);
-            expect(err.get('name')[0].message).to.equal('Validation notEmpty failed');
+            expect(err.get('name')[0].message).to.equal('Validation notEmpty on name failed');
           });
         });
       });
@@ -73,7 +73,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         return Model.create({name: 'World'}).then(function() {
           return Model.update({name: ''}, {where: {id: 1}}).catch(function(err) {
             expect(err).to.be.an.instanceOf(Error);
-            expect(err.get('name')[0].message).to.equal('Validation notEmpty failed');
+            expect(err.get('name')[0].message).to.equal('Validation notEmpty on name failed');
           });
         });
       });
@@ -236,7 +236,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         return User.sync({ force: true }).then(function() {
           return User.create({id: 'helloworld'}).catch(function(err) {
             expect(err).to.be.an.instanceOf(Error);
-            expect(err.get('id')[0].message).to.equal('Validation isInt failed');
+            expect(err.get('id')[0].message).to.equal('Validation isInt on id failed');
           });
         });
       });
@@ -287,8 +287,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         it('should emit an error when we try to enter in a string for an auto increment key through .build().validate()', function() {
           var user = this.User.build({id: 'helloworld'});
 
-          return user.validate().then(function(err) {
-            expect(err).to.be.an.instanceOf(Error);
+          return expect(user.validate()).to.be.rejected.then(function(err) {
             expect(err.get('id')[0].message).to.equal('ID must be an integer!');
           });
         });
@@ -343,7 +342,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
         return this.Project.create({}).catch(function(err) {
           expect(err).to.be.an.instanceOf(Error);
           delete err.stack; // longStackTraces
-          expect(Object.keys(err)).to.have.length(3);
+          expect(err.errors).to.have.length(3);
         });
       });
     });
@@ -367,14 +366,12 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
     var failingUser = User.build({ name: '3' });
 
-    return failingUser.validate().then(function(error) {
+    return expect(failingUser.validate()).to.be.rejected.then(function(error) {
       expect(error).to.be.an.instanceOf(Error);
       expect(error.get('name')[0].message).to.equal("name should equal '2'");
 
       var successfulUser = User.build({ name: '2' });
-      return successfulUser.validate().then(function(err) {
-        expect(err).to.be.undefined;
-      });
+      return expect(successfulUser.validate()).not.to.be.rejected;
     });
   });
 
@@ -397,13 +394,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       });
 
     return User.sync().then(function() {
-      return User.build({ name: 'error' }).validate().then(function(error)  {
-        expect(error).to.be.an.instanceOf(self.sequelize.ValidationError);
+      return expect(User.build({ name: 'error' }).validate()).to.be.rejected.then(function(error)  {
+        expect(error).to.be.instanceof(self.sequelize.ValidationError);
         expect(error.get('name')[0].message).to.equal('Invalid username');
 
-        return User.build({ name: 'no error' }).validate().then(function(errors) {
-          expect(errors).to.be.undefined;
-        });
+        return expect(User.build({ name: 'no error' }).validate()).not.to.be.rejected;
       });
     });
   });
@@ -419,19 +414,12 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    return User
+    return expect(User
       .build({ age: -1 })
-      .validate()
+      .validate())
+      .to.be.rejected
       .then(function(error) {
-        expect(error).not.to.be.null;
-        expect(error).to.be.an.instanceOf(Error);
         expect(error.get('age')[0].message).to.equal('must be positive');
-
-        // TODO: This does not test anything
-        // Check what the original intention was
-        return User.build({ age: null }).validate().then(function() {
-          return User.build({ age: 1 }).validate();
-        });
       });
   });
 
@@ -455,19 +443,17 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    return Foo
+    return expect(Foo
       .build({ field1: null, field2: null })
-      .validate()
+      .validate())
+      .to.be.rejected
       .then(function(error) {
-        expect(error).not.to.be.null;
-        expect(error).to.be.an.instanceOf(Error);
         expect(error.get('xnor')[0].message).to.equal('xnor failed');
-        return Foo
+
+        return expect(Foo
           .build({ field1: 33, field2: null })
-          .validate()
-          .then(function(errors) {
-            expect(errors).not.exist;
-          });
+          .validate())
+          .not.to.be.rejected;
       });
   });
 
@@ -482,11 +468,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     }), foo;
 
     foo = Foo.build({bar: 'a'});
-    return foo.validate().then(function(errors) {
-      expect(errors).not.to.exist;
-      return foo.validate().then(function(errors) {
-        expect(errors).not.to.exist;
-      });
+    return expect(foo.validate()).not.to.be.rejected.then(function() {
+      return expect(foo.validate()).not.to.be.rejected;
     });
   });
 
@@ -505,10 +488,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
     var failingBar = Bar.build({ field: 'value3' });
 
-    return failingBar.validate().then(function(errors) {
-      expect(errors).not.to.be.null;
+    return expect(failingBar.validate()).to.be.rejected.then(function(errors) {
       expect(errors.get('field')).to.have.length(1);
-      expect(errors.get('field')[0].message).to.equal('Validation isIn failed');
+      expect(errors.get('field')[0].message).to.equal('Validation isIn on field failed');
     });
   });
 
@@ -527,9 +509,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
 
     var failingBar = Bar.build({ field: 'value3' });
 
-    return failingBar.validate({ skip: ['field'] }).then(function(errors) {
-      expect(errors).not.to.exist;
-    });
+    return expect(failingBar.validate({ skip: ['field'] })).not.to.be.rejected;
   });
 
   it('raises an error if saving a different value into an immutable field', function() {
@@ -546,12 +526,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       return User.create({ name: 'RedCat' }).then(function(user) {
         expect(user.getDataValue('name')).to.equal('RedCat');
         user.setDataValue('name', 'YellowCat');
-        return user.save()
-          .catch(function(errors) {
-            expect(errors).to.not.be.null;
-            expect(errors).to.be.an.instanceOf(Error);
-            expect(errors.get('name')[0].message).to.eql('Validation isImmutable failed');
-          });
+        return expect(user.save()).to.be.rejected.then(function(errors) {
+          expect(errors.get('name')[0].message).to.eql('Validation isImmutable on name failed');
+        });
       });
     });
   });
@@ -570,9 +547,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     expect(user.getDataValue('name')).to.equal('RedCat');
 
     user.setDataValue('name', 'YellowCat');
-    return user.validate().then(function(errors) {
-      expect(errors).not.to.be.ok;
-    });
+    return expect(user.validate()).not.to.be.rejected;
   });
 
   it('raises an error for array on a STRING', function() {
@@ -582,11 +557,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    return User.build({
+    return expect(User.build({
       email: ['iama', 'dummy.com']
-    }).validate().then(function(errors) {
-      expect(errors).to.be.an.instanceof(Sequelize.ValidationError);
-    });
+    }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
 
   it('raises an error for array on a STRING(20)', function() {
@@ -596,11 +569,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    return User.build({
+    return expect(User.build({
       email: ['iama', 'dummy.com']
-    }).validate().then(function(errors) {
-      expect(errors).to.be.an.instanceof(Sequelize.ValidationError);
-    });
+    }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
 
   it('raises an error for array on a TEXT', function() {
@@ -610,11 +581,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    return User.build({
+    return expect(User.build({
       email: ['iama', 'dummy.com']
-    }).validate().then(function(errors) {
-      expect(errors).to.be.an.instanceof(Sequelize.ValidationError);
-    });
+    }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
 
   it('raises an error for {} on a STRING', function() {
@@ -624,11 +593,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    return User.build({
+    return expect(User.build({
       email: {lol: true}
-    }).validate().then(function(errors) {
-      expect(errors).to.be.an.instanceof(Sequelize.ValidationError);
-    });
+    }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
 
   it('raises an error for {} on a STRING(20)', function() {
@@ -638,11 +605,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    return User.build({
+    return expect(User.build({
       email: {lol: true}
-    }).validate().then(function(errors) {
-      expect(errors).to.be.an.instanceof(Sequelize.ValidationError);
-    });
+    }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
 
   it('raises an error for {} on a TEXT', function() {
@@ -652,11 +617,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    return User.build({
+    return expect(User.build({
       email: {lol: true}
-    }).validate().then(function(errors) {
-      expect(errors).to.be.an.instanceof(Sequelize.ValidationError);
-    });
+    }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
 
   it('does not raise an error for null on a STRING (where null is allowed)', function() {
@@ -666,11 +629,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    return User.build({
+    return expect(User.build({
       email: null
-    }).validate().then(function(errors) {
-      expect(errors).not.to.be.ok;
-    });
+    }).validate()).not.to.be.rejected;
   });
 
   it('validates VIRTUAL fields', function() {
@@ -694,19 +655,16 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
     });
 
     return Sequelize.Promise.all([
-      User.build({
+      expect(User.build({
         password: 'short',
         salt: '42'
-      }).validate().then(function(errors) {
-        expect(errors).not.to.be.undefined;
+      }).validate()).to.be.rejected.then(function(errors) {
         expect(errors.get('password')[0].message).to.equal('Please choose a longer password');
       }),
-      User.build({
+      expect(User.build({
         password: 'loooooooong',
         salt: '42'
-      }).validate().then(function(errors) {
-        expect(errors).to.be.undefined;
-      })
+      }).validate()).not.to.be.rejected
     ]);
   });
 
@@ -724,16 +682,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), function() {
       }
     });
 
-    return User.build({
+    return expect(User.build({
       name: 'abcdefg'
-    }).validate().then(function(errors) {
-      expect(errors === undefined).to.be.ok;
-
-      return User.build({
+    }).validate()).not.to.be.rejected.then(function() {
+      return expect(User.build({
         name: 'a'
-      }).validate();
+      }).validate()).to.be.rejected;
     }).then(function(errors) {
-      expect(errors.get('name')[0].message).to.equal('Validation isExactly7Characters failed');
+      expect(errors.get('name')[0].message).to.equal('Validation isExactly7Characters on name failed');
     });
   });
 });

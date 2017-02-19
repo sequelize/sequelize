@@ -7,19 +7,19 @@ $ npm install --save sequelize
 
 # And one of the following:
 $ npm install --save pg pg-hstore
-$ npm install --save mysql // For both mysql and mariadb dialects
+$ npm install --save mysql2
 $ npm install --save sqlite3
 $ npm install --save tedious // MSSQL
 ```
 
 ## Setting up a connection
 
-Sequelize will setup a connection pool on initialization so you should ideally only ever create one instance per database.
+Sequelize will setup a connection pool on initialization so you should ideally only ever create one instance per database if you're connecting to the DB from a single process. If you're connecting to the DB from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of "max connection pool size divided by number of instances".  So, if you wanted a max connection pool size of 90 and you had 3 worker processes, each process's instance should have a max connection pool size of 30.
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
-  dialect: 'mysql'|'mariadb'|'sqlite'|'postgres'|'mssql',
+  dialect: 'mysql'|'sqlite'|'postgres'|'mssql',
 
   pool: {
     max: 5,
@@ -37,6 +37,21 @@ var sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 
 The Sequelize constructor takes a whole slew of options that are available via the [API reference](http://sequelize.readthedocs.org/en/latest/api/sequelize/).
 
+## Test the connection
+
+You can use the `.authenticate()` function like this to test the connection.
+
+```
+sequelize
+  .authenticate()
+  .then(function(err) {
+    console.log('Connection has been established successfully.');
+  })
+  .catch(function (err) {
+    console.log('Unable to connect to the database:', err);
+  });
+```
+
 ## Your first model
 
 Models are defined with `sequelize.define('name', {attributes}, {options})`.
@@ -44,16 +59,14 @@ Models are defined with `sequelize.define('name', {attributes}, {options})`.
 ```js
 var User = sequelize.define('user', {
   firstName: {
-    type: Sequelize.STRING,
-    field: 'first_name' // Will result in an attribute that is firstName when user facing but first_name in the database
+    type: Sequelize.STRING
   },
   lastName: {
     type: Sequelize.STRING
   }
-}, {
-  freezeTableName: true // Model tableName will be the same as the model name
 });
 
+// force: true will drop the table if it already exists
 User.sync({force: true}).then(function () {
   // Table created
   return User.create({
@@ -63,7 +76,17 @@ User.sync({force: true}).then(function () {
 });
 ```
 
-Many more options can be found in the [Model API reference](http://sequelize.readthedocs.org/en/latest/api/model/)
+You can read more about creating models at [Model API reference](http://sequelize.readthedocs.org/en/latest/api/model/)
+
+## Your first query
+
+```
+User.findAll().then(function(users) {
+  console.log(users)
+})
+```
+
+You can read more about finder functions on models like `.findAll()` at [Data retrieval](http://docs.sequelizejs.com/en/latest/docs/models-usage/) or how to do specific queries like `WHERE` and `JSONB` at [Querying](http://docs.sequelizejs.com/en/latest/docs/querying/).
 
 ### Application wide model options
 
@@ -83,23 +106,24 @@ var Post = sequelize.define('post', {}, {
 ```
 
 ## Promises
-Sequelize uses promises to control async control-flow. If you are unfamiliar with how promises work, now might be a good time to brush up on them, [here](https://github.com/wbinnssmith/awesome-promises) and [here](https://github.com/petkaantonov/bluebird#what-are-promises-and-why-should-i-use-them)
 
-Basically a promise represents a value which will be present at some point - "I promise you I will give you a result or an error at some point". This means that
+Sequelize uses promises to control async control-flow. If you are unfamiliar with how promises work, don't worry, you can read up on them [here](https://github.com/wbinnssmith/awesome-promises) and [here](http://bluebirdjs.com/docs/why-promises.html).
+
+Basically, a promise represents a value which will be present at some point - "I promise you I will give you a result or an error at some point". This means that
 
 ```js
 // DON'T DO THIS
 user = User.findOne()
 
-console.log(user.name);
+console.log(user.get('firstName'));
 ```
 
 _will never work!_ This is because `user` is a promise object, not a data row from the DB. The right way to do it is:
 
 ```js
 User.findOne().then(function (user) {
-    console.log(user.name);
+    console.log(user.get('firstName'));
 });
 ```
 
-Once you've got the hang of what promises are and how they work, use the [bluebird API reference](https://github.com/petkaantonov/bluebird/blob/master/API.md) as your go to tool. In particular, you'll probably be using [`.all`](https://github.com/petkaantonov/bluebird/blob/master/API.md#all---promise) a lot.  
+Once you've got the hang of what promises are and how they work, use the [bluebird API reference](http://bluebirdjs.com/docs/api-reference.html) as your go-to tool. In particular, you'll probably be using [`.all`](http://bluebirdjs.com/docs/api/promise.all.html) a lot.  

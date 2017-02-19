@@ -45,7 +45,7 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [username=null] | String | The username which is used to authenticate against the database. |
 | [password=null] | String | The password which is used to authenticate against the database. |
 | [options={}] | Object | An object with options. |
-| [options.dialect='mysql'] | String | The dialect of the database you are connecting to. One of mysql, postgres, sqlite, mariadb and mssql. |
+| [options.dialect='mysql'] | String | The dialect of the database you are connecting to. One of mysql, postgres, sqlite and mssql. |
 | [options.dialectModulePath=null] | String | If specified, load the dialect library from this path. For example, if you want to use pg.js instead of pg when connecting to a pg database, you should specify 'pg.js' here |
 | [options.dialectOptions] | Object | An object of additional options, which are passed directly to the connection library |
 | [options.storage] | String | Only used by sqlite. Defaults to ':memory:' |
@@ -62,11 +62,11 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [options.native=false] | Boolean | A flag that defines if native library shall be used or not. Currently only has an effect for postgres |
 | [options.replication=false] | Boolean | Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database` |
 | [options.pool={}] | Object | Should sequelize use a connection pool. Default is true |
-| [options.pool.maxConnections] | Integer |  |
-| [options.pool.minConnections] | Integer |  |
-| [options.pool.maxIdleTime] | Integer | The maximum time, in milliseconds, that a connection can be idle before being released |
+| [options.pool.max] | Integer | Maximum number of connections in pool. Default is 5 |
+| [options.pool.min] | Integer | Minimum number of connections in pool. Default is 0 |
+| [options.pool.idle] | Integer | The maximum time, in milliseconds, that a connection can be idle before being released. Default is 10000 |
 | [options.pool.validateConnection] | Function | A function that validates a connection. Called with client. The default function checks that client is an object, and that its state is not disconnected |
-| [options.quoteIdentifiers=true] | Boolean | Set to `false` to make table names and attributes case-insensitive on Postgres and skip double quoting of them. |
+| [options.quoteIdentifiers=true] | Boolean | Set to `false` to make table names and attributes case-insensitive on Postgres and skip double quoting of them. *WARNING: Setting this to false may expose vulnerabilities and is not reccomended!* |
 | [options.transactionType='DEFERRED'] | String | Set the default transaction type. See `Sequelize.Transaction.TYPES` for possible options. Sqlite only. |
 | [options.isolationLevel='REPEATABLE_READ'] | String | Set the default transaction isolation level. See `Sequelize.Transaction.ISOLATION_LEVELS` for possible options. |
 | [options.retry] | Object | Set of flags that control when a query is automatically retried. |
@@ -74,7 +74,6 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [options.retry.max] | Integer | How many times a failing query is automatically retried. Set to 0 to disable retrying on SQL_BUSY error. |
 | [options.typeValidation=false] | Boolean | Run built in type validators on insert and update, e.g. validate that arguments passed to integer fields are integer-like. |
 | [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
-
 
 ***
 
@@ -478,13 +477,13 @@ sequelize.models.modelName // The model will now be available in models under th
 
 As shown above, column definitions can be either strings, a reference to one of the datatypes that are predefined on the Sequelize constructor, or an object that allows you to specify both the type of the column, and other attributes such as default values, foreign key constraints and custom setters and getters.
 
-For a list of possible data types, see http://docs.sequelizejs.com/en/latest/docs/models-definition/#data-types
+For a list of possible data types, see [Data Types](http://docs.sequelizejs.com/en/latest/docs/models-definition/#data-types).
 
-For more about getters and setters, see http://docs.sequelizejs.com/en/latest/docs/models-definition/#getters-setters
+For more about getters and setters, see [Getters and Setters](http://docs.sequelizejs.com/en/latest/docs/models-definition/#getters-setters).
 
-For more about instance and class methods, see http://docs.sequelizejs.com/en/latest/docs/models-definition/#expansion-of-models
+For more about instance and class methods, see [Expansion of Models](http://docs.sequelizejs.com/en/latest/docs/models-definition/#expansion-of-models).
 
-For more about validation, see http://docs.sequelizejs.com/en/latest/docs/models-definition/#validations
+For more about validation, see [Validations](http://docs.sequelizejs.com/en/latest/docs/models-definition/#validations).
 
 **See:**
 
@@ -547,6 +546,7 @@ For more about validation, see http://docs.sequelizejs.com/en/latest/docs/models
 | [options.charset] | String |  |
 | [options.comment] | String |  |
 | [options.collate] | String |  |
+| [options.rowFormat] | String |  Specify the ROW_FORMAT for use with the MySQL InnoDB engine. |
 | [options.initialAutoIncrement] | String | Set the initial AUTO_INCREMENT value for the table in MySQL. |
 | [options.hooks] | Object | An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, afterDestroy, afterUpdate, afterBulkCreate, afterBulkDestory and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions. |
 | [options.validate] | Object | An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error. |
@@ -860,6 +860,16 @@ instance.updateAttributes({
 })
 ```
 
+Alternatively, a condition object can be used as an argument e.g. to get the count of rows for which the predicate evaluates to true. Works on mysql and sqlite.
+```js
+sequelize.fn('sum', { age: { $gt: 25 }, name: 'Joe' })
+```
+
+An explicit cast is required on postgres.
+```js
+sequelize.fn('sum', sequelize.cast({ age: { $gt: 25 }, name: 'Joe' }, 'int'))
+```
+
 **See:**
 
 * [Model#find](model#find)
@@ -873,7 +883,7 @@ instance.updateAttributes({
 | Name | Type | Description |
 | ---- | ---- | ----------- |
 | fn | String | The function you want to call |
-| args | any | All further arguments will be passed as arguments to the function |
+| args | any | All further arguments will be passed as arguments to the function. An argument may be a condition object. |
 
 
 ***

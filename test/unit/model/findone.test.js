@@ -7,20 +7,19 @@ var chai = require('chai')
   , current = Support.sequelize
   , sinon = require('sinon')
   , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , Promise = require('bluebird')
-  , _ = require('lodash');
+  , Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Model'), function() {
   describe('method findOne', function () {
     before(function () {
-      this.oldFindAll = current.Model.prototype.findAll;
+      this.oldFindAll = current.Model.findAll;
     });
     after(function () {
-      current.Model.prototype.findAll = this.oldFindAll;
+      current.Model.findAll = this.oldFindAll;
     });
 
     beforeEach(function () {
-      this.stub = current.Model.prototype.findAll = sinon.stub().returns(Promise.resolve());
+      this.stub = current.Model.findAll = sinon.stub().returns(Promise.resolve());
     });
 
     describe('should not add limit when querying on a primary key', function () {
@@ -66,16 +65,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
       return Model.findOne({ where: { id: { $gt: 42 }}}).bind(this).then(function () {
         expect(this.stub.getCall(0).args[0]).to.be.an('object').to.have.property('limit');
-      });
-    });
-
-    it('properly clones options values', function() {
-      var options = { where: { id: { $gt: 42 }}}
-        , optionsClones = _.cloneDeep(options)
-        , Model = current.define('model');
-
-      return Model.findOne(options).bind(this).then(function () {
-        expect(options).to.deep.equal(optionsClones);
       });
     });
 

@@ -39,13 +39,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       this.stubDelete.restore();
     });
 
-    it('properly clones options', function() {
-      var self = this;
-      return User.destroy(self.deloptions).bind(this).then(function(e) {
-        expect(self.deloptions).to.be.deep.eql(self.cloneOptions);
-      });
-    });
-
     it('can detect complexe objects', function() {
       var Where = function () { this.secretValue = '1'; };
 

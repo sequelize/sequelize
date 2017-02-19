@@ -154,7 +154,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('equipment', {
         $notIn: []
       }, {
-        default: '[equipment] NOT IN (NULL)'
+        default: ''
       });
 
       testsql('equipment', {
@@ -377,7 +377,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('$offer.organization.id$', {
         $col: 'offer.user.organizationId'
       }, {
-        default: '[offer.organization].[id] = [offer.user].[organizationId]'
+        default: '[offer->organization].[id] = [offer->user].[organizationId]'
       });
     });
 
@@ -572,7 +572,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" LIKE ANY ARRAY['foo','bar','baz']"
+            postgres: "\"userId\" LIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
@@ -580,7 +580,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" ILIKE ANY ARRAY['foo','bar','baz']"
+            postgres: "\"userId\" ILIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
@@ -588,7 +588,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" NOT LIKE ANY ARRAY['foo','bar','baz']"
+            postgres: "\"userId\" NOT LIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
@@ -596,7 +596,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
               $any: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" NOT ILIKE ANY ARRAY['foo','bar','baz']"
+            postgres: "\"userId\" NOT ILIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
@@ -610,11 +610,117 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     }
 
+    if (current.dialect.supports.RANGE) {
+      suite('RANGE', function () {
+
+        testsql('range', {
+          $contains: new Date(Date.UTC(2000, 1, 1))
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE(DataTypes.DATE)
+          },
+          prefix: 'Timeline'
+        }, {
+          postgres: "\"Timeline\".\"range\" @> '2000-02-01 00:00:00.000 +00:00'::timestamptz"
+        });
+
+        testsql('range', {
+          $contains: [new Date(Date.UTC(2000, 1, 1)), new Date(Date.UTC(2000, 2, 1))]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE(DataTypes.DATE)
+          },
+          prefix: 'Timeline'
+        }, {
+          postgres: "\"Timeline\".\"range\" @> '[\"2000-02-01 00:00:00.000 +00:00\",\"2000-03-01 00:00:00.000 +00:00\")'"
+        });
+
+        testsql('range', {
+          $contained: [new Date(Date.UTC(2000, 1, 1)), new Date(Date.UTC(2000, 2, 1))]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE(DataTypes.DATE)
+          },
+          prefix: 'Timeline'
+        }, {
+          postgres: "\"Timeline\".\"range\" <@ '[\"2000-02-01 00:00:00.000 +00:00\",\"2000-03-01 00:00:00.000 +00:00\")'"
+        });
+
+        testsql('reservedSeats', {
+          $overlap: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" && '[1,4)'"
+        });
+
+        testsql('reservedSeats', {
+          $adjacent: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" -|- '[1,4)'"
+        });
+
+        testsql('reservedSeats', {
+          $strictLeft: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" << '[1,4)'"
+        });
+
+        testsql('reservedSeats', {
+          $strictRight: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" >> '[1,4)'"
+        });
+
+        testsql('reservedSeats', {
+          $noExtendRight: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" &< '[1,4)'"
+        });
+
+        testsql('reservedSeats', {
+          $noExtendLeft: [1, 4]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE()
+          },
+          prefix: 'Room'
+        }, {
+          postgres: "\"Room\".\"reservedSeats\" &> '[1,4)'"
+        });
+
+      });
+    }
+
     if (current.dialect.supports.JSON) {
       suite('JSON', function () {
-        test('sequelize.json("profile->>\'id\', sequelize.cast(2, \'text\')")', function () {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.json("profile->>'id'", this.sequelize.cast('12346-78912', 'text'))), {
-            postgres: "profile->>'id' = CAST('12346-78912' AS TEXT)"
+        test('sequelize.json("profile.id"), sequelize.cast(2, \'text\')")', function () {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.json("profile.id", this.sequelize.cast('12346-78912', 'text'))), {
+            postgres: "(\"profile\"#>>'{id}') = CAST('12346-78912' AS TEXT)",
+            sqlite: "json_extract(`profile`, '$.id') = CAST('12346-78912' AS TEXT)"
           });
         });
 
@@ -628,7 +734,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           },
           prefix: 'User'
         }, {
-          default: "([User].[data]#>>'{nested, attribute}') = 'value'"
+          postgres: "(\"User\".\"data\"#>>'{nested,attribute}') = 'value'",
+          sqlite: "json_extract(`User`.`data`, '$.nested.attribute') = 'value'"
         });
 
         testsql('data', {
@@ -644,7 +751,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           },
           prefix: 'User'
         }, {
-          default: "(([User].[data]#>>'{nested, attribute}') = 'value' AND ([User].[data]#>>'{nested, prop}') != 'None')"
+          postgres: "((\"User\".\"data\"#>>'{nested,attribute}') = 'value' AND (\"User\".\"data\"#>>'{nested,prop}') != 'None')",
+          sqlite: "(json_extract(`User`.`data`, '$.nested.attribute') = 'value' AND json_extract(`User`.`data`, '$.nested.prop') != 'None')"
         });
 
         testsql('data', {
@@ -660,7 +768,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           },
           prefix: 'User'
         }, {
-          default: "(([User].[data]#>>'{name, last}') = 'Simpson' AND ([User].[data]#>>'{employment}') != 'None')"
+          postgres: "((\"User\".\"data\"#>>'{name,last}') = 'Simpson' AND (\"User\".\"data\"#>>'{employment}') != 'None')",
+          sqlite: "(json_extract(`User`.`data`, '$.name.last') = 'Simpson' AND json_extract(`User`.`data`, '$.employment') != 'None')"
         });
 
         testsql('data.nested.attribute', 'value', {
@@ -672,19 +781,21 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         }, {
-          default: "([data]#>>'{nested, attribute}') = 'value'"
+          postgres: "(\"data\"#>>'{nested,attribute}') = 'value'",
+          sqlite: "json_extract(`data`, '$.nested.attribute') = 'value'"
         });
 
         testsql('data.nested.attribute', 4, {
           model: {
             rawAttributes: {
               data: {
-                type: new DataTypes.JSONB()
+                type: new DataTypes.JSON()
               }
             }
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::double precision = 4"
+          postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) = 4",
+          sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) = 4"
         });
 
         testsql('data.nested.attribute', {
@@ -698,7 +809,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         }, {
-          default: "([data]#>>'{nested, attribute}') IN (3, 7)"
+          postgres: "(\"data\"#>>'{nested,attribute}') IN (3, 7)",
+          sqlite: "json_extract(`data`, '$.nested.attribute') IN (3, 7)"
         });
 
         testsql('data', {
@@ -712,7 +824,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::double precision > 2"
+          postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) > 2",
+          sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) > 2"
         });
 
         testsql('data', {
@@ -726,7 +839,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::integer > 2"
+          postgres: "CAST((\"data\"#>>'{nested,attribute}') AS INTEGER) > 2",
+          sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS INTEGER) > 2"
         });
 
         var dt = new Date();
@@ -741,7 +855,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::timestamptz > "+sql.escape(dt)
+          postgres: "CAST((\"data\"#>>'{nested,attribute}') AS TIMESTAMPTZ) > "+sql.escape(dt),
+          sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DATETIME) > "+sql.escape(dt)
         });
 
         testsql('data', {
@@ -753,19 +868,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: new DataTypes.JSONB()
           }
         }, {
-          default: "([data]#>>'{nested, attribute}')::boolean = true"
-        });
-
-        testsql('data', {
-          $contains: {
-            company: 'Magnafone'
-          }
-        }, {
-          field: {
-            type: new DataTypes.JSONB()
-          }
-        }, {
-          default: '[data] @> \'{"company":"Magnafone"}\''
+          postgres: "CAST((\"data\"#>>'{nested,attribute}') AS BOOLEAN) = true",
+          sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS BOOLEAN) = 1"
         });
 
         testsql('metaData.nested.attribute', 'value', {
@@ -779,7 +883,24 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         }, {
-          default: "([meta_data]#>>'{nested, attribute}') = 'value'"
+          postgres: "(\"meta_data\"#>>'{nested,attribute}') = 'value'",
+          sqlite: "json_extract(`meta_data`, '$.nested.attribute') = 'value'"
+        });
+      });
+    }
+
+    if (current.dialect.supports.JSONB) {
+      suite('JSONB', function () {
+        testsql('data', {
+          $contains: {
+            company: 'Magnafone'
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          default: '[data] @> \'{"company":"Magnafone"}\''
         });
       });
     }

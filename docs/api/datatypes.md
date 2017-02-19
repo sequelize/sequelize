@@ -89,6 +89,8 @@ Available properties: `UNSIGNED`, `ZEROFILL`
 
 A 64 bit integer.
 
+Note: an attribute defined as `BIGINT` will be treated like a `string` due this [feature from node-postgres](https://github.com/brianc/node-postgres/pull/353) to prevent precision loss. To have this attribute as a `number`, this is a possible [workaround](https://github.com/sequelize/sequelize/issues/2383#issuecomment-58006083).
+
 Available properties: `UNSIGNED`, `ZEROFILL`
 
 ***
@@ -265,6 +267,7 @@ sequelize.define('user', {
   }
 })
 ```
+In the above code the password is stored plainly in the password field so it can be validated, but is never stored in the DB.
 
 VIRTUAL also takes a return type and dependency fields as arguments
 If a virtual attribute is present in `attributes` it will automatically pull in the extra fields as well.
@@ -280,7 +283,6 @@ Return type is mostly useful for setups that rely on types like GraphQL.
 }
 ```
 
-In the above code the password is stored plainly in the password field so it can be validated, but is never stored in the DB.
 __Aliases:__ NONE
 
 ***

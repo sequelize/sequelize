@@ -7,7 +7,9 @@ var chai = require('chai')
   , Sequelize = require('../../../index')
   , Promise = Sequelize.Promise
   , expect = chai.expect
+  , moment = require('moment')
   , Support = require(__dirname + '/../support')
+  , dialect = Support.getTestDialect()
   , DataTypes = require(__dirname + '/../../../lib/data-types')
   , config = require(__dirname + '/../../config/config')
   , current = Support.sequelize;
@@ -73,7 +75,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      if (Support.dialectIsMySQL()) {
+      if (dialect === 'mysql') {
         // Bit fields interpreted as boolean need conversion from buffer / bool.
         // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
 
@@ -106,14 +108,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
         });
       }
-
-      it('does not modify the passed arguments', function() {
-        var options = { where: ['specialkey = ?', 'awesome']};
-
-        return this.UserPrimary.findOne(options).then(function() {
-          expect(options).to.deep.equal({ where: ['specialkey = ?', 'awesome']});
-        });
-      });
 
       it('treats questionmarks in an array', function() {
         var test = false;
@@ -159,6 +153,13 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         }).then(function(user) {
           expect(user.dataValues.name).to.equal('barfooz');
         });
+      });
+
+      it('should fail with meaningful error message on invalid attributes definition', function() {
+        expect(this.User.findOne({
+          where: { id: 1 },
+          attributes: ['id', ['username']]
+        })).to.be.rejectedWith('["username"] is not a valid attribute definition. Please use the following format: [\'attribute definition\', \'alias\']');
       });
 
       it('should not try to convert boolean values if they are not selected', function() {
@@ -550,10 +551,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             });
           });
 
-          it('throws an error if alias is not associated', function() {
+          it(`throws an error indicating an incorrect alias was entered if an association 
+              and alias exist but the alias doesn't match`, function() {
             var self = this;
             return self.Worker.findOne({ include: [{ model: self.Task, as: 'Work' }] }).catch (function(err) {
-              expect(err.message).to.equal('Task (Work) is not associated to Worker!');
+              expect(err.message).to.equal(`Task is associated to Worker using an alias. You've included an alias (Work), but it does not match the alias defined in your association.`);
             });
           });
 
@@ -711,10 +713,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             });
           });
 
-          it('throws an error if alias is not associated', function() {
+          it(`throws an error indicating an incorrect alias was entered if an association 
+              and alias exist but the alias doesn't match`, function() {
             var self = this;
             return self.Worker.findOne({ include: [{ model: self.Task, as: 'Work' }] }).catch (function(err) {
-              expect(err.message).to.equal('Task (Work) is not associated to Worker!');
+              expect(err.message).to.equal(`Task is associated to Worker using an alias. You've included an alias (Work), but it does not match the alias defined in your association.`);
             });
           });
 
@@ -905,21 +908,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       it('should return a DAO when queryOptions are not set', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}}).then(function(user) {
-          expect(user).to.be.instanceOf(self.User.Instance);
+          expect(user).to.be.instanceOf(self.User);
         });
       });
 
       it('should return a DAO when raw is false', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}, raw: false }).then(function(user) {
-          expect(user).to.be.instanceOf(self.User.Instance);
+          expect(user).to.be.instanceOf(self.User);
         });
       });
 
       it('should return raw data when raw is true', function() {
         var self = this;
         return this.User.findOne({ where: { username: 'barfooz'}, raw: true }).then(function(user) {
-          expect(user).to.not.be.instanceOf(self.User.Instance);
+          expect(user).to.not.be.instanceOf(self.User);
           expect(user).to.be.instanceOf(Object);
         });
       });
@@ -935,5 +938,88 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(spy.called).to.be.ok;
       });
     });
+
+    describe('rejectOnEmpty mode', function() {
+      it('throws error when record not found by findOne', function() {
+        return expect(this.User.findOne({
+          where: {
+            username: 'ath-kantam-pradakshnami'
+          },
+          rejectOnEmpty: true
+        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+      });
+
+      it('throws error when record not found by findById', function() {
+        return expect(this.User.findById(4732322332323333232344334354234, {
+          rejectOnEmpty: true
+        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+      });
+
+      it('throws error when record not found by find', function() {
+        return expect(this.User.find({
+          where: {
+            username: 'some-username-that-is-not-used-anywhere'
+          },
+          rejectOnEmpty: true
+        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+      });
+
+      it('works from model options', function() {
+        var Model = current.define('Test', {
+          username: Sequelize.STRING(100)
+        },{
+          rejectOnEmpty: true
+        });
+
+        return Model.sync({ force: true })
+          .then(function() {
+            return expect(Model.findOne({
+              where: {
+                username: 'some-username-that-is-not-used-anywhere'
+              }
+            })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+          });
+      });
+
+      it('resolve null when disabled', function() {
+        var Model = current.define('Test', {
+          username: Sequelize.STRING(100)
+        });
+
+        return Model.sync({ force: true })
+          .then(function() {
+            return expect(Model.findOne({
+              where: {
+                username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
+              }
+            })).to.eventually.be.equal(null);
+          });
+      });
+
+    });
+
+    it('should find records where deletedAt set to future', function() {
+      var User = this.sequelize.define('paranoiduser', {
+        username: Sequelize.STRING
+      }, { paranoid: true });
+
+      return User.sync({ force: true }).then(function() {
+        return User.bulkCreate([
+          {username: 'Bob'},
+          {username: 'Tobi', deletedAt: moment().add(30, 'minutes').format()},
+          {username: 'Max', deletedAt: moment().add(30, 'days').format()},
+          {username: 'Tony', deletedAt: moment().subtract(30, 'days').format()}
+        ]);
+      }).then(function() {
+        return User.find({ where: {username: 'Tobi'} });
+      }).then(function(tobi) {
+        expect(tobi).not.to.be.null;
+      }).then(function() {
+        return User.findAll();
+      }).then(function(users) {
+        expect(users.length).to.be.eql(3);
+      });
+    });
+
   });
 });

@@ -52,13 +52,12 @@ var sequelize = new Sequelize('database', 'username', 'password', {
   logging: false,
  
   // the sql dialect of the database
-  // - default is 'mysql'
-  // - currently supported: 'mysql', 'sqlite', 'postgres', 'mariadb', 'mssql'
+  // - currently supported: 'mysql', 'sqlite', 'postgres', 'mssql'
   dialect: 'mysql',
  
   // you can also pass any dialect options to the underlying dialect library
   // - default is empty
-  // - currently supported: 'mysql', 'mariadb', 'postgres', 'mssql'
+  // - currently supported: 'mysql', 'postgres', 'mssql'
   dialectOptions: {
     socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock',
     supportBigNumbers: true,
@@ -93,8 +92,6 @@ var sequelize = new Sequelize('database', 'username', 'password', {
     dialectOptions: {
       collate: 'utf8_general_ci'
     },
-    classMethods: {method1: function() {}},
-    instanceMethods: {method2: function() {}},
     timestamps: true
   },
  
@@ -106,7 +103,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
  
   // use pooling in order to reduce db connection overload and to increase speed
   // currently only for mysql and postgresql (since v1.5.0)
-  pool: { maxConnections: 5, maxIdleTime: 30},
+  pool: { max: 5, idle: 30},
  
   // language is used to determine how to translate words into singular or plural form based on the [lingo project](https://github.com/visionmedia/lingo)
   // options are: en [default], es
@@ -140,8 +137,8 @@ var sequelize = new Sequelize('database', null, null, {
     write: { host: 'localhost', username: 'root', password: null }
   },
   pool: { // If you want to override the options used for the read pool you can do so here
-    maxConnections: 20,
-    maxIdleTime: 30000
+    max: 20,
+    idle: 30000
   },
 })
 ```
@@ -152,9 +149,9 @@ Sequelize uses a pool to manage connections to your replicas. The default option
 
 ```js
 {
-  maxConnections: 10,
-  minConnections: 0,
-  maxIdleTime:    1000
+  max: 10,
+  min: 0,
+  idle: 1000
 }
 ```
 
@@ -168,31 +165,17 @@ With the release of Sequelize`1.6.0`, the library got independent from specific 
 
 ### MySQL
 
-In order to get Sequelize working nicely together with MySQL, you'll need to install`mysql@~2.5.0`or higher. Once that's done you can use it like this:
+In order to get Sequelize working nicely together with MySQL, you'll need to install`mysql2@^1.0.0-rc.10`or higher. Once that's done you can use it like this:
 
 ```js
 var sequelize = new Sequelize('database', 'username', 'password', {
-  // mysql is the default dialect, but you know...
-  // for demo purposes we are defining it nevertheless :)
-  // so: we want mysql!
   dialect: 'mysql'
 })
 ```
 
 **Note:** You can pass options directly to dialect library by setting the
 `dialectOptions` parameter. See [Options][0]
-for examples (currently only mysql and mariadb are supported).
-
-### MariaDB
-
-For MariaDB compatibility you have to install the package `mariasql@~0.1.20`.
-The configuration needs to look like this:
-
-```js
-var sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'mariadb'
-})
-```
+for examples (currently only mysql is supported).
 
 ### SQLite
 

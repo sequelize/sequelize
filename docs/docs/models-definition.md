@@ -34,11 +34,10 @@ var Foo = sequelize.define('foo', {
  // Creating two objects with the same value will throw an error. The unique property can be either a
  // boolean, or a string. If you provide the same string for multiple columns, they will form a
  // composite unique key.
- someUnique: {type: Sequelize.STRING, unique: true},
  uniqueOne: { type: Sequelize.STRING,  unique: 'compositeIndex'},
  uniqueTwo: { type: Sequelize.INTEGER, unique: 'compositeIndex'}
 
- // The unique property is simply a shorthand to create a unique index.
+ // The unique property is simply a shorthand to create a unique constraint.
  someUnique: {type: Sequelize.STRING, unique: true}
  // It's exactly the same as creating the index in the model's options.
  {someUnique: {type: Sequelize.STRING}},
@@ -107,6 +106,7 @@ Sequelize.DECIMAL                     // DECIMAL
 Sequelize.DECIMAL(10, 2)              // DECIMAL(10,2)
 
 Sequelize.DATE                        // DATETIME for mysql / sqlite, TIMESTAMP WITH TIME ZONE for postgres
+Sequelize.DATE(6)                     // DATETIME(6) for mysql 5.6.4+. Fractional seconds support with up to 6 digits of precision
 Sequelize.DATEONLY                    // DATE without time.
 Sequelize.BOOLEAN                     // TINYINT(1)
 
@@ -130,8 +130,8 @@ Sequelize.RANGE(Sequelize.DECIMAL)    // Defines numrange range. PostgreSQL only
 Sequelize.ARRAY(Sequelize.RANGE(Sequelize.DATE)) // Defines array of tstzrange ranges. PostgreSQL only.
 
 Sequelize.GEOMETRY                    // Spatial column.  PostgreSQL (with PostGIS) or MySQL only.
-Sequelize.GEOMETRY('POINT')           // Spatial column with geomerty type.  PostgreSQL (with PostGIS) or MySQL only.
-Sequelize.GEOMETRY('POINT', 4326)     // Spatial column with geomerty type and SRID.  PostgreSQL (with PostGIS) or MySQL only.
+Sequelize.GEOMETRY('POINT')           // Spatial column with geometry type. PostgreSQL (with PostGIS) or MySQL only.
+Sequelize.GEOMETRY('POINT', 4326)     // Spatial column with geometry type and SRID.  PostgreSQL (with PostGIS) or MySQL only.
 ```
 
 The BLOB data type allows you to insert data both as strings and as buffers. When you do a find or findAll on a model which has a BLOB column. that data will always be returned as a buffer.
@@ -168,6 +168,71 @@ sequelize.define('model', {
     values: ['active', 'pending', 'deleted']
   }
 })
+```
+
+### Range types
+
+Since range types have extra information for their bound inclusion/exclusion it's not
+very straightforward to just use a tuple to represent them in javascript.
+
+When supplying ranges as values you can choose from the following APIs:
+
+```js
+// defaults to '["2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00")'
+// inclusive lower bound, exclusive upper bound
+Timeline.create({ range: [new Date(Date.UTC(2016, 0, 1)), new Date(Date.UTC(2016, 1, 1))] });
+
+// control inclusion
+const range = [new Date(Date.UTC(2016, 0, 1)), new Date(Date.UTC(2016, 1, 1))];
+range.inclusive = false; // '()'
+range.inclusive = [false, true]; // '(]'
+range.inclusive = true; // '[]'
+range.inclusive = [true, false]; // '[)'
+
+// or as a single expression
+const range = [
+  { value: new Date(Date.UTC(2016, 0, 1)), inclusive: false },
+  { value: new Date(Date.UTC(2016, 1, 1)), inclusive: true },
+];
+// '("2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00"]'
+
+// composite form
+const range = [
+  { value: new Date(Date.UTC(2016, 0, 1)), inclusive: false },
+  new Date(Date.UTC(2016, 1, 1)),
+];
+// '("2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00")'
+
+Timeline.create({ range });
+```
+
+However, please note that whenever you get back a value that is range you will
+receive:
+
+```js
+// stored value: ("2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00"]
+range // [Date, Date]
+range.inclusive // [false, true]
+```
+
+Make sure you turn that into a serializable format before serialization since array
+extra properties will not be serialized.
+
+#### Special Cases
+
+```js
+// empty range:
+Timeline.create({ range: [] }); // range = 'empty'
+
+// Unbounded range:
+Timeline.create({ range: [null, null] }); // range = '[,)'
+// range = '[,"2016-01-01 00:00:00+00:00")'
+Timeline.create({ range: [null, new Date(Date.UTC(2016, 0, 1))] });
+
+// Infinite range:
+// range = '[-infinity,"2016-01-01 00:00:00+00:00")'
+Timeline.create({ range: [-Infinity, new Date(Date.UTC(2016, 0, 1))] });
+
 ```
 
 ## Deferrable
@@ -294,14 +359,14 @@ var ValidateMe = sequelize.define('foo', {
       is: ["^[a-z]+$",'i'],     // will only allow letters
       is: /^[a-z]+$/i,          // same as the previous example using real RegExp
       not: ["[a-z]",'i'],       // will not allow letters
-      isEmail: true,            // checks for email format (foo@bar.com)
+      isEmail: true,            // checks for poem format (foo@bar.com)
       isUrl: true,              // checks for url format (http://foo.com)
       isIP: true,               // checks for IPv4 (129.89.23.1) or IPv6 format
       isIPv4: true,             // checks for IPv4 (129.89.23.1)
       isIPv6: true,             // checks for IPv6 format
       isAlpha: true,            // will only allow letters
-      isAlphanumeric: true      // will only allow alphanumeric characters, so "_abc" will fail
-      isNumeric: true           // will only allow numbers
+      isAlphanumeric: true,     // will only allow alphanumeric characters, so "_abc" will fail
+      isNumeric: true,          // will only allow numbers
       isInt: true,              // checks for valid integers
       isFloat: true,            // checks for valid floating point numbers
       isDecimal: true,          // checks for any numbers
@@ -322,7 +387,6 @@ var ValidateMe = sequelize.define('foo', {
       isBefore: "2011-11-05",   // only allow date strings before a specific date
       max: 23,                  // only allow values
       min: 23,                  // only allow values >= 23
-      isArray: true,            // only allow arrays
       isCreditCard: true,       // check for valid credit card numbers
 
       // custom validations are also possible:
@@ -335,7 +399,7 @@ var ValidateMe = sequelize.define('foo', {
       }
     }
   }
-})
+});
 ```
 
 Note that where multiple arguments need to be passed to the built-in validation functions, the arguments to be passed must be in an array. But if a single array argument is to be passed, for instance an array of acceptable strings for `isIn`, this will be interpreted as multiple string arguments instead of one array argument. To work around this pass a single-length array of arguments, such as `[['one', 'two']]` as shown above.
@@ -437,7 +501,12 @@ var Bar = sequelize.define('bar', { /* bla */ }, {
   freezeTableName: true,
 
   // define the table's name
-  tableName: 'my_very_custom_table_name'
+  tableName: 'my_very_custom_table_name',
+
+  // Enable optimistic locking.  When enabled, sequelize will add a version count attribute
+  // to the model and throw an OptimisticLockingError error when stale instances are saved.
+  // Set to true or a string with the attribute name you want to use to enable.
+  version: true
 })
 ```
 
@@ -452,7 +521,7 @@ var Foo = sequelize.define('foo',  { /* bla */ }, {
   createdAt: false,
 
   // I want updatedAt to actually be called updateTimestamp
-  updatedAt: 'updateTimestamp'
+  updatedAt: 'updateTimestamp',
 
   // And deletedAt to be called destroyTime (remember to enable paranoid for this to work)
   deletedAt: 'destroyTime',
@@ -510,6 +579,13 @@ sequelize.import('project', function(sequelize, DataTypes) {
 })
 ```
 
+## Optimistic Locking
+
+Sequelize has built-in support for optimistic locking through a model instance version count.
+Optimistic locking is disabled by default and can be enabled by setting the `version` property to true in a specific model definition or global model configuration.  See [model configuration][0] for more details.
+
+Optimistic locking allows concurrent access to model records for edits and prevents conflicts from overwriting data.  It does this by checking whether another process has made changes to a record since it was read and throws an OptimisticLockError when a conflict is detected.
+
 ## Database synchronization
 
 When starting a new project you won't have a database structure and using Sequelize you won't need to. Just specify your model structures and let the library do the rest. Currently supported is the creation and deletion of tables:
@@ -565,59 +641,33 @@ sequelize.sync({ force: true, match: /_test$/ });
 
 ## Expansion of models
 
-Sequelize allows you to pass custom methods to a model and its instances. Just do the following:
+Sequelize Models are ES6 classes. You can very easily add custom instance or class level methods.
 
 ```js
-var Foo = sequelize.define('foo', { /* attributes */}, {
-  classMethods: {
-    method1: function(){ return 'smth' }
-  },
-  instanceMethods: {
-    method2: function() { return 'foo' }
-  }
-})
+var User = sequelize.define('user', { firstname: Sequelize.STRING });
 
-// Example:
-Foo.method1()
-Foo.build().method2()
+// Adding a class level method
+User.classLevelMethod = function() {
+  return 'foo';
+};
+
+// Adding an instance level method
+User.prototype.instanceLevelMethod = function() {
+  return 'bar';
+};
 ```
 
 Of course you can also access the instance's data and generate virtual getters:
 
 ```js
-var User = sequelize.define('user', { firstname: Sequelize.STRING, lastname: Sequelize.STRING }, {
-  instanceMethods: {
-    getFullname: function() {
-      return [this.firstname, this.lastname].join(' ')
-    }
-  }
-})
+var User = sequelize.define('user', { firstname: Sequelize.STRING, lastname: Sequelize.STRING });
+
+User.prototype.getFullname = function() {
+  return [this.firstname, this.lastname].join(' ');
+};
 
 // Example:
 User.build({ firstname: 'foo', lastname: 'bar' }).getFullname() // 'foo bar'
-```
-
-You can also set custom methods to all of your models during the instantiation:
-
-```js
-var sequelize = new Sequelize('database', 'username', 'password', {
-  // Other options during the initialization could be here
-  define: {
-    classMethods: {
-      method1: function() {},
-      method2: function() {}
-    },
-    instanceMethods: {
-      method3: function() {}
-    }
-  }
-})
-
-// Example:
-var Foo = sequelize.define('foo', { /* attributes */});
-Foo.method1()
-Foo.method2()
-Foo.build().method3()
 ```
 
 ### Indexes
@@ -626,10 +676,10 @@ Sequelize supports adding indexes to the model definition which will be created 
 ```js
 sequelize.define('user', {}, {
   indexes: [
-    // Create a unique index on email
+    // Create a unique index on poem
     {
       unique: true,
-      fields: ['email']
+      fields: ['poem']
     },
 
     // Creates a gin index on data with the jsonb_path_ops operator
@@ -662,5 +712,5 @@ sequelize.define('user', {}, {
 
 [0]: #configuration
 [3]: https://github.com/chriso/validator.js
-[5]: /docs/latest/misc#asynchronicity
-[6]: https://github.com/petkaantonov/bluebird/blob/master/API.md#spreadfunction-fulfilledhandler--function-rejectedhandler----promise
+[5]: /docs/final/misc#asynchronicity
+[6]: http://bluebirdjs.com/docs/api/spread.html

@@ -27,10 +27,10 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
       before(function() {
         stub = sinon.stub(current, 'query').returns(
-          Sequelize.Promise.resolve({
+          Sequelize.Promise.resolve([{
             _previousDataValues: {id: 1},
             dataValues: {id: 2}
-          })
+          }, 1])
         );
       });
 
@@ -44,14 +44,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           instance.restore();
         }).to.not.throw();
       });
-
-      it('should not modify options when it given to restore', function () {
-        instance = Model.build({id: 1}, {isNewRecord: false});
-        var options = { transaction: null };
-        instance.restore(options);
-        expect(options).to.deep.equal({ transaction: null });
-      });
     });
   });
-
 });

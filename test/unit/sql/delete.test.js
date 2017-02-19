@@ -34,10 +34,37 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             options,
             User
           ), {
-            postgres:  'TRUNCATE "public"."test_users" CASCADE',
-            mssql:  "TRUNCATE TABLE [public].[test_users]",
-            mysql: 'TRUNCATE `public.test_users`',
-            sqlite: 'DELETE FROM `public.test_users`'
+            postgres: 'TRUNCATE "public"."test_users" CASCADE',
+            mssql:    "TRUNCATE TABLE [public].[test_users]",
+            mysql:    'TRUNCATE `public.test_users`',
+            sqlite:   'DELETE FROM `public.test_users`'
+          }
+        );
+      });
+    });
+
+    suite('truncate with cascade and restartIdentity', function () {
+      var options = {
+        table: User.getTableName(),
+        where: {},
+        truncate: true,
+        cascade: true,
+        restartIdentity: true,
+        limit: 10
+      };
+
+      test(util.inspect(options, {depth: 2}), function () {
+        return expectsql(
+          sql.deleteQuery(
+            options.table,
+            options.where,
+            options,
+            User
+          ), {
+            postgres: 'TRUNCATE "public"."test_users" RESTART IDENTITY CASCADE',
+            mssql:    'TRUNCATE TABLE [public].[test_users]',
+            mysql:    'TRUNCATE `public.test_users`',
+            sqlite:   'DELETE FROM `public.test_users`'
           }
         );
       });
@@ -58,7 +85,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             options,
             User
           ), {
-            default: "DELETE FROM [public.test_users] WHERE `name` = 'foo'",
+            default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo'",
             postgres: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
             mssql:    "DELETE FROM [public].[test_users] WHERE [name] = N'foo'; SELECT @@ROWCOUNT AS AFFECTEDROWS;"
           }
@@ -82,6 +109,37 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             User
           ), {
             postgres: 'DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
+            sqlite:   "DELETE FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;'",
+            mssql:    "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
+            default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"
+          }
+        );
+      });
+    });
+
+    suite('delete with limit and without model', function () {
+      var options = {
+        table: User.getTableName(),
+        where: {name: "foo';DROP TABLE mySchema.myTable;"},
+        limit: 10
+      };
+
+      test(util.inspect(options, {depth: 2}), function () {
+        var query;
+        try {
+          query = sql.deleteQuery(
+            options.table,
+            options.where,
+            options,
+            null
+          );
+        } catch(err) {
+          query = err;
+        }
+
+        return expectsql(
+          query, {
+            postgres: new Error("Cannot LIMIT delete without a model."),
             sqlite:   "DELETE FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;'",
             mssql:    "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
             default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"

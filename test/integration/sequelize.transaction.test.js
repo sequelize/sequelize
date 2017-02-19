@@ -51,7 +51,6 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
 
     if (Support.getTestDialect() !== 'sqlite') {
       it('works for long running transactions', function() {
-        this.timeout(10000);
         return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
           this.sequelize = sequelize;
 
@@ -71,6 +70,9 @@ describe(Support.getTestDialectTeaser('Sequelize#transaction'), function() {
             break;
           case 'sqlite':
             query = 'select sqlite3_sleep(2000);';
+            break;
+          case 'mssql':
+            query = 'WAITFOR DELAY \'00:00:02\';';
             break;
           default:
             break;

@@ -79,7 +79,7 @@ The available methods of the queryInterface object are the following.
 
 ## Functions
 
-Using the `queryInterface` object describe before, you will have access to most of already introduced functions. Furthermore there are some other methods, which are designed to actually change the database schema.
+Using the `queryInterface` object described before, you will have access to most of already introduced functions. Furthermore there are some other methods, which are designed to actually change the database schema.
 
 ### createTable(tableName, attributes, options)
 
@@ -106,11 +106,22 @@ queryInterface.createTable(
       type: Sequelize.BOOLEAN,
       defaultValue: false,
       allowNull: false
+    },
+    //foreign key usage
+    attr4: {
+        type: Sequelize.INTEGER,
+        references: {
+            model: 'another_table_name',
+            key: 'id'
+        },
+        onUpdate: 'cascade',
+        onDelete: 'cascade'
     }
   },
   {
-    engine: 'MYISAM', // default: 'InnoDB'
-    charset: 'latin1' // default: null
+    engine: 'MYISAM',                     // default: 'InnoDB'
+    charset: 'latin1',                    // default: null
+    schema: 'public'                      // default: public, PostgreSQL only.
   }
 )
 ```
@@ -172,7 +183,7 @@ queryInterface.describeTable('Person').then(function(attributes) {
 })
 ```
 
-### addColumn(tableName, attributeName, dataTypeOrOptions, options)
+### addColumn(tableNameOrOptions, attributeName, dataTypeOrOptions, options)
 
 This method allows adding columns to an existing table. The data type can be simple or complex.
 
@@ -193,14 +204,32 @@ queryInterface.addColumn(
     allowNull: false
   }
 )
+
+// or with an explicit schema:
+
+queryInterface.addColumn({
+    tableName: 'Person',
+    schema: 'public'
+  },
+  'signature',
+  Sequelize.STRING
+)
+
 ```
 
-### removeColumn(tableName, attributeName, options)
+### removeColumn(tableNameOrOptions, attributeName, options)
 
 This method allows deletion of a specific column of an existing table.
 
 ```js
 queryInterface.removeColumn('Person', 'signature')
+
+// or with an explicit schema:
+
+queryInterface.removeColumn({
+  tableName: 'Person',
+  schema: 'public'
+}, 'signature');
 ```
 
 ### changeColumn(tableName, attributeName, dataTypeOrOptions, options)
@@ -242,12 +271,25 @@ queryInterface.addIndex('Person', ['firstname', 'lastname'])
 // - parser: For FULLTEXT columns set your parser
 // - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect
 // - logging: A function that receives the sql query, e.g. console.log
+// - where: A hash of attributes to limit your index(Filtered Indexes - MSSQL & PostgreSQL only)
 queryInterface.addIndex(
   'Person',
   ['firstname', 'lastname'],
   {
     indexName: 'SuperDuperIndex',
     indicesType: 'UNIQUE'
+  }
+)
+
+queryInterface.addIndex(
+  'Person',
+  ['firstname', 'lastname'],
+  {
+    where: {
+      lastname: {
+        $ne: null
+      }
+    }
   }
 )
 ```

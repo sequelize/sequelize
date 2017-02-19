@@ -29,7 +29,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
 
         expectsql(sql.addIndexQuery(sql.quoteTable(sql.addSchema({
-          $schema: 'schema',
+          _schema: 'schema',
           tableName: 'table'
         })), ['column1', 'column2'], {}), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])'
@@ -87,7 +87,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     }
 
-    if (current.dialect.supports.index.using === 2) {
+    if (current.dialect.supports.index.where) {
       test('WHERE', function () {
         expectsql(sql.addIndexQuery('table', {
           fields: ['type'],
@@ -95,7 +95,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             type: 'public'
           }
         }), {
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\''
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
+          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'public\''
         });
 
         expectsql(sql.addIndexQuery('table', {
@@ -109,12 +110,25 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             }
           }
         }), {
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')'
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
+          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N\'group\' OR [type] = N\'private\')'
+        });
+
+        expectsql(sql.addIndexQuery('table', {
+          fields: ['type'],
+          where: {
+            type: {
+              $ne: null
+            }
+          }
+        }), {
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
+          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL'
         });
       });
     }
 
-    if (current.dialect.supports.JSON) {
+    if (current.dialect.supports.JSONB) {
       test('operator', function () {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],
@@ -146,5 +160,15 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
       });
     }
+  });
+
+  suite('removeIndex', function () {
+    test('naming', function () {
+      expectsql(sql.removeIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
+        mysql: 'DROP INDEX `table_column1_column2` ON `table`',
+        mssql: 'DROP INDEX [table_column1_column2] ON [table]',
+        default: 'DROP INDEX IF EXISTS [table_column1_column2]'
+      });
+    });
   });
 });

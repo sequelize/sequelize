@@ -5,7 +5,7 @@ var Support   = require(__dirname + '/../support')
   , Sequelize = Support.Sequelize
   , chai = require('chai')
   , util = require('util')
-  , uuid = require('node-uuid')
+  , uuid = require('uuid')
   , expectsql = Support.expectsql
   , current   = Support.sequelize
   , expect = chai.expect;
@@ -72,29 +72,25 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql('TEXT("tiny")', DataTypes.TEXT('tiny'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
-        mysql: 'TINYTEXT',
-        mariadb: 'TINYTEXT'
+        mysql: 'TINYTEXT'
       });
 
       testsql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
-        mysql: 'TINYTEXT',
-        mariadb: 'TINYTEXT'
+        mysql: 'TINYTEXT'
       });
 
       testsql('TEXT("medium")', DataTypes.TEXT('medium'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
-        mysql: 'MEDIUMTEXT',
-        mariadb: 'MEDIUMTEXT'
+        mysql: 'MEDIUMTEXT'
       });
 
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
-        mysql: 'LONGTEXT',
-        mariadb: 'LONGTEXT'
+        mysql: 'LONGTEXT'
       });
 
       suite('validate', function () {
@@ -162,6 +158,10 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
           expect(type.validate(true)).to.equal(true);
           expect(type.validate(false)).to.equal(true);
+          expect(type.validate('1')).to.equal(true);
+          expect(type.validate('0')).to.equal(true);
+          expect(type.validate('true')).to.equal(true);
+          expect(type.validate('false')).to.equal(true);
         });
       });
     });
@@ -169,14 +169,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('DATE', function () {
       testsql('DATE', DataTypes.DATE, {
         postgres: 'TIMESTAMP WITH TIME ZONE',
-        mssql: 'DATETIME2',
+        mssql: 'DATETIMEOFFSET',
         mysql: 'DATETIME',
         sqlite: 'DATETIME'
       });
 
       testsql('DATE(6)', DataTypes.DATE(6), {
         postgres: 'TIMESTAMP WITH TIME ZONE',
-        mssql: 'DATETIME2',
+        mssql: 'DATETIMEOFFSET',
         mysql: 'DATETIME(6)',
         sqlite: 'DATETIME'
       });
@@ -206,7 +206,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
             expect(function () {
               type.validate('foobar');
-            }).to.throw(Sequelize.ValidationError, 'foobar is not a valid hstore');
+            }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid hstore');
           });
 
           test('should return `true` if `value` is an hstore', function() {
@@ -233,12 +233,22 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           expect(function () {
             type.validate('foobar');
           }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid uuid');
+
+          expect(function () {
+            type.validate(['foobar']);
+          }).to.throw(Sequelize.ValidationError, '["foobar"] is not a valid uuid');
         });
 
         test('should return `true` if `value` is an uuid', function() {
           var type = DataTypes.UUID();
 
           expect(type.validate(uuid.v4())).to.equal(true);
+        });
+
+        test('should return `true` if `value` is a string and we accept strings', function() {
+          var type = DataTypes.UUID();
+
+          expect(type.validate('foobar', { acceptStrings: true })).to.equal(true);
         });
       });
     });
@@ -255,12 +265,22 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           expect(function () {
             type.validate('foobar');
           }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid uuid');
+
+          expect(function () {
+            type.validate(['foobar']);
+          }).to.throw(Sequelize.ValidationError, '["foobar"] is not a valid uuid');
         });
 
         test('should return `true` if `value` is an uuid', function() {
           var type = DataTypes.UUIDV1();
 
           expect(type.validate(uuid.v1())).to.equal(true);
+        });
+
+        test('should return `true` if `value` is a string and we accept strings', function() {
+          var type = DataTypes.UUIDV1();
+
+          expect(type.validate('foobar', { acceptStrings: true })).to.equal(true);
         });
       });
     });
@@ -278,12 +298,22 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           expect(function () {
             type.validate(value);
           }).to.throw(Sequelize.ValidationError, util.format('%j is not a valid uuidv4', value));
+
+          expect(function () {
+            type.validate(['foobar']);
+          }).to.throw(Sequelize.ValidationError, '["foobar"] is not a valid uuidv4');
         });
 
         test('should return `true` if `value` is an uuid', function() {
           var type = DataTypes.UUIDV4();
 
           expect(type.validate(uuid.v4())).to.equal(true);
+        });
+
+        test('should return `true` if `value` is a string and we accept strings', function() {
+          var type = DataTypes.UUIDV4();
+
+          expect(type.validate('foobar', { acceptStrings: true })).to.equal(true);
         });
       });
     });
@@ -359,11 +389,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           expect(function () {
             type.validate('foobar');
           }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid integer');
+
+          expect(function () {
+            type.validate('123.45');
+          }).to.throw(Sequelize.ValidationError, '"123.45" is not a valid integer');
+
+          expect(function () {
+            type.validate(123.45);
+          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid integer');
         });
 
         test('should return `true` if `value` is a valid integer', function() {
           var type = DataTypes.INTEGER();
 
+          expect(type.validate('12345')).to.equal(true);
           expect(type.validate(12345)).to.equal(true);
         });
       });
@@ -433,12 +472,16 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           expect(function () {
             type.validate('foobar');
           }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid bigint');
+
+          expect(function () {
+            type.validate(123.45);
+          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid bigint');
         });
 
         test('should return `true` if `value` is an integer', function() {
           var type = DataTypes.BIGINT();
 
-          expect(type.validate(12345)).to.equal(true);
+          expect(type.validate('9223372036854775807')).to.equal(true);
         });
       });
     });
@@ -712,12 +755,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           expect(function () {
             type.validate('foobar');
           }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid float');
+
+          expect(function () {
+            type.validate('-.123');
+          }).to.throw(Sequelize.ValidationError, '"-.123" is not a valid float');
         });
 
         test('should return `true` if `value` is a float', function() {
           var type = DataTypes.FLOAT();
 
           expect(type.validate(1.2)).to.equal(true);
+          expect(type.validate('1')).to.equal(true);
+          expect(type.validate('1.2')).to.equal(true);
+          expect(type.validate('-0.123')).to.equal(true);
+          expect(type.validate('-0.22250738585072011e-307')).to.equal(true);
         });
       });
     });
@@ -751,6 +802,52 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
       testsql('DECIMAL({ precision: 10 })', DataTypes.DECIMAL({ precision: 10 }), {
         default: 'DECIMAL(10)'
+      });
+
+      testsql('DECIMAL.UNSIGNED', DataTypes.DECIMAL.UNSIGNED, {
+        mysql: 'DECIMAL UNSIGNED',
+        default: 'DECIMAL'
+      });
+
+      testsql('DECIMAL.UNSIGNED.ZEROFILL', DataTypes.DECIMAL.UNSIGNED.ZEROFILL, {
+        mysql: 'DECIMAL UNSIGNED ZEROFILL',
+        default: 'DECIMAL'
+      });
+
+      testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
+        mysql: 'DECIMAL(10,2) UNSIGNED',
+        default: 'DECIMAL(10,2)'
+      });
+
+      suite('validate', function () {
+        test('should throw an error if `value` is invalid', function() {
+          var type = DataTypes.DECIMAL(10);
+
+          expect(function () {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid decimal');
+
+          expect(function () {
+            type.validate('0.1a');
+          }).to.throw(Sequelize.ValidationError, '"0.1a" is not a valid decimal');
+
+          expect(function () {
+            type.validate(NaN);
+          }).to.throw(Sequelize.ValidationError, 'null is not a valid decimal');
+        });
+
+        test('should return `true` if `value` is a decimal', function() {
+          var type = DataTypes.DECIMAL(10);
+
+          expect(type.validate(123)).to.equal(true);
+          expect(type.validate(1.2)).to.equal(true);
+          expect(type.validate(-0.25)).to.equal(true);
+          expect(type.validate(0.0000000000001)).to.equal(true);
+          expect(type.validate('123')).to.equal(true);
+          expect(type.validate('1.2')).to.equal(true);
+          expect(type.validate('-0.25')).to.equal(true);
+          expect(type.validate('0.0000000000001')).to.equal(true);
+        });
       });
     });
 

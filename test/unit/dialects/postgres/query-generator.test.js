@@ -14,6 +14,28 @@ var chai = require('chai')
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', function() {
     var suites = {
+      arithmeticQuery: [
+        {
+          title:'Should use the plus operator',
+          arguments: ['+', 'myTable', { foo: 'bar' }, {}],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\'  RETURNING *'
+        },
+        {
+          title:'Should use the plus operator with where clause',
+          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\' WHERE "bar" = \'biz\' RETURNING *'
+        },
+        {
+          title:'Should use the minus operator',
+          arguments: ['-', 'myTable', { foo: 'bar' }],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\'  RETURNING *'
+        },
+        {
+          title:'Should use the minus operator with where clause',
+          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\' WHERE "bar" = \'biz\' RETURNING *'
+        }
+      ],
       attributesToSQL: [
         {
           arguments: [{id: 'INTEGER'}],
@@ -46,55 +68,6 @@ if (dialect.match(/^postgres/)) {
         {
           arguments: [{id: {type: 'INTEGER', unique: true}}],
           expectation: {id: 'INTEGER UNIQUE'}
-        },
-
-        // Old references style
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
-          expectation: {id: 'INTEGER REFERENCES "Bar" ("id")'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', referencesKey: 'pk'}}],
-          expectation: {id: 'INTEGER REFERENCES "Bar" ("pk")'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', onDelete: 'CASCADE'}}],
-          expectation: {id: 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER REFERENCES "Bar" ("id") ON UPDATE RESTRICT'}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT'}
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar'}}],
-          expectation: {id: 'INTEGER REFERENCES Bar (id)'},
-          context: {options: {quoteIdentifiers: false}}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', referencesKey: 'pk'}}],
-          expectation: {id: 'INTEGER REFERENCES Bar (pk)'},
-          context: {options: {quoteIdentifiers: false}}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', onDelete: 'CASCADE'}}],
-          expectation: {id: 'INTEGER REFERENCES Bar (id) ON DELETE CASCADE'},
-          context: {options: {quoteIdentifiers: false}}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', references: 'Bar', onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER REFERENCES Bar (id) ON UPDATE RESTRICT'},
-          context: {options: {quoteIdentifiers: false}}
-        },
-        {
-          arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: 'Bar', onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT'},
-          context: {options: {quoteIdentifiers: false}}
         },
 
         // New references style
@@ -250,6 +223,16 @@ if (dialect.match(/^postgres/)) {
         }
       ],
 
+      changeColumnQuery: [
+        {
+          arguments: ['myTable', {
+            col_1: "ENUM('value 1', 'value 2') NOT NULL",
+            col_2: "ENUM('value 3', 'value 4') NOT NULL"
+          }],
+          expectation: 'ALTER TABLE "myTable" ALTER COLUMN "col_1" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_1" DROP DEFAULT;CREATE TYPE "public"."enum_myTable_col_1" AS ENUM(\'value 1\', \'value 2\');ALTER TABLE "myTable" ALTER COLUMN "col_1" TYPE "public"."enum_myTable_col_1" USING ("col_1"::"public.enum_myTable_col_1");ALTER TABLE "myTable" ALTER COLUMN "col_2" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_2" DROP DEFAULT;CREATE TYPE "public"."enum_myTable_col_2" AS ENUM(\'value 3\', \'value 4\');ALTER TABLE "myTable" ALTER COLUMN "col_2" TYPE "public"."enum_myTable_col_2" USING ("col_2"::"public.enum_myTable_col_2");'
+        }
+      ],
+
       selectQuery: [
         {
           arguments: ['myTable'],
@@ -276,22 +259,42 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: ["foo='bar'"]}],
           expectation: "SELECT * FROM \"myTable\" WHERE foo='bar';"
         }, {
-          arguments: ['myTable', {order: 'id DESC'}],
-          expectation: 'SELECT * FROM \"myTable\" ORDER BY id DESC;'
-        }, {
           arguments: ['myTable', {order: ['id']}],
           expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: ['id', 'DESC']}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY "id", "DESC";',
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: ['myTable.id']}],
           expectation: 'SELECT * FROM "myTable" ORDER BY "myTable"."id";',
           context: QueryGenerator
         }, {
+          arguments: ['myTable', {order: [['myTable.id', 'DESC']]}],
+          expectation: 'SELECT * FROM "myTable" ORDER BY "myTable"."id" DESC;',
+          context: QueryGenerator
+        }, {
           arguments: ['myTable', {order: [['id', 'DESC']]}, function(sequelize) {return sequelize.define('myTable', {});}],
           expectation: 'SELECT * FROM "myTable" AS "myTable" ORDER BY "myTable"."id" DESC;',
           context: QueryGenerator,
           needsSequelize: true
+        },{
+        arguments: ['myTable', {order: [['id', 'DESC'], ['name']]}, function(sequelize) {return sequelize.define('myTable', {});}],
+          expectation: 'SELECT * FROM "myTable" AS "myTable" ORDER BY "myTable"."id" DESC, "myTable"."name";',
+          context: QueryGenerator,
+          needsSequelize: true
+        },{
+          title: 'uses limit 0',
+          arguments: ['myTable', {limit: 0}],
+          expectation: 'SELECT * FROM "myTable" LIMIT 0;',
+          context: QueryGenerator
         }, {
+         title: 'uses offset 0',
+         arguments: ['myTable', {offset: 0}],
+         expectation: 'SELECT * FROM "myTable" OFFSET 0;',
+         context: QueryGenerator
+       }, {
          title: 'raw arguments are neither quoted nor escaped',
           arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'},'DESC']]}],
           expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2(id)) DESC;',
@@ -468,7 +471,7 @@ if (dialect.match(/^postgres/)) {
           expectation: "SELECT * FROM myTable WHERE foo='bar';",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['myTable', {order: 'id DESC'}],
+          arguments: ['myTable', {order: ['id DESC']}],
           expectation: 'SELECT * FROM myTable ORDER BY id DESC;',
           context: {options: {quoteIdentifiers: false}}
         }, {
@@ -513,6 +516,16 @@ if (dialect.match(/^postgres/)) {
           title: 'use IS NOT if ne === null',
           arguments: ['myTable', {where: {field: {ne: null}}}],
           expectation: 'SELECT * FROM myTable WHERE myTable.field IS NOT NULL;',
+          context: {options: {quoteIdentifiers: false}}
+        }, {
+          title: 'use IS NOT if not === BOOLEAN',
+          arguments: ['myTable', {where: {field: {not: true}}}],
+          expectation: 'SELECT * FROM myTable WHERE myTable.field IS NOT true;',
+          context: {options: {quoteIdentifiers: false}}
+        }, {
+          title: 'use != if not !== BOOLEAN',
+          arguments: ['myTable', {where: {field: {not: 3}}}],
+          expectation: 'SELECT * FROM myTable WHERE myTable.field != 3;',
           context: {options: {quoteIdentifiers: false}}
         }
       ],
@@ -851,6 +864,42 @@ if (dialect.match(/^postgres/)) {
           arguments: ['User', 'mySchema.user_foo_bar'],
           expectation: 'DROP INDEX IF EXISTS mySchema.user_foo_bar',
           context: {options: {quoteIdentifiers: false}}
+        }
+      ],
+
+      startTransactionQuery: [
+        {
+          arguments: [{}],
+          expectation: 'START TRANSACTION;',
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{parent: 'MockTransaction', name: 'transaction-uid'}],
+          expectation: 'SAVEPOINT \"transaction-uid\";',
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{parent: 'MockTransaction', name: 'transaction-uid'}],
+          expectation: 'SAVEPOINT \"transaction-uid\";',
+          context: {options: {quoteIdentifiers: true}}
+        }
+      ],
+
+      rollbackTransactionQuery: [
+        {
+          arguments: [{}],
+          expectation: 'ROLLBACK;',
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{parent: 'MockTransaction', name: 'transaction-uid'}],
+          expectation: 'ROLLBACK TO SAVEPOINT \"transaction-uid\";',
+          context: {options: {quoteIdentifiers: false}}
+        },
+        {
+          arguments: [{parent: 'MockTransaction', name: 'transaction-uid'}],
+          expectation: 'ROLLBACK TO SAVEPOINT \"transaction-uid\";',
+          context: {options: {quoteIdentifiers: true}}
         }
       ]
     };

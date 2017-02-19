@@ -177,5 +177,26 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
     });
+
+    describe('sql injection attacks', function () {
+      beforeEach(function() {
+        this.Model = this.sequelize.define('Model', {
+          location: DataTypes.GEOGRAPHY
+        });
+        return this.sequelize.sync({ force: true });
+      });
+
+      it('should properly escape the single quotes', function () {
+        return this.Model.create({
+          location: {
+            type: "Point",
+            properties: {
+              exploit: "'); DELETE YOLO INJECTIONS; -- "
+            },
+            coordinates: [39.807222,-76.984722]
+          }
+        });
+      });
+    });
   }
 });

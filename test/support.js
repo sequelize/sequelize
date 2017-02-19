@@ -29,7 +29,8 @@ Sequelize.Promise.onPossiblyUnhandledRejection(function(e, promise) {
 Sequelize.Promise.longStackTraces();
 
 // shim all Sequelize methods for testing for correct `options.logging` passing
-if (!process.env.COVERAGE && false) supportShim(Sequelize);
+// and no modification of `options` objects
+if (!process.env.COVERAGE && process.env.SHIM) supportShim(Sequelize);
 
 var Support = {
   Sequelize: Sequelize,
@@ -96,7 +97,7 @@ var Support = {
       dialect: options.dialect,
       port: options.port || process.env.SEQ_PORT || config.port,
       pool: config.pool,
-      dialectOptions: options.dialectOptions || {}
+      dialectOptions: options.dialectOptions || config.dialectOptions || {}
     });
 
     if (process.env.DIALECT === 'postgres-native') {
@@ -166,19 +167,6 @@ var Support = {
     return envDialect;
   },
 
-  dialectIsMySQL: function(strict) {
-    var envDialect = process.env.DIALECT || 'mysql';
-    if (strict === undefined) {
-      strict = false;
-    }
-
-    if (strict) {
-      return envDialect === 'mysql';
-    } else {
-      return ['mysql', 'mariadb'].indexOf(envDialect) !== -1;
-    }
-  },
-
   getTestDialectTeaser: function(moduleName) {
     var dialect = this.getTestDialect();
 
@@ -211,23 +199,28 @@ var Support = {
   expectsql: function(query, expectations) {
     var expectation = expectations[Support.sequelize.dialect.name];
 
-    if (!expectation && Support.sequelize.dialect.name === 'mariadb') {
-      expectation = expectations.mysql;
-    }
-
     if (!expectation) {
-      expectation = expectations['default']
-                    .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-                    .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
+      if (expectations['default'] !== undefined) {
+        expectation = expectations['default']
+                      .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
+                      .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
+      } else {
+        throw new Error('Undefined expectation for "' + Support.sequelize.dialect.name + '"!');
+      }
     }
 
-    expect(query).to.equal(expectation);
+    if (_.isError(query)) {
+      expect(query.message).to.equal(expectation.message);
+    } else {
+      expect(query).to.equal(expectation);
+    }
   }
 };
 
-beforeEach(function() {
-  this.sequelize = Support.sequelize;
-});
-
+if (typeof beforeEach !== 'undefined') {
+  beforeEach(function() {
+    this.sequelize = Support.sequelize;
+  });
+}
 Support.sequelize = Support.createSequelizeInstance();
 module.exports = Support;

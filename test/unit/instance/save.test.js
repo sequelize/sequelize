@@ -35,10 +35,10 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
 
       before(function() {
         stub = sinon.stub(current, 'query').returns(
-          Sequelize.Promise.resolve({
+          Sequelize.Promise.resolve([{
             _previousDataValues: {},
             dataValues: {id: 1}
-          })
+          }, 1])
         );
       });
 
@@ -51,13 +51,6 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         expect(function () {
           instance.save();
         }).to.not.throw();
-      });
-
-      it('should not modify options when it given to save', function () {
-        instance = Model.build({});
-        var options = { transaction: null };
-        instance.save(options);
-        expect(options).to.deep.equal({ transaction: null });
       });
     });
   });

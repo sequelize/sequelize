@@ -14,26 +14,6 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     this.Model = current.define('m');
   });
 
-  describe('callback', function () {
-    // Legacy - remove at some point
-
-    it('success', function () {
-      this.Model.beforeCreate(function (attributes, options, fn) {
-        fn();
-      });
-
-      return expect(this.Model.runHooks('beforeCreate', {}, {})).to.be.resolved;
-    });
-
-    it('error', function () {
-      this.Model.beforeCreate(function (attributes, options, fn) {
-        fn('No!');
-      });
-
-      return expect(this.Model.runHooks('beforeCreate', {}, {})).to.be.rejectedWith('No!');
-    });
-  });
-
   describe('arguments', function () {
     it('hooks can modify passed arguments', function () {
       this.Model.addHook('beforeCreate', function (options) {
@@ -320,6 +300,56 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       return expect(this.Model.runHooks('beforeCreate')).to.be.rejectedWith('Forbidden');
+    });
+  });
+
+  describe('sync hooks', function() {
+    beforeEach(function () {
+      this.hook1 = sinon.spy();
+      this.hook2 = sinon.spy();
+      this.hook3 = sinon.spy();
+      this.hook4 = sinon.spy();
+    });
+
+    it('runs all beforInit/afterInit hooks', function() {
+      Support.Sequelize.addHook('beforeInit', 'h1', this.hook1);
+      Support.Sequelize.addHook('beforeInit', 'h2', this.hook2);
+      Support.Sequelize.addHook('afterInit', 'h3', this.hook3);
+      Support.Sequelize.addHook('afterInit', 'h4', this.hook4);
+
+      Support.createSequelizeInstance();
+
+      expect(this.hook1).to.have.been.calledOnce;
+      expect(this.hook2).to.have.been.calledOnce;
+      expect(this.hook3).to.have.been.calledOnce;
+      expect(this.hook4).to.have.been.calledOnce;
+
+      // cleanup hooks on Support.Sequelize
+      Support.Sequelize.removeHook('beforeInit', 'h1');
+      Support.Sequelize.removeHook('beforeInit', 'h2');
+      Support.Sequelize.removeHook('afterInit', 'h3');
+      Support.Sequelize.removeHook('afterInit', 'h4');
+
+      Support.createSequelizeInstance();
+
+      // check if hooks were removed
+      expect(this.hook1).to.have.been.calledOnce;
+      expect(this.hook2).to.have.been.calledOnce;
+      expect(this.hook3).to.have.been.calledOnce;
+      expect(this.hook4).to.have.been.calledOnce;
+    });
+
+    it('runs all beforDefine/afterDefine hooks', function() {
+      const sequelize = Support.createSequelizeInstance();
+      sequelize.addHook('beforeDefine', this.hook1);
+      sequelize.addHook('beforeDefine', this.hook2);
+      sequelize.addHook('afterDefine', this.hook3);
+      sequelize.addHook('afterDefine', this.hook4);
+      sequelize.define('Test', {});
+      expect(this.hook1).to.have.been.calledOnce;
+      expect(this.hook2).to.have.been.calledOnce;
+      expect(this.hook3).to.have.been.calledOnce;
+      expect(this.hook4).to.have.been.calledOnce;
     });
   });
 });

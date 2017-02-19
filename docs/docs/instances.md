@@ -161,8 +161,11 @@ Task.bulkCreate([
     { status: 'inactive' }, /* set attributes' value */,
     { where: { subject: 'programming' }} /* where criteria */
   );
-}).then(function(affectedRows) {
-  // affectedRows will be 2
+}).spread(function(affectedCount, affectedRows) {
+  // .update returns two values in an array, therefore we use .spread
+  // Notice that affectedRows will only be defined in dialects which support returning: true
+  
+  // affectedCount will be 2
   return Task.findAll();
 }).then(function(tasks) {
   console.log(tasks) // the 'programming' tasks will both have a status of 'inactive'

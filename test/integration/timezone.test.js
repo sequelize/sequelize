@@ -38,7 +38,7 @@ if (dialect !== 'sqlite') {
       });
     });
 
-    if (Support.dialectIsMySQL()) {
+    if (dialect === 'mysql') {
       it('handles existing timestamps', function() {
         var NormalUser = this.sequelize.define('user', {})
           , TimezonedUser = this.sequelizeWithTimezone.define('user', {});
@@ -52,7 +52,7 @@ if (dialect !== 'sqlite') {
           // Expect 7 hours difference, in milliseconds.
           // This difference is expected since two instances, configured for each their timezone is trying to read the same timestamp
           // this test does not apply to PG, since it stores the timezone along with the timestamp.
-          expect(this.normalUser.createdAt.getTime() - timezonedUser.createdAt.getTime()).to.be.closeTo(60 * 60 * 7 * 1000, 50);
+          expect(this.normalUser.createdAt.getTime() - timezonedUser.createdAt.getTime()).to.be.closeTo(60 * 60 * 7 * 1000, 1000);
         });
       });
 

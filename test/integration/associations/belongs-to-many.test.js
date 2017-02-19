@@ -36,16 +36,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       });
     });
 
-    it('does not modify the passed arguments', function() {
-      return this.User.create({}).bind(this).then(function(user) {
-        this.options = {};
-
-        return user.getTasks(this.options);
-      }).then(function() {
-        expect(this.options).to.deep.equal({});
-      });
-    });
-
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
@@ -218,7 +208,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         this.u = u;
         return AcmeProject.create();
       }).then(function(p) {
-        return this.u.addProject(p, { status: 'active', data: 42 });
+        return this.u.addProject(p, { through: { status: 'active', data: 42 }});
       }).then(function() {
         return this.u.getProjects();
       }).then(function(projects) {
@@ -499,12 +489,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       return Promise.join(
         this.Task.create().then(function (task) {
           return user.addTask(task, {
-            started: true
+            through: { started: true }
           });
         }),
         this.Task.create().then(function (task) {
           return user.addTask(task, {
-            started: true
+            through: { started: true }
           });
         })
       ).then(function () {
@@ -626,6 +616,56 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         expect(tasks[0].title).to.equal('wat');
       });
     });
+
+    it('using scope to set associations', function() {
+      var ItemTag = this.sequelize.define('ItemTag', {
+                      id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+                      tag_id: { type: DataTypes.INTEGER, unique: false },
+                      taggable: { type: DataTypes.STRING },
+                      taggable_id: { type: DataTypes.INTEGER, unique: false }
+      }),
+      Tag = this.sequelize.define('Tag', {
+        id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING
+      }),
+      Comment = this.sequelize.define('Comment', {
+        id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING
+      }),
+      Post = this.sequelize.define('Post', {
+        id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING
+      });
+
+      Post.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
+        foreignKey: 'taggable_id'
+      });
+
+      Comment.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
+       foreignKey: 'taggable_id'
+      });
+
+      return this.sequelize.sync({ force: true }).then(function() {
+        return Promise.all([
+          Post.create({ name: 'post1' }),
+          Comment.create({ name: 'comment1' }),
+          Tag.create({ name: 'tag1' })
+        ]);
+      }).bind({}).spread(function(post, comment, tag) {
+        this.post = post;
+        this.comment = comment;
+        this.tag = tag;
+        return this.post.setTags([this.tag]);
+      }).then(function() {
+        return this.comment.setTags([this.tag]);
+      }).then(function() {
+        return this.comment.getTags();
+      }).then(function(_tags) {
+        expect(_tags).to.have.length(1);
+      });
+    });
   });
 
   describe('createAssociations', function() {
@@ -642,7 +682,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         this.task = task;
         return task.createUser({ username: 'foo' });
       }).then(function(createdUser) {
-        expect(createdUser.Model).to.equal(User);
+        expect(createdUser).to.be.instanceof(User);
         expect(createdUser.username).to.equal('foo');
         return this.task.getUsers();
       }).then(function(_users) {
@@ -697,8 +737,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         return Group.create({});
       }).then(function(group) {
         return Promise.join(
-          group.createUser({ id: 1 }, { isAdmin: true }),
-          group.createUser({ id: 2 }, { isAdmin: false }),
+          group.createUser({ id: 1 }, { through: {isAdmin: true }}),
+          group.createUser({ id: 2 }, { through: {isAdmin: false }}),
           function() {
             return UserGroups.findAll();
           }
@@ -727,7 +767,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         this.task = task;
         return task.createUser({ username: 'foo' }, {fields: ['username']});
       }).then(function(createdUser) {
-        expect(createdUser.Model).to.equal(User);
+        expect(createdUser).to.be.instanceof(User);
         expect(createdUser.username).to.equal('foo');
         return this.task.getUsers();
       }).then(function(_users) {
@@ -820,9 +860,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           this.task = task;
           this.user = user;
           this.t = t;
-          return task.addUser(user, { status: 'pending' }); // Create without transaction, so the old value is accesible from outside the transaction
+          return task.addUser(user, { through: {status: 'pending'} }); // Create without transaction, so the old value is accesible from outside the transaction
         }).then(function() {
-          return this.task.addUser(this.user, { transaction: this.t, status: 'completed' }); // Add an already exisiting user in a transaction, updating a value in the join table
+          return this.task.addUser(this.user, { transaction: this.t, through: {status: 'completed'}}); // Add an already exisiting user in a transaction, updating a value in the join table
         }).then(function() {
           return Promise.all([
             this.user.getTasks(),
@@ -1001,15 +1041,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
 
     it('runs on add', function () {
-      return expect(this.project.addParticipant(this.employee, { role: ''})).to.be.rejected;
+      return expect(this.project.addParticipant(this.employee, { through: {role: ''}})).to.be.rejected;
     });
 
     it('runs on set', function () {
-      return expect(this.project.setParticipants([this.employee], { role: ''})).to.be.rejected;
+      return expect(this.project.setParticipants([this.employee], { through: {role: ''}})).to.be.rejected;
     });
 
     it('runs on create', function () {
-      return expect(this.project.createParticipant({ name: 'employee 2'}, { role: ''})).to.be.rejected;
+      return expect(this.project.createParticipant({ name: 'employee 2'}, { through: {role: ''}})).to.be.rejected;
     });
   });
 
@@ -1373,7 +1413,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
       this.User.belongsToMany(this.Task, { through: this.UserTasks });
       this.Task.belongsToMany(this.User, { through: this.UserTasks });
 
-      expect(Object.keys(this.UserTasks.primaryKeys)).to.deep.equal(['TaskId', 'UserId']);
+      expect(Object.keys(this.UserTasks.primaryKeys).sort()).to.deep.equal(['TaskId', 'UserId']);
     });
 
     it('keeps the primary key if it was added by the user', function() {
@@ -1426,7 +1466,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         this.User.belongsToMany(this.Task, { through: this.UsersTasks });
         this.Task.belongsToMany(this.User, { through: this.UsersTasks });
 
-        expect(Object.keys(this.UsersTasks.primaryKeys)).to.deep.equal(['TaskId', 'UserId']);
+        expect(Object.keys(this.UsersTasks.primaryKeys).sort()).to.deep.equal(['TaskId', 'UserId']);
 
         return Promise.all([
           this.User.create({username: 'foo'}),
@@ -1463,7 +1503,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           this.User.create(),
           this.Project.create()
         ]).spread(function(user, project) {
-          return user.addProject(project, { status: 'active', data: 42 }).return (user);
+          return user.addProject(project, { through: { status: 'active', data: 42 }}).return (user);
         }).then(function(user) {
           return user.getProjects();
         }).then(function(projects) {
@@ -1481,7 +1521,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
           this.User.create(),
           this.Project.create()
         ]).spread(function(user, project) {
-          return user.addProject(project, { status: 'active', data: 42 }).return (user);
+          return user.addProject(project, { through: { status: 'active', data: 42 }}).return (user);
         }).then(function(user) {
           return user.getProjects({ joinTableAttributes: ['status']});
         }).then(function(projects) {
@@ -1522,7 +1562,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
             this.u = u;
             this.p = p;
 
-            return u.addProject(p, { status: 'active' });
+            return u.addProject(p, { through: { status: 'active' }});
           }).then(function() {
             return this.UserProjects.findOne({ where: { UserId: this.u.id, ProjectId: this.p.id }});
           }).then(function(up) {
@@ -1609,7 +1649,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
 
             this.p1.UserProjects = { status: 'inactive' };
 
-            return user.setProjects([this.p1, this.p2], { status: 'active' });
+            return user.setProjects([this.p1, this.p2], { through: { status: 'active' }});
           }).then(function() {
             return Promise.all([
               self.UserProjects.findOne({ where: { UserId: this.user.id, ProjectId: this.p1.id }}),
@@ -1648,9 +1688,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         it('should support query the through model', function () {
           return this.User.create().then(function (user) {
             return Promise.all([
-              user.createProject({}, { status: 'active', data: 1 }),
-              user.createProject({}, { status: 'inactive', data: 2 }),
-              user.createProject({}, { status: 'inactive', data: 3 })
+              user.createProject({}, { through: { status: 'active', data: 1 }}),
+              user.createProject({}, { through: { status: 'inactive', data: 2 }}),
+              user.createProject({}, { through: { status: 'inactive', data: 3 }})
             ]).then(function () {
               return Promise.all([
                 user.getProjects({ through: { where: { status: 'active' } } }),

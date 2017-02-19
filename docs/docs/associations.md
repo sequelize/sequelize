@@ -1,7 +1,7 @@
 This section describes the various association types in sequelize. When calling a method such as `User.hasOne(Project)`, we say that the `User` model (the model that the function is being invoked on) is the __source__ and the `Project` model (the model being passed as an argument) is the __target__.
 
 ## One-To-One associations
-One-To-One associations are associations between exactly two models connected by a single gn key.
+One-To-One associations are associations between exactly two models connected by a single foreign key.
 
 ### BelongsTo
 
@@ -189,8 +189,20 @@ var Project = sequelize.define('project', {/* ... */})
 Project.hasMany(User, {as: 'Workers'})
 ```
 
-This will add the attribute projectId or `project_id` to User. Instances of Project will get the accessors getWorkers and setWorkers.  We could just leave it the way it is and let it be a one-way association.
+This will add the attribute `projectId` or `project_id` to User. Instances of Project will get the accessors `getWorkers` and `setWorkers`. We could just leave it the way it is and let it be a one-way association.
 But we want more! Let's define it the other way around by creating a many to many association in the next section:
+
+Sometimes you may need to associate records on different columns, you may use `sourceKey` option:
+
+```js
+var City = sequelize.define('city', { countryCode: Sequelize.STRING });
+var Country = sequelize.define('country', { isoCode: Sequelize.STRING });
+
+// Here we can connect countries and cities base on country code
+Country.hasMany(City, {foreignKey: 'countryCode', sourceKey: 'isoCode'});
+City.belongsTo(Country, {foreignKey: 'countryCode', targetKey: 'isoCode'});
+```
+
 
 ## Belongs-To-Many associations
 
@@ -203,9 +215,9 @@ User.belongsToMany(Project, {through: 'UserProject'});
 
 This will create a new model called UserProject with the equivalent foreign keys `projectId` and `userId`. Whether the attributes are camelcase or not depends on the two models joined by the table (in this case User and Project).
 
-Defining `through` is required. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
+Defining `through` is **required**. Sequelize would previously attempt to autogenerate names but that would not always lead to the most logical setups.
 
-This will add methods `getUsers`, `setUsers`, `addUser`,`addUsers` to `Project`, and `getProjects`, `setProjects` and `addProject`, `addProjects` to `User`.
+This will add methods `getUsers`, `setUsers`, `addUser`,`addUsers` to `Project`, and `getProjects`, `setProjects`, `addProject`, and `addProjects` to `User`.
 
 Sometimes you may want to rename your models when using them in associations. Let's define users as workers and projects as tasks by using the alias (`as`) option. We will also manually define the foreign keys to use:
 ```js
@@ -240,10 +252,10 @@ User.belongsToMany(Project, { through: UserProjects })
 Project.belongsToMany(User, { through: UserProjects })
 ```
 
-To add a new project to a user and set it's status, you pass an extra object to the setter, which contains the attributes for the join table
+To add a new project to a user and set its status, you pass extra `options.through` to the setter, which contains the attributes for the join table
 
 ```js
-user.addProject(project, { status: 'started' })
+user.addProject(project, { through: { status: 'started' }})
 ```
 
 By default the code above will add projectId and userId to the UserProjects table, and _remove any previously defined primary key attribute_ - the table will be uniquely identified by the combination of the keys of the two tables, and there is no reason to have other PK columns. To enforce a primary key on the `UserProjects` model you can add it manually.
@@ -264,10 +276,10 @@ With Belongs-To-Many you can query based on **through** relation and select spec
 User.findAll({
   include: [{
     model: Project,
-      through: {
-        attributes: ['createdAt', 'startedAt', 'finishedAt']
-          where: {completed: true}
-      }
+    through: {
+      attributes: ['createdAt', 'startedAt', 'finishedAt'],
+      where: {completed: true}
+    }
   }]
 });
 ```
@@ -278,20 +290,18 @@ This section concerns association scopes. For a definition of association scopes
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
 #### 1:m
-Assume we have tables Comment, Post and Image. A comment can be associated to either an image or a post via `commentable_id` and `commentable` - we say that Post and Image are `Commentable`
+Assume we have tables Comment, Post, and Image. A comment can be associated to either an image or a post via `commentable_id` and `commentable` - we say that Post and Image are `Commentable`
 
 ```js
 this.Comment = this.sequelize.define('comment', {
   title: Sequelize.STRING,
   commentable: Sequelize.STRING,
   commentable_id: Sequelize.INTEGER
-}, {
-  instanceMethods: {
-    getItem: function() {
-      return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
-    }
-  }
 });
+
+this.Comment.prototype.getItem = function() {
+  return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
+};
 
 this.Post.hasMany(this.Comment, {
   foreignKey: 'commentable_id',
@@ -344,6 +354,11 @@ For brevity, the example only shows a Post model, but in reality Tag would be re
 
 ```js
 ItemTag = sequelize.define('item_tag', {
+  id : {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
   tag_id: {
     type: DataTypes.INTEGER,
     unique: 'item_tag_taggable'
@@ -378,13 +393,14 @@ Tag.belongsToMany(Post, {
     model: ItemTag,
     unique: false
   },
-  foreignKey: 'tag_id'
+  foreignKey: 'tag_id',
+  constraints: false
 });
 ```
 
 Notice that the scoped column (`taggable`) is now on the through model (`ItemTag`).
 
-We could also define a more restrictive association, for example to get all pending tags for a post by applying a scope of both the through model (`ItemTag`) and the target model (`Tag`):
+We could also define a more restrictive association, for example, to get all pending tags for a post by applying a scope of both the through model (`ItemTag`) and the target model (`Tag`):
 
 ```js
 Post.hasMany(Tag, {
@@ -538,8 +554,8 @@ project.UserProjects = {
 }
 u.addProject(project)
  
-// Or by providing a second argument when adding the association, containing the data that should go in the join table
-u.addProject(project, { status: 'active' })
+// Or by providing a second options.through argument when adding the association, containing the data that should go in the join table
+u.addProject(project, { through: { status: 'active' }})
  
  
 // When associating multiple objects, you can combine the two options above. In this case the second argument
@@ -548,7 +564,7 @@ project1.UserProjects = {
     status: 'inactive'
 }
  
-u.setProjects([project1, project2], { status: 'active' })
+u.setProjects([project1, project2], { through: { status: 'active' }})
 // The code above will record inactive for project one, and active for project two in the join table
 ```
 
@@ -673,7 +689,7 @@ CREATE TABLE IF NOT EXISTS `Version` (
 
 ### Enforcing a foreign key reference without constraints
 
-Some times you may want to reference another table, without adding any constraints, or associations. In that case you can manually add the reference attributes to your schema definition, and mark the relations between them.
+Sometimes you may want to reference another table, without adding any constraints, or associations. In that case you can manually add the reference attributes to your schema definition, and mark the relations between them.
 
 ```js
 var Series, Trainer, Video
@@ -723,7 +739,7 @@ Trainer.hasMany(Series);
 
 An instance can be created with nested association in one step, provided all elements are new.
 
-### Creating elements of a "BelongsTo" or "HasOne" association
+### Creating elements of a "BelongsTo", "Has Many" or "HasOne" association
 
 Consider the following models:
 
@@ -735,24 +751,45 @@ var User = this.sequelize.define('user', {
   first_name: Sequelize.STRING,
   last_name: Sequelize.STRING
 });
+var Address = this.sequelize.define('address', {
+  type: Sequelize.STRING,
+  line_1: Sequelize.STRING,
+  line_2: Sequelize.STRING,
+  city: Sequelize.STRING,
+  state: Sequelize.STRING,
+  zip: Sequelize.STRING,
+});
 
-Product.belongsTo(User);
+var Product.User = Product.belongsTo(User);
+var User.Addresses = User.hasMany(Address);
 // Also works for `hasOne`
 ```
 
-A new `Product` and `User` can be created in one step in the following way:
+A new `Product`, `User`, and one or more `Address` can be created in one step in the following way:
 
 ```js
 return Product.create({
   title: 'Chair',
-  User: {
+  user: {
     first_name: 'Mick',
-    last_name: 'Broadstone'
+    last_name: 'Broadstone',
+    addresses: [{
+      type: 'home',
+      line_1: '100 Main St.',
+      city: 'Austin',
+      state: 'TX',
+      zip: '78704'
+    }]
   }
 }, {
-  include: [ User ]
+  include: [{
+    association: Product.User,
+    include: [ User.Addresses ]
+  }]
 });
 ```
+
+Here, our user model is called `user`, with a lowercase u - This means that the property in the object should also be `user`. If the name given to `sequelize.define` was `User`, the key in the object should also be `User`. Likewise for `addresses`, except it's pluralized being a `hasMany` association.
 
 ### Creating elements of a "BelongsTo" association with an alias
 
@@ -791,7 +828,7 @@ Now we can create a project with multiple tags in the following way:
 Product.create({
   id: 1,
   title: 'Chair',
-  Tags: [
+  tags: [
     { name: 'Alpha'},
     { name: 'Beta'}
   ]
@@ -813,7 +850,10 @@ Product.create({
     {id: 2, name: 'Beta'}
   ]
 }, {
-  include: [ Categories ]
+  include: [{
+    model: Categories,
+    as: 'categories'
+  }]
 })
 ```
 
