@@ -9,16 +9,12 @@ const chai = require('chai')
 
 describe('model', function () {
   if (current.dialect.supports.JSON) {
-    const JSONType = DataTypes[current.dialect.name].JSON ?
-      new DataTypes[current.dialect.name].JSON :
-      new DataTypes.JSON;
-
     describe('json', function () {
       beforeEach(function () {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
-          emergency_contact: JSONType,
-          emergencyContact: JSONType,
+          emergency_contact: DataTypes.JSON,
+          emergencyContact: DataTypes.JSON,
         });
         return this.sequelize.sync({ force: true });
       });
@@ -50,7 +46,7 @@ describe('model', function () {
 
       it('should insert json using a custom field name', function () {
         this.UserFields = this.sequelize.define('UserFields', {
-          emergencyContact: { type: JSONType, field: 'emergy_contact' }
+          emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' }
         });
         return this.UserFields.sync({ force: true }).then(() => {
           return this.UserFields.create({
@@ -63,7 +59,7 @@ describe('model', function () {
 
       it('should update json using a custom field name', function () {
         this.UserFields = this.sequelize.define('UserFields', {
-          emergencyContact: { type: JSONType, field: 'emergy_contact' }
+          emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' }
         });
         return this.UserFields.sync({ force: true }).then(() => {
           return this.UserFields.create({
