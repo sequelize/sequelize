@@ -9,12 +9,16 @@ const chai = require('chai')
 
 describe('model', function () {
   if (current.dialect.supports.JSON) {
+    const JSONType = DataTypes[current.dialect.name].JSON ?
+      new DataTypes[current.dialect.name].JSON :
+      new DataTypes.JSON;
+
     describe('json', function () {
       beforeEach(function () {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
-          emergency_contact: DataTypes.JSON,
-          emergencyContact: DataTypes.JSON,
+          emergency_contact: JSONType,
+          emergencyContact: JSONType,
         });
         return this.sequelize.sync({ force: true });
       });
@@ -34,14 +38,19 @@ describe('model', function () {
           fields: ['id', 'username', 'document', 'emergency_contact'],
           logging: sql => {
             const expected = '\'{"name":"joe","phones":[1337,42]}\'';
-            expect(sql.indexOf(expected)).not.to.equal(-1);
+            const expectedEscaped = '\'{\\"name\\":\\"joe\\",\\"phones\\":[1337,42]}\'';
+            if (sql.indexOf(expected) === -1) {
+              expect(sql.indexOf(expectedEscaped)).not.to.equal(-1);
+            } else {
+              expect(sql.indexOf(expected)).not.to.equal(-1);
+            }
           }
         });
       });
 
       it('should insert json using a custom field name', function () {
         this.UserFields = this.sequelize.define('UserFields', {
-          emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' }
+          emergencyContact: { type: JSONType, field: 'emergy_contact' }
         });
         return this.UserFields.sync({ force: true }).then(() => {
           return this.UserFields.create({
@@ -54,7 +63,7 @@ describe('model', function () {
 
       it('should update json using a custom field name', function () {
         this.UserFields = this.sequelize.define('UserFields', {
-          emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' }
+          emergencyContact: { type: JSONType, field: 'emergy_contact' }
         });
         return this.UserFields.sync({ force: true }).then(() => {
           return this.UserFields.create({

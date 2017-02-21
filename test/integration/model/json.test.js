@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
           return this.Event.findAll({
             where: {
               data: {
-                employment: null
+                employment: current.dialect.name === 'mysql' ? 'null' : null
               }
             }
           }).then(events => {
