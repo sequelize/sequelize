@@ -217,7 +217,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(user.username).to.equal('doe');
           if (dialect === 'oracle') {
             user.blob.iLob.read((err, lobData) => {
-              expect(lobData).to.be.an.instanceOf(Buffer)
+              expect(lobData).to.be.an.instanceOf(Buffer);
               expect(lobData.toString()).to.have.string('Sequelize');
             });
           } else {

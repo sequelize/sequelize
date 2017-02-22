@@ -50,7 +50,7 @@ describe('[ORACLE] Connection Manager', function () {
         instance.dialect.connectionManager.disconnect(result)
           .then(() => {
             done();
-          })
+          });
       })
       .catch(error => {
         done(error);

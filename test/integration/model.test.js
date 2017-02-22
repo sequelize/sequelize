@@ -1258,7 +1258,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                     .catch(err => {
                       t.rollback();
                       throw err;
-                    })
+                    });
                   });
                 });
               });
@@ -2496,7 +2496,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             } else {
               //oracle returns a iLob Object, we have to read it
               user.data.iLob.read((err, lobData) => {
-                expect(lobData).to.be.an.instanceOf(Buffer)
+                expect(lobData).to.be.an.instanceOf(Buffer);
                 expect(lobData.toString()).to.have.string('Sequelize');
               });
             }
@@ -2543,7 +2543,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               } else {
                 //oracle returns a iLob Object, we have to read it
                 user.data.iLob.read((err, lobData) => {
-                  expect(lobData).to.be.an.instanceOf(Buffer)
+                  expect(lobData).to.be.an.instanceOf(Buffer);
                   expect(lobData.toString()).to.have.string('Sequelize');
                 });
               }

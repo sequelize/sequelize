@@ -33,9 +33,9 @@ var qq = function(str) {
   }
 };
 
-//Function adding the from dual clause for requests
+//Function adding the from dual clause for Oracle requests
 var formatQuery = function(qry, force) {
-  if((dialect === 'oracle' && qry.indexOf('FROM') === -1) || (force != undefined && force)) {
+  if(dialect === 'oracle' && ((qry.indexOf('FROM') === -1) || force !== undefined && force)) {
     if(qry.charAt(qry.length - 1) === ';') {
       qry = qry.substr(0,qry.length -1);
     }

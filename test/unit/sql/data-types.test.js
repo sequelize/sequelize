@@ -336,7 +336,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('NOW', function () {
       testsql('NOW', DataTypes.NOW, {
         default: 'NOW',
-        oracle: "SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') \"NOW\" FROM DUAL;",
+        oracle: 'SELECT TO_CHAR(SYSDATE, \'YYYY-MM-DD HH24:MI:SS\') "NOW" FROM DUAL;',
         mssql: 'GETDATE()'
       });
     });

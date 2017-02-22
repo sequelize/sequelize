@@ -441,7 +441,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                       'message'
                     ],
                     include: [{ model: User, attributes: ['username'] }],
-                    order : ['id'] //Order is mandatory, on Oracle may return results in any order
+                    order : ['Message.id'] //Order is mandatory, on Oracle may return results in any order
                   }).then(function(messages) {
                     expect(messages.length).to.equal(2);
 

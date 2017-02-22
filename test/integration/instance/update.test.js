@@ -430,7 +430,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
             expect(download.canceledAt instanceof Date).to.be.true;
             expect(download.finishedAt).to.not.be.ok;
 
-            var whereClause = "";
+            var whereClause = '';
 
             if(dialect === 'postgres' || dialect === 'mssql') {
               whereClause = ['"finishedAt" IS NULL'];
