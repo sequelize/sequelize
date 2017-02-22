@@ -171,5 +171,34 @@ if (current.dialect.name === 'mssql') {
         mssql: 'ALTER TABLE [myTable] DROP [myColumnKey]'
       });
     });
+
+    test('arithmeticQuery', () => {
+      [{
+        title:'Should use the plus operator',
+        arguments: ['+', 'myTable', { foo: 'bar' }, {}],
+        expectation: 'UPDATE myTable SET foo=foo+\'bar\' '
+      },
+      {
+        title:'Should use the plus operator with where clause',
+        arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+        expectation: 'UPDATE myTable SET foo=foo+\'bar\' WHERE bar = \'biz\''
+      },
+      {
+        title:'Should use the minus operator',
+        arguments: ['-', 'myTable', { foo: 'bar' }],
+        expectation: 'UPDATE myTable SET foo=foo-\'bar\' '
+      },
+      {
+        title:'Should use the minus operator with where clause',
+        arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+        expectation: 'UPDATE myTable SET foo=foo-\'bar\' WHERE bar = \'biz\''
+      }].forEach(test => {
+        it(test.title, () => {
+          expectsql(QueryGenerator.arithmeticQuery.call(QueryGenerator, test.arguments), {
+            mssql: test.expectation
+          });
+        });
+      });
+    });
   });
 }

@@ -894,7 +894,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
 
       it('only get objects that fulfill the options', function() {
         return this.User.find({ where: { username: 'John' } }).then(function(john) {
-          return john.getTasks({ where: { active: true }, limit: 10, order: 'id DESC' });
+          return john.getTasks({ where: { active: true }, limit: 10, order: [['id', 'DESC']]});
         }).then(function(tasks) {
           expect(tasks).to.have.length(1);
         });
