@@ -136,7 +136,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     }
 
-    if (current.dialect.supports.JSON) {
+    if (current.dialect.supports.JSONB) {
       test('operator', function () {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],

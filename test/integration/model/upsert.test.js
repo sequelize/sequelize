@@ -396,6 +396,81 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
       
+      it('works when indexes are created via indexes array', function() {
+        const User = this.sequelize.define('User', {
+          username: Sequelize.STRING,
+          email: Sequelize.STRING,
+          city: Sequelize.STRING
+        }, {
+          indexes: [{
+            unique: true,
+            fields: ['username']
+          }, {
+            unique: true,
+            fields: ['email']
+          }]
+        });
+
+        return User.sync({ force: true }).then(() => {
+          return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' })
+            .then(created => {
+              if (dialect === 'sqlite') {
+                expect(created).to.be.undefined;
+              } else {
+                expect(created).to.be.ok;
+              }
+              return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
+            }).then(created => {
+              if (dialect === 'sqlite') {
+                expect(created).to.be.undefined;
+              } else {
+                expect(created).not.to.be.ok;
+              }
+              return User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' }});
+            })
+            .then(user => {
+              expect(user.createdAt).to.be.ok;
+              expect(user.city).to.equal('New City');
+            });
+        });
+      });
+
+      it('works when composite indexes are created via indexes array', function() {
+        const User = current.define('User', {
+          name: DataTypes.STRING,
+          address: DataTypes.STRING,
+          city: DataTypes.STRING
+        }, {
+          indexes: [{
+            unique: 'users_name_address',
+            fields: ['name', 'address']
+          }]
+        });
+
+        return User.sync({ force: true }).then(() => {
+          return User.upsert({ name: 'user1', address: 'address', city: 'City' })
+            .then(created => {
+              if (dialect === 'sqlite') {
+                expect(created).to.be.undefined;
+              } else {
+                expect(created).to.be.ok;
+              }
+              return User.upsert({ name: 'user1', address: 'address', city: 'New City' });
+            }).then(created => {
+              if (dialect === 'sqlite') {
+                expect(created).to.be.undefined;
+              } else {
+                expect(created).not.to.be.ok;
+              }
+              return User.findOne({ where: { name: 'user1', address: 'address' }});
+            })
+            .then(user => {
+              expect(user.createdAt).to.be.ok;
+              expect(user.city).to.equal('New City');
+            });
+        });
+      });
+
       if (dialect === 'mssql') {
         it('Should throw foreignKey violation for MERGE statement as ForeignKeyConstraintError', function () {
           const User = this.sequelize.define('User', {

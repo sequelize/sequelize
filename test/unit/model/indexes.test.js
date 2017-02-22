@@ -39,5 +39,37 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(Model.options.indexes[0].unique).to.eql(true);
       expect(Model.options.indexes[1].unique).to.eql(true);
     });
+    
+    it('should set rawAttributes when indexes are defined via options', function() {
+      const User = current.define('User', {
+        username: DataTypes.STRING
+      }, {
+        indexes: [{
+          unique: true,
+          fields: ['username']
+        }]
+      });
+
+      expect(User.rawAttributes.username).to.have.property('unique');
+      expect(User.rawAttributes.username.unique).to.be.true;
+    });
+
+    it('should set rawAttributes when composite unique indexes are defined via options', function() {
+      const User = current.define('User', {
+        name: DataTypes.STRING,
+        address: DataTypes.STRING
+      }, {
+        indexes: [{
+          unique: 'users_name_address',
+          fields: ['name', 'address']
+        }]
+      });
+
+      expect(User.rawAttributes.name).to.have.property('unique');
+      expect(User.rawAttributes.name.unique).to.be.equal('users_name_address');
+
+      expect(User.rawAttributes.address).to.have.property('unique');
+      expect(User.rawAttributes.address.unique).to.be.equal('users_name_address');
+    });
   });
 });
