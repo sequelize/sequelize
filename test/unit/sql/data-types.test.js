@@ -97,6 +97,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
 
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
+        default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
         oracle: 'NVARCHAR2(2000)',
         mysql: 'LONGTEXT'
