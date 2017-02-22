@@ -1,3 +1,6 @@
+# Future
+- [FIXED] Add quotes around column names for unique constraints in sqlite [#4407](https://github.com/sequelize/sequelize/issues/4407)
+
 # 3.30.2
 - [FIXED] `previous` method gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
 - [FIXED] Fixes setAssociation with scope [#7223](https://github.com/sequelize/sequelize/pull/7223)
