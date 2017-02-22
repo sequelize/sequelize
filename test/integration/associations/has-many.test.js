@@ -1275,7 +1275,7 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
       return this.sequelize.sync({ force: true });
     });
 
-    it.only('should use sourceKey', function () {
+    it('should use sourceKey', function () {
       var User = this.User, Task = this.Task;
 
       return User.create({ username: 'John', email: 'john@example.com' }).then(function(user) {
