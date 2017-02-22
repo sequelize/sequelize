@@ -274,8 +274,8 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
               expect(result[users[1].id][0].category).to.be.ok;
               expect(result[users[1].id][1].category).to.be.ok;
 
-              if (dialect === 'oracle') {
-                //As Oracle doesn't have an order by inner mechanism, the results are never ordered in the same way, so we don't pass this
+              if (dialect !== 'oracle') {
+                //As Oracle doesn't have an order by inner mechanism, the results are never ordered in the same way, so we don't pass here
                 expect(result[users[0].id][0].title).to.equal('a');
                 expect(result[users[0].id][1].title).to.equal('b');
                 expect(result[users[1].id][0].title).to.equal('a');

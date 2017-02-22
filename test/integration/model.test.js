@@ -423,9 +423,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           expect(primary.primary).to.be.ok;
 
           expect(idx1.fields).to.deep.equal([
-            { attribute: 'FIELDB', collate:undefined, length: undefined, order: 'ASC'},
-            //As it is not an asc index, the field name is replaced, Oracle considered this column as a function an replace the name
-            { attribute: 'SYS_NC00008$', collate:undefined, length: undefined, order: 'DESC'} 
+            { attribute: 'FIELDA', collate:undefined, length: undefined, order: 'ASC'},
+            //As it has been created as an unique constraint, the index is ASC
+            { attribute: 'FIELDB', collate:undefined, length: undefined, order: 'ASC'} 
           ]);
 
           expect(idx2.fields).to.deep.equal([

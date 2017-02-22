@@ -34,10 +34,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         .then(() => this.queryInterface.renameTable('myTestTable', 'myTestTableNew'))
         .then(() => this.queryInterface.showAllTables())
         .then((tableNames) => {
-          if (dialect === 'mssql') {
+          if (dialect === 'mssql' || dialect === 'oracle') {
             tableNames = _.map(tableNames, 'tableName');
           }
-          expect(tableNames).to.contain('myTestTableNew');
+
+          expect(tableNames).to.contain(dialect === 'oracle' ? 'MYTESTTABLENEW' : 'myTestTableNew');
           expect(tableNames).to.not.contain('myTestTable');
         });
     });

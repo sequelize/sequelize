@@ -115,10 +115,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                 ])
               ]).then(function() {
                 return Promise.all([
-                  Group.findAll(),
-                  Company.findAll(),
-                  Rank.findAll(),
-                  Tag.findAll()
+                  Group.findAll({order : ['id']}),
+                  Company.findAll({order : ['id']}),
+                  Rank.findAll({order : ['id']}),
+                  Tag.findAll({order : ['id']})
                 ]);
               }).spread(function (groups, companies, ranks, tags) {
                 return Promise.each([0, 1, 2, 3, 4], function (i) {
@@ -131,7 +131,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
                       {title: 'Pen'},
                       {title: 'Monitor'}
                     ]).then(function() {
-                      return Product.findAll();
+                      return Product.findAll({order : ['id']});
                     })
                   ]).spread(function (user, products) {
                     var groupMembers = [
@@ -1118,7 +1118,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
           ],
           limit: 3,
           order: [
-            ['id', 'ASC']
+            [self.sequelize.col(self.models.Product.name + '.title'), 'ASC']
           ]
         }).then(function(products) {
           expect(products.length).to.equal(3);
@@ -1145,7 +1145,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
           ],
           limit: 6,
           order: [
-            ['id', 'ASC']
+            ['id']
           ]
         }).then(function(products) {
           expect(products.length).to.equal(6);
@@ -1173,7 +1173,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), function() {
           ],
           limit: 10,
           order: [
-            ['id', 'ASC']
+            ['id']
           ]
         }).then(function(products) {
             expect(products.length).to.equal(10);
