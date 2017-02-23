@@ -71,7 +71,7 @@
     "jshint": "^2.9.3",
     "lcov-result-merger": "^1.2.0",
     "mocha": "^3.0.2",
-    "mysql2": "^1.1.0",
+    "mysql2": "^1.2.0",
     "pg": "^6.1.0",
     "pg-hstore": "^2.3.2",
     "pg-native": "^1.8.0",

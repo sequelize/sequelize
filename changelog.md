@@ -1,4 +1,5 @@
 # Future
+- [PERFORMANCE] more efficient array handing for certain large queries [#7175](https://github.com/sequelize/sequelize/pull/7175)
 - [FIXED] Add `unique` indexes defined via options to `rawAttributes` [#7196]
 - [FIXED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
 - [CHANGED] `DataTypes.DATE` to use `DATETIMEOFFSET` [MSSQL] [#5403](https://github.com/sequelize/sequelize/issues/5403)
