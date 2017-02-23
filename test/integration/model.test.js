@@ -309,12 +309,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             expect(idxUnique.primary).to.equal(false);
             expect(idxUnique.unique).to.equal(true);
             expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC'}]);
+          } else if (dialect === 'oracle') {
+            expect(indexes).to.have.length(2);
+            idxPrimary = indexes[0];
+            idxUnique = indexes[1];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([{attribute: 'USER_NAME', length: undefined, collate: undefined, order: 'ASC'}]);
           }
         });
       });
     });
 
-    it.skip('allows us to customize the error message for unique constraint', function() {
+    it('allows us to customize the error message for unique constraint', function() {
 
       var self = this
         , User = this.sequelize.define('UserWithUniqueUsername', {
