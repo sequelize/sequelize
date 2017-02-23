@@ -314,7 +314,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('allows us to customize the error message for unique constraint', function() {
+    it.skip('allows us to customize the error message for unique constraint', function() {
 
       var self = this
         , User = this.sequelize.define('UserWithUniqueUsername', {
