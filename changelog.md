@@ -46,10 +46,10 @@
 - [INTERNAL] Updated to `generic-pool@3.1.6` [#7109](https://github.com/sequelize/sequelize/issues/7109)
 - [FIXED] findAll throws error if attributes option is formatted incorrectly [#7162](https://github.com/sequelize/sequelize/issues/7163)
 - [FIXED] model validation instance method now runs hooks by default [#7182](https://github.com/sequelize/sequelize/pull/7182)
-- [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
-
+- [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/issues/7178)
 
 ## BC breaks:
+- model validation instance method now runs hooks by default
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 - With `BelongsToMany` relationships `add/set/create` setters now set `through` attributes by passing them as `options.through` (previously second argument was used as `through` attributes, now its considered `options` with `through` being a sub option)
 
