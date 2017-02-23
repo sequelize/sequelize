@@ -49,7 +49,7 @@
 - [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/issues/7178)
 
 ## BC breaks:
-- model validation instance method now runs hooks by default
+- The model validation instance method now runs hooks by default. Previously, hooks would only run when explictly passed as follows: model.validate({hooks: true})
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 - With `BelongsToMany` relationships `add/set/create` setters now set `through` attributes by passing them as `options.through` (previously second argument was used as `through` attributes, now its considered `options` with `through` being a sub option)
 
