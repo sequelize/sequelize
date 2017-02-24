@@ -335,6 +335,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           User.create({username: 'tobi', email: 'tobi@tobi.me'})]);
       }).catch (self.sequelize.UniqueConstraintError, function(err) {
         expect(err.message).to.equal('User and email must be unique');
+        return true;
       });
     });
 
@@ -368,6 +369,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           User.create({user_id: 1, email: 'tobi@tobi.me'})]);
       }).catch (self.sequelize.UniqueConstraintError, function(err) {
         expect(err.message).to.equal('User and email must be unique');
+        return true;
       });
     });
 
