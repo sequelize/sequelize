@@ -108,6 +108,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         });
       });
     });
+
     describe('on error', function() {
       it('should emit an error from after hook', function() {
         this.User.afterValidate(function(user, options) {
