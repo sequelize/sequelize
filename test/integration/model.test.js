@@ -321,7 +321,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it.only('allows us to map the customized error message with unique constraint name', function() {
+    it('allows us to customize the error message for unique constraint', function() {
 
       var self = this
         , User = this.sequelize.define('UserWithUniqueUsername', {
@@ -330,13 +330,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
 
       return User.sync({ force: true }).then(() => {
-        return self.sequelize.Promise.all([
+        return Promise.all([
           User.create({username: 'tobi', email: 'tobi@tobi.me'}),
           User.create({username: 'tobi', email: 'tobi@tobi.me'})]);
-      /*}).catch (self.sequelize.UniqueConstraintError, function(err) {
-        expect(err.message).to.equal('User and email must be unique');
-        return true;
-      });*/
       }).catch (err => {
         expect(err.message).to.equal('User and email must be unique');
         return true;
@@ -345,8 +341,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     // If you use migrations to create unique indexes that have explicit names and/or contain fields
     // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
-    // allows us to map the customized error message with unique constraint name
-    it.only('allows us to map the customized error message with unique constraint name', function() {
+    it('allows us to map the customized error message with unique constraint name', function() {
       // Fake migration style index creation with explicit index definition
       var self = this
         , User = this.sequelize.define('UserWithUniqueUsername', {
@@ -369,7 +364,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             user_id: { type: Sequelize.INTEGER, unique: { name: 'user_and_email_index', msg: 'User and email must be unique' }},
             email: { type: Sequelize.STRING, unique: 'user_and_email_index'}
           });
-        return self.sequelize.Promise.all([
+        return Promise.all([
           User.create({user_id: 1, email: 'tobi@tobi.me'}),
           User.create({user_id: 1, email: 'tobi@tobi.me'})]);
       }).catch (err => {
