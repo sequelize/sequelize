@@ -2,6 +2,7 @@
 
 /* jshint -W030 */
 const chai = require('chai');
+const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require(__dirname + '/../support');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
@@ -109,4 +110,44 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
   });
 
+  describe('on error', function() {
+    it('should emit an error from after hook', function() {
+        this.User.afterValidate(function(user, options) {
+          user.mood = 'ecstatic';
+          throw new Error('Whoops! Changed user.mood!');
+        });
+
+        return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejectedWith('Whoops! Changed user.mood!');
+      });
+
+      it('should call validationFailed hook', function() {
+        var validationFailedHook = sinon.spy();
+
+        this.User.validationFailed(validationFailedHook);
+
+        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(function(err) {
+          expect(validationFailedHook).to.have.been.calledOnce;
+        });
+      });
+
+      it('should not replace the validation error in validationFailed hook by default', function() {
+        var validationFailedHook = sinon.stub();
+
+        this.User.validationFailed(validationFailedHook);
+
+        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(function(err) {
+          expect(err.name).to.equal('SequelizeValidationError');
+        });
+      });
+
+      it('should replace the validation error if validationFailed hook creates a new error', function() {
+        var validationFailedHook = sinon.stub().throws(new Error('Whoops!'));
+
+        this.User.validationFailed(validationFailedHook);
+
+        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(function(err) {
+          expect(err.message).to.equal('Whoops!');
+        });
+      });
+    });
 });
