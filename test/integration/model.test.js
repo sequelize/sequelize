@@ -329,11 +329,15 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             email: { type: Sequelize.STRING, unique: 'user_and_email' }
           });
 
-      return User.sync({ force: true }).bind(this).then(function() {
+      return User.sync({ force: true }).then(() => {
         return self.sequelize.Promise.all([
           User.create({username: 'tobi', email: 'tobi@tobi.me'}),
           User.create({username: 'tobi', email: 'tobi@tobi.me'})]);
-      }).catch (self.sequelize.UniqueConstraintError, function(err) {
+      /*}).catch (self.sequelize.UniqueConstraintError, function(err) {
+        expect(err.message).to.equal('User and email must be unique');
+        return true;
+      });*/
+      }).catch (err => {
         expect(err.message).to.equal('User and email must be unique');
         return true;
       });
@@ -359,7 +363,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             }]
           });
 
-      return User.sync({ force: true }).bind(this).then(function() {
+      return User.sync({ force: true }).then(() => {
         // Redefine the model to use the index in database and override error message
         User = self.sequelize.define('UserWithUniqueUsername', {
             user_id: { type: Sequelize.INTEGER, unique: { name: 'user_and_email_index', msg: 'User and email must be unique' }},
@@ -368,7 +372,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return self.sequelize.Promise.all([
           User.create({user_id: 1, email: 'tobi@tobi.me'}),
           User.create({user_id: 1, email: 'tobi@tobi.me'})]);
-      }).catch (self.sequelize.UniqueConstraintError, function(err) {
+      }).catch (err => {
         expect(err.message).to.equal('User and email must be unique');
         return true;
       });
