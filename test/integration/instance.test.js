@@ -1810,7 +1810,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       return this.ParanoidUser.create({ username: 'fnord' }).then(function() {
         return self.ParanoidUser.findAll().then(function(users) {
           return users[0].destroy().then(function() {
-            expect(users[0].deletedAt.getMonth).to.exist;
+            expect(users[0].deletedAt.val).to.be.equal('CURRENT_TIMESTAMP');
 
             return users[0].reload({ paranoid: false }).then(function(user) {
               expect(user.deletedAt.getMonth).to.exist;
