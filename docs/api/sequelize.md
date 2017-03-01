@@ -75,7 +75,6 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [options.typeValidation=false] | Boolean | Run built in type validators on insert and update, e.g. validate that arguments passed to integer fields are integer-like. |
 | [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
 
-
 ***
 
 <a name="sequelize"></a>
