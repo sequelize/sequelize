@@ -14,22 +14,26 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
     it('Should have the Error constructors exposed', function() {
       expect(Sequelize).to.have.property('Error');
       expect(Sequelize).to.have.property('ValidationError');
+      expect(Sequelize).to.have.property('OptimisticLockError');
       var sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
       expect(sequelize).to.have.property('Error');
       expect(sequelize).to.have.property('ValidationError');
+      expect(sequelize).to.have.property('OptimisticLockError');
     });
 
     it('Sequelize Errors instances should be instances of Error', function() {
       var error = new Sequelize.Error();
-      var errorMessage = 'Validation Error';
+      var errorMessage = 'error message';
       var validationError = new Sequelize.ValidationError(errorMessage, [
         new errors.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null)
       , new errors.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
       ]);
+      var optimisticLockError = new Sequelize.OptimisticLockError();
 
       var sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
       var instError = new sequelize.Error();
       var instValidationError = new sequelize.ValidationError();
+      var instOptimisticLockError = new sequelize.OptimisticLockError();
 
       expect(error).to.be.instanceOf(Sequelize.Error);
       expect(error).to.be.instanceOf(Error);
@@ -40,10 +44,16 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), function () {
       expect(validationError).to.have.property('name', 'SequelizeValidationError');
       expect(validationError.message).to.equal(errorMessage);
 
+      expect(optimisticLockError).to.be.instanceOf(Sequelize.OptimisticLockError);
+      expect(optimisticLockError).to.be.instanceOf(Error);
+      expect(optimisticLockError).to.have.property('name', 'SequelizeOptimisticLockError');
+
       expect(instError).to.be.instanceOf(Sequelize.Error);
       expect(instError).to.be.instanceOf(Error);
       expect(instValidationError).to.be.instanceOf(Sequelize.ValidationError);
       expect(instValidationError).to.be.instanceOf(Error);
+      expect(instOptimisticLockError).to.be.instanceOf(Sequelize.OptimisticLockError);
+      expect(instOptimisticLockError).to.be.instanceOf(Error);
     });
 
     it('SequelizeValidationError should find errors by path', function() {
