@@ -1,5 +1,5 @@
 {
-  "name": "sequelize-fulltext-search",
+  "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
   "version": "4.0.0-2",
   "author": "Sascha Depold <sascha@depold.com>",
