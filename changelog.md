@@ -1,4 +1,5 @@
 # Future
+- [ADDED] Ability to run transactions on a read-replica by marking transactions as read only [#7323](https://github.com/sequelize/sequelize/issues/7323)
 - [PERFORMANCE] more efficient array handing for certain large queries [#7175](https://github.com/sequelize/sequelize/pull/7175)
 - [FIXED] Add `unique` indexes defined via options to `rawAttributes` [#7196]
 - [FIXED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
