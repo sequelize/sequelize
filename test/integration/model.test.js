@@ -1333,8 +1333,6 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return ParanoidUser.sync({ force: true }).then(function() {
         return ParanoidUser.bulkCreate(data);
       }).bind({}).then(function() {
-        // since we save in UTC, let's format to UTC time
-        this.date = moment().utc().format('YYYY-MM-DD h:mm');
         return ParanoidUser.destroy({where: {secretValue: '42'}});
       }).then(function() {
         return ParanoidUser.findAll({order: ['id']});
@@ -1342,13 +1340,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(users.length).to.equal(1);
         expect(users[0].username).to.equal('Bob');
 
-        return self.sequelize.query('SELECT * FROM ' + qi('ParanoidUsers') + ' WHERE ' + qi('deletedAt') + ' IS NOT NULL ORDER BY ' + qi('id'));
+        return self.sequelize.query('SELECT * FROM ' + qi('ParanoidUsers') + ' WHERE ' + qi('deletedAt') + ' IS NOT NULL AND ' + qi('deletedAt') + ' <= CURRENT_TIMESTAMP ORDER BY ' + qi('id'));
       }).spread(function(users) {
         expect(users[0].username).to.equal('Peter');
         expect(users[1].username).to.equal('Paul');
-
-        expect(moment(new Date(users[0].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
-        expect(moment(new Date(users[1].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
       });
     });
 
