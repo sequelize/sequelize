@@ -11,32 +11,27 @@ describe(Support.getTestDialectTeaser('Instance'), function () {
   describe('previous', function () {
     it('should return correct previous value', function () {
       var Model = current.define('Model', {
-          text: {
-            type: DataTypes.STRING,
-            get: function (name) {
-              return this.getDataValue(name);
-            },
-            set: function (value, name) {
-              this.setDataValue(name, value);
-            }
+        text: DataTypes.STRING,
+        textCustom: {
+          type: DataTypes.STRING,
+          set: function (val) {
+            this.setDataValue('textCustom', val);
+          },
+          get: function () {
+            this.getDataValue('textCustom');
           }
-        })
-        , instance
-        , shouldBeEmpty
-        , shouldBeA;
-
-      instance = Model.build({ text: 'a' }, {
-        isNewRecord: false
+        }
       });
 
-      shouldBeEmpty = instance.previous('text');
+      var instance = Model.build({ text: 'a', textCustom: 'abc' });
+      expect(instance.previous('text')).to.be.not.ok;
+      expect(instance.previous('textCustom')).to.be.not.ok;
 
       instance.set('text', 'b');
+      instance.set('textCustom', 'def');
 
-      shouldBeA = instance.previous('text');
-
-      expect(shouldBeEmpty).to.be.not.ok;
-      expect(shouldBeA).to.be.equal('a');
+      expect(instance.previous('text')).to.be.equal('a');
+      expect(instance.previous('textCustom')).to.be.equal('abc');
     });
   });
 });
