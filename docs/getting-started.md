@@ -1,3 +1,5 @@
+# Getting started
+
 ## Installation
 
 Sequelize is available via NPM.

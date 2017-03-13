@@ -1,3 +1,5 @@
+# Querying
+
 ## Attributes
 
 To select only some attributes, you can use the `attributes` option. Most often, you pass an array:

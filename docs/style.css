@@ -1,0 +1,43 @@
+.content {
+  max-width: 900px;
+}
+
+.navigation {
+  overflow: hidden;
+}
+
+.manual-root .content img {
+  box-shadow: none !important;
+  max-width: 300px;
+}
+
+.manual-toc a {
+  width: 240px;
+  white-space: pre-wrap;
+}
+
+blockquote {
+  background: #fafafa;
+  border-left: 10px solid #ddd;
+  margin: 1.5em 10px;
+  padding: 0.5em 10px;
+}
+
+blockquote p {
+  margin-bottom: 0;
+}
+
+h3#static-variable-DataTypes ~ div[data-ice="properties"] table.params tr td:nth-child(3) {
+  display: none;
+}
+
+h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(2),
+h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(3),
+h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(4) {
+  display: none;
+}
+
+.manual-badge,
+.manual-cards {
+  display: none !important;
+}

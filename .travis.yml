@@ -40,3 +40,14 @@ before_script:
 
 script:
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
+
+deploy:
+  provider: surge
+  project: ./esdoc/
+  skip_cleanup: true
+  on:
+    branch: master
+
+
+before_deploy:
+  - "esdoc"

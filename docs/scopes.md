@@ -1,5 +1,7 @@
-# Definition
+# Scopes
 Scoping allows you to define commonly used queries that you can easily use later. Scopes can include all the same attributes as regular finders, `where`, `include`, `limit` etc.
+
+## Definition
 
 Scopes are defined in the model definition and can be finder objects, or functions returning finder objects - except for the default scope, which can only be an object:
 
@@ -71,7 +73,7 @@ activeUsers: {
 }
 ```
 
-# Usage
+## Usage
 Scopes are applied by calling `.scope` on the model definition, passing the name of one or more scopes. `.scope` returns a fully functional model instance with all the regular methods: `.findAll`, `.update`, `.count`, `.destroy` etc. You can save this model instance and reuse it later:
 
 ```js
@@ -165,7 +167,7 @@ WHERE deleted = true AND firstName = 'john'
 
 Here the `deleted` scope is merged with the finder. If we were to pass `where: { firstName: 'john', deleted: false }` to the finder, the `deleted` scope would be overwritten.
 
-# Associations
+## Associations
 Sequelize has two different but related scope concepts in relation to associations. The difference is subtle but important:
 
 * **Association scopes** Allow you to specify default attributes when getting and setting associations - useful when implementing polymorphic associations. This scope is only invoked on the association between the two models, when using the `get`, `set`, `add` and `create` associated model functions

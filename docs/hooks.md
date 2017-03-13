@@ -1,3 +1,5 @@
+# Hooks
+
 Hooks (also known as callbacks or lifecycle events), are functions which are called before and after calls in sequelize are executed. For example, if you want to always set a value on a model before saving it, you can add a `beforeUpdate` hook.
 
 For a full list of hooks, see [Hooks API](/api/hooks).

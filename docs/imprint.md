@@ -1,4 +1,6 @@
-# Imprint - Boring legal stuff for the rest of us.
+# Imprint 
+
+- Boring legal stuff for the rest of us.
 As there are people who are suing for fun and glory, you can find the respective information about the author of the page right here. Have fun reading ...
 
 ## AUTHOR(S)
