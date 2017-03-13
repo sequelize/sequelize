@@ -1,42 +1,37 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , current   = Support.sequelize;
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), function () {
   describe('previous', function () {
     it('should return correct previous value', function () {
-      var Model = current.define('Model', {
-          text: {
-            type: DataTypes.STRING,
-            get: function (name) {
-              return this.getDataValue(name);
-            },
-            set: function (value, name) {
-              this.setDataValue(name, value);
-            }
+      const Model = current.define('Model', {
+        text: DataTypes.STRING,
+        textCustom: {
+          type: DataTypes.STRING,
+          set(val) {
+            this.setDataValue('textCustom', val);
+          },
+          get() {
+            this.getDataValue('textCustom');
           }
-        })
-        , instance
-        , shouldBeEmpty
-        , shouldBeA;
-
-      instance = Model.build({ text: 'a' }, {
-        isNewRecord: false
+        }
       });
 
-      shouldBeEmpty = instance.previous('text');
+      const instance = Model.build({ text: 'a', textCustom: 'abc' });
+      expect(instance.previous('text')).to.be.not.ok;
+      expect(instance.previous('textCustom')).to.be.not.ok;
 
       instance.set('text', 'b');
+      instance.set('textCustom', 'def');
 
-      shouldBeA = instance.previous('text');
-
-      expect(shouldBeEmpty).to.be.not.ok;
-      expect(shouldBeA).to.be.equal('a');
+      expect(instance.previous('text')).to.be.equal('a');
+      expect(instance.previous('textCustom')).to.be.equal('abc');
     });
   });
 });

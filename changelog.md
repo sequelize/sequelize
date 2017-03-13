@@ -1,5 +1,8 @@
 # Future
 - [ADDED] `options.alter` to sequelize.sync() to alter existing tables.[#7230](https://github.com/sequelize/sequelize/pull/7230)
+- [FIXED] Show a reasonable message when using renameColumn with a missing column  [#6606](https://github.com/sequelize/sequelize/issues/6606)
+- [PERFORMANCE] more efficient array handing for certain large queries [#7175](https://github.com/sequelize/sequelize/pull/7175)
+- [FIXED] Add `unique` indexes defined via options to `rawAttributes` [#7196]
 - [FIXED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
 - [CHANGED] `DataTypes.DATE` to use `DATETIMEOFFSET` [MSSQL] [#5403](https://github.com/sequelize/sequelize/issues/5403)
 - [FIXED] Properly pass options to `sequelize.query` in `removeColumn` [MSSQL] [#7193](https://github.com/sequelize/sequelize/pull/7193)
@@ -8,6 +11,7 @@
 - [FIXED] MSSQL tedious debug regression fix when dialectOptions are not passed [#7130](https://github.com/sequelize/sequelize/pull/7130)
 - [CHANGED] `setIsolationLevelQuery` to skip under MSSQL dialect, added debug listener for tedious [#7130](https://github.com/sequelize/sequelize/pull/7130)
 - [FIXED] `sourceKey` FOR `hasMany` now also works if a `where` was specified in an `include` [#7141](https://github.com/sequelize/sequelize/issues/7141)
+- [ADDED] SQLite JSON datatype support [#7094](https://github.com/sequelize/sequelize/pull/7094)
 - [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
 - [ADDED] Filtered Indexes support for SQL Server [#7016](https://github.com/sequelize/sequelize/issues/7016)
 - [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
@@ -49,6 +53,10 @@
 - [INTERNAL] Updated to `generic-pool@3.1.6` [#7109](https://github.com/sequelize/sequelize/issues/7109)
 - [FIXED] findAll throws error if attributes option is formatted incorrectly [#7162](https://github.com/sequelize/sequelize/issues/7163)
 - [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
+- [FIXED] Add quotes around column names for unique constraints in sqlite [#4407](https://github.com/sequelize/sequelize/pull/4407)
+- [FIXED] Connection error when fetching OIDs for unspported types in Postgres 8.2 or below [POSTGRES] [#5254](https://github.com/sequelize/sequelize/issues/5254)
+- [FIXED] Expose OptimisticLockError on Sequelize object [#7291](https://github.com/sequelize/sequelize/pull/7291)
+- [FIXED] Deleted paranoid records can be queried in the same second. [#7204](https://github.com/sequelize/sequelize/issues/7204)/[#7332](https://github.com/sequelize/sequelize/pull/7332)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
