@@ -984,7 +984,7 @@ An OR query
 ## `json(conditions, [value])` -> `Sequelize.json`
 [View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/sequelize.js#L1159)
 
-Creates an object representing nested where conditions for postgres/mysql json data-type.
+Creates an object representing nested where conditions for postgres's json data-type.
 
 **See:**
 
@@ -995,7 +995,7 @@ Creates an object representing nested where conditions for postgres/mysql json d
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| conditions | String &#124; Object | A hash containing strings/numbers or other nested hash, a string using dot notation or a string using postgres/mysql json syntax. |
+| conditions | String &#124; Object | A hash containing strings/numbers or other nested hash, a string using dot notation or a string using postgres json syntax. |
 | [value] | String &#124; Number &#124; Boolean | An optional value to compare against. Produces a string of the form "&lt;json path&gt; = '&lt;value&gt;'". |
 
 

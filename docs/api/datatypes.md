@@ -179,7 +179,7 @@ A key / value column. Only available in postgres.
 ## `JSON()`
 [View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/data-types.js#L507)
 
-A JSON string column. Available in postgres and mysql.
+A JSON string column. Only available in postgres.
 
 ***
 

@@ -1,6 +1,8 @@
 # Future
 
 - [ADDED] MySQL JSON Data Type [#7106](https://github.com/sequelize/sequelize/pull/7106)
+- [FIXED] Show a reasonable message when using renameColumn with a missing column  [#6606](https://github.com/sequelize/sequelize/issues/6606)
+- [PERFORMANCE] more efficient array handing for certain large queries [#7175](https://github.com/sequelize/sequelize/pull/7175)
 - [FIXED] Add `unique` indexes defined via options to `rawAttributes` [#7196]
 - [FIXED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
 - [CHANGED] `DataTypes.DATE` to use `DATETIMEOFFSET` [MSSQL] [#5403](https://github.com/sequelize/sequelize/issues/5403)
@@ -54,6 +56,8 @@
 - [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
 - [FIXED] Add quotes around column names for unique constraints in sqlite [#4407](https://github.com/sequelize/sequelize/pull/4407)
 - [FIXED] Connection error when fetching OIDs for unspported types in Postgres 8.2 or below [POSTGRES] [#5254](https://github.com/sequelize/sequelize/issues/5254)
+- [FIXED] Expose OptimisticLockError on Sequelize object [#7291](https://github.com/sequelize/sequelize/pull/7291)
+- [FIXED] Deleted paranoid records can be queried in the same second. [#7204](https://github.com/sequelize/sequelize/issues/7204)/[#7332](https://github.com/sequelize/sequelize/pull/7332)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type

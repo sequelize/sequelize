@@ -11,46 +11,42 @@ const Support = require(__dirname + '/../support')
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 if (current.dialect.supports.JSON) {
-  const type = DataTypes[current.dialect.name].JSON ?
-    new DataTypes[current.dialect.name].JSON() :
-    new DataTypes.JSON();
-
   suite(Support.getTestDialectTeaser('SQL'), function () {
     suite('JSON', function () {
       suite('escape', function () {
         test('plain string', function () {
-          expectsql(sql.escape('string', { type: type }), {
+          expectsql(sql.escape('string', { type: new DataTypes.JSON() }), {
             default: '\'"string"\'',
             mysql: '\'\\"string\\"\''
           });
         });
 
         test('plain int', function () {
-          expectsql(sql.escape(0, { type: type }), {
+          expectsql(sql.escape(0, { type: new DataTypes.JSON() }), {
             default: '\'0\''
           });
-          expectsql(sql.escape(123, { type: type }), {
+          expectsql(sql.escape(123, { type: new DataTypes.JSON() }), {
             default: '\'123\''
           });
         });
 
         test('boolean', function () {
-          expectsql(sql.escape(true, { type: type }), {
+          expectsql(sql.escape(true, { type: new DataTypes.JSON() }), {
             default: '\'true\''
           });
-          expectsql(sql.escape(false, { type: type }), {
+          expectsql(sql.escape(false, { type: new DataTypes.JSON() }), {
             default: '\'false\''
           });
         });
 
         test('NULL', function () {
-          expectsql(sql.escape(null, { type: type }), {
+          expectsql(sql.escape(null, { type: new DataTypes.JSON() }), {
             default: 'NULL'
           });
         });
 
         test('nested object', function () {
-          expectsql(sql.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: type }), {
+          expectsql(sql.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }), {
             default: '\'{"some":"nested","more":{"nested":true},"answer":42}\'',
             mysql: '\'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}\''
           });
