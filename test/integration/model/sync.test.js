@@ -2,7 +2,7 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-var chai = require('chai')
+const chai = require('chai')
   , Sequelize = require('../../../index')
   , expect = chai.expect
   , Support = require(__dirname + '/../support');
@@ -87,11 +87,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return this.sequelize.sync()
         .then(() => testSync.create({name: 'test', age: '1'}))
         .then(() => this.sequelize.sync({alter: true}))
-        .then(function() {
-          return testSync.findOne().then((data) => {
-            expect(data.dataValues.name).to.eql('test');
-            expect(data.dataValues.age).to.eql('1');
-          });
+        .then(() => testSync.findOne())
+        .then(data => {
+          expect(data.dataValues.name).to.eql('test');
+          expect(data.dataValues.age).to.eql('1');
         });
     });
   });
