@@ -78,6 +78,28 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     }
 
+    it('should lock table during find and create', function () {
+      var User = this.sequelize.define('User', {
+        email: {
+          type: DataTypes.STRING
+        }
+      });
+
+      return User.sync({force: true}).then(function () {
+        return Promise.map(_.range(8), function (i) {
+          return User.findOrCreate({
+            where: {
+              email: 'email@sequelizejs.com'
+            }
+          });
+        }).then(function() {
+          return User.count().then(function(count) {
+            expect(count).to.equal(1);
+          });
+        });
+      });
+    });
+
     it('should error correctly when defaults contain a unique key', function () {
       var User = this.sequelize.define('user', {
         objectId: {
