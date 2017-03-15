@@ -30,8 +30,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           });
 
           Model.removeAttribute('id');
-          const instance = Model.build();
 
+          const instance = Model.build();
           expect(instance.dataValues).not.to.include.keys('undefined');
       });
   });
