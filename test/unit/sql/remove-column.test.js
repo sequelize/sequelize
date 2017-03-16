@@ -17,7 +17,7 @@ if (current.dialect.name !== 'sqlite') {
         }, 'email'), {
           mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
           mysql: 'ALTER TABLE `archive.user` DROP `email`;',
-          postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
+          postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";DROP TYPE IF EXISTS "archive"."enum_user_email"; '
         });
       });
     });
