@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(_.size(Model.primaryKeys)).to.equal(0);
     });
 
-      it('should not add undefined attribute after removing primary key attribute', function () {
+      it('should not add undefined attribute after removing primary key', function () {
           var Model = current.define('m', {
               name: DataTypes.STRING
           });
