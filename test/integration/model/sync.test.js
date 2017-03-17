@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('should remove a column if it exists in the databases schema but not the model', function() {
-      var User = this.sequelize.define('testSync', {
+      let User = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.INTEGER
       });
@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('should add a column if it exists in the model but not the database', function() {
-      var testSync = this.sequelize.define('testSync', {
+      let testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING
       });
       return this.sequelize.sync()
@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('should change a column if it exists in the model but is different in the database', function() {
-      var testSync = this.sequelize.define('testSync', {
+      let testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.INTEGER
       });
@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     });
 
     it('should not modify data if the data type does not change', function() {
-      var testSync = this.sequelize.define('testSync', {
+      let testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.STRING
       });
