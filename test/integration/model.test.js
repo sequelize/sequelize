@@ -2736,4 +2736,162 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       })).to.be.rejectedWith(Promise.AggregateError);
     });
   });
+
+  describe('increment', function() {
+    beforeEach(function() {
+      this.User = this.sequelize.define('User', {
+        id: { type: DataTypes.INTEGER, primaryKey: true },
+        aNumber: { type: DataTypes.INTEGER },
+        bNumber: { type: DataTypes.INTEGER },
+      });
+
+      var self = this;
+      return this.User.sync({ force: true }).then(function() {
+        return self.User.bulkCreate([{
+          id: 1,
+          aNumber: 0,
+          bNumber: 0
+        }, {
+          id: 2,
+          aNumber: 0,
+          bNumber: 0
+        }, {
+          id: 3,
+          aNumber: 0,
+          bNumber: 0
+        }]);
+      });
+    });
+
+    it('supports where conditions', function() {
+      var self = this;
+      return this.User.findById(1).then(function(user1) {
+        return self.User.increment(['aNumber'], { by: 2, where: { id: 1 } }).then(function() {
+          return self.User.findById(2).then(function(user3) {
+            expect(user3.aNumber).to.be.equal(0);
+          });
+        });
+      });
+    });
+
+    it('should still work right with other concurrent increments', function() {
+      var self = this;
+      return this.User.findAll().then(function(aUsers) {
+        return self.sequelize.Promise.all([
+          self.User.increment(['aNumber'], { by: 2 }),
+          self.User.increment(['aNumber'], { by: 2 }),
+          self.User.increment(['aNumber'], { by: 2 })
+        ]).then(function() {
+          return self.User.findAll().then(function(bUsers) {
+            for (var i = 0; i < bUsers.length; i++) {
+              expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 6);
+            }
+          });
+        });
+      });
+    });
+
+    it('with array', function() {
+      var self = this;
+      return this.User.findAll().then(function(aUsers) {
+        return self.User.increment(['aNumber'], { by: 2 }).then(function() {
+          return self.User.findAll().then(function(bUsers) {
+            for (var i = 0; i < bUsers.length; i++) {
+              expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 2);
+            }
+          });
+        });
+      });
+    });
+
+    it('with single field', function() {
+      var self = this;
+      return this.User.findAll().then(function(aUsers) {
+        return self.User.increment('aNumber', { by: 2 }).then(function() {
+          return self.User.findAll().then(function(bUsers) {
+            for (var i = 0; i < bUsers.length; i++) {
+              expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 2);
+            }
+          });
+        });
+      });
+    });
+
+    it('with single field and no value', function() {
+      var self = this;
+      return this.User.findAll().then(function(aUsers) {
+        return self.User.increment('aNumber').then(function() {
+          return self.User.findAll().then(function(bUsers) {
+            for (var i = 0; i < bUsers.length; i++) {
+              expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 1);
+            }
+          });
+        });
+      });
+    });
+
+    it('with key value pair', function() {
+      var self = this;
+      return this.User.findAll().then(function(aUsers) {
+        return self.User.increment({ 'aNumber': 1, 'bNumber': 2 }).then(function() {
+          return self.User.findAll().then(function(bUsers) {
+            for (var i = 0; i < bUsers.length; i++) {
+              expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 1);
+              expect(bUsers[i].bNumber).to.equal(aUsers[i].bNumber + 2);
+            }
+          });
+        });
+      });
+    });
+
+    it('should still work right with other concurrent updates', function() {
+      var self = this;
+      return this.User.findAll().then(function(aUsers) {
+        return self.User.update({ 'aNumber': 2 }, { where: {} }).then(function() {
+          return self.User.increment(['aNumber'], { by: 2 }).then(function() {
+            return self.User.findAll().then(function(bUsers) {
+              for (var i = 0; i < bUsers.length; i++) {
+                expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 4);
+              }
+            });
+          });
+        });
+      });
+    });
+
+    it('with timestamps set to true', function() {
+      var User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true })
+        , oldDate;
+
+      return User.sync({ force: true }).bind(this).then(function() {
+        return User.create({aNumber: 1});
+      }).then(function(user) {
+        oldDate = user.updatedAt;
+
+        this.clock.tick(1000);
+        return User.increment('aNumber', {by: 1});
+      }).then(function() {
+        return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
+      });
+    });
+
+    it('with timestamps set to true and options.silent set to true', function() {
+      var User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true })
+        , oldDate;
+
+      return User.sync({ force: true }).bind(this).then(function() {
+        return User.create({aNumber: 1});
+      }).then(function(user) {
+        oldDate = user.updatedAt;
+        this.clock.tick(1000);
+        return User.increment('aNumber', {by: 1, silent: true});
+      }).then(function() {
+        return expect(User.findById(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+      });
+    });
+  });
 });
