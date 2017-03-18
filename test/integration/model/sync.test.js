@@ -7,9 +7,9 @@ const chai = require('chai')
   , expect = chai.expect
   , Support = require(__dirname + '/../support');
 
-describe(Support.getTestDialectTeaser('Model'), () => {
-  describe('sync', () => {
-    beforeEach(() => {
+describe(Support.getTestDialectTeaser('Model'), function() {
+  describe('sync', function() {
+    beforeEach(function() {
       this.testSync = this.sequelize.define('testSync', {
         dummy: Sequelize.STRING
       });
@@ -17,7 +17,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.testSync.drop();
     });
 
-    it('should remove a column if it exists in the databases schema but not the model', () => {
+    it('should remove a column if it exists in the databases schema but not the model', function() {
       let User = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.INTEGER
@@ -31,13 +31,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })
         .then(() => this.sequelize.sync({alter: true}))
         .then(() => {
-          return User.describe().then((data) => {
+          return User.describe().then(data => {
             expect(data).to.not.ownProperty('age');
           });
         });
     });
 
-    it('should add a column if it exists in the model but not the database', () => {
+    it('should add a column if it exists in the model but not the database', function() {
       let testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING
       });
@@ -51,13 +51,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })
         .then(() => this.sequelize.sync({alter: true}))
         .then(() => {
-          return testSync.describe().then((data) => {
+          return testSync.describe().then(data => {
             expect(data).to.ownProperty('age');
           });
         });
     });
 
-    it('should change a column if it exists in the model but is different in the database', () => {
+    it('should change a column if it exists in the model but is different in the database', function() {
       let testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.INTEGER
@@ -72,14 +72,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })
         .then(() => this.sequelize.sync({alter: true}))
         .then(() => {
-          return testSync.describe().then((data) => {
+          return testSync.describe().then(data => {
             expect(data).to.ownProperty('age');
             expect(data.age.type).to.have.string('CHAR'); // CHARACTER VARYING, VARCHAR(n)
           });
         });
     });
 
-    it('should not modify data if the data type does not change', () => {
+    it('should not modify data if the data type does not change', function() {
       let testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.STRING
