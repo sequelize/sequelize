@@ -23,5 +23,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(Model.primaryKeyAttribute).to.be.undefined;
       expect(_.size(Model.primaryKeys)).to.equal(0);
     });
+
+      it('should not add undefined attribute after removing primary key attribute', function () {
+          var Model = current.define('m', {
+              name: DataTypes.STRING
+          });
+
+          Model.removeAttribute('id');
+
+          const instance = Model.build();
+          expect(instance.dataValues).not.to.include.keys('undefined');
+      });
   });
 });
