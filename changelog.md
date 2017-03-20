@@ -1,5 +1,5 @@
 # Future
-- [ADDED] `options.alter` to sequelize.sync() to alter existing tables.[#7230](https://github.com/sequelize/sequelize/pull/7230)
+- [ADDED] `options.alter` to sequelize.sync() to alter existing tables.[#537](https://github.com/sequelize/sequelize/issues/537)
 - [FIXED] Show a reasonable message when using renameColumn with a missing column  [#6606](https://github.com/sequelize/sequelize/issues/6606)
 - [PERFORMANCE] more efficient array handing for certain large queries [#7175](https://github.com/sequelize/sequelize/pull/7175)
 - [FIXED] Add `unique` indexes defined via options to `rawAttributes` [#7196]

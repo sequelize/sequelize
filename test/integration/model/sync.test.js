@@ -29,7 +29,10 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         })
         .then(() => this.sequelize.sync({alter: true}))
         .then(() => User.describe())
-        .then(data => expect(data).to.not.have.ownProperty('age'));
+        .then(data => {
+          expect(data).to.not.have.ownProperty('age')
+          expect(data).to.have.ownProperty('name')
+        });
     });
 
     it('should add a column if it exists in the model but not the database', function() {
@@ -64,7 +67,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
     });
 
-    it('should not modify data if the data type does not change', function() {
+    it('should not alter table if data type does not change', function() {
       var testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.STRING
