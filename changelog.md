@@ -56,7 +56,8 @@
 - [FIXED] Connection error when fetching OIDs for unspported types in Postgres 8.2 or below [POSTGRES] [#5254](https://github.com/sequelize/sequelize/issues/5254)
 - [FIXED] Expose OptimisticLockError on Sequelize object [#7291](https://github.com/sequelize/sequelize/pull/7291)
 - [FIXED] Deleted paranoid records can be queried in the same second. [#7204](https://github.com/sequelize/sequelize/issues/7204)/[#7332](https://github.com/sequelize/sequelize/pull/7332)
-- [FIXED] `removeAttribute('id')` results in `undefined: null` data value  [#7318] https://github.com/sequelize/sequelize/issues/7318
+- [FIXED] `removeAttribute('id')` results in `undefined: null` data value [#7318](https://github.com/sequelize/sequelize/issues/7318)
+- [FIXED] `bulkCreate` now runs in O(N) time instead of O(N^2) time. [#4247](https://github.com/sequelize/sequelize/issues/4247)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
