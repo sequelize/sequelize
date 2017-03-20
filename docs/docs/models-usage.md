@@ -223,7 +223,7 @@ Project.findOne({
 })
 ```
 
-Both pieces of code code will generate the following:
+Both pieces of code will generate the following:
 
 ```sql
 SELECT *
