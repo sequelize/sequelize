@@ -30,8 +30,8 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         .then(() => this.sequelize.sync({alter: true}))
         .then(() => User.describe())
         .then(data => {
-          expect(data).to.not.have.ownProperty('age')
-          expect(data).to.have.ownProperty('name')
+          expect(data).to.not.have.ownProperty('age');
+          expect(data).to.have.ownProperty('name');
         });
     });
 
