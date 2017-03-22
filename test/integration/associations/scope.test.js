@@ -136,6 +136,12 @@ describe(Support.getTestDialectTeaser('associations'), function() {
           expect(mainComment.get('commentable')).to.equal('post');
           expect(mainComment.get('isMain')).to.be.true;
           expect(mainComment.get('title')).to.equal('I am a future main comment');
+          return this.Post.scope('withComments').count({});
+        }).then(function(nonDistinctCount) {
+          expect(nonDistinctCount).to.eq(2);
+          return this.Post.scope('withComments').count({ distinct: true });
+        }).then(function (distinctCount) {
+          expect(distinctCount).to.eq(1);
         });
       });
     });
