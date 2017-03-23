@@ -45,11 +45,11 @@
 - [FIXED] scope method syntax loses parameters when used multiple times [#7058](https://github.com/sequelize/sequelize/issues/7058)
 - [INTERNAL] Updated to `generic-pool@3.1.6` [#7109](https://github.com/sequelize/sequelize/issues/7109)
 - [FIXED] findAll throws error if attributes option is formatted incorrectly [#7162](https://github.com/sequelize/sequelize/issues/7163)
-- [FIXED] model validation instance method now runs hooks by default [#7182](https://github.com/sequelize/sequelize/pull/7182)
+- [FIXED] Model.validate runs validation hooks by default [#7182](https://github.com/sequelize/sequelize/pull/7182)
 - [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/issues/7178)
 
 ## BC breaks:
-- The model validation instance method now runs hooks by default. Previously, hooks would only run when explictly passed as follows: model.validate({hooks: true})
+-Model.validate instance method now runs validation hooks by default. Previously you needed to pass { hooks: true }. You can override this behavior by passing { hooks: false }
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 - With `BelongsToMany` relationships `add/set/create` setters now set `through` attributes by passing them as `options.through` (previously second argument was used as `through` attributes, now its considered `options` with `through` being a sub option)
 
