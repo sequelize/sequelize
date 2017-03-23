@@ -272,10 +272,20 @@ if (current.dialect.supports.transactions) {
         return this.sequelize.transaction(function () {
           var tid = self.ns.get('transaction').id;
           // In order to execute promises serially with mapSeries we must wrap them as functions
-          return self.sequelize.Promise.mapSeries([
-              ()=> self.User.findAll().then(()=> expect(self.ns.get('transaction').id).to.be.ok),
-              ()=> self.User.findAll().then(()=> expect(self.ns.get('transaction').id).to.equal(tid))
-            ], runPromise => runPromise()
+          return self.sequelize.Promise.mapSeries(
+            [
+              function() {
+                return self.User.findAll().then(
+                  function() {expect(self.ns.get('transaction').id).to.be.ok;}
+                );
+              },
+              function() {
+                return self.User.findAll().then(
+                  function() {expect(self.ns.get('transaction').id).to.equal(tid);}
+                );
+              }
+            ],
+            function(runPromise) {return runPromise();}
           );
         });
       });
