@@ -30,6 +30,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       {
         mssql:'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp VALUES (N\'triggertest\');select * from @tmp;',
         postgres: 'INSERT INTO "users" ("user_name") VALUES (\'triggertest\') RETURNING *;',
+        oracle: "INSERT INTO users (user_name) VALUES ('triggertest') RETURNING id INTO $:id;INTEGER$;",
         default: "INSERT INTO `users` (`user_name`) VALUES ('triggertest');",
       });
     });
@@ -54,6 +55,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         {
           postgres: 'INSERT INTO "users" ("date") VALUES (\'2015-01-20 01:00:00.000 +01:00\');',
           sqlite: 'INSERT INTO `users` (`date`) VALUES (\'2015-01-20 00:00:00.000 +00:00\');',
+          oracle: "INSERT INTO users (date) VALUES (TO_TIMESTAMP('2015-01-20 01:00:00.00','YYYY-MM-DD HH24:MI:SS.FF'));",
           mssql: 'INSERT INTO [users] ([date]) VALUES (N\'2015-01-20 01:00:00.000\');',
           mysql: "INSERT INTO `users` (`date`) VALUES ('2015-01-20 01:00:00');"
         });
@@ -77,6 +79,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
           postgres: 'INSERT INTO "users" ("date") VALUES (\'2015-01-20 02:02:03.089 +01:00\');',
           sqlite: 'INSERT INTO `users` (`date`) VALUES (\'2015-01-20 01:02:03.089 +00:00\');',
           mssql: 'INSERT INTO [users] ([date]) VALUES (N\'2015-01-20 02:02:03.089\');',
+          oracle: 'INSERT INTO users (date) VALUES (TO_TIMESTAMP(\'2015-01-20 02:02:03.03\',\'YYYY-MM-DD HH24:MI:SS.FF\'));',
           mysql: "INSERT INTO `users` (`date`) VALUES ('2015-01-20 02:02:03.089');"
         });
     });
@@ -85,7 +88,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
   describe('bulkCreate', function () {
     it('bulk create with onDuplicateKeyUpdate', function () {
       // Skip mssql for now, it seems broken
-      if (Support.getTestDialect() === 'mssql') {
+      if (Support.getTestDialect() === 'mssql' || Support.getTestDialect() === 'oracle') {
         return;
       }
 

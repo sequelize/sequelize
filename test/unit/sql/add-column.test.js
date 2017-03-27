@@ -29,7 +29,7 @@ if (current.dialect.name === 'mysql') {
         });
       });
 
-      it('properly generate alter queries for foreign keys', function(){
+      it.only('properly generate alter queries for foreign keys', function(){
         return expectsql(sql.addColumnQuery(Model.getTableName(), 'level_id', current.normalizeAttribute({
           type: DataTypes.INTEGER,
           references: {
