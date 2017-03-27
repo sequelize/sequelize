@@ -408,10 +408,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         });
       });
     });
-  });
 
-
-  it('supports where in include with required', function () {
+    it('supports where in include with required', function () {
       var User = this.sequelize.define('User', {
         id: {
           type: DataTypes.INTEGER,
@@ -476,18 +474,18 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
         }).then(function () {
           return Promise.join(
             Company.scope([{
-              attributes : ["company_id"],
+              attributes : ['company_id'],
               where : [{
-                  "company_id" : {
+                  'company_id' : {
                     $ne : null
                   }
               }],
               include: [{
                   model: Group, 
                   required : true,
-                  attributes : ["group_id"],
+                  attributes : ['group_id'],
                   where : [{
-                    "group_id" : {
+                    'group_id' : {
                       $eq : 1
                     }
                   }]
@@ -496,7 +494,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
               offset : 0,
               limit : 1,
             })
-            .then(result => {
+            .then(function(result) {
               return expect(result.length).to.equal(1);
             })
           );
