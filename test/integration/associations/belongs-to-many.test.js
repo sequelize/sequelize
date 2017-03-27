@@ -410,6 +410,101 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
     });
   });
 
+
+  it('supports where in include with required', function () {
+      var User = this.sequelize.define('User', {
+        id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          primaryKey: true,
+          autoIncrement : true,
+          field: 'user_id'
+        }
+      }, {
+        tableName: 'tbl_user'
+      });
+
+      var Company = this.sequelize.define('Company', {
+        id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          primaryKey: true,
+          autoIncrement : true,
+          field: 'company_id'
+        }
+      }, {
+        tableName: 'tbl_company'
+      });
+
+      var Group = this.sequelize.define('Group', {
+        id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          primaryKey: true,
+          autoIncrement : true,
+          field: 'group_id'
+        }
+      }, {
+        tableName: 'tbl_group'
+      });
+
+      var Company_has_Group = this.sequelize.define('Company_has_Group', {
+      }, {
+        tableName: 'tbl_company_has_group'
+      });
+
+      User.belongsTo(Company);
+      Company.hasMany(User);
+      Company.belongsToMany(Group, {through: Company_has_Group});
+      Group.belongsToMany(Company, {through: Company_has_Group});
+
+      return this.sequelize.sync({force: true}).then(function () {
+        return Promise.join(
+          User.create(),
+          Group.create(),
+          Company.create(),
+          Group.create(),
+          Company.create()
+        ).spread(function (user, group, company, group2, company2) {
+          return Promise.join(
+            user.setCompany(company),
+            company.addGroup(group),
+            company.addGroup(group2),
+            company2.addGroup(group),
+            company2.addGroup(group2)
+          );
+        }).then(function () {
+          return Promise.join(
+            Company.scope([{
+              attributes : ["company_id"],
+              where : [{
+                  "company_id" : {
+                    $ne : null
+                  }
+              }],
+              include: [{
+                  model: Group, 
+                  required : true,
+                  attributes : ["group_id"],
+                  where : [{
+                    "group_id" : {
+                      $eq : 1
+                    }
+                  }]
+                }]
+            }]).findAll({
+              offset : 0,
+              limit : 1,
+            })
+            .then(result => {
+              return expect(result.length).to.equal(1);
+            })
+          );
+        });
+      });
+    });
+  });
+
   describe('countAssociations', function() {
     beforeEach(function() {
       var self = this;
