@@ -10,7 +10,10 @@ $ npm install --save pg pg-hstore
 $ npm install --save mysql // For both mysql and mariadb dialects
 $ npm install --save sqlite3
 $ npm install --save tedious // MSSQL
+$ npm install --save oracledb // Oracle
 ```
+
+For Oracle specific case, refer to https://github.com/oracle/node-oracledb/blob/master/INSTALL.md to install the dependents packages
 
 ## Setting up a connection
 
