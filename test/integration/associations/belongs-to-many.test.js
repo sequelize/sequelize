@@ -472,8 +472,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
             company2.addGroup(group2)
           );
         }).then(function () {
-          return Promise.join(
-            Company.scope([{
+            Company.addScope('includeGroup', {
               attributes : ['company_id'],
               where : [{
                   'company_id' : {
@@ -490,14 +489,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), function() {
                     }
                   }]
                 }]
-            }]).findAll({
+            });
+            
+            return Company.scope('includeGroup').findAll({
               offset : 0,
               limit : 1,
             })
             .then(function(result) {
               return expect(result.length).to.equal(1);
-            })
-          );
+            });
         });
       });
     });
