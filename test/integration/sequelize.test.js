@@ -780,6 +780,20 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
 
   });
 
+  it('correctly binds date objects', function () {
+    let logSql;
+    const testDate = new Date(0);
+    return this.sequelize.query('select $date', {
+      raw: true,
+      bind: {
+        date: testDate,
+      },
+      logging (s) { logSql = s; } })
+      .then(result => {
+        expect(logSql).to.include('1970-01-01 01:00:00');
+      });
+  });
+
   describe('set', function() {
     it("should be configurable with global functions", function() {
       var defaultClassMethod = sinon.spy()
