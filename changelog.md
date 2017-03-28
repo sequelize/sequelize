@@ -1,6 +1,11 @@
 # Future
 - [FIXED] Using `Date` objects in associative bind parameters caused error.
 
+# 3.30.3
+- [ADDED] Ability to run transactions on a read-replica by marking transactions as read only [#7323](https://github.com/sequelize/sequelize/issues/7323)
+- [FIXED] Add quotes around column names for unique constraints in sqlite [#4407](https://github.com/sequelize/sequelize/issues/4407)
+
+
 # 3.30.2
 - [FIXED] `previous` method gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
 - [FIXED] Fixes setAssociation with scope [#7223](https://github.com/sequelize/sequelize/pull/7223)
