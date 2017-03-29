@@ -893,7 +893,7 @@ sequelize.fn('sum', sequelize.cast({ age: { $gt: 25 }, name: 'Joe' }, 'int'))
 ## `col(col)` -> `Sequelize.col`
 [View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/sequelize.js#L1093)
 
-Creates an object representing a column in the DB. This is often useful in conjunction with `sequelize.fn`, since raw string arguments to fn will be escaped.
+Creates an object which represents a column in the DB, this allows referencing another column in your query. This is often useful in conjunction with `sequelize.fn`, since raw string arguments to fn will be escaped.
 
 **See:**
 
