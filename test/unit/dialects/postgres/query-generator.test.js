@@ -279,23 +279,28 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM "myTable" AS "myTable" ORDER BY "myTable"."id" DESC;',
           context: QueryGenerator,
           needsSequelize: true
-        },{
-        arguments: ['myTable', {order: [['id', 'DESC'], ['name']]}, function(sequelize) {return sequelize.define('myTable', {});}],
+        }, {
+          arguments: ['myTable', {order: [['id', 'DESC'], ['name']]}, function(sequelize) {return sequelize.define('myTable', {});}],
           expectation: 'SELECT * FROM "myTable" AS "myTable" ORDER BY "myTable"."id" DESC, "myTable"."name";',
           context: QueryGenerator,
           needsSequelize: true
-        },{
+        }, {
+          arguments: ['myTable', {order: [['myTable.id', 'DESC'], ['myTable.name']]}, function(sequelize) {return sequelize.define('myTable', {});}],
+          expectation: 'SELECT * FROM "myTable" AS "myTable" ORDER BY "myTable"."id" DESC, "myTable"."name";',
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
           title: 'uses limit 0',
           arguments: ['myTable', {limit: 0}],
           expectation: 'SELECT * FROM "myTable" LIMIT 0;',
           context: QueryGenerator
         }, {
-         title: 'uses offset 0',
-         arguments: ['myTable', {offset: 0}],
-         expectation: 'SELECT * FROM "myTable" OFFSET 0;',
-         context: QueryGenerator
-       }, {
-         title: 'raw arguments are neither quoted nor escaped',
+          title: 'uses offset 0',
+          arguments: ['myTable', {offset: 0}],
+          expectation: 'SELECT * FROM "myTable" OFFSET 0;',
+          context: QueryGenerator
+        }, {
+          title: 'raw arguments are neither quoted nor escaped',
           arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'},'DESC']]}],
           expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2(id)) DESC;',
           context: QueryGenerator
