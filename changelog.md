@@ -61,7 +61,8 @@
 - [FIXED] `removeAttribute('id')` results in `undefined: null` data value [#7318](https://github.com/sequelize/sequelize/issues/7318)
 - [FIXED] `bulkCreate` now runs in O(N) time instead of O(N^2) time. [#4247](https://github.com/sequelize/sequelize/issues/4247)
 - [FIXED] Passing parameters to model getters [#7404](https://github.com/sequelize/sequelize/issues/7404)
-- [ADDED] Added support for ordering attributes with prefixed associations aliases. [#7425](https://github.com/sequelize/sequelize/issues/7425)
+- [ADDED] Added support for associations aliases in orders and groups. [#7425](https://github.com/sequelize/sequelize/issues/7425)
+- [REMOVED] Removes support for `{raw: 'injection goes here'}` for order and group. [#7188](https://github.com/sequelize/sequelize/issues/7188)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type

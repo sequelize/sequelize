@@ -285,11 +285,6 @@ if (dialect.match(/^postgres/)) {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          arguments: ['myTable', {order: [['myTable.id', 'DESC'], ['myTable.name']]}, function(sequelize) {return sequelize.define('myTable', {});}],
-          expectation: 'SELECT * FROM "myTable" AS "myTable" ORDER BY "myTable"."id" DESC, "myTable"."name";',
-          context: QueryGenerator,
-          needsSequelize: true
-        }, {
           title: 'uses limit 0',
           arguments: ['myTable', {limit: 0}],
           expectation: 'SELECT * FROM "myTable" LIMIT 0;',

@@ -304,32 +304,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           ],
 
           // through association order with internal connector as array with direction
-          ['Task->Project.createdAt', 'ASC'],
+          ['Task', 'Project', 'createdAt', 'ASC'],
           // through association order with internal connector as array without direction
-          ['Task->Project.createdAt'],
-          // through association order with internal connector as string
-          'Task->Project.createdAt',
-
-          // through association order with external connector as array with direction
-          ['Task.Project.createdAt', 'ASC'],
-          // through association order with external connector as array without direction
-          ['Task.Project.createdAt'],
-          // through association order with external connector as string
-          'Task.Project.createdAt',
+          ['Task', 'Project', 'createdAt'],
 
           // association order as array with direction
-          ['Task.createdAt', 'ASC'],
+          ['Task', 'createdAt', 'ASC'],
           // association order as array without direction
-          ['Task.createdAt'],
-          // association order as string
-          'Task.createdAt',
-
-          // main order with model name as array with direction
-          ['Subtask.createdAt', 'ASC'],
-          // main order with model name as array without direction
-          ['Subtask.createdAt'],
-          // main order with model name as string
-          'Subtask.createdAt',
+          ['Task', 'createdAt'],
 
           // main order as array with direction
           ['createdAt', 'ASC'],
@@ -339,8 +321,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           'createdAt'
         ]
       }, {
-        default: 'SELECT [Subtask].[id], [Subtask].[name], [Subtask].[createdAt], [Task].[id] AS [Task.id], [Task].[name] AS [Task.name], [Task].[created_at] AS [Task.createdAt], [Task->Project].[id] AS [Task.Project.id], [Task->Project].[name] AS [Task.Project.name], [Task->Project].[created_at] AS [Task.Project.createdAt] FROM [subtask] AS [Subtask] INNER JOIN [task] AS [Task] ON [Subtask].[task_id] = [Task].[id] INNER JOIN [project] AS [Task->Project] ON [Task].[project_id] = [Task->Project].[id] ORDER BY [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task->Project].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task].[created_at], [Subtask].[created_at] ASC, [Subtask].[created_at], [Subtask].[created_at], [Subtask].[created_at] ASC, [Subtask].[created_at], [Subtask].[created_at];',
-        postgres: 'SELECT "Subtask"."id", "Subtask"."name", "Subtask"."createdAt", "Task"."id" AS "Task.id", "Task"."name" AS "Task.name", "Task"."created_at" AS "Task.createdAt", "Task->Project"."id" AS "Task.Project.id", "Task->Project"."name" AS "Task.Project.name", "Task->Project"."created_at" AS "Task.Project.createdAt" FROM "subtask" AS "Subtask" INNER JOIN "task" AS "Task" ON "Subtask"."task_id" = "Task"."id" INNER JOIN "project" AS "Task->Project" ON "Task"."project_id" = "Task->Project"."id" ORDER BY "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task->Project"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task"."created_at", "Subtask"."created_at" ASC, "Subtask"."created_at", "Subtask"."created_at", "Subtask"."created_at" ASC, "Subtask"."created_at", "Subtask"."created_at";'
+        default: 'SELECT [Subtask].[id], [Subtask].[name], [Subtask].[createdAt], [Task].[id] AS [Task.id], [Task].[name] AS [Task.name], [Task].[created_at] AS [Task.createdAt], [Task->Project].[id] AS [Task.Project.id], [Task->Project].[name] AS [Task.Project.name], [Task->Project].[created_at] AS [Task.Project.createdAt] FROM [subtask] AS [Subtask] INNER JOIN [task] AS [Task] ON [Subtask].[task_id] = [Task].[id] INNER JOIN [project] AS [Task->Project] ON [Task].[project_id] = [Task->Project].[id] ORDER BY [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Subtask].[created_at] ASC, [Subtask].[created_at], [createdAt];',
+        postgres: 'SELECT "Subtask"."id", "Subtask"."name", "Subtask"."createdAt", "Task"."id" AS "Task.id", "Task"."name" AS "Task.name", "Task"."created_at" AS "Task.createdAt", "Task->Project"."id" AS "Task.Project.id", "Task->Project"."name" AS "Task.Project.name", "Task->Project"."created_at" AS "Task.Project.createdAt" FROM "subtask" AS "Subtask" INNER JOIN "task" AS "Task" ON "Subtask"."task_id" = "Task"."id" INNER JOIN "project" AS "Task->Project" ON "Task"."project_id" = "Task->Project"."id" ORDER BY "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Subtask"."created_at" ASC, "Subtask"."created_at", "createdAt";'
       });
     }());
   });

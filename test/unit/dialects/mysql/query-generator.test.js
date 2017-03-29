@@ -212,11 +212,6 @@ if (dialect === 'mysql') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          arguments: ['myTable', {order: [['myTable.id', 'DESC'], ['myTable.name']]}, function(sequelize) {return sequelize.define('myTable', {});}],
-          expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC, `myTable`.`name`;',
-          context: QueryGenerator,
-          needsSequelize: true
-        }, {
           title: 'raw arguments are neither quoted nor escaped',
           arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'}, 'DESC']]}],
           expectation: 'SELECT * FROM `myTable` ORDER BY f1(f2(id)) DESC;',
