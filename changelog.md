@@ -61,6 +61,7 @@
 - [FIXED] `removeAttribute('id')` results in `undefined: null` data value [#7318](https://github.com/sequelize/sequelize/issues/7318)
 - [FIXED] `bulkCreate` now runs in O(N) time instead of O(N^2) time. [#4247](https://github.com/sequelize/sequelize/issues/4247)
 - [FIXED] Passing parameters to model getters [#7404](https://github.com/sequelize/sequelize/issues/7404)
+- [ADDED] Added support for ordering attributes with prefixed associations aliases. [#7425](https://github.com/sequelize/sequelize/issues/7425)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
