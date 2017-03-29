@@ -75,7 +75,6 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [options.typeValidation=false] | Boolean | Run built in type validators on insert and update, e.g. validate that arguments passed to integer fields are integer-like. |
 | [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
 
-
 ***
 
 <a name="sequelize"></a>
@@ -790,6 +789,7 @@ Sync all defined models to the DB.
 | [options.schema='public'] | String | The schema that the tables should be created in. This can be overriden for each table in sequelize.define |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
 | [options.hooks=true] | Boolean | If hooks is true then beforeSync, afterSync, beforBulkSync, afterBulkSync hooks will be called |
+| [options.alter=false] | Boolean | Alters tables to fit models. Not recommended for production use. Deletes data in columns that were removed or had their type changed in the model. |
 
 
 ***

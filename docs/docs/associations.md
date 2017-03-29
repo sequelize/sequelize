@@ -137,7 +137,7 @@ var Player = this.sequelize.define('player', {/* attributes */})
   , Team  = this.sequelize.define('team', {/* attributes */});
 ```
 
-When we link two model in Sequelize we can refer them as pairs of **source** and **target** models. Like this
+When we link two models in Sequelize we can refer them as pairs of **source** and **target** models. Like this
 
 Having **Player** as the **source** and **Team** as the **target**
 ```js
