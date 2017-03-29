@@ -1,5 +1,5 @@
 # Future
-- [FIXED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
+- [REMOVED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
 - [CHANGED] `DataTypes.DATE` to use `DATETIMEOFFSET` [MSSQL] [#5403](https://github.com/sequelize/sequelize/issues/5403)
 - [FIXED] Properly pass options to `sequelize.query` in `removeColumn` [MSSQL] [#7193](https://github.com/sequelize/sequelize/pull/7193)
 - [FIXED] Updating `VIRTUAL` field throw `ER_EMPTY_QUERY` [#6356](https://github.com/sequelize/sequelize/issues/6356)
@@ -48,6 +48,7 @@
 - [INTERNAL] Updated to `generic-pool@3.1.6` [#7109](https://github.com/sequelize/sequelize/issues/7109)
 - [FIXED] findAll throws error if attributes option is formatted incorrectly [#7162](https://github.com/sequelize/sequelize/issues/7163)
 - [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
+- [ADDED] Added support for ordering attributes with prefixed associations aliases. [#7425](https://github.com/sequelize/sequelize/issues/7425)
 
 ## BC breaks:
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
