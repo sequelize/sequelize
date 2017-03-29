@@ -790,7 +790,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), function() {
       },
       logging: function (s) { logSql = s; } })
       .then(function (result) {
-        expect(logSql).to.include('1970-01-01 01:00:00');
+        expect(logSql).to.include(moment(testDate).format("YYYY-MM-DD HH:mm:ss"));
       });
   });
 
