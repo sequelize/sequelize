@@ -270,9 +270,10 @@ Project.findAll({ offset: 5, limit: 5 })
 `order` takes an array of items to order the query by or a sequelize method. Generally you will want to use a tuple/array of either attribute, direction or just direction to ensure proper escaping.
 
 ```js
-something.findOne({
+Something.findAll({
   order: [
     // Will escape username and validate DESC against a list of valid direction parameters
+    ['username', 'DESC'],
     ['username', 'DESC'],
 
     // Will order by max(age)
@@ -287,11 +288,18 @@ something.findOne({
     // Will order by name on an associated User
     [User, 'name', 'DESC'],
 
+    // Will order by name on an associated User using the attribute's association alias
+    ['User.name', 'DESC'],
+
     // Will order by name on an associated User aliased as Friend
     [{model: User, as: 'Friend'}, 'name', 'DESC'],
 
     // Will order by name on a nested associated Company of an associated User
     [User, Company, 'name', 'DESC'],
+
+    // Will order by name on a nested associated Company of an associated User using the attribute's association alias
+    ['User.Company.name', 'DESC'],
+    ['User->Company.name', 'DESC'],
   ]
   // Will order by max age descending
   order: sequelize.literal('max(age) DESC')
