@@ -2,6 +2,7 @@
 
 /* jshint -W110 */
 const util = require('util');
+const chai = require('chai');
 const expect = chai.expect;
 const Support   = require(__dirname + '/../support');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
