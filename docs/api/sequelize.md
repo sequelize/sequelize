@@ -851,7 +851,7 @@ __Aliases:__ validate
 ## `fn(fn, args)` -> `Sequelize.fn`
 [View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/sequelize.js#L1080)
 
-Creates a object representing a database function. This can be used in search queries, both in where and order parts, and as default values in column definitions.
+Creates an object representing a database function. This can be used in search queries, both in where and order parts, and as default values in column definitions.
 If you want to refer to columns in your function, you should use `sequelize.col`, so that the columns are properly interpreted as columns and not a strings.
 
 Convert a user's username to upper case
@@ -893,7 +893,7 @@ sequelize.fn('sum', sequelize.cast({ age: { $gt: 25 }, name: 'Joe' }, 'int'))
 ## `col(col)` -> `Sequelize.col`
 [View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/sequelize.js#L1093)
 
-Creates a object representing a column in the DB. This is often useful in conjunction with `sequelize.fn`, since raw string arguments to fn will be escaped.
+Creates an object which represents a column in the DB, this allows referencing another column in your query. This is often useful in conjunction with `sequelize.fn`, since raw string arguments to fn will be escaped.
 
 **See:**
 
@@ -913,7 +913,7 @@ Creates a object representing a column in the DB. This is often useful in conjun
 ## `cast(val, type)` -> `Sequelize.cast`
 [View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/sequelize.js#L1107)
 
-Creates a object representing a call to the cast function.
+Creates an object representing a call to the cast function.
 
 **Params:**
 
@@ -929,7 +929,7 @@ Creates a object representing a call to the cast function.
 ## `literal(val)` -> `Sequelize.literal`
 [View code](https://github.com/sequelize/sequelize/blob/3e5b8772ef75169685fc96024366bca9958fee63/lib/sequelize.js#L1120)
 
-Creates a object representing a literal, i.e. something that will not be escaped.
+Creates an object representing a literal, i.e. something that will not be escaped.
 
 **Params:**
 
