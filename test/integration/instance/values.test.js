@@ -372,67 +372,6 @@ describe(Support.getTestDialectTeaser('DAO'), function() {
           expect(product.get({clone: true}).title).to.be.ok;
         });
       });
-
-      it('can pass parameters to getters', function () {
-        var Product = this.sequelize.define('product', {
-          title: Sequelize.STRING
-        }, {
-          getterMethods: {
-            rating: function (key, options) {
-              if (options.apiVersion > 1) {
-                return 100;
-              }
-
-              return 5;
-            }
-          }
-        });
-
-        var User = this.sequelize.define('user', {
-          first_name: Sequelize.STRING,
-          last_name: Sequelize.STRING
-        }, {
-          getterMethods: {
-            height: function (key, options) {
-              if (options.apiVersion > 1) {
-                return 185; // cm
-              }
-
-              return 6.06; // ft
-            }
-          }
-        });
-
-        Product.belongsTo(User);
-
-        var product = Product.build({}, {
-          include: [
-            User
-          ]
-        });
-
-        product.set({
-          id: 1,
-          title: 'Chair',
-          user: {
-            id: 1,
-            first_name: 'Jozef',
-            last_name: 'Hartinger'
-          }
-        });
-
-        expect(product.get('rating')).to.equal(5);
-        expect(product.get('rating', {apiVersion: 2})).to.equal(100);
-
-        expect(product.get({plain: true})).to.have.property('rating', 5);
-        expect(product.get({plain: true}).user).to.have.property('height', 6.06);
-        expect(product.get({plain: true, apiVersion: 1})).to.have.property('rating', 5);
-        expect(product.get({plain: true, apiVersion: 1}).user).to.have.property('height', 6.06);
-        expect(product.get({plain: true, apiVersion: 2})).to.have.property('rating', 100);
-        expect(product.get({plain: true, apiVersion: 2}).user).to.have.property('height', 185);
-
-        expect(product.get('user').get('height', {apiVersion: 2})).to.equal(185);
-      });
     });
 
     describe('changed', function() {
