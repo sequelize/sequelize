@@ -446,35 +446,39 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
       });
     });
 
-    it('should work with enums', function() {
-      return this.queryInterface.createTable({
-        tableName: 'users'
-      }, {
-        firstName: DataTypes.STRING
-      }).bind(this).then(function() {
-        return this.queryInterface.changeColumn('users', 'firstName', {
-          type: DataTypes.ENUM(['value1', 'value2', 'value3'])
-        });
-      });
-    });
-
-    it('should work with enums with schemas', function() {
-      return this.sequelize.createSchema('archive').bind(this).then(function() {
+    // MSSQL doesn't support using a modified column in a check constraint.
+    // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
+    if (dialect !== 'mssql') {
+      it('should work with enums', function() {
         return this.queryInterface.createTable({
-          tableName: 'users',
-          schema: 'archive'
+          tableName: 'users'
         }, {
           firstName: DataTypes.STRING
-        });
-      }).bind(this).then(function() {
-        return this.queryInterface.changeColumn({
-          tableName: 'users',
-          schema: 'archive'
-        }, 'firstName', {
-          type: DataTypes.ENUM(['value1', 'value2', 'value3'])
+        }).bind(this).then(function() {
+          return this.queryInterface.changeColumn('users', 'firstName', {
+            type: DataTypes.ENUM(['value1', 'value2', 'value3'])
+          });
         });
       });
-    });
+
+      it('should work with enums with schemas', function() {
+        return this.sequelize.createSchema('archive').bind(this).then(function() {
+          return this.queryInterface.createTable({
+            tableName: 'users',
+            schema: 'archive'
+          }, {
+            firstName: DataTypes.STRING
+          });
+        }).bind(this).then(function() {
+          return this.queryInterface.changeColumn({
+            tableName: 'users',
+            schema: 'archive'
+          }, 'firstName', {
+            type: DataTypes.ENUM(['value1', 'value2', 'value3'])
+          });
+        });
+      });
+    }
   });
 
     //SQlite navitely doesnt support ALTER Foreign key
