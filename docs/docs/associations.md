@@ -6,7 +6,7 @@ With Sequelize you can also specify associations between multiple classes&period
 
 ### One-To-One associations
 
-One-To-One associations are connecting one source with exactly one target&period; In order to define a proper database schema&comma; Sequelize utilizes the methods`belongsTo`and`hasOne`&period; You can use them as follows&colon;
+One-To-One associations are connecting one source with exactly one target&period; In order to define a proper database schema&comma; Sequelize utilizes the methods `belongsTo` and `hasOne`&period; You can use them as follows&colon;
     
     var User = sequelize.define('User', {/* ... */})
     var Project = sequelize.define('Project', {/* ... */})
