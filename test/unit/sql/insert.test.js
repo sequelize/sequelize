@@ -116,5 +116,40 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mysql:'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);'
         });
     });
+
+    it('bulk create with preserveValuesOnNull', () => {
+      // Skip mssql for now, it seems broken
+      if (Support.getTestDialect() === 'mssql') {
+        return;
+      }
+
+      const User = Support.sequelize.define('user', {
+        username: {
+          type: DataTypes.STRING,
+          field: 'user_name'
+        },
+        password: {
+          type: DataTypes.STRING,
+          field: 'pass_word'
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+          field: 'created_at'
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+          field: 'updated_at'
+        }
+      }, {
+        timestamps:true
+      });
+
+      expectsql(sql.bulkInsertQuery(User.tableName, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['username', 'password', 'createdAt'], preserveValuesOnNull: ['username', 'password', 'createdAt'] }, User.rawAttributes),
+        {
+          default:'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
+          postgres:'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
+          mysql:'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=IF(VALUES(`user_name`) IS NOT NULL, VALUES(`user_name`), `user_name`),`pass_word`=IF(VALUES(`pass_word`) IS NOT NULL, VALUES(`pass_word`), `pass_word`),`created_at`=IF(VALUES(`created_at`) IS NOT NULL, VALUES(`created_at`), `created_at`);'
+        });
+    });
   });
 });
