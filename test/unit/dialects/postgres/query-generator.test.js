@@ -295,11 +295,6 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM "myTable" OFFSET 0;',
           context: QueryGenerator
         }, {
-          title: 'raw arguments are neither quoted nor escaped',
-          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'},'DESC']]}],
-          expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2(id)) DESC;',
-          context: QueryGenerator
-        }, {
           title: 'sequelize.where with .fn as attribute and default comparator',
           arguments: ['myTable', function(sequelize) {
             return {
@@ -325,7 +320,7 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM "myTable" WHERE (LOWER("user"."name") LIKE \'%t%\' AND "myTable"."type" = 1);',
           context: QueryGenerator,
           needsSequelize: true
-        },{
+        }, {
           title: 'functions can take functions as arguments',
           arguments: ['myTable', function(sequelize) {
             return {
@@ -923,6 +918,7 @@ if (dialect.match(/^postgres/)) {
             }
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
+            QueryGenerator.sequelize = this.sequelize;
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
