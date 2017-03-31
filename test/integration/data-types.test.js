@@ -10,7 +10,7 @@ var chai = require('chai')
   , _ = require('lodash')
   , moment = require('moment')
   , current = Support.sequelize
-  , uuid = require('node-uuid')
+  , uuid = require('uuid')
   , DataTypes = require('../../lib/data-types')
   , dialect = Support.getTestDialect();
 
@@ -361,6 +361,33 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         expect(user.get('decimalWithIntParser')).to.be.eql('1.2340');
         expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
       });
+    });
+
+    it('should return Int4 range properly #5747 and #6896', function() {
+      var Model = this.sequelize.define('M', {
+        interval: {
+            type: Sequelize.RANGE(Sequelize.INTEGER),
+            allowNull: false,
+            unique: true
+        }
+      });
+
+      return Model.sync({ force: true })
+        .then(function() {
+          return Model.create({ interval: [
+            {value: 1, inclusive: true},
+            {value: 4, inclusive: false}
+          ] });
+        })
+        .then(function(){
+          return Model.findAll();
+        })
+        .spread(function(m){
+          expect(m.interval.inclusive[0]).to.be.eql(true);
+          expect(m.interval.inclusive[1]).to.be.eql(false);
+          expect(m.interval[0]).to.be.eql(1);
+          expect(m.interval[1]).to.be.eql(4);
+        });
     });
   }
 
