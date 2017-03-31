@@ -346,6 +346,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('Invalid', () => {
+      it('Error on invalid association', () => {
+        return expect(Subtask.findAll({
+          order: [
+            [Project, 'createdAt', 'ASC']
+          ]
+        })).to.eventually.be.rejectedWith(Error, 'Unable to find a valid association for model, \'Project\'');
+      });
+
+      it('Error on invalid structure', () => {
+        return expect(Subtask.findAll({
+          order: [
+            [Subtask.associations.Task, 'createdAt', Task.associations.Project, 'ASC']
+          ]
+        })).to.eventually.be.rejectedWith(Error, 'Unknown structure passed to order / group: Project');
+      });
+
       it('Error when the order is a string', () => {
         return expect(Subtask.findAll({
           order: 'i am a silly string'
