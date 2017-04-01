@@ -61,8 +61,10 @@
 - [FIXED] `removeAttribute('id')` results in `undefined: null` data value [#7318](https://github.com/sequelize/sequelize/issues/7318)
 - [FIXED] `bulkCreate` now runs in O(N) time instead of O(N^2) time. [#4247](https://github.com/sequelize/sequelize/issues/4247)
 - [FIXED] Passing parameters to model getters [#7404](https://github.com/sequelize/sequelize/issues/7404)
+- [FIXED] Model.validate runs validation hooks by default [#7182](https://github.com/sequelize/sequelize/pull/7182)
 
 ## BC breaks:
+- Model.validate instance method now runs validation hooks by default. Previously you needed to pass { hooks: true }. You can override this behavior by passing { hooks: false }
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 - With `BelongsToMany` relationships `add/set/create` setters now set `through` attributes by passing them as `options.through` (previously second argument was used as `through` attributes, now its considered `options` with `through` being a sub option)
 - `options.order` Now only excepts values with type of array or Sequelize method.  Support for string values (ie `{order: 'name DESC'}`) has been deprecated.
