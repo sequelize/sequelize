@@ -1,3 +1,51 @@
+# 3.30.3
+- [ADDED] Ability to run transactions on a read-replica by marking transactions as read only [#7323](https://github.com/sequelize/sequelize/issues/7323)
+- [FIXED] Add quotes around column names for unique constraints in sqlite [#4407](https://github.com/sequelize/sequelize/issues/4407)
+
+# 3.30.2
+- [FIXED] `previous` method gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
+- [FIXED] Fixes setAssociation with scope [#7223](https://github.com/sequelize/sequelize/pull/7223)
+- [FIXED] Including a virtual field can give an empty query [#7164](https://github.com/sequelize/sequelize/pull/7164)
+- [FIXED] Fixes creation of polymorphic belongsToMany associations in one step #7159 [#7181](https://github.com/sequelize/sequelize/pull/7181)
+
+# 3.30.1
+- [FIXED] `sourceKey` FOR `hasMany` now also works if a `where` was specified in an `include` [#7141](https://github.com/sequelize/sequelize/issues/7141)
+- [CHANGED] Updated deprecated `node-uuid` package to `uuid` [#7148](https://github.com/sequelize/sequelize/pull/7148)
+- [FIXED] Updating `VIRTUAL` field throw `ER_EMPTY_QUERY` [#6356](https://github.com/sequelize/sequelize/issues/6356)
+
+# 3.30.0
+- [FIXED] `removeColumn` method to support dropping primaryKey column (MSSQL) [#7081](https://github.com/sequelize/sequelize/pull/7081)
+- [ADDED] Support `sourceKey` for `hasMany` relationships [#4258](https://github.com/sequelize/sequelize/issues/4258)
+
+# 3.29.0
+- [FIXED] Transaction Name too long, transaction savepoints for SQL Server [#6972](https://github.com/sequelize/sequelize/pull/6972)
+
+# 3.28.0
+- [FIXED] Soft-delete not returning number of affected rows on mssql [#6916](https://github.com/sequelize/sequelize/pull/6916)
+- [ADDED] `afterConnect` hook
+- [FIXED] Range integer parsing [#6897](https://github.com/sequelize/sequelize/pull/6897)
+- [FIXED] Upsert return value for mysql [#6963](https://github.com/sequelize/sequelize/pull/6963)
+
+# 3.27.0
+- [FIXED] Incorrect column name for generateThroughJoin [#6878](https://github.com/sequelize/sequelize/pull/6878)
+- [ADDED] Support condition objects in utility functions [#6685](https://github.com/sequelize/sequelize/pull/6685)
+
+# 3.26.0
+- [ADDED] Backport of mssql upsert [#6875](https://github.com/sequelize/sequelize/pull/6875)
+
+# 3.25.1
+- [FIXED] fix instance.set '1970-01-01' to null field [#6839](https://github.com/sequelize/sequelize/pull/6839)
+- [FIXED] Can not execute raw SQL queries for sqlite3 [#6865](https://github.com/sequelize/sequelize/pull/6865)
+
+# 3.25.0
+- [FIXED] Set `timestamps` and `paranoid` options from through model on `belongsToMany` association
+- [FIXED] Properly apply paranoid condition when `groupedLimit.on` association is `paranoid`
+- [FIXED] `restore` now uses `field` from `deletedAt`
+- [ADDED] `option.silent` for increment and decrement [#6793](https://github.com/sequelize/sequelize/pull/6793)
+
+# 3.24.7
+- [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed [#6782]
+
 # 3.24.6
 - [FIXED] groupedLimit.through.where support
 
@@ -11,7 +59,7 @@
 - [FIXED] Default options for insert queries [#6644](https://github.com/sequelize/sequelize/pull/6644)
 
 # 3.24.3
-- [ADDED] Backport of grouped limit include support 
+- [ADDED] Backport of grouped limit include support
 - [ADDED] Export datatypes [#6578](https://github.com/sequelize/sequelize/pull/6578)
 
 # 3.24.2

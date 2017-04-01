@@ -1226,4 +1226,105 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
         .throw ('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change either foreignKey or as in your association definition');
     });
   });
+
+  describe('sourceKey', function() {
+    beforeEach(function() {
+      var User = this.sequelize.define('UserXYZ',
+        { username: Sequelize.STRING, email: Sequelize.STRING },
+        { indexes: [ {fields: ['email'], unique: true} ] }
+      );
+      var Task = this.sequelize.define('TaskXYZ',
+        { title: Sequelize.STRING, userEmail: { type: Sequelize.STRING, field: 'user_email_xyz'} });
+
+      User.hasMany(Task, {foreignKey: 'userEmail', sourceKey: 'email', as: 'tasks'});
+
+      this.User = User;
+      this.Task = Task;
+
+      return this.sequelize.sync({ force: true });
+    });
+
+    it('should use sourceKey', function () {
+      var User = this.User, Task = this.Task;
+
+      return User.create({ username: 'John', email: 'john@example.com' }).then(function(user) {
+        return Task.create({title: 'Fix PR', userEmail: 'john@example.com'}).then(function(task) {
+          return user.getTasks().then(function(tasks) {
+            expect(tasks.length).to.equal(1);
+            expect(tasks[0].title).to.equal('Fix PR');
+          });
+        });
+      });
+    });
+
+    it('should count related records', function () {
+      var User = this.User, Task = this.Task;
+
+      return User.create({ username: 'John', email: 'john@example.com' }).then(function(user) {
+        return Task.create({title: 'Fix PR', userEmail: 'john@example.com'}).then(function(task) {
+          return user.countTasks().then(function(tasksCount) {
+            expect(tasksCount).to.equal(1);
+          });
+        });
+      });
+    });
+
+    it('should set right field when add relative', function () {
+      var User = this.User, Task = this.Task;
+
+      return User.create({ username: 'John', email: 'john@example.com' }).then(function(user) {
+        return Task.create({title: 'Fix PR'}).then(function(task) {
+          return user.addTask(task).then(function (updatedTask) {
+            return user.hasTask(task.id).then(function(hasTask, b) {
+              expect(hasTask).to.be.true;
+            });
+          });
+        });
+      });
+    });
+
+  });
+
+  describe('sourceKey with where clause in include', function() {
+    beforeEach(function() {
+      var User = this.sequelize.define('User',
+        { username: Sequelize.STRING, email: { type: Sequelize.STRING, field: 'mail'} },
+        { indexes: [ {fields: ['mail'], unique: true} ] }
+      );
+      var Task = this.sequelize.define('Task',
+        { title: Sequelize.STRING, userEmail: Sequelize.STRING, taskStatus: Sequelize.STRING });
+
+      User.hasMany(Task, {foreignKey: 'userEmail', sourceKey: 'mail'});
+
+      this.User = User;
+      this.Task = Task;
+
+      return this.sequelize.sync({ force: true });
+    });
+
+    it('should use the specified sourceKey instead of the primary key', function() {
+      var User = this.User, Task = this.Task;
+
+      return User.create({ username: 'John', email: 'john@example.com'}).then(function() {
+        return Task.bulkCreate([
+          { title: 'Active Task', userEmail: 'john@example.com', taskStatus: 'Active'},
+          { title: 'Inactive Task', userEmail: 'john@example.com', taskStatus: 'Inactive'}]).then(function() {
+          return User.find({
+            include: [
+              {
+                model: Task,
+                where: {taskStatus: 'Active'}
+              }
+            ],
+            where: { username: 'John' }
+          }).then(function(user) {
+            expect(user).to.be.ok;
+            expect(user.Tasks.length).to.equal(1);
+            expect(user.Tasks[0].title).to.equal('Active Task');
+          });
+        });
+      });
+    });
+  });
+
 });

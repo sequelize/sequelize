@@ -44,5 +44,36 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       var user2 = User.build({});
       expect(user2.get('meta')).to.deep.equal({});
     });
+
+    it('sets the date "1970-01-01" to previously null field', function() {
+      var User = current.define('User', {
+        date: {
+          type: DataTypes.DATE,
+          allowNull: true
+        }
+      });
+      var user1 = User.build({
+        date: null
+      });
+      user1.set('date', '1970-01-01');
+      expect(user1.get('date')).to.be.ok;
+      expect(user1.get('date').getTime()).to.equal(new Date('1970-01-01').getTime());
+    });
+
+    it('overwrites non-date originalValue with date', function() {
+      var User = current.define('User', {
+        date: DataTypes.DATE
+      });
+      var user = User.build({
+        date: ' '
+      }, {
+        isNewRecord: false,
+        raw: true
+      });
+
+      user.set('date', new Date());
+      expect(user.get('date')).to.be.an.instanceof(Date);
+      expect(user.get('date')).not.to.be.NaN;
+    });
   });
 });

@@ -256,6 +256,40 @@ if (current.dialect.supports.transactions) {
         });
       });
 
+      it('mapSeries', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          return self.User.findAll().mapSeries(function () {
+            expect(self.ns.get('transaction').id).to.be.ok;
+            expect(self.ns.get('transaction').id).to.equal(tid);
+          });
+        });
+      });
+
+      it('static mapSeries', function () {
+        var self = this;
+        return this.sequelize.transaction(function () {
+          var tid = self.ns.get('transaction').id;
+          // In order to execute promises serially with mapSeries we must wrap them as functions
+          return self.sequelize.Promise.mapSeries(
+            [
+              function() {
+                return self.User.findAll().then(
+                  function() {expect(self.ns.get('transaction').id).to.be.ok;}
+                );
+              },
+              function() {
+                return self.User.findAll().then(
+                  function() {expect(self.ns.get('transaction').id).to.equal(tid);}
+                );
+              }
+            ],
+            function(runPromise) {return runPromise();}
+          );
+        });
+      });
+
       it('reduce', function () {
         var self = this;
         return this.sequelize.transaction(function () {

@@ -4,7 +4,8 @@ var chai = require('chai')
   , expect = chai.expect
   , Support   = require(__dirname + '/support')
   , DataTypes = require(__dirname + '/../../lib/data-types')
-  , Utils     = require(__dirname + '/../../lib/utils');
+  , Utils     = require(__dirname + '/../../lib/utils')
+  , Support   = require(__dirname + '/../support');
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -470,6 +471,25 @@ suite(Support.getTestDialectTeaser('Utils'), function() {
 
       it(JSON.stringify(input) + ' to ' + JSON.stringify(output), function () {
         expect(Utils.formatReferences(input)).to.deep.equal(output);
+      });
+    });
+  });
+
+  suite('Sequelize.cast', function() {
+    var sql = Support.sequelize;
+    var generator = sql.queryInterface.QueryGenerator;
+    var run = generator.handleSequelizeMethod.bind(generator);
+    var expectsql = Support.expectsql;
+
+    test('accepts condition object (auto casting)', function fn() {
+      expectsql(run(sql.fn('SUM', sql.cast({
+        $or: {
+          foo: 'foo',
+          bar: 'bar'
+        }
+      }, 'int'))), {
+        default: 'SUM(CAST(([foo] = \'foo\' OR [bar] = \'bar\') AS INT))',
+        mssql: 'SUM(CAST(([foo] = N\'foo\' OR [bar] = N\'bar\') AS INT))'
       });
     });
   });
