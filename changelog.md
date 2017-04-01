@@ -1,4 +1,5 @@
 # Future
+- [FIXED] `changeColumn` generates incorrect query with ENUM type [#7455](https://github.com/sequelize/sequelize/pull/7455)
 - [ADDED] `options.alter` to sequelize.sync() to alter existing tables.[#537](https://github.com/sequelize/sequelize/issues/537)
 - [ADDED] Ability to run transactions on a read-replica by marking transactions as read only [#7323](https://github.com/sequelize/sequelize/issues/7323)
 - [FIXED] Show a reasonable message when using renameColumn with a missing column  [#6606](https://github.com/sequelize/sequelize/issues/6606)
@@ -61,10 +62,12 @@
 - [FIXED] `removeAttribute('id')` results in `undefined: null` data value [#7318](https://github.com/sequelize/sequelize/issues/7318)
 - [FIXED] `bulkCreate` now runs in O(N) time instead of O(N^2) time. [#4247](https://github.com/sequelize/sequelize/issues/4247)
 - [FIXED] Passing parameters to model getters [#7404](https://github.com/sequelize/sequelize/issues/7404)
+- [FIXED] Model.validate runs validation hooks by default [#7182](https://github.com/sequelize/sequelize/pull/7182)
 - [ADDED] Added support for associations aliases in orders and groups. [#7425](https://github.com/sequelize/sequelize/issues/7425)
 - [REMOVED] Removes support for `{raw: 'injection goes here'}` for order and group. [#7188](https://github.com/sequelize/sequelize/issues/7188)
 
 ## BC breaks:
+- Model.validate instance method now runs validation hooks by default. Previously you needed to pass { hooks: true }. You can override this behavior by passing { hooks: false }
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 - With `BelongsToMany` relationships `add/set/create` setters now set `through` attributes by passing them as `options.through` (previously second argument was used as `through` attributes, now its considered `options` with `through` being a sub option)
 - `options.order` Now only excepts values with type of array or Sequelize method.  Support for string values (ie `{order: 'name DESC'}`) has been deprecated.
