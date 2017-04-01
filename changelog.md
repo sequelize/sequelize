@@ -1,4 +1,4 @@
-# 3.30.4
+# Future
 - [FIXED] Passing parameters to model getters [#7404](https://github.com/sequelize/sequelize/issues/7404)
 
 # 3.30.3
