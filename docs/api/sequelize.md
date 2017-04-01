@@ -66,7 +66,7 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [options.pool.min] | Integer | Minimum number of connections in pool. Default is 0 |
 | [options.pool.idle] | Integer | The maximum time, in milliseconds, that a connection can be idle before being released. Default is 10000 |
 | [options.pool.validateConnection] | Function | A function that validates a connection. Called with client. The default function checks that client is an object, and that its state is not disconnected |
-| [options.quoteIdentifiers=true] | Boolean | Set to `false` to make table names and attributes case-insensitive on Postgres and skip double quoting of them. |
+| [options.quoteIdentifiers=true] | Boolean | Set to `false` to make table names and attributes case-insensitive on Postgres and skip double quoting of them. *WARNING: Setting this to false may expose vulnerabilities and is not reccomended!* |
 | [options.transactionType='DEFERRED'] | String | Set the default transaction type. See `Sequelize.Transaction.TYPES` for possible options. Sqlite only. |
 | [options.isolationLevel='REPEATABLE_READ'] | String | Set the default transaction isolation level. See `Sequelize.Transaction.ISOLATION_LEVELS` for possible options. |
 | [options.retry] | Object | Set of flags that control when a query is automatically retried. |
@@ -74,7 +74,6 @@ var sequelize = new Sequelize('mysql://localhost:3306/database', {})
 | [options.retry.max] | Integer | How many times a failing query is automatically retried. Set to 0 to disable retrying on SQL_BUSY error. |
 | [options.typeValidation=false] | Boolean | Run built in type validators on insert and update, e.g. validate that arguments passed to integer fields are integer-like. |
 | [options.benchmark=false] | Boolean | Print query execution time in milliseconds when logging SQL. |
-
 
 ***
 
@@ -790,6 +789,7 @@ Sync all defined models to the DB.
 | [options.schema='public'] | String | The schema that the tables should be created in. This can be overriden for each table in sequelize.define |
 | [options.searchPath=DEFAULT] | String | An optional parameter to specify the schema search_path (Postgres only) |
 | [options.hooks=true] | Boolean | If hooks is true then beforeSync, afterSync, beforBulkSync, afterBulkSync hooks will be called |
+| [options.alter=false] | Boolean | Alters tables to fit models. Not recommended for production use. Deletes data in columns that were removed or had their type changed in the model. |
 
 
 ***

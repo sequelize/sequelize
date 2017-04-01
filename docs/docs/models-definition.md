@@ -134,7 +134,7 @@ Sequelize.GEOMETRY('POINT')           // Spatial column with geometry type. Post
 Sequelize.GEOMETRY('POINT', 4326)     // Spatial column with geometry type and SRID.  PostgreSQL (with PostGIS) or MySQL only.
 ```
 
-The BLOB data type allows you to insert data both as strings and as buffers. When you do a find or findAll on a model which has a BLOB column. that data will always be returned as a buffer.
+The BLOB data type allows you to insert data both as strings and as buffers. When you do a find or findAll on a model which has a BLOB column, that data will always be returned as a buffer.
 
 If you are working with the PostgreSQL TIMESTAMP WITHOUT TIME ZONE and you need to parse it to a different timezone, please use the pg library's own parser:
 
@@ -503,7 +503,7 @@ var Bar = sequelize.define('bar', { /* bla */ }, {
   // define the table's name
   tableName: 'my_very_custom_table_name',
 
-  // Enable optimistic locking.  When enabled, sequelize will add a version count attriubte
+  // Enable optimistic locking.  When enabled, sequelize will add a version count attribute
   // to the model and throw an OptimisticLockingError error when stale instances are saved.
   // Set to true or a string with the attribute name you want to use to enable.
   version: true

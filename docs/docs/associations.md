@@ -137,7 +137,7 @@ var Player = this.sequelize.define('player', {/* attributes */})
   , Team  = this.sequelize.define('team', {/* attributes */});
 ```
 
-When we link two model in Sequelize we can refer them as pairs of **source** and **target** models. Like this
+When we link two models in Sequelize we can refer them as pairs of **source** and **target** models. Like this
 
 Having **Player** as the **source** and **Team** as the **target**
 ```js
@@ -290,7 +290,7 @@ This section concerns association scopes. For a definition of association scopes
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
 #### 1:m
-Assume we have tables Comment, Post and Image. A comment can be associated to either an image or a post via `commentable_id` and `commentable` - we say that Post and Image are `Commentable`
+Assume we have tables Comment, Post, and Image. A comment can be associated to either an image or a post via `commentable_id` and `commentable` - we say that Post and Image are `Commentable`
 
 ```js
 this.Comment = this.sequelize.define('comment', {
@@ -400,7 +400,7 @@ Tag.belongsToMany(Post, {
 
 Notice that the scoped column (`taggable`) is now on the through model (`ItemTag`).
 
-We could also define a more restrictive association, for example to get all pending tags for a post by applying a scope of both the through model (`ItemTag`) and the target model (`Tag`):
+We could also define a more restrictive association, for example, to get all pending tags for a post by applying a scope of both the through model (`ItemTag`) and the target model (`Tag`):
 
 ```js
 Post.hasMany(Tag, {
@@ -689,7 +689,7 @@ CREATE TABLE IF NOT EXISTS `Version` (
 
 ### Enforcing a foreign key reference without constraints
 
-Some times you may want to reference another table, without adding any constraints, or associations. In that case you can manually add the reference attributes to your schema definition, and mark the relations between them.
+Sometimes you may want to reference another table, without adding any constraints, or associations. In that case you can manually add the reference attributes to your schema definition, and mark the relations between them.
 
 ```js
 var Series, Trainer, Video

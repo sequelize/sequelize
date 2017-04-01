@@ -169,14 +169,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     suite('DATE', function () {
       testsql('DATE', DataTypes.DATE, {
         postgres: 'TIMESTAMP WITH TIME ZONE',
-        mssql: 'DATETIME2',
+        mssql: 'DATETIMEOFFSET',
         mysql: 'DATETIME',
         sqlite: 'DATETIME'
       });
 
       testsql('DATE(6)', DataTypes.DATE(6), {
         postgres: 'TIMESTAMP WITH TIME ZONE',
-        mssql: 'DATETIME2',
+        mssql: 'DATETIMEOFFSET',
         mysql: 'DATETIME(6)',
         sqlite: 'DATETIME'
       });
@@ -755,10 +755,6 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           expect(function () {
             type.validate('foobar');
           }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid float');
-
-          expect(function () {
-            type.validate('-.123');
-          }).to.throw(Sequelize.ValidationError, '"-.123" is not a valid float');
         });
 
         test('should return `true` if `value` is a float', function() {
