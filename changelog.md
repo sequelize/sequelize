@@ -1,4 +1,5 @@
 # Future
+- [FIXED] `changeColumn` generates incorrect query with ENUM type [#7455](https://github.com/sequelize/sequelize/pull/7455)
 - [ADDED] `options.alter` to sequelize.sync() to alter existing tables.[#537](https://github.com/sequelize/sequelize/issues/537)
 - [ADDED] Ability to run transactions on a read-replica by marking transactions as read only [#7323](https://github.com/sequelize/sequelize/issues/7323)
 - [FIXED] Show a reasonable message when using renameColumn with a missing column  [#6606](https://github.com/sequelize/sequelize/issues/6606)
