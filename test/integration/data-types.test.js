@@ -390,5 +390,23 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
         });
     });
   }
+  
+  if (dialect === 'mssql') {
+    it('should parse ROWVERSION field', function () {
+      var Type = new Sequelize.ROWVERSION();
 
+      var User = current.define('user', { name: Sequelize.STRING, version: Type }, { timestamps: false });
+
+      return current.sync({ force: true }).then(function () {
+        return User.create({
+           name: 'test'
+        });
+      }).then(function () {
+        return User.findAll();
+      }).then(function(users){
+        expect(users[0].version).to.be.ok;
+        expect(typeof users[0].version).to.be.eql('object');
+      });
+    });
+  }
 });
