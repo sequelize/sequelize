@@ -198,11 +198,6 @@ if (dialect === 'sqlite') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'raw arguments are neither quoted nor escaped',
-          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'}, 'DESC']]}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY f1(f2(id)) DESC;',
-          context: QueryGenerator
-        }, {
           title: 'sequelize.where with .fn as attribute and default comparator',
           arguments: ['myTable', function(sequelize) {
             return {
@@ -536,6 +531,7 @@ if (dialect === 'sqlite') {
             }
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
+            QueryGenerator.sequelize = this.sequelize;
             var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });

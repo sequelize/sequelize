@@ -305,8 +305,6 @@ something.findOne({
     // will return otherfunction(`col1`, 12, 'lalala') DESC
     [sequelize.fn('otherfunction', sequelize.fn('awesomefunction', sequelize.col('col'))), 'DESC']
     // will return otherfunction(awesomefunction(`col`)) DESC, This nesting is potentially infinite!
-    [{ raw: 'otherfunction(awesomefunction(`col`))' }, 'DESC']
-    // This won't be quoted, but direction will be added
   ]
 })
 ```

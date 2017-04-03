@@ -5,7 +5,7 @@
 - [FIXED] Show a reasonable message when using renameColumn with a missing column  [#6606](https://github.com/sequelize/sequelize/issues/6606)
 - [PERFORMANCE] more efficient array handing for certain large queries [#7175](https://github.com/sequelize/sequelize/pull/7175)
 - [FIXED] Add `unique` indexes defined via options to `rawAttributes` [#7196]
-- [FIXED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
+- [REMOVED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
 - [CHANGED] `DataTypes.DATE` to use `DATETIMEOFFSET` [MSSQL] [#5403](https://github.com/sequelize/sequelize/issues/5403)
 - [FIXED] Properly pass options to `sequelize.query` in `removeColumn` [MSSQL] [#7193](https://github.com/sequelize/sequelize/pull/7193)
 - [FIXED] Updating `VIRTUAL` field throw `ER_EMPTY_QUERY` [#6356](https://github.com/sequelize/sequelize/issues/6356)
@@ -63,6 +63,8 @@
 - [FIXED] `bulkCreate` now runs in O(N) time instead of O(N^2) time. [#4247](https://github.com/sequelize/sequelize/issues/4247)
 - [FIXED] Passing parameters to model getters [#7404](https://github.com/sequelize/sequelize/issues/7404)
 - [FIXED] Model.validate runs validation hooks by default [#7182](https://github.com/sequelize/sequelize/pull/7182)
+- [ADDED] Added support for associations aliases in orders and groups. [#7425](https://github.com/sequelize/sequelize/issues/7425)
+- [REMOVED] Removes support for `{raw: 'injection goes here'}` for order and group. [#7188](https://github.com/sequelize/sequelize/issues/7188)
 
 ## BC breaks:
 - Model.validate instance method now runs validation hooks by default. Previously you needed to pass { hooks: true }. You can override this behavior by passing { hooks: false }
