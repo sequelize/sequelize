@@ -10,8 +10,8 @@ When the join table has additional attributes, these can be passed in the option
 UserProject = sequelize.define('user_project', {
   role: Sequelize.STRING
 });
-User.belongsToMany(Project, { through: UserProject });
-Project.belongsToMany(User, { through: UserProject });
+User.belongsToMany(Project, { through: 'UserProject' });
+Project.belongsToMany(User, { through: 'UserProject' });
 // through is required!
 
 user.addProject(project, { role: 'manager', transaction: t });
