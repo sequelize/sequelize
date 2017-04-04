@@ -99,7 +99,7 @@
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
     "test-docker-unit": "env-cmd ./test/config/.docker.env npm run test-unit",
     "test-docker-integration": "env-cmd ./test/config/.docker.env npm run test-integration",
-    "docs": "node docs/docs-generator.js",
+    "docs": "esdoc && cp docs/ROUTER esdoc/ROUTER",
     "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",
     "test-unit": "mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
     "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",

@@ -50,4 +50,4 @@ deploy:
 
 
 before_deploy:
-  - "esdoc"
+  - npm run docs
