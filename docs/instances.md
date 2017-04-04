@@ -290,7 +290,7 @@ Person.findOne({ where: { name: 'john' } }).then(function(person) {
 })
 ```
 
-## Incrementing certain values of an instance
+## Incrementing
 
 In order to increment values of an instance without running into concurrency issues&comma; you may use `increment`&period;
 
@@ -321,7 +321,7 @@ User.findById(1).then(function(user) {
 }).then(/* ... */)
 ```
 
-## Decrementing certain values of an instance
+## Decrementing
 
 In order to decrement values of an instance without running into concurrency issues&comma; you may use `decrement`&period;
 
