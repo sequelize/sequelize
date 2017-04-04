@@ -44,10 +44,10 @@ script:
 deploy:
   provider: surge
   project: ./esdoc/
+  domain: docs.sequelizejs.com
   skip_cleanup: true
   on:
     branch: master
-
 
 before_deploy:
   - npm run docs
