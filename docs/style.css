@@ -1,9 +1,23 @@
+@import url(http://fonts.googleapis.com/css?family=Titillium+Web);
+
+.content span.sequelize {
+  color: #2F406A;
+  position: absolute;
+  top: 30px;
+  left: 550px;
+  font-size: 100px;
+  display: inline-block;
+  height: 250px;
+  line-height: 250px;
+  font-family: 'Titillium Web', sans-serif;
+}
+
 .content {
-  max-width: 900px;
+  max-width: 1200px;
 }
 
 .navigation {
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .manual-root .content img {
@@ -42,8 +56,43 @@ h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nt
   display: none !important;
 }
 
-
 a[href="source.html"],
 a[href^="file/lib/"] {
   display: none;
+}
+
+.search-box {
+  display: none;
+}
+
+.search-container {
+  position: absolute;
+  width: 500px;
+  top: 0;
+  right: 50px;
+  padding-right: 8px;
+  padding-bottom: 10px;
+  line-height: normal;
+  font-size: 12px;
+}
+
+.search-container .gsc-control-cse {
+  padding: 2px 0 0 0 !important;
+}
+
+.manual-color:after  {
+  content: '' !important;
+}
+
+.slack-logo {
+  height: 20px;
+  position: relative;
+  top: 3px;
+  padding: 0 5px;
+}
+
+.header-logo {
+  height: 25px;
+  position: relative;
+  top: 6px;
 }

@@ -1,9 +1,10 @@
 ![logo](manual/asset/logo-small.png)
+<span class="sequelize">Sequelize</span>
 
 Sequelize is a promise-based ORM for Node.js. It supports the dialects PostgreSQL, MySQL, SQLite and MSSQL and features solid transaction support, relations, read replication and
 more.
 
-[Installation](docs/getting-started/)
+[Installation](manual/installation/getting-started)
 
 ## Example usage
 

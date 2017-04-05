@@ -9,8 +9,14 @@
   "includeSource": false,
   "coverage": false,
   "lint": false,
+  "plugins": [
+    {"name": "./docs/esdoc-sequelize.js"}
+  ],
   "styles": [
     "./docs/style.css"
+  ],
+  "scripts": [
+    "./docs/script.js"
   ],
   "manual": {
     "globalIndex": true,

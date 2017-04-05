@@ -37,7 +37,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 var sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 ```
 
-The Sequelize constructor takes a whole slew of options that are available via the [API reference](http://sequelize.readthedocs.org/en/latest/api/sequelize/).
+The Sequelize constructor takes a whole slew of options that are available via the [API reference](/class/lib/sequelize.js~Sequelize.html).
 
 ## Test the connection
 
@@ -78,7 +78,7 @@ User.sync({force: true}).then(function () {
 });
 ```
 
-You can read more about creating models at [Model API reference](http://sequelize.readthedocs.org/en/latest/api/model/)
+You can read more about creating models at [Model API reference](/class/lib/model.js~Model.html)
 
 ## Your first query
 
@@ -88,7 +88,7 @@ User.findAll().then(function(users) {
 })
 ```
 
-You can read more about finder functions on models like `.findAll()` at [Data retrieval](http://docs.sequelizejs.com/en/latest/docs/models-usage/) or how to do specific queries like `WHERE` and `JSONB` at [Querying](http://docs.sequelizejs.com/en/latest/docs/querying/).
+You can read more about finder functions on models like `.findAll()` at [Data retrieval](/manual/tutorial/models-usage.html#data-retrieval-finders) or how to do specific queries like `WHERE` and `JSONB` at [Querying](/manual/tutorial/querying.html).
 
 ### Application wide model options
 

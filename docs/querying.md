@@ -150,7 +150,7 @@ $col: 'user.organization_id' // = "user"."organization_id", with dialect specifi
 Range types can be queried with all supported operators.
 
 Keep in mind, the provided range value can
-[define the bound inclusion/exclusion](models-definition/#range-types)
+[define the bound inclusion/exclusion](/manual/tutorial/models-definition.html#range-types)
 as well.
 
 ```js
