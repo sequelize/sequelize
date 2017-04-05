@@ -1,5 +1,6 @@
 # Future
 - [FIXED] Passing parameters to model getters [#7404](https://github.com/sequelize/sequelize/issues/7404)
+- [FIXED] `changeColumn` generates incorrect query with ENUM type [#7456](https://github.com/sequelize/sequelize/pull/7456)
 
 # 3.30.3
 - [ADDED] Ability to run transactions on a read-replica by marking transactions as read only [#7323](https://github.com/sequelize/sequelize/issues/7323)
