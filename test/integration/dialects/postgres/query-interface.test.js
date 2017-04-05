@@ -205,6 +205,21 @@ if (dialect.match(/^postgres/)) {
           }));
       });
 
+      it('supports newlines', function() {
+        return this.queryInterface.addIndex('Group', [this.sequelize.literal(`(
+            CASE "username"
+              WHEN 'foo' THEN 'bar'
+              ELSE 'baz'
+            END
+          )`)], { name: 'group_username_case' })
+          .then(() => this.queryInterface.showIndex('Group'))
+          .then(indexes => {
+            const indexColumns = _.uniq(indexes.map(index => index.name));
+
+            expect(indexColumns).to.include('group_username_case');
+          });
+      });
+
       it('adds, reads and removes a named functional index to the table', function() {
         return this.queryInterface.addIndex('Group', [this.sequelize.fn('lower', this.sequelize.col('username'))], {
           name: 'group_username_lower'
