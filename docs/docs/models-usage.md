@@ -43,7 +43,7 @@ User
     console.log(created)
 
     /*
-     findOrCreate returns an array containing the object that was found or created and a boolean that will be true if a new object was created an false if not, like so:
+     findOrCreate returns an array containing the object that was found or created and a boolean that will be true if a new object was created and false if not, like so:
      
     [ {
         username: 'sdepold',
@@ -54,7 +54,7 @@ User
       },
       true ]
       
- In the example above, the "spread" on line 39 will divide that array into its 2 parts pass them as arguments to the callback function defined beginning at line 39, which will then treat them as "user" and "created." (So "user" will be the object from index 0 of the returned array and "created" will equal "true".)
+ In the example above, the "spread" on line 39 will divide that array into its 2 parts and pass them as arguments to the callback function defined beginning at line 39, which will then treat them as "user" and "created." (So "user" will be the object from index 0 of the returned array and "created" will equal "true".)
     */
   })
 ```
