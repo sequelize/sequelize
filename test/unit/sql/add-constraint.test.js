@@ -149,8 +149,8 @@ if (current.dialect.supports.constraints.addConstraint) {
             type: 'foreign key',
             fields: ['myColumn'],
             references: {
-              model: 'myOtherTable',
-              key: 'id'
+              table: 'myOtherTable',
+              field: 'id'
             }
           }), {
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [foreignkey_mytable_mycolumn] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]);'
@@ -162,8 +162,8 @@ if (current.dialect.supports.constraints.addConstraint) {
             type: 'foreign key',
             fields: ['myColumn'],
             references: {
-              model: 'myOtherTable',
-              key: 'id'           
+              table: 'myOtherTable',
+              field: 'id'           
             },
             onUpdate: 'cascade',
             onDelete: 'cascade'
@@ -176,7 +176,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           expect(sql.addConstraintQuery.bind(sql, 'myTable', {
             type: 'foreign key',
             fields: ['myColumn']
-          })).to.throw('references object with model and key must be specified');
+          })).to.throw('references object with table and field must be specified');
         });
         
         

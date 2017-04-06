@@ -318,8 +318,8 @@ Avalable options:
  - defaultValue - The value for the default constraint
  - where - Where clause/expression for the CHECK constraint
  - references - Object specifying target table, column name to create foreign key constraint
- - references.model - Target table name or model
- - references.key - Target column name
+ - references.table - Target table name or table
+ - references.field - Target column name
 Available constraints:
  - UNIQUE
  - DEFAULT (MSSQL only)
@@ -358,8 +358,8 @@ queryInterface.addConstraint('Users', ['username'], {
 queryInterface.addConstraint('Posts', ['username'], {
   type: 'FOREIGN KEY',
   references: { //Required field
-    model: 'target_table_name',
-    key: 'target_column_name'
+    table: 'target_table_name',
+    field: 'target_column_name'
   },
   onDelete: 'cascade',
   onUpdate: 'cascade'

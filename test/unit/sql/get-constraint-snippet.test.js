@@ -112,8 +112,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
           type: 'foreign key',
           fields: ['myColumn'],
           references: {
-            model: 'myOtherTable',
-            key: 'id'
+            table: 'myOtherTable',
+            field: 'id'
           }
         }), {
           default: 'CONSTRAINT [foreignkey_mytable_mycolumn] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id])'
@@ -125,8 +125,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
           type: 'foreign key',
           fields: ['myColumn'],
           references: {
-            model: 'myOtherTable',
-            key: 'id'           
+            table: 'myOtherTable',
+            field: 'id'           
           },
           onUpdate: 'cascade',
           onDelete: 'cascade'
@@ -139,7 +139,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         expect(sql.getConstraintSnippet.bind(sql, 'myTable', {
           type: 'foreign key',
           fields: ['myColumn']
-        })).to.throw('references object with model and key must be specified');
+        })).to.throw('references object with table and field must be specified');
       });
       
       

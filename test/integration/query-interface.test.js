@@ -1015,8 +1015,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), function() {
         .then(() => {
           return this.queryInterface.addConstraint('posts', ['username'], {
             references: {
-              model: 'users',
-              key: 'username'
+              table: 'users',
+              field: 'username'
             },
             onDelete: 'cascade',
             onUpdate: 'cascade',
