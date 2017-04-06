@@ -86,6 +86,37 @@ describe(Support.getTestDialectTeaser('hasMany'), function() {
     });
   });
 
+  describe('count', function () {
+    var User = current.define('User', {})
+      , Task = current.define('Task', {});
+
+    var user = User.build({});
+
+    it('the COUNT() attribute should be Model.id', function () {
+      var as = Math.random().toString()
+        , association = new HasMany(User, Task, { as: as });
+
+      var get = stub(association, 'get');
+
+        get.onFirstCall().returns(Promise.resolve({
+          count: 10,
+        }));
+
+      return association.count(user)
+        .then(function () {
+
+          expect(get).to.have.been.calledOnce;
+          expect(get.firstCall.args[1].attributes[0][0].args[0].col).to.equal(
+            [association.target.name, association.target.primaryKeyField].join('.')
+          );
+
+        })
+        .finally(function () {
+          get.restore();
+        });
+    });
+  });
+
   describe('get', function () {
     var User = current.define('User', {})
       , Task = current.define('Task', {})
