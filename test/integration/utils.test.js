@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
       expect(result).not.to.match(/.*noot.*/);
       expect(result).not.to.match(/.*foo.*/);
-      expect(result).to.match(/.*alert\(2\).*/);
+      expect(result).to.match(/.*console.log\(2\).*/);
     });
   });
 

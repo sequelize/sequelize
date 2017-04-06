@@ -316,7 +316,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should be able to add values to enum types', function() {
-        const User = this.sequelize.define('UserEnums', {
+        let User = this.sequelize.define('UserEnums', {
           mood: DataTypes.ENUM('happy', 'sad', 'meh')
         });
 
