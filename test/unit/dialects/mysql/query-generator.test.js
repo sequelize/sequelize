@@ -1,16 +1,16 @@
 'use strict';
 
 /* jshint -W110 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../../support')
-  , dialect = Support.getTestDialect()
-  , _ = require('lodash')
-  , QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
+let chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../../support'),
+  dialect = Support.getTestDialect(),
+  _ = require('lodash'),
+  QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
 if (dialect === 'mysql') {
-  describe('[MYSQL Specific] QueryGenerator', function() {
-    var suites = {
+  describe('[MYSQL Specific] QueryGenerator', () => {
+    const suites = {
       arithmeticQuery: [
         {
           title:'Should use the plus operator',
@@ -91,7 +91,7 @@ if (dialect === 'mysql') {
         {
           arguments: [{id: {type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
           expectation: {id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
-        },
+        }
       ],
 
       createTableQuery: [
@@ -349,11 +349,11 @@ if (dialect === 'mysql') {
           expectation: 'SELECT * FROM `myTable` LIMIT 0;',
           context: QueryGenerator
         }, {
-         title: 'uses offset 0',
-         arguments: ['myTable', {offset: 0}],
-         expectation: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
-         context: QueryGenerator
-       }, {
+          title: 'uses offset 0',
+          arguments: ['myTable', {offset: 0}],
+          expectation: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
+          context: QueryGenerator
+        }, {
           title: 'multiple where arguments',
           arguments: ['myTable', {where: {boat: 'canoe', weather: 'cold'}}],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`boat` = 'canoe' AND `myTable`.`weather` = 'cold';",
@@ -559,13 +559,13 @@ if (dialect === 'mysql') {
       ]
     };
 
-    _.each(suites, function(tests, suiteTitle) {
-      describe(suiteTitle, function() {
-        tests.forEach(function(test) {
-          var title = test.title || 'MySQL correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
+    _.each(suites, (tests, suiteTitle) => {
+      describe(suiteTitle, () => {
+        tests.forEach((test) => {
+          const title = test.title || 'MySQL correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            var context = test.context || {options: {}};
+            const context = test.context || {options: {}};
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
@@ -573,7 +573,7 @@ if (dialect === 'mysql') {
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             QueryGenerator.sequelize = this.sequelize;
-            var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
+            const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         });

@@ -1,20 +1,20 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../../support')
-  , dialect = Support.getTestDialect()
-  , config = require(__dirname + '/../../../config/config')
-  , DataTypes = require(__dirname + '/../../../../lib/data-types');
+let chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../../support'),
+  dialect = Support.getTestDialect(),
+  config = require(__dirname + '/../../../config/config'),
+  DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 if (dialect.match(/^postgres/)) {
-  describe('[POSTGRES Specific] associations', function() {
-    describe('many-to-many', function() {
-      describe('where tables have the same prefix', function() {
+  describe('[POSTGRES Specific] associations', () => {
+    describe('many-to-many', () => {
+      describe('where tables have the same prefix', () => {
         it('should create a table wp_table1wp_table2s', function() {
-          var Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING})
-            , Table1 = this.sequelize.define('wp_table1', {foo: DataTypes.STRING});
+          let Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING}),
+            Table1 = this.sequelize.define('wp_table1', {foo: DataTypes.STRING});
 
           Table1.belongsToMany(Table2, { through: 'wp_table1swp_table2s' });
           Table2.belongsToMany(Table1, { through: 'wp_table1swp_table2s' });
@@ -23,10 +23,10 @@ if (dialect.match(/^postgres/)) {
         });
       });
 
-      describe('when join table name is specified', function() {
+      describe('when join table name is specified', () => {
         beforeEach(function() {
-          var Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING})
-            , Table1 = this.sequelize.define('ms_table2', {foo: DataTypes.STRING});
+          let Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING}),
+            Table1 = this.sequelize.define('ms_table2', {foo: DataTypes.STRING});
 
           Table1.belongsToMany(Table2, {through: 'table1_to_table2'});
           Table2.belongsToMany(Table1, {through: 'table1_to_table2'});
@@ -42,10 +42,10 @@ if (dialect.match(/^postgres/)) {
       });
     });
 
-    describe('HasMany', function() {
-      describe('addDAO / getModel', function() {
+    describe('HasMany', () => {
+      describe('addDAO / getModel', () => {
         beforeEach(function() {
-          var self = this;
+          const self = this;
 
           //prevent periods from occurring in the table name since they are used to delimit (table.column)
           this.User = this.sequelize.define('User' + config.rand(), { name: DataTypes.STRING });
@@ -56,22 +56,22 @@ if (dialect.match(/^postgres/)) {
           this.User.belongsToMany(this.Task, {as: 'Tasks', through: 'usertasks'});
           this.Task.belongsToMany(this.User, {as: 'Users', through: 'usertasks'});
 
-          var users = []
-            , tasks = [];
+          let users = [],
+            tasks = [];
 
-          for (var i = 0; i < 5; ++i) {
+          for (let i = 0; i < 5; ++i) {
             users[users.length] = {name: 'User' + Math.random()};
           }
 
-          for (var x = 0; x < 5; ++x) {
+          for (let x = 0; x < 5; ++x) {
             tasks[tasks.length] = {name: 'Task' + Math.random()};
           }
 
-          return this.sequelize.sync({ force: true }).then(function() {
-            return self.User.bulkCreate(users).then(function() {
-              return self.Task.bulkCreate(tasks).then(function() {
-                return self.User.findAll().then(function(_users) {
-                  return self.Task.findAll().then(function(_tasks) {
+          return this.sequelize.sync({ force: true }).then(() => {
+            return self.User.bulkCreate(users).then(() => {
+              return self.Task.bulkCreate(tasks).then(() => {
+                return self.User.findAll().then((_users) => {
+                  return self.Task.findAll().then((_tasks) => {
                     self.user = _users[0];
                     self.task = _tasks[0];
                   });
@@ -82,12 +82,12 @@ if (dialect.match(/^postgres/)) {
         });
 
         it('should correctly add an association to the dao', function() {
-          var self = this;
+          const self = this;
 
-          return self.user.getTasks().then(function(_tasks) {
+          return self.user.getTasks().then((_tasks) => {
             expect(_tasks).to.have.length(0);
-            return self.user.addTask(self.task).then(function() {
-              return self.user.getTasks().then(function(_tasks) {
+            return self.user.addTask(self.task).then(() => {
+              return self.user.getTasks().then((_tasks) => {
                 expect(_tasks).to.have.length(1);
               });
             });
@@ -95,11 +95,11 @@ if (dialect.match(/^postgres/)) {
         });
       });
 
-      describe('removeDAO', function() {
+      describe('removeDAO', () => {
         it('should correctly remove associated objects', function() {
-          var self = this
-            , users = []
-            , tasks = [];
+          let self = this,
+            users = [],
+            tasks = [];
 
           //prevent periods from occurring in the table name since they are used to delimit (table.column)
           this.User = this.sequelize.define('User' + config.rand(), { name: DataTypes.STRING });
@@ -110,34 +110,34 @@ if (dialect.match(/^postgres/)) {
           this.User.belongsToMany(this.Task, {as: 'Tasks', through: 'usertasks'});
           this.Task.belongsToMany(this.User, {as: 'Users', through: 'usertasks'});
 
-          for (var i = 0; i < 5; ++i) {
+          for (let i = 0; i < 5; ++i) {
             users[users.length] = {id: i + 1, name: 'User' + Math.random()};
           }
 
-          for (var x = 0; x < 5; ++x) {
+          for (let x = 0; x < 5; ++x) {
             tasks[tasks.length] = {id: x + 1, name: 'Task' + Math.random()};
           }
 
-          return this.sequelize.sync({ force: true }).then(function() {
-            return self.User.bulkCreate(users).then(function() {
-              return self.Task.bulkCreate(tasks).then(function() {
-                return self.User.findAll().then(function(_users) {
-                  return self.Task.findAll().then(function(_tasks) {
+          return this.sequelize.sync({ force: true }).then(() => {
+            return self.User.bulkCreate(users).then(() => {
+              return self.Task.bulkCreate(tasks).then(() => {
+                return self.User.findAll().then((_users) => {
+                  return self.Task.findAll().then((_tasks) => {
                     self.user = _users[0];
                     self.task = _tasks[0];
                     self.users = _users;
                     self.tasks = _tasks;
 
-                    return self.user.getTasks().then(function(__tasks) {
+                    return self.user.getTasks().then((__tasks) => {
                       expect(__tasks).to.have.length(0);
-                      return self.user.setTasks(self.tasks).then(function() {
-                        return self.user.getTasks().then(function(_tasks) {
+                      return self.user.setTasks(self.tasks).then(() => {
+                        return self.user.getTasks().then((_tasks) => {
                           expect(_tasks).to.have.length(self.tasks.length);
-                          return self.user.removeTask(self.tasks[0]).then(function() {
-                            return self.user.getTasks().then(function(_tasks) {
+                          return self.user.removeTask(self.tasks[0]).then(() => {
+                            return self.user.getTasks().then((_tasks) => {
                               expect(_tasks).to.have.length(self.tasks.length - 1);
-                              return self.user.removeTasks([self.tasks[1], self.tasks[2]]).then(function() {
-                                return self.user.getTasks().then(function(_tasks) {
+                              return self.user.removeTasks([self.tasks[1], self.tasks[2]]).then(() => {
+                                return self.user.getTasks().then((_tasks) => {
                                   expect(_tasks).to.have.length(self.tasks.length - 3);
                                 });
                               });

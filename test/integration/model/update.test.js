@@ -8,8 +8,8 @@ const expect = chai.expect;
 const current = Support.sequelize;
 const _ = require('lodash');
 
-describe(Support.getTestDialectTeaser('Model'), function () {
-  describe('update', function () {
+describe(Support.getTestDialectTeaser('Model'), () => {
+  describe('update', () => {
     beforeEach(function() {
       this.Account = this.sequelize.define('Account', {
         ownerId: {
@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
       return this.Account.sync({force: true});
     });
 
-    it('should only update the passed fields', function () {
+    it('should only update the passed fields', function() {
       return this.Account
         .create({ ownerId: 2 })
         .then(account => this.Account.update({
@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
 
 
     if (_.get(current.dialect.supports, 'returnValues.returning')) {
-      it('should return the updated record', function () {
+      it('should return the updated record', function() {
         return this.Account.create({ ownerId: 2 }).then(account => {
           return this.Account.update({ name: 'FooBar' }, {
             where: {
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
     }
 
     if (current.dialect.supports['LIMIT ON UPDATE']) {
-      it('should only update one row', function () {
+      it('should only update one row', function() {
         return this.Account.create({
           ownerId: 2,
           name: 'Account Name 1'

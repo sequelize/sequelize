@@ -8,7 +8,7 @@ const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator')
 const _ = require('lodash');
 
 if (current.dialect.name === 'mssql') {
-  suite('[MSSQL Specific] QueryGenerator', function() {
+  suite('[MSSQL Specific] QueryGenerator', () => {
     // Dialect would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
     QueryGenerator._dialect = current.dialect;
 

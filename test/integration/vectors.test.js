@@ -2,28 +2,28 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Sequelize = require('../../index')
-  , Support = require(__dirname + '/support');
+let chai = require('chai'),
+  expect = chai.expect,
+  Sequelize = require('../../index'),
+  Support = require(__dirname + '/support');
 
 chai.should();
 
-describe(Support.getTestDialectTeaser('Vectors'), function() {
-  it('should not allow insert backslash', function () {
-    var Student = this.sequelize.define('student', {
+describe(Support.getTestDialectTeaser('Vectors'), () => {
+  it('should not allow insert backslash', function() {
+    const Student = this.sequelize.define('student', {
       name: Sequelize.STRING
     }, {
       tableName: 'student'
     });
 
-    return Student.sync({force: true}).then(function () {
+    return Student.sync({force: true}).then(() => {
       return Student.create({
         name: 'Robert\\\'); DROP TABLE "students"; --'
-      }).then(function(result) {
+      }).then((result) => {
         expect(result.get('name')).to.equal('Robert\\\'); DROP TABLE "students"; --');
         return Student.findAll();
-      }).then(function(result) {
+      }).then((result) => {
         expect(result[0].name).to.equal('Robert\\\'); DROP TABLE "students"; --');
       });
     });

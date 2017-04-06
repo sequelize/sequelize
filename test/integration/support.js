@@ -1,9 +1,9 @@
 'use strict';
 
-var Support = require('../support')
-  , dialect = Support.getTestDialect();
+let Support = require('../support'),
+  dialect = Support.getTestDialect();
 
-before(function() {
+before(() => {
   if (dialect !== 'postgres' && dialect !== 'postgres-native') {
     return;
   }

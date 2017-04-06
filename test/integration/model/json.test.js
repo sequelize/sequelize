@@ -3,18 +3,18 @@
 /* jshint -W030 */
 /* jshint -W079 */
 /* jshint -W110 */
-const chai = require('chai')
-  , Sequelize = require('../../../index')
-  , Promise = Sequelize.Promise
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , current = Support.sequelize;
+const chai = require('chai'),
+  Sequelize = require('../../../index'),
+  Promise = Sequelize.Promise,
+  expect = chai.expect,
+  Support = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), function () {
+describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.JSON) {
-    describe('JSON', function () {
-      beforeEach(function () {
+    describe('JSON', () => {
+      beforeEach(function() {
         this.Event = this.sequelize.define('Event', {
           data: {
             type: DataTypes.JSON,
@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
       });
 
       if (current.dialect.supports.lock) {
-        it('findOrCreate supports transactions, json and locks', function () {
+        it('findOrCreate supports transactions, json and locks', function() {
           return current.transaction().then(transaction => {
             return this.Event.findOrCreate({
               where: {
@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
                 json: { some: { input: 'Hello' }, input: [1, 2, 3] },
                 data: { some: { input: 'There' }, input: [4, 5, 6] }
               },
-              transaction: transaction,
+              transaction,
               lock: transaction.LOCK.UPDATE,
               logging: sql => {
                 if (sql.indexOf('SELECT') !== -1 && sql.indexOf('CREATE') === -1) {
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         });
       }
 
-      it('should create an instance with JSON data', function () {
+      it('should create an instance with JSON data', function() {
         return this.Event.create({
           data: {
             name: {
@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         });
       });
 
-      it('should update an instance with JSON data', function () {
+      it('should update an instance with JSON data', function() {
         return this.Event.create({
           data: {
             name: {
@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         });
       });
 
-      it('should be possible to query a nested value', function () {
+      it('should be possible to query a nested value', function() {
         return Promise.join(
           this.Event.create({
             data: {
@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         });
       });
 
-      it('should be possible to query a nested integer value', function () {
+      it('should be possible to query a nested integer value', function() {
         return Promise.join(
           this.Event.create({
             data: {
@@ -203,7 +203,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         });
       });
 
-      it('should be possible to query a nested null value', function () {
+      it('should be possible to query a nested null value', function() {
         return Promise.join(
           this.Event.create({
             data: {
@@ -243,7 +243,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         });
       });
 
-      it('should be possible to query multiple nested values', function () {
+      it('should be possible to query multiple nested values', function() {
         return this.Event.create({
           data: {
             name: {
@@ -310,7 +310,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         });
       });
 
-      it('should be possible to destroy with where', function () {
+      it('should be possible to destroy with where', function() {
         const conditionSearch = {
           where: {
             data: {
@@ -356,15 +356,15 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         });
       });
 
-      describe('sql injection attacks', function () {
-        beforeEach(function () {
+      describe('sql injection attacks', () => {
+        beforeEach(function() {
           this.Model = this.sequelize.define('Model', {
             data: DataTypes.JSON
           });
           return this.sequelize.sync({ force: true });
         });
 
-        it('should properly escape the single quotes', function () {
+        it('should properly escape the single quotes', function() {
           return this.Model.create({
             data: {
               type: 'Point',
@@ -375,7 +375,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
           });
         });
 
-        it('should properly escape the single quotes in array', function () {
+        it('should properly escape the single quotes in array', function() {
           return this.Model.create({
             data: {
               type: 'Point',
@@ -384,13 +384,13 @@ describe(Support.getTestDialectTeaser('Model'), function () {
           });
         });
 
-        it('should be possible to find with properly escaped select query', function () {
+        it('should be possible to find with properly escaped select query', function() {
           return this.Model.create({
             data: {
               type: 'Point',
               properties: {
                 exploit: "'); DELETE YOLO INJECTIONS; -- "
-              },
+              }
             }
           }).then(() => {
             return this.Model.findOne({
@@ -399,7 +399,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
                   type: 'Point',
                   properties: {
                     exploit: "'); DELETE YOLO INJECTIONS; -- "
-                  },
+                  }
                 }
               }
             });

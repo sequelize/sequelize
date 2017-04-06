@@ -1,16 +1,16 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , current   = Support.sequelize;
+let chai = require('chai'),
+  expect = chai.expect,
+  Support   = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Instance'), function() {
-  describe('build', function () {
-    it('should populate NOW default values', function () {
-      var Model = current.define('Model', {
+describe(Support.getTestDialectTeaser('Instance'), () => {
+  describe('build', () => {
+    it('should populate NOW default values', () => {
+      let Model = current.define('Model', {
           created_time: {
             type: DataTypes.DATE,
             allowNull: true,
@@ -37,8 +37,8 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
           }
         }, {
           timestamp: false
-        })
-        , instance;
+        }),
+        instance;
 
       instance = Model.build({ip: '127.0.0.1', ip2: '0.0.0.0'});
 
@@ -51,16 +51,16 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       return instance.validate();
     });
 
-    it('should populate explicitly undefined UUID primary keys', function () {
-      var Model = current.define('Model', {
-        id: {
-          type: DataTypes.UUID,
-          primaryKey: true,
-          allowNull: false,
-          defaultValue: DataTypes.UUIDV4
-        }
-      })
-        , instance;
+    it('should populate explicitly undefined UUID primary keys', () => {
+      let Model = current.define('Model', {
+          id: {
+            type: DataTypes.UUID,
+            primaryKey: true,
+            allowNull: false,
+            defaultValue: DataTypes.UUIDV4
+          }
+        }),
+        instance;
 
       instance = Model.build({
         id: undefined
@@ -70,18 +70,18 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(instance.get('id')).to.be.ok;
     });
 
-    it('should populate undefined columns with default value', function () {
-      var Model = current.define('Model', {
-        number1: {
-          type: DataTypes.INTEGER,
-          defaultValue: 1
-        },
-        number2: {
-          type: DataTypes.INTEGER,
-          defaultValue: 2
-        }
-      })
-        , instance;
+    it('should populate undefined columns with default value', () => {
+      let Model = current.define('Model', {
+          number1: {
+            type: DataTypes.INTEGER,
+            defaultValue: 1
+          },
+          number2: {
+            type: DataTypes.INTEGER,
+            defaultValue: 2
+          }
+        }),
+        instance;
 
       instance = Model.build({
         number1: undefined
@@ -93,14 +93,14 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(instance.get('number2')).to.equal(2);
     });
 
-    it('should clone the default values', function () {
-      var Model = current.define('Model', {
-        data: {
-          type: DataTypes.JSONB,
-          defaultValue: { foo: 'bar' }
-        }
-      })
-        , instance;
+    it('should clone the default values', () => {
+      let Model = current.define('Model', {
+          data: {
+            type: DataTypes.JSONB,
+            defaultValue: { foo: 'bar' }
+          }
+        }),
+        instance;
 
       instance = Model.build();
       instance.data.foo = 'biz';

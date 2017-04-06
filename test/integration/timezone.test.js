@@ -1,16 +1,16 @@
 'use strict';
 
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/support')
-  , dialect = Support.getTestDialect()
-  , Sequelize = require(__dirname + '/../../index')
-  , Promise = Sequelize.Promise;
+let chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/support'),
+  dialect = Support.getTestDialect(),
+  Sequelize = require(__dirname + '/../../index'),
+  Promise = Sequelize.Promise;
 
 if (dialect !== 'sqlite') {
   // Sqlite does not support setting timezone
 
-  describe(Support.getTestDialectTeaser('Timezone'), function() {
+  describe(Support.getTestDialectTeaser('Timezone'), () => {
     beforeEach(function() {
       this.sequelizeWithTimezone = Support.createSequelizeInstance({
         timezone: '+07:00'
@@ -21,29 +21,29 @@ if (dialect !== 'sqlite') {
     });
 
     it('returns the same value for current timestamp', function() {
-      var now = 'now()'
-        , startQueryTime = Date.now();
+      let now = 'now()',
+        startQueryTime = Date.now();
 
       if (dialect === 'mssql') {
         now = 'GETDATE()';
       }
 
-      var query = 'SELECT ' + now + ' as now';
+      const query = 'SELECT ' + now + ' as now';
       return Promise.all([
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
         this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT })
-      ]).spread(function(now1, now2) {
-        var elapsedQueryTime = (Date.now() - startQueryTime) + 1001;
+      ]).spread((now1, now2) => {
+        const elapsedQueryTime = Date.now() - startQueryTime + 1001;
         expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
       });
     });
 
     if (dialect === 'mysql') {
       it('handles existing timestamps', function() {
-        var NormalUser = this.sequelize.define('user', {})
-          , TimezonedUser = this.sequelizeWithTimezone.define('user', {});
+        let NormalUser = this.sequelize.define('user', {}),
+          TimezonedUser = this.sequelizeWithTimezone.define('user', {});
 
-        return this.sequelize.sync({ force: true }).bind(this).then(function() {
+        return this.sequelize.sync({ force: true }).bind(this).then(() => {
           return NormalUser.create({});
         }).then(function(normalUser) {
           this.normalUser = normalUser;
@@ -57,17 +57,17 @@ if (dialect !== 'sqlite') {
       });
 
       it('handles named timezones', function() {
-        var NormalUser = this.sequelize.define('user', {})
-          , TimezonedUser = this.sequelizeWithNamedTimezone.define('user', {});
+        let NormalUser = this.sequelize.define('user', {}),
+          TimezonedUser = this.sequelizeWithNamedTimezone.define('user', {});
 
-        return this.sequelize.sync({ force: true }).bind(this).then(function() {
+        return this.sequelize.sync({ force: true }).bind(this).then(() => {
           return TimezonedUser.create({});
-        }).then(function(timezonedUser) {
+        }).then((timezonedUser) => {
           return Promise.all([
             NormalUser.findById(timezonedUser.id),
             TimezonedUser.findById(timezonedUser.id)
           ]);
-        }).spread(function(normalUser, timezonedUser) {
+        }).spread((normalUser, timezonedUser) => {
           // Expect 5 hours difference, in milliseconds, +/- 1 hour for DST
           expect(normalUser.createdAt.getTime() - timezonedUser.createdAt.getTime()).to.be.closeTo(60 * 60 * 4 * 1000 * -1, 60 * 60 * 1000);
         });

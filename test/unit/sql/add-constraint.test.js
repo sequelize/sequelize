@@ -9,10 +9,10 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 
 if (current.dialect.supports.constraints.addConstraint) {
-  describe(Support.getTestDialectTeaser('SQL'), function() {
-    describe('addConstraint', function() {
-      describe('unique', function() {
-        it('naming', function() {
+  describe(Support.getTestDialectTeaser('SQL'), () => {
+    describe('addConstraint', () => {
+      describe('unique', () => {
+        it('naming', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             name: 'unique_mytable_mycolumn',
             type: 'UNIQUE',
@@ -22,7 +22,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
 
-        it('should create constraint name if not passed', function() {
+        it('should create constraint name if not passed', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'UNIQUE',
             fields: ['myColumn']
@@ -31,7 +31,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
 
-        it('should work with multiple columns', function() {
+        it('should work with multiple columns', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'UNIQUE',
             fields: ['myColumn1', 'myColumn2']
@@ -41,8 +41,8 @@ if (current.dialect.supports.constraints.addConstraint) {
         }); 
       });
       
-      describe('check', function() {
-        it('naming', function() {
+      describe('check', () => {
+        it('naming', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'CHECK',
             fields: ['myColumn'],
@@ -55,7 +55,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
 
-        it('where', function() {
+        it('where', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'CHECK',
             fields: ['myColumn'],
@@ -76,8 +76,8 @@ if (current.dialect.supports.constraints.addConstraint) {
       });
 
       if (current.dialect.supports.constraints.default) {
-        describe('default', function() {
-          it('naming', function() {
+        describe('default', () => {
+          it('naming', () => {
             expectsql(sql.addConstraintQuery('myTable', {
               type: 'default',
               fields: ['myColumn'],
@@ -87,7 +87,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             });
           });
 
-          it('string', function() {
+          it('string', () => {
             expectsql(sql.addConstraintQuery('myTable', {
               type: 'default',
               fields: ['myColumn'],
@@ -98,7 +98,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             });
           });
           
-          it('validation', function() {
+          it('validation', () => {
             expect(sql.addConstraintQuery.bind(sql, {
               tableName: 'myTable',
               schema: 'mySchema'
@@ -112,8 +112,8 @@ if (current.dialect.supports.constraints.addConstraint) {
           
         });
       }
-      describe('primary key', function() {
-        it('naming', function() {
+      describe('primary key', () => {
+        it('naming', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             name: 'primary_mytable_mycolumn',
             type: 'primary key',
@@ -123,7 +123,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
 
-        it('should create constraint name if not passed', function() {
+        it('should create constraint name if not passed', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'PRIMARY KEY',
             fields: ['myColumn']
@@ -132,7 +132,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
 
-        it('should work with multiple columns', function() {
+        it('should work with multiple columns', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'PRIMARY KEY',
             fields: ['myColumn1', 'myColumn2']
@@ -142,8 +142,8 @@ if (current.dialect.supports.constraints.addConstraint) {
         }); 
       });
 
-      describe('foreign key', function() {
-        it('naming', function() {
+      describe('foreign key', () => {
+        it('naming', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             name: 'foreignkey_mytable_mycolumn',
             type: 'foreign key',
@@ -157,7 +157,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
         
-        it('uses onDelete, onUpdate', function() {
+        it('uses onDelete, onUpdate', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'foreign key',
             fields: ['myColumn'],
@@ -172,7 +172,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
         
-        it('errors if references object is not passed', function() {
+        it('errors if references object is not passed', () => {
           expect(sql.addConstraintQuery.bind(sql, 'myTable', {
             type: 'foreign key',
             fields: ['myColumn']
@@ -182,12 +182,12 @@ if (current.dialect.supports.constraints.addConstraint) {
         
       });
       
-      describe('validation', function() {
-        it('throw error on invalid type', function() {
+      describe('validation', () => {
+        it('throw error on invalid type', () => {
           expect(sql.addConstraintQuery.bind(sql, 'myTable', { type: 'some type', fields: [] })).to.throw('some type is invalid');
         });
         
-        it('calls getConstraintSnippet function', function() {
+        it('calls getConstraintSnippet function', () => {
           const options = { type: 'unique', fields: ['myColumn'] };
           const addConstraintQuerySpy = sinon.stub(sql, 'addConstraintQuery');
           sql.addConstraintQuery('myTable', options);
@@ -196,7 +196,7 @@ if (current.dialect.supports.constraints.addConstraint) {
         });
 
         if (!current.dialect.supports.constraints.default) {
-          it('should throw error if default constraints are used in other dialects', function() {
+          it('should throw error if default constraints are used in other dialects', () => {
             expect(sql.addConstraintQuery.bind(sql, 'myTable', { type: 'default', defaultValue: 0, fields: [] })).to.throw('Default constraints are supported only for MSSQL dialect.');
           });
         }

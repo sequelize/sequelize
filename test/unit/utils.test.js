@@ -198,7 +198,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
   });
 
   suite('stack', () => {
-    test('stack trace starts after call to Util.stack()', function this_here_test() {
+    test('stack trace starts after call to Util.stack()', function this_here_test() { // eslint-disable-line - need a named function to be able to capture its trace
 
       function a() {
         return b();

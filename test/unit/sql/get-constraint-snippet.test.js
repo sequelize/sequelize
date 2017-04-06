@@ -7,10 +7,10 @@ const expectsql = Support.expectsql;
 const sql = current.dialect.QueryGenerator;
 const expect = require('chai').expect;
 
-describe(Support.getTestDialectTeaser('SQL'), function() {
-  describe('getConstraintSnippet', function() {
-    describe('unique', function() {
-      it('naming', function() {
+describe(Support.getTestDialectTeaser('SQL'), () => {
+  describe('getConstraintSnippet', () => {
+    describe('unique', () => {
+      it('naming', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           name: 'unique_mytable_mycolumn',
           type: 'UNIQUE',
@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         });
       });
 
-      it('should create constraint name if not passed', function() {
+      it('should create constraint name if not passed', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           type: 'UNIQUE',
           fields: ['myColumn']
@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         });
       });
 
-      it('should work with multiple columns', function() {
+      it('should work with multiple columns', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           type: 'UNIQUE',
           fields: ['myColumn1', 'myColumn2']
@@ -39,8 +39,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       }); 
     });
     
-    describe('check', function() {
-      it('naming', function() {
+    describe('check', () => {
+      it('naming', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           type: 'CHECK',
           fields: [{
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         });
       });
 
-      it('where', function() {
+      it('where', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           type: 'CHECK',
           fields: ['myColumn'],
@@ -75,8 +75,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       
     });
 
-    describe('primary key', function() {
-      it('naming', function() {
+    describe('primary key', () => {
+      it('naming', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           name: 'primary_mytable_mycolumn',
           type: 'primary key',
@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         });
       });
 
-      it('should create constraint name if not passed', function() {
+      it('should create constraint name if not passed', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           type: 'PRIMARY KEY',
           fields: ['myColumn']
@@ -95,7 +95,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         });
       });
 
-      it('should work with multiple columns', function() {
+      it('should work with multiple columns', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           type: 'PRIMARY KEY',
           fields: ['myColumn1', 'myColumn2']
@@ -105,8 +105,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       }); 
     });
 
-    describe('foreign key', function() {
-      it('naming', function() {
+    describe('foreign key', () => {
+      it('naming', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           name: 'foreignkey_mytable_mycolumn',
           type: 'foreign key',
@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         });
       });
       
-      it('uses onDelete, onUpdate', function() {
+      it('uses onDelete, onUpdate', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           type: 'foreign key',
           fields: ['myColumn'],
@@ -135,7 +135,7 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         });
       });
       
-      it('errors if references object is not passed', function() {
+      it('errors if references object is not passed', () => {
         expect(sql.getConstraintSnippet.bind(sql, 'myTable', {
           type: 'foreign key',
           fields: ['myColumn']
@@ -145,8 +145,8 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
       
     });
     
-    describe('validation', function() {
-      it('throw error on invalid type', function() {
+    describe('validation', () => {
+      it('throw error on invalid type', () => {
         expect(sql.getConstraintSnippet.bind(sql, 'myTable', { type: 'some type', fields: [] })).to.throw('some type is invalid');
       });
     });

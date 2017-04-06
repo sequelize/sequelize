@@ -1,16 +1,16 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , current   = Support.sequelize;
+let chai = require('chai'),
+  expect = chai.expect,
+  Support   = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('hasOne'), function() {
-  it('properly use the `as` key to generate foreign key name', function(){
-    var User = current.define('User', { username: DataTypes.STRING })
-      , Task = current.define('Task', { title: DataTypes.STRING });
+describe(Support.getTestDialectTeaser('hasOne'), () => {
+  it('properly use the `as` key to generate foreign key name', () => {
+    let User = current.define('User', { username: DataTypes.STRING }),
+      Task = current.define('Task', { title: DataTypes.STRING });
 
     User.hasOne(Task);
     expect(Task.attributes.UserId).not.to.be.empty;
@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('hasOne'), function() {
     expect(Task.attributes.ShabdaId).not.to.be.empty;
   });
 
-  it('should not override custom methods with association mixin', function(){
+  it('should not override custom methods with association mixin', () => {
     const methods = {
       getTask : 'get',
       setTask: 'set',
@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('hasOne'), function() {
     const Task = current.define('Task');
 
     current.Utils._.each(methods, (alias, method) => {
-      User.prototype[method] = function () {
+      User.prototype[method] = function() {
         const realMethod = this.constructor.associations.task[alias];
         expect(realMethod).to.be.a('function');
         return realMethod;

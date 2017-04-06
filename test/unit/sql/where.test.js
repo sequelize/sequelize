@@ -1,24 +1,24 @@
 'use strict';
 
 /* jshint -W110 */
-var Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , util      = require('util')
-  , expectsql = Support.expectsql
-  , current   = Support.sequelize
-  , sql       = current.dialect.QueryGenerator;
+let Support   = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  util      = require('util'),
+  expectsql = Support.expectsql,
+  current   = Support.sequelize,
+  sql       = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite(Support.getTestDialectTeaser('SQL'), function() {
-  suite('whereQuery', function () {
-    var testsql = function (params, options, expectation) {
+suite(Support.getTestDialectTeaser('SQL'), () => {
+  suite('whereQuery', () => {
+    const testsql = function(params, options, expectation) {
       if (expectation === undefined) {
         expectation = options;
         options = undefined;
       }
 
-      test(util.inspect(params, {depth: 10})+(options && ', '+util.inspect(options) || ''), function () {
+      test(util.inspect(params, {depth: 10})+(options && ', '+util.inspect(options) || ''), () => {
         return expectsql(sql.whereQuery(params, options), expectation);
       });
     };
@@ -36,18 +36,18 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       default: 'WHERE [User].[id] = 1'
     });
 
-    test("{ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'})) }", function () {
+    test("{ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'})) }", () => {
       expectsql(sql.whereQuery({id: 1}, {prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'}))}), {
         default: 'WHERE [yolo.User].[id] = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
-        mssql: 'WHERE [yolo].[User].[id] = 1',
+        mssql: 'WHERE [yolo].[User].[id] = 1'
       });
     });
 
     testsql({
       name: 'a project',
       $or: [
-        { id: [1,2,3] },
+        { id: [1, 2, 3] },
         { id: { $gt: 10 } }
       ]
     }, {
@@ -59,7 +59,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       name: 'a project',
       id: {
         $or: [
-          [1,2,3],
+          [1, 2, 3],
           { $gt: 10 }
         ]
       }
@@ -69,14 +69,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
   });
 
-  suite('whereItemQuery', function () {
-    var testsql = function (key, value, options, expectation) {
+  suite('whereItemQuery', () => {
+    const testsql = function(key, value, options, expectation) {
       if (expectation === undefined) {
         expectation = options;
         options = undefined;
       }
 
-      test(key+': '+util.inspect(value, {depth: 10})+(options && ', '+util.inspect(options) || ''), function () {
+      test(key+': '+util.inspect(value, {depth: 10})+(options && ', '+util.inspect(options) || ''), () => {
         return expectsql(sql.whereItemQuery(key, value, options), expectation);
       });
     };
@@ -91,7 +91,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       mssql: '[deleted] IS NULL'
     });
 
-    suite('$in', function () {
+    suite('$in', () => {
       testsql('equipment', {
         $in: [1, 3]
       }, {
@@ -119,7 +119,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('Buffer', function () {
+    suite('Buffer', () => {
       testsql('field', new Buffer('Sequelize'), {
         postgres: '"field" = E\'\\\\x53657175656c697a65\'',
         sqlite: "`field` = X'53657175656c697a65'",
@@ -128,12 +128,12 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('$not', function () {
+    suite('$not', () => {
       testsql('deleted', {
         $not: true
       }, {
         default: '[deleted] IS NOT true',
-        mssql: "[deleted] IS NOT 1",
+        mssql: '[deleted] IS NOT 1',
         sqlite: '`deleted` IS NOT 1'
       });
 
@@ -150,7 +150,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('$notIn', function () {
+    suite('$notIn', () => {
       testsql('equipment', {
         $notIn: []
       }, {
@@ -172,7 +172,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('$ne', function () {
+    suite('$ne', () => {
       testsql('email', {
         $ne: 'jack.bauer@gmail.com'
       }, {
@@ -181,8 +181,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('$and/$or/$not', function () {
-      suite('$or', function () {
+    suite('$and/$or/$not', () => {
+      suite('$or', () => {
         testsql('email', {
           $or: ['maker@mhansen.io', 'janzeh@gmail.com']
         }, {
@@ -236,13 +236,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           mssql: "([roleName] = N'NEW' OR ([roleName] = N'CLIENT' AND [type] = N'CLIENT'))"
         });
 
-        test('sequelize.or({group_id: 1}, {user_id: 2})', function () {
+        test('sequelize.or({group_id: 1}, {user_id: 2})', function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2})), {
             default: '([group_id] = 1 OR [user_id] = 2)'
           });
         });
 
-        test("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function () {
+        test("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})), {
             default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))",
             mssql: "([group_id] = 1 OR ([user_id] = 2 AND [role] = N'admin'))"
@@ -250,21 +250,21 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
 
         testsql('$or', [], {
-          default: "0 = 1"
+          default: '0 = 1'
         });
 
         testsql('$or', {}, {
-          default: "0 = 1"
+          default: '0 = 1'
         });
 
-        test("sequelize.or()", function () {
+        test('sequelize.or()', function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.or()), {
-            default: "0 = 1"
+            default: '0 = 1'
           });
         });
       });
 
-      suite('$and', function () {
+      suite('$and', () => {
         testsql('$and', {
           shared: 1,
           $or: {
@@ -272,7 +272,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             user_id: 2
           }
         }, {
-          default: "([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))"
+          default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
         });
 
         testsql('$and', [
@@ -301,23 +301,23 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
 
         testsql('name', {
-            $and: [
+          $and: [
               {like : '%someValue1%'},
               {like : '%someValue2%'}
-            ]
+          ]
         }, {
           default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')",
           mssql: "([name] LIKE N'%someValue1%' AND [name] LIKE N'%someValue2%')"
         });
 
-        test('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function () {
+        test('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.and({shared: 1}, this.sequelize.or({group_id: 1}, {user_id: 2}))), {
             default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
           });
         });
       });
 
-      suite('$not', function () {
+      suite('$not', () => {
         testsql('$not', {
           shared: 1,
           $or: {
@@ -329,16 +329,16 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         });
 
         testsql('$not', [], {
-          default: "0 = 1"
+          default: '0 = 1'
         });
 
         testsql('$not', {}, {
-          default: "0 = 1"
+          default: '0 = 1'
         });
       });
     });
 
-    suite('$col', function () {
+    suite('$col', () => {
       testsql('userId', {
         $col: 'user.id'
       }, {
@@ -381,7 +381,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('$gt', function () {
+    suite('$gt', () => {
       testsql('rank', {
         $gt: 2
       }, {
@@ -397,7 +397,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('$raw', function () {
+    suite('$raw', () => {
       testsql('rank', {
         $raw: 'AGHJZ'
       }, {
@@ -405,7 +405,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('$like', function () {
+    suite('$like', () => {
       testsql('username', {
         $like: '%swagger'
       }, {
@@ -414,7 +414,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('$between', function () {
+    suite('$between', () => {
       testsql('date', {
         $between: ['2013-01-01', '2013-01-11']
       }, {
@@ -431,7 +431,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    suite('$notBetween', function () {
+    suite('$notBetween', () => {
       testsql('date', {
         $notBetween: ['2013-01-01', '2013-01-11']
       }, {
@@ -441,8 +441,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
 
     if (current.dialect.supports.ARRAY) {
-      suite('ARRAY', function () {
-        suite('$contains', function () {
+      suite('ARRAY', () => {
+        suite('$contains', () => {
           testsql('muscles', {
             $contains: [2, 3]
           }, {
@@ -466,7 +466,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           });
         });
 
-        suite('$overlap', function () {
+        suite('$overlap', () => {
           testsql('muscles', {
             $overlap: [3, 11]
           }, {
@@ -486,7 +486,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           });
         });
 
-        suite('$any', function() {
+        suite('$any', () => {
           testsql('userId', {
             $any: [4, 5, 6]
           }, {
@@ -503,7 +503,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             postgres: '"userId" = ANY (ARRAY[2,5]::INTEGER[])'
           });
 
-          suite('$values', function () {
+          suite('$values', () => {
             testsql('userId', {
               $any: {
                 $values: [4, 5, 6]
@@ -526,7 +526,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           });
         });
 
-        suite('$all', function() {
+        suite('$all', () => {
           testsql('userId', {
             $all: [4, 5, 6]
           }, {
@@ -543,7 +543,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
             postgres: '"userId" = ALL (ARRAY[2,5]::INTEGER[])'
           });
 
-          suite('$values', function () {
+          suite('$values', () => {
             testsql('userId', {
               $all: {
                 $values: [4, 5, 6]
@@ -566,7 +566,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           });
         });
 
-        suite('$like', function() {
+        suite('$like', () => {
           testsql('userId', {
             $like: {
               $any: ['foo', 'bar', 'baz']
@@ -611,7 +611,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     }
 
     if (current.dialect.supports.RANGE) {
-      suite('RANGE', function () {
+      suite('RANGE', () => {
 
         testsql('range', {
           $contains: new Date(Date.UTC(2000, 1, 1))
@@ -716,9 +716,9 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     }
 
     if (current.dialect.supports.JSON) {
-      suite('JSON', function () {
-        test('sequelize.json("profile.id"), sequelize.cast(2, \'text\')")', function () {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.json("profile.id", this.sequelize.cast('12346-78912', 'text'))), {
+      suite('JSON', () => {
+        test('sequelize.json("profile.id"), sequelize.cast(2, \'text\')")', function() {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.json('profile.id', this.sequelize.cast('12346-78912', 'text'))), {
             postgres: "(\"profile\"#>>'{id}') = CAST('12346-78912' AS TEXT)",
             sqlite: "json_extract(`profile`, '$.id') = CAST('12346-78912' AS TEXT)"
           });
@@ -830,7 +830,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
         testsql('data', {
           nested: {
-            "attribute::integer": {
+            'attribute::integer': {
               $gt: 2
             }
           }
@@ -843,7 +843,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS INTEGER) > 2"
         });
 
-        var dt = new Date();
+        const dt = new Date();
         testsql('data', {
           nested: {
             attribute: {
@@ -890,7 +890,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     }
 
     if (current.dialect.supports.JSONB) {
-      suite('JSONB', function () {
+      suite('JSONB', () => {
         testsql('data', {
           $contains: {
             company: 'Magnafone'
@@ -905,8 +905,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     }
 
-    suite('fn', function () {
-      test('{name: this.sequelize.fn(\'LOWER\', \'DERP\')}', function () {
+    suite('fn', () => {
+      test('{name: this.sequelize.fn(\'LOWER\', \'DERP\')}', function() {
         expectsql(sql.whereQuery({name: this.sequelize.fn('LOWER', 'DERP')}), {
           default: "WHERE [name] = LOWER('DERP')",
           mssql: "WHERE [name] = LOWER(N'DERP')"
@@ -915,17 +915,17 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
   });
 
-  suite('getWhereConditions', function () {
-    var testsql = function (value, expectation) {
-      var User = current.define('user', {});
+  suite('getWhereConditions', () => {
+    const testsql = function(value, expectation) {
+      const User = current.define('user', {});
 
-      test(util.inspect(value, {depth: 10}), function () {
+      test(util.inspect(value, {depth: 10}), () => {
         return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
       });
     };
 
     testsql(current.where(current.fn('lower', current.col('name')), null), {
-      default: "lower([name]) IS NULL"
+      default: 'lower([name]) IS NULL'
     });
   });
 });
