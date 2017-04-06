@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   config = require(__dirname + '/../config/config'),
   Support = require(__dirname + '/support'),
@@ -11,7 +10,7 @@ let chai = require('chai'),
   path = require('path');
 
 if (dialect === 'sqlite') {
-  var sqlite3 = require('sqlite3');
+  var sqlite3 = require('sqlite3'); // eslint-disable-line
 }
 
 describe(Support.getTestDialectTeaser('Configuration'), () => {

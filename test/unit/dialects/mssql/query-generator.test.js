@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W110 */
 const Support = require(__dirname + '/../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;

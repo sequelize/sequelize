@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../../support'),
   DataTypes = require(__dirname + '/../../../../lib/data-types'),
@@ -136,7 +135,7 @@ if (dialect === 'sqlite') {
 
         describe('.min', () => {
           it('should return the min value', function() {
-            let self = this,
+            const self = this,
               users = [];
 
             for (let i = 2; i < 5; i++) {
@@ -153,7 +152,7 @@ if (dialect === 'sqlite') {
 
         describe('.max', () => {
           it('should return the max value', function() {
-            let self = this,
+            const self = this,
               users = [];
 
             for (let i = 2; i <= 5; i++) {

@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   Sequelize = require('../../index'),
   expect = chai.expect,
   Support = require(__dirname + '/support'),
@@ -216,7 +214,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('returns proper defaultValues after save when setter is set', function() {
-      let titleSetter = sinon.spy(),
+      const titleSetter = sinon.spy(),
         Task = this.sequelize.define('TaskBuild', {
           title: {
             type: Sequelize.STRING(50),
@@ -280,7 +278,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
       return User.sync({ force: true }).bind(this).then(function() {
         return this.sequelize.queryInterface.showIndex(User.tableName).then((indexes) => {
-          let idxPrimary, idxUnique;
+          let idxUnique;
           if (dialect === 'sqlite') {
             expect(indexes).to.have.length(1);
             idxUnique = indexes[0];
@@ -289,7 +287,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', length: undefined, order: undefined}]);
           } else if (dialect === 'mysql') {
             expect(indexes).to.have.length(2);
-            idxPrimary = indexes[0];
             idxUnique = indexes[1];
             expect(idxUnique.primary).to.equal(false);
             expect(idxUnique.unique).to.equal(true);
@@ -297,14 +294,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(idxUnique.type).to.equal('BTREE');
           } else if (dialect === 'postgres') {
             expect(indexes).to.have.length(2);
-            idxPrimary = indexes[0];
             idxUnique = indexes[1];
             expect(idxUnique.primary).to.equal(false);
             expect(idxUnique.unique).to.equal(true);
             expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', collate: undefined, order: undefined, length: undefined}]);
           } else if (dialect === 'mssql') {
             expect(indexes).to.have.length(2);
-            idxPrimary = indexes[0];
             idxUnique = indexes[1];
             expect(idxUnique.primary).to.equal(false);
             expect(idxUnique.unique).to.equal(true);
@@ -316,7 +311,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('allows us to customize the error message for unique constraint', function() {
 
-      let self = this,
+      const self = this,
         User = this.sequelize.define('UserWithUniqueUsername', {
           username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
           email: { type: Sequelize.STRING, unique: 'user_and_email' }
@@ -335,20 +330,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
     it('allows us to map the customized error message with unique constraint name', function() {
       // Fake migration style index creation with explicit index definition
-      let self = this,
-        User = this.sequelize.define('UserWithUniqueUsername', {
-          user_id: { type: Sequelize.INTEGER},
-          email: { type: Sequelize.STRING}
-        }, {
-          indexes: [
-            {
-              name: 'user_and_email_index',
-              msg: 'User and email must be unique',
-              unique: true,
-              method: 'BTREE',
-              fields: ['user_id', {attribute: 'email', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5}]
-            }]
-        });
+      const self = this;
+      let User = this.sequelize.define('UserWithUniqueUsername', {
+        user_id: { type: Sequelize.INTEGER},
+        email: { type: Sequelize.STRING}
+      }, {
+        indexes: [
+          {
+            name: 'user_and_email_index',
+            msg: 'User and email must be unique',
+            unique: true,
+            method: 'BTREE',
+            fields: ['user_id', {attribute: 'email', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5}]
+          }]
+      });
 
       return User.sync({ force: true }).bind(this).then(() => {
         // Redefine the model to use the index in database and override error message
@@ -782,7 +777,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('builds a new instance with default value.', function() {
-        let data = {
+        const data = {
             username: 'Username'
           },
           default_values = {
@@ -893,7 +888,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('updates only values that match filter', function() {
-      let self = this,
+      const self = this,
         data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '42' },
                   { username: 'Bob', secretValue: '43' }];
@@ -917,7 +912,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('updates only values that match the allowed fields', function() {
-      let self = this,
+      const self = this,
         data = [{ username: 'Peter', secretValue: '42' }];
 
       return this.User.bulkCreate(data).then(() => {
@@ -1013,7 +1008,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           sideEffects: false
         });
-      }).then((user) => {
+      }).then(() => {
         return User.findAll();
       }).spread((user) => {
         expect(user.illness_pain).to.be.equal(5);
@@ -1048,7 +1043,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             username: 'Jan'
           }
         });
-      }).then((user) => {
+      }).then(() => {
         return User.findAll();
       }).spread((user) => {
         expect(user.illness_pain).to.be.equal(10);
@@ -1100,7 +1095,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('returns the number of affected rows', function() {
-      let self = this,
+      const self = this,
         data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '42' },
                   { username: 'Bob', secretValue: '43' }];
@@ -1118,7 +1113,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (dialect === 'postgres') {
       it('returns the affected rows if `options.returning` is true', function() {
-        let self = this,
+        const self = this,
           data = [{ username: 'Peter', secretValue: '42' },
                     { username: 'Paul', secretValue: '42' },
                     { username: 'Bob', secretValue: '43' }];
@@ -1139,7 +1134,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (dialect === 'mysql') {
       it('supports limit clause', function() {
-        let self = this,
+        const self = this,
           data = [{ username: 'Peter', secretValue: '42' },
                     { username: 'Peter', secretValue: '42' },
                     { username: 'Peter', secretValue: '42' }];
@@ -1156,7 +1151,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('destroy', () => {
     it('convenient method `truncate` should clear the table', function() {
-      let User = this.sequelize.define('User', { username: DataTypes.STRING }),
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }),
         data = [
             { username: 'user1' },
             { username: 'user2' }
@@ -1172,7 +1167,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('truncate should clear the table', function() {
-      let User = this.sequelize.define('User', { username: DataTypes.STRING }),
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }),
         data = [
             { username: 'user1' },
             { username: 'user2' }
@@ -1201,7 +1196,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('deletes all instances when given an empty where object', function() {
-      let User = this.sequelize.define('User', { username: DataTypes.STRING }),
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }),
         data = [
             { username: 'user1' },
             { username: 'user2' }
@@ -1247,7 +1242,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('deletes values that match filter', function() {
-      let self = this,
+      const self = this,
         data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '42' },
                   { username: 'Bob', secretValue: '43' }];
@@ -1316,7 +1311,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('sets deletedAt to the current timestamp if paranoid is true', function() {
-      let self = this,
+      const self = this,
         qi = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier.bind(this.sequelize.queryInterface.QueryGenerator),
         ParanoidUser = self.sequelize.define('ParanoidUser', {
           username: Sequelize.STRING,
@@ -1527,7 +1522,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('returns the number of affected rows', function() {
-      let self = this,
+      const self = this,
         data = [{ username: 'Peter', secretValue: '42' },
                   { username: 'Paul', secretValue: '42' },
                   { username: 'Bob', secretValue: '43' }];
@@ -1544,7 +1539,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('supports table schema/prefix', function() {
-      let self = this,
+      const self = this,
         data = [{ username: 'Peter', secretValue: '42' },
            { username: 'Paul', secretValue: '42' },
            { username: 'Bob', secretValue: '43' }],
@@ -1582,7 +1577,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('restores a previously deleted model', function() {
-      let self = this,
+      const self = this,
         ParanoidUser = self.sequelize.define('ParanoidUser', {
           username: Sequelize.STRING,
           secretValue: Sequelize.STRING,
@@ -2160,11 +2155,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('should describeTable using the default schema settings', function() {
-      let self = this,
+      const self = this,
         UserPublic = this.sequelize.define('Public', {
           username: Sequelize.STRING
-        }),
-        count = 0;
+        });
+      let count = 0;
 
       return UserPublic.sync({ force: true }).then(() => {
         return UserPublic.schema('special').sync({ force: true }).then(() => {
@@ -2263,7 +2258,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
             }
           }
-        }).then((UserPublic) => {
+        }).then(() => {
           return self.UserSpecialSync.schema('special').create({age: 3}, {
             logging(UserSpecial) {
               logged++;
@@ -2341,7 +2336,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('uses a table name as a string and references the author table', function() {
       const authorIdColumn = { type: Sequelize.INTEGER, references: { model: 'authors', key: 'id' } };
 
-      let self = this,
+      const self = this,
         Post = self.sequelize.define('post', { title: Sequelize.STRING, authorId: authorIdColumn });
 
       this.Author.hasMany(Post);
@@ -2405,7 +2400,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('works with comments', function() {
       // Test for a case where the comment was being moved to the end of the table when there was also a reference on the column, see #1521
-      // jshint ignore:start
       const Member = this.sequelize.define('Member', {});
       const idColumn = {
         type: Sequelize.INTEGER,
@@ -2416,8 +2410,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       idColumn.references = { model: Member, key: 'id' };
 
-      const Profile = this.sequelize.define('Profile', { id: idColumn });
-      // jshint ignore:end
+      this.sequelize.define('Profile', { id: idColumn });
 
       return this.sequelize.sync({ force: true });
     });
@@ -2521,7 +2514,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }]).then(() => {
             return self.User.findAll().then((users) => {
               return self.Project.findAll().then((projects) => {
-                let leia = users[0],
+                const leia = users[0],
                   luke = users[1],
                   vader = users[2],
                   republic = projects[0],
@@ -2691,8 +2684,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   it('should be possible to use a key named UUID as foreign key', function() {
-    // jshint ignore:start
-    const project = this.sequelize.define('project', {
+    this.sequelize.define('project', {
       UserId: {
         type: Sequelize.STRING,
         references: {
@@ -2702,7 +2694,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    const user = this.sequelize.define('Users', {
+    this.sequelize.define('Users', {
       UUID: {
         type: Sequelize.STRING,
         primaryKey: true,
@@ -2714,7 +2706,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       }
     });
-    // jshint ignore:end
 
     return this.sequelize.sync({force: true});
   });

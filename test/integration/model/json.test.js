@@ -1,8 +1,5 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W079 */
-/* jshint -W110 */
 const chai = require('chai'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,

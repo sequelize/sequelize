@@ -1,6 +1,6 @@
 'use strict';
 
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/support'),
   dialect = Support.getTestDialect(),
@@ -21,8 +21,8 @@ if (dialect !== 'sqlite') {
     });
 
     it('returns the same value for current timestamp', function() {
-      let now = 'now()',
-        startQueryTime = Date.now();
+      let now = 'now()';
+      const startQueryTime = Date.now();
 
       if (dialect === 'mssql') {
         now = 'GETDATE()';
@@ -40,7 +40,7 @@ if (dialect !== 'sqlite') {
 
     if (dialect === 'mysql') {
       it('handles existing timestamps', function() {
-        let NormalUser = this.sequelize.define('user', {}),
+        const NormalUser = this.sequelize.define('user', {}),
           TimezonedUser = this.sequelizeWithTimezone.define('user', {});
 
         return this.sequelize.sync({ force: true }).bind(this).then(() => {
@@ -57,7 +57,7 @@ if (dialect !== 'sqlite') {
       });
 
       it('handles named timezones', function() {
-        let NormalUser = this.sequelize.define('user', {}),
+        const NormalUser = this.sequelize.define('user', {}),
           TimezonedUser = this.sequelizeWithNamedTimezone.define('user', {});
 
         return this.sequelize.sync({ force: true }).bind(this).then(() => {

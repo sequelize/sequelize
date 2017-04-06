@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
   Support = require(__dirname + '/../support'),
@@ -15,7 +14,7 @@ if (current.dialect.supports.groupedLimit) {
   describe(Support.getTestDialectTeaser('Include'), () => {
     describe('separate', () => {
       it('should run a hasMany association in a separate query', function() {
-        let User = this.sequelize.define('User', {}),
+        const User = this.sequelize.define('User', {}),
           Task = this.sequelize.define('Task', {}),
           sqlSpy = sinon.spy();
 
@@ -66,7 +65,7 @@ if (current.dialect.supports.groupedLimit) {
       });
 
       it('should work even if the id was not included', function() {
-        let User = this.sequelize.define('User', {
+        const User = this.sequelize.define('User', {
             name: DataTypes.STRING
           }),
           Task = this.sequelize.define('Task', {}),
@@ -104,7 +103,7 @@ if (current.dialect.supports.groupedLimit) {
       });
 
       it('should not break a nested include with null values', function() {
-        let User = this.sequelize.define('User', {}),
+        const User = this.sequelize.define('User', {}),
           Team = this.sequelize.define('Team', {}),
           Company = this.sequelize.define('Company', {});
 
@@ -123,7 +122,7 @@ if (current.dialect.supports.groupedLimit) {
       });
 
       it('should run a hasMany association with limit in a separate query', function() {
-        let User = this.sequelize.define('User', {}),
+        const User = this.sequelize.define('User', {}),
           Task = this.sequelize.define('Task', {
             userId: {
               type: DataTypes.INTEGER,
@@ -178,7 +177,7 @@ if (current.dialect.supports.groupedLimit) {
       });
 
       it('should run a nested (from a non-separate include) hasMany association in a separate query', function() {
-        let User = this.sequelize.define('User', {}),
+        const User = this.sequelize.define('User', {}),
           Company = this.sequelize.define('Company'),
           Task = this.sequelize.define('Task', {}),
           sqlSpy = sinon.spy();
@@ -237,7 +236,7 @@ if (current.dialect.supports.groupedLimit) {
       });
 
       it('should work having a separate include between a parent and child include', function() {
-        let User = this.sequelize.define('User', {}),
+        const User = this.sequelize.define('User', {}),
           Project = this.sequelize.define('Project'),
           Company = this.sequelize.define('Company'),
           Task = this.sequelize.define('Task', {}),
@@ -292,7 +291,7 @@ if (current.dialect.supports.groupedLimit) {
       });
 
       it('should run two nested hasMany association in a separate queries', function() {
-        let User = this.sequelize.define('User', {}),
+        const User = this.sequelize.define('User', {}),
           Project = this.sequelize.define('Project', {}),
           Task = this.sequelize.define('Task', {}),
           sqlSpy = sinon.spy();
@@ -376,7 +375,7 @@ if (current.dialect.supports.groupedLimit) {
       });
 
       it('should work with two schema models in a hasMany association', function() {
-        let User = this.sequelize.define('User', {}, {schema: 'archive'}),
+        const User = this.sequelize.define('User', {}, {schema: 'archive'}),
           Task = this.sequelize.define('Task', {
             id: { type: DataTypes.INTEGER, primaryKey: true },
             title: DataTypes.STRING
@@ -410,7 +409,7 @@ if (current.dialect.supports.groupedLimit) {
                   include: [User.Tasks]
                 })
               );
-            }).then((users) => {
+            }).then(() => {
               return User.findAll({
                 include: [{ model: Task, limit: 2, as: 'tasks', order:[['id', 'ASC']] }],
                 order: [

@@ -1,5 +1,5 @@
 'use strict';
-/* jshint expr: true */
+
 const errors = require('../../lib/errors');
 const expect = require('chai').expect;
 

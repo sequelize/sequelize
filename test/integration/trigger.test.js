@@ -1,6 +1,6 @@
 'use strict';
 
-let chai = require('chai'),
+const chai = require('chai'),
   Sequelize = require('../../index'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
@@ -52,7 +52,7 @@ if (current.dialect.supports.tmpTableTrigger) {
           user.username = 'usernamechanged';
           return user.save();
         })
-        .then((user) => {
+        .then(() => {
           return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
         });
       });
@@ -69,7 +69,7 @@ if (current.dialect.supports.tmpTableTrigger) {
             }
           });
         })
-        .then((user) => {
+        .then(() => {
           return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
         });
       });
@@ -79,7 +79,7 @@ if (current.dialect.supports.tmpTableTrigger) {
           username: 'triggertest'
         }).then((user) => {
           return user.destroy();
-        }).then((user) => {
+        }).then(() => {
           return expect(User.find({username: 'triggertest'})).to.eventually.be.null;
         });
       });

@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -9,7 +8,7 @@ let chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('hasOne'), () => {
   it('properly use the `as` key to generate foreign key name', () => {
-    let User = current.define('User', { username: DataTypes.STRING }),
+    const User = current.define('User', { username: DataTypes.STRING }),
       Task = current.define('Task', { title: DataTypes.STRING });
 
     User.hasOne(Task);

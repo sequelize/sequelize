@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Sequelize = require('../../index'),
   Support = require(__dirname + '/support');

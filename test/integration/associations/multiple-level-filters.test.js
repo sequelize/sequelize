@@ -1,13 +1,13 @@
 'use strict';
 
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
   it('can filter through belongsTo', function() {
-    let User = this.sequelize.define('User', {username: DataTypes.STRING }),
+    const User = this.sequelize.define('User', {username: DataTypes.STRING }),
       Task = this.sequelize.define('Task', {title: DataTypes.STRING }),
       Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
   });
 
   it('avoids duplicated tables in query', function() {
-    let User = this.sequelize.define('User', {username: DataTypes.STRING }),
+    const User = this.sequelize.define('User', {username: DataTypes.STRING }),
       Task = this.sequelize.define('Task', {title: DataTypes.STRING }),
       Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
   });
 
   it('can filter through hasMany', function() {
-    let User = this.sequelize.define('User', {username: DataTypes.STRING }),
+    const User = this.sequelize.define('User', {username: DataTypes.STRING }),
       Task = this.sequelize.define('Task', {title: DataTypes.STRING }),
       Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
@@ -184,7 +184,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
   });
 
   it('can filter through hasMany connector', function() {
-    let User = this.sequelize.define('User', {username: DataTypes.STRING }),
+    const User = this.sequelize.define('User', {username: DataTypes.STRING }),
       Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsToMany(User, {through: 'user_project'});

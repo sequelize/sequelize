@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -36,7 +35,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#restore', () => {
     describe('on success', () => {
       it('should run hooks', function() {
-        let beforeHook = sinon.spy(),
+        const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
         this.ParanoidUser.beforeRestore(beforeHook);
@@ -44,7 +43,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then((user) => {
           return user.destroy().then(() => {
-            return user.restore().then((user) => {
+            return user.restore().then(() => {
               expect(beforeHook).to.have.been.calledOnce;
               expect(afterHook).to.have.been.calledOnce;
             });
@@ -55,10 +54,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('should return an error from before', function() {
-        let beforeHook = sinon.spy(),
+        const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.ParanoidUser.beforeRestore((user, options) => {
+        this.ParanoidUser.beforeRestore(() => {
           beforeHook();
           throw new Error('Whoops!');
         });
@@ -75,11 +74,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should return an error from after', function() {
-        let beforeHook = sinon.spy(),
+        const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
         this.ParanoidUser.beforeRestore(beforeHook);
-        this.ParanoidUser.afterRestore((user, options) => {
+        this.ParanoidUser.afterRestore(() => {
           afterHook();
           throw new Error('Whoops!');
         });

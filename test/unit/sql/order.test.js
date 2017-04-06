@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W110 */
 const util = require('util');
 const chai = require('chai');
 const expect = chai.expect;

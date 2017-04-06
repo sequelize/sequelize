@@ -1,6 +1,6 @@
 'use strict';
 
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
   Support = require(__dirname + '/../support'),
@@ -9,7 +9,7 @@ let chai = require('chai'),
 describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
   beforeEach(function( ) {
-    let S = this.sequelize,
+    const S = this.sequelize,
       DT = DataTypes,
 
       A = this.A = S.define('A', { name: DT.STRING }, { paranoid: true }),
@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
   });
 
   it('paranoid with timestamps: false should be ignored / not crash', function() {
-    let S = this.sequelize,
+    const S = this.sequelize,
       Test = S.define('Test', {
         name: DataTypes.STRING
       }, {
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
   });
 
   it('test if non required is marked as false', function( ) {
-    let A = this.A,
+    const A = this.A,
       B = this.B,
       options = {
         include: [
@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
   });
 
   it('test if required is marked as true', function( ) {
-    let A = this.A,
+    const A = this.A,
       B = this.B,
       options = {
         include: [

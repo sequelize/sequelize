@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   QueryGenerator = require('../../../../lib/dialects/postgres/query-generator'),
   Support = require(__dirname + '/../../support'),

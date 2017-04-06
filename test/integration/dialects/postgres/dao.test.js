@@ -1,8 +1,5 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W079 */
-/* jshint -W110 */
 const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../../support'),
@@ -149,7 +146,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should be able to store values that require JSON escaping', function() {
         const text = "Multi-line '$string' needing \"escaping\" for $$ and $1 type values";
-        
+
         return this.User.create({ username: 'swen', emergency_contact: { value: text } })
           .then(user => {
             expect(user.isNewRecord).to.equal(false);
@@ -167,7 +164,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should be able to findOrCreate with values that require JSON escaping', function() {
         const text = "Multi-line '$string' needing \"escaping\" for $$ and $1 type values";
-        
+
         return this.User.findOrCreate({ where: { username: 'swen' }, defaults: { emergency_contact: { value: text } } })
           .then(user => {
             expect(!user.isNewRecord).to.equal(true);

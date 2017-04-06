@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W030 */
 const chai = require('chai');
 const sinon = require('sinon');
 const expect = chai.expect;
@@ -25,12 +24,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#validate', () => {
     describe('#create', () => {
       it('should return the user', function() {
-        this.User.beforeValidate((user, options) => {
+        this.User.beforeValidate((user) => {
           user.username = 'Bob';
           user.mood = 'happy';
         });
 
-        this.User.afterValidate((user, options) => {
+        this.User.afterValidate((user) => {
           user.username = 'Toni';
         });
 
@@ -45,7 +44,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('fields modified in hooks are saved', function() {
         const self = this;
 
-        this.User.afterValidate((user, options) => {
+        this.User.afterValidate((user) => {
           //if username is defined and has more than 5 char
           user.username = user.username
                           ? user.username.length < 5 ? null : user.username
@@ -54,7 +53,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         });
 
-        this.User.beforeValidate((user, options) => {
+        this.User.beforeValidate((user) => {
           user.mood = user.mood || 'neutral';
         });
 
@@ -111,7 +110,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('should emit an error from after hook', function() {
-        this.User.afterValidate((user, options) => {
+        this.User.afterValidate((user) => {
           user.mood = 'ecstatic';
           throw new Error('Whoops! Changed user.mood!');
         });
@@ -124,7 +123,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.validationFailed(validationFailedHook);
 
-        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then((err) => {
+        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(() => {
           expect(validationFailedHook).to.have.been.calledOnce;
         });
       });

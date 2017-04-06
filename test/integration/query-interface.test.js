@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W030 */
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require(__dirname + '/support');
@@ -850,7 +849,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       const self = this;
       return this.sequelize.query(sql, {type: this.sequelize.QueryTypes.FOREIGNKEYS}).then((fks) => {
         expect(fks).to.have.length(3);
-        let keys = Object.keys(fks[0]),
+        const keys = Object.keys(fks[0]),
           keys2 = Object.keys(fks[1]),
           keys3 = Object.keys(fks[2]);
 
@@ -880,7 +879,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
   });
-  
+
   describe('constraints', () => {
     beforeEach(function() {
       this.User = this.sequelize.define('users', {
@@ -895,7 +894,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       return this.sequelize.sync({ force: true });
     });
 
-    
+
     describe('unique', () => {
       it('should add, read & remove unique constraint', function() {
         return this.queryInterface.addConstraint('users', ['email'], {
@@ -962,7 +961,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    
+
     describe('primary key', () => {
       it('should add, read & remove primary key constraint', function() {
         return this.queryInterface.removeColumn('users', 'id')
@@ -986,7 +985,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             return this.queryInterface.removeConstraint('users', 'PRIMARY');
           } else {
             expect(constraints).to.include('users_username_pk');
-            return this.queryInterface.removeConstraint('users', 'users_username_pk');      
+            return this.queryInterface.removeConstraint('users', 'users_username_pk');
           }
         })
         .then(() => this.queryInterface.showConstraint('users'))
@@ -996,7 +995,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       });
     });
-    
+
     describe('foreign key', () => {
       it('should add, read & remove foreign key constraint', function() {
         return this.queryInterface.removeColumn('users', 'id')
@@ -1036,7 +1035,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       });
     });
-    
+
     describe('error handling', () => {
       it('should throw non existent constraints as UnknownConstraintError', function() {
         return expect(this.queryInterface.removeConstraint('users', 'unknown__contraint__name', {

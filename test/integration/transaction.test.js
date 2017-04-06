@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/support'),
   dialect = Support.getTestDialect(),
@@ -34,7 +33,7 @@ if (current.dialect.supports.transactions) {
 
       it('should call dialect specific generateTransactionId method', function() {
         const transaction = new Transaction(this.sequelize);
-        expect(transaction.id).to.exist;      
+        expect(transaction.id).to.exist;
         if (dialect === 'mssql') {
           expect(transaction.id).to.have.lengthOf(20);
         }
@@ -83,7 +82,7 @@ if (current.dialect.supports.transactions) {
     //Promise rejection test is specifc to postgres
       if (dialect === 'postgres') {
         it('do not rollback if already committed', function() {
-          let SumSumSum = this.sequelize.define('transaction', {
+          const SumSumSum = this.sequelize.define('transaction', {
               value: {
                 type: Support.Sequelize.DECIMAL(10, 3),
                 field: 'value'
@@ -92,7 +91,7 @@ if (current.dialect.supports.transactions) {
             self = this,
             transTest = function(val) {
               return self.sequelize.transaction({isolationLevel: 'SERIALIZABLE'}, (t) => {
-                return SumSumSum.sum('value', {transaction: t}).then((balance) => {
+                return SumSumSum.sum('value', {transaction: t}).then(() => {
                   return SumSumSum.create({value: -val}, {transaction: t});
                 });
               });
@@ -251,12 +250,12 @@ if (current.dialect.supports.transactions) {
 
     if (dialect === 'sqlite'){
       it('provides persistent transactions', () => {
-        let sequelize = new Support.Sequelize('database', 'username', 'password', {dialect: 'sqlite'}),
+        const sequelize = new Support.Sequelize('database', 'username', 'password', {dialect: 'sqlite'}),
           User = sequelize.define('user', {
             username: Support.Sequelize.STRING,
             awesome: Support.Sequelize.BOOLEAN
-          }),
-          persistentTransaction;
+          });
+        let persistentTransaction;
 
         return sequelize.transaction().then((t) => {
           return sequelize.sync({ transaction:t }).then(( ) => {
@@ -318,7 +317,7 @@ if (current.dialect.supports.transactions) {
                 });
               });
             };
-            return Promise.join(newTransactionFunc(), newTransactionFunc()).then((results) => {
+            return Promise.join(newTransactionFunc(), newTransactionFunc()).then(() => {
               return User.findAll().then((users) => {
                 expect(users.length).to.equal(2);
               });
@@ -351,7 +350,7 @@ if (current.dialect.supports.transactions) {
     if (current.dialect.supports.lock) {
       describe('row locking', () => {
         it('supports for update', function() {
-          let User = this.sequelize.define('user', {
+          const User = this.sequelize.define('user', {
               username: Support.Sequelize.STRING,
               awesome: Support.Sequelize.BOOLEAN
             }),
@@ -371,9 +370,9 @@ if (current.dialect.supports.transactions) {
                 transaction: t1
               }).then((t1Jan) => {
                 return self.sequelize.transaction({
-                isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
-              }).then((t2) => {
-                 return Promise.join(
+                  isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
+                }).then((t2) => {
+                  return Promise.join(
                   User.find({
                     where: {
                       username: 'jan'
@@ -398,14 +397,14 @@ if (current.dialect.supports.transactions) {
                     });
                   })
                 );
-               });
+                });
               });
             });
           });
         });
 
         it('fail locking with outer joins', function() {
-          let User = this.sequelize.define('User', { username: Support.Sequelize.STRING }),
+          const User = this.sequelize.define('User', { username: Support.Sequelize.STRING }),
             Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN }),
             self = this;
 
@@ -451,7 +450,7 @@ if (current.dialect.supports.transactions) {
 
         if (current.dialect.supports.lockOf) {
           it('supports for update of table', function() {
-            let User = this.sequelize.define('User', { username: Support.Sequelize.STRING }, { tableName: 'Person' }),
+            const User = this.sequelize.define('User', { username: Support.Sequelize.STRING }, { tableName: 'Person' }),
               Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN }),
               self = this;
 
@@ -502,7 +501,7 @@ if (current.dialect.supports.transactions) {
 
         if (current.dialect.supports.lockKey) {
           it('supports for key share', function() {
-            let User = this.sequelize.define('user', {
+            const User = this.sequelize.define('user', {
                 username: Support.Sequelize.STRING,
                 awesome: Support.Sequelize.BOOLEAN
               }),
@@ -516,13 +515,13 @@ if (current.dialect.supports.transactions) {
               return self.sequelize.transaction().then((t1) => {
                 return User.find({
                   where: {
-                  username: 'jan'
-                },
+                    username: 'jan'
+                  },
                   lock: t1.LOCK.NO_KEY_UPDATE,
                   transaction: t1
                 }).then((t1Jan) => {
-                return self.sequelize.transaction().then((t2) => {
-                   return Promise.join(
+                  return self.sequelize.transaction().then((t2) => {
+                    return Promise.join(
                     User.find({
                       where: {
                         username: 'jan'
@@ -545,15 +544,15 @@ if (current.dialect.supports.transactions) {
                       });
                     })
                   );
-                 });
-              });
+                  });
+                });
               });
             });
           });
         }
 
         it('supports for share', function() {
-          let User = this.sequelize.define('user', {
+          const User = this.sequelize.define('user', {
               username: Support.Sequelize.STRING,
               awesome: Support.Sequelize.BOOLEAN
             }),
@@ -574,9 +573,9 @@ if (current.dialect.supports.transactions) {
                 transaction: t1
               }).then((t1Jan) => {
                 return self.sequelize.transaction({
-                isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
-              }).then((t2) => {
-                 return Promise.join(
+                  isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
+                }).then((t2) => {
+                  return Promise.join(
                   User.find({
                     where: {
                       username: 'jan'
@@ -608,7 +607,7 @@ if (current.dialect.supports.transactions) {
                     });
                   })
                 );
-               });
+                });
               });
             });
           });

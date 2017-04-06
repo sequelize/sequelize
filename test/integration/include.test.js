@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   Sequelize = require('../../index'),
   Promise = Sequelize.Promise,
   expect = chai.expect,
@@ -17,7 +16,7 @@ const sortById = function(a, b) {
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('find', () => {
     it('should support an empty belongsTo include', function() {
-      let Company = this.sequelize.define('Company', {}),
+      const Company = this.sequelize.define('Company', {}),
         User = this.sequelize.define('User', {});
 
       User.belongsTo(Company, {as: 'Employer'});
@@ -34,7 +33,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a belongsTo association reference', function() {
-      let Company = this.sequelize.define('Company', {}),
+      const Company = this.sequelize.define('Company', {}),
         User = this.sequelize.define('User', {}),
         Employer = User.belongsTo(Company, {as: 'Employer'});
 
@@ -50,7 +49,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a belongsTo association reference with a where', function() {
-      let Company = this.sequelize.define('Company', {name: DataTypes.STRING}),
+      const Company = this.sequelize.define('Company', {name: DataTypes.STRING}),
         User = this.sequelize.define('User', {}),
         Employer = User.belongsTo(Company, {as: 'Employer', foreignKey: 'employerId'});
 
@@ -74,7 +73,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a empty hasOne include', function() {
-      let Company = this.sequelize.define('Company', {}),
+      const Company = this.sequelize.define('Company', {}),
         Person = this.sequelize.define('Person', {});
 
       Company.hasOne(Person, {as: 'CEO'});
@@ -91,7 +90,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a hasOne association reference', function() {
-      let Company = this.sequelize.define('Company', {}),
+      const Company = this.sequelize.define('Company', {}),
         Person = this.sequelize.define('Person', {}),
         CEO = Company.hasOne(Person, {as: 'CEO'});
 
@@ -107,7 +106,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support including a belongsTo association rather than a model/as pair', function() {
-      let Company = this.sequelize.define('Company', {}),
+      const Company = this.sequelize.define('Company', {}),
         Person = this.sequelize.define('Person', {});
 
       Person.relation = {
@@ -132,7 +131,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a hasMany association reference', function() {
-      let User = this.sequelize.define('user', {}),
+      const User = this.sequelize.define('user', {}),
         Task = this.sequelize.define('task', {}),
         Tasks = User.hasMany(Task);
 
@@ -153,7 +152,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a hasMany association reference with a where condition', function() {
-      let User = this.sequelize.define('user', {}),
+      const User = this.sequelize.define('user', {}),
         Task = this.sequelize.define('task', {title: DataTypes.STRING}),
         Tasks = User.hasMany(Task);
 
@@ -184,13 +183,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a belongsToMany association reference', function() {
-      let User = this.sequelize.define('user', {}),
+      const User = this.sequelize.define('user', {}),
         Group = this.sequelize.define('group', {}),
-        Groups,
-        Users;
+        Groups = User.belongsToMany(Group, { through: 'UserGroup' });
 
-      Groups = User.belongsToMany(Group, { through: 'UserGroup' });
-      Users = Group.belongsToMany(User, { through: 'UserGroup' });
+      Group.belongsToMany(User, { through: 'UserGroup' });
 
       return this.sequelize.sync({force: true}).then(() => {
         return User.create().then((user) => {
@@ -207,7 +204,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a simple nested belongsTo -> belongsTo include', function() {
-      let Task = this.sequelize.define('Task', {}),
+      const Task = this.sequelize.define('Task', {}),
         User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {});
 
@@ -243,7 +240,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a simple sibling set of belongsTo include', function() {
-      let Task = this.sequelize.define('Task', {}),
+      const Task = this.sequelize.define('Task', {}),
         User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {});
 
@@ -274,7 +271,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a simple nested hasOne -> hasOne include', function() {
-      let Task = this.sequelize.define('Task', {}),
+      const Task = this.sequelize.define('Task', {}),
         User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {});
 
@@ -307,7 +304,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a simple nested hasMany -> belongsTo include', function() {
-      let Task = this.sequelize.define('Task', {}),
+      const Task = this.sequelize.define('Task', {}),
         User = this.sequelize.define('User', {}),
         Project = this.sequelize.define('Project', {});
 
@@ -349,7 +346,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a simple nested belongsTo -> hasMany include', function() {
-      let Task = this.sequelize.define('Task', {}),
+      const Task = this.sequelize.define('Task', {}),
         Worker = this.sequelize.define('Worker', {}),
         Project = this.sequelize.define('Project', {});
 
@@ -383,7 +380,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a simple nested hasMany <-> hasMany include', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
@@ -449,7 +446,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support an include with multiple different association types', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
@@ -677,7 +674,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support including date fields, with the correct timeszone', function() {
-      let User = this.sequelize.define('user', {
+      const User = this.sequelize.define('user', {
           dateField: Sequelize.DATE
         }, {timestamps: false}),
         Group = this.sequelize.define('group', {
@@ -709,7 +706,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support include when retrieving associated objects', function() {
-      let User = this.sequelize.define('user', {
+      const User = this.sequelize.define('user', {
           name: DataTypes.STRING
         }),
         Group = this.sequelize.define('group', {
@@ -758,7 +755,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
   });
 
   const createUsersAndItems = function() {
-    let User = this.sequelize.define('User', {}),
+    const User = this.sequelize.define('User', {}),
       Item = this.sequelize.define('Item', {'test': DataTypes.STRING});
 
     User.hasOne(Item);
@@ -839,7 +836,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
   describe('association getter', () => {
     it('should support getting an include on a N:M association getter', function() {
-      let Question = this.sequelize.define('Question', {}),
+      const Question = this.sequelize.define('Question', {}),
         Answer = this.sequelize.define('Answer', {}),
         Questionnaire = this.sequelize.define('Questionnaire', {});
 

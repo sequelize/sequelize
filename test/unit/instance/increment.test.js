@@ -1,6 +1,6 @@
 'use strict';
 
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support   = require(__dirname + '/../support'),
   current   = Support.sequelize,
@@ -10,15 +10,14 @@ let chai = require('chai'),
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('increment', () => {
     describe('options tests', () => {
-      let stub,
-        Model = current.define('User', {
-          id: {
-            type:          Sequelize.BIGINT,
-            primaryKey:    true,
-            autoIncrement: true
-          }
-        }),
-        instance;
+      let stub, instance;
+      const Model = current.define('User', {
+        id: {
+          type:          Sequelize.BIGINT,
+          primaryKey:    true,
+          autoIncrement: true
+        }
+      });
 
       before(() => {
         stub = sinon.stub(current, 'query').returns(

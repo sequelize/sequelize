@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   sinon = require('sinon'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
@@ -80,12 +78,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
 
         it('allows bit fields as booleans', function() {
-          let self = this,
-            bitUser = this.sequelize.define('bituser', {
-              bool: 'BIT(1)'
-            }, {
-              timestamps: false
-            });
+          const self = this;
+          let bitUser = this.sequelize.define('bituser', {
+            bool: 'BIT(1)'
+          }, {
+            timestamps: false
+          });
 
           // First use a custom data type def to create the bit field
           return bitUser.sync({ force: true }).then(() => {
@@ -211,7 +209,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('finds entries via primary keys', function() {
-        let self = this,
+        const self = this,
           UserPrimary = self.sequelize.define('UserWithPrimaryKey', {
             identifier: {type: Sequelize.STRING, primaryKey: true},
             name: Sequelize.STRING
@@ -232,7 +230,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('finds entries via a string primary key called id', function() {
-        let self = this,
+        const self = this,
           UserPrimary = self.sequelize.define('UserWithPrimaryKey', {
             id: {type: Sequelize.STRING, primaryKey: true},
             name: Sequelize.STRING
@@ -252,12 +250,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('always honors ZERO as primary key', function() {
-        let self = this,
+        const self = this,
           permutations = [
             0,
             '0'
-          ],
-          count = 0;
+          ];
+        let count = 0;
 
         return this.User.bulkCreate([{username: 'jack'}, {username: 'jack'}]).then(() => {
           return self.sequelize.Promise.map(permutations, (perm) => {

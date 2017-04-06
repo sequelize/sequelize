@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   current = Support.sequelize,
@@ -39,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.options.indexes[0].unique).to.eql(true);
       expect(Model.options.indexes[1].unique).to.eql(true);
     });
-    
+
     it('should set rawAttributes when indexes are defined via options', () => {
       const User = current.define('User', {
         username: DataTypes.STRING

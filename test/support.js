@@ -1,6 +1,6 @@
 'use strict';
 
-let fs = require('fs'),
+const fs = require('fs'),
   path = require('path'),
   _ = require('lodash'),
   Sequelize = require(__dirname + '/../index'),
@@ -18,11 +18,11 @@ chai.config.includeStack = true;
 chai.should();
 
 // Make sure errors get thrown when testing
-process.on('uncaughtException', (e, promise) => {
+process.on('uncaughtException', (e) => {
   console.error('An unhandled exception occured:');
   throw e;
 });
-Sequelize.Promise.onPossiblyUnhandledRejection((e, promise) => {
+Sequelize.Promise.onPossiblyUnhandledRejection((e) => {
   console.error('An unhandled rejection occured:');
   throw e;
 });
@@ -32,7 +32,7 @@ Sequelize.Promise.longStackTraces();
 // and no modification of `options` objects
 if (!process.env.COVERAGE && process.env.SHIM) supportShim(Sequelize);
 
-var Support = {
+const Support = {
   Sequelize,
 
   initTests(options) {
@@ -59,7 +59,7 @@ var Support = {
     if (dialect === 'sqlite') {
       const p = path.join(__dirname, 'tmp', 'db.sqlite');
 
-      return new Sequelize.Promise((resolve, reject) => {
+      return new Sequelize.Promise((resolve) => {
         // We cannot promisify exists, since exists does not follow node callback convention - first argument is a boolean, not an error / null
         if (fs.existsSync(p)) {
           resolve(Sequelize.Promise.promisify(fs.unlink)(p));
@@ -67,7 +67,7 @@ var Support = {
           resolve();
         }
       }).then(() => {
-        let options = Sequelize.Utils._.extend({}, sequelize.options, { storage: p }),
+        const options = Sequelize.Utils._.extend({}, sequelize.options, { storage: p }),
           _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
         if (callback) {
@@ -111,7 +111,7 @@ var Support = {
     return this.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions);
   },
 
-  getConnectionOptions(options) {
+  getConnectionOptions() {
     const config = Config[this.getTestDialect()];
 
     delete config.pool;
@@ -178,8 +178,8 @@ var Support = {
   },
 
   getTestUrl(config) {
-    let url,
-      dbConfig = config[config.dialect];
+    let url;
+    const dbConfig = config[config.dialect];
 
     if (config.dialect === 'sqlite') {
       url = 'sqlite://' + dbConfig.storage;

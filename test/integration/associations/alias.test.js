@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const  chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   Sequelize = require('../../../index'),
@@ -9,7 +8,7 @@ let chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Alias'), () => {
   it('should uppercase the first letter in alias getter, but not in eager loading', function() {
-    let User = this.sequelize.define('user', {}),
+    const  User = this.sequelize.define('user', {}),
       Task = this.sequelize.define('task', {});
 
     User.hasMany(Task, { as: 'assignments', foreignKey: 'userId' });
@@ -35,7 +34,7 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
   });
 
   it('shouldnt touch the passed alias', function() {
-    let User = this.sequelize.define('user', {}),
+    const  User = this.sequelize.define('user', {}),
       Task = this.sequelize.define('task', {});
 
     User.hasMany(Task, { as: 'ASSIGNMENTS', foreignKey: 'userId' });
@@ -61,7 +60,7 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
   });
 
   it('should allow me to pass my own plural and singular forms to hasMany', function() {
-    let User = this.sequelize.define('user', {}),
+    const  User = this.sequelize.define('user', {}),
       Task = this.sequelize.define('task', {});
 
     User.hasMany(Task, { as: { singular: 'task', plural: 'taskz'} });
@@ -80,7 +79,7 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
   });
 
   it('should allow me to define plural and singular forms on the model', function() {
-    let User = this.sequelize.define('user', {}),
+    const  User = this.sequelize.define('user', {}),
       Task = this.sequelize.define('task', {}, {
         name: {
           singular: 'assignment',

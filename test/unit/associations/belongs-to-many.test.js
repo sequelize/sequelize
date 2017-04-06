@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W030 */
 const chai = require('chai');
 const sinon = require('sinon');
 const expect = chai.expect;
@@ -11,13 +10,12 @@ const BelongsTo = require(__dirname + '/../../../lib/associations/belongs-to');
 const HasMany = require(__dirname + '/../../../lib/associations/has-many');
 const HasOne = require(__dirname + '/../../../lib/associations/has-one');
 const current = Support.sequelize;
-/* global -Promise */
-const Promise = current.Promise; 
+const Promise = current.Promise;
 const AssociationError = require(__dirname + '/../../../lib/errors').AssociationError;
 
 describe(Support.getTestDialectTeaser('belongsToMany'), () => {
   it('should not inherit scopes from parent to join table', () => {
-    let A = current.define('a'),
+    const A = current.define('a'),
       B = current.define('b', {}, {
         defaultScope: {
           where: {
@@ -31,31 +29,29 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
             }
           }
         }
-      }),
-      AB;
+      });
 
     B.belongsToMany(A, { through: 'AB' });
 
-    AB = current.model('AB');
+    const AB = current.model('AB');
 
     expect(AB.options.defaultScope).to.deep.equal({});
     expect(AB.options.scopes).to.have.length(0);
   });
 
   it('should not inherit validations from parent to join table', () => {
-    let A = current.define('a'),
+    const A = current.define('a'),
       B = current.define('b', {}, {
         validate: {
           validateModel() {
             return true;
           }
         }
-      }),
-      AB;
+      });
 
     B.belongsToMany(A, { through: 'AB' });
 
-    AB = current.model('AB');
+    const AB = current.model('AB');
 
     expect(AB.options.validate).to.deep.equal({});
   });
@@ -115,7 +111,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
   describe('timestamps', () => {
     it('follows the global timestamps true option', () => {
-      let User = current.define('User', {}),
+      const User =current.define('User', {}),
         Task = current.define('Task', {});
 
       User.belongsToMany(Task, { through: 'user_task1' });
@@ -124,7 +120,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
 
     it('allows me to override the global timestamps option', () => {
-      let User = current.define('User', {}),
+      const User =current.define('User', {}),
         Task = current.define('Task', {});
 
       User.belongsToMany(Task, { through: 'user_task2', timestamps: false });
@@ -137,7 +133,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
         timestamps: false
       });
 
-      let User = current.define('User', {}),
+      const User =current.define('User', {}),
         Task = current.define('Task', {});
 
       User.belongsToMany(Task, { through: 'user_task3' });
@@ -147,14 +143,14 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
   });
 
   describe('optimizations using bulk create, destroy and update', () => {
-    let User = current.define('User', { username: DataTypes.STRING }),
+    const User =current.define('User', { username: DataTypes.STRING }),
       Task = current.define('Task', { title: DataTypes.STRING }),
       UserTasks = current.define('UserTasks', {});
 
     User.belongsToMany(Task, { through: UserTasks });
     Task.belongsToMany(User, { through: UserTasks });
 
-    let user = User.build({
+    const user =User.build({
         id: 42
       }),
       task1 = Task.build({
@@ -247,7 +243,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
   describe('pseudo associations', () => {
     it('should setup belongsTo relations to source and target from join model with defined foreign/other keys', function() {
-      let Product = this.sequelize.define('Product', {
+      const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
         Tag = this.sequelize.define('Tag', {
@@ -284,7 +280,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
 
     it('should setup hasOne relations to source and target from join model with defined foreign/other keys', function() {
-      let Product = this.sequelize.define('Product', {
+      const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
         Tag = this.sequelize.define('Tag', {
@@ -321,7 +317,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
 
     it('should setup hasOne relations to source and target from join model with defined foreign/other keys', function() {
-      let Product = this.sequelize.define('Product', {
+      const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
         Tag = this.sequelize.define('Tag', {
@@ -358,7 +354,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
 
     it('should setup belongsTo relations to source and target from join model with only foreign keys defined', function() {
-      let Product = this.sequelize.define('Product', {
+      const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
         Tag = this.sequelize.define('Tag', {
@@ -395,7 +391,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
 
     it('should setup hasOne relations to source and target from join model with only foreign keys defined', function() {
-      let Product = this.sequelize.define('Product', {
+      const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
         Tag = this.sequelize.define('Tag', {
@@ -432,7 +428,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
 
     it('should setup belongsTo relations to source and target from join model with no foreign keys defined', function() {
-      let Product = this.sequelize.define('Product', {
+      const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
         Tag = this.sequelize.define('Tag', {
@@ -493,7 +489,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
   describe('self-associations', () => {
     it('does not pair multiple self associations with different through arguments', () => {
-      let User = current.define('user', {}),
+      const User =current.define('user', {}),
         UserFollowers = current.define('userFollowers', {}),
         Invite = current.define('invite', {});
 
@@ -515,7 +511,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
 
     it('correctly generates a foreign/other key when none are defined', () => {
-      let User = current.define('user', {}),
+      const User =current.define('user', {}),
         UserFollowers = current.define('userFollowers', {
           id: {
             type: DataTypes.INTEGER,
@@ -560,7 +556,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
   describe('constraints', () => {
 
     it('work properly when through is a string', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {});
 
       User.belongsToMany(Group, { as: 'MyGroups', through: 'group_user', onUpdate: 'RESTRICT', onDelete: 'SET NULL' });
@@ -574,7 +570,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
 
     it('work properly when through is a model', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {}),
         UserGroup = this.sequelize.define('GroupUser', {}, {tableName: 'user_groups'});
 

@@ -1,11 +1,9 @@
 'use strict';
 
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require(__dirname + '/../../../../index');
-
-
-let tedious = require('tedious'),
+  Sequelize = require(__dirname + '/../../../../index'),
+  tedious = require('tedious'),
   sinon = require('sinon'),
   connectionStub = sinon.stub(tedious, 'Connection');
 
@@ -30,9 +28,9 @@ describe('[MSSQL] Connection Manager', () => {
     instance = new Sequelize(config.database
                              , config.username
                              , config.password
-                             , config);    
+                             , config);
   });
-  
+
   it('connectionManager._connect() Does not delete `domain` from config.dialectOptions',
      () => {
        expect(config.dialectOptions.domain).to.equal('TEST.COM');

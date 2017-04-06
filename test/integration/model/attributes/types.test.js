@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   Sequelize = require('../../../../index'),
   Promise = Sequelize.Promise,
   expect = chai.expect,

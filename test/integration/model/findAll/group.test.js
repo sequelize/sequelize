@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../../support'),
   Sequelize = Support.Sequelize,
@@ -31,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             { name: 'post-1' },
             { name: 'post-2' }
           ]);
-        }).then((u) => {
+        }).then(() => {
           return Comment.bulkCreate([
             { text: 'Market', PostId: 1},
             { text: 'Text', PostId: 2},
@@ -39,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             { text: 'Semaphor', PostId: 1},
             { text: 'Text', PostId: 1}
           ]);
-        }).then((p) => {
+        }).then(() => {
           return Post.findAll({
             attributes: [ [ Sequelize.fn('COUNT', Sequelize.col('Comments.id')), 'comment_count' ] ],
             include: [

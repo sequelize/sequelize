@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Sequelize = require(__dirname + '/../../index'),
   Support = require(__dirname + '/support'),
@@ -376,7 +374,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('supports promises with custom validation methods', function() {
-    var self = this,
+    const self = this,
       User = this.sequelize.define('User' + config.rand(), {
         name: {
           type: Sequelize.STRING,
@@ -458,17 +456,15 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('validates model with a validator whose arg is an Array successfully twice in a row', function() {
-    let Foo = this.sequelize.define('Foo' + config.rand(), {
+    const Foo = this.sequelize.define('Foo' + config.rand(), {
         bar: {
           type: Sequelize.STRING,
           validate: {
             isIn: [['a', 'b']]
           }
         }
-      }), 
-      foo;
-
-    foo = Foo.build({bar: 'a'});
+      }),
+      foo = Foo.build({bar: 'a'});
     return expect(foo.validate()).not.to.be.rejected.then(() => {
       return expect(foo.validate()).not.to.be.rejected;
     });

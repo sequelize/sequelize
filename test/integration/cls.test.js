@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint camelcase: false */
-/* jshint -W030 */
-let chai      = require('chai'),
+const chai      = require('chai'),
   expect    = chai.expect,
   Support   = require(__dirname + '/support'),
   Sequelize = Support.Sequelize,
@@ -36,8 +34,8 @@ if (current.dialect.supports.transactions) {
 
     describe('context', () => {
       it('supports several concurrent transactions', function() {
-        let t1id, t2id, 
-          self = this;
+        let t1id, t2id;
+        const self = this;
 
         return Promise.join(
           this.sequelize.transaction(() => {
@@ -75,8 +73,8 @@ if (current.dialect.supports.transactions) {
         // This is a little tricky. We want to check the values in the outer scope, when the transaction has been successfully set up, but before it has been comitted.
         // We can't just call another function from inside that transaction, since that would transfer the context to that function - exactly what we are trying to prevent;
 
-        let self = this,
-          transactionSetup = false,
+        const self = this;
+        let transactionSetup = false,
           transactionEnded = false;
 
         this.sequelize.transaction(() => {
@@ -90,7 +88,7 @@ if (current.dialect.supports.transactions) {
 
         return new Promise((resolve) => {
           // Wait for the transaction to be setup
-          var interval = setInterval(() => {
+          const interval = setInterval(() => {
             if (transactionSetup) {
               clearInterval(interval);
               resolve();

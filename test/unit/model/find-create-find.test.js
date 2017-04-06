@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   UniqueConstraintError = require(__dirname + '/../../../lib/errors').UniqueConstraintError,
@@ -22,7 +21,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should return the result of the first find call if not empty', function() {
-      let result = {},
+      const result = {},
         where = {prop: Math.random().toString()},
         findSpy = this.sinon.stub(Model, 'findOne').returns(Promise.resolve(result));
 
@@ -35,7 +34,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should create if first find call is empty', function() {
-      let result = {},
+      const result = {},
         where = {prop: Math.random().toString()},
         createSpy = this.sinon.stub(Model, 'create').returns(Promise.resolve(result));
 
@@ -49,7 +48,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should do a second find if create failed do to unique constraint', function() {
-      let result = {},
+      const result = {},
         where = {prop: Math.random().toString()},
         findSpy = this.sinon.stub(Model, 'findOne');
 

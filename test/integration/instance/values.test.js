@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
@@ -107,7 +106,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
       });
 
       it('allows use of sequelize.fn and sequelize.col in date and bool fields', function() {
-        let self = this,
+        const self = this,
           User = this.sequelize.define('User', {
             d: DataTypes.DATE,
             b: DataTypes.BOOLEAN,
@@ -159,8 +158,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           Product.hasMany(Tag);
           Product.belongsTo(User);
 
-          let product;
-          product = Product.build({}, {
+          const product = Product.build({}, {
             include: [
               User,
               Tag
@@ -203,8 +201,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           Product.hasMany(Tag);
           Product.belongsTo(User);
 
-          let product;
-          product = Product.build({}, {
+          const product = Product.build({}, {
             include: [
               User,
               Tag

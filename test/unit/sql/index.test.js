@@ -1,10 +1,9 @@
 'use strict';
 
-var Support   = require(__dirname + '/../support'),
+const Support   = require(__dirname + '/../support'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
-  sql       = current.dialect.QueryGenerator,
-  current = Support.sequelize;
+  sql       = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 

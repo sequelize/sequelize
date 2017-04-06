@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai      = require('chai'),
+const chai      = require('chai'),
   sinon     = require('sinon'),
   expect    = chai.expect,
   errors    = require('../../lib/errors'),
@@ -72,7 +71,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
     });
 
     it('SequelizeValidationError should override message property when message parameter is specified', () => {
-      let errorItems = [
+      const errorItems = [
           new Sequelize.ValidationErrorItem('invalid', 'type', 'first_name', null),
           new Sequelize.ValidationErrorItem('invalid', 'type', 'last_name', null)
         ],
@@ -84,7 +83,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
     });
 
     it('SequelizeValidationError should concatenate an error messages from given errors if no explicit message is defined', () => {
-      let errorItems = [
+      const errorItems = [
           new errors.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null),
           new errors.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
         ],
@@ -188,7 +187,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
     ].forEach((constraintTest) => {
 
       it('Can be intercepted as ' + constraintTest.type + ' using .catch', function() {
-        let spy = sinon.spy(),
+        const spy = sinon.spy(),
           User = this.sequelize.define('user', {
             first_name: {
               type: Sequelize.STRING,
@@ -213,7 +212,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
     });
 
     it('Supports newlines in keys', function() {
-      let spy = sinon.spy(),
+      const spy = sinon.spy(),
         User = this.sequelize.define('user', {
           name: {
             type: Sequelize.STRING,

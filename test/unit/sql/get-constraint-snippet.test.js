@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W030, -W110 */
 const Support   = require(__dirname + '/../support');
 const current   = Support.sequelize;
 const expectsql = Support.expectsql;
@@ -36,9 +35,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }), {
           default: 'CONSTRAINT [myTable_myColumn1_myColumn2_uk] UNIQUE ([myColumn1], [myColumn2])'
         });
-      }); 
+      });
     });
-    
+
     describe('check', () => {
       it('naming', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
@@ -72,7 +71,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100))'
         });
       });
-      
+
     });
 
     describe('primary key', () => {
@@ -102,7 +101,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }), {
           default: 'CONSTRAINT [myTable_myColumn1_myColumn2_pk] PRIMARY KEY ([myColumn1], [myColumn2])'
         });
-      }); 
+      });
     });
 
     describe('foreign key', () => {
@@ -119,14 +118,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'CONSTRAINT [foreignkey_mytable_mycolumn] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id])'
         });
       });
-      
+
       it('uses onDelete, onUpdate', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           type: 'foreign key',
           fields: ['myColumn'],
           references: {
             table: 'myOtherTable',
-            field: 'id'           
+            field: 'id'
           },
           onUpdate: 'cascade',
           onDelete: 'cascade'
@@ -134,17 +133,17 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE'
         });
       });
-      
+
       it('errors if references object is not passed', () => {
         expect(sql.getConstraintSnippet.bind(sql, 'myTable', {
           type: 'foreign key',
           fields: ['myColumn']
         })).to.throw('references object with table and field must be specified');
       });
-      
-      
+
+
     });
-    
+
     describe('validation', () => {
       it('throw error on invalid type', () => {
         expect(sql.getConstraintSnippet.bind(sql, 'myTable', { type: 'some type', fields: [] })).to.throw('some type is invalid');

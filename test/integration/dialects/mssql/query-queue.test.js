@@ -1,6 +1,6 @@
 'use strict';
 
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Promise = require('../../../../lib/promise'),
   DataTypes = require('../../../../lib/data-types'),
