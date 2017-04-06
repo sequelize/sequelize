@@ -43,14 +43,18 @@ User
     console.log(created)
 
     /*
-      {
+     findOrCreate returns an array containing the object that was found or created and a boolean that will be true if a new object was created and false if not, like so:
+     
+    [ {
         username: 'sdepold',
         job: 'Technical Lead JavaScript',
         id: 1,
         createdAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET),
         updatedAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET)
-      }
-      created: true
+      },
+      true ]
+      
+ In the example above, the "spread" on line 39 divides the array into its 2 parts and passes them as arguments to the callback function defined beginning at line 39, which treats them as "user" and "created" in this case. (So "user" will be the object from index 0 of the returned array and "created" will equal "true".)
     */
   })
 ```
@@ -69,14 +73,17 @@ User
         console.log(created)
 
         /*
-          {
+     In this example, findOrCreate returns an array like this:
+        [ {
             username: 'fnord',
             job: 'omnomnom',
             id: 2,
             createdAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET),
             updatedAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET)
-          }
-          created: false
+          },
+          false
+        ]
+       The array returned by findOrCreate gets spread into its 2 parts by the "spread" on line 69, and the parts will be passed as 2 arguments to the callback function beginning on line 69, which will then treat them as "user" and "created" in this case. (So "user" will be the object from index 0 of the returned array and "created" will equal "false".)
         */
       })
   })
