@@ -54,7 +54,7 @@ User
       },
       true ]
       
- In the example above, the "spread" on line 39 will divide that array into its 2 parts and pass them as arguments to the callback function defined beginning at line 39, which will then treat them as "user" and "created." (So "user" will be the object from index 0 of the returned array and "created" will equal "true".)
+ In the example above, the "spread" on line 39 divides the array into its 2 parts and passes them as arguments to the callback function defined beginning at line 39, which treats them as "user" and "created" in this case. (So "user" will be the object from index 0 of the returned array and "created" will equal "true".)
     */
   })
 ```
@@ -73,7 +73,7 @@ User
         console.log(created)
 
         /*
-     In this example, findOrCreate will return an array like this:
+     In this example, findOrCreate returns an array like this:
         [ {
             username: 'fnord',
             job: 'omnomnom',
@@ -83,7 +83,7 @@ User
           },
           false
         ]
-       That array gets spread into its 2 parts by the "spread" on line 69, and the parts will be passed as 2 arguments to the callback function beginning on line 69, which will then treat them as "user" and "created." (So "user" will be the object from index 0 of the returned array and "created" will equal "false".)
+       The array returned by findOrCreate gets spread into its 2 parts by the "spread" on line 69, and the parts will be passed as 2 arguments to the callback function beginning on line 69, which will then treat them as "user" and "created" in this case. (So "user" will be the object from index 0 of the returned array and "created" will equal "false".)
         */
       })
   })
