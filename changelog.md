@@ -66,6 +66,7 @@
 - [FIXED] Model.validate runs validation hooks by default [#7182](https://github.com/sequelize/sequelize/pull/7182)
 - [ADDED] Added support for associations aliases in orders and groups. [#7425](https://github.com/sequelize/sequelize/issues/7425)
 - [REMOVED] Removes support for `{raw: 'injection goes here'}` for order and group. [#7188](https://github.com/sequelize/sequelize/issues/7188)
+- [FIXED] `showIndex` breaks with newline characters [#7492](https://github.com/sequelize/sequelize/pull/7492)
 
 ## BC breaks:
 - Model.validate instance method now runs validation hooks by default. Previously you needed to pass { hooks: true }. You can override this behavior by passing { hooks: false }
