@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let _ = require('lodash'),
+const _ = require('lodash'),
   chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),

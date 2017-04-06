@@ -1,6 +1,6 @@
 'use strict';
 
-let QueryInterface = require(__dirname + '/../lib/query-interface'),
+const QueryInterface = require(__dirname + '/../lib/query-interface'),
   hintsModule = require('hints'),
   _ = require('lodash'),
   util = require('util');
@@ -23,8 +23,8 @@ module.exports = function(Sequelize) {
   // Shim Model static methods to then shim getter/setter methods
   ['hasOne', 'belongsTo', 'hasMany', 'belongsToMany'].forEach((type) => {
     shimMethod(Sequelize.Model, type, (original) => {
-      return function(targetModel, options) {
-        let model = this,
+      return function() {
+        const model = this,
           association = original.apply(this, arguments);
 
         _.forIn(association.accessors, (accessor, accessorName) => {
@@ -85,7 +85,7 @@ module.exports = function(Sequelize) {
     if (name === 'constructor' || !name.match(/^[a-z]/)) return;
 
     // find test hints if provided
-    let fnStr = getFunctionCode(method),
+    const fnStr = getFunctionCode(method),
       obj = hintsModule.full(fnStr, 'testhint'),
       hints = obj.hints,
       tree = obj.tree;
@@ -137,8 +137,8 @@ module.exports = function(Sequelize) {
         if (this instanceof Sequelize.Association) sequelize = this.target.sequelize;
         if (!sequelize) throw new Error('Object does not have a `sequelize` attribute');
 
-        let args = Sequelize.Utils.sliceArgs(arguments),
-          fromTests = calledFromTests();
+        let args = Sequelize.Utils.sliceArgs(arguments);
+        const fromTests = calledFromTests();
 
         if (conform) args = conform.apply(this, arguments);
 
@@ -212,7 +212,7 @@ module.exports = function(Sequelize) {
   function addLogger(options, sequelize) {
     if (!options) options = {};
 
-    let hadLogging = options.hasOwnProperty('logging'),
+    const hadLogging = options.hasOwnProperty('logging'),
       originalLogging = options.logging;
 
     options.logging = function() {
@@ -262,7 +262,7 @@ module.exports = function(Sequelize) {
    *
    * @returns {boolean} - true if this method called from within the tests
    */
-  let pathRegStr = _.escapeRegExp(__dirname + '/'),
+  const pathRegStr = _.escapeRegExp(__dirname + '/'),
     regExp = new RegExp('^\\s+at\\s+(' + pathRegStr + '|.+ \\(' + pathRegStr + ')');
 
   function calledFromTests() {
@@ -335,7 +335,7 @@ function getArgumentsConformFn(method, args, hints, tree) {
   if (!hints.end) return;
 
   // extract
-  let start = hints.start ? hints.start.end : tree.body[0].body.start + 1,
+  const start = hints.start ? hints.start.end : tree.body[0].body.start + 1,
     body = getFunctionCode(method).slice(start, hints.end.start);
 
   // create function that conforms arguments

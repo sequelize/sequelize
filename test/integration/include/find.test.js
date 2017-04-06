@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   Sequelize = require(__dirname + '/../../../index'),
@@ -11,7 +10,7 @@ let chai = require('chai'),
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('find', () => {
     it('should include a non required model, with conditions and two includes N:M 1:M', function( ) {
-      let A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }),
+      const A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }),
         B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }),
         C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true }),
         D = this.sequelize.define('D', { name: DataTypes.STRING(40) }, { paranoid: true });
@@ -65,7 +64,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should include a model with a where condition but no required', function() {
-      let User = this.sequelize.define('User', {}, { paranoid: false }),
+      const User = this.sequelize.define('User', {}, { paranoid: false }),
         Task = this.sequelize.define('Task', {
           deletedAt: {
             type: DataTypes.DATE
@@ -98,7 +97,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should include a model with a where clause when the PK field name and attribute name are different', function() {
-      let User = this.sequelize.define('User', {
+      const User = this.sequelize.define('User', {
           id: {
             type: DataTypes.UUID,
             defaultValue: Sequelize.UUIDV4,
@@ -135,7 +134,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should include a model with a through.where and required true clause when the PK field name and attribute name are different', function() {
-      let A = this.sequelize.define('a', {}),
+      const A = this.sequelize.define('a', {}),
         B = this.sequelize.define('b', {}),
         AB = this.sequelize.define('a_b', {
           name: {
@@ -174,7 +173,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
 
     it('should still pull the main record when an included model is not required and has where restrictions without matches', function() {
-      let A = this.sequelize.define('a', {
+      const A = this.sequelize.define('a', {
           name: DataTypes.STRING(40)
         }),
         B = this.sequelize.define('b', {
@@ -247,7 +246,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a belongsTo with the targetKey option', function() {
-      let User = this.sequelize.define('User', { username: DataTypes.STRING }),
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }),
         Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       User.removeAttribute('id');
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
@@ -271,7 +270,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support many levels of belongsTo (with a lower level having a where)', function() {
-      let A = this.sequelize.define('a', {}),
+      const A = this.sequelize.define('a', {}),
         B = this.sequelize.define('b', {}),
         C = this.sequelize.define('c', {}),
         D = this.sequelize.define('d', {}),

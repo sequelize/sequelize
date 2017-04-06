@@ -1,6 +1,6 @@
 'use strict';
 
-let Support   = require(__dirname + '/../support'),
+const Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   Sequelize = Support.Sequelize,
   chai = require('chai'),

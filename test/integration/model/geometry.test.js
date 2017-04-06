@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -24,7 +22,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works with aliases fields', function() {
-        let Pub = this.sequelize.define('Pub', {
+        const Pub = this.sequelize.define('Pub', {
             location: {field: 'coordinates', type: DataTypes.GEOMETRY}
           }),
           point = {type: 'Point', coordinates: [39.807222, -76.984722]};
@@ -49,13 +47,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should update a geometry object', function() {
         const User = this.User;
-        let point1 = { type: 'Point', coordinates: [39.807222, -76.984722]},
+        const point1 = { type: 'Point', coordinates: [39.807222, -76.984722]},
           point2 = { type: 'Point', coordinates: [49.807222, -86.984722]};
         const props = {username: 'username', geometry: point1};
 
-        return User.create(props).then((user) => {
+        return User.create(props).then(() => {
           return User.update({geometry: point2}, {where: {username: props.username}});
-        }).then((count) => {
+        }).then(() => {
           return User.findOne({where: {username: props.username}});
         }).then((user) => {
           expect(user.geometry).to.be.deep.eql(point2);
@@ -85,13 +83,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should update a geometry object', function() {
         const User = this.User;
-        let point1 = { type: 'Point', coordinates: [39.807222, -76.984722]},
+        const point1 = { type: 'Point', coordinates: [39.807222, -76.984722]},
           point2 = { type: 'Point', coordinates: [49.807222, -86.984722]};
         const props = {username: 'username', geometry: point1};
 
-        return User.create(props).then((user) => {
+        return User.create(props).then(() => {
           return User.update({geometry: point2}, {where: {username: props.username}});
-        }).then((count) => {
+        }).then(() => {
           return User.findOne({where: {username: props.username}});
         }).then((user) => {
           expect(user.geometry).to.be.deep.eql(point2);
@@ -121,13 +119,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should update a geometry object', function() {
         const User = this.User;
-        let point1 = { type: 'LineString', coordinates: [ [100.0, 0.0], [101.0, 1.0] ] },
+        const point1 = { type: 'LineString', coordinates: [ [100.0, 0.0], [101.0, 1.0] ] },
           point2 = { type: 'LineString', coordinates: [ [101.0, 0.0], [102.0, 1.0] ] };
         const props = {username: 'username', geometry: point1};
 
-        return User.create(props).then((user) => {
+        return User.create(props).then(() => {
           return User.update({geometry: point2}, {where: {username: props.username}});
-        }).then((count) => {
+        }).then(() => {
           return User.findOne({where: {username: props.username}});
         }).then((user) => {
           expect(user.geometry).to.be.deep.eql(point2);
@@ -160,7 +158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should update a geometry object', function() {
         const User = this.User;
-        let polygon1 = { type: 'Polygon', coordinates: [
+        const polygon1 = { type: 'Polygon', coordinates: [
           [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
                 [100.0, 1.0], [100.0, 0.0] ]
           ]},
@@ -170,9 +168,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]};
         const props = {username: 'username', geometry: polygon1};
 
-        return User.create(props).then((user) => {
+        return User.create(props).then(() => {
           return User.update({geometry: polygon2}, {where: {username: props.username}});
-        }).then((count) => {
+        }).then(() => {
           return User.findOne({where: {username: props.username}});
         }).then((user) => {
           expect(user.geometry).to.be.deep.eql(polygon2);

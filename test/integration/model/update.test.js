@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W030 */
 const Support = require(__dirname + '/../support');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const chai = require('chai');

@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -16,7 +15,7 @@ let chai = require('chai'),
 describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('Model.associations', () => {
     it('should store all assocations when associting to the same table multiple times', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {});
 
       Group.hasMany(User);
@@ -31,7 +30,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     if (current.dialect.supports.groupedLimit) {
       describe('multiple', () => {
         it('should fetch associations for multiple instances', function() {
-          let User = this.sequelize.define('User', {}),
+          const User = this.sequelize.define('User', {}),
             Task = this.sequelize.define('Task', {});
 
           User.Tasks = User.hasMany(Task, {as: 'tasks'});
@@ -70,7 +69,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         });
 
         it('should fetch associations for multiple instances with limit and order', function() {
-          let User = this.sequelize.define('User', {}),
+          const User = this.sequelize.define('User', {}),
             Task = this.sequelize.define('Task', {
               title: DataTypes.STRING
             });
@@ -118,7 +117,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         });
 
         it('should fetch multiple layers of associations with limit and order with separate=true', function() {
-          let User = this.sequelize.define('User', {}),
+          const User = this.sequelize.define('User', {}),
             Task = this.sequelize.define('Task', {
               title: DataTypes.STRING
             }),
@@ -173,7 +172,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                 include: [{association: User.Tasks, include: [Task.SubTasks]}]
               })
             );
-          }).then((users) => {
+          }).then(() => {
             return User.findAll({
               include: [{
                 association: User.Tasks,
@@ -223,7 +222,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         });
 
         it('should fetch associations for multiple instances with limit and order and a belongsTo relation', function() {
-          let User = this.sequelize.define('User', {}),
+          const User = this.sequelize.define('User', {}),
             Task = this.sequelize.define('Task', {
               title: DataTypes.STRING,
               categoryId: {
@@ -545,7 +544,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       }
 
       it('clears associations when passing null to the set-method', function() {
-        let User = this.sequelize.define('User', { username: DataTypes.STRING }),
+        const User = this.sequelize.define('User', { username: DataTypes.STRING }),
           Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
         Task.hasMany(User);
@@ -572,7 +571,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       it('supports passing the primary key instead of an object', function() {
-        let Article = this.sequelize.define('Article', { title: DataTypes.STRING }),
+        const Article = this.sequelize.define('Article', { title: DataTypes.STRING }),
           Label = this.sequelize.define('Label', { text: DataTypes.STRING });
 
         Article.hasMany(Label);
@@ -635,7 +634,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       }
 
       it('supports passing the primary key instead of an object', function() {
-        let Article = this.sequelize.define('Article', { 'title': DataTypes.STRING }),
+        const Article = this.sequelize.define('Article', { 'title': DataTypes.STRING }),
           Label = this.sequelize.define('Label', { 'text': DataTypes.STRING });
 
         Article.hasMany(Label);
@@ -658,7 +657,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     describe('addMultipleAssociations', () => {
       it('adds associations without removing the current ones', function() {
-        let User = this.sequelize.define('User', { username: DataTypes.STRING }),
+        const User = this.sequelize.define('User', { username: DataTypes.STRING }),
           Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
         Task.hasMany(User);
@@ -708,7 +707,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     it('clears associations when passing null to the set-method with omitNull set to true', function() {
       this.sequelize.options.omitNull = true;
 
-      let User = this.sequelize.define('User', { username: DataTypes.STRING }),
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }),
         Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
       Task.hasMany(User);
@@ -736,7 +735,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     describe('createAssociations', () => {
       it('creates a new associated object', function() {
-        let Article = this.sequelize.define('Article', { 'title': DataTypes.STRING }),
+        const Article = this.sequelize.define('Article', { 'title': DataTypes.STRING }),
           Label = this.sequelize.define('Label', { 'text': DataTypes.STRING });
 
         Article.hasMany(Label);
@@ -755,10 +754,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       it('creates the object with the association directly', function() {
         const spy = sinon.spy();
 
-        let Article = this.sequelize.define('Article', {
+        const Article = this.sequelize.define('Article', {
             'title': DataTypes.STRING
 
-          }), 
+          }),
           Label = this.sequelize.define('Label', {
             'text': DataTypes.STRING
           });
@@ -810,7 +809,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       }
 
       it('supports passing the field option', function() {
-        let Article = this.sequelize.define('Article', {
+        const Article = this.sequelize.define('Article', {
             'title': DataTypes.STRING
           }),
           Label = this.sequelize.define('Label', {
@@ -964,7 +963,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('Foreign key constraints', () => {
     describe('1:m', () => {
       it('sets null by default', function() {
-        let Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
           User = this.sequelize.define('User', { username: DataTypes.STRING });
 
         User.hasMany(Task);
@@ -986,7 +985,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       it('sets to CASCADE if allowNull: false', function() {
-        let Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
           User = this.sequelize.define('User', { username: DataTypes.STRING });
 
         User.hasMany(Task, { foreignKey: { allowNull: false }}); // defaults to CASCADE
@@ -1005,7 +1004,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       it('should be possible to remove all constraints', function() {
-        let Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
           User = this.sequelize.define('User', { username: DataTypes.STRING });
 
         User.hasMany(Task, { constraints: false });
@@ -1029,7 +1028,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       it('can cascade deletes', function() {
-        let Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
           User = this.sequelize.define('User', { username: DataTypes.STRING });
 
         User.hasMany(Task, {onDelete: 'cascade'});
@@ -1055,7 +1054,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       // NOTE: mssql does not support changing an autoincrement primary key
       if (dialect !== 'mssql') {
         it('can cascade updates', function() {
-          let Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
             User = this.sequelize.define('User', { username: DataTypes.STRING });
 
           User.hasMany(Task, {onUpdate: 'cascade'});
@@ -1086,7 +1085,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       if (current.dialect.supports.constraints.restrict) {
         it('can restrict deletes', function() {
           const self = this;
-          let Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
             User = this.sequelize.define('User', { username: DataTypes.STRING });
 
           User.hasMany(Task, {onDelete: 'restrict'});
@@ -1112,7 +1111,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         it('can restrict updates', function() {
           const self = this;
-          let Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
             User = this.sequelize.define('User', { username: DataTypes.STRING });
 
           User.hasMany(Task, {onUpdate: 'restrict'});
@@ -1147,7 +1146,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
   describe('Association options', () => {
     it('can specify data type for autogenerated relational keys', function() {
-      let User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING }),
+      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING }),
         dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT, Sequelize.STRING],
         self = this,
         Tasks = {};
@@ -1165,7 +1164,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     });
 
     it('infers the keyType if none provided', function() {
-      let User = this.sequelize.define('User', {
+      const User = this.sequelize.define('User', {
           id: { type: DataTypes.STRING, primaryKey: true },
           username: DataTypes.STRING
         }),
@@ -1182,7 +1181,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     describe('allows the user to provide an attribute definition object as foreignKey', () => {
       it('works with a column that hasnt been defined before', function() {
-        let Task = this.sequelize.define('task', {}),
+        const Task = this.sequelize.define('task', {}),
           User = this.sequelize.define('user', {});
 
         User.hasMany(Task, {
@@ -1199,7 +1198,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       it('works when taking a column directly from the object', function() {
-        let Project = this.sequelize.define('project', {
+        const Project = this.sequelize.define('project', {
             user_id: {
               type: Sequelize.INTEGER,
               defaultValue: 42
@@ -1221,7 +1220,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       it('works when merging with an existing definition', function() {
-        let Task = this.sequelize.define('task', {
+        const Task = this.sequelize.define('task', {
             userId: {
               defaultValue: 42,
               type: Sequelize.INTEGER
@@ -1265,11 +1264,11 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     });
 
     it('should use sourceKey', function() {
-      let User = this.User, 
+      const User = this.User,
         Task = this.Task;
 
       return User.create({ username: 'John', email: 'john@example.com' }).then((user) => {
-        return Task.create({title: 'Fix PR', userEmail: 'john@example.com'}).then((task) => {
+        return Task.create({title: 'Fix PR', userEmail: 'john@example.com'}).then(() => {
           return user.getTasks().then((tasks) => {
             expect(tasks.length).to.equal(1);
             expect(tasks[0].title).to.equal('Fix PR');
@@ -1279,11 +1278,11 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     });
 
     it('should count related records', function() {
-      let User = this.User, 
+      const User = this.User,
         Task = this.Task;
 
       return User.create({ username: 'John', email: 'john@example.com' }).then((user) => {
-        return Task.create({title: 'Fix PR', userEmail: 'john@example.com'}).then((task) => {
+        return Task.create({title: 'Fix PR', userEmail: 'john@example.com'}).then(() => {
           return user.countTasks().then((tasksCount) => {
             expect(tasksCount).to.equal(1);
           });
@@ -1292,13 +1291,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     });
 
     it('should set right field when add relative', function() {
-      let User = this.User, 
+      const User = this.User,
         Task = this.Task;
 
       return User.create({ username: 'John', email: 'john@example.com' }).then((user) => {
         return Task.create({title: 'Fix PR'}).then((task) => {
-          return user.addTask(task).then((updatedTask) => {
-            return user.hasTask(task.id).then((hasTask, b) => {
+          return user.addTask(task).then(() => {
+            return user.hasTask(task.id).then((hasTask) => {
               expect(hasTask).to.be.true;
             });
           });

@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   sinon = require('sinon'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
@@ -389,7 +388,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
         });
       });
-      
+
       it('works when indexes are created via indexes array', function() {
         const User = this.sequelize.define('User', {
           username: Sequelize.STRING,

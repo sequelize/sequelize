@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
@@ -12,7 +11,7 @@ if (dialect === 'mysql') {
     describe('many-to-many', () => {
       describe('where tables have the same prefix', () => {
         it('should create a table wp_table1wp_table2s', function() {
-          let Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING}),
+          const Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING}),
             Table1 = this.sequelize.define('wp_table1', {foo: DataTypes.STRING}),
             self = this;
 
@@ -28,7 +27,7 @@ if (dialect === 'mysql') {
 
       describe('when join table name is specified', () => {
         beforeEach(function() {
-          let Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING}),
+          const Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING}),
             Table1 = this.sequelize.define('ms_table2', {foo: DataTypes.STRING});
 
           Table1.belongsToMany(Table2, {through: 'table1_to_table2'});
@@ -56,7 +55,7 @@ if (dialect === 'mysql') {
         this.User.belongsToMany(this.Task, {as: 'Tasks', through: 'UserTasks'});
         this.Task.belongsToMany(this.User, {as: 'Users', through: 'UserTasks'});
 
-        let self = this,
+        const self = this,
           users = [],
           tasks = [];
 

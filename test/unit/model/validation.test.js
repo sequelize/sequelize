@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
   Sequelize = require(__dirname + '/../../../index'),
@@ -181,10 +179,10 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     };
 
-    let applyFailTest = function applyFailTest(validatorDetails, i, validator) {
+    const applyFailTest = function applyFailTest(validatorDetails, i, validator) {
         const failingValue = validatorDetails.fail[i];
         it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function() {
-          let validations = {},
+          const validations = {},
             message = validator + '(' + failingValue + ')';
 
           validations[validator] = validatorDetails.spec || {};
@@ -208,7 +206,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       applyPassTest = function applyPassTest(validatorDetails, j, validator, type) {
         const succeedingValue = validatorDetails.pass[j];
         it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function() {
-          let validations = {},
+          const validations = {},
             message = validator + '(' + succeedingValue + ')';
 
           validations[validator] = validatorDetails.spec || {};
@@ -243,11 +241,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           validatorDetails.pass = Array.isArray(validatorDetails.pass) ? validatorDetails.pass : [validatorDetails.pass];
         }
 
-        for (var i = 0; i < validatorDetails.fail.length; i++) {
+        for (let i = 0; i < validatorDetails.fail.length; i++) {
           applyFailTest(validatorDetails, i, validator);
         }
 
-        for (i = 0; i < validatorDetails.pass.length; i++) {
+        for (let i = 0; i < validatorDetails.pass.length; i++) {
           applyPassTest(validatorDetails, i, validator);
           applyPassTest(validatorDetails, i, validator, 'msg');
           applyPassTest(validatorDetails, i, validator, 'args');
@@ -260,7 +258,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('datatype validations', () => {
-    current = Support.createSequelizeInstance({
+    const current = Support.createSequelizeInstance({
       typeValidation: true
     });
 

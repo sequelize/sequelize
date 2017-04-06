@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -27,7 +26,7 @@ if (Support.sequelize.dialect.supports.upserts) {
     describe('#upsert', () => {
       describe('on success', () => {
         it('should run hooks', function() {
-          let beforeHook = sinon.spy(),
+          const beforeHook = sinon.spy(),
             afterHook = sinon.spy();
 
           this.User.beforeUpsert(beforeHook);
@@ -42,33 +41,32 @@ if (Support.sequelize.dialect.supports.upserts) {
 
       describe('on error', () => {
         it('should return an error from before', function() {
-          let beforeHook = sinon.spy(),
+          const beforeHook = sinon.spy(),
             afterHook = sinon.spy();
 
-          this.User.beforeUpsert((values, options) => {
+          this.User.beforeUpsert(() => {
             beforeHook();
             throw new Error('Whoops!');
           });
           this.User.afterUpsert(afterHook);
 
-          return expect(this.User.upsert({username: 'Toni', mood: 'happy'})).to.be.rejected.then((err) => {
+          return expect(this.User.upsert({username: 'Toni', mood: 'happy'})).to.be.rejected.then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).not.to.have.been.called;
           });
         });
 
         it('should return an error from after', function() {
-          let beforeHook = sinon.spy(),
+          const beforeHook = sinon.spy(),
             afterHook = sinon.spy();
 
-
           this.User.beforeUpsert(beforeHook);
-          this.User.afterUpsert((user, options) => {
+          this.User.afterUpsert(() => {
             afterHook();
             throw new Error('Whoops!');
           });
 
-          return expect(this.User.upsert({username: 'Toni', mood: 'happy'})).to.be.rejected.then((err) => {
+          return expect(this.User.upsert({username: 'Toni', mood: 'happy'})).to.be.rejected.then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
           });
@@ -80,7 +78,7 @@ if (Support.sequelize.dialect.supports.upserts) {
           let hookCalled = 0;
           const valuesOriginal = { mood: 'sad', username: 'leafninja' };
 
-          this.User.beforeUpsert((values, options) => {
+          this.User.beforeUpsert((values) => {
             values.mood = 'happy';
             hookCalled++;
           });

@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W030, -W110 */
 const Support   = require(__dirname + '/../support');
 const current   = Support.sequelize;
 const expectsql = Support.expectsql;
@@ -38,9 +37,9 @@ if (current.dialect.supports.constraints.addConstraint) {
           }), {
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn1_myColumn2_uk] UNIQUE ([myColumn1], [myColumn2]);'
           });
-        }); 
+        });
       });
-      
+
       describe('check', () => {
         it('naming', () => {
           expectsql(sql.addConstraintQuery('myTable', {
@@ -72,7 +71,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100));'
           });
         });
-        
+
       });
 
       if (current.dialect.supports.constraints.default) {
@@ -97,7 +96,7 @@ if (current.dialect.supports.constraints.addConstraint) {
               mssql: "ALTER TABLE [myTable] ADD CONSTRAINT [default_mytable_null] DEFAULT (N'some default value') FOR [myColumn];"
             });
           });
-          
+
           it('validation', () => {
             expect(sql.addConstraintQuery.bind(sql, {
               tableName: 'myTable',
@@ -109,7 +108,7 @@ if (current.dialect.supports.constraints.addConstraint) {
               }]
             })).to.throw('Default value must be specifed for DEFAULT CONSTRAINT');
           });
-          
+
         });
       }
       describe('primary key', () => {
@@ -139,7 +138,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           }), {
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn1_myColumn2_pk] PRIMARY KEY ([myColumn1], [myColumn2]);'
           });
-        }); 
+        });
       });
 
       describe('foreign key', () => {
@@ -156,14 +155,14 @@ if (current.dialect.supports.constraints.addConstraint) {
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [foreignkey_mytable_mycolumn] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]);'
           });
         });
-        
+
         it('uses onDelete, onUpdate', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'foreign key',
             fields: ['myColumn'],
             references: {
               table: 'myOtherTable',
-              field: 'id'           
+              field: 'id'
             },
             onUpdate: 'cascade',
             onDelete: 'cascade'
@@ -171,22 +170,22 @@ if (current.dialect.supports.constraints.addConstraint) {
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;'
           });
         });
-        
+
         it('errors if references object is not passed', () => {
           expect(sql.addConstraintQuery.bind(sql, 'myTable', {
             type: 'foreign key',
             fields: ['myColumn']
           })).to.throw('references object with table and field must be specified');
         });
-        
-        
+
+
       });
-      
+
       describe('validation', () => {
         it('throw error on invalid type', () => {
           expect(sql.addConstraintQuery.bind(sql, 'myTable', { type: 'some type', fields: [] })).to.throw('some type is invalid');
         });
-        
+
         it('calls getConstraintSnippet function', () => {
           const options = { type: 'unique', fields: ['myColumn'] };
           const addConstraintQuerySpy = sinon.stub(sql, 'addConstraintQuery');

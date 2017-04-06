@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030, -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
   Support   = require(__dirname + '/../support'),

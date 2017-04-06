@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -25,7 +24,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#destroy', () => {
     describe('on success', () => {
       it('should run hooks', function() {
-        let beforeHook = sinon.spy(),
+        const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
         this.User.beforeDestroy(beforeHook);
@@ -42,10 +41,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('should return an error from before', function() {
-        let beforeHook = sinon.spy(),
+        const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeDestroy((user, options) => {
+        this.User.beforeDestroy(() => {
           beforeHook();
           throw new Error('Whoops!');
         });
@@ -60,11 +59,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should return an error from after', function() {
-        let beforeHook = sinon.spy(),
+        const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
         this.User.beforeDestroy(beforeHook);
-        this.User.afterDestroy((user, options) => {
+        this.User.afterDestroy(() => {
           afterHook();
           throw new Error('Whoops!');
         });

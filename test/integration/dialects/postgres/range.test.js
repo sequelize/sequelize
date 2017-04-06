@@ -1,6 +1,6 @@
 'use strict';
 
-let chai    = require('chai'),
+const chai    = require('chai'),
   expect  = chai.expect,
   Support = require(__dirname + '/../../support'),
   DataTypes = require(__dirname + '/../../../../lib/data-types'),
@@ -133,7 +133,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle native postgres timestamp format', () => {
-        let tsOid = DataTypes.postgres.DATE.types.postgres.oids[0],
+        const tsOid = DataTypes.postgres.DATE.types.postgres.oids[0],
           parser = pg.types.getTypeParser(tsOid);
         expect(range.parse('(2016-01-01 08:00:00-04,)', parser)[0].toISOString()).to.equal('2016-01-01T12:00:00.000Z');
       });

@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Utils = require(__dirname + '/../../lib/utils'),
   Support = require(__dirname + '/support'),
@@ -16,7 +14,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         // noot noot
       };
 
-      let string = functionWithLineComments.toString(),
+      const string = functionWithLineComments.toString(),
         result = Utils.removeCommentsFromFunctionString(string);
 
       expect(result).not.to.match(/.*noot.*/);
@@ -24,10 +22,10 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     it('removes lines comments in the middle of a line', () => {
       const functionWithLineComments = function() {
-        alert(1); // noot noot
+        console.log(1); // noot noot
       };
 
-      let string = functionWithLineComments.toString(),
+      const string = functionWithLineComments.toString(),
         result = Utils.removeCommentsFromFunctionString(string);
 
       expect(result).not.to.match(/.*noot.*/);
@@ -35,10 +33,10 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     it('removes range comments', () => {
       const s = function() {
-        alert(1); /*
+        console.log(1); /*
           noot noot
         */
-        alert(2); /*
+        console.log(2); /*
           foo
         */
       }.toString();
@@ -113,14 +111,14 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   describe('cloneDeep', () => {
     it('should clone objects', () => {
-      let obj = {foo: 1},
+      const obj = {foo: 1},
         clone = Utils.cloneDeep(obj);
 
       expect(obj).to.not.equal(clone);
     });
 
     it('should clone nested objects', () => {
-      let obj = {foo: {bar: 1}},
+      const obj = {foo: {bar: 1}},
         clone = Utils.cloneDeep(obj);
 
       expect(obj.foo).to.not.equal(clone.foo);

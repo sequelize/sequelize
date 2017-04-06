@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   sinon = require('sinon'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
@@ -259,7 +257,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('returns instance if already existent. Single find field.', function() {
-      let self = this,
+      const self = this,
         data = {
           username: 'Username'
         };
@@ -276,7 +274,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('Returns instance if already existent. Multiple find fields.', function() {
-      let self = this,
+      const self = this,
         data = {
           username: 'Username',
           data: 'ThisIsData'
@@ -293,7 +291,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('does not include exception catcher in response', function() {
-      let self = this,
+      const self = this,
         data = {
           username: 'Username',
           data: 'ThisIsData'
@@ -302,20 +300,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return self.User.findOrCreate({
         where: data,
         defaults: {}
-      }).spread((user, created) => {
+      }).spread((user) => {
         expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
       }).then(() => {
         return self.User.findOrCreate({
           where: data,
           defaults: {}
-        }).spread((user, created) => {
+        }).spread((user) => {
           expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
         });
       });
     });
 
     it('creates new instance with default value.', function() {
-      let data = {
+      const data = {
           username: 'Username'
         },
         default_values = {
@@ -344,7 +342,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should release transaction when meeting errors', function() {
         const self = this;
 
-        var test = function(times) {
+        const test = function(times) {
           if (times > 10) {
             return true;
           }
@@ -374,7 +372,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
               this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
               (first, second) => {
-                let firstInstance = first[0],
+                const firstInstance = first[0],
                   firstCreated = first[1],
                   secondInstance = second[0],
                   secondCreated = second[1];
@@ -487,7 +485,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
           this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
           (first, second) => {
-            let firstInstance = first[0],
+            const firstInstance = first[0],
               firstCreated = first[1],
               secondInstance = second[0],
               secondCreated = second[1];
@@ -512,7 +510,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
         this.User.findOrCreate({ where: { uniqueName: 'winner' }}),
         (first, second, third) => {
-          let firstInstance = first[0],
+          const firstInstance = first[0],
             firstCreated = first[1],
             secondInstance = second[0],
             secondCreated = second[1],
@@ -745,9 +743,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('is possible to use casting when creating an instance', function() {
-      let self = this,
-        type = dialect === 'mysql' ? 'signed' : 'integer',
-        match = false;
+      const self = this,
+        type = dialect === 'mysql' ? 'signed' : 'integer';
+      let match = false;
 
       return this.User.create({
         intVal: this.sequelize.cast('1', type)
@@ -765,8 +763,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('is possible to use casting multiple times mixed in with other utilities', function() {
-      let self = this,
-        type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'integer'), 'integer'),
+      const self = this;
+      let type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'integer'), 'integer'),
         match = false;
 
       if (dialect === 'mysql') {
@@ -828,8 +826,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('is possible to use functions as default values', function() {
-      let self = this,
-        userWithDefaults;
+      const self = this;
+      let userWithDefaults;
 
       if (dialect.indexOf('postgres') === 0) {
         return this.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"').then(() => {
@@ -860,7 +858,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return userWithDefaults.sync({force: true}).then(() => {
           return userWithDefaults.create({}).then((user) => {
             return userWithDefaults.findById(user.id).then((user) => {
-              let now = new Date(),
+              const now = new Date(),
                 pad = function(number) {
                   if (number > 9) {
                     return number;
@@ -933,7 +931,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it("doesn't allow duplicated records with unique:true", function() {
-      let self = this,
+      const self = this,
         User = this.sequelize.define('UserWithUniqueUsername', {
           username: { type: Sequelize.STRING, unique: true }
         });
@@ -973,7 +971,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
     it('raises an error if created object breaks definition contraints', function() {
-      let self = this,
+      const self = this,
         UserNull = this.sequelize.define('UserWithNonNullSmth', {
           username: { type: Sequelize.STRING, unique: true },
           smth: { type: Sequelize.STRING, allowNull: false }
@@ -1092,7 +1090,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should only store the values passed in the whitelist', function() {
-      let self = this,
+      const self = this,
         data = { username: 'Peter', secretValue: '42' };
 
       return this.User.create(data, { fields: ['username'] }).then((user) => {
@@ -1105,7 +1103,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should store all values if no whitelist is specified', function() {
-      let self = this,
+      const self = this,
         data = { username: 'Peter', secretValue: '42' };
 
       return this.User.create(data).then((user) => {
@@ -1117,7 +1115,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('can omit autoincremental columns', function() {
-      let self = this,
+      const self = this,
         data = { title: 'Iliad' },
         dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT],
         sync = [],
@@ -1148,7 +1146,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('saves data with single quote', function() {
-      let quote = "single'quote",
+      const quote = "single'quote",
         self = this;
 
       return this.User.create({ data: quote }).then((user) => {
@@ -1160,7 +1158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('saves data with double quote', function() {
-      let quote = 'double"quote',
+      const quote = 'double"quote',
         self = this;
 
       return this.User.create({ data: quote }).then((user) => {
@@ -1172,7 +1170,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('saves stringified JSON data', function() {
-      let json = JSON.stringify({ key: 'value' }),
+      const json = JSON.stringify({ key: 'value' }),
         self = this;
 
       return this.User.create({ data: json }).then((user) => {
@@ -1268,7 +1266,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('enums', () => {
       it('correctly restores enum values', function() {
-        let self = this,
+        const self = this,
           Item = self.sequelize.define('Item', {
             state: { type: Sequelize.ENUM, values: ['available', 'in_cart', 'shipped'] }
           });
@@ -1365,15 +1363,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('through sequelize', function() {
           const self = this;
-          /* jshint ignore:start */
-          const Enum = this.sequelize.define('Enum', {
+          this.sequelize.define('Enum', {
             state: {
               type: Sequelize.ENUM,
               values: ['happy', 'sad'],
               allowNull: true
             }
           });
-          /* jshint ignore:end */
 
           return this.sequelize.sync({ force: true }).then(() => {
             return self.sequelize.sync().then(() => {
@@ -1483,7 +1479,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('properly handles disparate field lists', function() {
-      let self = this,
+      const self = this,
         data = [{username: 'Peter', secretValue: '42', uniqueName: '1' },
                   {username: 'Paul', uniqueName: '2'},
                   {username: 'Steve', uniqueName: '3'}];
@@ -1498,7 +1494,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('inserts multiple values respecting the white list', function() {
-      let self = this,
+      const self = this,
         data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
                   { username: 'Paul', secretValue: '23', uniqueName: '2'}];
 
@@ -1514,7 +1510,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should store all values if no whitelist is specified', function() {
-      let self = this,
+      const self = this,
         data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
                   { username: 'Paul', secretValue: '23', uniqueName: '2'}];
 
@@ -1530,7 +1526,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should set isNewRecord = false', function() {
-      let self = this,
+      const self = this,
         data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
                   { username: 'Paul', secretValue: '23', uniqueName: '2'}];
 
@@ -1545,7 +1541,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('saves data with single quote', function() {
-      let self = this,
+      const self = this,
         quote = "Single'Quote",
         data = [{ username: 'Peter', data: quote, uniqueName: '1'},
                   { username: 'Paul', data: quote, uniqueName: '2'}];
@@ -1562,7 +1558,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('saves data with double quote', function() {
-      let self = this,
+      const self = this,
         quote = 'Double"Quote',
         data = [{ username: 'Peter', data: quote, uniqueName: '1'},
                   { username: 'Paul', data: quote, uniqueName: '2'}];
@@ -1579,7 +1575,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('saves stringified JSON data', function() {
-      let self = this,
+      const self = this,
         json = JSON.stringify({ key: 'value' }),
         data = [{ username: 'Peter', data: json, uniqueName: '1'},
                   { username: 'Paul', data: json, uniqueName: '2'}];
@@ -1606,7 +1602,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('stores the current date in createdAt', function() {
-      let self = this,
+      const self = this,
         data = [{ username: 'Peter', uniqueName: '1'},
                   { username: 'Paul', uniqueName: '2'}];
 
@@ -1733,7 +1729,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (dialect !== 'postgres' && dialect !== 'mssql') {
       it('should support the ignoreDuplicates option', function() {
-        let self = this,
+        const self = this,
           data = [{ uniqueName: 'Peter', secretValue: '42' },
                     { uniqueName: 'Paul', secretValue: '23' }];
 
@@ -1754,7 +1750,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     } else {
       it('should throw an error when the ignoreDuplicates option is passed', function() {
-        let self = this,
+        const self = this,
           data = [{ uniqueName: 'Peter', secretValue: '42' },
                     { uniqueName: 'Paul', secretValue: '23' }];
 
@@ -1821,7 +1817,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('enums', () => {
       it('correctly restores enum values', function() {
-        let self = this,
+        const self = this,
           Item = self.sequelize.define('Item', {
             state: { type: Sequelize.ENUM, values: ['available', 'in_cart', 'shipped'] },
             name: Sequelize.STRING

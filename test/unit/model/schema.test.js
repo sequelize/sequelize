@@ -1,14 +1,13 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support   = require(__dirname + '/../support'),
   current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model') + 'Schemas', () => {
   if (current.dialect.supports.schemas) {
-    let Project = current.define('project'),
+    const Project = current.define('project'),
       Company = current.define('company', {}, {
         schema: 'default',
         schemaDelimiter: '&'
@@ -32,7 +31,7 @@ describe(Support.getTestDialectTeaser('Model') + 'Schemas', () => {
       });
 
       it('should support multiple, coexistent schema models', () => {
-        let schema1 = Company.schema('schema1'),
+        const schema1 = Company.schema('schema1'),
           schema2 = Company.schema('schema1');
 
         expect(schema1._schema).to.equal('schema1');
@@ -54,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model') + 'Schemas', () => {
       });
 
       it('should support multiple, coexistent schema delimiter models', () => {
-        let schema1 = Company.schema(Company._schema, '$'),
+        const schema1 = Company.schema(Company._schema, '$'),
           schema2 = Company.schema(Company._schema, '#');
 
         expect(schema1._schemaDelimiter).to.equal('$');

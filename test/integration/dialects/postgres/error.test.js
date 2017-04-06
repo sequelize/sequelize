@@ -1,6 +1,6 @@
 'use strict';
 
-let chai      = require('chai'),
+const chai      = require('chai'),
   expect    = chai.expect,
   DataTypes = require(__dirname + '/../../../../lib/data-types'),
   Support   = require(__dirname + '/../../support'),

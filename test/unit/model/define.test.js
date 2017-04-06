@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030, -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support   = require(__dirname + '/../support'),
   DataTypes = require('../../../lib/data-types'),
@@ -10,9 +9,7 @@ let chai = require('chai'),
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('define', () => {
     it('should allow custom timestamps with underscored: true', () => {
-      let Model;
-
-      Model = current.define('User', {}, {
+      const Model = current.define('User', {}, {
         createdAt   : 'createdAt',
         updatedAt   : 'updatedAt',
         timestamps  : true,

@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   current = Support.sequelize,
@@ -42,7 +41,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('properly clones input values', () => {
       it('with default options', function() {
         const self = this;
-        return User.update(self.updates, {where: {secretValue: '1'}}).bind(this).then((e) => {
+        return User.update(self.updates, {where: {secretValue: '1'}}).bind(this).then(() => {
           expect(self.updates).to.be.deep.eql(self.cloneUpdates);
         });
       });

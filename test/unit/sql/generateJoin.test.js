@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W110 */
-let Support   = require(__dirname + '/../support'),
+const Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   Sequelize = require(__dirname + '/../../../lib/sequelize'),
   util      = require('util'),
@@ -17,9 +16,9 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = function(path, options, expectation) {
 
       const name = `${path}, ${util.inspect(options, { depth: 10 })}`;
-      
+
       Sequelize.Model._conformOptions(options);
-      options = Sequelize.Model._validateIncludedElements(options);   
+      options = Sequelize.Model._validateIncludedElements(options);
 
       const include = _.at(options, path)[0];
 
@@ -218,8 +217,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         subQuery: true,
         include: [
           {
-            association: User.Company, 
-            required: true, 
+            association: User.Company,
+            required: true,
             include: [
               Company.Owner
             ]
@@ -238,8 +237,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           { association: User.Company, required: true }
         ]
       },
-      { 
-        default: 'INNER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]' 
+      {
+        default: 'INNER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]'
       }
     );
 
@@ -310,7 +309,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         model: User,
         include: [
           {
-            association: User.Company, 
+            association: User.Company,
             include: [
               {
                 association: Company.Owner,

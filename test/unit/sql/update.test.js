@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint -W110 */
-let Support   = require(__dirname + '/../support'),
+const Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
     });
 
-    
+
     it('Works with limit', () => {
       const User = Support.sequelize.define('User', {
         username: {

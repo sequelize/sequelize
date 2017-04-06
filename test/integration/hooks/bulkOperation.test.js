@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -37,7 +36,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#bulkCreate', () => {
     describe('on success', () => {
       it('should run hooks', function() {
-        let beforeBulk = sinon.spy(),
+        const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
         this.User.beforeBulkCreate(beforeBulk);
@@ -56,7 +55,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('should return an error from before', function() {
-        this.User.beforeBulkCreate((daos, options) => {
+        this.User.beforeBulkCreate(() => {
           throw new Error('Whoops!');
         });
 
@@ -67,7 +66,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should return an error from after', function() {
-        this.User.afterBulkCreate((daos, options) => {
+        this.User.afterBulkCreate(() => {
           throw new Error('Whoops!');
         });
 
@@ -102,22 +101,22 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         let beforeBulkCreate = false,
           afterBulkCreate = false;
 
-        this.User.beforeBulkCreate((daos, options) => {
+        this.User.beforeBulkCreate(() => {
           beforeBulkCreate = true;
           return Promise.resolve();
         });
 
-        this.User.afterBulkCreate((daos, options) => {
+        this.User.afterBulkCreate(() => {
           afterBulkCreate = true;
           return Promise.resolve();
         });
 
-        this.User.beforeCreate((user, options) => {
+        this.User.beforeCreate((user) => {
           user.beforeHookTest = true;
           return Promise.resolve();
         });
 
-        this.User.afterCreate((user, options) => {
+        this.User.afterCreate((user) => {
           user.username = 'User' + user.id;
           return Promise.resolve();
         });
@@ -136,21 +135,21 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         let beforeBulkCreate = false,
           afterBulkCreate = false;
 
-        this.User.beforeBulkCreate((daos, options) => {
+        this.User.beforeBulkCreate(() => {
           beforeBulkCreate = true;
           return Promise.resolve();
         });
 
-        this.User.afterBulkCreate((daos, options) => {
+        this.User.afterBulkCreate(() => {
           afterBulkCreate = true;
           return Promise.resolve();
         });
 
-        this.User.beforeCreate((user, options) => {
+        this.User.beforeCreate(() => {
           return Promise.reject(new Error('You shall not pass!'));
         });
 
-        this.User.afterCreate((user, options) => {
+        this.User.afterCreate((user) => {
           user.username = 'User' + user.id;
           return Promise.resolve();
         });
@@ -167,7 +166,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#bulkUpdate', () => {
     describe('on success', () => {
       it('should run hooks', function() {
-        let self = this,
+        const self = this,
           beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
@@ -190,7 +189,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should return an error from before', function() {
         const self = this;
 
-        this.User.beforeBulkUpdate((options) => {
+        this.User.beforeBulkUpdate(() => {
           throw new Error('Whoops!');
         });
 
@@ -205,7 +204,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should return an error from after', function() {
         const self = this;
 
-        this.User.afterBulkUpdate((options) => {
+        this.User.afterBulkUpdate(() => {
           throw new Error('Whoops!');
         });
 
@@ -239,7 +238,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item created successfully', function() {
-        let self = this,
+        const self = this,
           beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
@@ -247,12 +246,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.afterBulkUpdate(afterBulk);
 
-        this.User.beforeUpdate((user, options) => {
+        this.User.beforeUpdate((user) => {
           expect(user.changed()).to.not.be.empty;
           user.beforeHookTest = true;
         });
 
-        this.User.afterUpdate((user, options) => {
+        this.User.afterUpdate((user) => {
           user.username = 'User' + user.id;
         });
 
@@ -273,7 +272,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should run the after/before functions for each item created successfully changing some data before updating', function() {
         const self = this;
 
-        this.User.beforeUpdate((user, options) => {
+        this.User.beforeUpdate((user) => {
           expect(user.changed()).to.not.be.empty;
           if (user.get('id') === 1) {
             user.set('aNumber', user.get('aNumber') + 3);
@@ -284,7 +283,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).then(() => {
           return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).spread((affectedRows, records) => {
-            records.forEach((record, i) => {
+            records.forEach((record) => {
               expect(record.aNumber).to.equal(10 + (record.id === 1 ? 3 : 0));
             });
           });
@@ -292,7 +291,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item created with an error', function() {
-        let self = this,
+        const self = this,
           beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
@@ -300,11 +299,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.afterBulkUpdate(afterBulk);
 
-        this.User.beforeUpdate((user, options) => {
+        this.User.beforeUpdate(() => {
           throw new Error('You shall not pass!');
         });
 
-        this.User.afterUpdate((user, options) => {
+        this.User.afterUpdate((user) => {
           user.username = 'User' + user.id;
         });
 
@@ -323,7 +322,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#bulkDestroy', () => {
     describe('on success', () => {
       it('should run hooks', function() {
-        let beforeBulk = sinon.spy(),
+        const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
         this.User.beforeBulkDestroy(beforeBulk);
@@ -338,7 +337,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('should return an error from before', function() {
-        this.User.beforeBulkDestroy((options) => {
+        this.User.beforeBulkDestroy(() => {
           throw new Error('Whoops!');
         });
 
@@ -346,7 +345,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should return an error from after', function() {
-        this.User.afterBulkDestroy((options) => {
+        this.User.afterBulkDestroy(() => {
           throw new Error('Whoops!');
         });
 
@@ -375,28 +374,28 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item created successfully', function() {
-        let self = this,
-          beforeBulk = false,
+        const self = this;
+        let beforeBulk = false,
           afterBulk = false,
           beforeHook = false,
           afterHook = false;
 
-        this.User.beforeBulkDestroy((options) => {
+        this.User.beforeBulkDestroy(() => {
           beforeBulk = true;
           return Promise.resolve();
         });
 
-        this.User.afterBulkDestroy((options) => {
+        this.User.afterBulkDestroy(() => {
           afterBulk = true;
           return Promise.resolve();
         });
 
-        this.User.beforeDestroy((user, options) => {
+        this.User.beforeDestroy(() => {
           beforeHook = true;
           return Promise.resolve();
         });
 
-        this.User.afterDestroy((user, options) => {
+        this.User.afterDestroy(() => {
           afterHook = true;
           return Promise.resolve();
         });
@@ -414,28 +413,28 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item created with an error', function() {
-        let self = this,
-          beforeBulk = false,
+        const self = this;
+        let beforeBulk = false,
           afterBulk = false,
           beforeHook = false,
           afterHook = false;
 
-        this.User.beforeBulkDestroy((options) => {
+        this.User.beforeBulkDestroy(() => {
           beforeBulk = true;
           return Promise.resolve();
         });
 
-        this.User.afterBulkDestroy((options) => {
+        this.User.afterBulkDestroy(() => {
           afterBulk = true;
           return Promise.resolve();
         });
 
-        this.User.beforeDestroy((user, options) => {
+        this.User.beforeDestroy(() => {
           beforeHook = true;
           return Promise.reject(new Error('You shall not pass!'));
         });
 
-        this.User.afterDestroy((user, options) => {
+        this.User.afterDestroy(() => {
           afterHook = true;
           return Promise.resolve();
         });
@@ -465,7 +464,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on success', () => {
       it('should run hooks', function() {
-        let beforeBulk = sinon.spy(),
+        const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
         this.ParanoidUser.beforeBulkRestore(beforeBulk);
@@ -480,7 +479,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('should return an error from before', function() {
-        this.ParanoidUser.beforeBulkRestore((options) => {
+        this.ParanoidUser.beforeBulkRestore(() => {
           throw new Error('Whoops!');
         });
 
@@ -488,7 +487,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should return an error from after', function() {
-        this.ParanoidUser.afterBulkRestore((options) => {
+        this.ParanoidUser.afterBulkRestore(() => {
           throw new Error('Whoops!');
         });
 
@@ -511,7 +510,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item restored successfully', function() {
-        let self = this,
+        const self = this,
           beforeBulk = sinon.spy(),
           afterBulk = sinon.spy(),
           beforeHook = sinon.spy(),
@@ -537,7 +536,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item restored with an error', function() {
-        let self = this,
+        const self = this,
           beforeBulk = sinon.spy(),
           afterBulk = sinon.spy(),
           beforeHook = sinon.spy(),
@@ -545,7 +544,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.ParanoidUser.beforeBulkRestore(beforeBulk);
         this.ParanoidUser.afterBulkRestore(afterBulk);
-        this.ParanoidUser.beforeRestore((user, options) => {
+        this.ParanoidUser.beforeRestore(() => {
           beforeHook();
           return Promise.reject(new Error('You shall not pass!'));
         });
@@ -566,5 +565,4 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
   });
-
 });

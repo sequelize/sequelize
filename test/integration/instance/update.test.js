@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   sinon = require('sinon'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
@@ -153,7 +152,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           timestamps: true
         });
 
-        this.clock.tick(2100); //move the clock forward 2100 ms. 
+        this.clock.tick(2100); //move the clock forward 2100 ms.
 
         return User.sync({force: true}).then(() => {
           return User.create({
@@ -391,7 +390,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           identifier: 'identifier'
         });
       }).then(function(user) {
-        let oldCreatedAt = user.createdAt,
+        const oldCreatedAt = user.createdAt,
           oldUpdatedAt = user.updatedAt,
           oldIdentifier = user.identifier;
 

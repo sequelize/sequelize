@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/support'),
   Sequelize = Support.Sequelize,
@@ -87,11 +86,11 @@ describe('Sequelize', () => {
     });
 
     it('should use the default port when no other is specified', () => {
-      let sequelize = new Sequelize('dbname', 'root', 'pass', {
+      const sequelize = new Sequelize('dbname', 'root', 'pass', {
           dialect
         }),
-        config = sequelize.config,
-        port;
+        config = sequelize.config;
+      let port;
 
       if (dialect === 'mysql') {
         port = 3306;

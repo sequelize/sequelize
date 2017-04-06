@@ -1,6 +1,6 @@
 'use strict';
 
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support   = require(__dirname + '/../support'),
   current   = Support.sequelize,
@@ -10,12 +10,10 @@ let chai = require('chai'),
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('save', () => {
     it('should disallow saves if no primary key values is present', () => {
-      let Model = current.define('User', {
+      const Model = current.define('User', {
 
         }),
-        instance;
-
-      instance = Model.build({}, {isNewRecord: false});
+        instance = Model.build({}, {isNewRecord: false});
 
       expect(() => {
         instance.save();
@@ -23,15 +21,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('options tests', () => {
-      let stub,
-        Model = current.define('User', {
-          id: {
-            type:          Sequelize.BIGINT,
-            primaryKey:    true,
-            autoIncrement: true
-          }
-        }),
-        instance;
+      let stub, instance;
+      const Model = current.define('User', {
+        id: {
+          type:          Sequelize.BIGINT,
+          primaryKey:    true,
+          autoIncrement: true
+        }
+      });
 
       before(() => {
         stub = sinon.stub(current, 'query').returns(

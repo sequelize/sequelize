@@ -1,6 +1,6 @@
 'use strict';
 
-let ResourceLock = require('../../../../lib/dialects/mssql/resource-lock'),
+const ResourceLock = require('../../../../lib/dialects/mssql/resource-lock'),
   Promise = require('../../../../lib/promise'),
   assert = require('assert');
 

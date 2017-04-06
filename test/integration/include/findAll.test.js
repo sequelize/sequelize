@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
@@ -17,7 +15,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findAll', () => {
     beforeEach(function() {
       this.fixtureA = function() {
-        let User = this.sequelize.define('User', {}),
+        const User = this.sequelize.define('User', {}),
           Company = this.sequelize.define('Company', {
             name: DataTypes.STRING
           }),
@@ -119,7 +117,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               return Tag.findAll();
             })
           }).then((results) => {
-            let groups = results.groups,
+            const groups = results.groups,
               ranks = results.ranks,
               tags = results.tags,
               companies = results.companies;
@@ -137,14 +135,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                   return Product.findAll();
                 })
               }).then((results) => {
-                let user = results.user,
+                const user = results.user,
                   products = results.products,
-                  groupMembers;
-
-                groupMembers = [
-                  {AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
-                  {AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id}
-                ];
+                  groupMembers  = [
+                    {AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
+                    {AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id}
+                  ];
                 if (i < 3) {
                   groupMembers.push({AccUserId: user.id, GroupId: groups[2].id, RankId: ranks[1].id});
                 }
@@ -198,7 +194,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should work on a nested set of relations with a where condition in between relations', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         SubscriptionForm = this.sequelize.define('SubscriptionForm', {}),
         Collection = this.sequelize.define('Collection', {}),
         Category = this.sequelize.define('Category', {}),
@@ -256,7 +252,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should accept nested `where` and `limit` at the same time', function() {
-      let Product = this.sequelize.define('Product', {
+      const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
         Tag = this.sequelize.define('Tag', {
@@ -327,7 +323,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support an include with multiple different association types', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
@@ -473,7 +469,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support many levels of belongsTo', function() {
-      let A = this.sequelize.define('a', {}),
+      const A = this.sequelize.define('a', {}),
         B = this.sequelize.define('b', {}),
         C = this.sequelize.define('c', {}),
         D = this.sequelize.define('d', {}),
@@ -562,7 +558,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support many levels of belongsTo (with a lower level having a where)', function() {
-      let A = this.sequelize.define('a', {}),
+      const A = this.sequelize.define('a', {}),
         B = this.sequelize.define('b', {}),
         C = this.sequelize.define('c', {}),
         D = this.sequelize.define('d', {}),
@@ -663,7 +659,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support ordering with only belongsTo includes', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Item = this.sequelize.define('Item', {'test': DataTypes.STRING}),
         Order = this.sequelize.define('Order', {'position': DataTypes.INTEGER});
 
@@ -739,7 +735,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should include attributes from through models', function() {
-      let Product = this.sequelize.define('Product', {
+      const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
         Tag = this.sequelize.define('Tag', {
@@ -801,7 +797,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a required belongsTo include', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {});
 
       User.belongsTo(Group);
@@ -830,7 +826,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to extend the on clause with a where option on a belongsTo include', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         });
@@ -868,7 +864,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to extend the on clause with a where option on a belongsTo include', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         });
@@ -906,7 +902,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to define a belongsTo include as required with child hasMany not required', function() {
-      let Address = this.sequelize.define('Address', { 'active': DataTypes.BOOLEAN }),
+      const Address = this.sequelize.define('Address', { 'active': DataTypes.BOOLEAN }),
         Street = this.sequelize.define('Street', { 'active': DataTypes.BOOLEAN }),
         User = this.sequelize.define('User', { 'username': DataTypes.STRING });
 
@@ -945,7 +941,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to define a belongsTo include as required with child hasMany with limit', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         }),
@@ -998,7 +994,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to define a belongsTo include as required with child hasMany with limit and aliases', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         }),
@@ -1051,7 +1047,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to define a belongsTo include as required with child hasMany which is not required with limit', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         }),
@@ -1104,7 +1100,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to extend the on clause with a where option on a hasOne include', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Project = this.sequelize.define('Project', {
           title: DataTypes.STRING
         });
@@ -1142,7 +1138,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to extend the on clause with a where option on a hasMany include with a through model', function() {
-      let Product = this.sequelize.define('Product', {
+      const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
         Tag = this.sequelize.define('Tag', {
@@ -1194,7 +1190,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to extend the on clause with a where option on nested includes', function() {
-      let User = this.sequelize.define('User', {
+      const User = this.sequelize.define('User', {
           name: DataTypes.STRING
         }),
         Product = this.sequelize.define('Product', {
@@ -1335,7 +1331,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to use limit and a where with a belongsTo include', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         });
@@ -1534,7 +1530,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Member.hasMany(Album);
 
       return this.sequelize.sync({force: true}).then(() => {
-        let members = [],
+        const members = [],
           albums = [],
           memberCount = 20;
 
@@ -1630,7 +1626,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support including date fields, with the correct timeszone', function() {
-      let User = this.sequelize.define('user', {
+      const User = this.sequelize.define('user', {
           dateField: Sequelize.DATE
         }, {timestamps: false}),
         Group = this.sequelize.define('group', {
@@ -1660,7 +1656,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should still pull the main record(s) when an included model is not required and has where restrictions without matches', function() {
-      let A = this.sequelize.define('a', {name: DataTypes.STRING(40)}),
+      const A = this.sequelize.define('a', {name: DataTypes.STRING(40)}),
         B = this.sequelize.define('b', {name: DataTypes.STRING(40)});
 
       A.belongsToMany(B, {through: 'a_b'});
@@ -1812,7 +1808,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should work with an empty include.where', function() {
-      let User = this.sequelize.define('User', {}),
+      const User = this.sequelize.define('User', {}),
         Company = this.sequelize.define('Company', {}),
         Group = this.sequelize.define('Group', {});
 
@@ -1879,7 +1875,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should ignore include with attributes: [] (used for aggregates)', function() {
-      let Post = this.sequelize.define('Post', {
+      const Post = this.sequelize.define('Post', {
           title: DataTypes.STRING
         }),
         Comment = this.sequelize.define('Comment', {
@@ -1922,7 +1918,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should not add primary key when including and aggregating with raw: true', function() {
-      let Post = this.sequelize.define('Post', {
+      const Post = this.sequelize.define('Post', {
           title: DataTypes.STRING
         }),
         Comment = this.sequelize.define('Comment', {

@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
   Support = require(__dirname + '/support'),
@@ -121,7 +120,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('invokes the global hook, when the model also has a hook', () => {
-        let globalHookBefore = sinon.spy(),
+        const globalHookBefore = sinon.spy(),
           globalHookAfter = sinon.spy(),
           localHook = sinon.spy();
 
@@ -171,7 +170,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('does not run the global hook when the model specifies its own hook', function() {
-        let localHook = sinon.spy(),
+        const localHook = sinon.spy(),
           Model = this.sequelize.define('M', {}, {
             hooks: {
               beforeCreate: localHook
@@ -188,7 +187,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('#removeHook', () => {
     it('should remove hook', function() {
-      let hook1 = sinon.spy(),
+      const hook1 = sinon.spy(),
         hook2 = sinon.spy();
 
       this.Model.addHook('beforeCreate', 'myHook', hook1);
@@ -214,11 +213,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('#addHook', () => {
     it('should add additional hook when previous exists', function() {
-      let hook1 = sinon.spy(),
-        hook2 = sinon.spy(),
-        Model;
+      const hook1 = sinon.spy(),
+        hook2 = sinon.spy();
 
-      Model = this.sequelize.define('Model', {}, {
+      const Model = this.sequelize.define('Model', {}, {
         hooks: { beforeCreate: hook1 }
       });
 

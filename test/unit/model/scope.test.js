@@ -1,16 +1,14 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  let Project = current.define('project'),
-    User = current.define('user'),
-    Company;
+  const Project = current.define('project'),
+    User = current.define('user');
 
   const scopes = {
     complexFunction(value) {
@@ -62,7 +60,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
   };
 
-  Company = current.define('company', {}, {
+  const Company = current.define('company', {}, {
     defaultScope: {
       include: [Project],
       where: { active: true }
@@ -140,7 +138,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should support multiple, coexistent scoped models', () => {
-      let scoped1 = Company.scope('somethingTrue'),
+      const scoped1 = Company.scope('somethingTrue'),
         scoped2 = Company.scope('somethingFalse');
 
       expect(scoped1._scope).to.deep.equal(scopes.somethingTrue);

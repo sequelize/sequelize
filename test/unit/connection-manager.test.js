@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
   Support = require(__dirname + '/support'),
@@ -42,7 +41,7 @@ describe('connection manager', () => {
     });
 
     it('should let beforeConnect hook modify config', function() {
-      let username = Math.random().toString(),
+      const username = Math.random().toString(),
         password = Math.random().toString();
 
       this.sequelize.beforeConnect((config) => {

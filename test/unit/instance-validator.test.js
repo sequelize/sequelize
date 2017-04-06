@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W030 */
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require(__dirname + '/support');
@@ -90,7 +89,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         const validationFailedHook = sinon.spy();
         this.User.validationFailed(validationFailedHook);
 
-        return expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected.then((err) => {
+        return expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected.then(() => {
           expect(validationFailedHook).to.have.been.calledOnce;
         });
       });

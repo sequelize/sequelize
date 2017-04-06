@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/support'),
   Promise = require(__dirname + '/../../lib/promise'),
@@ -83,8 +82,8 @@ if (current.dialect.supports.transactions) {
             }).then(function() {
               return this.sequelize.query(query, { transaction: t });
             }).then(() => {
-            return t.commit();
-          });
+              return t.commit();
+            });
           }).then(function() {
             return this.User.all();
           }).then((users) => {

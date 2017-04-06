@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -25,7 +24,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#updateAttributes', () => {
     describe('on success', () => {
       it('should run hooks', function() {
-        let beforeHook = sinon.spy(),
+        const beforeHook = sinon.spy(),
           afterHook = sinon.spy(),
           beforeSave = sinon.spy(),
           afterSave = sinon.spy();
@@ -49,12 +48,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('should return an error from before', function() {
-        let beforeHook = sinon.spy(),
+        const beforeHook = sinon.spy(),
           afterHook = sinon.spy(),
           beforeSave = sinon.spy(),
           afterSave = sinon.spy();
 
-        this.User.beforeUpdate((user, options) => {
+        this.User.beforeUpdate(() => {
           beforeHook();
           throw new Error('Whoops!');
         });
@@ -73,13 +72,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should return an error from after', function() {
-        let beforeHook = sinon.spy(),
+        const beforeHook = sinon.spy(),
           afterHook = sinon.spy(),
           beforeSave = sinon.spy(),
           afterSave = sinon.spy();
 
         this.User.beforeUpdate(beforeHook);
-        this.User.afterUpdate((user, options) => {
+        this.User.afterUpdate(() => {
           afterHook();
           throw new Error('Whoops!');
         });
@@ -100,7 +99,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     describe('preserves changes to instance', () => {
       it('beforeValidate', function(){
 
-        this.User.beforeValidate((user, options) => {
+        this.User.beforeValidate((user) => {
           user.mood = 'happy';
         });
 
@@ -114,7 +113,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       it('afterValidate', function() {
 
-        this.User.afterValidate((user, options) => {
+        this.User.afterValidate((user) => {
           user.mood = 'sad';
         });
 
@@ -129,7 +128,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave', function() {
         let hookCalled = 0;
 
-        this.User.beforeSave((user, options) => {
+        this.User.beforeSave((user) => {
           user.mood = 'happy';
           hookCalled++;
         });
@@ -146,12 +145,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave with beforeUpdate', function() {
         let hookCalled = 0;
 
-        this.User.beforeUpdate((user, options) => {
+        this.User.beforeUpdate((user) => {
           user.mood = 'sad';
           hookCalled++;
         });
 
-        this.User.beforeSave((user, options) => {
+        this.User.beforeSave((user) => {
           user.mood = 'happy';
           hookCalled++;
         });
@@ -164,9 +163,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           expect(hookCalled).to.equal(3);
         });
       });
-
     });
-
   });
-
 });

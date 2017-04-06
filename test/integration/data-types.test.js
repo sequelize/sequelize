@@ -1,7 +1,5 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
 const chai = require('chai'),
   Sequelize = require('../../index'),
   expect = chai.expect,
@@ -85,7 +83,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return value;
     });
 
-    const stringify = Type.constructor.prototype.stringify = sinon.spy(function(value) {
+    const stringify = Type.constructor.prototype.stringify = sinon.spy(function() {
       return Sequelize.ABSTRACT.prototype.stringify.apply(this, arguments);
     });
 
@@ -103,7 +101,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       });
     }).then(() => {
       return User.findAll().get(0);
-    }).then(user => {
+    }).then(() => {
       expect(parse).to.have.been.called;
       expect(stringify).to.have.been.called;
 
@@ -112,7 +110,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   };
 
-  const testFailure = function(Type, value) {
+  const testFailure = function(Type) {
     Type.constructor.parse = _.noop();
 
     expect(() => {

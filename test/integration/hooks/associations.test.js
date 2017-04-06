@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -59,16 +58,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         it('on success', function() {
-          let self = this,
-            beforeHook = false,
+          const self = this;
+          let beforeHook = false,
             afterHook = false;
 
-          this.Tasks.beforeUpdate((task, options) => {
+          this.Tasks.beforeUpdate(() => {
             beforeHook = true;
             return Promise.resolve();
           });
 
-          this.Tasks.afterUpdate((task, options) => {
+          this.Tasks.afterUpdate(() => {
             afterHook = true;
             return Promise.resolve();
           });
@@ -88,7 +87,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         it('on error', function() {
           const self = this;
 
-          this.Tasks.afterUpdate((task, options) => {
+          this.Tasks.afterUpdate(() => {
             return Promise.reject(new Error('Whoops!'));
           });
 
@@ -120,7 +119,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('#remove', () => {
           it('with no errors', function() {
-            let self = this,
+            const self = this,
               beforeProject = sinon.spy(),
               afterProject = sinon.spy(),
               beforeTask = sinon.spy(),
@@ -146,29 +145,29 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           });
 
           it('with errors', function() {
-            let self = this,
-              beforeProject = false,
+            const self = this,
+              CustomErrorText = 'Whoops!';
+            let beforeProject = false,
               afterProject = false,
               beforeTask = false,
-              afterTask = false,
-              CustomErrorText = 'Whoops!';
+              afterTask = false;
 
-            this.Projects.beforeCreate((project, options) => {
+            this.Projects.beforeCreate(() => {
               beforeProject = true;
               return Promise.resolve();
             });
 
-            this.Projects.afterCreate((project, options) => {
+            this.Projects.afterCreate(() => {
               afterProject = true;
               return Promise.resolve();
             });
 
-            this.Tasks.beforeDestroy((task, options) => {
+            this.Tasks.beforeDestroy(() => {
               beforeTask = true;
               return Promise.reject(new Error(CustomErrorText));
             });
 
-            this.Tasks.afterDestroy((task, options) => {
+            this.Tasks.afterDestroy(() => {
               afterTask = true;
               return Promise.resolve();
             });
@@ -210,7 +209,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         it('on success', function() {
-          let self = this,
+          const self = this,
             beforeHook = sinon.spy(),
             afterHook = sinon.spy();
 
@@ -232,7 +231,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         it('on error', function() {
           const self = this;
 
-          this.Tasks.afterUpdate((task, options) => {
+          this.Tasks.afterUpdate(() => {
             throw new Error('Whoops!');
           });
 
@@ -266,7 +265,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('#remove', () => {
           it('with no errors', function() {
-            let self = this,
+            const self = this,
               beforeProject = sinon.spy(),
               afterProject = sinon.spy(),
               beforeTask = sinon.spy(),
@@ -292,7 +291,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           });
 
           it('with errors', function() {
-            let self = this,
+            const self = this,
               beforeProject = sinon.spy(),
               afterProject = sinon.spy(),
               beforeTask = sinon.spy(),
@@ -300,7 +299,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
             this.Projects.beforeCreate(beforeProject);
             this.Projects.afterCreate(afterProject);
-            this.Tasks.beforeUpdate((task, options) => {
+            this.Tasks.beforeUpdate(() => {
               beforeTask();
               throw new Error('Whoops!');
             });
@@ -344,7 +343,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('#remove', () => {
           it('with no errors', function() {
-            let self = this,
+            const self = this,
               beforeProject = sinon.spy(),
               afterProject = sinon.spy(),
               beforeTask = sinon.spy(),
@@ -370,28 +369,28 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           });
 
           it('with errors', function() {
-            let self = this,
-              beforeProject = false,
+            const self = this;
+            let beforeProject = false,
               afterProject = false,
               beforeTask = false,
               afterTask = false;
 
-            this.Projects.beforeCreate((project, options) => {
+            this.Projects.beforeCreate(() => {
               beforeProject = true;
               return Promise.resolve();
             });
 
-            this.Projects.afterCreate((project, options) => {
+            this.Projects.afterCreate(() => {
               afterProject = true;
               return Promise.resolve();
             });
 
-            this.Tasks.beforeDestroy((task, options) => {
+            this.Tasks.beforeDestroy(() => {
               beforeTask = true;
               return Promise.reject(new Error('Whoops!'));
             });
 
-            this.Tasks.afterDestroy((task, options) => {
+            this.Tasks.afterDestroy(() => {
               afterTask = true;
               return Promise.resolve();
             });
@@ -431,7 +430,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('#remove', () => {
           it('with no errors', function() {
-            let self = this,
+            const self = this,
               beforeProject = sinon.spy(),
               afterProject = sinon.spy(),
               beforeTask = sinon.spy(),
@@ -457,28 +456,28 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           });
 
           it('with errors', function() {
-            let self = this,
-              beforeProject = false,
+            const self = this;
+            let beforeProject = false,
               afterProject = false,
               beforeTask = false,
               afterTask = false;
 
-            this.Projects.beforeCreate((project, options) => {
+            this.Projects.beforeCreate(() => {
               beforeProject = true;
               return Promise.resolve();
             });
 
-            this.Projects.afterCreate((project, options) => {
+            this.Projects.afterCreate(() => {
               afterProject = true;
               return Promise.resolve();
             });
 
-            this.Tasks.beforeUpdate((task, options) => {
+            this.Tasks.beforeUpdate(() => {
               beforeTask = true;
               return Promise.reject(new Error('Whoops!'));
             });
 
-            this.Tasks.afterUpdate((task, options) => {
+            this.Tasks.afterUpdate(() => {
               afterTask = true;
               return Promise.resolve();
             });
@@ -518,7 +517,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('#remove', () => {
           it('with no errors', function() {
-            let self = this,
+            const self = this,
               beforeProject = sinon.spy(),
               afterProject = sinon.spy(),
               beforeTask = sinon.spy(),
@@ -545,28 +544,28 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           });
 
           it('with errors', function() {
-            let self = this,
-              beforeProject = false,
+            const self = this;
+            let beforeProject = false,
               afterProject = false,
               beforeTask = false,
               afterTask = false;
 
-            this.Projects.beforeCreate((project, options) => {
+            this.Projects.beforeCreate(() => {
               beforeProject = true;
               return Promise.resolve();
             });
 
-            this.Projects.afterCreate((project, options) => {
+            this.Projects.afterCreate(() => {
               afterProject = true;
               return Promise.resolve();
             });
 
-            this.Tasks.beforeDestroy((task, options) => {
+            this.Tasks.beforeDestroy(() => {
               beforeTask = true;
               return Promise.reject(new Error('Whoops!'));
             });
 
-            this.Tasks.afterDestroy((task, options) => {
+            this.Tasks.afterDestroy(() => {
               afterTask = true;
               return Promise.resolve();
             });
@@ -605,7 +604,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('#remove', () => {
           it('with no errors', function() {
-            let self = this,
+            const self = this,
               beforeProject = sinon.spy(),
               afterProject = sinon.spy(),
               beforeTask = sinon.spy(),
@@ -631,28 +630,28 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           });
 
           it('with errors', function() {
-            let self = this,
-              beforeProject = false,
+            const self = this;
+            let beforeProject = false,
               afterProject = false,
               beforeTask = false,
               afterTask = false;
 
-            this.Projects.beforeCreate((project, options) => {
+            this.Projects.beforeCreate(() => {
               beforeProject = true;
               return Promise.resolve();
             });
 
-            this.Projects.afterCreate((project, options) => {
+            this.Projects.afterCreate(() => {
               afterProject = true;
               return Promise.resolve();
             });
 
-            this.Tasks.beforeUpdate((task, options) => {
+            this.Tasks.beforeUpdate(() => {
               beforeTask = true;
               return Promise.reject(new Error('Whoops!'));
             });
 
-            this.Tasks.afterUpdate((task, options) => {
+            this.Tasks.afterUpdate(() => {
               afterTask = true;
               return Promise.resolve();
             });
@@ -711,32 +710,32 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 beforeMiniTask = false,
                 afterMiniTask = false;
 
-              this.Projects.beforeCreate((project, options) => {
+              this.Projects.beforeCreate(() => {
                 beforeProject = true;
                 return Promise.resolve();
               });
 
-              this.Projects.afterCreate((project, options) => {
+              this.Projects.afterCreate(() => {
                 afterProject = true;
                 return Promise.resolve();
               });
 
-              this.Tasks.beforeDestroy((task, options) => {
+              this.Tasks.beforeDestroy(() => {
                 beforeTask = true;
                 return Promise.resolve();
               });
 
-              this.Tasks.afterDestroy((task, options) => {
+              this.Tasks.afterDestroy(() => {
                 afterTask = true;
                 return Promise.resolve();
               });
 
-              this.MiniTasks.beforeDestroy((minitask, options) => {
+              this.MiniTasks.beforeDestroy(() => {
                 beforeMiniTask = true;
                 return Promise.resolve();
               });
 
-              this.MiniTasks.afterDestroy((minitask, options) => {
+              this.MiniTasks.afterDestroy(() => {
                 afterMiniTask = true;
                 return Promise.resolve();
               });
@@ -767,32 +766,32 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 beforeMiniTask = false,
                 afterMiniTask = false;
 
-              this.Projects.beforeCreate((project, options) => {
+              this.Projects.beforeCreate(() => {
                 beforeProject = true;
                 return Promise.resolve();
               });
 
-              this.Projects.afterCreate((project, options) => {
+              this.Projects.afterCreate(() => {
                 afterProject = true;
                 return Promise.resolve();
               });
 
-              this.Tasks.beforeDestroy((task, options) => {
+              this.Tasks.beforeDestroy(() => {
                 beforeTask = true;
                 return Promise.resolve();
               });
 
-              this.Tasks.afterDestroy((task, options) => {
+              this.Tasks.afterDestroy(() => {
                 afterTask = true;
                 return Promise.resolve();
               });
 
-              this.MiniTasks.beforeDestroy((minitask, options) => {
+              this.MiniTasks.beforeDestroy(() => {
                 beforeMiniTask = true;
                 return Promise.reject(new Error('Whoops!'));
               });
 
-              this.MiniTasks.afterDestroy((minitask, options) => {
+              this.MiniTasks.afterDestroy(() => {
                 afterMiniTask = true;
                 return Promise.resolve();
               });
@@ -853,32 +852,32 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 beforeMiniTask = false,
                 afterMiniTask = false;
 
-              this.Projects.beforeCreate((project, options) => {
+              this.Projects.beforeCreate(() => {
                 beforeProject = true;
                 return Promise.resolve();
               });
 
-              this.Projects.afterCreate((project, options) => {
+              this.Projects.afterCreate(() => {
                 afterProject = true;
                 return Promise.resolve();
               });
 
-              this.Tasks.beforeDestroy((task, options) => {
+              this.Tasks.beforeDestroy(() => {
                 beforeTask = true;
                 return Promise.resolve();
               });
 
-              this.Tasks.afterDestroy((task, options) => {
+              this.Tasks.afterDestroy(() => {
                 afterTask = true;
                 return Promise.resolve();
               });
 
-              this.MiniTasks.beforeDestroy((minitask, options) => {
+              this.MiniTasks.beforeDestroy(() => {
                 beforeMiniTask = true;
                 return Promise.resolve();
               });
 
-              this.MiniTasks.afterDestroy((minitask, options) => {
+              this.MiniTasks.afterDestroy(() => {
                 afterMiniTask = true;
                 return Promise.resolve();
               });
@@ -910,8 +909,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 beforeTask = false,
                 afterTask = false,
                 beforeMiniTask = false,
-                afterMiniTask = false,
-                CustomErrorText = 'Whoops!';
+                afterMiniTask = false;
+              const CustomErrorText = 'Whoops!';
 
               this.Projects.beforeCreate(() => {
                 beforeProject = true;

@@ -1,12 +1,10 @@
 'use strict';
 
-/* jshint -W030 */
-var Support = require(__dirname + '/../support');
+const Support = require(__dirname + '/../support');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
-var Support = require(__dirname + '/../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('paranoid', () => {

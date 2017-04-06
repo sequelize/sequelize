@@ -1,6 +1,6 @@
 'use strict';
 
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
   Support = require(__dirname + '/../support'),
@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
   describe('findAndCountAll', () => {
     it('should be able to include a required model. Result rows should match count', function() {
-      let User = this.sequelize.define('User', { name: DataTypes.STRING(40) }, { paranoid: true }),
+      const User = this.sequelize.define('User', { name: DataTypes.STRING(40) }, { paranoid: true }),
         SomeConnection = this.sequelize.define('SomeConnection', {
           m: DataTypes.STRING(40),
           fk: DataTypes.INTEGER,
@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should return the correct count and rows when using a required belongsTo and a limit', function() {
-      let s = this.sequelize,
+      const s = this.sequelize,
         Foo = s.define('Foo', {}),
         Bar = s.define('Bar', {});
 
@@ -195,7 +195,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should return the correct count and rows when using a required belongsTo with a where condition and a limit', function() {
-      let Foo = this.sequelize.define('Foo', {}),
+      const Foo = this.sequelize.define('Foo', {}),
         Bar = this.sequelize.define('Bar', {m: DataTypes.STRING(40)});
 
       Foo.hasMany(Bar);
@@ -256,12 +256,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return User.bulkCreate([
           { name: 'user-name-1' },
           { name: 'user-name-2' }
-        ]).then((u) => {
+        ]).then(() => {
           return Project.bulkCreate([
             { m: 'A', UserId: 1},
             { m: 'A', UserId: 2}
           ]);
-        }).then((p) => {
+        }).then(() => {
           return Task.bulkCreate([
             { ProjectId: 1, name: 'Just' },
             { ProjectId: 1, name: 'for' },
@@ -316,7 +316,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { first_name: 'user-fname-2', last_name: 'user-lname-2' },
           { first_name: 'user-xfname-1', last_name: 'user-xlname-1' }
         ]);
-      }).then((u) => {
+      }).then(() => {
         return Project.bulkCreate([
           { name: 'naam-satya', UserId: 1},
           { name: 'guru-satya', UserId: 2},

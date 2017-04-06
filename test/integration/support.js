@@ -1,6 +1,6 @@
 'use strict';
 
-let Support = require('../support'),
+const Support = require('../support'),
   dialect = Support.getTestDialect();
 
 before(() => {

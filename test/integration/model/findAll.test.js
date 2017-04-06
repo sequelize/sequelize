@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   sinon = require('sinon'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
@@ -184,7 +182,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to handle false/true values just fine...', function() {
-        let User = this.User,
+        const User = this.User,
           escapeChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`';
 
         return User.bulkCreate([
@@ -203,7 +201,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to handle false/true values through associations as well...', function() {
-        let User = this.User,
+        const User = this.User,
           escapeChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
           Passports = this.sequelize.define('Passports', {
             isActive: Sequelize.BOOLEAN
@@ -892,7 +890,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               this.Kingdom.create({ name: 'Earth' }),
               this.Kingdom.create({ name: 'Water' }),
               this.Kingdom.create({ name: 'Wind' })
-            ]).spread((k1, k2, k3) => 
+            ]).spread((k1, k2, k3) =>
                 Sequelize.Promise.all([
                   k1.addAnimals([a1, a2]),
                   k2.addAnimals([a4]),

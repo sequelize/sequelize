@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -23,7 +22,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           defaultValue: false
         }
       });
-      
+
       this.Comment.prototype.getItem = function() {
         return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
       };
@@ -122,7 +121,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         }).then(function(post) {
           expect(post.mainComment.get('id')).to.equal(this.mainComment.get('id'));
           return post.getMainComment();
-        }).then(function(mainComment, post) {
+        }).then(function(mainComment) {
           expect(mainComment.get('commentable')).to.equal('post');
           expect(mainComment.get('isMain')).to.be.true;
           return this.Comment.create({

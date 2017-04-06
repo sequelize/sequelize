@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W030 */
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require(__dirname + '/support');
@@ -198,8 +197,8 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
   });
 
   suite('stack', () => {
-    test('stack trace starts after call to Util.stack()', function this_here_test() { // eslint-disable-line - need a named function to be able to capture its trace
-
+    test('stack trace starts after call to Util.stack()', function this_here_test() { // eslint-disable-line
+      // We need a named function to be able to capture its trace
       function a() {
         return b();
       }

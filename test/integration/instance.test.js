@@ -1,8 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-let chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Sequelize = require('../../index'),
   Support = require(__dirname + '/support'),
@@ -60,7 +58,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('is done properly for special characters', function() {
       // Ideally we should test more: "\0\n\r\b\t\\\'\"\x1a"
       // But this causes sqlite to fail and exits the entire test suite immediately
-      let bio = dialect + "'\"\n", // Need to add the dialect here so in case of failure I know what DB it failed for
+      const bio = dialect + "'\"\n", // Need to add the dialect here so in case of failure I know what DB it failed for
         self = this;
 
       return this.User.create({ username: bio }).then((u1) => {
@@ -102,7 +100,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('returns false for objects found by findAll method', function() {
-      let self = this,
+      const self = this,
         users = [];
 
       for (let i = 0; i < 10; i++) {
@@ -248,10 +246,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('with timestamps set to true', function() {
-      let User = this.sequelize.define('IncrementUser', {
-          aNumber: DataTypes.INTEGER
-        }, { timestamps: true }),
-        oldDate;
+      const User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true });
+      let oldDate;
 
       return User.sync({ force: true }).bind(this).then(() => {
         return User.create({aNumber: 1});
@@ -266,10 +264,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('with timestamps set to true and options.silent set to true', function() {
-      let User = this.sequelize.define('IncrementUser', {
-          aNumber: DataTypes.INTEGER
-        }, { timestamps: true }),
-        oldDate;
+      const User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true });
+      let oldDate;
 
       return User.sync({ force: true }).bind(this).then(() => {
         return User.create({aNumber: 1});
@@ -391,10 +389,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('with timestamps set to true', function() {
-      let User = this.sequelize.define('IncrementUser', {
-          aNumber: DataTypes.INTEGER
-        }, { timestamps: true }),
-        oldDate;
+      const User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true });
+      let oldDate;
 
       return User.sync({ force: true }).bind(this).then(() => {
         return User.create({aNumber: 1});
@@ -408,10 +406,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('with timestamps set to true and options.silent set to true', function() {
-      let User = this.sequelize.define('IncrementUser', {
-          aNumber: DataTypes.INTEGER
-        }, { timestamps: true }),
-        oldDate;
+      const User = this.sequelize.define('IncrementUser', {
+        aNumber: DataTypes.INTEGER
+      }, { timestamps: true });
+      let oldDate;
 
       return User.sync({ force: true }).bind(this).then(() => {
         return User.create({aNumber: 1});
@@ -518,7 +516,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should update the associations as well', function() {
-      let Book = this.sequelize.define('Book', { title: DataTypes.STRING }),
+      const Book = this.sequelize.define('Book', { title: DataTypes.STRING }),
         Page = this.sequelize.define('Page', { content: DataTypes.TEXT });
 
       Book.hasMany(Page);
@@ -552,7 +550,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should update internal options of the instance', function() {
-      let Book = this.sequelize.define('Book', { title: DataTypes.STRING }),
+      const Book = this.sequelize.define('Book', { title: DataTypes.STRING }),
         Page = this.sequelize.define('Page', { content: DataTypes.TEXT });
 
       Book.hasMany(Page);
@@ -595,7 +593,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should set an association to null after deletion, 1-1', function() {
-      let Shoe = this.sequelize.define('Shoe', { brand: DataTypes.STRING }),
+      const Shoe = this.sequelize.define('Shoe', { brand: DataTypes.STRING }),
         Player = this.sequelize.define('Player', { name: DataTypes.STRING });
 
       Player.hasOne(Shoe);
@@ -624,7 +622,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should set an association to empty after all deletion, 1-N', function() {
-      let Team = this.sequelize.define('Team', { name: DataTypes.STRING }),
+      const Team = this.sequelize.define('Team', { name: DataTypes.STRING }),
         Player = this.sequelize.define('Player', { name: DataTypes.STRING });
 
       Team.hasMany(Player);
@@ -657,7 +655,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should update the associations after one element deleted', function() {
-      let Team = this.sequelize.define('Team', { name: DataTypes.STRING }),
+      const Team = this.sequelize.define('Team', { name: DataTypes.STRING }),
         Player = this.sequelize.define('Player', { name: DataTypes.STRING });
 
       Team.hasMany(Player);
@@ -893,7 +891,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     }
 
     it('only updates fields in passed array', function() {
-      let self = this,
+      const self = this,
         date = new Date(1990, 1, 1);
 
       return this.User.create({
@@ -1085,7 +1083,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('stores an entry in the database', function() {
-      let username = 'user',
+      const username = 'user',
         User = this.User,
         user = this.User.build({
           username,
@@ -1106,7 +1104,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('handles an entry with primaryKey of zero', function() {
-      let username = 'user',
+      const username = 'user',
         newUsername = 'newUser',
         User2 = this.sequelize.define('User2',
           {
@@ -1138,10 +1136,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('updates the timestamps', function() {
-      let now = new Date(),
-        user = null;
+      const now = new Date(),
+        user = this.User.build({ username: 'user' });
 
-      user = this.User.build({ username: 'user' });
       this.clock.tick(1000);
       return expect(user.save()).to.eventually.have.property('updatedAt').afterTime(now);
     });
@@ -1160,13 +1157,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('does not update timestamps when passing silent=true in a bulk update', function() {
-      let self = this,
-        updatedAtPeter,
-        updatedAtPaul,
+      const self = this,
         data = [
           { username: 'Paul' },
           { username: 'Peter' }
         ];
+      let updatedAtPeter,
+        updatedAtPaul;
 
       return this.User.bulkCreate(data).bind(this).then(function() {
         return this.User.findAll();
@@ -1224,7 +1221,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         }, {
           timestamps: false
         });
-        return User.sync({force: true}).then(() => 
+        return User.sync({force: true}).then(() =>
           User.create({ name: 'John', bio: 'swag 1' }).then((user) => user.update({ bio: 'swag 2' }).should.be.fulfilled)
         );
       });
@@ -1444,12 +1441,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                     return bart.setProjects([detention1, detention2]).then(() => {
                       return lisa.setProjects([exam1, exam2]).then(() => {
                         return self.UserEager.findAll({where: {age: 20}, order: [['username', 'ASC']], include: [{model: self.ProjectEager, as: 'Projects'}]}).then((simpsons) => {
-                          let _bart, _lisa;
-
                           expect(simpsons.length).to.equal(2);
 
-                          _bart = simpsons[0];
-                          _lisa = simpsons[1];
+                          const _bart = simpsons[0];
+                          const _lisa = simpsons[1];
 
                           expect(_bart.Projects).to.exist;
                           expect(_lisa.Projects).to.exist;
@@ -2089,7 +2084,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('restores a previously deleted model', function() {
-      let self = this,
+      const self = this,
         ParanoidUser = self.sequelize.define('ParanoidUser', {
           username: DataTypes.STRING,
           secretValue: DataTypes.STRING,

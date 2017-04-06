@@ -1,7 +1,6 @@
 'use strict';
 
-/* jshint -W030 */
-let chai = require('chai'),
+const chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
@@ -20,7 +19,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       this.fixtureA = function() {
         return self.sequelize.dropAllSchemas().then(() => {
           return self.sequelize.createSchema('account').then(() => {
-            let AccUser = self.sequelize.define('AccUser', {}, {schema: 'account'}),
+            const AccUser = self.sequelize.define('AccUser', {}, {schema: 'account'}),
               Company = self.sequelize.define('Company', {
                 name: DataTypes.STRING
               }, {schema: 'account'}),
@@ -197,7 +196,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
 
       return self.sequelize.dropAllSchemas().then(() => {
         return self.sequelize.createSchema('account').then(() => {
-          let AccUser = self.sequelize.define('AccUser', {}, {schema: 'account'}),
+          const AccUser = self.sequelize.define('AccUser', {}, {schema: 'account'}),
             Product = self.sequelize.define('Product', {
               title: DataTypes.STRING
             }, {schema: 'account'}),
@@ -346,7 +345,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should support many levels of belongsTo', function() {
-      let A = this.sequelize.define('a', {}, {schema: 'account'}),
+      const A = this.sequelize.define('a', {}, {schema: 'account'}),
         B = this.sequelize.define('b', {}, {schema: 'account'}),
         C = this.sequelize.define('c', {}, {schema: 'account'}),
         D = this.sequelize.define('d', {}, {schema: 'account'}),
@@ -363,16 +362,16 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       F.belongsTo(G);
       G.belongsTo(H);
 
-      let b, 
-        singles = [
-          B,
-          C,
-          D,
-          E,
-          F,
-          G,
-          H
-        ];
+      let b;
+      const singles = [
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+        H
+      ];
 
       return this.sequelize.sync().then(() => {
         return A.bulkCreate([
@@ -426,7 +425,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should support ordering with only belongsTo includes', function() {
-      let User = this.sequelize.define('SpecialUser', {}, {schema: 'account'}),
+      const User = this.sequelize.define('SpecialUser', {}, {schema: 'account'}),
         Item = this.sequelize.define('Item', {'test': DataTypes.STRING}, {schema: 'account'}),
         Order = this.sequelize.define('Order', {'position': DataTypes.INTEGER}, {schema: 'account'});
 
@@ -487,7 +486,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should include attributes from through models', function() {
-      let Product = this.sequelize.define('Product', {
+      const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }, {schema: 'account'}),
         Tag = this.sequelize.define('Tag', {
@@ -548,7 +547,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should support a required belongsTo include', function() {
-      let User = this.sequelize.define('User', {}, {schema: 'account'}),
+      const User = this.sequelize.define('User', {}, {schema: 'account'}),
         Group = this.sequelize.define('Group', {}, {schema: 'account'});
 
       User.belongsTo(Group);
@@ -578,7 +577,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible to extend the on clause with a where option on a belongsTo include', function() {
-      let User = this.sequelize.define('User', {}, {schema: 'account'}),
+      const User = this.sequelize.define('User', {}, {schema: 'account'}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         }, {schema: 'account'});
@@ -617,7 +616,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible to extend the on clause with a where option on a belongsTo include', function() {
-      let User = this.sequelize.define('User', {}, {schema: 'account'}),
+      const User = this.sequelize.define('User', {}, {schema: 'account'}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         }, {schema: 'account'});
@@ -656,7 +655,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible to define a belongsTo include as required with child hasMany with limit', function() {
-      let User = this.sequelize.define('User', {}, {schema: 'account'}), 
+      const User = this.sequelize.define('User', {}, {schema: 'account'}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         }, {schema: 'account'}),
@@ -710,7 +709,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible to define a belongsTo include as required with child hasMany with limit and aliases', function() {
-      let User = this.sequelize.define('User', {}, {schema: 'account'}),
+      const User = this.sequelize.define('User', {}, {schema: 'account'}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         }, {schema: 'account'}),
@@ -764,7 +763,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible to define a belongsTo include as required with child hasMany which is not required with limit', function() {
-      let User = this.sequelize.define('User', {}, {schema: 'account'}),
+      const User = this.sequelize.define('User', {}, {schema: 'account'}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         }, {schema: 'account'}),
@@ -818,7 +817,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible to extend the on clause with a where option on a hasOne include', function() {
-      let User = this.sequelize.define('User', {}, {schema: 'account'}),
+      const User = this.sequelize.define('User', {}, {schema: 'account'}),
         Project = this.sequelize.define('Project', {
           title: DataTypes.STRING
         }, {schema: 'account'});
@@ -857,7 +856,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible to extend the on clause with a where option on a hasMany include with a through model', function() {
-      let Product = this.sequelize.define('Product', {
+      const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }, {schema: 'account'}),
         Tag = this.sequelize.define('Tag', {
@@ -910,7 +909,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible to extend the on clause with a where option on nested includes', function() {
-      let User = this.sequelize.define('User', {
+      const User = this.sequelize.define('User', {
           name: DataTypes.STRING
         }, {schema: 'account'}),
         Product = this.sequelize.define('Product', {
@@ -1049,7 +1048,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible to use limit and a where with a belongsTo include', function() {
-      let User = this.sequelize.define('User', {}, {schema: 'account'}),
+      const User = this.sequelize.define('User', {}, {schema: 'account'}),
         Group = this.sequelize.define('Group', {
           name: DataTypes.STRING
         }, {schema: 'account'});
@@ -1176,7 +1175,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should support including date fields, with the correct timeszone', function() {
-      let User = this.sequelize.define('user', {
+      const User = this.sequelize.define('user', {
           dateField: Sequelize.DATE
         }, {timestamps: false, schema: 'account'}),
         Group = this.sequelize.define('group', {
