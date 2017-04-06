@@ -1,5 +1,6 @@
 # Future
 - [FIXED] Passing parameters to model getters [#7404](https://github.com/sequelize/sequelize/issues/7404)
+- [FIXED] `.count` for `HasMany` association now counts on `Model.primaryKey` instead of `primaryKey` [#6488](https://github.com/sequelize/sequelize/issues/6488)
 
 # 3.30.3
 - [ADDED] Ability to run transactions on a read-replica by marking transactions as read only [#7323](https://github.com/sequelize/sequelize/issues/7323)
