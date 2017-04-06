@@ -2,23 +2,23 @@
 
 /* jshint -W030 */
 var Support = require(__dirname + '/../support');
-var DataTypes = require(__dirname + '/../../../lib/data-types');
-var chai = require('chai');
-var expect = chai.expect;
-var sinon = require('sinon');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const chai = require('chai');
+const expect = chai.expect;
+const sinon = require('sinon');
 var Support = require(__dirname + '/../support');
 
-describe(Support.getTestDialectTeaser('Model'), function () {
-  describe('paranoid', function () {
-    before(function () {
+describe(Support.getTestDialectTeaser('Model'), () => {
+  describe('paranoid', () => {
+    before(function() {
       this.clock = sinon.useFakeTimers();
     });
 
-    after(function () {
+    after(function() {
       this.clock.restore();
     });
 
-    it('should be able to soft delete with timestamps', function () {
+    it('should be able to soft delete with timestamps', function() {
       const Account = this.sequelize.define('Account', {
         ownerId: {
           type: DataTypes.INTEGER,
@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser('Model'), function () {
         });
     });
 
-    it('should be able to soft delete without timestamps', function () {
+    it('should be able to soft delete without timestamps', function() {
       const Account = this.sequelize.define('Account', {
         ownerId: {
           type: DataTypes.INTEGER,

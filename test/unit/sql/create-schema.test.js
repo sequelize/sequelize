@@ -1,14 +1,14 @@
 'use strict';
 
-var Support   = require(__dirname + '/../support')
-  , expectsql = Support.expectsql
-  , current   = Support.sequelize
-  , sql       = current.dialect.QueryGenerator;
+let Support   = require(__dirname + '/../support'),
+  expectsql = Support.expectsql,
+  current   = Support.sequelize,
+  sql       = current.dialect.QueryGenerator;
 
-describe(Support.getTestDialectTeaser('SQL'), function() {
+describe(Support.getTestDialectTeaser('SQL'), () => {
   if (current.dialect.name === 'postgres') {
-    describe('dropSchema', function () {
-      test('IF EXISTS', function () {
+    describe('dropSchema', () => {
+      test('IF EXISTS', () => {
         expectsql(sql.dropSchema('foo'), {
           postgres: 'DROP SCHEMA IF EXISTS foo CASCADE;'
         });

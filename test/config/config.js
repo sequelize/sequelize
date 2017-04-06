@@ -18,7 +18,7 @@ module.exports = {
     idle: process.env.SEQ_POOL_IDLE || 30000
   },
 
-  rand: function() {
+  rand() {
     return parseInt(Math.random() * 999, 10);
   },
 

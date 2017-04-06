@@ -1,19 +1,19 @@
 'use strict';
 
 /* jshint -W110 */
-var chai = require('chai')
-  , expect = chai.expect
-  , QueryGenerator = require('../../../../lib/dialects/postgres/query-generator')
-  , Support = require(__dirname + '/../../support')
-  , dialect = Support.getTestDialect()
-  , DataTypes = require(__dirname + '/../../../../lib/data-types')
-  , moment = require('moment')
-  , current = Support.sequelize
-  , _ = require('lodash');
+let chai = require('chai'),
+  expect = chai.expect,
+  QueryGenerator = require('../../../../lib/dialects/postgres/query-generator'),
+  Support = require(__dirname + '/../../support'),
+  dialect = Support.getTestDialect(),
+  DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  moment = require('moment'),
+  current = Support.sequelize,
+  _ = require('lodash');
 
 if (dialect.match(/^postgres/)) {
-  describe('[POSTGRES Specific] QueryGenerator', function() {
-    var suites = {
+  describe('[POSTGRES Specific] QueryGenerator', () => {
+    const suites = {
       arithmeticQuery: [
         {
           title:'Should use the plus operator',
@@ -365,14 +365,14 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\";'
         }, {
           title: 'functions work for group by',
-         arguments: ['myTable', function(sequelize) {
+          arguments: ['myTable', function(sequelize) {
             return {
               group: [sequelize.fn('YEAR', sequelize.col('createdAt'))]
             };
           }],
           expectation: 'SELECT * FROM \"myTable\" GROUP BY YEAR(\"createdAt\");',
           needsSequelize: true
-        },{
+        }, {
           title: 'It is possible to mix sequelize.fn and string arguments to group by',
           arguments: ['myTable', function(sequelize) {
             return {
@@ -899,18 +899,18 @@ if (dialect.match(/^postgres/)) {
       ]
     };
 
-    _.each(suites, function(tests, suiteTitle) {
-      describe(suiteTitle, function() {
+    _.each(suites, (tests, suiteTitle) => {
+      describe(suiteTitle, () => {
         afterEach(function() {
           this.sequelize.options.quoteIdentifiers = true;
           QueryGenerator.options.quoteIdentifiers = true;
         });
 
-        tests.forEach(function(test) {
-          var title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
+        tests.forEach((test) => {
+          const title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            var context = test.context || {options: {}};
+            const context = test.context || {options: {}};
 
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
@@ -919,7 +919,7 @@ if (dialect.match(/^postgres/)) {
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             QueryGenerator.sequelize = this.sequelize;
-            var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
+            const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         });

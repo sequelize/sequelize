@@ -1,52 +1,52 @@
 'use strict';
 
 /* jshint -W110 */
-var Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , expectsql = Support.expectsql
-  , current   = Support.sequelize
-  , sql       = current.dialect.QueryGenerator;
+let Support   = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  expectsql = Support.expectsql,
+  current   = Support.sequelize,
+  sql       = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-describe(Support.getTestDialectTeaser('SQL'), function() {
-  describe('insert', function () {
-    it('with temp table for trigger', function () {
-      var User = Support.sequelize.define('user', {
+describe(Support.getTestDialectTeaser('SQL'), () => {
+  describe('insert', () => {
+    it('with temp table for trigger', () => {
+      const User = Support.sequelize.define('user', {
         username: {
           type: DataTypes.STRING,
           field:'user_name'
         }
-      },{
+      }, {
         timestamps:false,
         hasTrigger:true
       });
 
-      var options = {
-          returning : true,
-          hasTrigger : true
+      const options = {
+        returning : true,
+        hasTrigger : true
       };
-      expectsql(sql.insertQuery(User.tableName,{user_name: 'triggertest'},User.rawAttributes,options),
-      {
-        mssql:'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp VALUES (N\'triggertest\');select * from @tmp;',
-        postgres: 'INSERT INTO "users" ("user_name") VALUES (\'triggertest\') RETURNING *;',
-        default: "INSERT INTO `users` (`user_name`) VALUES ('triggertest');",
-      });
+      expectsql(sql.insertQuery(User.tableName, {user_name: 'triggertest'}, User.rawAttributes, options),
+        {
+          mssql:'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp VALUES (N\'triggertest\');select * from @tmp;',
+          postgres: 'INSERT INTO "users" ("user_name") VALUES (\'triggertest\') RETURNING *;',
+          default: "INSERT INTO `users` (`user_name`) VALUES ('triggertest');"
+        });
     });
 
   });
 
-  describe('dates', function () {
-    it('formats the date correctly when inserting', function () {
-      var timezoneSequelize = Support.createSequelizeInstance({
+  describe('dates', () => {
+    it('formats the date correctly when inserting', () => {
+      const timezoneSequelize = Support.createSequelizeInstance({
         timezone: Support.getTestDialect() === 'sqlite' ? '+00:00' : 'CET'
       });
 
-      var User = timezoneSequelize.define('user', {
+      const User = timezoneSequelize.define('user', {
         date: {
           type: DataTypes.DATE
         }
-      },{
+      }, {
         timestamps:false
       });
 
@@ -59,16 +59,16 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
         });
     });
 
-    it('formats date correctly when sub-second precision is explicitly specified', function () {
-      var timezoneSequelize = Support.createSequelizeInstance({
+    it('formats date correctly when sub-second precision is explicitly specified', () => {
+      const timezoneSequelize = Support.createSequelizeInstance({
         timezone: Support.getTestDialect() === 'sqlite' ? '+00:00' : 'CET'
       });
 
-      var User = timezoneSequelize.define('user', {
+      const User = timezoneSequelize.define('user', {
         date: {
           type: DataTypes.DATE(3)
         }
-      },{
+      }, {
         timestamps:false
       });
 
@@ -82,14 +82,14 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
     });
   });
 
-  describe('bulkCreate', function () {
-    it('bulk create with onDuplicateKeyUpdate', function () {
+  describe('bulkCreate', () => {
+    it('bulk create with onDuplicateKeyUpdate', () => {
       // Skip mssql for now, it seems broken
       if (Support.getTestDialect() === 'mssql') {
         return;
       }
 
-      var User = Support.sequelize.define('user', {
+      const User = Support.sequelize.define('user', {
         username: {
           type: DataTypes.STRING,
           field: 'user_name'
@@ -106,16 +106,16 @@ describe(Support.getTestDialectTeaser('SQL'), function() {
           type: DataTypes.DATE,
           field: 'updated_at'
         }
-      },{
+      }, {
         timestamps:true
       });
 
       expectsql(sql.bulkInsertQuery(User.tableName, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['username', 'password', 'updatedAt'] }, User.rawAttributes),
-      {
-        default:'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
-        postgres:'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
-        mysql:'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);'
-      });
+        {
+          default:'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
+          postgres:'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
+          mysql:'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);'
+        });
     });
   });
 });

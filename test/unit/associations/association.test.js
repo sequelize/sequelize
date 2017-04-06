@@ -7,8 +7,8 @@ const Support = require(__dirname + '/../support');
 const current = Support.sequelize;
 const AssociationError = require(__dirname + '/../../../lib/errors').AssociationError;
 
-describe(Support.getTestDialectTeaser('belongsTo'), function() {
-  it('should throw an AssociationError when two associations have the same alias', function() {
+describe(Support.getTestDialectTeaser('belongsTo'), () => {
+  it('should throw an AssociationError when two associations have the same alias', () => {
     const User = current.define('User');
     const Task = current.define('Task');
 

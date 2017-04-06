@@ -1,26 +1,26 @@
 'use strict';
 
-var chai = require('chai')
-  , expect = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , current   = Support.sequelize
-  , Sequelize = Support.Sequelize
-  , sinon     = require('sinon');
+let chai = require('chai'),
+  expect = chai.expect,
+  Support   = require(__dirname + '/../support'),
+  current   = Support.sequelize,
+  Sequelize = Support.Sequelize,
+  sinon     = require('sinon');
 
-describe(Support.getTestDialectTeaser('Instance'), function() {
-  describe('decrement', function () {
-    describe('options tests', function() {
-      var stub
-        , Model = current.define('User', {
+describe(Support.getTestDialectTeaser('Instance'), () => {
+  describe('decrement', () => {
+    describe('options tests', () => {
+      let stub,
+        Model = current.define('User', {
           id: {
             type:          Sequelize.BIGINT,
             primaryKey:    true,
-            autoIncrement: true,
+            autoIncrement: true
           }
-        })
-        , instance;
+        }),
+        instance;
 
-      before(function() {
+      before(() => {
         stub = sinon.stub(current, 'query').returns(
           Sequelize.Promise.resolve({
             _previousDataValues: {id: 3},
@@ -29,13 +29,13 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
         );
       });
 
-      after(function() {
+      after(() => {
         stub.restore();
       });
 
-      it('should allow decrements even if options are not given', function () {
+      it('should allow decrements even if options are not given', () => {
         instance = Model.build({id: 3}, {isNewRecord: false});
-        expect(function () {
+        expect(() => {
           instance.decrement(['id']);
         }).to.not.throw();
       });

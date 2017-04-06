@@ -1,20 +1,20 @@
 'use strict';
 
 /* jshint -W110 */
-var Support   = require(__dirname + '/../support')
-  , util = require('util')
-  , expectsql = Support.expectsql
-  , current   = Support.sequelize
-  , sql       = current.dialect.QueryGenerator;
+let Support   = require(__dirname + '/../support'),
+  util = require('util'),
+  expectsql = Support.expectsql,
+  current   = Support.sequelize,
+  sql       = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite(Support.getTestDialectTeaser('SQL'), function() {
-  suite('offset/limit', function () {
-    var testsql = function (options, expectation) {
-      var model = options.model;
+suite(Support.getTestDialectTeaser('SQL'), () => {
+  suite('offset/limit', () => {
+    const testsql = function(options, expectation) {
+      const model = options.model;
 
-      test(util.inspect(options, {depth: 2}), function () {
+      test(util.inspect(options, {depth: 2}), () => {
         return expectsql(
           sql.addLimitAndOffset(
             options,
@@ -26,7 +26,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     };
 
     testsql({
-      limit: 10,//when no order by present, one is automagically prepended, test it's existence
+      limit: 10, //when no order by present, one is automagically prepended, test it's existence
       model:{primaryKeyField:'id', name:'tableRef'}
     }, {
       default: ' LIMIT 10',

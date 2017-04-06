@@ -2,13 +2,13 @@
 
 /* jshint -W030 */
 /* jshint -W110 */
-const chai = require('chai')
-  , Sequelize = require('../../../index')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support');
+const chai = require('chai'),
+  Sequelize = require('../../../index'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../support');
 
-describe(Support.getTestDialectTeaser('Model'), function() {
-  describe('sync', function() {
+describe(Support.getTestDialectTeaser('Model'), () => {
+  describe('sync', () => {
     beforeEach(function() {
       this.testSync = this.sequelize.define('testSync', {
         dummy: Sequelize.STRING
@@ -41,9 +41,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
       return this.sequelize.sync()
         .then(() => this.sequelize.define('testSync', {
-            name: Sequelize.STRING,
-            age: Sequelize.INTEGER
-          }))
+          name: Sequelize.STRING,
+          age: Sequelize.INTEGER
+        }))
         .then(() => this.sequelize.sync({alter: true}))
         .then(() => testSync.describe())
         .then(data => expect(data).to.have.ownProperty('age'));
@@ -56,9 +56,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
       return this.sequelize.sync()
         .then(() => this.sequelize.define('testSync', {
-            name: Sequelize.STRING,
-            age: Sequelize.STRING
-          }))
+          name: Sequelize.STRING,
+          age: Sequelize.STRING
+        }))
         .then(() => this.sequelize.sync({alter: true}))
         .then(() => testSync.describe())
         .then(data => {

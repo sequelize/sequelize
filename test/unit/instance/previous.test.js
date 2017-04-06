@@ -7,9 +7,9 @@ const Support = require(__dirname + '/../support');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Instance'), function () {
-  describe('previous', function () {
-    it('should return correct previous value', function () {
+describe(Support.getTestDialectTeaser('Instance'), () => {
+  describe('previous', () => {
+    it('should return correct previous value', () => {
       const Model = current.define('Model', {
         text: DataTypes.STRING,
         textCustom: {

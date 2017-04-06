@@ -6,8 +6,8 @@ const expect = chai.expect;
 const Support = require(__dirname + '/../support');
 const current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), function() {
-  describe('hasAlias', function () {
+describe(Support.getTestDialectTeaser('Model'), () => {
+  describe('hasAlias', () => {
     beforeEach(function() {
       this.User = current.define('user');
       this.Task = current.define('task'); 

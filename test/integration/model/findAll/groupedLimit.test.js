@@ -1,33 +1,33 @@
 'use strict';
 
 /* jshint -W030 */
-var chai = require('chai')
-  , sinon = require('sinon')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../../support')
-  , Sequelize = Support.Sequelize
-  , DataTypes = require(__dirname + '/../../../../lib/data-types')
-  , current = Support.sequelize
-  , Promise = current.Promise
-  , _ = require('lodash');
+let chai = require('chai'),
+  sinon = require('sinon'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../../support'),
+  Sequelize = Support.Sequelize,
+  DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  current = Support.sequelize,
+  Promise = current.Promise,
+  _ = require('lodash');
 
 if (current.dialect.supports['UNION ALL']) {
-  describe(Support.getTestDialectTeaser('Model'), function() {
-    describe('findAll', function () {
-      describe('groupedLimit', function () {
-        before(function () {
+  describe(Support.getTestDialectTeaser('Model'), () => {
+    describe('findAll', () => {
+      describe('groupedLimit', () => {
+        before(function() {
           this.clock = sinon.useFakeTimers();
         });
 
-        afterEach(function () {
+        afterEach(function() {
           this.clock.reset();
         });
 
-        after(function () {
+        after(function() {
           this.clock.restore();
         });
 
-        beforeEach(function () {
+        beforeEach(function() {
           this.User = this.sequelize.define('user', {
             age: Sequelize.INTEGER
           });
@@ -71,8 +71,8 @@ if (current.dialect.supports['UNION ALL']) {
             });
         });
 
-        describe('on: belongsToMany', function () {
-          it('maps attributes from a grouped limit to models', function () {
+        describe('on: belongsToMany', () => {
+          it('maps attributes from a grouped limit to models', function() {
             return this.User.findAll({
               groupedLimit: {
                 limit: 3,
@@ -90,7 +90,7 @@ if (current.dialect.supports['UNION ALL']) {
             });
           });
 
-          it('maps attributes from a grouped limit to models with include', function () {
+          it('maps attributes from a grouped limit to models with include', function() {
             return this.User.findAll({
               groupedLimit: {
                 limit: 3,
@@ -117,7 +117,7 @@ if (current.dialect.supports['UNION ALL']) {
             });
           });
 
-          it('works with computed order', function () {
+          it('works with computed order', function() {
             return this.User.findAll({
               attributes: ['id'],
               groupedLimit: {
@@ -139,7 +139,7 @@ if (current.dialect.supports['UNION ALL']) {
             });
           });
 
-          it('works with multiple orders', function () {
+          it('works with multiple orders', function() {
             return this.User.findAll({
               attributes: ['id'],
               groupedLimit: {
@@ -212,8 +212,8 @@ if (current.dialect.supports['UNION ALL']) {
           });
         });
 
-        describe('on: hasMany', function () {
-          beforeEach(function () {
+        describe('on: hasMany', () => {
+          beforeEach(function() {
             this.User = this.sequelize.define('user');
             this.Task = this.sequelize.define('task');
             this.User.Tasks = this.User.hasMany(this.Task);
@@ -235,7 +235,7 @@ if (current.dialect.supports['UNION ALL']) {
               });
           });
 
-          it('Applies limit and order correctly', function () {
+          it('Applies limit and order correctly', function() {
             return this.Task.findAll({
               order: [
                 ['id', 'DESC']
