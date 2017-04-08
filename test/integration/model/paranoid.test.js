@@ -5,6 +5,7 @@ const DataTypes = require(__dirname + '/../../../lib/data-types');
 const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('paranoid', () => {
@@ -100,5 +101,62 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(count).to.be.equal(1);
         });
     });
+
+    if (current.dialect.supports.JSON) {
+      describe('JSONB', () => {
+        before(function() {
+          this.Model = this.sequelize.define('Model', {
+            name: {
+              type: DataTypes.STRING
+            },
+            data: {
+              type: DataTypes.JSONB
+            },
+            deletedAt: {
+              type: DataTypes.DATE,
+              allowNull: true,
+              field: 'deleted_at'
+            }
+          }, {
+            paranoid: true,
+            timestamps: true,
+            deletedAt: 'deletedAt'
+          });
+        });
+
+        beforeEach(function() {
+          return this.Model.sync({ force: true });
+        });
+
+        it('should soft delete with JSONB condition', function() {
+          return this.Model.bulkCreate([{
+            name: 'One',
+            data: {
+              field: {
+                deep: true
+              }
+            }
+          }, {
+            name: 'Two',
+            data: {
+              field: {
+                deep: false
+              }
+            }
+          }]).then(() => this.Model.destroy({
+            where: {
+              data: {
+                field: {
+                  deep: true
+                }
+              }
+            }
+          })).then(() => this.Model.findAll()).then(records => {
+            expect(records.length).to.equal(1);
+            expect(records[0].get('name')).to.equal('Two');
+          });
+        });
+      });
+    }
   });
 });
