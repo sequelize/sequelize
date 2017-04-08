@@ -355,7 +355,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres') {
+  if (dialect === 'postgres' || dialect === 'mysql') {
     it('should parse DECIMAL as string', function() {
       const Model = this.sequelize.define('model', {
         decimal: Sequelize.DECIMAL,
@@ -377,9 +377,18 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return Model.sync({ force: true }).then(() => {
         return Model.create(sampleData);
       }).then(() => {
-        return Model.find({id: 1});
+        return Model.findById(1);
       }).then(user => {
-        expect(user.get('decimal')).to.be.eql('12345678.12345678');
+        /**
+         * MYSQL default precision is 10 and scale is 0
+         * Thus test case below will return number without any fraction values
+        */
+        if (dialect === 'mysql') {
+          expect(user.get('decimal')).to.be.eql('12345678');
+        } else {
+          expect(user.get('decimal')).to.be.eql('12345678.12345678');
+        }
+
         expect(user.get('decimalPre')).to.be.eql('123456.1234');
         expect(user.get('decimalWithParser')).to.be.eql('12345678123456781.123456781234567');
         expect(user.get('decimalWithIntParser')).to.be.eql('1.2340');
@@ -387,26 +396,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       });
     });
 
-    it('should return Int4 range properly #5747', function() {
-      const Model = this.sequelize.define('M', {
-        interval: {
-          type: Sequelize.RANGE(Sequelize.INTEGER),
-          allowNull: false,
-          unique: true
-        }
-      });
-
-      return Model.sync({ force: true })
-              .then(() => Model.create({ interval: [1, 4] }) )
-              .then(() => Model.findAll() )
-              .spread((m) => {
-                expect(m.interval[0]).to.be.eql(1);
-                expect(m.interval[1]).to.be.eql(4);
-              });
-    });
-  }
-
-  if (dialect === 'mysql') {
     it('should parse BIGINT as string', function() {
       const Model = this.sequelize.define('model', {
         jewelPurity: Sequelize.BIGINT
@@ -425,6 +414,26 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
         expect(user.get('jewelPurity')).to.be.string;
       });
+    });
+  }
+
+  if (dialect === 'postgres') {
+    it('should return Int4 range properly #5747', function() {
+      const Model = this.sequelize.define('M', {
+        interval: {
+          type: Sequelize.RANGE(Sequelize.INTEGER),
+          allowNull: false,
+          unique: true
+        }
+      });
+
+      return Model.sync({ force: true })
+              .then(() => Model.create({ interval: [1, 4] }) )
+              .then(() => Model.findAll() )
+              .spread((m) => {
+                expect(m.interval[0]).to.be.eql(1);
+                expect(m.interval[1]).to.be.eql(4);
+              });
     });
   }
 
