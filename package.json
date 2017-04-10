@@ -62,7 +62,7 @@
     "chai-spies": "^0.7.1",
     "commander": "^2.9.0",
     "continuation-local-storage": "^3.2.0",
-    "cross-env": "^3.0.0",
+    "cross-env": "^4.0.0",
     "dox": "^0.9.0",
     "eslint": "^3.6.0",
     "git": "^0.1.5",
