@@ -106,6 +106,7 @@ Project.scope(['deleted', 'activeUsers']).findAll();
 ```sql
 SELECT * FROM projects
 INNER JOIN users ON projects.userId = users.id
+WHERE deleted = true
 AND users.active = true
 ```
 
