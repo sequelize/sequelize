@@ -1,5 +1,14 @@
 @import url(http://fonts.googleapis.com/css?family=Titillium+Web);
 
+#beta-ribbon {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  content:url(/images/beta.svg);
+}
+
 table {
   width:100%;
 }
