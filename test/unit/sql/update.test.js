@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W110 */
 const Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   expectsql = Support.expectsql,

@@ -169,7 +169,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     describe('expectation', () => {
       it('uses the instanceof method if the expectation is a class', () => {
-        expect(Utils.validateParameter(new Number(1), Number)).to.be.true; // jshint ignore:line
+        expect(Utils.validateParameter(new Number(1), Number)).to.be.true;
       });
     });
 
