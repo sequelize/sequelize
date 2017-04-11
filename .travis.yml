@@ -46,6 +46,7 @@ deploy:
   provider: surge
   project: ./esdoc/
   domain: docs.sequelizejs.com
+  node: 6
   skip_cleanup: true
   on:
     branch: master
