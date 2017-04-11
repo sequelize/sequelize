@@ -339,7 +339,7 @@ function getArgumentsConformFn(method, args, hints, tree) {
     body = getFunctionCode(method).slice(start, hints.end.start);
 
   // create function that conforms arguments
-  return new Function(args, body + ';return [' + args + '];'); // jshint ignore:line
+  return new Function(args, body + ';return [' + args + '];');
 }
 
 /**

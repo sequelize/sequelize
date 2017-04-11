@@ -1,3 +1,5 @@
+# Associations
+
 This section describes the various association types in sequelize. When calling a method such as `User.hasOne(Project)`, we say that the `User` model (the model that the function is being invoked on) is the __source__ and the `Project` model (the model being passed as an argument) is the __target__.
 
 ## One-To-One associations
@@ -285,7 +287,7 @@ User.findAll({
 ```
 
 ## Scopes
-This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](scopes).
+This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/scopes.html).
 
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 

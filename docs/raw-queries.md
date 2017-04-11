@@ -1,3 +1,5 @@
+# Raw queries
+
 As there are often use cases in which it is just easier to execute raw / already prepared SQL queries, you can utilize the function `sequelize.query`.
 
 By default the function will return two arguments - a results array, and an object containing metadata (affected rows etc.). Note that since this is a raw query, the metadata (property names etc.) is dialect specific. Some dialects return the metadata "within" the results object (as properties on an array). However, two arguments will always be returned, but for MSSQL and MySQL it will be two references to the same object.
@@ -28,7 +30,7 @@ sequelize.query('SELECT * FROM projects', { model: Projects }).then(function(pro
 })
 ```
 
-# Replacements
+## Replacements
 Replacements in a query can be done in two different ways, either using named parameters (starting with `:`), or unnamed, represented by a `?`. Replacements are passed in the options object.
 
 * If an array is passed, `?` will be replaced in the order that they appear in the array
@@ -68,8 +70,7 @@ sequelize.query('SELECT * FROM users WHERE name LIKE :search_name ',
 })
 ```
 
-
-# Bind Parameter
+## Bind Parameter
 Bind parameters are like replacements. Except replacements are escaped and inserted into the query by sequelize before the query is sent to the database, while bind parameters are sent to the database outside the SQL query text. A query can have either bind parameters or replacements.
 
 Only SQLite and PostgreSQL support bind parameters. Other dialects will insert them into the SQL query in the same way it is done for replacements. Bind parameters are referred to by either $1, $2, ... (numeric) or $key (alpha-numeric). This is independent of the dialect.

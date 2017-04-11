@@ -55,9 +55,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           const type = DataTypes.STRING();
 
           expect(type.validate('foobar')).to.equal(true);
-          /*jshint -W053 */
           expect(type.validate(new String('foobar'))).to.equal(true);
-          /*jshint +W053 */
           expect(type.validate(12)).to.equal(true);
         });
       });

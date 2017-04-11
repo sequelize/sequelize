@@ -1,3 +1,5 @@
+# Transactions
+
 Sequelize supports two ways of using transactions:
 
 * One which will automatically commit or rollback the transaction based on the result of a promise chain and, (if enabled) pass the transaction to all calls within the callback
@@ -5,7 +7,7 @@ Sequelize supports two ways of using transactions:
 
 The key difference is that the managed transaction uses a callback that expects a promise to be returned to it while the unmanaged transaction returns a promise.
 
-# Managed transaction (auto-callback)
+## Managed transaction (auto-callback)
 
 Managed transactions handle committing or rolling back the transaction automagically. You start a managed transaction by passing a callback to `sequelize.transaction`.
 
@@ -93,7 +95,7 @@ sequelize.transaction(function (t1) {
 
 After you've used `Sequelize.useCLS()` all promises returned from sequelize will be patched to maintain CLS context. CLS is a complicated subject - more details in the docs for [cls-bluebird](https://www.npmjs.com/package/cls-bluebird), the patch used to make bluebird promises work with CLS.
 
-# Concurrent/Partial transactions
+## Concurrent/Partial transactions
 
 You can have concurrent transactions within a sequence of queries or have some of them excluded from any transactions. Use the `{transaction: }` option to control which transaction a query belong to:
 
@@ -112,7 +114,7 @@ sequelize.transaction(function (t1) {
 });
 ```
 
-# Isolation levels
+## Isolation levels
 The possible isolations levels to use when starting a transaction:
 
 ```js
@@ -136,7 +138,7 @@ return sequelize.transaction({
 
 Note: The SET ISOLATION LEVEL queries are not logged in case of MSSQL as the specified isolationLevel is passed directly to tedious
 
-# Unmanaged transaction (then-callback)
+## Unmanaged transaction (then-callback)
 Unmanaged transactions force you to manually rollback or commit the transaction. If you don't do that, the transaction will hang until it times out. To start an unmanaged transaction, call `sequelize.transaction()` without a callback (you can still pass an options object) and call `then` on the returned promise. Notice that `commit()` and `rollback()` returns a promise.
 
 ```js
@@ -157,7 +159,7 @@ return sequelize.transaction().then(function (t) {
 });
 ```
 
-# Options
+## Options
 The `transaction` method can be called with an options object as the first argument, that
 allows the configuration of the transaction.
 
@@ -207,7 +209,7 @@ sequelize.transaction({
 })
 ```
 
-# Usage with other sequelize methods
+## Usage with other sequelize methods
 
 The `transaction` option goes with most other options, which are usually the first argument of a method.
 For methods that take values, like `.create`, `.update()`, `.updateAttributes()` etc. `transaction` should be passed to the option in the second argument.

@@ -1,3 +1,5 @@
+# Migrations
+
 Sequelize `2.0.0` introduces a new CLI which is based on [gulp][0] and combines [sequelize-cli][1] and [gulp-sequelize][2]. The CLI ships support for migrations and project bootstrapping. With migrations you can transfer your existing database into another state and vice versa: Those state transitions are saved in migration files, which describe the way how to get to the new state and how to revert the changes in order to get back to the old state.
 
 ## The CLI
