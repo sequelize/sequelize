@@ -805,7 +805,10 @@ return Product.create({
     last_name: 'Hansen'
   }
 }, {
-  include: [ Creator ]
+  include: [{
+    model: Creator,
+    as: 'creator'
+  }]
 });
 ```
 
