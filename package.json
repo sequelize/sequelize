@@ -105,6 +105,7 @@
     "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",
     "test-unit-postgres": "cross-env DIALECT=postgres npm run test-unit",
     "test-unit-postgres-native": "cross-env DIALECT=postgres-native npm run test-unit",
+    "test-unit-vertica": "DIALECT=vertica npm run test-unit",
     "test-unit-sqlite": "cross-env DIALECT=sqlite npm run test-unit",
     "test-unit-mssql": "cross-env DIALECT=mssql npm run test-unit",
     "test-unit-all": "npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite",
