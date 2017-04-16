@@ -26,7 +26,7 @@ Starting from 4.0.0 Sequelize will only support Node v4 and above to use ES6 fea
 
 - Schema definition
 - Schema synchronization/dropping
-- 1:1, 1:M & N:M Associations
+- 1:1, 1:M & M:M Associations
 - Through models
 - Promises
 - Hooks/callbacks/lifecycle events
