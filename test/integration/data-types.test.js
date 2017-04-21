@@ -467,5 +467,26 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         expect(record.stamp).to.be.eql(testDate);
       });
   });
+  
+  if (dialect === 'mssql') {
+    it('should parse ROWVERSION field', function () {
+      const Model = this.sequelize.define('model', {
+        name: Sequelize.STRING,
+        version: Sequelize.ROWVERSION
+      });
 
+      const sampleData = {
+        name: 'test'
+      };
+
+      return Model.sync({ force: true }).then(() => {
+        return Model.create(sampleData);
+      }).then(() => {
+        return Model.findAll().get(0);
+      }).then(model => {
+        expect(model.get('version')).to.be.ok;
+        expect(typeof model.get('version')).to.be.eql('object');
+      });
+    });
+    
 });
