@@ -264,7 +264,7 @@ SELECT *
 FROM `Projects`
 WHERE (
   `Projects`.`name` = 'a project'
-   AND NOT (`Projects`.`id` IN (1,2,3) OR `Projects`.`array` @> ARRAY[1,2,3]::INTEGER[])
+   AND NOT (`Projects`.`id` IN (1,2,3) OR `Projects`.`array` @> ARRAY[3,4,5]::INTEGER[])
 )
 LIMIT 1;
 ```
