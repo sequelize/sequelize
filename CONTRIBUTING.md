@@ -71,7 +71,7 @@ get SQLite tests for free :)
 
 Makes sure `docker` and `docker-compose` are installed.
 
-If running on Mac OSX, install [Docker for Mac](https://docs.docker.com/docker-for-mac/).
+If running on macOS, install [Docker for Mac](https://docs.docker.com/docker-for-mac/).
 
 Now launch the docker mysql and postgres servers with this command (you can add `-d` to run them in daemon mode):
 
