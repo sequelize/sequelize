@@ -488,5 +488,5 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         expect(typeof model.get('version')).to.be.eql('object');
       });
     });
-    
+  }
 });
