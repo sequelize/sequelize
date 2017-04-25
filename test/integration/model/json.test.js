@@ -510,7 +510,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   }
 
   if (current.dialect.supports.JSONB) {
-    describe('JSONB', function () {
+    describe('JSONB', () => {
       beforeEach(function () {
         this.Event = this.sequelize.define('Event', {
           data: {
