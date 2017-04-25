@@ -508,4 +508,192 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
   }
+
+  if (current.dialect.supports.JSONB) {
+    describe('JSONB', function () {
+      beforeEach(function () {
+        this.Event = this.sequelize.define('Event', {
+          data: {
+            type: DataTypes.JSONB,
+            field: 'event_data',
+            index: true
+          },
+          json: DataTypes.JSONB
+        });
+
+        return this.Event.sync({ force: true });
+      });
+
+      it('should create an instance with JSONB data', function () {
+        return this.Event.create({
+          data: {
+            name: {
+              first: 'Homer',
+              last: 'Simpson'
+            },
+            employment: 'Nuclear Safety Inspector'
+          }
+        }).then(() => {
+          return this.Event.findAll().then(events => {
+            const event = events[0];
+
+            expect(event.get('data')).to.eql({
+              name: {
+                first: 'Homer',
+                last: 'Simpson'
+              },
+              employment: 'Nuclear Safety Inspector'
+            });
+          });
+        });
+      });
+
+      it('should query an instance with JSONB data', function () {
+        return this.Event.create({
+          data: {
+            name: {
+              first: 'Homer',
+              last: 'Simpson'
+            },
+            employment: 'Nuclear Safety Inspector'
+          }
+        }).then(() => {
+          return this.Event.findAll({
+            where: {
+              'data.name.first': 'Homer'
+            }
+          }).then(events => {
+            const event = events[0];
+
+            expect(event.get('data')).to.eql({
+              name: {
+                first: 'Homer',
+                last: 'Simpson'
+              },
+              employment: 'Nuclear Safety Inspector'
+            });
+          });
+        });
+      });
+
+      it('should query an instance with JSONB data and order', function () {
+        return this.Event.create({
+          data: {
+            name: {
+              first: 'Homer',
+              last: 'Simpson'
+            },
+            employment: 'Nuclear Safety Inspector'
+          }
+        }).then(() => {
+          return Promise.join(
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: 'Housewife'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Bart',
+                  last: 'Simpson'
+                },
+                employment: 'None'
+              }
+            })
+          );
+        }).then(() => {
+          return this.Event.findAll({
+            where: {
+              data: {
+                name: {
+                  last: 'Simpson'
+                }
+              }
+            },
+            order: [
+              ['data.name.first']
+            ]
+          }).then(events => {
+            expect(events.length).to.equal(3);
+
+            expect(events[0].get('data')).to.eql({
+              name: {
+                first: 'Bart',
+                last: 'Simpson'
+              },
+              employment: 'None'
+            });
+
+            expect(events[1].get('data')).to.eql({
+              name: {
+                first: 'Homer',
+                last: 'Simpson'
+              },
+              employment: 'Nuclear Safety Inspector'
+            });
+
+            expect(events[2].get('data')).to.eql({
+              name: {
+                first: 'Marge',
+                last: 'Simpson'
+              },
+              employment: 'Housewife'
+            });
+          });
+        });
+      });
+
+      it('should query an instance with JSONB data and order while trying to inject', function () {
+        return this.Event.create({
+          data: {
+            name: {
+              first: 'Homer',
+              last: 'Simpson'
+            },
+            employment: 'Nuclear Safety Inspector'
+          }
+        }).then(() => {
+          return Promise.join(
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: 'Housewife'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Bart',
+                  last: 'Simpson'
+                },
+                employment: 'None'
+              }
+            })
+          );
+        }).then(() => {
+          return expect(this.Event.findAll({
+            where: {
+              data: {
+                name: {
+                  last: 'Simpson'
+                }
+              }
+            },
+            order: [
+              ["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]
+            ]
+          })).to.eventually.be.rejectedWith(Error, 'SequelizeDatabaseError: malformed array literal: "{name,first}\'); INSERT INJECTION HERE! SELECT (\'}"');
+        });
+      });
+
+    });
+  }
 });
