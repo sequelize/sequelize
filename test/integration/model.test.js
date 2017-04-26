@@ -2545,6 +2545,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
+    it('should fail when array contains strings', function() {
+      return expect(this.User.findAll({
+        where: ['this is a mistake', ['dont do it!']]
+      })).to.eventually.be.rejectedWith(Error, 'Support for literal replacements in the `where` object has been removed.');
+    });
+
     it('should not fail with an include', function() {
       return this.User.findAll({
         where: this.sequelize.literal(this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title') + ' = ' + this.sequelize.queryInterface.QueryGenerator.escape('republic')),
