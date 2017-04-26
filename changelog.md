@@ -77,6 +77,7 @@
 - `options.order` Now only excepts values with type of array or Sequelize method.  Support for string values (ie `{order: 'name DESC'}`) has been deprecated.
 - `DataTypes.DATE` now uses `DATETIMEOFFSET` instead of `DATETIME2` sql datatype in case of MSSQL to record timezone [#5403](https://github.com/sequelize/sequelize/issues/5403)
 - `DataTypes.DECIMAL` returns string for MySQL and Postgres
+- `{ where: { $raw: "foo = 'bar'" } }` and `{ where: ['foo = ?', ['bar'] }` is no longer suported. Use `.literal` instead
 
 # 4.0.0-2
 - [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations
