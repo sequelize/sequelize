@@ -69,6 +69,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         this.sequelize.log('om nom');
         expect(this.spy.calledOnce).to.be.true;
       });
+
+      it('calls the custom logger method with options', function() {
+        const message = 'om nom';
+        const timeTaken = 5;
+        const options = {correlationId: 'ABC001'};
+        this.sequelize.log(message, timeTaken, options);
+        expect(this.spy.withArgs(message, timeTaken, options).calledOnce).to.be.true;
+      });
+
     });
   });
 });
