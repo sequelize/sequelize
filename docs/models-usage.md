@@ -162,11 +162,6 @@ Project.findAll({ where: { name: 'A Project' } }).then(function(projects) {
   // projects will be an array of Project instances with the specified name
 })
 
-// search with string replacements
-Project.findAll({ where: ["id > ?", 25] }).then(function(projects) {
-  // projects will be an array of Projects having a greater id than 25
-})
-
 // search within a specific range
 Project.findAll({ where: { id: [1,2,3] } }).then(function(projects) {
   // projects will be an array of Projects having the id 1, 2 or 3
@@ -346,7 +341,7 @@ Project.count().then(function(c) {
   console.log("There are " + c + " projects!")
 })
 
-Project.count({ where: ["id > ?", 25] }).then(function(c) {
+Project.count({ where: {'id': {$gt: 25}} }).then(function(c) {
   console.log("There are " + c + " projects with an id greater than 25.")
 })
 ```
