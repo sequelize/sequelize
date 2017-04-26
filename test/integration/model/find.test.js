@@ -110,7 +110,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('treats questionmarks in an array', function() {
         let test = false;
         return this.UserPrimary.findOne({
-          where: ['specialkey = ?', 'awesome'],
+          where: {'specialkey': 'awesome'},
           logging(sql) {
             test = true;
             expect(sql).to.match(/WHERE specialkey = N?'awesome'/);
@@ -549,7 +549,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
 
-          it(`throws an error indicating an incorrect alias was entered if an association 
+          it(`throws an error indicating an incorrect alias was entered if an association
               and alias exist but the alias doesn't match`, function() {
             const self = this;
             return self.Worker.findOne({ include: [{ model: self.Task, as: 'Work' }] }).catch ((err) => {
@@ -711,7 +711,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
 
-          it(`throws an error indicating an incorrect alias was entered if an association 
+          it(`throws an error indicating an incorrect alias was entered if an association
               and alias exist but the alias doesn't match`, function() {
             const self = this;
             return self.Worker.findOne({ include: [{ model: self.Task, as: 'Work' }] }).catch ((err) => {

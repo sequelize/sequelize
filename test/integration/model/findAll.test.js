@@ -182,17 +182,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to handle false/true values just fine...', function() {
-        const User = this.User,
-          escapeChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`';
+        const User = this.User;
 
         return User.bulkCreate([
           {username: 'boo5', aBool: false},
           {username: 'boo6', aBool: true}
         ]).then(() => {
-          return User.findAll({where: [escapeChar + 'aBool' + escapeChar + ' = ?', false]}).then((users) => {
+          return User.findAll({where: {aBool: false}}).then((users) => {
             expect(users).to.have.length(1);
             expect(users[0].username).to.equal('boo5');
-            return User.findAll({where: [escapeChar + 'aBool' + escapeChar + ' = ?', true]}).then((_users) => {
+            return User.findAll({where: {aBool: true}}).then((_users) => {
               expect(_users).to.have.length(1);
               expect(_users[0].username).to.equal('boo6');
             });
@@ -202,7 +201,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to handle false/true values through associations as well...', function() {
         const User = this.User,
-          escapeChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
           Passports = this.sequelize.define('Passports', {
             isActive: Sequelize.BOOLEAN
           });
@@ -226,8 +224,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                       return User.findById(2).then((_user) => {
                         return Passports.findById(2).then((_passport) => {
                           return _user.setPassports([_passport]).then(() => {
-                            return _user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', false]}).then((theFalsePassport) => {
-                              return user.getPassports({where: [escapeChar + 'isActive' + escapeChar + ' = ?', true]}).then((theTruePassport) => {
+                            return _user.getPassports({where: {isActive: false}}).then((theFalsePassport) => {
+                              return user.getPassports({where: {isActive: true}}).then((theTruePassport) => {
                                 expect(theFalsePassport).to.have.length(1);
                                 expect(theFalsePassport[0].isActive).to.be.false;
                                 expect(theTruePassport).to.have.length(1);
@@ -1204,9 +1202,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('can also handle array notation', function() {
+      it('can also handle object notation', function() {
         const self = this;
-        return this.User.findAll({where: ['id = ?', this.users[1].id]}).then((users) => {
+        return this.User.findAll({where: {id: this.users[1].id}}).then((users) => {
           expect(users.length).to.equal(1);
           expect(users[0].id).to.equal(self.users[1].id);
         });
@@ -1335,16 +1333,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    it('handles where clause [only]', function() {
-      return this.User.findAndCountAll({where: ['id != ' + this.users[0].id]}).then((info) => {
+    it('handles where clause {only}', function() {
+      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}}).then((info) => {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
       });
     });
 
-    it('handles where clause with ordering [only]', function() {
-      return this.User.findAndCountAll({where: ['id != ' + this.users[0].id], order: [['id', 'ASC']]}).then((info) => {
+    it('handles where clause with ordering {only}', function() {
+      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}, order: [['id', 'ASC']]}).then((info) => {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
@@ -1422,7 +1420,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('handles attributes', function() {
-      return this.User.findAndCountAll({where: ['id != ' + this.users[0].id], attributes: ['data']}).then((info) => {
+      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}, attributes: ['data']}).then((info) => {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);

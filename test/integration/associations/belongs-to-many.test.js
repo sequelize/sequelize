@@ -141,7 +141,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     it('only gets objects that fulfill options with a formatted value', function() {
       return this.User.find({where: {username: 'John'}}).then((john) => {
-        return john.getTasks({where: ['active = ?', true]});
+        return john.getTasks({where: {active: true}});
       }).then((tasks) => {
         expect(tasks).to.have.length(1);
       });

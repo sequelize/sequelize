@@ -1772,7 +1772,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const self = this;
       return this.User.create({username: 'user1'}).then(() => {
         return self.User.create({username: 'foo'}).then(() => {
-          return self.User.count({where: ["username LIKE '%us%'"]}).then((count) => {
+          return self.User.count({where: {username: {$like: '%us%'}}}).then((count) => {
             expect(count).to.equal(1);
           });
         });
@@ -2547,9 +2547,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not fail with an include', function() {
       return this.User.findAll({
-        where: [
-          this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title') + ' = ' + this.sequelize.queryInterface.QueryGenerator.escape('republic')
-        ],
+        where: this.sequelize.literal(this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title') + ' = ' + this.sequelize.queryInterface.QueryGenerator.escape('republic')),
         include: [
           {model: this.Project}
         ]
@@ -2566,9 +2564,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
       return this.User.findAll({
         paranoid: false,
-        where: [
-          tableName + this.sequelize.queryInterface.QueryGenerator.quoteIdentifier('deletedAt') + ' IS NOT NULL '
-        ],
+        where: this.sequelize.literal(tableName + this.sequelize.queryInterface.QueryGenerator.quoteIdentifier('deletedAt') + ' IS NOT NULL '),
         include: [
           {model: this.Project}
         ]
