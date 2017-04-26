@@ -398,8 +398,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$raw', () => {
-      it('should fail on $raw', () => {
+    suite('$raw', () => {
+      test('should fail on $raw', () => {
         expect(() => {
           sql.whereItemQuery('rank', {
             $raw: 'AGHJZ'
