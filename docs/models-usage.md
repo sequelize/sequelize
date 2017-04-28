@@ -598,6 +598,53 @@ User.findAll({
 When an eager loaded model is filtered using `include.where` then `include.required` is implicitly set to
 `true`. This means that an inner join is done returning parent models with any matching children.
 
+### Top level where with eagerly loaded models
+
+To move the where conditions from an included model from the `ON` condition to the top level `WHERE` you can use the `'$nested.column$'` syntax:
+
+```js
+User.findAll({
+    where: {
+        '$Instruments.name$': { $iLike: '%ooth%' }
+    }
+    include: [{
+        model: Tool,
+        as: 'Instruments'
+    }]
+}).then(function(users) {
+    console.log(JSON.stringify(users));
+
+    /*
+      [{
+        "name": "John Doe",
+        "id": 1,
+        "createdAt": "2013-03-20T20:31:45.000Z",
+        "updatedAt": "2013-03-20T20:31:45.000Z",
+        "Instruments": [{
+          "name": "Toothpick",
+          "id": 1,
+          "createdAt": null,
+          "updatedAt": null,
+          "userId": 1
+        }]
+      }],
+
+      [{
+        "name": "John Smith",
+        "id": 2,
+        "createdAt": "2013-03-20T20:31:45.000Z",
+        "updatedAt": "2013-03-20T20:31:45.000Z",
+        "Instruments": [{
+          "name": "Toothpick",
+          "id": 1,
+          "createdAt": null,
+          "updatedAt": null,
+          "userId": 1
+        }]
+      }],
+    */
+```
+
 ### Including everything
 
 To include all attributes, you can pass a single object with `all: true`:
