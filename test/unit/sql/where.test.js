@@ -2,10 +2,12 @@
 
 const Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
-  util      = require('util'),
+  util = require('util'),
+  chai = require('chai'),
+  expect = chai.expect,
   expectsql = Support.expectsql,
-  current   = Support.sequelize,
-  sql       = current.dialect.QueryGenerator;
+  current = Support.sequelize,
+  sql = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -397,10 +399,12 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     suite('$raw', () => {
-      testsql('rank', {
-        $raw: 'AGHJZ'
-      }, {
-        default: '[rank] = AGHJZ'
+      test('should fail on $raw', () => {
+        expect(() => {
+          sql.whereItemQuery('rank', {
+            $raw: 'AGHJZ'
+          });
+        }).to.throw(Error, 'The `$raw` where property is no longer supported.  Use `sequelize.literal` instead.');
       });
     });
 
