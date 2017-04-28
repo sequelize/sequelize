@@ -108,7 +108,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
           return User.create({ username: 'foo' }).then((user) => {
             return Task.create({ title: 'task', status: 'inactive' }).then((task) => {
               return user.setTaskXYZ(task).then(() => {
-                return user.getTaskXYZ({where: ['status = ?', 'active']}).then((task) => {
+                return user.getTaskXYZ({where: {status: 'active'}}).then((task) => {
                   expect(task).to.be.null;
                 });
               });

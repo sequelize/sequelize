@@ -283,18 +283,6 @@ if (dialect === 'sqlite') {
           expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
-          title: 'HAVING clause works with string replacements',
-          arguments: ['myTable', function(sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: ['creationYear > ?', 2002]
-            };
-          }],
-          expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING creationYear > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true
-        }, {
           title: 'HAVING clause works with where-like hash',
           arguments: ['myTable', function(sequelize) {
             return {

@@ -112,7 +112,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         ]);
       }).spread((userA, userB, task) => {
         return task.setUserXYZ(userA).then(() => {
-          return task.getUserXYZ({where: ['gender = ?', 'female']});
+          return task.getUserXYZ({where: {gender: 'female'}});
         });
       }).then((user) => {
         expect(user).to.be.null;

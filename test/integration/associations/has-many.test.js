@@ -876,7 +876,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.article = article;
           return article.setLabels([label1, label2]);
         }).then(function() {
-          return this.article.getLabels({where: ['until > ?', moment('2014-01-02').toDate()]});
+          return this.article.getLabels({where: {until: {$gt: moment('2014-01-02').toDate()}}});
         }).then((labels) => {
           expect(labels).to.be.instanceof(Array);
           expect(labels).to.have.length(1);
