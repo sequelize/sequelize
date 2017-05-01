@@ -2082,7 +2082,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         username: { type: DataTypes.STRING }
       }, { paranoid: true });
 
-      this.ParanoidUser.hasOne(this.ParanoidUser);
       return this.ParanoidUser.sync({ force: true });
     });
 
@@ -2095,9 +2094,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('returns true if user is soft deleted', function() {
-      const self = this;
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return self.ParanoidUser.findAll().then((users) => {
+        return this.ParanoidUser.findAll().then((users) => {
           return users[0].destroy().then(() => {
             expect(users[0].isSoftDeleted()).to.be.true;
 

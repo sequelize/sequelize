@@ -5,7 +5,8 @@ const chai = require('chai'),
   Support   = require(__dirname + '/../support'),
   current   = Support.sequelize,
   DataTypes = require(__dirname + '/../../../lib/data-types'),
-  Sequelize = Support.Sequelize;
+  Sequelize = Support.Sequelize,
+  moment    = require('moment');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('isSoftDeleted', () => {
@@ -55,6 +56,24 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(() => {
         this.user.isSoftDeleted();
       }).to.throw('Model is not paranoid');
+    });
+
+    it('should return false if the soft-delete property is the same as ' +
+      'the default value', function() {
+      this.paranoidUser.setDataValue('deletedAt', null);
+      expect(this.paranoidUser.isSoftDeleted()).to.be.false;
+    });
+
+    it('should return false if the soft-delete property is set to a date in ' +
+      'the future', function() {
+      this.paranoidUser.setDataValue('deletedAt', moment().add(5, 'days').format());
+      expect(this.paranoidUser.isSoftDeleted()).to.be.false;
+    });
+
+    it('should return true if the soft-delete property is set to a date ' +
+      'before now', function() {
+      this.paranoidUser.setDataValue('deletedAt', moment().subtract(5, 'days').format());
+      expect(this.paranoidUser.isSoftDeleted()).to.be.true;
     });
   });
 });
