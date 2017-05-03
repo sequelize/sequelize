@@ -84,13 +84,69 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
     it('SequelizeValidationError should concatenate an error messages from given errors if no explicit message is defined', () => {
       const errorItems = [
-          new errors.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null),
-          new errors.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
+          new Sequelize.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null),
+          new Sequelize.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
         ],
         validationError = new Sequelize.ValidationError(null, errorItems);
 
       expect(validationError).to.have.property('name', 'SequelizeValidationError');
       expect(validationError.message).to.match(/notNull Violation: <field name> cannot be null,\nstring violation: <field name> cannot be an array or an object/);
+    });
+
+    it('SequelizeValidationErrorItem does not require instance & validator constructor parameters', () => {
+      const error = new Sequelize.ValidationErrorItem('error!', null, 'myfield');
+
+      expect(error).to.be.instanceOf(Sequelize.ValidationErrorItem);
+    });
+
+    it('SequelizeValidationErrorItem should have instance & validator properties when given to constructor', () => {
+      const inst  = { foo : 'bar' };
+      const vargs = [4];
+
+      const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', inst, 'len', vargs);
+
+      expect(error).to.have.property('instance');
+      expect(error.instance).to.equal(inst);
+
+      expect(error).to.have.property('validatorName', 'len');
+      expect(error).to.have.property('validatorArgs', vargs);
+
+    });
+
+    it('SequelizeValidationErrorItem should map old types and expose an originalType property', () => {
+      const data  = {
+        'notNull Violation' : 'CORE',
+        'string violation'  : 'CORE',
+        'unique violation'  : 'DB',
+        'Validation error'  : 'FUNCTION'
+      };
+
+      Object.keys(data).forEach(k => {
+        const error = new Sequelize.ValidationErrorItem('error!', k, 'foo', null);
+
+        expect(error).to.have.property('type',         data[k]);
+        expect(error).to.have.property('originalType', k);
+      });
+    });
+
+    it('activating SequelizeValidationErrorItem.USE_OLD_TYPES should turn off the new type-functionality', () => {
+      Sequelize.ValidationErrorItem.USE_OLD_TYPES = true;
+
+      const data  = {
+        'notNull Violation' : 'CORE',
+        'string violation'  : 'CORE',
+        'unique violation'  : 'DB',
+        'Validation error'  : 'FUNCTION'
+      };
+
+      Object.keys(data).forEach(k => {
+        const error = new Sequelize.ValidationErrorItem('error!', k, 'foo', null);
+
+        expect(error).to.have.property('type', k);
+        expect(error).to.not.have.property('originalType');
+      });
+
+      errors.ValidationErrorItem.USE_OLD_TYPES = false; // turn off again to avoid screwing up other tests!
     });
 
     it('SequelizeDatabaseError should keep original message', () => {
