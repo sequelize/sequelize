@@ -99,18 +99,59 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(error).to.be.instanceOf(Sequelize.ValidationErrorItem);
     });
 
-    it('SequelizeValidationErrorItem should have instance & validator properties when given to constructor', () => {
+    it('SequelizeValidationErrorItem should have instance, key & validator properties when given to constructor', () => {
       const inst  = { foo : 'bar' };
       const vargs = [4];
 
-      const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', inst, 'len', vargs);
+      const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', inst, 'klen', 'len', vargs);
 
       expect(error).to.have.property('instance');
       expect(error.instance).to.equal(inst);
 
+      expect(error).to.have.property('validatorKey',  'klen');
       expect(error).to.have.property('validatorName', 'len');
       expect(error).to.have.property('validatorArgs', vargs);
+    });
 
+    it('SequelizeValidationErrorItem.getValidatorKey() should return a string', () => {
+      const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', null, 'klen', 'len', [4]);
+
+      expect(error).to.have.property('getValidatorKey');
+      expect(error.getValidatorKey).to.be.a('function');
+
+      expect(error.getValidatorKey())           .to.equal('function.klen');
+      expect(error.getValidatorKey(false))      .to.equal('klen');
+      expect(error.getValidatorKey(0))          .to.equal('klen');
+      expect(error.getValidatorKey(1, ':'))     .to.equal('function:klen');
+      expect(error.getValidatorKey(true, '-:-')).to.equal('function-:-klen');
+
+      const empty = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar');
+
+      expect(empty.getValidatorKey())           .to.equal('');
+      expect(empty.getValidatorKey(false))      .to.equal('');
+      expect(empty.getValidatorKey(0))          .to.equal('');
+      expect(empty.getValidatorKey(1, ':'))     .to.equal('');
+      expect(empty.getValidatorKey(true, '-:-')).to.equal('');
+    });
+
+    it('SequelizeValidationErrorItem.getValidatorKey() should throw if namespace separator is invalid (only if NS is used & available)', () => {
+      const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', null, 'klen', 'len', [4]);
+
+      expect(() => error.getValidatorKey(false, {}))       .to.not.throw();
+      expect(() => error.getValidatorKey(false, []))       .to.not.throw();
+      expect(() => error.getValidatorKey(false, null))     .to.not.throw();
+      expect(() => error.getValidatorKey(false, ''))       .to.not.throw();
+      expect(() => error.getValidatorKey(false, false))    .to.not.throw();
+      expect(() => error.getValidatorKey(false, true))     .to.not.throw();
+      expect(() => error.getValidatorKey(false, undefined)).to.not.throw();
+      expect(() => error.getValidatorKey(true, undefined)) .to.not.throw(); // undefined will trigger use of function parameter default
+
+      expect(() => error.getValidatorKey(true, {}))        .to.throw(Error);
+      expect(() => error.getValidatorKey(true, []))        .to.throw(Error);
+      expect(() => error.getValidatorKey(true, null))      .to.throw(Error);
+      expect(() => error.getValidatorKey(true, ''))        .to.throw(Error);
+      expect(() => error.getValidatorKey(true, false))     .to.throw(Error);
+      expect(() => error.getValidatorKey(true, true))      .to.throw(Error);
     });
 
     it('SequelizeValidationErrorItem should map old types and expose an originalType property', () => {
@@ -147,6 +188,16 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       });
 
       errors.ValidationErrorItem.USE_OLD_TYPES = false; // turn off again to avoid screwing up other tests!
+    });
+
+    it('SequelizeValidationErrorItem.TYPES is valid & frozen', () => {
+      const TYPES = errors.ValidationErrorItem.TYPES;
+
+      expect(TYPES).to.be.frozen;
+      expect(TYPES).to.have.property('CORE',     'CORE');
+      expect(TYPES).to.have.property('DB',       'DB');
+      expect(TYPES).to.have.property('FUNCTION', 'FUNCTION');
+
     });
 
     it('SequelizeDatabaseError should keep original message', () => {
