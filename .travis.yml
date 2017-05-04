@@ -11,6 +11,7 @@ branches:
   only:
   - master
   - v3
+  - /^greenkeeper/.*$/
 
 env:
   global:
