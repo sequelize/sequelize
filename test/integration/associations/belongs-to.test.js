@@ -146,6 +146,45 @@ describe(Support.getTestDialectTeaser('BelongsTo'), function() {
         expect(user).to.be.ok;
       });
     });
+    
+    it('supports schemas for objects that references other objects', function() {
+      var self = this
+        , User = this.sequelize.define('userABC', {
+          uid: {
+            type: Sequelize.INTEGER,
+            primaryKey: true
+          }
+        }).schema('archive')
+        , Project = this.sequelize.define('projectABC', {
+          user_id: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            references: User,
+            referencesKey: 'uid'
+          }
+        }).schema('archive');
+
+      Project.belongsTo(User, { foreignKey: 'user_id'});
+
+      return self.sequelize.dropAllSchemas().then(function() {
+        return self.sequelize.createSchema('archive');
+      }).then(function() {
+        return User.sync({force: true });
+      }).then(function() {
+        return Project.sync({force: true });
+      }).then(function() {
+        return Promise.all([
+          User.create({ uid: 1 }),
+          Project.create({ user_id: 1 })
+        ]);
+      }).spread(function(user, project) {
+        return project.setUserABC(user).then(function() {
+          return project.getUserABC();
+        });
+      }).then(function(user) {
+        expect(user).to.be.ok;
+      });
+    });
   });
 
   describe('setAssociation', function() {
