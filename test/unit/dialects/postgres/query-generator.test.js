@@ -301,17 +301,32 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM "myTable" AS "myTable" ORDER BY "myTable"."id" DESC;',
           context: QueryGenerator,
           needsSequelize: true
-        },{
+        }, {
           title: 'uses limit 0',
           arguments: ['myTable', {limit: 0}],
           expectation: 'SELECT * FROM "myTable" LIMIT 0;',
           context: QueryGenerator
         }, {
-         title: 'uses offset 0',
-         arguments: ['myTable', {offset: 0}],
-         expectation: 'SELECT * FROM "myTable" OFFSET 0;',
-         context: QueryGenerator
-       }, {
+          title: 'uses offset 0',
+          arguments: ['myTable', {offset: 0}],
+          expectation: 'SELECT * FROM "myTable" OFFSET 0;',
+          context: QueryGenerator
+        }, {
+          title: 'ignores non valid limit or offset values (NaN)',
+          arguments: ['myTable', {limit: NaN, offset: NaN}],
+          expectation: 'SELECT * FROM "myTable";',
+          context: QueryGenerator
+        }, {
+          title: 'ignores non valid limit or offset values (undefined)',
+          arguments: ['myTable', {limit: undefined, offset: undefined}],
+          expectation: 'SELECT * FROM "myTable";',
+          context: QueryGenerator
+        }, {
+          title: 'ignores non valid limit or offset values (null)',
+          arguments: ['myTable', {limit: null, offset: null}],
+          expectation: 'SELECT * FROM "myTable";',
+          context: QueryGenerator
+        }, {
          title: 'raw arguments are neither quoted nor escaped',
           arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'},'DESC']]}],
           expectation: 'SELECT * FROM "myTable" ORDER BY f1(f2(id)) DESC;',
