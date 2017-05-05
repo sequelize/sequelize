@@ -609,18 +609,42 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               })
             );
           }).then(() => {
-            return expect(this.Event.findAll({
-              where: {
-                data: {
-                  name: {
-                    last: 'Simpson'
+            if (current.options.dialect === 'sqlite') {
+              return this.Event.findAll({
+                where: {
+                  data: {
+                    name: {
+                      last: 'Simpson'
+                    }
                   }
-                }
-              },
-              order: [
-                ["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]
-              ]
-            })).to.eventually.be.rejectedWith(Error);
+                },
+                order: [
+                  ["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]
+                ]
+              }).then(events => {
+                expect(events).to.be.ok;
+                expect(events[0].get('data')).to.eql({
+                  name: {
+                    first: 'Homer',
+                    last: 'Simpson'
+                  },
+                  employment: 'Nuclear Safety Inspector'
+                });
+              });
+            } else if (current.options.dialect === 'postgres') {
+              return expect(this.Event.findAll({
+                where: {
+                  data: {
+                    name: {
+                      last: 'Simpson'
+                    }
+                  }
+                },
+                order: [
+                  ["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]
+                ]
+              })).to.eventually.be.rejectedWith(Error);
+            }
           });
         });
       });
