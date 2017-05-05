@@ -569,7 +569,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             });
           });
 
-           it('allows mulitple assocations of the same model with different alias', function() {
+          it('allows mulitple assocations of the same model with different alias', function() {
             var self = this;
 
             this.Worker.hasOne(this.Task, { as: 'DoTo' });
@@ -578,6 +578,20 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                 include: [
                   { model: self.Task, as: 'ToDo' },
                   { model: self.Task, as: 'DoTo' }
+                ]
+              });
+            });
+          });
+
+          it('allows mulitple assocations of the same association with different alias', function() {
+            var self = this;
+
+            var association = this.Worker.hasOne(this.Task, { as: 'DoTo' });
+            return this.init(function() {
+              return self.Worker.findOne({
+                include: [
+                  { association: association, as: 'ToDo' },
+                  { association: association, as: 'DoTo' }
                 ]
               });
             });
@@ -739,6 +753,20 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                 include: [
                   { model: self.Task, as: 'ToDos' },
                   { model: self.Task, as: 'DoTos' }
+                ]
+              });
+            });
+          });
+
+          it('allows mulitple assocations of the same association with different alias', function() {
+            var self = this;
+
+            var association = this.Worker.hasMany(this.Task, { as: 'DoTos' });
+            return this.init(function() {
+              return self.Worker.findOne({
+                include: [
+                  { association: association, as: 'ToDos' },
+                  { association: association, as: 'DoTos' }
                 ]
               });
             });
