@@ -928,6 +928,46 @@ describe(Support.getTestDialectTeaser('HasMany'), function() {
 
         return expect(this.user.countActiveTasks({})).to.eventually.equal(1);
       });
+
+      it('should not fail due to ambiguous field', function () {
+        var self = this;
+        var subtasks = self.Task.hasMany(this.Task, {
+          as: 'subtasks'
+        });
+
+        return expect(
+          self.sequelize.sync({ force: true })
+            .then(function () {
+              return self.User.create({
+                username: 'John',
+                Tasks: [{
+                  title: 'Get rich', active: true
+                }]
+              }, {
+                include: [self.Task]
+              });
+            })
+            .then(function (user) {
+              return user.getTasks();
+            })
+            .then(function (tasks) {
+              return tasks[0].createSubtask({ title: 'Make a startup', active: false })
+                .then(function () {
+                  return tasks[0].createSubtask({ title: 'Engage rock stars', active: true });
+                });
+            })
+            .then(function () {
+              return self.user.countTasks({
+                include: [{
+                  association: subtasks,
+                  where: {
+                    active: true
+                  }
+                }]
+              });
+            })
+        ).to.eventually.equal(1);
+      });
     });
 
     describe('selfAssociations', function() {
