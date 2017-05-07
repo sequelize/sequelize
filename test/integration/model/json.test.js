@@ -399,6 +399,78 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
         });
+
+        it('should be possible to query a nested value and order results', function() {
+          return this.Event.create({
+            data: {
+              name: {
+                first: 'Homer',
+                last: 'Simpson'
+              },
+              employment: 'Nuclear Safety Inspector'
+            }
+          }).then(() => {
+            return Promise.join(
+              this.Event.create({
+                data: {
+                  name: {
+                    first: 'Marge',
+                    last: 'Simpson'
+                  },
+                  employment: 'Housewife'
+                }
+              }),
+              this.Event.create({
+                data: {
+                  name: {
+                    first: 'Bart',
+                    last: 'Simpson'
+                  },
+                  employment: 'None'
+                }
+              })
+            );
+          }).then(() => {
+            return this.Event.findAll({
+              where: {
+                data: {
+                  name: {
+                    last: 'Simpson'
+                  }
+                }
+              },
+              order: [
+                ['data.name.first']
+              ]
+            }).then(events => {
+              expect(events.length).to.equal(3);
+
+              expect(events[0].get('data')).to.eql({
+                name: {
+                  first: 'Bart',
+                  last: 'Simpson'
+                },
+                employment: 'None'
+              });
+
+              expect(events[1].get('data')).to.eql({
+                name: {
+                  first: 'Homer',
+                  last: 'Simpson'
+                },
+                employment: 'Nuclear Safety Inspector'
+              });
+
+              expect(events[2].get('data')).to.eql({
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: 'Housewife'
+              });
+            });
+          });
+        });
       });
 
       describe('destroy', () => {
@@ -505,7 +577,78 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
         });
+
+        it('should query an instance with JSONB data and order while trying to inject', function () {
+          return this.Event.create({
+            data: {
+              name: {
+                first: 'Homer',
+                last: 'Simpson'
+              },
+              employment: 'Nuclear Safety Inspector'
+            }
+          }).then(() => {
+            return Promise.join(
+              this.Event.create({
+                data: {
+                  name: {
+                    first: 'Marge',
+                    last: 'Simpson'
+                  },
+                  employment: 'Housewife'
+                }
+              }),
+              this.Event.create({
+                data: {
+                  name: {
+                    first: 'Bart',
+                    last: 'Simpson'
+                  },
+                  employment: 'None'
+                }
+              })
+            );
+          }).then(() => {
+            if (current.options.dialect === 'sqlite') {
+              return this.Event.findAll({
+                where: {
+                  data: {
+                    name: {
+                      last: 'Simpson'
+                    }
+                  }
+                },
+                order: [
+                  ["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]
+                ]
+              }).then(events => {
+                expect(events).to.be.ok;
+                expect(events[0].get('data')).to.eql({
+                  name: {
+                    first: 'Homer',
+                    last: 'Simpson'
+                  },
+                  employment: 'Nuclear Safety Inspector'
+                });
+              });
+            } else if (current.options.dialect === 'postgres') {
+              return expect(this.Event.findAll({
+                where: {
+                  data: {
+                    name: {
+                      last: 'Simpson'
+                    }
+                  }
+                },
+                order: [
+                  ["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]
+                ]
+              })).to.eventually.be.rejectedWith(Error);
+            }
+          });
+        });
       });
     });
   }
+
 });
