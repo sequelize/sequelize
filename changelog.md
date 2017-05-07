@@ -70,6 +70,7 @@
 - [FIXED] Update or soft delete breaks when querying on `JSON/JSONB` [#7376](https://github.com/sequelize/sequelize/issues/7376) [#7400](https://github.com/sequelize/sequelize/issues/7400) [#7444](https://github.com/sequelize/sequelize/issues/7444)
 - [REMOVED] Removes support for interpretation of raw properties and values in the where object. [#7568](https://github.com/sequelize/sequelize/issues/7568)
 - [FIXED] Upsert now updates all changed fields by default
+- [FIXED] Reimplement support for MySQL-dialect column-level comments. [#7611](https://github.com/sequelize/sequelize/pull/7611)
 
 ## BC breaks:
 - Model.validate instance method now runs validation hooks by default. Previously you needed to pass { hooks: true }. You can override this behavior by passing { hooks: false }
