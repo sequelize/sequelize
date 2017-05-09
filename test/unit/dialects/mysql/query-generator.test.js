@@ -1,16 +1,15 @@
 'use strict';
 
-/* jshint -W110 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../../support')
-  , dialect = Support.getTestDialect()
-  , _ = require('lodash')
-  , QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../../support'),
+  dialect = Support.getTestDialect(),
+  _ = require('lodash'),
+  QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
 if (dialect === 'mysql') {
-  describe('[MYSQL Specific] QueryGenerator', function() {
-    var suites = {
+  describe('[MYSQL Specific] QueryGenerator', () => {
+    const suites = {
       arithmeticQuery: [
         {
           title:'Should use the plus operator',
@@ -91,7 +90,7 @@ if (dialect === 'mysql') {
         {
           arguments: [{id: {type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
           expectation: {id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
-        },
+        }
       ],
 
       createTableQuery: [
@@ -182,10 +181,6 @@ if (dialect === 'mysql') {
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {where: ["foo='bar'"]}],
-          expectation: "SELECT * FROM `myTable` WHERE foo='bar';",
-          context: QueryGenerator
-        }, {
           arguments: ['myTable', {order: ['id']}],
           expectation: 'SELECT * FROM `myTable` ORDER BY `id`;',
           context: QueryGenerator
@@ -211,11 +206,6 @@ if (dialect === 'mysql') {
           expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC, `myTable`.`name`;',
           context: QueryGenerator,
           needsSequelize: true
-        }, {
-          title: 'raw arguments are neither quoted nor escaped',
-          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'}, 'DESC']]}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY f1(f2(id)) DESC;',
-          context: QueryGenerator
         }, {
           title: 'functions can take functions as arguments',
           arguments: ['myTable', function(sequelize) {
@@ -299,18 +289,6 @@ if (dialect === 'mysql') {
           expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
-          title: 'HAVING clause works with string replacements',
-          arguments: ['myTable', function(sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: ['creationYear > ?', 2002]
-            };
-          }],
-          expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING creationYear > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true
-        }, {
           title: 'HAVING clause works with where-like hash',
           arguments: ['myTable', function(sequelize) {
             return {
@@ -354,11 +332,11 @@ if (dialect === 'mysql') {
           expectation: 'SELECT * FROM `myTable` LIMIT 0;',
           context: QueryGenerator
         }, {
-         title: 'uses offset 0',
-         arguments: ['myTable', {offset: 0}],
-         expectation: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
-         context: QueryGenerator
-       }, {
+          title: 'uses offset 0',
+          arguments: ['myTable', {offset: 0}],
+          expectation: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
+          context: QueryGenerator
+        }, {
           title: 'multiple where arguments',
           arguments: ['myTable', {where: {boat: 'canoe', weather: 'cold'}}],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`boat` = 'canoe' AND `myTable`.`weather` = 'cold';",
@@ -564,20 +542,21 @@ if (dialect === 'mysql') {
       ]
     };
 
-    _.each(suites, function(tests, suiteTitle) {
-      describe(suiteTitle, function() {
-        tests.forEach(function(test) {
-          var title = test.title || 'MySQL correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
+    _.each(suites, (tests, suiteTitle) => {
+      describe(suiteTitle, () => {
+        tests.forEach((test) => {
+          const title = test.title || 'MySQL correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            var context = test.context || {options: {}};
+            const context = test.context || {options: {}};
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
-            var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
+            QueryGenerator.sequelize = this.sequelize;
+            const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         });

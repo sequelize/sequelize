@@ -1,47 +1,46 @@
 'use strict';
 
-/* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , current = Support.sequelize
-  , cls = require('continuation-local-storage')
-  , sinon = require('sinon')
-  , stub = sinon.stub
-  , Promise = require('bluebird');
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../support'),
+  current = Support.sequelize,
+  cls = require('continuation-local-storage'),
+  sinon = require('sinon'),
+  stub = sinon.stub,
+  Promise = require('bluebird');
 
-describe(Support.getTestDialectTeaser('Model'), function() {
+describe(Support.getTestDialectTeaser('Model'), () => {
 
-  describe('method findOrCreate', function () {
+  describe('method findOrCreate', () => {
 
-    before(function () {
+    before(() => {
       current.constructor.useCLS(cls.createNamespace('sequelize'));
     });
 
-    after(function () {
+    after(() => {
       delete current.constructor._cls;
     });
 
-    beforeEach(function () {
+    beforeEach(function() {
       this.User = current.define('User', {}, {
         name: 'John'
       });
 
       this.transactionStub = stub(this.User.sequelize, 'transaction');
-      this.transactionStub.returns(new Promise(function () {}));
+      this.transactionStub.returns(new Promise(() => {}));
 
       this.clsStub = stub(current.constructor._cls, 'get');
       this.clsStub.returns({ id: 123 });
     });
 
-    afterEach(function () {
+    afterEach(function() {
       this.transactionStub.restore();
       this.clsStub.restore();
     });
 
-    it('should use transaction from cls if available', function () {
+    it('should use transaction from cls if available', function() {
 
-      var options = {
+      const options = {
         where : {
           name : 'John'
         }
@@ -52,9 +51,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(this.clsStub.calledOnce).to.equal(true, 'expected to ask for transaction');
     });
 
-    it('should not use transaction from cls if provided as argument', function () {
+    it('should not use transaction from cls if provided as argument', function() {
 
-      var options = {
+      const options = {
         where : {
           name : 'John'
         },

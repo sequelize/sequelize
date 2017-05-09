@@ -1,22 +1,23 @@
 'use strict';
 
-/* jshint -W110 */
-var Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , Model = require(__dirname + '/../../../lib/model')
-  , util = require('util')
-  , expectsql = Support.expectsql
-  , current   = Support.sequelize
-  , sql       = current.dialect.QueryGenerator;
+const Support   = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Model = require(__dirname + '/../../../lib/model'),
+  util = require('util'),
+  chai = require('chai'),
+  expect = chai.expect,
+  expectsql = Support.expectsql,
+  current   = Support.sequelize,
+  sql       = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite(Support.getTestDialectTeaser('SQL'), function() {
-  suite('select', function () {
-    var testsql = function (options, expectation) {
-      var model = options.model;
+suite(Support.getTestDialectTeaser('SQL'), () => {
+  suite('select', () => {
+    const testsql = function(options, expectation) {
+      const model = options.model;
 
-      test(util.inspect(options, {depth: 2}), function () {
+      test(util.inspect(options, {depth: 2}), () => {
         return expectsql(
           sql.selectQuery(
             options.table || model && model.getTableName(),
@@ -215,8 +216,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     }());
 
-   (function () {
-      var User = Support.sequelize.define('user', {
+    (function() {
+      const User = Support.sequelize.define('user', {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -233,36 +234,36 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           field: 'last_name'
         }
       },
-      {
-        tableName: 'users'
-      });
-      var Post = Support.sequelize.define('Post', {
+        {
+          tableName: 'users'
+        });
+      const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING,
         userId: {
           type: DataTypes.INTEGER,
           field: 'user_id'
         }
       },
-      {
-        tableName: 'post'
-      });
+        {
+          tableName: 'post'
+        });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'userId', as: 'POSTS'});
 
-      var Comment = Support.sequelize.define('Comment', {
+      const Comment = Support.sequelize.define('Comment', {
         title: DataTypes.STRING,
         postId: {
           type: DataTypes.INTEGER,
           field: 'post_id'
         }
       },
-      {
-        tableName: 'comment'
-      });
+        {
+          tableName: 'comment'
+        });
 
       Post.Comments = Post.hasMany(Comment, {foreignKey: 'postId', as: 'COMMENTS'});
 
-      var include = Model._validateIncludedElements({
+      const include = Model._validateIncludedElements({
         include: [{
           attributes: ['title'],
           association: User.Posts
@@ -273,7 +274,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql({
         table: User.getTableName(),
         model: User,
-        include: include,
+        include,
         attributes: [
           ['id_user', 'id'],
           'email',
@@ -309,7 +310,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       testsql({
         table: User.getTableName(),
         model: User,
-        include: include,
+        include,
         attributes: [
           ['id_user', 'id'],
           'email',
@@ -319,7 +320,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         order: [['[last_name]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
         limit: 30,
         offset: 10,
-        hasMultiAssociation: true,//must be set only for mssql dialect here
+        hasMultiAssociation: true, //must be set only for mssql dialect here
         subQuery: true
       }, {
           default: 'SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (' +
@@ -332,7 +333,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
           ') \"user\" LEFT OUTER JOIN post POSTS ON \"user\".id_user = POSTS.user_id ORDER BY "user".last_name ASC;'
       });
 
-      var nestedInclude = Model._validateIncludedElements({
+      const nestedInclude = Model._validateIncludedElements({
         include: [{
           attributes: ['title'],
           association: User.Posts,
@@ -381,20 +382,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     })();
 
-    it('include (left outer join)', function () {
-      var User = Support.sequelize.define('User', {
+    it('include (left outer join)', () => {
+      const User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
       },
-      {
-        freezeTableName: true
-      });
-      var Post = Support.sequelize.define('Post', {
+        {
+          freezeTableName: true
+        });
+      const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING
       },
-      {
-        freezeTableName: true
-      });
+        {
+          freezeTableName: true
+        });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
 
@@ -415,15 +416,15 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
   });
 
-  suite('queryIdentifiersFalse', function () {
-    suiteSetup(function () {
+  suite('queryIdentifiersFalse', () => {
+    suiteSetup(() => {
       sql.options.quoteIdentifiers = false;
     });
-    suiteTeardown(function () {
+    suiteTeardown(() => {
       sql.options.quoteIdentifiers = true;
     });
 
-    test('*', function () {
+    test('*', () => {
       expectsql(sql.selectQuery('User'), {
         default: 'SELECT * FROM [User];',
         oracle: 'SELECT * FROM "User";',
@@ -431,7 +432,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    test('with attributes', function () {
+    test('with attributes', () => {
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age']
       }), {
@@ -441,20 +442,20 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     });
 
-    test('include (left outer join)', function () {
-      var User = Support.sequelize.define('User', {
+    test('include (left outer join)', () => {
+      const User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
       },
-      {
-        freezeTableName: true
-      });
-      var Post = Support.sequelize.define('Post', {
+        {
+          freezeTableName: true
+        });
+      const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING
       },
-      {
-        freezeTableName: true
-      });
+        {
+          freezeTableName: true
+        });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
 
@@ -476,23 +477,23 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     });
 
 
-    test('nested include (left outer join)', function () {
-      var User = Support.sequelize.define('User', {
-          name: DataTypes.STRING,
-          age: DataTypes.INTEGER
-        },
+    test('nested include (left outer join)', () => {
+      const User = Support.sequelize.define('User', {
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER
+      },
         {
           freezeTableName: true
         });
-      var Post = Support.sequelize.define('Post', {
-          title: DataTypes.STRING
-        },
+      const Post = Support.sequelize.define('Post', {
+        title: DataTypes.STRING
+      },
         {
           freezeTableName: true
         });
-      var Comment = Support.sequelize.define('Comment', {
-          title: DataTypes.STRING
-        },
+      const Comment = Support.sequelize.define('Comment', {
+        title: DataTypes.STRING
+      },
         {
           freezeTableName: true
         });
@@ -524,16 +525,59 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
 
   });
 
-  suite('raw query', function () {
-    test('raw replacements', function () {
-      expectsql(sql.selectQuery('User', {
-        attributes: ['*'],
-        having: ['name IN (?)', [1, 'test', 3, "derp"]]
-      }), {
-        default: "SELECT * FROM [User] HAVING name IN (1,'test',3,'derp');",
-        mssql: "SELECT * FROM [User] HAVING name IN (1,N'test',3,N'derp');",
-        oracle: "SELECT * FROM \"User\" HAVING name IN (1,'test',3,'derp');"
-      });
+  suite('raw query', () => {
+    test('raw replacements for where', () => {
+      expect(() => {
+        sql.selectQuery('User', {
+          attributes: ['*'],
+          where: ['name IN (?)', [1, 'test', 3, 'derp']]
+        });
+      }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
+    });
+
+    test('raw replacements for nested where', () => {
+      expect(() => {
+        sql.selectQuery('User', {
+          attributes: ['*'],
+          where: [['name IN (?)', [1, 'test', 3, 'derp']]]
+        });
+      }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
+    });
+
+    test('raw replacements for having', () => {
+      expect(() => {
+        sql.selectQuery('User', {
+          attributes: ['*'],
+          having: ['name IN (?)', [1, 'test', 3, 'derp']]
+        });
+      }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
+    });
+
+    test('raw replacements for nested having', () => {
+      expect(() => {
+        sql.selectQuery('User', {
+          attributes: ['*'],
+          having: [['name IN (?)', [1, 'test', 3, 'derp']]]
+        });
+      }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
+    });
+
+    test('raw string from where', () => {
+      expect(() => {
+        sql.selectQuery('User', {
+          attributes: ['*'],
+          where: 'name = \'something\''
+        });
+      }).to.throw(Error, 'Support for `{where: \'raw query\'}` has been removed.');
+    });
+
+    test('raw string from having', () => {
+      expect(() => {
+        sql.selectQuery('User', {
+          attributes: ['*'],
+          having: 'name = \'something\''
+        });
+      }).to.throw(Error, 'Support for `{where: \'raw query\'}` has been removed.');
     });
   });
 });

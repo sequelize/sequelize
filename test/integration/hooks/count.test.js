@@ -1,12 +1,11 @@
 'use strict';
 
-/* jshint -W030 */
-var chai = require('chai')
-, expect = chai.expect
-, Support = require(__dirname + '/../support')
-, DataTypes = require(__dirname + '/../../../lib/data-types');
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types');
 
-describe(Support.getTestDialectTeaser('Hooks'), function() {
+describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
       username: {
@@ -21,7 +20,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     return this.sequelize.sync({ force: true });
   });
 
-  describe('#count', function() {
+  describe('#count', () => {
     beforeEach(function() {
       return this.User.bulkCreate([
         {username: 'adam', mood: 'happy'},
@@ -30,22 +29,22 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       ]);
     });
 
-    describe('on success', function() {
+    describe('on success', () => {
       it('hook runs', function() {
-        var beforeHook = false;
+        let beforeHook = false;
 
-        this.User.beforeCount(function() {
+        this.User.beforeCount(() => {
           beforeHook = true;
         });
 
-        return this.User.count().then(function(count) {
+        return this.User.count().then((count) => {
           expect(count).to.equal(3);
           expect(beforeHook).to.be.true;
         });
       });
 
       it('beforeCount hook can change options', function() {
-        this.User.beforeCount(function(options) {
+        this.User.beforeCount((options) => {
           options.where.username = 'adam';
         });
 
@@ -53,9 +52,9 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
 
-    describe('on error', function() {
+    describe('on error', () => {
       it('in beforeCount hook returns error', function() {
-        this.User.beforeCount(function() {
+        this.User.beforeCount(() => {
           throw new Error('Oops!');
         });
 

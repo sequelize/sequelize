@@ -1,18 +1,15 @@
 'use strict';
 
-/* jshint -W030, -W110 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require('../../../lib/data-types')
-  , current   = Support.sequelize;
+const chai = require('chai'),
+  expect = chai.expect,
+  Support   = require(__dirname + '/../support'),
+  DataTypes = require('../../../lib/data-types'),
+  current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), function() {
-  describe('define', function () {
-    it('should allow custom timestamps with underscored: true', function () {
-      var Model;
-
-      Model = current.define('User', {}, {
+describe(Support.getTestDialectTeaser('Model'), () => {
+  describe('define', () => {
+    it('should allow custom timestamps with underscored: true', () => {
+      const Model = current.define('User', {}, {
         createdAt   : 'createdAt',
         updatedAt   : 'updatedAt',
         timestamps  : true,
@@ -29,14 +26,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       expect(Model.rawAttributes.updated_at).not.to.be.defined;
     });
 
-    it('should throw when id is added but not marked as PK', function () {
-      expect(function () {
+    it('should throw when id is added but not marked as PK', () => {
+      expect(() => {
         current.define('foo', {
           id: DataTypes.INTEGER
         });
       }).to.throw("A column called 'id' was added to the attributes of 'foos' but not marked with 'primaryKey: true'");
 
-      expect(function () {
+      expect(() => {
         current.define('bar', {
           id: {
             type: DataTypes.INTEGER

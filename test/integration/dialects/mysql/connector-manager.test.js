@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W030 */
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require(__dirname + '/../../support');
@@ -9,8 +8,8 @@ const sinon = require('sinon');
 const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 if (dialect === 'mysql') {
-  describe('[MYSQL Specific] Connection Manager', function () {
-    it('works correctly after being idle', function () {
+  describe('[MYSQL Specific] Connection Manager', () => {
+    it('works correctly after being idle', function() {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
       const spy = sinon.spy();
 

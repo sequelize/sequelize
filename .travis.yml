@@ -68,4 +68,17 @@ before_script:
     fi
 
 script:
+  - npm run lint
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
+
+deploy:
+  provider: surge
+  project: ./esdoc/
+  domain: docs.sequelizejs.com
+  skip_cleanup: true
+  on:
+    branch: master
+    node: 6
+
+before_deploy:
+  - npm run docs

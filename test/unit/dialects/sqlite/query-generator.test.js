@@ -1,17 +1,16 @@
 'use strict';
 
-/* jshint -W110 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../../support')
-  , DataTypes = require(__dirname + '/../../../../lib/data-types')
-  , dialect = Support.getTestDialect()
-  , _ = require('lodash')
-  , moment = require('moment')
-  , QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../../support'),
+  DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  dialect = Support.getTestDialect(),
+  _ = require('lodash'),
+  moment = require('moment'),
+  QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
 
 if (dialect === 'sqlite') {
-  describe('[SQLITE Specific] QueryGenerator', function() {
+  describe('[SQLITE Specific] QueryGenerator', () => {
     beforeEach(function() {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING
@@ -19,7 +18,7 @@ if (dialect === 'sqlite') {
       return this.User.sync({ force: true });
     });
 
-    var suites = {
+    const suites = {
       arithmeticQuery: [
         {
           title:'Should use the plus operator',
@@ -100,7 +99,7 @@ if (dialect === 'sqlite') {
         {
           arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
           expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
-        },
+        }
       ],
 
       createTableQuery: [
@@ -198,11 +197,6 @@ if (dialect === 'sqlite') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'raw arguments are neither quoted nor escaped',
-          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'}, 'DESC']]}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY f1(f2(id)) DESC;',
-          context: QueryGenerator
-        }, {
           title: 'sequelize.where with .fn as attribute and default comparator',
           arguments: ['myTable', function(sequelize) {
             return {
@@ -288,18 +282,6 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', {group: 'name', order: [['id', 'DESC']]}],
           expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY `id` DESC;',
           context: QueryGenerator
-        }, {
-          title: 'HAVING clause works with string replacements',
-          arguments: ['myTable', function(sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: ['creationYear > ?', 2002]
-            };
-          }],
-          expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING creationYear > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true
         }, {
           title: 'HAVING clause works with where-like hash',
           arguments: ['myTable', function(sequelize) {
@@ -523,20 +505,21 @@ if (dialect === 'sqlite') {
       ]
     };
 
-    _.each(suites, function(tests, suiteTitle) {
-      describe(suiteTitle, function() {
-        tests.forEach(function(test) {
-          var title = test.title || 'SQLite correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
+    _.each(suites, (tests, suiteTitle) => {
+      describe(suiteTitle, () => {
+        tests.forEach((test) => {
+          const title = test.title || 'SQLite correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            var context = test.context || {options: {}};
+            const context = test.context || {options: {}};
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
-            var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
+            QueryGenerator.sequelize = this.sequelize;
+            const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         });

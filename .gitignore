@@ -16,3 +16,4 @@ ssce.js
 coverage
 .vscode/
 *.sublime*
+esdoc

@@ -5,13 +5,13 @@ const DataTypes = require(__dirname + '/../../../lib/data-types');
 const chai = require('chai');
 const expect = chai.expect;
 
-describe(Support.getTestDialectTeaser('Model'), function() {
-  describe('optimistic locking', function () {
-    var Account;
+describe(Support.getTestDialectTeaser('Model'), () => {
+  describe('optimistic locking', () => {
+    let Account;
     beforeEach(function() {
       Account = this.sequelize.define('Account', {
         number: {
-          type: DataTypes.INTEGER,
+          type: DataTypes.INTEGER
         }
       }, {
         version: true
@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return Account.sync({force: true});
     });
 
-    it('should increment the version on save', function() {
+    it('should increment the version on save', () => {
       return Account.create({number: 1}).then(account => {
         account.number += 1;
         expect(account.version).to.eq(0);
@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
 
-    it('should increment the version on update', function() {
+    it('should increment the version on update', () => {
       return Account.create({number: 1}).then(account => {
         expect(account.version).to.eq(0);
         return account.update({ number: 2 });
@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
     //Oracle passes it, without any error, the update queries are launched one at a time, don't know why it should fail
     if (Support.getTestDialect() !== 'oracle') {
-      it('prevents stale instances from being saved', function() {
+      it('prevents stale instances from being saved', () => {
         return expect(Account.create({number: 1}).then(accountA => {
           return Account.findById(accountA.id).then(accountB => {
             accountA.number += 1;
@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     }
 
-    it('increment() also increments the version', function() {
+    it('increment() also increments the version', () => {
       return Account.create({number: 1}).then(account => {
         expect(account.version).to.eq(0);
         return account.increment('number', { by: 1} );

@@ -1,7 +1,12 @@
 # Future
+- [FEATURE] `addConstraint`, `removeConstraint`, `showConstraint` [#7108](https://github.com/sequelize/sequelize/pull/7108)
+- [FIXED] `changeColumn` generates incorrect query with ENUM type [#7455](https://github.com/sequelize/sequelize/pull/7455)
+- [ADDED] `options.alter` to sequelize.sync() to alter existing tables.[#537](https://github.com/sequelize/sequelize/issues/537)
+- [ADDED] Ability to run transactions on a read-replica by marking transactions as read only [#7323](https://github.com/sequelize/sequelize/issues/7323)
+- [FIXED] Show a reasonable message when using renameColumn with a missing column  [#6606](https://github.com/sequelize/sequelize/issues/6606)
 - [PERFORMANCE] more efficient array handing for certain large queries [#7175](https://github.com/sequelize/sequelize/pull/7175)
-- [FIXED] Add `unique` indexes defined via options to `rawAttributes` [#7196]
-- [FIXED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
+- [FIXED] Add `unique` indexes defined via options to `rawAttributes` [#7196](https://github.com/sequelize/sequelize/issues/7196)
+- [REMOVED] Removed support where `order` value is string and interpreted as `Sequelize.literal()`. [#6935](https://github.com/sequelize/sequelize/issues/6935)
 - [CHANGED] `DataTypes.DATE` to use `DATETIMEOFFSET` [MSSQL] [#5403](https://github.com/sequelize/sequelize/issues/5403)
 - [FIXED] Properly pass options to `sequelize.query` in `removeColumn` [MSSQL] [#7193](https://github.com/sequelize/sequelize/pull/7193)
 - [FIXED] Updating `VIRTUAL` field throw `ER_EMPTY_QUERY` [#6356](https://github.com/sequelize/sequelize/issues/6356)
@@ -19,7 +24,7 @@
 - [FIXED] Transaction Name too long, transaction savepoints for SQL Server [#6972](https://github.com/sequelize/sequelize/pull/6972)
 - [FIXED] Issue with sync hooks (before/afterInit, before/afterDefine) [#6680](https://github.com/sequelize/sequelize/issues/6680)
 - [FIXED] MSSQL handle large bulk inserts [#6866](https://github.com/sequelize/sequelize/issues/6866)
-- [FIXED] describeTable returns a wrong value for primaryKey [#5756] (https://github.com/sequelize/sequelize/issues/5756)
+- [FIXED] describeTable returns a wrong value for primaryKey [#5756](https://github.com/sequelize/sequelize/issues/5756)
 - [FIXED] MSSQL LIMIT IN UPDATE [#6636](https://github.com/sequelize/sequelize/issues/6636)
 - [FIXED] Custom error message not used for `notNull` validation [#6531](https://github.com/sequelize/sequelize/issues/6531)
 - [FIXED] N:M `through` option naming collisions [#4597](https://github.com/sequelize/sequelize/issues/4597)
@@ -29,16 +34,16 @@
 - [FIXED] Execute queries parallel in findAndCount [#6695](https://github.com/sequelize/sequelize/issues/6695)
 - [FIXED] `restore` now uses `field` from `deletedAt`
 - [FIXED] MSSQL bulkInsertQuery when options and attributes are not passed
-- [FIXED] `DATEONLY` now returns `YYYY-MM-DD` date string [#4858] (https://github.com/sequelize/sequelize/issues/4858)
+- [FIXED] `DATEONLY` now returns `YYYY-MM-DD` date string [#4858](https://github.com/sequelize/sequelize/issues/4858)
 - [FIXED] Issues with `createFunction` and `dropFunction` (PostgresSQL)
-- [ADDED] Optimistic locking support [#6637] (https://github.com/sequelize/sequelize/pull/6637)
+- [ADDED] Optimistic locking support [#6637](https://github.com/sequelize/sequelize/pull/6637)
 - [FIXED] Issue with belongsTo association and foreign keys [#6400](https://github.com/sequelize/sequelize/issues/6400)
-- [FIXED] Issue with query generation in MSSQL, an identifier was not escaped [#6686] (https://github.com/sequelize/sequelize/pull/6686)
+- [FIXED] Issue with query generation in MSSQL, an identifier was not escaped [#6686](https://github.com/sequelize/sequelize/pull/6686)
 - [FIXED] GroupedLimit when foreignKey has a field alias
 - [FIXED] groupedLimit.through.where support
 - [ADDED] `option.silent` for increment and decrement [#6795](https://github.com/sequelize/sequelize/pull/6795)
 - [CHANGED] `now` function allow milliseconds in timestamps on mysql [#6441](https://github.com/sequelize/sequelize/issues/6441)
-- [ADDED] `options.rowFormat` added to Query Generator for MySQL dialect using InnoDB engines [#6824] (https://github.com/sequelize/sequelize/issues/6824)
+- [ADDED] `options.rowFormat` added to Query Generator for MySQL dialect using InnoDB engines [#6824](https://github.com/sequelize/sequelize/issues/6824)
 - [FIXED] `Increment` / `Decrement` properly maps to timestamp fields [#6296](https://github.com/sequelize/sequelize/issues/6296)
 - [FIXED] Issue with overrriding custom methods with association mixins (all association methods are now exposed) [#6682](https://github.com/sequelize/sequelize/issues/6682)
 - [ADDED] Support condition objects in utility functions [#6685](https://github.com/sequelize/sequelize/pull/6685)
@@ -54,12 +59,28 @@
 - [FIXED] previous gave wrong value back [#7189](https://github.com/sequelize/sequelize/pull/7189)
 - [FIXED] Add quotes around column names for unique constraints in sqlite [#4407](https://github.com/sequelize/sequelize/pull/4407)
 - [FIXED] Connection error when fetching OIDs for unspported types in Postgres 8.2 or below [POSTGRES] [#5254](https://github.com/sequelize/sequelize/issues/5254)
+- [FIXED] Expose OptimisticLockError on Sequelize object [#7291](https://github.com/sequelize/sequelize/pull/7291)
+- [FIXED] Deleted paranoid records can be queried in the same second. [#7204](https://github.com/sequelize/sequelize/issues/7204)/[#7332](https://github.com/sequelize/sequelize/pull/7332)
+- [FIXED] `removeAttribute('id')` results in `undefined: null` data value [#7318](https://github.com/sequelize/sequelize/issues/7318)
+- [FIXED] `bulkCreate` now runs in O(N) time instead of O(N^2) time. [#4247](https://github.com/sequelize/sequelize/issues/4247)
+- [FIXED] Passing parameters to model getters [#7404](https://github.com/sequelize/sequelize/issues/7404)
+- [FIXED] Model.validate runs validation hooks by default [#7182](https://github.com/sequelize/sequelize/pull/7182)
+- [ADDED] Added support for associations aliases in orders and groups. [#7425](https://github.com/sequelize/sequelize/issues/7425)
+- [REMOVED] Removes support for `{raw: 'injection goes here'}` for order and group. [#7188](https://github.com/sequelize/sequelize/issues/7188)
+- [FIXED] `showIndex` breaks with newline characters [#7492](https://github.com/sequelize/sequelize/pull/7492)
+- [FIXED] Update or soft delete breaks when querying on `JSON/JSONB` [#7376](https://github.com/sequelize/sequelize/issues/7376) [#7400](https://github.com/sequelize/sequelize/issues/7400) [#7444](https://github.com/sequelize/sequelize/issues/7444)
+- [ADDED] Support for JSON attributes in orders and groups. [#7564](https://github.com/sequelize/sequelize/issues/7564)
+- [REMOVED] Removes support for interpretation of raw properties and values in the where object. [#7568](https://github.com/sequelize/sequelize/issues/7568)
+- [FIXED] Upsert now updates all changed fields by default
 
 ## BC breaks:
+- Model.validate instance method now runs validation hooks by default. Previously you needed to pass { hooks: true }. You can override this behavior by passing { hooks: false }
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 - With `BelongsToMany` relationships `add/set/create` setters now set `through` attributes by passing them as `options.through` (previously second argument was used as `through` attributes, now its considered `options` with `through` being a sub option)
 - `options.order` Now only excepts values with type of array or Sequelize method.  Support for string values (ie `{order: 'name DESC'}`) has been deprecated.
 - `DataTypes.DATE` now uses `DATETIMEOFFSET` instead of `DATETIME2` sql datatype in case of MSSQL to record timezone [#5403](https://github.com/sequelize/sequelize/issues/5403)
+- `DataTypes.DECIMAL` returns string for MySQL and Postgres
+- `{ where: { $raw: "foo = 'bar'" } }` and `{ where: ['foo = ?', ['bar'] }` are no longer suported. Use `.literal` instead
 
 # 4.0.0-2
 - [ADDED] include now supports string as an argument (on top of model/association), string will expand into an association matched literally from Model.associations

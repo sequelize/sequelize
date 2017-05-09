@@ -1,31 +1,30 @@
 'use strict';
 
-/* jshint -W110 */
-var Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , Sequelize = require(__dirname + '/../../../lib/sequelize')
-  , util      = require('util')
-  , _         = require('lodash')
-  , expectsql = Support.expectsql
-  , current   = Support.sequelize
-  , sql       = current.dialect.QueryGenerator;
+const Support   = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Sequelize = require(__dirname + '/../../../lib/sequelize'),
+  util      = require('util'),
+  _         = require('lodash'),
+  expectsql = Support.expectsql,
+  current   = Support.sequelize,
+  sql       = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite(Support.getTestDialectTeaser('SQL'), function() {
-  suite('generateJoin', function () {
-    var testsql = function (path, options, expectation) {
+suite(Support.getTestDialectTeaser('SQL'), () => {
+  suite('generateJoin', () => {
+    const testsql = function(path, options, expectation) {
 
-      let name = `${path}, ${util.inspect(options, { depth: 10 })}`;
-      
+      const name = `${path}, ${util.inspect(options, { depth: 10 })}`;
+
       Sequelize.Model._conformOptions(options);
-      options = Sequelize.Model._validateIncludedElements(options);   
+      options = Sequelize.Model._validateIncludedElements(options);
 
-      let include = _.at(options, path)[0];
+      const include = _.at(options, path)[0];
 
-      test(name, function () {
+      test(name, () => {
 
-        let join = sql.generateJoin(include,
+        const join = sql.generateJoin(include,
           {
             options,
             subQuery: options.subQuery === undefined ? options.limit && options.hasMultiAssociation : options.subQuery
@@ -36,7 +35,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       });
     };
 
-    var User = current.define('User', {
+    const User = current.define('User', {
       id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -50,7 +49,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     }, {
       tableName: 'user'
     });
-    var Task = current.define('Task', {
+    const Task = current.define('Task', {
       title: Sequelize.STRING,
       userId: {
         type: DataTypes.INTEGER,
@@ -60,7 +59,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       tableName: 'task'
     });
 
-    var Company = current.define('Company', {
+    const Company = current.define('Company', {
       name: Sequelize.STRING,
       ownerId: {
         type: Sequelize.INTEGER,
@@ -73,7 +72,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
       tableName: 'company'
     });
 
-    var Profession = current.define('Profession', {
+    const Profession = current.define('Profession', {
       name: Sequelize.STRING
     }, {
       tableName: 'profession'
@@ -91,7 +90,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
      */
 
     testsql(
-      "include[0]",
+      'include[0]',
       {
         model: User,
         include: [
@@ -105,7 +104,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0]",
+      'include[0]',
       {
         model: User,
         include: [
@@ -125,7 +124,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0].include[0]",
+      'include[0].include[0]',
       {
         model: Profession,
         include: [
@@ -145,7 +144,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0]",
+      'include[0]',
       {
         model: User,
         subQuery: true,
@@ -160,7 +159,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0]",
+      'include[0]',
       {
         model: User,
         subQuery: true,
@@ -178,7 +177,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0].include[0]",
+      'include[0].include[0]',
       {
         subQuery: true,
         model: User,
@@ -198,7 +197,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0].include[0].include[0]",
+      'include[0].include[0].include[0]',
       {
         model: User,
         subQuery: true,
@@ -221,14 +220,14 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0].include[0]",
+      'include[0].include[0]',
       {
         model: User,
         subQuery: true,
         include: [
           {
-            association: User.Company, 
-            required: true, 
+            association: User.Company,
+            required: true,
             include: [
               Company.Owner
             ]
@@ -242,7 +241,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0]",
+      'include[0]',
       {
         model: User,
         subQuery: true,
@@ -261,7 +260,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     //  */
 
     testsql(
-      "include[0]",
+      'include[0]',
       {
         model: User,
         include: [
@@ -275,7 +274,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0]",
+      'include[0]',
       {
         model: User,
         subQuery: true,
@@ -291,7 +290,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0]",
+      'include[0]',
       {
         model: User,
         include: [
@@ -311,7 +310,7 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0]",
+      'include[0]',
       {
         model: User,
         include: [
@@ -327,13 +326,13 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
     );
 
     testsql(
-      "include[0].include[0]",
+      'include[0].include[0]',
       {
         subQuery: true,
         model: User,
         include: [
           {
-            association: User.Company, 
+            association: User.Company,
             include: [
               {
                 association: Company.Owner,
