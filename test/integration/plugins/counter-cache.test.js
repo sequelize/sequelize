@@ -41,6 +41,72 @@ describe(Support.getTestDialectTeaser('CounterCache'), function() {
     });
   });
 
+  describe('supports scoping on non-atomic relations', function() {
+    var User, Group;
+
+    beforeEach(function() {
+      User  = this.sequelize.define('User',   {});
+      Group = this.sequelize.define('Group',  {
+        exclusive: {
+          type:         Sequelize.BOOLEAN,
+          defaultValue: false
+        }
+      });
+
+      User.hasMany(Group, { counterCache: true, atomic: false });
+      User.hasMany(Group, {
+        as: 'exclusiveGroups',
+        counterCache: {
+          as: 'numExclusiveGroups',
+          atomic: false
+        },
+        scope: {
+          exclusive: true
+        }
+      });
+
+      return this.sequelize.sync({force: true});
+    });
+
+    it('has numExclusiveGroups property', function() {
+      expect(Object.keys(User.attributes)).to.contain('numExclusiveGroups');
+    });
+
+    it('has countGroups property', function() {
+      expect(Object.keys(User.attributes)).to.contain('countGroups');
+    });
+
+    it('it does not increment numExclusiveGroups property if group is not exclusive', function() {
+      return User.create()
+        .then(function(user) {
+          expect(user.numExclusiveGroups, 'starts at 0').to.equal(0);
+          return user.createGroup().then(function(){ return user; });
+        })
+        .then(function(user) {
+          return User.findById(user.id);
+        })
+        .then(function(user) {
+          expect(user.numExclusiveGroups, 'ends at 0').to.equal(0);
+        });
+    });
+
+    it('it increments both if group is exclusive', function() {
+      return User.create()
+        .then(function(user) {
+          expect(user.numExclusiveGroups, 'starts at 0').to.equal(0);
+          return user.createGroup({exclusive: true}).then(function(){ return user; });
+        })
+        .then(function(user) {
+          return User.findById(user.id);
+        })
+        .then(function(user) {
+          expect(user.countGroups, 'countGroups ends at 1').to.equal(1);
+          expect(user.numExclusiveGroups, 'numExclusiveGroups ends at 1').to.equal(1);
+        });
+    });
+
+  });
+
   describe('hooks', function() {
     var User, Group;
 
