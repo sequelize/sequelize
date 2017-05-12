@@ -76,6 +76,36 @@ if (dialect === 'mysql') {
         });
     });
 
+    it('should work with handleDisconnects before release', () => {
+      const sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}});
+      const cm = sequelize.connectionManager;
+      let conn;
+
+      return sequelize
+        .sync()
+        .then(() => cm.getConnection())
+        .then((connection) => {
+          // Save current connection
+          conn = connection;
+          // simulate a unexpected end from MySQL2
+          connection._protocolError = new Error('Connection lost: The server closed the connection.');
+          connection._protocolError.fatal = true;
+          connection._protocolError.code = 'PROTOCOL_CONNECTION_LOST';
+          connection._notifyError(connection._protocolError);
+        })
+        .then(() => cm.releaseConnection(conn))
+        .then(() => {
+          // Get next available connection
+          return cm.getConnection();
+        })
+        .then((connection) => {
+          // Old threadId should be different from current new one
+          expect(conn.threadId).to.not.be.equal(connection.threadId);
+          expect(cm.validate(conn)).to.not.be.ok;
+          return cm.releaseConnection(connection);
+        });
+    });
+
     it('should work with handleDisconnects', () => {
       const sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}});
       const cm = sequelize.connectionManager;
@@ -87,11 +117,14 @@ if (dialect === 'mysql') {
         .then(connection => {
           // Save current connection
           conn = connection;
-          // simulate a unexpected end
-          connection.close();
+          return cm.releaseConnection(conn)
         })
-        .then(() => cm.releaseConnection(conn))
         .then(() => {
+          // simulate a unexpected end from MySQL2 AFTER releasing the connection
+          conn._protocolError = new Error('Connection lost: The server closed the connection.');
+          conn._protocolError.fatal = true;
+          conn._protocolError.code = 'PROTOCOL_CONNECTION_LOST';
+          conn._notifyError(conn._protocolError);
           // Get next available connection
           return cm.getConnection();
         })
