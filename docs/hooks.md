@@ -248,9 +248,10 @@ If you use `Model.bulkCreate(...)` with the `updatesOnDuplicate` option, changes
 ```js
 // Bulk updating existing users with updatesOnDuplicate option
 Users.bulkCreate([
-  { id: 1, isMemeber: true},
-  { id: 2, isMember: false},
-  { updatesOnDuplicate: ['isMember']
+  { id: 1, isMemeber: true },
+  { id: 2, isMember: false }
+], {
+  updatesOnDuplicate: ['isMember']
 });
 
 User.beforeBulkCreate((users, options) => {
