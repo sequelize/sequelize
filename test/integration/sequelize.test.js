@@ -568,7 +568,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('dot separated attributes when doing a raw query without nest', function() {
-      const tickChar = (dialect === 'postgres' || dialect === 'mssql' || dialect === 'oracle') ? '"' : '`'
+      const tickChar = (dialect === 'postgres' || dialect === 'mssql' || dialect === 'oracle') ? '"' : '`',
         sql = 'select 1 as ' + Sequelize.Utils.addTicks('foo.bar.baz', tickChar);
 
       return expect(this.sequelize.query(formatQuery(sql), { raw: true, nest: false }).get(0)).to.eventually.deep.equal([{ 'foo.bar.baz': 1 }]);

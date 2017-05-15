@@ -182,8 +182,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to handle false/true values just fine...', function() {
-        const User = this.User,
-        escapeChar = '`';
+        const User = this.User;
+        let escapeChar = '`';
         
         if(dialect === 'postgres' || dialect === 'mssql'){
           escapeChar = '"';
@@ -212,13 +212,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           Passports = this.sequelize.define('Passports', {
             isActive: Sequelize.BOOLEAN
           });
-
-        if(dialect === 'postgres' || dialect === 'mssql'){
-          escapeChar = '"';
-        } else if (dialect === 'oracle') {
-          //Oracle doesn't need aBool to be escaped
-          escapeChar = '';
-        }
 
         User.hasMany(Passports);
         Passports.belongsTo(User);

@@ -38,11 +38,27 @@ module.exports = {
   //   }
   // },
 
-    mssql: mssqlConfig || {
+  /*mssql: mssqlConfig || {
     database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || 'CELDATA7',
     username: process.env.SEQ_MSSQL_USER || process.env.SEQ_USER || 'sa',
     password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || 'aqw123zsx',
     host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || 'vm2008sql2012st',
+    port:     process.env.SEQ_MSSQL_PORT || process.env.SEQ_PORT || 1433,
+    dialectOptions: {
+      // big insert queries need a while
+      requestTimeout: 60000
+    },
+    pool:     {
+      max: process.env.SEQ_MSSQL_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
+      idle: process.env.SEQ_MSSQL_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
+    }
+  },*/
+
+  mssql: mssqlConfig || {
+    database: process.env.SEQ_MSSQL_DB   || process.env.SEQ_DB   || 'DEVRD',
+    username: process.env.SEQ_MSSQL_USER || process.env.SEQ_USER || 'devrd',
+    password: process.env.SEQ_MSSQL_PW   || process.env.SEQ_PW   || 'devrd',
+    host:     process.env.SEQ_MSSQL_HOST || process.env.SEQ_HOST || 'vm2000sqlserver',
     port:     process.env.SEQ_MSSQL_PORT || process.env.SEQ_PORT || 1433,
     dialectOptions: {
       // big insert queries need a while
@@ -70,14 +86,26 @@ module.exports = {
   sqlite: {
   },
 
-  oracle: {
+ /* oracle: {
     username : process.env.NODE_ORACLEDB_USER || 'sequelize',
     password : process.env.NODE_ORACLEDB_PASSWORD || 'sequelize',
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
     database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'xe.oracle.docker',
-    host : process.env.NODE_ORACLEDB_HOST || 'vmugit.kimdomain.local',
+    host : process.env.NODE_ORACLEDB_HOST || 'localhost',
     dialectOptions : {stmtCacheSize:0},
     port : process.env.NODE_ORACLEDB_PORT || 1521,
+    // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
+    externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
+  },*/
+
+  oracle: {
+    username : process.env.NODE_ORACLEDB_USER || 'sequelize',
+    password : process.env.NODE_ORACLEDB_PASSWORD || 'sequelize',
+    // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
+    database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'xe',
+    host : process.env.NODE_ORACLEDB_HOST || 'localhost',
+    dialectOptions : {stmtCacheSize:0},
+    port : process.env.NODE_ORACLEDB_PORT || 49161,
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
     externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
   },

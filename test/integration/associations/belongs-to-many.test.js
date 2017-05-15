@@ -745,8 +745,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     }
 
     it('supports setting through table attributes', function() {
-      const User = this.sequelize.define('user', {}),
-        Group = this.sequelize.define('group', {}),
+      const User = this.sequelize.define('User', {}),
+        Group = this.sequelize.define('Group', {}),
         UserGroups = this.sequelize.define('user_groups', {
           isAdmin: Sequelize.BOOLEAN
         });
@@ -766,11 +766,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         );
       }).then((userGroups) => {
         userGroups.sort((a, b) => {
-          return a.userId < b.userId ? - 1 : 1;
+          return a.UserId < b.UserId ? - 1 : 1;
         });
-        expect(userGroups[0].userId).to.equal(1);
+        expect(userGroups[0].UserId).to.equal(1);
         expect(userGroups[0].isAdmin).to.be.ok;
-        expect(userGroups[1].userId).to.equal(2);
+        expect(userGroups[1].UserId).to.equal(2);
         expect(userGroups[1].isAdmin).not.to.be.ok;
       });
     });
@@ -1427,6 +1427,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         if (error.message.indexOf('ORA-00972') === -1) {
           throw error;
         }
+        return true;
       });
     });
   });
@@ -1490,8 +1491,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       beforeEach(function() {
         const self = this;
 
-        return self.sequelize.queryInterface.createTable('users', { id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, username: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE }).then(() => {
-          return self.sequelize.queryInterface.createTable('tasks', { id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, title: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE });
+        return self.sequelize.queryInterface.createTable('Users', { id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, username: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE }).then(() => {
+          return self.sequelize.queryInterface.createTable('Tasks', { id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true }, title: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE });
         }).then(() => {
           return self.sequelize.queryInterface.createTable('users_tasks', { TaskId: DataTypes.INTEGER, UserId: DataTypes.INTEGER, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE });
         });

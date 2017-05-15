@@ -175,8 +175,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           const id = metadata.id;
           const username = metadata.username;
           const city = metadata.city;
-          const isAdmin = dialect === 'oracle' ? metadata.isadmin : metadata.isAdmin;
-          const enumVals = dialect === 'oracle' ? metadata.enumvals : metadata.enumVals;
+          const isAdmin = metadata.isAdmin;
+          const enumVals = metadata.enumVals;
 
           expect(id.primaryKey).to.be.ok;
 

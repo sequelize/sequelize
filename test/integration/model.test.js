@@ -306,7 +306,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC'}]);
           } else if (dialect === 'oracle') {
             expect(indexes).to.have.length(2);
-            idxPrimary = indexes[0];
+            let idxPrimary = indexes[0];
             idxUnique = indexes[1];
             expect(idxUnique.primary).to.equal(false);
             expect(idxUnique.unique).to.equal(true);
