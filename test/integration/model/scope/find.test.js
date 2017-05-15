@@ -57,14 +57,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able use where in scope', function() {
-      return this.ScopeMe.scope({where: { parent_id: 2 }}).findAll().then((users) => {
+      return this.ScopeMe.scope({where: { parent_id: 2 }}).findAll().then(users => {
         expect(users).to.have.length(1);
         expect(users[0].username).to.equal('tobi');
       });
     });
 
     it('should be able to combine scope and findAll where clauses', function() {
-      return this.ScopeMe.scope({where: { parent_id: 1 }}).findAll({ where: {access_level: 3}}).then((users) => {
+      return this.ScopeMe.scope({where: { parent_id: 1 }}).findAll({ where: {access_level: 3}}).then(users => {
         expect(users).to.have.length(2);
         expect(['tony', 'fred'].indexOf(users[0].username) !== -1).to.be.true;
         expect(['tony', 'fred'].indexOf(users[1].username) !== -1).to.be.true;
@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to use a defaultScope if declared', function() {
-      return this.ScopeMe.all().then((users) => {
+      return this.ScopeMe.all().then(users => {
         expect(users).to.have.length(2);
         expect([10, 5].indexOf(users[0].access_level) !== -1).to.be.true;
         expect([10, 5].indexOf(users[1].access_level) !== -1).to.be.true;
@@ -82,7 +82,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to handle $and in scopes', function() {
-      return this.ScopeMe.scope('andScope').findAll().then((users) => {
+      return this.ScopeMe.scope('andScope').findAll().then(users => {
         expect(users).to.have.length(1);
         expect(users[0].username).to.equal('tony');
       });
@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(users).to.have.length(1);
 
           return this.ScopeMe.findAll();
-        }).then((users) => {
+        }).then(users => {
           // This should not have other_value: 10
           expect(users).to.have.length(2);
         });
@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(users).to.have.length(1);
 
           return this.ScopeMe.scope('highValue').findAll();
-        }).then((users) => {
+        }).then(users => {
           // This should not have other_value: 10
           expect(users).to.have.length(2);
         });
@@ -114,7 +114,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should have no problem performing findOrCreate', function() {
-      return this.ScopeMe.findOrCreate({ where: {username: 'fake'}}).spread((user) => {
+      return this.ScopeMe.findOrCreate({ where: {username: 'fake'}}).spread(user => {
         expect(user.username).to.equal('fake');
       });
     });

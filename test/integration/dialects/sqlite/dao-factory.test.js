@@ -24,7 +24,7 @@ if (dialect === 'sqlite') {
       return this.User.sync({ force: true });
     });
 
-    storages.forEach((storage) => {
+    storages.forEach(storage => {
       describe('with storage "' + storage + '"', () => {
         after(() => {
           if (storage === dbFile) {
@@ -35,13 +35,13 @@ if (dialect === 'sqlite') {
         describe('create', () => {
           it('creates a table entry', function() {
             const self = this;
-            return this.User.create({ age: 21, name: 'John Wayne', bio: 'noot noot' }).then((user) => {
+            return this.User.create({ age: 21, name: 'John Wayne', bio: 'noot noot' }).then(user => {
               expect(user.age).to.equal(21);
               expect(user.name).to.equal('John Wayne');
               expect(user.bio).to.equal('noot noot');
 
-              return self.User.findAll().then((users) => {
-                const usernames = users.map((user) => {
+              return self.User.findAll().then(users => {
+                const usernames = users.map(user => {
                   return user.name;
                 });
                 expect(usernames).to.contain('John Wayne');
@@ -61,7 +61,7 @@ if (dialect === 'sqlite') {
               return Person.create({
                 name: 'John Doe',
                 options
-              }).then((people) => {
+              }).then(people => {
                 expect(people.options).to.deep.equal(options);
               });
             });
@@ -77,7 +77,7 @@ if (dialect === 'sqlite') {
               return Person.create({
                 name: 'John Doe',
                 has_swag: true
-              }).then((people) => {
+              }).then(people => {
                 expect(people.has_swag).to.be.ok;
               });
             });
@@ -93,7 +93,7 @@ if (dialect === 'sqlite') {
               return Person.create({
                 name: 'John Doe',
                 has_swag: false
-              }).then((people) => {
+              }).then(people => {
                 expect(people.has_swag).to.not.be.ok;
               });
             });
@@ -106,13 +106,13 @@ if (dialect === 'sqlite') {
           });
 
           it('finds normal lookups', function() {
-            return this.User.find({ where: { name: 'user' } }).then((user) => {
+            return this.User.find({ where: { name: 'user' } }).then(user => {
               expect(user.name).to.equal('user');
             });
           });
 
           it.skip('should make aliased attributes available', function() {
-            return this.User.find({ where: { name: 'user' }, attributes: ['id', ['name', 'username']] }).then((user) => {
+            return this.User.find({ where: { name: 'user' }, attributes: ['id', ['name', 'username']] }).then(user => {
               expect(user.username).to.equal('user');
             });
           });
@@ -127,7 +127,7 @@ if (dialect === 'sqlite') {
           });
 
           it('should return all users', function() {
-            return this.User.findAll().then((users) => {
+            return this.User.findAll().then(users => {
               expect(users).to.have.length(2);
             });
           });
@@ -143,7 +143,7 @@ if (dialect === 'sqlite') {
             }
 
             return this.User.bulkCreate(users).then(() => {
-              return self.User.min('age').then((min) => {
+              return self.User.min('age').then(min => {
                 expect(min).to.equal(2);
               });
             });
@@ -160,7 +160,7 @@ if (dialect === 'sqlite') {
             }
 
             return this.User.bulkCreate(users).then(() => {
-              return self.User.max('age').then((min) => {
+              return self.User.max('age').then(min => {
                 expect(min).to.equal(5);
               });
             });

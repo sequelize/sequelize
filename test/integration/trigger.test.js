@@ -48,7 +48,7 @@ if (current.dialect.supports.tmpTableTrigger) {
       it('should return output rows after instance update', () => {
         return User.create({
           username: 'triggertest'
-        }).then((user) => {
+        }).then(user => {
           user.username = 'usernamechanged';
           return user.save();
         })
@@ -60,7 +60,7 @@ if (current.dialect.supports.tmpTableTrigger) {
       it('should return output rows after Model update', () => {
         return User.create({
           username: 'triggertest'
-        }).then((user) => {
+        }).then(user => {
           return User.update({
             username: 'usernamechanged'
           }, {
@@ -77,7 +77,7 @@ if (current.dialect.supports.tmpTableTrigger) {
       it('should successfully delete with a trigger on the table', () => {
         return User.create({
           username: 'triggertest'
-        }).then((user) => {
+        }).then(user => {
           return user.destroy();
         }).then(() => {
           return expect(User.find({username: 'triggertest'})).to.eventually.be.null;

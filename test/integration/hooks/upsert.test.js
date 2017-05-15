@@ -78,7 +78,7 @@ if (Support.sequelize.dialect.supports.upserts) {
           let hookCalled = 0;
           const valuesOriginal = { mood: 'sad', username: 'leafninja' };
 
-          this.User.beforeUpsert((values) => {
+          this.User.beforeUpsert(values => {
             values.mood = 'happy';
             hookCalled++;
           });

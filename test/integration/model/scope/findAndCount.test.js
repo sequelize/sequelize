@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should apply defaultScope', function() {
-        return this.ScopeMe.findAndCount().then((result) => {
+        return this.ScopeMe.findAndCount().then(result => {
           expect(result.count).to.equal(2);
           expect(result.rows.length).to.equal(2);
         });
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to override default scope', function() {
         return this.ScopeMe.findAndCount({ where: { access_level: { gt: 5 }}})
-          .then((result) => {
+          .then(result => {
             expect(result.count).to.equal(1);
             expect(result.rows.length).to.equal(1);
           });
@@ -67,7 +67,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to unscope', function() {
         return this.ScopeMe.unscoped().findAndCount({ limit: 1 })
-          .then((result) => {
+          .then(result => {
             expect(result.count).to.equal(4);
             expect(result.rows.length).to.equal(1);
           });
@@ -75,21 +75,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to apply other scopes', function() {
         return this.ScopeMe.scope('lowAccess').findAndCount()
-          .then((result) => {
+          .then(result => {
             expect(result.count).to.equal(3);
           });
       });
 
       it('should be able to merge scopes with where', function() {
         return this.ScopeMe.scope('lowAccess')
-          .findAndCount({ where: { username: 'dan'}}).then((result) => {
+          .findAndCount({ where: { username: 'dan'}}).then(result => {
             expect(result.count).to.equal(1);
           });
       });
 
       it('should ignore the order option if it is found within the scope', function() {
         return this.ScopeMe.scope('withOrder').findAndCount()
-          .then((result) => {
+          .then(result => {
             expect(result.count).to.equal(4);
           });
       });

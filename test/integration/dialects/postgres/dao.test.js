@@ -959,19 +959,19 @@ if (dialect.match(/^postgres/)) {
           .then(() => {
             return Promise.all([
               this.Student.findById(1)
-                .then((Harry) => {
+                .then(Harry => {
                   return Harry.setClasses([1, 2, 3]);
                 }),
               this.Student.findById(2)
-                .then((Ron) => {
+                .then(Ron => {
                   return Ron.setClasses([1, 2]);
                 }),
               this.Student.findById(3)
-                .then((Ginny) => {
+                .then(Ginny => {
                   return Ginny.setClasses([2, 3]);
                 }),
               this.Student.findById(4)
-                .then((Hermione) => {
+                .then(Hermione => {
                   return Hermione.setClasses([1, 2, 3]);
                 })
             ]);
@@ -995,7 +995,7 @@ if (dialect.match(/^postgres/)) {
               ]
             });
           })
-          .then((professors) => {
+          .then(professors => {
             expect(professors.length).to.eql(2);
             expect(professors[0].fullName).to.eql('Albus Dumbledore');
             expect(professors[0].Classes.length).to.eql(1);
