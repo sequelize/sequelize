@@ -15,7 +15,7 @@ if (dialect.match(/^postgres/)) {
 
       const tzTable = sequelize.define('tz_table', { foo: DataTypes.STRING });
       return tzTable.sync({force: true}).then(() => {
-        return tzTable.create({foo: 'test'}).then((row) => {
+        return tzTable.create({foo: 'test'}).then(row => {
           expect(row).to.be.not.null;
         });
       });

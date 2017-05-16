@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           return article.setLabels([label], { transaction: t });
         }).then(function() {
           return this.Article.all({ transaction: this.t });
-        }).then((articles) => {
+        }).then(articles => {
           return articles[0].getLabels();
         }).then(function(labels) {
           expect(labels).to.have.length(0);
@@ -72,31 +72,31 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     }
 
     it('gets all associated objects with all fields', function() {
-      return this.User.find({where: {username: 'John'}}).then((john) => {
+      return this.User.find({where: {username: 'John'}}).then(john => {
         return john.getTasks();
-      }).then((tasks) => {
-        tasks[0].attributes.forEach((attr) => {
+      }).then(tasks => {
+        tasks[0].attributes.forEach(attr => {
           expect(tasks[0]).to.have.property(attr);
         });
       });
     });
 
     it('gets all associated objects when no options are passed', function() {
-      return this.User.find({where: {username: 'John'}}).then((john) => {
+      return this.User.find({where: {username: 'John'}}).then(john => {
         return john.getTasks();
-      }).then((tasks) => {
+      }).then(tasks => {
         expect(tasks).to.have.length(2);
       });
     });
 
     it('only get objects that fulfill the options', function() {
-      return this.User.find({where: {username: 'John'}}).then((john) => {
+      return this.User.find({where: {username: 'John'}}).then(john => {
         return john.getTasks({
           where: {
             active: true
           }
         });
-      }).then((tasks) => {
+      }).then(tasks => {
         expect(tasks).to.have.length(1);
       });
     });
@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         where: {
           username: 'John'
         }
-      }).then((john) => {
+      }).then(john => {
         return john.getTasks({
           where: {
             title: {
@@ -114,7 +114,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             }
           }
         });
-      }).then((tasks) => {
+      }).then(tasks => {
         expect(tasks).to.have.length(1);
       });
     });
@@ -126,7 +126,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         where: {
           username: 'John'
         }
-      }).then((john) => {
+      }).then(john => {
         return john.getTasks({
           where: {
             id: {
@@ -134,7 +134,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             }
           }
         });
-      }).then((tasks) => {
+      }).then(tasks => {
         expect(tasks).to.have.length(1);
       });
     });
@@ -143,16 +143,16 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   //Oracle doesn't support column names non quoted by "
   if (current.dialect.name !== 'oracle') {
     it('only gets objects that fulfill options with a formatted value', function() {
-      return this.User.find({where: {username: 'John'}}).then((john) => {
+      return this.User.find({where: {username: 'John'}}).then(john => {
         return john.getTasks({where: {active: true}});
-      }).then((tasks) => {
+      }).then(tasks => {
         expect(tasks).to.have.length(1);
       });
     });
   }
 
     it('get associated objects with an eager load', function() {
-      return this.User.find({where: {username: 'John'}, include: [this.Task]}).then((john) => {
+      return this.User.find({where: {username: 'John'}, include: [this.Task]}).then(john => {
         expect(john.Tasks).to.have.length(2);
       });
     });
@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             ]}
           ]
         });
-      }).then((john) => {
+      }).then(john => {
         expect(john.Tasks).to.have.length(2);
       });
     });
@@ -214,7 +214,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return this.u.addProject(p, { through: { status: 'active', data: 42 }});
       }).then(function() {
         return this.u.getProjects();
-      }).then((projects) => {
+      }).then(projects => {
         expect(projects).to.have.length(1);
         const project = projects[0];
         expect(project.ProjectUsers).to.be.ok;
@@ -264,7 +264,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }).then(() => {
           return User.findOne({
             where: {}
-          }).then((user) => {
+          }).then(user => {
             return user.getGroups();
           });
         });
@@ -508,12 +508,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       return Promise.join(
-        this.Task.create().then((task) => {
+        this.Task.create().then(task => {
           return user.addTask(task, {
             through: { started: true }
           });
         }),
-        this.Task.create().then((task) => {
+        this.Task.create().then(task => {
           return user.addTask(task, {
             through: { started: true }
           });
@@ -548,7 +548,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return this.task.setUsers(null);
       }).then(function() {
         return this.task.getUsers();
-      }).then((_users) => {
+      }).then(_users => {
         expect(_users).to.have.length(0);
       });
     });
@@ -576,7 +576,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return this.task.setUsers([this.user1, this.user2]);
       }).then(function() {
         return this.task.getUsers();
-      }).then((_users) => {
+      }).then(_users => {
         expect(_users).to.have.length(2);
       });
     });
@@ -601,9 +601,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         ]);
       }).spread((group, member) => {
         return group.addMember(member).return (group);
-      }).then((group) => {
+      }).then(group => {
         return group.getMembers();
-      }).then((members) => {
+      }).then(members => {
         expect(members).to.be.instanceof(Array);
         expect(members).to.have.length(1);
         expect(members[0].member_id).to.equal(10);
@@ -632,7 +632,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return this.user.setTasks([this.task2.id]);
       }).then(function() {
         return this.user.getTasks();
-      }).then((tasks) => {
+      }).then(tasks => {
         expect(tasks).to.have.length(1);
         expect(tasks[0].title).to.equal('wat');
       });
@@ -683,7 +683,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return this.comment.setTags([this.tag]);
       }).then(function() {
         return this.comment.getTags();
-      }).then((_tags) => {
+      }).then(_tags => {
         expect(_tags).to.have.length(1);
       });
     });
@@ -706,7 +706,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(createdUser).to.be.instanceof(User);
         expect(createdUser.username).to.equal('foo');
         return this.task.getUsers();
-      }).then((_users) => {
+      }).then(_users => {
         expect(_users).to.have.length(1);
       });
     });
@@ -756,7 +756,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         return Group.create({});
-      }).then((group) => {
+      }).then(group => {
         return Promise.join(
           group.createUser({ id: 1 }, { through: {isAdmin: true }}),
           group.createUser({ id: 2 }, { through: {isAdmin: false }}),
@@ -764,7 +764,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             return UserGroups.findAll();
           }
         );
-      }).then((userGroups) => {
+      }).then(userGroups => {
         userGroups.sort((a, b) => {
           return a.UserId < b.UserId ? - 1 : 1;
         });
@@ -791,7 +791,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(createdUser).to.be.instanceof(User);
         expect(createdUser.username).to.equal('foo');
         return this.task.getUsers();
-      }).then((_users) => {
+      }).then(_users => {
         expect(_users).to.have.length(1);
       });
     });
@@ -816,12 +816,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           user.addTask(task1),
           user.addTask([task2])
         ]).return (user);
-      }).then((user) => {
+      }).then(user => {
         return user.getTasks();
-      }).then((tasks) => {
+      }).then(tasks => {
         expect(tasks).to.have.length(2);
-        expect(_.find(tasks, (item) => { return item.title === 'get started'; })).to.be.ok;
-        expect(_.find(tasks, (item) => { return item.title === 'get done'; })).to.be.ok;
+        expect(_.find(tasks, item => { return item.title === 'get started'; })).to.be.ok;
+        expect(_.find(tasks, item => { return item.title === 'get done'; })).to.be.ok;
       });
     });
 
@@ -912,9 +912,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         ]);
       }).spread((user, task) => {
         return user.addTask(task.id).return (user);
-      }).then((user) => {
+      }).then(user => {
         return user.getTasks();
-      }).then((tasks) => {
+      }).then(tasks => {
         expect(tasks[0].title).to.equal('get started');
       });
     });
@@ -972,12 +972,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           user.addTasks(task1),
           user.addTasks([task2])
         ]).return (user);
-      }).then((user) => {
+      }).then(user => {
         return user.getTasks();
-      }).then((tasks) => {
+      }).then(tasks => {
         expect(tasks).to.have.length(2);
-        expect(_.find(tasks, (item) => { return item.title === 'get started'; })).to.be.ok;
-        expect(_.find(tasks, (item) => { return item.title === 'get done'; })).to.be.ok;
+        expect(_.find(tasks, item => { return item.title === 'get started'; })).to.be.ok;
+        expect(_.find(tasks, item => { return item.title === 'get done'; })).to.be.ok;
       });
     });
 
@@ -1017,7 +1017,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           ]);
         }).then(function() {
           return this.task.getUsers();
-        }).then((users) => {
+        }).then(users => {
           expect(users).to.have.length(3);
         });
       });
@@ -1110,7 +1110,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         this.Task.create({ title: 'task2' })
       ]).spread((user, task1, task2) => {
         return user.setTasks([task1, task2]).return (user);
-      }).then((user) => {
+      }).then(user => {
         return user.setTasks(null, {
           logging: spy
         });
@@ -1177,7 +1177,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(ParanoidUser.options.paranoid).to.be.ok;
       expect(ParanoidTask.options.paranoid).to.be.ok;
 
-      _.forEach(ParanoidUser.associations, (association) => {
+      _.forEach(ParanoidUser.associations, association => {
         expect(association.through.model.options.paranoid).not.to.be.ok;
       });
     });
@@ -1290,7 +1290,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return user.addProjects([project1, project2], {
           logging: spy
         }).return (user);
-      }).then((user) => {
+      }).then(user => {
         expect(spy).to.have.been.calledTwice;
         spy.reset();
         return Promise.join(
@@ -1304,12 +1304,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const project = projects[0];
         expect(project).to.be.ok;
         return project.destroy().return (user);
-      }).then((user) => {
+      }).then(user => {
         return self.User.findOne({
           where: { id: user.id},
           include: [{model: self.Project, as: 'Projects'}]
         });
-      }).then((user) => {
+      }).then(user => {
         const projects = user.Projects,
           project = projects[0];
 
@@ -1336,13 +1336,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         self.user = user;
         self.project = project;
         return user.addProject(project, { logging: spy }).return (user);
-      }).then((user) => {
+      }).then(user => {
         expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for INSERT
         spy.reset();
         return user.getProjects({
           logging: spy
         });
-      }).then((projects) => {
+      }).then(projects => {
         const project = projects[0];
         expect(spy.calledOnce).to.be.ok;
         spy.reset();
@@ -1396,7 +1396,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return user.addProject(project).then(() => {
           return group.addUser(user).return (group);
         });
-      }).then((group) => {
+      }).then(group => {
         // get the group and include both the users in the group and their project's
         return self.Group.findAll({
           where: {id: group.id},
@@ -1410,7 +1410,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             }
           ]
         });
-      }).then((groups) => {
+      }).then(groups => {
         const group = groups[0];
         expect(group).to.be.ok;
 
@@ -1481,7 +1481,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(Object.keys(this.UserTasks.primaryKeys)).to.deep.equal(['id']);
       expect(Object.keys(this.UserTasks2.primaryKeys)).to.deep.equal(['userTasksId']);
 
-      _.each([this.UserTasks, this.UserTasks2], (model) => {
+      _.each([this.UserTasks, this.UserTasks2], model => {
         fk = Object.keys(model.options.uniqueKeys)[0];
         expect(model.options.uniqueKeys[fk].fields.sort()).to.deep.equal(['TaskId', 'UserId']);
       });
@@ -1511,9 +1511,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           this.Task.create({title: 'foo'})
         ]).spread((user, task) => {
           return user.addTask(task).return (user);
-        }).then((user) => {
+        }).then(user => {
           return user.setTasks(null);
-        }).then((result) => {
+        }).then(result => {
           expect(result).to.be.ok;
         });
       });
@@ -1542,9 +1542,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           this.Project.create()
         ]).spread((user, project) => {
           return user.addProject(project, { through: { status: 'active', data: 42 }}).return (user);
-        }).then((user) => {
+        }).then(user => {
           return user.getProjects();
-        }).then((projects) => {
+        }).then(projects => {
           const project = projects[0];
 
           expect(project.UserProjects).to.be.ok;
@@ -1560,9 +1560,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           this.Project.create()
         ]).spread((user, project) => {
           return user.addProject(project, { through: { status: 'active', data: 42 }}).return (user);
-        }).then((user) => {
+        }).then(user => {
           return user.getProjects({ joinTableAttributes: ['status']});
-        }).then((projects) => {
+        }).then(projects => {
           const project = projects[0];
 
           expect(project.UserProjects).to.be.ok;
@@ -1587,7 +1587,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             return u.addProject(p);
           }).then(function() {
             return this.UserProjects.find({ where: { UserId: this.u.id, ProjectId: this.p.id }});
-          }).then((up) => {
+          }).then(up => {
             expect(up.status).to.equal('active');
           });
         });
@@ -1603,7 +1603,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             return u.addProject(p, { through: { status: 'active' }});
           }).then(function() {
             return this.UserProjects.findOne({ where: { UserId: this.u.id, ProjectId: this.p.id }});
-          }).then((up) => {
+          }).then(up => {
             expect(up.status).to.equal('active');
           });
         });
@@ -1724,7 +1724,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       describe('query with through.where', () => {
         it('should support query the through model', function() {
-          return this.User.create().then((user) => {
+          return this.User.create().then(user => {
             return Promise.all([
               user.createProject({}, { through: { status: 'active', data: 1 }}),
               user.createProject({}, { through: { status: 'inactive', data: 2 }}),
@@ -1769,7 +1769,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           }).then(() => {
             return worker.getTasks();
           });
-        }).then((tasks) => {
+        }).then(tasks => {
           expect(tasks.length).to.equal(1);
         });
       });
@@ -1799,7 +1799,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           }).then(() => {
             return worker.getTasks();
           });
-        }).then((tasks) => {
+        }).then(tasks => {
           expect(tasks.length).to.equal(1);
         });
       });
@@ -1832,7 +1832,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           .then(() => { return b1.save(); })
           .then(() => { return a1.setRelation1(b1); })
           .then(() => { return self.A.findOne({ where: { name: 'a1' } }); })
-          .then((a) => {
+          .then(a => {
             expect(a.relation1Id).to.be.eq(b1.id);
           });
       });
@@ -1858,7 +1858,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           .then(() => { return b1.save(); })
           .then(() => { return b1.setRelation1(a1); })
           .then(() => { return self.B.findOne({ where: { name: 'b1' } }); })
-          .then((b) => {
+          .then(b => {
             expect(b.relation1Id).to.be.eq(a1.id);
           });
       });
@@ -1876,7 +1876,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({force: true}).then(() => {
         return self.sequelize.getQueryInterface().showAllTables();
-      }).then((result) => {
+      }).then(result => {
         if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
           result = _.map(result, 'tableName');
         } else if (dialect === 'oracle') {
@@ -1901,7 +1901,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({force: true}).then(() => {
         return self.sequelize.getQueryInterface().showAllTables();
-      }).then((result) => {
+      }).then(result => {
         if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
           result = _.map(result, 'tableName');
         } else if (dialect === 'oracle') {
@@ -2091,7 +2091,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           );
         }).then(function() {
           return self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id }});
-        }).then((usertasks) => {
+        }).then(usertasks => {
           // This should not exist because deletes cascade
           expect(usertasks).to.have.length(0);
         });
@@ -2186,7 +2186,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           User.create({ name: 'Satya' })
         ]);
       })
-      .then((users) => {
+      .then(users => {
         return self.sequelize.Promise.all([
           users[0].addFan(users[1]),
           users[1].addUser(users[2]),
@@ -2226,7 +2226,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           User.create({ name: 'Sargrahi' })
         ]);
       })
-      .then((users) => {
+      .then(users => {
         return self.sequelize.Promise.all([
           users[0].addFollower(users[1]),
           users[1].addFollower(users[0]),

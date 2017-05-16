@@ -59,8 +59,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                 id: 3
               })
             );
-          }).then((users) => {
-            return User.Tasks.get(users).then((result) => {
+          }).then(users => {
+            return User.Tasks.get(users).then(result => {
               expect(result[users[0].id].length).to.equal(3);
               expect(result[users[1].id].length).to.equal(1);
               expect(result[users[2].id].length).to.equal(0);
@@ -98,13 +98,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                 include: [User.Tasks]
               })
             );
-          }).then((users) => {
+          }).then(users => {
             return User.Tasks.get(users, {
               limit: 2,
               order: [
                 ['title', 'ASC']
               ]
-            }).then((result) => {
+            }).then(result => {
               expect(result[users[0].id].length).to.equal(2);
               expect(result[users[0].id][0].title).to.equal('a');
               expect(result[users[0].id][1].title).to.equal('b');
@@ -192,7 +192,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               order: [
                 ['id', 'ASC']
               ]
-            }).then((users) => {
+            }).then(users => {
               expect(users[0].tasks.length).to.equal(2);
 
               expect(users[0].tasks[0].title).to.equal('a');
@@ -257,14 +257,14 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                 include: [{association: User.Tasks, include: [Task.Category]}]
               })
             );
-          }).then((users) => {
+          }).then(users => {
             return User.Tasks.get(users, {
               limit: 2,
               order: [
                 ['title', 'ASC']
               ],
               include: [Task.Category]
-            }).then((result) => {
+            }).then(result => {
               expect(result[users[0].id].length).to.equal(2);
               expect(result[users[0].id][0].category).to.be.ok;
               expect(result[users[0].id][1].category).to.be.ok;
@@ -313,7 +313,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       if (current.dialect.supports.transactions) {
         it('supports transactions', function() {
           let Article, Label, sequelize, article, label, t;
-          return Support.prepareTransactionTest(this.sequelize).then((_sequelize) => {
+          return Support.prepareTransactionTest(this.sequelize).then(_sequelize => {
             sequelize = _sequelize;
             Article = sequelize.define('Article', { 'title': DataTypes.STRING });
             Label = sequelize.define('Label', { 'text': DataTypes.STRING });
@@ -330,19 +330,19 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             article = _article;
             label = _label;
             return sequelize.transaction();
-          }).then((_t) => {
+          }).then(_t => {
             t = _t;
             return article.setLabels([label], { transaction: t });
           }).then(() => {
             return Article.all({ transaction: t });
-          }).then((articles) => {
-            return articles[0].hasLabel(label).then((hasLabel) => {
+          }).then(articles => {
+            return articles[0].hasLabel(label).then(hasLabel => {
               expect(hasLabel).to.be.false;
             });
           }).then(() => {
             return Article.all({ transaction: t });
-          }).then((articles) => {
-            return articles[0].hasLabel(label, { transaction: t }).then((hasLabel) => {
+          }).then(articles => {
+            return articles[0].hasLabel(label, { transaction: t }).then(hasLabel => {
               expect(hasLabel).to.be.true;
               return t.rollback();
             });
@@ -464,7 +464,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return article.addLabel(label1).then(() => {
             return article.hasLabels([label1, label2]);
           });
-        }).then((result) => {
+        }).then(result => {
           expect(result).to.be.false;
         });
       });
@@ -476,7 +476,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Label.create({ text: 'Epicness' })
         ]).spread((article, label1, label2) => {
           return article.addLabel(label1).then(() => {
-            return article.hasLabels([label1.id, label2.id]).then((result) => {
+            return article.hasLabels([label1.id, label2.id]).then(result => {
               expect(result).to.be.false;
             });
           });
@@ -490,7 +490,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Label.create({ text: 'Epicness' })
         ]).spread((article, label1, label2) => {
           return article.setLabels([label1, label2]).then(() => {
-            return article.hasLabels([label1, label2]).then((result) => {
+            return article.hasLabels([label1, label2]).then(result => {
               expect(result).to.be.true;
             });
           });
@@ -504,7 +504,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Label.create({ text: 'Epicness' })
         ]).spread((article, label1, label2) => {
           return article.setLabels([label1, label2]).then(() => {
-            return article.hasLabels([label1.id, label2.id]).then((result) => {
+            return article.hasLabels([label1.id, label2.id]).then(result => {
               expect(result).to.be.true;
             });
           });
@@ -569,7 +569,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return this.task.setUsers(null);
         }).then(function() {
           return this.task.getUsers();
-        }).then((users) => {
+        }).then(users => {
           expect(users).to.have.length(0);
         });
       });
@@ -595,7 +595,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return this.article.setLabels([this.label2.id]);
         }).then(function() {
           return this.article.getLabels();
-        }).then((labels) => {
+        }).then(labels => {
           expect(labels).to.have.length(1);
           expect(labels[0].text).to.equal('label two');
         });
@@ -653,7 +653,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return article.addLabel(label.id);
         }).then(function() {
           return this.article.getLabels();
-        }).then((labels) => {
+        }).then(labels => {
           expect(labels[0].text).to.equal('label one'); // Make sure that we didn't modify one of the other attributes while building / saving a new instance
         });
       });
@@ -684,7 +684,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return this.task.addUsers([this.users[1], this.users[2]]);
         }).then(function() {
           return this.task.getUsers();
-        }).then((users) => {
+        }).then(users => {
           expect(users).to.have.length(3);
         });
       });
@@ -732,7 +732,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         return this.task.setUsers(null);
       }).then(function() {
         return this.task.getUsers();
-      }).then((_users) => {
+      }).then(_users => {
         expect(_users).to.have.length(0);
       });
     });
@@ -746,11 +746,11 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         return this.sequelize.sync({ force: true }).then(() => {
           return Article.create({ title: 'foo' });
-        }).then((article) => {
+        }).then(article => {
           return article.createLabel({ text: 'bar' }).return (article);
-        }).then((article) => {
+        }).then(article => {
           return Label.findAll({ where: { ArticleId: article.id }});
-        }).then((labels) => {
+        }).then(labels => {
           expect(labels.length).to.equal(1);
         });
       });
@@ -824,15 +824,15 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         return this.sequelize.sync({force: true}).then(() => {
           return Article.create();
-        }).then((article) => {
+        }).then(article => {
           return article.createLabel({
             text: 'yolo'
           }, {
             fields: ['text']
           }).return (article);
-        }).then((article) => {
+        }).then(article => {
           return article.getLabels();
-        }).then((labels) => {
+        }).then(labels => {
           expect(labels.length).to.be.ok;
         });
       });
@@ -871,29 +871,29 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           this.Article.hasMany(this.Label);
 
-          return this.sequelize.sync({ force: true }).then(() => {
-            return Promise.all([
-              self.Article.create({ title: 'Article' }),
-              self.Label.create({ text: 'Awesomeness', until: '2014-01-01 01:00:00' }),
-              self.Label.create({ text: 'Epicness', until: '2014-01-03 01:00:00' })
-            ]);
-          }).bind({}).spread(function(article, label1, label2) {
-            this.article = article;
-            return article.setLabels([label1, label2]);
-          }).then(function() {
-            return this.article.getLabels({where: {until: {$gt: moment('2014-01-02').toDate()}}});
-          }).then((labels) => {
-            expect(labels).to.be.instanceof(Array);
-            expect(labels).to.have.length(1);
-            expect(labels[0].text).to.equal('Epicness');
-          });
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Promise.all([
+            self.Article.create({ title: 'Article' }),
+            self.Label.create({ text: 'Awesomeness', until: '2014-01-01 01:00:00' }),
+            self.Label.create({ text: 'Epicness', until: '2014-01-03 01:00:00' })
+          ]);
+        }).bind({}).spread(function(article, label1, label2) {
+          this.article = article;
+          return article.setLabels([label1, label2]);
+        }).then(function() {
+          return this.article.getLabels({where: {until: {$gt: moment('2014-01-02').toDate()}}});
+        }).then(labels => {
+          expect(labels).to.be.instanceof(Array);
+          expect(labels).to.have.length(1);
+          expect(labels[0].text).to.equal('Epicness');
         });
-      }
+      });
+    }
 
       it('gets all associated objects when no options are passed', function() {
-        return this.User.find({where: {username: 'John'}}).then((john) => {
+        return this.User.find({where: {username: 'John'}}).then(john => {
           return john.getTasks();
-        }).then((tasks) => {
+        }).then(tasks => {
           expect(tasks).to.have.length(2);
         });
       });
@@ -988,7 +988,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               return task.reload();
             });
           });
-        }).then((task) => {
+        }).then(task => {
           expect(task.UserId).to.equal(null);
         });
       });
@@ -1000,13 +1000,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         User.hasMany(Task, { foreignKey: { allowNull: false }}); // defaults to CASCADE
 
         return this.sequelize.sync({ force: true }).then(() => {
-          return User.create({ username: 'foo' }).then((user) => {
+          return User.create({ username: 'foo' }).then(user => {
             return Task.create({ title: 'task', UserId: user.id }).then(() => {
               return user.destroy().then(() => {
                 return Task.findAll();
               });
             });
-          }).then((tasks) => {
+          }).then(tasks => {
             expect(tasks).to.be.empty;
           });
         });
@@ -1055,7 +1055,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return this.user.destroy();
         }).then(() => {
           return Task.findAll();
-        }).then((tasks) => {
+        }).then(tasks => {
           expect(tasks).to.have.length(0);
         });
       });
@@ -1076,7 +1076,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             ]);
           }).spread((user, task) => {
             return user.setTasks([task]).return (user);
-          }).then((user) => {
+          }).then(user => {
             // Changing the id of a DAO requires a little dance since
             // the `UPDATE` query generated by `save()` uses `id` in the
             // `WHERE` clause
@@ -1085,7 +1085,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             return user.sequelize.getQueryInterface().update(user, tableName, {id: 999}, {id: user.id});
           }).then(() => {
             return Task.findAll();
-          }).then((tasks) => {
+          }).then(tasks => {
             expect(tasks).to.have.length(1);
             expect(tasks[0].UserId).to.equal(999);
           });
@@ -1114,7 +1114,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               // Should fail due to FK violation
               return Task.findAll();
             });
-          }).then((tasks) => {
+          }).then(tasks => {
             expect(tasks).to.have.length(1);
           });
         });
@@ -1133,7 +1133,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             ]);
           }).spread((user, task) => {
             return user.setTasks([task]).return (user);
-          }).then((user) => {
+          }).then(user => {
             // Changing the id of a DAO requires a little dance since
             // the `UPDATE` query generated by `save()` uses `id` in the
             // `WHERE` clause
@@ -1144,7 +1144,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               // Should fail due to FK violation
               return Task.findAll();
             });
-          }).then((tasks) => {
+          }).then(tasks => {
             expect(tasks).to.have.length(1);
           });
         });
@@ -1161,7 +1161,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         self = this,
         Tasks = {};
 
-      return Promise.each(dataTypes, (dataType) => {
+      return Promise.each(dataTypes, dataType => {
         const tableName = 'TaskXYZ_' + dataType.key;
         Tasks[dataType] = self.sequelize.define(tableName, { title: DataTypes.STRING });
 
@@ -1277,9 +1277,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       const User = this.User,
         Task = this.Task;
 
-      return User.create({ username: 'John', email: 'john@example.com' }).then((user) => {
+      return User.create({ username: 'John', email: 'john@example.com' }).then(user => {
         return Task.create({title: 'Fix PR', userEmail: 'john@example.com'}).then(() => {
-          return user.getTasks().then((tasks) => {
+          return user.getTasks().then(tasks => {
             expect(tasks.length).to.equal(1);
             expect(tasks[0].title).to.equal('Fix PR');
           });
@@ -1291,9 +1291,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       const User = this.User,
         Task = this.Task;
 
-      return User.create({ username: 'John', email: 'john@example.com' }).then((user) => {
+      return User.create({ username: 'John', email: 'john@example.com' }).then(user => {
         return Task.create({title: 'Fix PR', userEmail: 'john@example.com'}).then(() => {
-          return user.countTasks().then((tasksCount) => {
+          return user.countTasks().then(tasksCount => {
             expect(tasksCount).to.equal(1);
           });
         });
@@ -1304,10 +1304,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       const User = this.User,
         Task = this.Task;
 
-      return User.create({ username: 'John', email: 'john@example.com' }).then((user) => {
-        return Task.create({title: 'Fix PR'}).then((task) => {
+      return User.create({ username: 'John', email: 'john@example.com' }).then(user => {
+        return Task.create({title: 'Fix PR'}).then(task => {
           return user.addTask(task).then(() => {
-            return user.hasTask(task.id).then((hasTask) => {
+            return user.hasTask(task.id).then(hasTask => {
               expect(hasTask).to.be.true;
             });
           });

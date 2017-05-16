@@ -64,15 +64,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then((sequelize) => {
+        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
-            return User.create({ username: 'foo' }).then((user) => {
-              return sequelize.transaction().then((t) => {
+            return User.create({ username: 'foo' }).then(user => {
+              return sequelize.transaction().then(t => {
                 return user.update({ username: 'bar' }, { transaction: t }).then(() => {
-                  return User.findAll().then((users1) => {
-                    return User.findAll({ transaction: t }).then((users2) => {
+                  return User.findAll().then(users1 => {
+                    return User.findAll({ transaction: t }).then(users2 => {
                       expect(users1[0].username).to.equal('foo');
                       expect(users2[0].username).to.equal('bar');
                       return t.rollback();
@@ -99,11 +99,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: 'email'
         }, {
           fields: ['name', 'email']
-        }).then((user) => {
+        }).then(user => {
           return user.update({bio: 'swag'});
-        }).then((user) => {
+        }).then(user => {
           return user.reload();
-        }).then((user) => {
+        }).then(user => {
           expect(user.get('name')).to.equal('snafu');
           expect(user.get('email')).to.equal('email');
           expect(user.get('bio')).to.equal('swag');
@@ -126,14 +126,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: 'email'
         }, {
           fields: ['name', 'email']
-        }).then((user) => {
+        }).then(user => {
           return user.update({
             name: 'snafu',
             email: 'email'
           });
-        }).then((user) => {
+        }).then(user => {
           return user.reload();
-        }).then((user) => {
+        }).then(user => {
           expect(user.get('name')).to.equal('snafu');
           expect(user.get('email')).to.equal('email');
         });
@@ -158,9 +158,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           return User.create({
             name: 'snafu',
             email: 'email'
-          }).then((user) => {
+          }).then(user => {
             return user.reload();
-          }).then((user) => {
+          }).then(user => {
             expect(user.get('name')).to.equal('snafu');
             expect(user.get('email')).to.equal('email');
             const testDate = new Date();
@@ -209,7 +209,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: DataTypes.STRING
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'B');
         });
 
@@ -218,14 +218,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             name: 'A',
             bio: 'A',
             email: 'A'
-          }).then((user) => {
+          }).then(user => {
             return user.update({
               name: 'B',
               bio: 'B'
             });
           }).then(() => {
             return User.findOne({});
-          }).then((user) => {
+          }).then(user => {
             expect(user.get('name')).to.equal('B');
             expect(user.get('bio')).to.equal('B');
             expect(user.get('email')).to.equal('B');
@@ -240,7 +240,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: DataTypes.STRING
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'C');
         });
 
@@ -249,7 +249,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             name: 'A',
             bio: 'A',
             email: 'A'
-          }).then((user) => {
+          }).then(user => {
             return user.update({
               name: 'B',
               bio: 'B',
@@ -257,7 +257,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             });
           }).then(() => {
             return User.findOne({});
-          }).then((user) => {
+          }).then(user => {
             expect(user.get('name')).to.equal('B');
             expect(user.get('bio')).to.equal('B');
             expect(user.get('email')).to.equal('C');
@@ -277,7 +277,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           }
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'B');
         });
 
@@ -286,12 +286,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             name: 'A',
             bio: 'A',
             email: 'valid.email@gmail.com'
-          }).then((user) => {
+          }).then(user => {
             return expect(user.update({
               name: 'B'
             })).to.be.rejectedWith(Sequelize.ValidationError);
           }).then(() => {
-            return User.findOne({}).then((user) => {
+            return User.findOne({}).then(user => {
               expect(user.get('email')).to.equal('valid.email@gmail.com');
             });
           });
@@ -310,7 +310,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           }
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'B');
         });
 
@@ -319,13 +319,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             name: 'A',
             bio: 'A',
             email: 'valid.email@gmail.com'
-          }).then((user) => {
+          }).then(user => {
             return expect(user.update({
               name: 'B',
               email: 'still.valid.email@gmail.com'
             })).to.be.rejectedWith(Sequelize.ValidationError);
           }).then(() => {
-            return User.findOne({}).then((user) => {
+            return User.findOne({}).then(user => {
               expect(user.get('email')).to.equal('valid.email@gmail.com');
             });
           });
@@ -344,14 +344,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         return User.create({
           name: 'snafu',
           email: 'email'
-        }).then((user) => {
+        }).then(user => {
           return user.update({
             bio: 'heyo',
             email: 'heho'
           }, {
             fields: ['bio']
           });
-        }).then((user) => {
+        }).then(user => {
           expect(user.get('name')).to.equal('snafu');
           expect(user.get('email')).to.equal('email');
           expect(user.get('bio')).to.equal('heyo');
@@ -360,17 +360,17 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('updates attributes in the database', function() {
-      return this.User.create({ username: 'user' }).then((user) => {
+      return this.User.create({ username: 'user' }).then(user => {
         expect(user.username).to.equal('user');
-        return user.update({ username: 'person' }).then((user) => {
+        return user.update({ username: 'person' }).then(user => {
           expect(user.username).to.equal('person');
         });
       });
     });
 
     it('ignores unknown attributes', function() {
-      return this.User.create({ username: 'user' }).then((user) => {
-        return user.update({ username: 'person', foo: 'bar'}).then((user) => {
+      return this.User.create({ username: 'user' }).then(user => {
+        return user.update({ username: 'person', foo: 'bar'}).then(user => {
           expect(user.username).to.equal('person');
           expect(user.foo).not.to.exist;
         });
@@ -399,7 +399,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           name: 'foobar',
           createdAt: new Date(2000, 1, 1),
           identifier: 'another identifier'
-        }).then((user) => {
+        }).then(user => {
           expect(new Date(user.createdAt)).to.equalDate(new Date(oldCreatedAt));
           expect(new Date(user.updatedAt)).to.not.equalTime(new Date(oldUpdatedAt));
           expect(user.identifier).to.equal(oldIdentifier);
@@ -417,22 +417,22 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       return Download.sync().then(() => {
         return Download.create({
           startedAt: new Date()
-        }).then((download) => {
+        }).then(download => {
           expect(download.startedAt instanceof Date).to.be.true;
           expect(download.canceledAt).to.not.be.ok;
           expect(download.finishedAt).to.not.be.ok;
 
           return download.update({
             canceledAt: new Date()
-          }).then((download) => {
+          }).then(download => {
             expect(download.startedAt instanceof Date).to.be.true;
             expect(download.canceledAt instanceof Date).to.be.true;
             expect(download.finishedAt).to.not.be.ok;
 
             return Download.findAll({
               where: {finishedAt: null}
-            }).then((downloads) => {
-              downloads.forEach((download) => {
+            }).then(downloads => {
+              downloads.forEach(download => {
                 expect(download.startedAt instanceof Date).to.be.true;
                 expect(download.canceledAt instanceof Date).to.be.true;
                 expect(download.finishedAt).to.not.be.ok;
@@ -446,7 +446,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should support logging', function() {
       const spy = sinon.spy();
 
-      return this.User.create({}).then((user) => {
+      return this.User.create({}).then(user => {
         return user.update({username: 'yolo'}, {logging: spy}).then(() => {
           expect(spy.called).to.be.ok;
         });

@@ -24,7 +24,7 @@ if (current.dialect.supports.transactions) {
         let called = false;
         return this
         .sequelize
-        .transaction().then((t) => {
+        .transaction().then(t => {
           return t.commit().then(() => {
             called = 1;
           });
@@ -38,7 +38,7 @@ if (current.dialect.supports.transactions) {
         let called = false;
         return this
         .sequelize
-        .transaction().then((t) => {
+        .transaction().then(t => {
           return t.rollback().then(() => {
             called = 1;
           });
@@ -89,7 +89,7 @@ if (current.dialect.supports.transactions) {
             });
           }).then(function() {
             return this.User.all();
-          }).then((users) => {
+          }).then(users => {
             expect(users.length).to.equal(1);
             expect(users[0].name).to.equal('foo');
           });
@@ -99,14 +99,14 @@ if (current.dialect.supports.transactions) {
 
     describe('complex long running example', () => {
       it('works with promise syntax', function() {
-        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const Test = sequelize.define('Test', {
             id: { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
             name: { type: Support.Sequelize.STRING }
           });
 
           return sequelize.sync({ force: true }).then(() => {
-            return sequelize.transaction().then((transaction) => {
+            return sequelize.transaction().then(transaction => {
               expect(transaction).to.be.instanceOf(Transaction);
 
               return Test
@@ -116,7 +116,7 @@ if (current.dialect.supports.transactions) {
                   return transaction
                     .commit()
                     .then(() => { return Test.count(); })
-                    .then((count) => {
+                    .then(count => {
                       expect(count).to.equal(1);
                     });
                 });
@@ -132,7 +132,7 @@ if (current.dialect.supports.transactions) {
         beforeEach(function() {
           const self = this;
 
-          return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
+          return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
             self.sequelize = sequelize;
 
             self.Model = sequelize.define('Model', {
@@ -148,11 +148,11 @@ if (current.dialect.supports.transactions) {
         it('triggers the error event for the second transactions', function() {
           const self = this;
 
-          return this.sequelize.transaction().then((t1) => {
-            return self.sequelize.transaction().then((t2) => {
+          return this.sequelize.transaction().then(t1 => {
+            return self.sequelize.transaction().then(t2 => {
               return self.Model.create({ name: 'omnom' }, { transaction: t1 }).then(() => {
                 return Promise.all([
-                  self.Model.create({ name: 'omnom' }, { transaction: t2 }).catch((err) => {
+                  self.Model.create({ name: 'omnom' }, { transaction: t2 }).catch(err => {
                     expect(err).to.be.ok;
                     return t2.rollback();
                   }),

@@ -26,7 +26,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       }).then(() => {
         return User.find({
           include: [{model: Company, as: 'Employer'}]
-        }).then((user) => {
+        }).then(user => {
           expect(user).to.be.ok;
         });
       });
@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       }).then(() => {
         return User.findOne({
           include: [Employer]
-        }).then((user) => {
+        }).then(user => {
           expect(user).to.be.ok;
         });
       });
@@ -56,7 +56,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       return this.sequelize.sync({force: true}).then(() => {
         return Company.create({
           name: 'CyberCorp'
-        }).then((company) => {
+        }).then(company => {
           return User.create({
             employerId: company.get('id')
           });
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           include: [
             {association: Employer, where: {name: 'CyberCorp'}}
           ]
-        }).then((user) => {
+        }).then(user => {
           expect(user).to.be.ok;
         });
       });
@@ -82,7 +82,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return Company.create().then(() => {
           return Company.find({
             include: [{model: Person, as: 'CEO'}]
-          }).then((company) => {
+          }).then(company => {
             expect(company).to.be.ok;
           });
         });
@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return Company.find({
           include: [CEO]
         });
-      }).then((user) => {
+      }).then(user => {
         expect(user).to.be.ok;
       });
     });
@@ -123,7 +123,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       }).then(() => {
         return Person.find({
           include: [Person.relation.Employer]
-        }).then((person) => {
+        }).then(person => {
           expect(person).to.be.ok;
           expect(person.employer).to.be.ok;
         });
@@ -138,13 +138,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Task.belongsTo(User);
 
       return this.sequelize.sync({force: true}).then(() => {
-        return User.create().then((user) => {
+        return User.create().then(user => {
           return user.createTask();
         }).then(() => {
           return User.find({
             include: [Tasks]
           });
-        }).then((user) => {
+        }).then(user => {
           expect(user).to.be.ok;
           expect(user.tasks).to.be.ok;
         });
@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Task.belongsTo(User);
 
       return this.sequelize.sync({force: true}).then(() => {
-        return User.create().then((user) => {
+        return User.create().then(user => {
           return Promise.join(
             user.createTask({
               title: 'trivial'
@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               {association: Tasks, where: {title: 'trivial'}}
             ]
           });
-        }).then((user) => {
+        }).then(user => {
           expect(user).to.be.ok;
           expect(user.tasks).to.be.ok;
           expect(user.tasks.length).to.equal(1);
@@ -190,13 +190,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Group.belongsToMany(User, { through: 'UserGroup' });
 
       return this.sequelize.sync({force: true}).then(() => {
-        return User.create().then((user) => {
+        return User.create().then(user => {
           return user.createGroup();
         });
       }).then(() => {
         return User.find({
           include: [Groups]
-        }).then((user) => {
+        }).then(user => {
           expect(user).to.be.ok;
           expect(user.groups).to.be.ok;
         });
@@ -216,12 +216,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           task: Task.create(),
           user: User.create(),
           group: Group.create()
-        }).then((props) => {
+        }).then(props => {
           return Promise.join(
             props.task.setUser(props.user),
             props.user.setGroup(props.group)
           ).return(props);
-        }).then((props) => {
+        }).then(props => {
           return Task.findOne({
             where: {
               id: props.task.id
@@ -231,7 +231,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 {model: Group}
               ]}
             ]
-          }).then((task) => {
+          }).then(task => {
             expect(task.User).to.be.ok;
             expect(task.User.Group).to.be.ok;
           });
@@ -254,7 +254,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         }, {
           include: [User, Group]
         });
-      }).then((task) => {
+      }).then(task => {
         return Task.find({
           where: {
             id: task.id
@@ -264,7 +264,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             {model: Group}
           ]
         });
-      }).then((task) => {
+      }).then(task => {
         expect(task.User).to.be.ok;
         expect(task.Group).to.be.ok;
       });
@@ -286,7 +286,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         }, {
           include: [Task, Group]
         });
-      }).then((user) => {
+      }).then(user => {
         return Group.find({
           where: {
             id: user.Group.id
@@ -297,7 +297,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]}
           ]
         });
-      }).then((group) => {
+      }).then(group => {
         expect(group.User).to.be.ok;
         expect(group.User.Task).to.be.ok;
       });
@@ -324,7 +324,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         }, {
           include: [Task]
         });
-      }).then((user) => {
+      }).then(user => {
         return User.find({
           where: {
             id: user.id
@@ -335,11 +335,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]}
           ]
         });
-      }).then((user) => {
+      }).then(user => {
         expect(user.Tasks).to.be.ok;
         expect(user.Tasks.length).to.equal(4);
 
-        user.Tasks.forEach((task) => {
+        user.Tasks.forEach(task => {
           expect(task.Project).to.be.ok;
         });
       });
@@ -361,7 +361,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         }, {
           include: [Worker, Task]
         });
-      }).then((project) => {
+      }).then(project => {
         return Worker.find({
           where: {
             id: project.Workers[0].id
@@ -372,7 +372,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]}
           ]
         });
-      }).then((worker) => {
+      }).then(worker => {
         expect(worker.Project).to.be.ok;
         expect(worker.Project.Tasks).to.be.ok;
         expect(worker.Project.Tasks.length).to.equal(4);
@@ -437,7 +437,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             [Product, 'id']
           ]
         });
-      }).then((user) => {
+      }).then(user => {
         expect(user.Products.length).to.equal(4);
         expect(user.Products[0].Tags.length).to.equal(2);
         expect(user.Products[1].Tags.length).to.equal(1);
@@ -550,7 +550,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]}
           ]
         });
-      }).then((user) => {
+      }).then(user => {
         user.Memberships.sort(sortById);
         expect(user.Memberships.length).to.equal(2);
         expect(user.Memberships[0].Group.name).to.equal('Developers');
@@ -604,7 +604,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             {model: Project, attributes: ['title']}
           ]
         });
-      }).then((tasks) => {
+      }).then(tasks => {
         expect(tasks[0].title).to.equal('FooBar');
         expect(tasks[0].Project.title).to.equal('BarFoo');
 
@@ -624,7 +624,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         return Post.create({});
-      }).then((post) => {
+      }).then(post => {
         return post.createPostComment({
           comment_title: 'WAT'
         });
@@ -656,7 +656,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             }
           ]
         });
-      }).then((posts) => {
+      }).then(posts => {
         expect(posts[0].PostComments[0].get('someProperty')).to.be.ok;
         expect(posts[0].PostComments[0].get('someProperty2')).to.be.ok;
         expect(posts[0].PostComments[0].get('commentTitle')).to.equal('WAT');
@@ -690,7 +690,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           },
           include: [{model: Group, as: 'OutsourcingCompanies'}]
         });
-      }).then((group) => {
+      }).then(group => {
         expect(group.OutsourcingCompanies).to.have.length(3);
       })
       .catch (error => {
@@ -779,7 +779,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             as: 'Members'
           }]
         });
-      }).then((groups) => {
+      }).then(groups => {
         expect(groups.length).to.equal(1);
         expect(groups[0].Members[0].name).to.equal('Member');
       });
@@ -828,7 +828,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         include: [
           {model: this.Item, where: Sequelize.and({ test: 'def' })}
         ]
-      }).then((result) => {
+      }).then(result => {
         expect(result.length).to.eql(1);
         expect(result[0].Item.test).to.eql('def');
       });
@@ -857,7 +857,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             }}
           ]
         });
-      }).then((result) => {
+      }).then(result => {
         expect(result.count).to.eql(1);
 
         expect(result.rows.length).to.eql(1);
@@ -881,7 +881,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return this.sequelize.sync({force: true}).then(() => {
         return Questionnaire.create();
-      }).then((questionnaire) => {
+      }).then(questionnaire => {
         return questionnaire.getQuestions({
           include: Answer
         });
@@ -920,7 +920,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Employee.create({ name: 'Jill' }),
           Clearence.create({ level: 3 }),
           Clearence.create({ level: 5 })
-        ]).then((instances) => {
+        ]).then(instances => {
           return Promise.all([
             instances[0].addMembers([instances[2], instances[3]]),
             instances[1].addMembers([instances[4], instances[5]]),
@@ -945,7 +945,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]
           }
         ]
-      }).then((teams) => {
+      }).then(teams => {
         expect(teams).to.have.length(2);
       });
     });
@@ -963,7 +963,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]
           }
         ]
-      }).then((teams) => {
+      }).then(teams => {
         expect(teams).to.have.length(2);
       });
     });
@@ -982,7 +982,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]
           }
         ]
-      }).then((teams) => {
+      }).then(teams => {
         expect(teams).to.have.length(1);
       });
     });

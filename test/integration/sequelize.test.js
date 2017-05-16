@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           return this
             .sequelizeWithInvalidConnection
             .authenticate()
-            .catch((err) => {
+            .catch(err => {
               expect(err).to.not.be.null;
             });
         });
@@ -125,7 +125,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           return this
             .sequelizeWithInvalidConnection
             .authenticate()
-            .catch((err) => {
+            .catch(err => {
               expect(
                 err instanceof RangeError ||
                 err instanceof Sequelize.ConnectionError
@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           return this
             .sequelizeWithInvalidConnection
             .authenticate()
-            .catch((err) => {
+            .catch(err => {
               expect(
                 err.message.match(/connect ECONNREFUSED/) ||
                 err.message.match(/invalid port number/) ||
@@ -158,7 +158,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           return this
             .sequelizeWithInvalidCredentials
             .authenticate()
-            .catch((err) => {
+            .catch(err => {
               expect(err).to.not.be.null;
             });
         });
@@ -167,7 +167,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           return this
             .sequelizeWithInvalidCredentials
             .authenticate()
-            .catch((err) => {
+            .catch(err => {
               expect(err).to.be.instanceof(Sequelize.Error);
             });
         });
@@ -183,7 +183,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               }
             }
           }).authenticate()
-            .catch((err) => {
+            .catch(err => {
               expect(err).to.not.be.null;
             });
         });
@@ -371,8 +371,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const self = this;
       return self.sequelize.query(this.insertQuery).then(() => {
         return self.sequelize.query('select * from ' + qq(self.User.tableName) + '');
-      }).spread((users) => {
-        expect(users.map((u) => { return u.username; })).to.include('john');
+      }).spread(users => {
+        expect(users.map(u => { return u.username; })).to.include('john');
       });
     });
 
@@ -383,8 +383,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       seq.options.quoteIdentifiers = false;
       return seq.query(this.insertQuery).then(() => {
         return seq.query('select * from ' + qq(self.User.tableName) + '');
-      }).spread((users) => {
-        expect(users.map((u) => { return u.username; })).to.include('john');
+      }).spread(users => {
+        expect(users.map(u => { return u.username; })).to.include('john');
       });
     });
 
@@ -394,7 +394,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         return self.sequelize.query(self.insertQuery);
       }).then(() => {
         return self.sequelize.query('select username as ' + qq('user.username') + ' from ' + qq(self.User.tableName) + '');
-      }).spread(( users) => {
+      }).spread(users => {
         expect(users).to.deep.equal([{'user.username': 'john'}]);
       });
     });
@@ -405,8 +405,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         return self.sequelize.query(self.insertQuery);
       }).then(() => {
         return self.sequelize.query('select username as ' + qq('user.username') + ' from ' + qq(self.User.tableName) + '', { raw: true, nest: true });
-      }).then((users) => {
-        expect(users.map((u) => { return u.user; })).to.deep.equal([{'username': 'john'}]);
+      }).then(users => {
+        expect(users.map(u => { return u.user; })).to.deep.equal([{'username': 'john'}]);
       });
     });
 
@@ -418,8 +418,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             return self.sequelize.query(
               'CREATE PROCEDURE foo()\nSELECT * FROM ' + self.User.tableName + ';'
             ).then(() => {
-              return self.sequelize.query('CALL foo()').then((users) => {
-                expect(users.map((u) => { return u.username; })).to.include('john');
+              return self.sequelize.query('CALL foo()').then(users => {
+                expect(users.map(u => { return u.username; })).to.include('john');
               });
             });
           });
@@ -445,7 +445,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           model: this.User,
           mapToModel: true
         });
-      }).then((users) => {
+      }).then(users => {
         expect(users[0].emailAddress).to.be.equal('john@gmail.com');
       });
     });
@@ -456,7 +456,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           type: 'SELECT',
           fieldMap: {username: 'userName', email_address: 'email'}
         });
-      }).then((users) => {
+      }).then(users => {
         expect(users[0].userName).to.be.equal('john');
         expect(users[0].email).to.be.equal('john@gmail.com');
       });
@@ -512,7 +512,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         logging(s) {
           logSql = s;
         }
-      }).then((result) => {
+      }).then(result => {
         const res = result[0] || {};
         res.date = res.date && new Date(res.date);
         res.boolean = res.boolean && true;
@@ -700,7 +700,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
       it ('does not improperly escape arrays of strings bound to named parameters', function() {
-        return this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: [ '"string"' ] } }).then((result) => {
+        return this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: [ '"string"' ] } }).then(result => {
           expect(result[0]).to.deep.equal([{ foo: '"string"' }]);
         });
       });
@@ -946,7 +946,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       return Photo.sync({ force: true }).then(() => {
         return self.sequelize.getQueryInterface().showAllTables().then((tableNames) => {
           if (dialect === 'mssql' || dialect === 'oracle' /* current.dialect.supports.schemas */) {
-
             tableNames = _.map(tableNames, 'tableName');
           }
 
@@ -980,7 +979,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         return this.sequelize.truncate().then(() => {
           return Project.findAll({});
         });
-      }).then((projects) => {
+      }).then(projects => {
         expect(projects).to.exist;
         expect(projects).to.have.length(0);
       });
@@ -995,7 +994,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       return Project.sync({ force: true }).then(() => {
         return Task.sync({ force: true }).then(() => {
           return Project.create({title: 'bla'}).then(() => {
-            return Task.create({title: 'bla'}).then((task) => {
+            return Task.create({title: 'bla'}).then(task => {
               expect(task).to.exist;
               expect(task.title).to.equal('bla');
             });
@@ -1017,7 +1016,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         const User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT });
 
-        return User2.sync().catch((err) => {
+        return User2.sync().catch(err => {
           if (dialect === 'postgres' || dialect === 'postgres-native') {
             assert([
               'fe_sendauth: no password supplied',
@@ -1043,7 +1042,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         sequelize.define('Project', {title: Sequelize.STRING});
         sequelize.define('Task', {title: Sequelize.STRING});
 
-        return sequelize.sync({force: true}).catch((err) => {
+        return sequelize.sync({force: true}).catch(err => {
           expect(err).to.be.ok;
         });
       });
@@ -1057,7 +1056,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         sequelize.define('Project', {title: Sequelize.STRING});
         sequelize.define('Task', {title: Sequelize.STRING});
 
-        return sequelize.sync({force: true}).catch((err) => {
+        return sequelize.sync({force: true}).catch(err => {
           expect(err).to.be.ok;
         });
       });
@@ -1072,7 +1071,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         sequelize.define('Project', {title: Sequelize.STRING});
         sequelize.define('Task', {title: Sequelize.STRING});
 
-        return sequelize.sync({force: true}).catch((err) => {
+        return sequelize.sync({force: true}).catch(err => {
           expect(err).to.be.ok;
         });
       });
@@ -1082,7 +1081,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           authorID: { type: Sequelize.BIGINT, allowNull: false, references: { model: 'User', key: 'id' } }
         });
 
-        return this.sequelize.sync().catch((error) => {
+        return this.sequelize.sync().catch(error => {
           assert.ok(error);
         });
       });
@@ -1117,7 +1116,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('return the sequelize instance after syncing', function() {
         const self = this;
-        return this.sequelize.sync().then((sequelize) => {
+        return this.sequelize.sync().then(sequelize => {
           expect(sequelize).to.deep.equal(self.sequelize);
         });
       });
@@ -1132,7 +1131,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           paranoid: false
         });
 
-        return block.sync().then((result) => {
+        return block.sync().then(result => {
           expect(result).to.deep.equal(block);
         });
       });
@@ -1214,7 +1213,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     [
       { type: DataTypes.ENUM, values: ['scheduled', 'active', 'finished']},
       DataTypes.ENUM('scheduled', 'active', 'finished')
-    ].forEach((status) => {
+    ].forEach(status => {
       describe('enum', () => {
         beforeEach(function() {
           this.sequelize = Support.createSequelizeInstance({
@@ -1235,7 +1234,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         it('correctly stores values', function() {
-          return this.Review.create({ status: 'active' }).then((review) => {
+          return this.Review.create({ status: 'active' }).then(review => {
             expect(review.status).to.equal('active');
           });
         });
@@ -1243,14 +1242,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         it('correctly loads values', function() {
           const self = this;
           return this.Review.create({ status: 'active' }).then(() => {
-            return self.Review.findAll().then((reviews) => {
+            return self.Review.findAll().then(reviews => {
               expect(reviews[0].status).to.equal('active');
             });
           });
         });
 
         it("doesn't save an instance if value is not in the range of enums", function() {
-          return this.Review.create({status: 'fnord'}).catch((err) => {
+          return this.Review.create({status: 'fnord'}).catch(err => {
             expect(err).to.be.instanceOf(Error);
             expect(err.message).to.equal('"fnord" is not a valid choice in ["scheduled","active","finished"]');
           });
@@ -1263,13 +1262,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         { id: { type: DataTypes.BIGINT, primaryKey: true } },
         { id: { type: DataTypes.STRING, allowNull: true, primaryKey: true } },
         { id: { type: DataTypes.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true } }
-      ].forEach((customAttributes) => {
+      ].forEach(customAttributes => {
 
         it('should be able to override options on the default attributes', function() {
           const Picture = this.sequelize.define('picture', _.cloneDeep(customAttributes));
           return Picture.sync({ force: true }).then(() => {
-            Object.keys(customAttributes).forEach((attribute) => {
-              Object.keys(customAttributes[attribute]).forEach((option) => {
+            Object.keys(customAttributes).forEach(attribute => {
+              Object.keys(customAttributes[attribute]).forEach(option => {
                 const optionValue = customAttributes[attribute][option];
                 if (typeof optionValue === 'function' && optionValue() instanceof DataTypes.ABSTRACT) {
                   expect(Picture.rawAttributes[attribute][option] instanceof optionValue).to.be.ok;
@@ -1289,7 +1288,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         beforeEach(function() {
           const self = this;
 
-          return Support.prepareTransactionTest(this.sequelize).bind({}).then((sequelize) => {
+          return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
             self.sequelizeWithTransaction = sequelize;
           });
         });
@@ -1299,13 +1298,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         it('passes a transaction object to the callback', function() {
-          return this.sequelizeWithTransaction.transaction().then((t) => {
+          return this.sequelizeWithTransaction.transaction().then(t => {
             expect(t).to.be.instanceOf(Transaction);
           });
         });
 
         it('allows me to define a callback on the result', function() {
-          return this.sequelizeWithTransaction.transaction().then((t) => {
+          return this.sequelizeWithTransaction.transaction().then(t => {
             return t.commit();
           });
         });
@@ -1318,7 +1317,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             const count = function(transaction) {
               const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
 
-              return self.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then((result) => {
+              return self.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then(result => {
                 return result.cnt;
               });
             };
@@ -1346,7 +1345,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             const count = function(transaction) {
               const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
 
-              return self.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then((result) => {
+              return self.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then(result => {
                 return parseInt(result.cnt, 10);
               });
             };
@@ -1385,12 +1384,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           const User = this.sequelizeWithTransaction.define('Users', { username: DataTypes.STRING });
 
           return User.sync({ force: true }).then(() => {
-            return self.sequelizeWithTransaction.transaction().then((t1) => {
-              return User.create({ username: 'foo' }, { transaction: t1 }).then((user) => {
-                return self.sequelizeWithTransaction.transaction({ transaction: t1 }).then((t2) => {
+            return self.sequelizeWithTransaction.transaction().then(t1 => {
+              return User.create({ username: 'foo' }, { transaction: t1 }).then(user => {
+                return self.sequelizeWithTransaction.transaction({ transaction: t1 }).then(t2 => {
                   return user.updateAttributes({ username: 'bar' }, { transaction: t2 }).then(() => {
                     return t2.commit().then(() => {
-                      return user.reload({ transaction: t1 }).then((newUser) => {
+                      return user.reload({ transaction: t1 }).then(newUser => {
                         expect(newUser.username).to.equal('bar');
                         return t1.commit();
                       });
@@ -1470,12 +1469,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           const User = this.sequelizeWithTransaction.define('Users', { username: DataTypes.STRING });
 
           return User.sync({ force: true }).then(() => {
-            return self.sequelizeWithTransaction.transaction().then((t1) => {
-              return User.create({ username: 'foo' }, { transaction: t1 }).then((user) => {
-                return self.sequelizeWithTransaction.transaction({ transaction: t1 }).then((t2) => {
+            return self.sequelizeWithTransaction.transaction().then(t1 => {
+              return User.create({ username: 'foo' }, { transaction: t1 }).then(user => {
+                return self.sequelizeWithTransaction.transaction({ transaction: t1 }).then(t2 => {
                   return user.updateAttributes({ username: 'bar' }, { transaction: t2 }).then(() => {
                     return t2.rollback().then(() => {
-                      return user.reload({ transaction: t1 }).then((newUser) => {
+                      return user.reload({ transaction: t1 }).then(newUser => {
                         expect(newUser.username).to.equal('foo');
                         return t1.commit();
                       });
@@ -1492,12 +1491,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           const User = this.sequelizeWithTransaction.define('Users', { username: DataTypes.STRING });
 
           return User.sync({ force: true }).then(() => {
-            return self.sequelizeWithTransaction.transaction().then((t1) => {
-              return User.create({ username: 'foo' }, { transaction: t1 }).then((user) => {
-                return self.sequelizeWithTransaction.transaction({ transaction: t1 }).then((t2) => {
+            return self.sequelizeWithTransaction.transaction().then(t1 => {
+              return User.create({ username: 'foo' }, { transaction: t1 }).then(user => {
+                return self.sequelizeWithTransaction.transaction({ transaction: t1 }).then(t2 => {
                   return user.updateAttributes({ username: 'bar' }, { transaction: t2 }).then(() => {
                     return t1.rollback().then(() => {
-                      return User.findAll().then((users) => {
+                      return User.findAll().then(users => {
                         expect(users.length).to.equal(0);
                       });
                     });
@@ -1513,7 +1512,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
   describe('databaseVersion', () => {
     it('should database/dialect version', function() {
-      return this.sequelize.databaseVersion().then((version) => {
+      return this.sequelize.databaseVersion().then(version => {
         expect(typeof version).to.equal('string');
         expect(version).to.be.ok;
       });
@@ -1535,39 +1534,39 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       return this.sequelize.sync({force: true}).bind(this).then(() => {
-        return User.create({username: 'user1'}).then((user) => {
+        return User.create({username: 'user1'}).then(user => {
           expect(Number(user.deletedAt)).to.equal(epoch);
           return User.findOne({
             where: {
               username: 'user1'
             }
-          }).then((user) => {
+          }).then(user => {
             expect(user).to.exist;
             expect(Number(user.deletedAt)).to.equal(epoch);
             return user.destroy();
-          }).then((destroyedUser) => {
+          }).then(destroyedUser => {
             expect(destroyedUser.deletedAt).to.exist;
             expect(Number(destroyedUser.deletedAt)).not.to.equal(epoch);
             return User.findById(destroyedUser.id, { paranoid: false });
-          }).then((fetchedDestroyedUser) => {
+          }).then(fetchedDestroyedUser => {
             expect(fetchedDestroyedUser.deletedAt).to.exist;
             expect(Number(fetchedDestroyedUser.deletedAt)).not.to.equal(epoch);
             return fetchedDestroyedUser.restore();
-          }).then((restoredUser) => {
+          }).then(restoredUser => {
             expect(Number(restoredUser.deletedAt)).to.equal(epoch);
             return User.destroy({where: {
               username: 'user1'
             }});
           }).then(() => {
             return User.count();
-          }).then((count) => {
+          }).then(count => {
             expect(count).to.equal(0);
             return User.restore();
           }).then(() => {
             return User.findAll();
-          }).then((nonDeletedUsers) => {
+          }).then(nonDeletedUsers => {
             expect(nonDeletedUsers.length).to.equal(1);
-            nonDeletedUsers.forEach((u) => {
+            nonDeletedUsers.forEach(u => {
               expect(Number(u.deletedAt)).to.equal(epoch);
             });
           });

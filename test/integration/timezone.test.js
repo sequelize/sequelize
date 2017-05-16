@@ -66,7 +66,7 @@ if (dialect !== 'sqlite') {
 
         return this.sequelize.sync({ force: true }).bind(this).then(() => {
           return TimezonedUser.create({});
-        }).then((timezonedUser) => {
+        }).then(timezonedUser => {
           return Promise.all([
             NormalUser.findById(timezonedUser.id),
             TimezonedUser.findById(timezonedUser.id)

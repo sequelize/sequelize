@@ -49,8 +49,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
               id: 3
             })
           );
-        }).then((tasks) => {
-          return Task.User.get(tasks).then((result) => {
+        }).then(tasks => {
+          return Task.User.get(tasks).then(result => {
             expect(result[tasks[0].id].id).to.equal(tasks[0].user.id);
             expect(result[tasks[1].id].id).to.equal(tasks[1].user.id);
             expect(result[tasks[2].id]).to.be.undefined;
@@ -64,22 +64,22 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING }),
             Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
 
           Group.belongsTo(User);
 
           return sequelize.sync({ force: true }).then(() => {
-            return User.create({ username: 'foo' }).then((user) => {
-              return Group.create({ name: 'bar' }).then((group) => {
-                return sequelize.transaction().then((t) => {
+            return User.create({ username: 'foo' }).then(user => {
+              return Group.create({ name: 'bar' }).then(group => {
+                return sequelize.transaction().then(t => {
                   return group.setUser(user, { transaction: t }).then(() => {
-                    return Group.all().then((groups) => {
-                      return groups[0].getUser().then((associatedUser) => {
+                    return Group.all().then(groups => {
+                      return groups[0].getUser().then(associatedUser => {
                         expect(associatedUser).to.be.null;
-                        return Group.all({ transaction: t }).then((groups) => {
-                          return groups[0].getUser({ transaction: t }).then((associatedUser) => {
+                        return Group.all({ transaction: t }).then(groups => {
+                          return groups[0].getUser({ transaction: t }).then(associatedUser => {
                             expect(associatedUser).to.be.not.null;
                             return t.rollback();
                           });
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         return task.setUserXYZ(userA).then(() => {
           return task.getUserXYZ({where: {gender: 'female'}});
         });
-      }).then((user) => {
+      }).then(user => {
         expect(user).to.be.null;
       });
     });
@@ -144,7 +144,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         return task.setUserXYZ(user).then(() => {
           return task.getUserXYZ();
         });
-      }).then((user) => {
+      }).then(user => {
         expect(user).to.be.ok;
       });
     });
@@ -154,19 +154,19 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING }),
             Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
 
           Group.belongsTo(User);
 
           return sequelize.sync({ force: true }).then(() => {
-            return User.create({ username: 'foo' }).then((user) => {
-              return Group.create({ name: 'bar' }).then((group) => {
-                return sequelize.transaction().then((t) => {
+            return User.create({ username: 'foo' }).then(user => {
+              return Group.create({ name: 'bar' }).then(group => {
+                return sequelize.transaction().then(t => {
                   return group.setUser(user, { transaction: t }).then(() => {
-                    return Group.all().then((groups) => {
-                      return groups[0].getUser().then((associatedUser) => {
+                    return Group.all().then(groups => {
+                      return groups[0].getUser().then(associatedUser => {
                         expect(associatedUser).to.be.null;
                         return t.rollback();
                       });
@@ -187,14 +187,14 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User, { foreignKey: 'user_id' });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ user_id: 1, username: 'foo' }).then((user) => {
-          return Task.create({ task_id: 1, title: 'task' }).then((task) => {
+        return User.create({ user_id: 1, username: 'foo' }).then(user => {
+          return Task.create({ task_id: 1, title: 'task' }).then(task => {
             return task.setUserXYZ(user).then(() => {
-              return task.getUserXYZ().then((user) => {
+              return task.getUserXYZ().then(user => {
                 expect(user).not.to.be.null;
 
                 return task.setUserXYZ(null).then(() => {
-                  return task.getUserXYZ().then((user) => {
+                  return task.getUserXYZ().then(user => {
                     expect(user).to.be.null;
                   });
                 });
@@ -212,14 +212,14 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'foo' }).then((user) => {
-          return Task.create({ title: 'task' }).then((task) => {
+        return User.create({ username: 'foo' }).then(user => {
+          return Task.create({ title: 'task' }).then(task => {
             return task.setUserXYZ(user).then(() => {
-              return task.getUserXYZ().then((user) => {
+              return task.getUserXYZ().then(user => {
                 expect(user).not.to.be.null;
 
                 return task.setUserXYZ(null).then(() => {
-                  return task.getUserXYZ().then((user) => {
+                  return task.getUserXYZ().then(user => {
                     expect(user).to.be.null;
                   });
                 });
@@ -238,7 +238,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         return expect(Task.create({ title: 'task', UserXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(() => {
-          return Task.create({ title: 'task' }).then((task) => {
+          return Task.create({ title: 'task' }).then(task => {
             return expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
           });
         });
@@ -252,10 +252,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ id: 15, username: 'jansemand' }).then((user) => {
-          return Task.create({}).then((task) => {
+        return User.create({ id: 15, username: 'jansemand' }).then(user => {
+          return Task.create({}).then(task => {
             return task.setUserXYZ(user.id).then(() => {
-              return task.getUserXYZ().then((user) => {
+              return task.getUserXYZ().then(user => {
                 expect(user.username).to.equal('jansemand');
               });
             });
@@ -272,8 +272,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create().then((user) => {
-          return Task.create({}).then((task) => {
+        return User.create().then(user => {
+          return Task.create({}).then(task => {
             return task.setUserXYZ(user, {logging: spy}).then(() => {
               expect(spy.called).to.be.ok;
             });
@@ -297,10 +297,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       return this.sequelize.sync().then(() => {
         return Post.create({
           title: 'Post title'
-        }).then((post) => {
+        }).then(post => {
           return Comment.create({
             text: 'OLD VALUE'
-          }).then((comment) => {
+          }).then(comment => {
             comment.text = 'UPDATED VALUE';
             return comment.setPost(post).then(() => {
               expect(comment.text).to.equal('UPDATED VALUE');
@@ -369,9 +369,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Task.create({ title: 'task' }).then((task) => {
+        return Task.create({ title: 'task' }).then(task => {
           return task.createUser({ username: 'bob' }).then(() => {
-            return task.getUser().then((user) => {
+            return task.getUser().then(user => {
               expect(user).not.to.be.null;
               expect(user.username).to.equal('bob');
             });
@@ -382,20 +382,20 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING }),
             Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
 
           Group.belongsTo(User);
 
           return sequelize.sync({ force: true }).then(() => {
-            return Group.create({ name: 'bar' }).then((group) => {
-              return sequelize.transaction().then((t) => {
+            return Group.create({ name: 'bar' }).then(group => {
+              return sequelize.transaction().then(t => {
                 return group.createUser({ username: 'foo' }, { transaction: t }).then(() => {
-                  return group.getUser().then((user) => {
+                  return group.getUser().then(user => {
                     expect(user).to.be.null;
 
-                    return group.getUser({ transaction: t }).then((user) => {
+                    return group.getUser({ transaction: t }).then(user => {
                       expect(user).not.to.be.null;
 
                       return t.rollback();
@@ -455,14 +455,14 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         return user.setAccount(account).then(() => {
           return user.getAccount();
         });
-      }).then((user) => {
+      }).then(user => {
         // the sql query should correctly look at task_id instead of taskId
         expect(user).to.not.be.null;
         return User.findOne({
           where: {username: 'foo'},
           include: [Account]
         });
-      }).then((task) => {
+      }).then(task => {
         expect(task.Account).to.exist;
       });
     });
@@ -476,8 +476,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User); // defaults to SET NULL
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'foo' }).then((user) => {
-          return Task.create({ title: 'task' }).then((task) => {
+        return User.create({ username: 'foo' }).then(user => {
+          return Task.create({ title: 'task' }).then(task => {
             return task.setUser(user).then(() => {
               return user.destroy().then(() => {
                 return task.reload().then(() => {
@@ -497,10 +497,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User, { foreignKey: { allowNull: false }}); // defaults to NO ACTION
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'foo' }).then((user) => {
+        return User.create({ username: 'foo' }).then(user => {
           return Task.create({ title: 'task', UserId: user.id }).then(() => {
             return expect(user.destroy()).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(() => {
-              return Task.findAll().then((tasks) => {
+              return Task.findAll().then(tasks => {
                 expect(tasks).to.have.length(1);
               });
             });
@@ -516,8 +516,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User, { constraints: false });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'foo' }).then((user) => {
-          return Task.create({ title: 'task' }).then((task) => {
+        return User.create({ username: 'foo' }).then(user => {
+          return Task.create({ title: 'task' }).then(task => {
             return task.setUser(user).then(() => {
               return user.destroy().then(() => {
                 return task.reload().then(() => {
@@ -537,11 +537,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User, {onDelete: 'cascade'});
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'foo' }).then((user) => {
-          return Task.create({ title: 'task' }).then((task) => {
+        return User.create({ username: 'foo' }).then(user => {
+          return Task.create({ title: 'task' }).then(task => {
             return task.setUser(user).then(() => {
               return user.destroy().then(() => {
-                return Task.findAll().then((tasks) => {
+                return Task.findAll().then(tasks => {
                   expect(tasks).to.have.length(0);
                 });
               });
@@ -559,11 +559,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         Task.belongsTo(User, {onDelete: 'restrict'});
 
         return this.sequelize.sync({ force: true }).then(() => {
-          return User.create({ username: 'foo' }).then((user) => {
-            return Task.create({ title: 'task' }).then((task) => {
+          return User.create({ username: 'foo' }).then(user => {
+            return Task.create({ title: 'task' }).then(task => {
               return task.setUser(user).then(() => {
                 return expect(user.destroy()).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(() => {
-                  return Task.findAll().then((tasks) => {
+                  return Task.findAll().then(tasks => {
                     expect(tasks).to.have.length(1);
                   });
                 });
@@ -580,8 +580,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         Task.belongsTo(User, {onUpdate: 'restrict'});
 
         return this.sequelize.sync({ force: true }).then(() => {
-          return User.create({ username: 'foo' }).then((user) => {
-            return Task.create({ title: 'task' }).then((task) => {
+          return User.create({ username: 'foo' }).then(user => {
+            return Task.create({ title: 'task' }).then(task => {
               return task.setUser(user).then(() => {
 
                 // Changing the id of a DAO requires a little dance since
@@ -593,7 +593,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
                   user.sequelize.getQueryInterface().update(user, tableName, {id: 999}, {id: user.id})
                 ).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(() => {
                   // Should fail due to FK restriction
-                  return Task.findAll().then((tasks) => {
+                  return Task.findAll().then(tasks => {
                     expect(tasks).to.have.length(1);
                   });
                 });
@@ -614,8 +614,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         Task.belongsTo(User, {onUpdate: 'cascade'});
 
         return this.sequelize.sync({ force: true }).then(() => {
-          return User.create({ username: 'foo' }).then((user) => {
-            return Task.create({ title: 'task' }).then((task) => {
+          return User.create({ username: 'foo' }).then(user => {
+            return Task.create({ title: 'task' }).then(task => {
               return task.setUser(user).then(() => {
 
                 // Changing the id of a DAO requires a little dance since
@@ -625,7 +625,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
                 const tableName = user.sequelize.getQueryInterface().QueryGenerator.addSchema(user.constructor);
                 return user.sequelize.getQueryInterface().update(user, tableName, {id: 999}, {id: user.id})
                 .then(() => {
-                  return Task.findAll().then((tasks) => {
+                  return Task.findAll().then(tasks => {
                     expect(tasks).to.have.length(1);
                     expect(tasks[0].UserId).to.equal(999);
                   });
@@ -670,11 +670,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'bob' }).then((newUser) => {
-          return Task.create({ title: 'some task' }).then((newTask) => {
+        return User.create({ username: 'bob' }).then(newUser => {
+          return Task.create({ title: 'some task' }).then(newTask => {
             return newTask.setUser(newUser).then(() => {
-              return Task.findOne({ where: { title: 'some task' } }).then((foundTask) => {
-                return foundTask.getUser().then((foundUser) => {
+              return Task.findOne({ where: { title: 'some task' } }).then(foundTask => {
+                return foundTask.getUser().then(foundUser => {
                   expect(foundUser.username).to.equal('bob');
                 });
               });
@@ -699,11 +699,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'bob' }).then((newUser) => {
-          return Task.create({ title: 'some task' }).then((newTask) => {
+        return User.create({ username: 'bob' }).then(newUser => {
+          return Task.create({ title: 'some task' }).then(newTask => {
             return newTask.setUser(newUser).then(() => {
-              return Task.findOne({ where: { title: 'some task' } }).then((foundTask) => {
-                return foundTask.getUser().then((foundUser) => {
+              return Task.findOne({ where: { title: 'some task' } }).then(foundTask => {
+                return foundTask.getUser().then(foundUser => {
                   expect(foundUser.username).to.equal('bob');
                 });
               });
@@ -726,11 +726,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'bob' }).then((newUser) => {
-          return Task.create({ title: 'some task' }).then((newTask) => {
+        return User.create({ username: 'bob' }).then(newUser => {
+          return Task.create({ title: 'some task' }).then(newTask => {
             return newTask.setUser(newUser).then(() => {
-              return Task.findOne({ where: { title: 'some task'} }).then((foundTask) => {
-                return foundTask.getUser().then((foundUser) => {
+              return Task.findOne({ where: { title: 'some task'} }).then(foundTask => {
+                return foundTask.getUser().then(foundUser => {
                   expect(foundUser.username).to.equal('bob');
                 });
               });
@@ -748,7 +748,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         self = this,
         Tasks = {};
 
-      dataTypes.forEach((dataType) => {
+      dataTypes.forEach(dataType => {
         const tableName = 'TaskXYZ_' + dataType.key;
         Tasks[dataType] = self.sequelize.define(tableName, { title: DataTypes.STRING });
 
@@ -756,7 +756,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       return self.sequelize.sync({ force: true }).then(() => {
-        dataTypes.forEach((dataType) => {
+        dataTypes.forEach(dataType => {
           expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
         });
       });

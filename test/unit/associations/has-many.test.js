@@ -139,7 +139,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       expect(findAll).to.have.been.calledOnce;
       expect(findAll.firstCall.args[0].where).to.deep.equal(where);
 
-      return actual.then((results) => {
+      return actual.then(results => {
         expect(results).to.be.an('array');
         expect(results.length).to.equal(2);
       }).finally(() => {
@@ -178,7 +178,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       expect(findAll).to.have.been.calledOnce;
       expect(findAll.firstCall.args[0].where).to.deep.equal(where);
 
-      return actual.then((result) => {
+      return actual.then(result => {
         expect(result).to.be.an('object');
         expect(Object.keys(result)).to.deep.equal([idA, idB, idC]);
 

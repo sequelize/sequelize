@@ -74,7 +74,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           return this.User.findById(42);
-        }).then((user) => {
+        }).then(user => {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
           expect(user.updatedAt).to.be.afterTime(user.createdAt);
@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           return this.User.find({ where: { foo: 'baz', bar: 19 }});
-        }).then((user) => {
+        }).then(user => {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
           expect(user.updatedAt).to.be.afterTime(user.createdAt);
@@ -158,7 +158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.clock.tick(1000);
           // Update the first one
           return User.upsert({ a: 'a', b: 'b', username: 'doe' });
-        }).then((created) => {
+        }).then(created => {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
           } else {
@@ -166,13 +166,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           return User.find({ where: { a: 'a', b: 'b' }});
-        }).then((user1) => {
+        }).then(user1 => {
           expect(user1.createdAt).to.be.ok;
           expect(user1.username).to.equal('doe');
           expect(user1.updatedAt).to.be.afterTime(user1.createdAt);
 
           return User.find({ where: { a: 'a', b: 'a' }});
-        }).then((user2) => {
+        }).then(user2 => {
           // The second one should not be updated
           expect(user2.createdAt).to.be.ok;
           expect(user2.username).to.equal('curt');
@@ -211,7 +211,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           return this.User.findById(42);
-        }).then((user) => {
+        }).then(user => {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
           if (dialect === 'oracle') {
@@ -243,7 +243,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           return this.User.findById(42);
-        }).then((user) => {
+        }).then(user => {
           expect(user.baz).to.equal('oof');
         });
       });
@@ -267,7 +267,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           return this.ModelWithFieldPK.findOne({ where: { userId: 42 } });
-        }).then((instance) => {
+        }).then(instance => {
           expect(instance.foo).to.equal('second');
         });
       });
@@ -290,7 +290,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).not.to.be.ok;
           }
           return this.User.findById(42);
-        }).then((user) => {
+        }).then(user => {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
           expect(user.foo).to.equal('MIXEDCASE2');
@@ -310,7 +310,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.User.upsert({ id: 42, username: 'doe'});
         }).then(function() {
           return this.User.findById(42);
-        }).then((user) => {
+        }).then(user => {
           expect(user.updatedAt).to.be.gt(originalUpdatedAt);
           expect(user.createdAt).to.deep.equal(originalCreatedAt);
           clock.restore();
@@ -328,7 +328,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.User.upsert({ id: 42, username: 'doe'});
         }).then(function() {
           return this.User.findById(42);
-        }).then((user) => {
+        }).then(user => {
           // 'username' was updated
           expect(user.username).to.equal('doe');
           // 'baz' should still be 'new baz value' since it was not updated
@@ -341,7 +341,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.User.findById(42);
         }).then(function(user) {
           return this.User.upsert({ id: user.id, username: user.username });
-        }).then((created) => {
+        }).then(created => {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
           } else {
@@ -370,7 +370,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const clock = sinon.useFakeTimers();
         return User.sync({ force: true }).bind(this).then(() => {
           return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' })
-            .then((created) => {
+            .then(created => {
               if (dialect === 'sqlite') {
                 expect(created).to.be.undefined;
               } else {
@@ -378,7 +378,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               }
               clock.tick(1000);
               return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
-            }).then((created) => {
+            }).then(created => {
               if (dialect === 'sqlite') {
                 expect(created).to.be.undefined;
               } else {
@@ -387,7 +387,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               clock.tick(1000);
               return User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' }});
             })
-            .then((user) => {
+            .then(user => {
               expect(user.createdAt).to.be.ok;
               expect(user.city).to.equal('New City');
               expect(user.updatedAt).to.be.afterTime(user.createdAt);

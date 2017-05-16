@@ -8,13 +8,13 @@ In this document we'll explore what finder methods can do:
 ### find - Search for one specific element in the database
 ```js
 // search for known ids
-Project.findById(123).then(function(project) {
+Project.findById(123).then(project => {
   // project will be an instance of Project and stores the content of the table entry
   // with id 123. if such an entry is not defined you will get null
 })
 
 // search for attributes
-Project.findOne({ where: {title: 'aProject'} }).then(function(project) {
+Project.findOne({ where: {title: 'aProject'} }).then(project => {
   // project will be the first entry of the Projects table with the title 'aProject' || null
 })
 
@@ -22,7 +22,7 @@ Project.findOne({ where: {title: 'aProject'} }).then(function(project) {
 Project.findOne({
   where: {title: 'aProject'},
   attributes: ['id', ['name', 'title']]
-}).then(function(project) {
+}).then(project => {
   // project will be the first entry of the Projects table with the title 'aProject' || null
   // project.title will contain the name of the project
 })
@@ -37,7 +37,7 @@ Let's assume we have an empty database with a `User` model which has a `username
 ```js
 User
   .findOrCreate({where: {username: 'sdepold'}, defaults: {job: 'Technical Lead JavaScript'}})
-  .spread(function(user, created) {
+  .spread((user, created) => {
     console.log(user.get({
       plain: true
     }))
@@ -62,31 +62,27 @@ User
 
 The code created a new instance. So when we already have an instance ...
 ```js
-User
-  .create({ username: 'fnord', job: 'omnomnom' })
-  .then(function() {
-    User
-      .findOrCreate({where: {username: 'fnord'}, defaults: {job: 'something else'}})
-      .spread(function(user, created) {
-        console.log(user.get({
-          plain: true
-        }))
-        console.log(created)
+User.create({ username: 'fnord', job: 'omnomnom' })
+  .then(() => User.findOrCreate({where: {username: 'fnord'}, defaults: {job: 'something else'}}))
+  .spread((user, created) => {
+    console.log(user.get({
+      plain: true
+    }))
+    console.log(created)
 
-        /*
-     In this example, findOrCreate returns an array like this:
-        [ {
-            username: 'fnord',
-            job: 'omnomnom',
-            id: 2,
-            createdAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET),
-            updatedAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET)
-          },
-          false
-        ]
-       The array returned by findOrCreate gets spread into its 2 parts by the "spread" on line 69, and the parts will be passed as 2 arguments to the callback function beginning on line 69, which will then treat them as "user" and "created" in this case. (So "user" will be the object from index 0 of the returned array and "created" will equal "false".)
-        */
-      })
+    /*
+    In this example, findOrCreate returns an array like this:
+    [ {
+        username: 'fnord',
+        job: 'omnomnom',
+        id: 2,
+        createdAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET),
+        updatedAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET)
+      },
+      false
+    ]
+    The array returned by findOrCreate gets spread into its 2 parts by the "spread" on line 69, and the parts will be passed as 2 arguments to the callback function beginning on line 69, which will then treat them as "user" and "created" in this case. (So "user" will be the object from index 0 of the returned array and "created" will equal "false".)
+    */
   })
 ```
 
@@ -111,7 +107,7 @@ Project
      offset: 10,
      limit: 2
   })
-  .then(function(result) {
+  .then(result => {
     console.log(result.count);
     console.log(result.rows);
   });
@@ -148,22 +144,22 @@ The options object that you pass to `findAndCountAll` is the same as for `findAl
 ### findAll - Search for multiple elements in the database
 ```js
 // find multiple entries
-Project.findAll().then(function(projects) {
+Project.findAll().then(projects => {
   // projects will be an array of all Project instances
 })
 
 // also possible:
-Project.all().then(function(projects) {
+Project.all().then(projects => {
   // projects will be an array of all Project instances
 })
 
 // search for specific attributes - hash usage
-Project.findAll({ where: { name: 'A Project' } }).then(function(projects) {
+Project.findAll({ where: { name: 'A Project' } }).then(projects => {
   // projects will be an array of Project instances with the specified name
 })
 
 // search within a specific range
-Project.findAll({ where: { id: [1,2,3] } }).then(function(projects) {
+Project.findAll({ where: { id: [1,2,3] } }).then(projects => {
   // projects will be an array of Projects having the id 1, 2 or 3
   // this is actually doing an IN query
 })
@@ -337,11 +333,11 @@ Project.findAll({ where: { ... }, raw: true })
 There is also a method for counting database objects:
 
 ```js
-Project.count().then(function(c) {
+Project.count().then(c)  =>
   console.log("There are " + c + " projects!")
 })
 
-Project.count({ where: {'id': {$gt: 25}} }).then(function(c) {
+Project.count({ where: {'id': {$gt: 25}} }).then(c)  =>
   console.log("There are " + c + " projects with an id greater than 25.")
 })
 ```
@@ -357,11 +353,11 @@ And here is a method for getting the max value of an attribute:f
   the second one is 5 years old,
   the third one is 40 years old.
 */
-Project.max('age').then(function(max) {
+Project.max('age').then(max => {
   // this will return 40
 })
 
-Project.max('age', { where: { age: { lt: 20 } } }).then(function(max) {
+Project.max('age', { where: { age: { lt: 20 } } }).then(max => {
   // will be 10
 })
 ```
@@ -377,11 +373,11 @@ And here is a method for getting the min value of an attribute:
   the second one is 5 years old,
   the third one is 40 years old.
 */
-Project.min('age').then(function(min) {
+Project.min('age').then(min => {
   // this will return 5
 })
 
-Project.min('age', { where: { age: { $gt: 5 } } }).then(function(min) {
+Project.min('age', { where: { age: { $gt: 5 } } }).then(min => {
   // will be 10
 })
 ```
@@ -398,11 +394,11 @@ use the `sum` method.
   the second one is 5 years old,
   the third one is 40 years old.
 */
-Project.sum('age').then(function(sum) {
+Project.sum('age').then(sum => {
   // this will return 55
 })
 
-Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
+Project.sum('age', { where: { age: { $gt: 5 } } }).then(sum => {
   // will be 50
 })
 ```
@@ -412,15 +408,15 @@ Project.sum('age', { where: { age: { $gt: 5 } } }).then(function(sum) {
 When you are retrieving data from the database there is a fair chance that you also want to get associations with the same query - this is called eager loading. The basic idea behind that, is the use of the attribute `include` when you are calling `find` or `findAll`. Lets assume the following setup:
 
 ```js
-var User = sequelize.define('user', { name: Sequelize.STRING })
-  , Task = sequelize.define('task', { name: Sequelize.STRING })
-  , Tool = sequelize.define('tool', { name: Sequelize.STRING })
+const User = sequelize.define('user', { name: Sequelize.STRING })
+const Task = sequelize.define('task', { name: Sequelize.STRING })
+const Tool = sequelize.define('tool', { name: Sequelize.STRING })
 
 Task.belongsTo(User)
 User.hasMany(Task)
 User.hasMany(Tool, { as: 'Instruments' })
 
-sequelize.sync().then(function() {
+sequelize.sync().then(() => {
   // this is where we continue ...
 })
 ```
@@ -428,7 +424,7 @@ sequelize.sync().then(function() {
 OK. So, first of all, let's load all tasks with their associated user.
 
 ```js
-Task.findAll({ include: [ User ] }).then(function(tasks) {
+Task.findAll({ include: [ User ] }).then(tasks => {
   console.log(JSON.stringify(tasks))
 
   /*
@@ -454,7 +450,7 @@ Notice that the accessor (the `User` property in the resulting instance) is sing
 Next thing: Loading of data with many-to-something associations!
 
 ```js
-User.findAll({ include: [ Task ] }).then(function(users) {
+User.findAll({ include: [ Task ] }).then(users => {
   console.log(JSON.stringify(users))
 
   /*
@@ -481,7 +477,7 @@ Notice that the accessor (the `Tasks` property in the resulting instance) is plu
 If an association is aliased (using the `as` option), you must specify this alias when including the model. Notice how the user's `Tool`s are aliased as `Instruments` above. In order to get that right you have to specify the model you want to load, as well as the alias:
 
 ```js
-User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(users) {
+User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(users => {
   console.log(JSON.stringify(users))
 
   /*
@@ -505,7 +501,7 @@ User.findAll({ include: [{ model: Tool, as: 'Instruments' }] }).then(function(us
 You can also include by alias name by specifying a string that matches the association alias:
 
 ```js
-User.findAll({ include: ['Instruments'] }).then(function(users) {
+User.findAll({ include: ['Instruments'] }).then(users => {
   console.log(JSON.stringify(users))
 
   /*
@@ -525,7 +521,7 @@ User.findAll({ include: ['Instruments'] }).then(function(users) {
   */
 })
 
-User.findAll({ include: [{ association: 'Instruments' }] }).then(function(users) {
+User.findAll({ include: [{ association: 'Instruments' }] }).then(users => {
   console.log(JSON.stringify(users))
 
   /*
@@ -555,7 +551,7 @@ User.findAll({
         as: 'Instruments',
         where: { name: { $like: '%ooth%' } }
     }]
-}).then(function(users) {
+}).then(users => {
     console.log(JSON.stringify(users))
 
     /*
@@ -606,7 +602,7 @@ User.findAll({
         model: Tool,
         as: 'Instruments'
     }]
-}).then(function(users) {
+}).then(users => {
     console.log(JSON.stringify(users));
 
     /*
@@ -702,7 +698,7 @@ User.findAll({
       {model: Teacher, include: [ /* etc */]}
     ]}
   ]
-}).then(function(users) {
+}).then(users => {
   console.log(JSON.stringify(users))
 
   /*
@@ -741,7 +737,7 @@ User.findAll({
       required: false
     }]
   }]
-}).then(function(users) {
+}).then(users => {
   /* ... */
 })
 ```

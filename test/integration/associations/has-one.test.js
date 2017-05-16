@@ -47,8 +47,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
               id: 3
             })
           );
-        }).then((players) => {
-          return Player.User.get(players).then((result) => {
+        }).then(players => {
+          return Player.User.get(players).then(result => {
             expect(result[players[0].id].id).to.equal(players[0].user.id);
             expect(result[players[1].id].id).to.equal(players[1].user.id);
             expect(result[players[2].id]).to.equal(null);
@@ -62,23 +62,23 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
   describe('getAssocation', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING }),
             Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
 
           Group.hasOne(User);
 
           return sequelize.sync({ force: true }).then(() => {
-            return User.create({ username: 'foo' }).then((fakeUser) => {
-              return User.create({ username: 'foo' }).then((user) => {
-                return Group.create({ name: 'bar' }).then((group) => {
-                  return sequelize.transaction().then((t) => {
+            return User.create({ username: 'foo' }).then(fakeUser => {
+              return User.create({ username: 'foo' }).then(user => {
+                return Group.create({ name: 'bar' }).then(group => {
+                  return sequelize.transaction().then(t => {
                     return group.setUser(user, { transaction: t }).then(() => {
-                      return Group.all().then((groups) => {
-                        return groups[0].getUser().then((associatedUser) => {
+                      return Group.all().then(groups => {
+                        return groups[0].getUser().then(associatedUser => {
                           expect(associatedUser).to.be.null;
-                          return Group.all({ transaction: t }).then((groups) => {
-                            return groups[0].getUser({ transaction: t }).then((associatedUser) => {
+                          return Group.all({ transaction: t }).then(groups => {
+                            return groups[0].getUser({ transaction: t }).then(associatedUser => {
                               expect(associatedUser).not.to.be.null;
                               expect(associatedUser.id).to.equal(user.id);
                               expect(associatedUser.id).not.to.equal(fakeUser.id);
@@ -106,10 +106,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       return User.sync({ force: true }).then(() => {
         return Task.sync({ force: true }).then(() => {
-          return User.create({ username: 'foo' }).then((user) => {
-            return Task.create({ title: 'task', status: 'inactive' }).then((task) => {
+          return User.create({ username: 'foo' }).then(user => {
+            return Task.create({ title: 'task', status: 'inactive' }).then(task => {
               return user.setTaskXYZ(task).then(() => {
-                return user.getTaskXYZ({where: {status: 'active'}}).then((task) => {
+                return user.getTaskXYZ({where: {status: 'active'}}).then(task => {
                   expect(task).to.be.null;
                 });
               });
@@ -124,19 +124,19 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
   describe('setAssociation', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING }),
             Group = sequelize.define('Group', { name: Support.Sequelize.STRING });
 
           Group.hasOne(User);
 
           return sequelize.sync({ force: true }).then(() => {
-            return User.create({ username: 'foo' }).then((user) => {
-              return Group.create({ name: 'bar' }).then((group) => {
-                return sequelize.transaction().then((t) => {
+            return User.create({ username: 'foo' }).then(user => {
+              return Group.create({ name: 'bar' }).then(group => {
+                return sequelize.transaction().then(t => {
                   return group.setUser(user, { transaction: t }).then(() => {
-                    return Group.all().then((groups) => {
-                      return groups[0].getUser().then((associatedUser) => {
+                    return Group.all().then(groups => {
+                      return groups[0].getUser().then(associatedUser => {
                         expect(associatedUser).to.be.null;
                         return t.rollback();
                       });
@@ -158,14 +158,14 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       return User.sync({ force: true }).then(() => {
         return Task.sync({ force: true }).then(() => {
-          return User.create({userCoolIdTag: 1, username: 'foo'}).then((user) => {
-            return Task.create({taskOrSomething: 1, title: 'bar'}).then((task) => {
+          return User.create({userCoolIdTag: 1, username: 'foo'}).then(user => {
+            return Task.create({taskOrSomething: 1, title: 'bar'}).then(task => {
               return user.setTaskXYZZ(task).then(() => {
-                return user.getTaskXYZZ().then((task) => {
+                return user.getTaskXYZZ().then(task => {
                   expect(task).not.to.be.null;
 
                   return user.setTaskXYZZ(null).then(() => {
-                    return user.getTaskXYZZ().then((_task) => {
+                    return user.getTaskXYZZ().then(_task => {
                       expect(_task).to.be.null;
                     });
                   });
@@ -185,14 +185,14 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       return User.sync({ force: true }).then(() => {
         return Task.sync({ force: true }).then(() => {
-          return User.create({ username: 'foo' }).then((user) => {
-            return Task.create({ title: 'task' }).then((task) => {
+          return User.create({ username: 'foo' }).then(user => {
+            return Task.create({ title: 'task' }).then(task => {
               return user.setTaskXYZ(task).then(() => {
-                return user.getTaskXYZ().then((task) => {
+                return user.getTaskXYZ().then(task => {
                   expect(task).not.to.equal(null);
 
                   return user.setTaskXYZ(null).then(() => {
-                    return user.getTaskXYZ().then((task) => {
+                    return user.getTaskXYZ().then(task => {
                       expect(task).to.equal(null);
                     });
                   });
@@ -213,7 +213,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       return User.sync({ force: true }).then(() => {
         return Task.sync({ force: true }).then(() => {
           return expect(Task.create({ title: 'task', UserXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(() => {
-            return Task.create({ title: 'task' }).then((task) => {
+            return Task.create({ title: 'task' }).then(task => {
               return expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
             });
           });
@@ -228,10 +228,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       User.hasOne(Task);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({}).then((user) => {
-          return Task.create({ id: 19, title: 'task it!' }).then((task) => {
+        return User.create({}).then(user => {
+          return Task.create({ id: 19, title: 'task it!' }).then(task => {
             return user.setTaskXYZ(task.id).then(() => {
-              return user.getTaskXYZ().then((task) => {
+              return user.getTaskXYZ().then(task => {
                 expect(task.title).to.equal('task it!');
               });
             });
@@ -255,7 +255,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       .spread((user, task) => {
         return user.setTaskXYZ(task.id)
           .then(() => user.getTaskXYZ())
-          .then((task) => {
+          .then(task => {
             expect(task).not.to.be.null;
             return Promise.all([
               user,
@@ -266,7 +266,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       .spread((user, task2) => {
         return user.setTaskXYZ(task2.id)
           .then(() => user.getTaskXYZ())
-          .then((task) => {
+          .then(task => {
             expect(task).not.to.be.null;
           });
       });
@@ -303,9 +303,9 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       User.hasOne(Task);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'bob' }).then((user) => {
+        return User.create({ username: 'bob' }).then(user => {
           return user.createTask({ title: 'task' }).then(() => {
-            return user.getTask().then((task) => {
+            return user.getTask().then(task => {
               expect(task).not.to.be.null;
               expect(task.title).to.equal('task');
             });
@@ -316,21 +316,21 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING }),
             Group = sequelize.define('Group', { name: Sequelize.STRING });
 
           User.hasOne(Group);
 
           return sequelize.sync({ force: true }).then(() => {
-            return User.create({ username: 'bob' }).then((user) => {
-              return sequelize.transaction().then((t) => {
+            return User.create({ username: 'bob' }).then(user => {
+              return sequelize.transaction().then(t => {
                 return user.createGroup({ name: 'testgroup' }, { transaction: t }).then(() => {
-                  return User.all().then((users) => {
-                    return users[0].getGroup().then((group) => {
+                  return User.all().then(users => {
+                    return users[0].getGroup().then(group => {
                       expect(group).to.be.null;
-                      return User.all({ transaction: t }).then((users) => {
-                        return users[0].getGroup({ transaction: t }).then((group) => {
+                      return User.all({ transaction: t }).then(users => {
+                        return users[0].getGroup({ transaction: t }).then(group => {
                           expect(group).to.be.not.null;
                           return t.rollback();
                         });
@@ -391,14 +391,14 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         return task.setUserXYZ(user).then(() => {
           return task.getUserXYZ();
         });
-      }).then((user) => {
+      }).then(user => {
         // the sql query should correctly look at task_id instead of taskId
         expect(user).to.not.be.null;
         return Task.findOne({
           where: {title: 'task'},
           include: [User]
         });
-      }).then((task) => {
+      }).then(task => {
         expect(task.UserXYZ).to.exist;
       });
     });
@@ -413,8 +413,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       return User.sync({ force: true }).then(() => {
         return Task.sync({ force: true }).then(() => {
-          return User.create({ username: 'foo' }).then((user) => {
-            return Task.create({ title: 'task' }).then((task) => {
+          return User.create({ username: 'foo' }).then(user => {
+            return Task.create({ title: 'task' }).then(task => {
               return user.setTask(task).then(() => {
                 return user.destroy().then(() => {
                   return task.reload().then(() => {
@@ -435,13 +435,13 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       User.hasOne(Task, { foreignKey: { allowNull: false }}); // defaults to CASCADE
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'foo' }).then((user) => {
+        return User.create({ username: 'foo' }).then(user => {
           return Task.create({ title: 'task', UserId: user.id }).then(() => {
             return user.destroy().then(() => {
               return Task.findAll();
             });
           });
-        }).then((tasks) => {
+        }).then(tasks => {
           expect(tasks).to.be.empty;
         });
       });
@@ -455,8 +455,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       return User.sync({ force: true }).then(() => {
         return Task.sync({ force: true }).then(() => {
-          return User.create({ username: 'foo' }).then((user) => {
-            return Task.create({ title: 'task' }).then((task) => {
+          return User.create({ username: 'foo' }).then(user => {
+            return Task.create({ title: 'task' }).then(task => {
               return user.setTask(task).then(() => {
                 return user.destroy().then(() => {
                   return task.reload().then(() => {
@@ -478,11 +478,11 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       return User.sync({ force: true }).then(() => {
         return Task.sync({ force: true }).then(() => {
-          return User.create({ username: 'foo' }).then((user) => {
-            return Task.create({ title: 'task' }).then((task) => {
+          return User.create({ username: 'foo' }).then(user => {
+            return Task.create({ title: 'task' }).then(task => {
               return user.setTask(task).then(() => {
                 return user.destroy().then(() => {
-                  return Task.findAll().then((tasks) => {
+                  return Task.findAll().then(tasks => {
                     expect(tasks).to.have.length(0);
                   });
                 });
@@ -501,7 +501,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       return User.sync({ force: true }).then(() => {
         return Task.sync({ force: true }).then(() => {
-          return User.create({ username: 'foo' }).then((user) => {
+          return User.create({ username: 'foo' }).then(user => {
             return user.destroy();
           });
         });
@@ -519,8 +519,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         return User.sync({ force: true }).then(() => {
           return Task.sync({ force: true }).then(() => {
-            return User.create({ username: 'foo' }).then((user) => {
-              return Task.create({ title: 'task' }).then((task) => {
+            return User.create({ username: 'foo' }).then(user => {
+              return Task.create({ title: 'task' }).then(task => {
                 return user.setTask(task).then(() => {
 
                   // Changing the id of a DAO requires a little dance since
@@ -529,7 +529,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
                   const tableName = user.sequelize.getQueryInterface().QueryGenerator.addSchema(user.constructor);
                   return user.sequelize.getQueryInterface().update(user, tableName, {id: 999}, {id: user.id}).then(() => {
-                    return Task.findAll().then((tasks) => {
+                    return Task.findAll().then(tasks => {
                       expect(tasks).to.have.length(1);
                       expect(tasks[0].UserId).to.equal(999);
                     });
@@ -552,11 +552,11 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         return User.sync({ force: true }).then(() => {
           return Task.sync({ force: true }).then(() => {
-            return User.create({ username: 'foo' }).then((user) => {
-              return Task.create({ title: 'task' }).then((task) => {
+            return User.create({ username: 'foo' }).then(user => {
+              return Task.create({ title: 'task' }).then(task => {
                 return user.setTask(task).then(() => {
                   return expect(user.destroy()).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(() => {
-                    return Task.findAll().then((tasks) => {
+                    return Task.findAll().then(tasks => {
                       expect(tasks).to.have.length(1);
                     });
                   });
@@ -575,8 +575,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         return User.sync({ force: true }).then(() => {
           return Task.sync({ force: true }).then(() => {
-            return User.create({ username: 'foo' }).then((user) => {
-              return Task.create({ title: 'task' }).then((task) => {
+            return User.create({ username: 'foo' }).then(user => {
+              return Task.create({ title: 'task' }).then(task => {
                 return user.setTask(task).then(() => {
 
                   // Changing the id of a DAO requires a little dance since
@@ -588,7 +588,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
                     user.sequelize.getQueryInterface().update(user, tableName, {id: 999}, {id: user.id})
                   ).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError).then(() => {
                     // Should fail due to FK restriction
-                    return Task.findAll().then((tasks) => {
+                    return Task.findAll().then(tasks => {
                       expect(tasks).to.have.length(1);
                     });
                   });
@@ -633,7 +633,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         self = this,
         Tasks = {};
 
-      return Promise.map(dataTypes, (dataType) => {
+      return Promise.map(dataTypes, dataType => {
         const tableName = 'TaskXYZ_' + dataType.key;
         Tasks[dataType] = self.sequelize.define(tableName, { title: Sequelize.STRING });
 

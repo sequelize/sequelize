@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         {username: 'boo2'}
       ]).then(() => {
         return self.User.findOne();
-      }).then((user) => {
+      }).then(user => {
         return user.createProject({
           name: 'project1'
         });
@@ -62,7 +62,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           group: ['createdAt']
         })
       )
-      .then((users) => {
+      .then(users => {
         expect(users.length).to.be.eql(2);
 
         // have attributes
@@ -92,20 +92,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           order: ['age']
         })
       )
-      .then((result) => {
+      .then(result => {
         expect(parseInt(result[0].count)).to.be.eql(2);
         return this.User.count({
           where: { username: 'fire' }
         });
       })
-      .then((count) => {
+      .then(count => {
         expect(count).to.be.eql(0);
         return this.User.count({
           where: { username: 'fire' },
           group: 'age'
         });
       })
-      .then((count) => {
+      .then(count => {
         expect(count).to.be.eql([]);
       });
     });
@@ -124,14 +124,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           col: 'username'
         })
       )
-      .then((count) => {
+      .then(count => {
         expect(parseInt(count)).to.be.eql(3);
         return this.User.count({
           col: 'age',
           distinct: true
         });
       })
-      .then((count) => {
+      .then(count => {
         expect(parseInt(count)).to.be.eql(2);
       });
     });
@@ -144,11 +144,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           '$Projects.name$': 'project1'
         }
       };
-      return this.User.count(queryObject).then((count) => {
+      return this.User.count(queryObject).then(count => {
         expect(parseInt(count)).to.be.eql(1);
         queryObject.where['$Projects.name$'] = 'project2';
         return this.User.count(queryObject);
-      }).then((count) => {
+      }).then(count => {
         expect(parseInt(count)).to.be.eql(0);
       });
     });
@@ -166,14 +166,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           distinct: true,
           include: [this.Project]
         })
-      ).then((count) => {
+      ).then(count => {
         expect(parseInt(count)).to.be.eql(3);
         return this.User.count({
           col: 'age',
           distinct: true,
           include: [this.Project]
         });
-      }).then((count) => expect(parseInt(count)).to.be.eql(2));
+      }).then(count => expect(parseInt(count)).to.be.eql(2));
     });
 
   });

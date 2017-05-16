@@ -507,7 +507,7 @@ if (dialect === 'sqlite') {
 
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
-        tests.forEach((test) => {
+        tests.forEach(test => {
           const title = test.title || 'SQLite correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly

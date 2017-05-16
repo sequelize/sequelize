@@ -18,11 +18,11 @@ chai.config.includeStack = true;
 chai.should();
 
 // Make sure errors get thrown when testing
-process.on('uncaughtException', (e) => {
+process.on('uncaughtException', e => {
   console.error('An unhandled exception occured:');
   throw e;
 });
-Sequelize.Promise.onPossiblyUnhandledRejection((e) => {
+Sequelize.Promise.onPossiblyUnhandledRejection(e => {
   console.error('An unhandled rejection occured:');
   throw e;
 });
@@ -59,7 +59,7 @@ const Support = {
     if (dialect === 'sqlite') {
       const p = path.join(__dirname, 'tmp', 'db.sqlite');
 
-      return new Sequelize.Promise((resolve) => {
+      return new Sequelize.Promise(resolve => {
         // We cannot promisify exists, since exists does not follow node callback convention - first argument is a boolean, not an error / null
         if (fs.existsSync(p)) {
           resolve(Sequelize.Promise.promisify(fs.unlink)(p));
@@ -140,7 +140,7 @@ const Support = {
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(__dirname + '/../lib/dialects').filter((file) => {
+    return fs.readdirSync(__dirname + '/../lib/dialects').filter(file => {
       return file.indexOf('.js') === -1 && file.indexOf('abstract') === -1;
     });
   },

@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   });
 
   it('allows me to return values from a custom parse function', () => {
-    const parse = Sequelize.DATE.parse = sinon.spy((value) => {
+    const parse = Sequelize.DATE.parse = sinon.spy(value => {
       return moment(value, 'YYYY-MM-DD HH:mm:ss');
     });
 
@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   
 
   const testSuccess = function(Type, value) {
-    const parse = Type.constructor.parse = sinon.spy((value) => {
+    const parse = Type.constructor.parse = sinon.spy(value => {
       return value;
     });
 
@@ -314,7 +314,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return new Sequelize.Promise((resolve, reject) => {
         if (/^postgres/.test(dialect)) {
           current.query('SELECT PostGIS_Lib_Version();')
-            .then((result) => {
+            .then(result => {
               if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
                 resolve(true);
               } else {
@@ -324,7 +324,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         } else {
           resolve(true);
         }
-      }).then((runTests) => {
+      }).then(runTests => {
         if (current.dialect.supports.GEOMETRY && runTests) {
           current.refreshTypes();
 
@@ -456,7 +456,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return Model.sync({ force: true })
               .then(() => Model.create({ interval: [1, 4] }) )
               .then(() => Model.findAll() )
-              .spread((m) => {
+              .spread(m => {
                 expect(m.interval[0]).to.be.eql(1);
                 expect(m.interval[1]).to.be.eql(4);
               });

@@ -30,15 +30,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAll', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then((sequelize) => {
+        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
-            return sequelize.transaction().then((t) => {
+            return sequelize.transaction().then(t => {
               return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                return User.findAll({ where: {username: 'foo'} }).then((users1) => {
-                  return User.findAll({ transaction: t }).then((users2) => {
-                    return User.findAll({ where: {username: 'foo'}, transaction: t }).then((users3) => {
+                return User.findAll({ where: {username: 'foo'} }).then(users1 => {
+                  return User.findAll({ transaction: t }).then(users2 => {
+                    return User.findAll({ where: {username: 'foo'}, transaction: t }).then(users3 => {
                       expect(users1.length).to.equal(0);
                       expect(users2.length).to.equal(1);
                       expect(users3.length).to.equal(1);
@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: {
             username: ['boo', 'boo2']
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users).to.have.length(2);
         });
       });
@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: {
             binary: [this.buf, this.buf]
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users).to.have.length(1);
           expect(users[0].binary).to.be.an.instanceof.string;
           expect(users[0].username).to.equal('boo2');
@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               like: '%2'
             }
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users).to.be.an.instanceof(Array);
           expect(users).to.have.length(1);
           expect(users[0].username).to.equal('boo2');
@@ -115,7 +115,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               nlike: '%2'
             }
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users).to.be.an.instanceof(Array);
           expect(users).to.have.length(1);
           expect(users[0].username).to.equal('boo');
@@ -131,7 +131,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 ilike: '%2'
               }
             }
-          }).then((users) => {
+          }).then(users => {
             expect(users).to.be.an.instanceof(Array);
             expect(users).to.have.length(1);
             expect(users[0].username).to.equal('boo2');
@@ -146,7 +146,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 notilike: '%2'
               }
             }
-          }).then((users) => {
+          }).then(users => {
             expect(users).to.be.an.instanceof(Array);
             expect(users).to.have.length(1);
             expect(users[0].username).to.equal('boo');
@@ -162,7 +162,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               '..': ['2013-01-02', '2013-01-11']
             }
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users[0].username).to.equal('boo2');
           expect(users[0].intVal).to.equal(10);
         });
@@ -175,7 +175,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               '!..': [8, 10]
             }
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users[0].username).to.equal('boo');
           expect(users[0].intVal).to.equal(5);
         });
@@ -196,10 +196,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {username: 'boo5', aBool: false},
           {username: 'boo6', aBool: true}
         ]).then(() => {
-          return User.findAll({where: {aBool: false}}).then((users) => {
+          return User.findAll({where: {aBool: false}}).then(users => {
             expect(users).to.have.length(1);
             expect(users[0].username).to.equal('boo5');
-            return User.findAll({where: {aBool: true}}).then((_users) => {
+            return User.findAll({where: {aBool: true}}).then(_users => {
               expect(_users).to.have.length(1);
               expect(_users[0].username).to.equal('boo6');
             });
@@ -226,14 +226,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 {isActive: true},
                 {isActive: false}
               ]).then(() => {
-                return User.findById(1).then((user) => {
-                  return Passports.findById(1).then((passport) => {
+                return User.findById(1).then(user => {
+                  return Passports.findById(1).then(passport => {
                     return user.setPassports([passport]).then(() => {
-                      return User.findById(2).then((_user) => {
-                        return Passports.findById(2).then((_passport) => {
+                      return User.findById(2).then(_user => {
+                        return Passports.findById(2).then(_passport => {
                           return _user.setPassports([_passport]).then(() => {
-                            return _user.getPassports({where: {isActive: false}}).then((theFalsePassport) => {
-                              return user.getPassports({where: {isActive: true}}).then((theTruePassport) => {
+                            return _user.getPassports({where: {isActive: false}}).then(theFalsePassport => {
+                              return user.getPassports({where: {isActive: true}}).then(theTruePassport => {
                                 expect(theFalsePassport).to.have.length(1);
                                 expect(theFalsePassport[0].isActive).to.be.false;
                                 expect(theTruePassport).to.have.length(1);
@@ -276,14 +276,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {id: buf1},
               {id: buf2}
             ]).then(() => {
-              return User.findById(1).then((user) => {
-                return Binary.findById(buf1).then((binary) => {
+              return User.findById(1).then(user => {
+                return Binary.findById(buf1).then(binary => {
                   return user.setBinary(binary).then(() => {
-                    return User.findById(2).then((_user) => {
-                      return Binary.findById(buf2).then((_binary) => {
+                    return User.findById(2).then(_user => {
+                      return Binary.findById(buf2).then(_binary => {
                         return _user.setBinary(_binary).then(() => {
-                          return _user.getBinary().then((_binaryRetrieved) => {
-                            return user.getBinary().then((binaryRetrieved) => {
+                          return _user.getBinary().then(_binaryRetrieved => {
+                            return user.getBinary().then(binaryRetrieved => {
                               expect(binaryRetrieved.id).to.be.an.instanceof.string;
                               expect(_binaryRetrieved.id).to.be.an.instanceof.string;
                               expect(binaryRetrieved.id).to.have.length(16);
@@ -310,7 +310,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               between: ['2013-01-02', '2013-01-11']
             }
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users[0].username).to.equal('boo2');
           expect(users[0].intVal).to.equal(10);
         });
@@ -324,7 +324,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
             intVal: 10
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users[0].username).to.equal('boo2');
           expect(users[0].intVal).to.equal(10);
         });
@@ -337,7 +337,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               nbetween: [8, 10]
             }
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users[0].username).to.equal('boo');
           expect(users[0].intVal).to.equal(5);
         });
@@ -351,7 +351,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               nbetween: ['2013-01-04', '2013-01-20']
             }
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users[0].username).to.equal('boo');
           expect(users[0].intVal).to.equal(5);
         });
@@ -365,7 +365,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               nbetween: [new Date('2013-01-04'), new Date('2013-01-20')]
             }
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users[0].username).to.equal('boo');
           expect(users[0].intVal).to.equal(5);
         });
@@ -378,7 +378,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               gte: new Date('2013-01-09')
             }
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users[0].username).to.equal('boo2');
           expect(users[0].intVal).to.equal(10);
         });
@@ -391,7 +391,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               gte: 6
             }
           }
-        }).then((user) => {
+        }).then(user => {
           expect(user.username).to.equal('boo2');
           expect(user.intVal).to.equal(10);
         });
@@ -404,7 +404,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               gt: 5
             }
           }
-        }).then((user) => {
+        }).then(user => {
           expect(user.username).to.equal('boo2');
           expect(user.intVal).to.equal(10);
         });
@@ -417,7 +417,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               lte: 5
             }
           }
-        }).then((user) => {
+        }).then(user => {
           expect(user.username).to.equal('boo');
           expect(user.intVal).to.equal(5);
         });
@@ -430,7 +430,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               lt: 6
             }
           }
-        }).then((user) => {
+        }).then(user => {
           expect(user.username).to.equal('boo');
           expect(user.intVal).to.equal(5);
         });
@@ -444,7 +444,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               gt: 4
             }
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users[0].username).to.equal('boo');
           expect(users[0].intVal).to.equal(5);
         });
@@ -457,7 +457,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               ne: 10
             }
           }
-        }).then((user) => {
+        }).then(user => {
           expect(user.username).to.equal('boo');
           expect(user.intVal).to.equal(5);
         });
@@ -470,7 +470,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               lte: 10
             }
           }
-        }).then((users) => {
+        }).then(users => {
           expect(users[0].username).to.equal('boo');
           expect(users[0].intVal).to.equal(5);
           expect(users[1].username).to.equal('boo2');
@@ -495,8 +495,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           return self.Worker.sync({ force: true }).then(() => {
             return self.Task.sync({ force: true }).then(() => {
-              return self.Worker.create({ name: 'worker' }).then((worker) => {
-                return self.Task.create({ title: 'homework' }).then((task) => {
+              return self.Worker.create({ name: 'worker' }).then(worker => {
+                return self.Task.create({ title: 'homework' }).then(task => {
                   self.worker = worker;
                   self.task = task;
                   return self.task.setWorker(self.worker);
@@ -508,14 +508,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error about unexpected input if include contains a non-object', function() {
           const self = this;
-          return self.Worker.findAll({ include: [1] }).catch ((err) => {
+          return self.Worker.findAll({ include: [1] }).catch (err => {
             expect(err.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
           });
         });
 
         it('throws an error if included DaoFactory is not associated', function() {
           const self = this;
-          return self.Worker.findAll({ include: [self.Task] }).catch ((err) => {
+          return self.Worker.findAll({ include: [self.Task] }).catch (err => {
             expect(err.message).to.equal('TaskBelongsTo is not associated to Worker!');
           });
         });
@@ -524,7 +524,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Task.findAll({
             where: { title: 'homework' },
             include: [this.Worker]
-          }).then((tasks) => {
+          }).then(tasks => {
             expect(tasks).to.exist;
             expect(tasks[0].Worker).to.exist;
             expect(tasks[0].Worker.name).to.equal('worker');
@@ -537,7 +537,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [this.Worker],
             limit: 1,
             order: [['title', 'DESC']]
-          }).then((tasks) => {
+          }).then(tasks => {
             expect(tasks).to.exist;
             expect(tasks[0].Worker).to.exist;
             expect(tasks[0].Worker.name).to.equal('worker');
@@ -553,8 +553,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Worker.hasOne(self.Task);
           return self.Worker.sync({ force: true }).then(() => {
             return self.Task.sync({ force: true }).then(() => {
-              return self.Worker.create({ name: 'worker' }).then((worker) => {
-                return self.Task.create({ title: 'homework' }).then((task) => {
+              return self.Worker.create({ name: 'worker' }).then(worker => {
+                return self.Task.create({ title: 'homework' }).then(task => {
                   self.worker = worker;
                   self.task = task;
                   return self.worker.setTaskHasOne(self.task);
@@ -566,7 +566,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if included DaoFactory is not associated', function() {
           const self = this;
-          return self.Task.findAll({ include: [self.Worker] }).catch ((err) => {
+          return self.Task.findAll({ include: [self.Worker] }).catch (err => {
             expect(err.message).to.equal('Worker is not associated to TaskHasOne!');
           });
         });
@@ -575,7 +575,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [this.Task]
-          }).then((workers) => {
+          }).then(workers => {
             expect(workers).to.exist;
             expect(workers[0].TaskHasOne).to.exist;
             expect(workers[0].TaskHasOne.title).to.equal('homework');
@@ -591,8 +591,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Worker.hasOne(self.Task, { as: 'ToDo' });
           return self.Worker.sync({ force: true }).then(() => {
             return self.Task.sync({ force: true }).then(() => {
-              return self.Worker.create({ name: 'worker' }).then((worker) => {
-                return self.Task.create({ title: 'homework' }).then((task) => {
+              return self.Worker.create({ name: 'worker' }).then(worker => {
+                return self.Task.create({ title: 'homework' }).then(task => {
                   self.worker = worker;
                   self.task = task;
                   return self.worker.setToDo(self.task);
@@ -604,7 +604,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if included DaoFactory is not referenced by alias', function() {
           const self = this;
-          return self.Worker.findAll({ include: [self.Task] }).catch ((err) => {
+          return self.Worker.findAll({ include: [self.Task] }).catch (err => {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You must use the \'as\' keyword to specify the alias within your include statement.');
           });
@@ -612,7 +612,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if alias is not associated', function() {
           const self = this;
-          return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch ((err) => {
+          return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch (err => {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You\'ve included an alias (Work), but it does not match the alias defined in your association.');
           });
@@ -622,7 +622,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [{ model: this.Task, as: 'ToDo' }]
-          }).then((workers) => {
+          }).then(workers => {
             expect(workers).to.exist;
             expect(workers[0].ToDo).to.exist;
             expect(workers[0].ToDo.title).to.equal('homework');
@@ -633,7 +633,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [{ model: this.Task, as: 'ToDo' }]
-          }).then((workers) => {
+          }).then(workers => {
             expect(workers[0].ToDo.title).to.equal('homework');
           });
         });
@@ -647,8 +647,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Worker.hasMany(self.Task);
           return self.Worker.sync({ force: true }).then(() => {
             return self.Task.sync({ force: true }).then(() => {
-              return self.Worker.create({ name: 'worker' }).then((worker) => {
-                return self.Task.create({ title: 'homework' }).then((task) => {
+              return self.Worker.create({ name: 'worker' }).then(worker => {
+                return self.Task.create({ title: 'homework' }).then(task => {
                   self.worker = worker;
                   self.task = task;
                   return self.worker.setTasks([self.task]);
@@ -660,7 +660,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if included DaoFactory is not associated', function() {
           const self = this;
-          return self.Task.findAll({ include: [self.Worker] }).catch ((err) => {
+          return self.Task.findAll({ include: [self.Worker] }).catch (err => {
             expect(err.message).to.equal('worker is not associated to task!');
           });
         });
@@ -669,7 +669,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [this.Task]
-          }).then((workers) => {
+          }).then(workers => {
             expect(workers).to.exist;
             expect(workers[0].tasks).to.exist;
             expect(workers[0].tasks[0].title).to.equal('homework');
@@ -685,8 +685,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Worker.hasMany(self.Task, { as: 'ToDos' });
           return self.Worker.sync({ force: true }).then(() => {
             return self.Task.sync({ force: true }).then(() => {
-              return self.Worker.create({ name: 'worker' }).then((worker) => {
-                return self.Task.create({ title: 'homework' }).then((task) => {
+              return self.Worker.create({ name: 'worker' }).then(worker => {
+                return self.Task.create({ title: 'homework' }).then(task => {
                   self.worker = worker;
                   self.task = task;
                   return self.worker.setToDos([self.task]);
@@ -698,7 +698,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if included DaoFactory is not referenced by alias', function() {
           const self = this;
-          return self.Worker.findAll({ include: [self.Task] }).catch ((err) => {
+          return self.Worker.findAll({ include: [self.Task] }).catch (err => {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You must use the \'as\' keyword to specify the alias within your include statement.');
           });
@@ -706,7 +706,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if alias is not associated', function() {
           const self = this;
-          return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch ((err) => {
+          return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch (err => {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You\'ve included an alias (Work), but it does not match the alias defined in your association.');
           });
@@ -716,7 +716,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [{ model: this.Task, as: 'ToDos' }]
-          }).then((workers) => {
+          }).then(workers => {
             expect(workers).to.exist;
             expect(workers[0].ToDos).to.exist;
             expect(workers[0].ToDos[0].title).to.equal('homework');
@@ -727,7 +727,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [{ model: this.Task, as: 'ToDos' }]
-          }).then((workers) => {
+          }).then(workers => {
             expect(workers[0].ToDos[0].title).to.equal('homework');
           });
         });
@@ -736,15 +736,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('queryOptions', () => {
         beforeEach(function() {
           const self = this;
-          return this.User.create({username: 'barfooz'}).then((user) => {
+          return this.User.create({username: 'barfooz'}).then(user => {
             self.user = user;
           });
         });
 
         it('should return a DAO when queryOptions are not set', function() {
           const self = this;
-          return this.User.findAll({ where: { username: 'barfooz'}}).then((users) => {
-            users.forEach((user) => {
+          return this.User.findAll({ where: { username: 'barfooz'}}).then(users => {
+            users.forEach(user => {
               expect(user).to.be.instanceOf(self.User);
             });
           });
@@ -752,8 +752,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should return a DAO when raw is false', function() {
           const self = this;
-          return this.User.findAll({ where: { username: 'barfooz'}, raw: false }).then((users) => {
-            users.forEach((user) => {
+          return this.User.findAll({ where: { username: 'barfooz'}, raw: false }).then(users => {
+            users.forEach(user => {
               expect(user).to.be.instanceOf(self.User);
             });
           });
@@ -761,8 +761,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should return raw data when raw is true', function() {
           const self = this;
-          return this.User.findAll({ where: { username: 'barfooz'}, raw: true }).then((users) => {
-            users.forEach((user) => {
+          return this.User.findAll({ where: { username: 'barfooz'}, raw: true }).then(users => {
+            users.forEach(user => {
               expect(user).to.not.be.instanceOf(self.User);
               expect(users[0]).to.be.instanceOf(Object);
             });
@@ -794,7 +794,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               england: self.Country.create({ name: 'England' }),
               coal: self.Industry.create({ name: 'Coal' }),
               bob: self.Person.create({ name: 'Bob', lastName: 'Becket' })
-            }).then((r) => {
+            }).then(r => {
               _.forEach(r, (item, itemName) => {
                 self[itemName] = item;
               });
@@ -810,7 +810,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         //Oracle - identifier too long
         it('includes all associations', function() {
-          return this.Country.findAll({ include: [{ all: true }] }).then((countries) => {
+          return this.Country.findAll({ include: [{ all: true }] }).then(countries => {
             expect(countries).to.exist;
             expect(countries[0]).to.exist;
             expect(countries[0].continent).to.exist;
@@ -828,7 +828,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('includes specific type of association', function() {
-          return this.Country.findAll({ include: [{ all: 'BelongsTo' }] }).then((countries) => {
+          return this.Country.findAll({ include: [{ all: 'BelongsTo' }] }).then(countries => {
             expect(countries).to.exist;
             expect(countries[0]).to.exist;
             expect(countries[0].continent).to.exist;
@@ -839,7 +839,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('utilises specified attributes', function() {
-          return this.Country.findAll({ include: [{ all: 'HasMany', attributes: ['name'] }] }).then((countries) => {
+          return this.Country.findAll({ include: [{ all: 'HasMany', attributes: ['name'] }] }).then(countries => {
             expect(countries).to.exist;
             expect(countries[0]).to.exist;
             expect(countries[0].people).to.exist;
@@ -855,7 +855,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         //Oracle - identifier too long
         it('is over-ruled by specified include', function() {
-          return this.Country.findAll({ include: [{ all: true }, { model: this.Continent, attributes: ['id'] }] }).then((countries) => {
+          return this.Country.findAll({ include: [{ all: true }, { model: this.Continent, attributes: ['id'] }] }).then(countries => {
             expect(countries).to.exist;
             expect(countries[0]).to.exist;
             expect(countries[0].continent).to.exist;
@@ -872,7 +872,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         //Oracle - identifier too long
         it('includes all nested associations', function() {
-          return this.Continent.findAll({ include: [{ all: true, nested: true }] }).then((continents) => {
+          return this.Continent.findAll({ include: [{ all: true, nested: true }] }).then(continents => {
             expect(continents).to.exist;
             expect(continents[0]).to.exist;
             expect(continents[0].countries).to.exist;
@@ -937,9 +937,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               where: { age: { $gte : 29 } },
               attributes: []
             }]
-          }).then((kingdoms) => {
+          }).then(kingdoms => {
             expect(kingdoms.length).to.be.eql(2);
-            kingdoms.forEach((kingdom) => {
+            kingdoms.forEach(kingdom => {
               // include.attributes:[] , model doesn't exists
               expect(kingdom.Animals).to.not.exist;
             });
@@ -963,9 +963,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 attributes: []
               }
             }]
-          }).then((kingdoms) => {
+          }).then(kingdoms => {
             expect(kingdoms.length).to.be.eql(2);
-            kingdoms.forEach((kingdom) => {
+            kingdoms.forEach(kingdom => {
               expect(kingdom.Animals).to.exist; // include model exists
               expect(kingdom.Animals[0].AnimalKingdom).to.not.exist; // through doesn't exists
             });
@@ -990,9 +990,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 attributes: ['mutation']
               }
             }]
-          }).then((kingdoms) => {
+          }).then(kingdoms => {
             expect(kingdoms.length).to.be.eql(2);
-            kingdoms.forEach((kingdom) => {
+            kingdoms.forEach(kingdom => {
               // include.attributes: [], model doesn't exists
               expect(kingdom.Animals).to.not.exist;
             });
@@ -1036,7 +1036,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               fred: self.Person.create({ name: 'Fred', lastName: 'Able' }),
               pierre: self.Person.create({ name: 'Pierre', lastName: 'Paris' }),
               kim: self.Person.create({ name: 'Kim', lastName: 'Z' })
-            }).then((r) => {
+            }).then(r => {
               _.forEach(r, (item, itemName) => {
                 self[itemName] = item;
               });
@@ -1062,10 +1062,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts simply', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Asia'], ['DESC', 'Europe']], (params) => {
+          return this.sequelize.Promise.map([['ASC', 'Asia'], ['DESC', 'Europe']], params => {
             return self.Continent.findAll({
               order: [['name', params[0]]]
-            }).then((continents) => {
+            }).then(continents => {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
@@ -1075,11 +1075,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts by 1st degree association', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']], (params) => {
+          return this.sequelize.Promise.map([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']], params => {
             return self.Continent.findAll({
               include: [self.Country],
               order: [[self.Country, 'name', params[0]]]
-            }).then((continents) => {
+            }).then(continents => {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
@@ -1093,11 +1093,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         //Oracle - identifier too long
         it('sorts by 2nd degree association', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']], (params) => {
+          return this.sequelize.Promise.map([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']], params => {
             return self.Continent.findAll({
               include: [{ model: self.Country, include: [self.Person] }],
               order: [[self.Country, self.Person, 'lastName', params[0]]]
-            }).then((continents) => {
+            }).then(continents => {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
@@ -1121,11 +1121,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         //Oracle - identifier too long
         it('sorts by 2nd degree association with alias', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], (params) => {
+          return this.sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
             return self.Continent.findAll({
               include: [{ model: self.Country, include: [self.Person, {model: self.Person, as: 'residents' }] }],
               order: [[self.Country, {model: self.Person, as: 'residents' }, 'lastName', params[0]]]
-            }).then((continents) => {
+            }).then(continents => {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
@@ -1149,12 +1149,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         //Oracle - identifier too long
         it('sorts by 2nd degree association with alias while using limit', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], (params) => {
+          return this.sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
             return self.Continent.findAll({
               include: [{ model: self.Country, include: [self.Person, {model: self.Person, as: 'residents' }] }],
               order: [[{ model: self.Country }, {model: self.Person, as: 'residents' }, 'lastName', params[0]]],
               limit: 3
-            }).then((continents) => {
+            }).then(continents => {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
@@ -1195,7 +1195,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               energy: self.Industry.create({ name: 'Energy' }),
               media: self.Industry.create({ name: 'Media' }),
               tech: self.Industry.create({ name: 'Tech' })
-            }).then((r) => {
+            }).then(r => {
               _.forEach(r, (item, itemName) => {
                 self[itemName] = item;
               });
@@ -1213,11 +1213,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         //Oracle - identifier too long
         it('sorts by 1st degree association', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], (params) => {
+          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
             return self.Country.findAll({
               include: [self.Industry],
               order: [[self.Industry, 'name', params[0]]]
-            }).then((countries) => {
+            }).then(countries => {
               expect(countries).to.exist;
               expect(countries[0]).to.exist;
               expect(countries[0].name).to.equal(params[1]);
@@ -1238,14 +1238,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         //Oracle - identifier too long
         it('sorts by 1st degree association while using limit', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], (params) => {
+          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
             return self.Country.findAll({
               include: [self.Industry],
               order: [
                 [self.Industry, 'name', params[0]]
               ],
               limit: 3
-            }).then((countries) => {
+            }).then(countries => {
               expect(countries).to.exist;
               expect(countries[0]).to.exist;
               expect(countries[0].name).to.equal(params[1]);
@@ -1266,11 +1266,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         //Oracle - identifier too long
         it('sorts by through table attribute', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']], (params) => {
+          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']], params => {
             return self.Country.findAll({
               include: [self.Industry],
               order: [[self.Industry, self.IndustryCountry, 'numYears', params[0]]]
-            }).then((countries) => {
+            }).then(countries => {
               expect(countries).to.exist;
               expect(countries[0]).to.exist;
               expect(countries[0].name).to.equal(params[1]);
@@ -1292,29 +1292,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('normal findAll', () => {
       beforeEach(function() {
         const self = this;
-        return this.User.create({username: 'user', data: 'foobar', theDate: moment().toDate()}).then((user) => {
-          return self.User.create({username: 'user2', data: 'bar', theDate: moment().toDate()}).then((user2) => {
+        return this.User.create({username: 'user', data: 'foobar', theDate: moment().toDate()}).then(user => {
+          return self.User.create({username: 'user2', data: 'bar', theDate: moment().toDate()}).then(user2 => {
             self.users = [user].concat(user2);
           });
         });
       });
 
       it('finds all entries', function() {
-        return this.User.findAll().then((users) => {
+        return this.User.findAll().then(users => {
           expect(users.length).to.equal(2);
         });
       });
 
       it('can also handle object notation', function() {
         const self = this;
-        return this.User.findAll({where: {id: this.users[1].id}}).then((users) => {
+        return this.User.findAll({where: {id: this.users[1].id}}).then(users => {
           expect(users.length).to.equal(1);
           expect(users[0].id).to.equal(self.users[1].id);
         });
       });
 
       it('sorts the results via id in ascending order', function() {
-        return this.User.findAll().then((users) => {
+        return this.User.findAll().then(users => {
           expect(users.length).to.equal(2);
           //Oracle - no order by is setted, as for mssql, so how can it be ordered ?
           if (dialect !== 'oracle') {
@@ -1324,7 +1324,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('sorts the results via id in descending order', function() {
-        return this.User.findAll({ order: [['id', 'DESC']] }).then((users) => {
+        return this.User.findAll({ order: [['id', 'DESC']] }).then(users => {
           expect(users[0].id).to.be.above(users[1].id);
         });
       });
@@ -1332,7 +1332,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('sorts the results via a date column', function() {
         const self = this;
         return self.User.create({username: 'user3', data: 'bar', theDate: moment().add(2, 'hours').toDate()}).then(() => {
-          return self.User.findAll({ order: [['theDate', 'DESC']] }).then((users) => {
+          return self.User.findAll({ order: [['theDate', 'DESC']] }).then(users => {
             expect(users[0].id).to.be.above(users[2].id);
           });
         });
@@ -1341,7 +1341,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('handles offset and limit', function() {
         const self = this;
         return this.User.bulkCreate([{username: 'bobby'}, {username: 'tables'}]).then(() => {
-          return self.User.findAll({ limit: 2, offset: 2 }).then((users) => {
+          return self.User.findAll({ limit: 2, offset: 2 }).then(users => {
             expect(users.length).to.equal(2);
             expect(users[0].id).to.equal(3);
           });
@@ -1356,7 +1356,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return User.sync({ force: true }).then(() => {
           return User.create({Login: 'foo'}).then(() => {
-            return User.findAll({ where: { ID: 1 } }).then((user) => {
+            return User.findAll({ where: { ID: 1 } }).then(user => {
               expect(user).to.be.instanceof(Array);
               expect(user).to.have.length(1);
             });
@@ -1392,8 +1392,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.create().then(() => {
           return User.findAll({
             attributes: ['active']
-          }).then((users) => {
-            users.forEach((user) => {
+          }).then(users => {
+            users.forEach(user => {
               expect(user.get('createdAt')).to.be.ok;
               expect(user.get('active')).to.equal(true);
             });
@@ -1411,7 +1411,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         {username: 'user2', data: 'bar'},
         {username: 'bobby', data: 'foo'}
       ]).then(() => {
-        return self.User.findAll().then((users) => {
+        return self.User.findAll().then(users => {
           self.users = users;
         });
       });
@@ -1419,14 +1419,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then((sequelize) => {
+        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
-            return sequelize.transaction().then((t) => {
+            return sequelize.transaction().then(t => {
               return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                return User.findAndCountAll().then((info1) => {
-                  return User.findAndCountAll({ transaction: t }).then((info2) => {
+                return User.findAndCountAll().then(info1 => {
+                  return User.findAndCountAll({ transaction: t }).then(info2 => {
                     expect(info1.count).to.equal(0);
                     expect(info2.count).to.equal(1);
                     return t.rollback();
@@ -1440,7 +1440,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('handles where clause {only}', function() {
-      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}}).then((info) => {
+      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}}).then(info => {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
@@ -1448,7 +1448,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('handles where clause with ordering {only}', function() {
-      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}, order: [['id', 'ASC']]}).then((info) => {
+      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}, order: [['id', 'ASC']]}).then(info => {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
@@ -1456,7 +1456,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('handles offset', function() {
-      return this.User.findAndCountAll({offset: 1}).then((info) => {
+      return this.User.findAndCountAll({offset: 1}).then(info => {
         expect(info.count).to.equal(3);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
@@ -1464,7 +1464,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('handles limit', function() {
-      return this.User.findAndCountAll({limit: 1}).then((info) => {
+      return this.User.findAndCountAll({limit: 1}).then(info => {
         expect(info.count).to.equal(3);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(1);
@@ -1472,7 +1472,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('handles offset and limit', function() {
-      return this.User.findAndCountAll({offset: 1, limit: 1}).then((info) => {
+      return this.User.findAndCountAll({offset: 1, limit: 1}).then(info => {
         expect(info.count).to.equal(3);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(1);
@@ -1497,10 +1497,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return this.sequelize.sync().then(() => {
         // Add some data
-        return Citizen.create({ name: 'Alice' }).then((alice) => {
-          return Citizen.create({ name: 'Bob' }).then((bob) => {
+        return Citizen.create({ name: 'Alice' }).then(alice => {
+          return Citizen.create({ name: 'Bob' }).then(bob => {
             return Election.create({ name: 'Some election' }).then(() => {
-              return Election.create({ name: 'Some other election' }).then((election) => {
+              return Election.create({ name: 'Some other election' }).then(election => {
                 return election.setCitizen(alice).then(() => {
                   return election.setVoters([alice, bob]).then(() => {
                     const criteria = {
@@ -1514,7 +1514,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                         { model: Citizen, as: 'Voters' } // Election voters
                       ]
                     };
-                    return Election.findAndCountAll(criteria).then((elections) => {
+                    return Election.findAndCountAll(criteria).then(elections => {
                       expect(elections.count).to.equal(1);
                       expect(elections.rows.length).to.equal(0);
                     });
@@ -1530,7 +1530,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     
 
     it('handles attributes', function() {
-      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}, attributes: ['data']}).then((info) => {
+      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}, attributes: ['data']}).then(info => {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
@@ -1550,14 +1550,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then((sequelize) => {
+        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
-            return sequelize.transaction().then((t) => {
+            return sequelize.transaction().then(t => {
               return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                return User.findAll().then((users1) => {
-                  return User.findAll({ transaction: t }).then((users2) => {
+                return User.findAll().then(users1 => {
+                  return User.findAll({ transaction: t }).then(users2 => {
                     expect(users1.length).to.equal(0);
                     expect(users2.length).to.equal(1);
                     return t.rollback();
@@ -1571,7 +1571,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('should return all users', function() {
-      return this.User.findAll().then((users) => {
+      return this.User.findAll().then(users => {
         expect(users.length).to.equal(2);
       });
     });

@@ -34,8 +34,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return this.User.create({username: 'Toni', mood: 'happy'}).then((user) => {
-          return user.updateAttributes({username: 'Chong'}).then((user) => {
+        return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
+          return user.updateAttributes({username: 'Chong'}).then(user => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
             expect(beforeSave).to.have.been.calledTwice;
@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return this.User.create({username: 'Toni', mood: 'happy'}).then((user) => {
+        return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
           return expect(user.updateAttributes({username: 'Chong'})).to.be.rejected.then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(beforeSave).to.have.been.calledOnce;
@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return this.User.create({username: 'Toni', mood: 'happy'}).then((user) => {
+        return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
           return expect(user.updateAttributes({username: 'Chong'})).to.be.rejected.then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
@@ -99,13 +99,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     describe('preserves changes to instance', () => {
       it('beforeValidate', function(){
 
-        this.User.beforeValidate((user) => {
+        this.User.beforeValidate(user => {
           user.mood = 'happy';
         });
 
-        return this.User.create({username: 'fireninja', mood: 'invalid'}).then((user) => {
+        return this.User.create({username: 'fireninja', mood: 'invalid'}).then(user => {
           return user.updateAttributes({username: 'hero'});
-        }).then((user) => {
+        }).then(user => {
           expect(user.username).to.equal('hero');
           expect(user.mood).to.equal('happy');
         });
@@ -113,13 +113,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       it('afterValidate', function() {
 
-        this.User.afterValidate((user) => {
+        this.User.afterValidate(user => {
           user.mood = 'sad';
         });
 
-        return this.User.create({username: 'fireninja', mood: 'nuetral'}).then((user) => {
+        return this.User.create({username: 'fireninja', mood: 'nuetral'}).then(user => {
           return user.updateAttributes({username: 'spider'});
-        }).then((user) => {
+        }).then(user => {
           expect(user.username).to.equal('spider');
           expect(user.mood).to.equal('sad');
         });
@@ -128,14 +128,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave', function() {
         let hookCalled = 0;
 
-        this.User.beforeSave((user) => {
+        this.User.beforeSave(user => {
           user.mood = 'happy';
           hookCalled++;
         });
 
-        return this.User.create({username: 'fireninja', mood: 'nuetral'}).then((user) => {
+        return this.User.create({username: 'fireninja', mood: 'nuetral'}).then(user => {
           return user.updateAttributes({username: 'spider', mood: 'sad'});
-        }).then((user) => {
+        }).then(user => {
           expect(user.username).to.equal('spider');
           expect(user.mood).to.equal('happy');
           expect(hookCalled).to.equal(2);
@@ -145,19 +145,19 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave with beforeUpdate', function() {
         let hookCalled = 0;
 
-        this.User.beforeUpdate((user) => {
+        this.User.beforeUpdate(user => {
           user.mood = 'sad';
           hookCalled++;
         });
 
-        this.User.beforeSave((user) => {
+        this.User.beforeSave(user => {
           user.mood = 'happy';
           hookCalled++;
         });
 
-        return this.User.create({username: 'akira'}).then((user) => {
+        return this.User.create({username: 'akira'}).then(user => {
           return user.updateAttributes({username: 'spider', mood: 'sad'});
-        }).then((user) => {
+        }).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('spider');
           expect(hookCalled).to.equal(3);

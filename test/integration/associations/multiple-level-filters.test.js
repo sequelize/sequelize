@@ -204,18 +204,18 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
         }, {
           title: 'empire'
         }]).then(() => {
-          return User.findById(1).then((user) => {
-            return Project.findById(1).then((project) => {
+          return User.findById(1).then(user => {
+            return Project.findById(1).then(project => {
               return user.setProjects([project]).then(() => {
-                return User.findById(2).then((user) => {
-                  return Project.findById(2).then((project) => {
+                return User.findById(2).then(user => {
+                  return Project.findById(2).then(project => {
                     return user.setProjects([project]).then(() => {
                       return User.findAll({
                         include: [
                           {model: Project, where: {title: 'republic'}}
                         ],
                         order : ['id']
-                      }).then((users) => {
+                      }).then(users => {
                         expect(users.length).to.be.equal(1);
                         expect(users[0].username).to.be.equal('leia');
                       });

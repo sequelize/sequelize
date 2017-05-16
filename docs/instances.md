@@ -5,12 +5,12 @@
 In order to create instances of defined classes just do as follows&period; You might recognize the syntax if you coded Ruby in the past&period; Using the `build`-method will return an unsaved object&comma; which you explicitly have to save&period;
 
 ```js
-var project = Project.build({
+const project = Project.build({
   title: 'my awesome project',
   description: 'woot woot. this will make me a rich man'
 })
  
-var task = Task.build({
+const task = Task.build({
   title: 'specify the project idea',
   description: 'bla',
   deadline: new Date()
@@ -21,13 +21,13 @@ Built instances will automatically get default values when they were defined&col
 
 ```js
 // first define the model
-var Task = sequelize.define('task', {
+const Task = sequelize.define('task', {
   title: Sequelize.STRING,
   rating: { type: Sequelize.STRING, defaultValue: 3 }
 })
  
 // now instantiate an object
-var task = Task.build({title: 'very important task'})
+const task = Task.build({title: 'very important task'})
  
 task.title  // ==> 'very important task'
 task.rating // ==> 3
@@ -36,11 +36,11 @@ task.rating // ==> 3
 To get it stored in the database&comma; use the `save`-method and catch the events ... if needed&colon;
 
 ```js
-project.save().then(function() {
+project.save().then(() => {
   // my nice callback stuff
 })
  
-task.save().catch(function(error) {
+task.save().catch(error => {
   // mhhh, wth!
 })
  
@@ -48,9 +48,10 @@ task.save().catch(function(error) {
 Task
   .build({ title: 'foo', description: 'bar', deadline: new Date() })
   .save()
-  .then(function(anotherTask) {
+  .then(anotherTask => {
     // you can now access the currently saved task with the variable anotherTask... nice!
-  }).catch(function(error) {
+  })
+  .catch(error => {
     // Ooops, do some error-handling
   })
 ```
@@ -60,7 +61,7 @@ Task
 Besides constructing objects&comma; that needs an explicit save call to get stored in the database&comma; there is also the possibility to do all those steps with one single command&period; It's called `create`.
 
 ```js
-Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).then(function(task) {
+Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).then(task => {
   // you can now access the newly created task via the variable task
 })
 ```
@@ -68,7 +69,7 @@ Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).then(fun
 It is also possible to define which attributes can be set via the create method&period; This can be especially very handy if you create database entries based on a form which can be filled by a user&period; Using that would for example allow you to restrict the `User` model to set only a username and an address but not an admin flag&colon;
 
 ```js
-User.create({ username: 'barfooz', isAdmin: true }, { fields: [ 'username' ] }).then(function(user) {
+User.create({ username: 'barfooz', isAdmin: true }, { fields: [ 'username' ] }).then(user => {
   // let's assume the default of isAdmin is false:
   console.log(user.get({
     plain: true
@@ -83,12 +84,12 @@ Now lets change some values and save changes to the database&period;&period;&per
 ```js
 // way 1
 task.title = 'a very different title now'
-task.save().then(function() {})
+task.save().then(() => {})
  
 // way 2
 task.update({
   title: 'a very different title now'
-}).then(function() {})
+}).then(() => {})
 ```
 
 It's also possible to define which attributes should be saved when calling `save`&comma; by passing an array of column names&period; This is useful when you set attributes based on a previously defined object&period; E&period;g&period; if you get the values of an object via a form of a web app&period; Furthermore this is used internally for `update`&period; This is how it looks like&colon;
@@ -96,12 +97,12 @@ It's also possible to define which attributes should be saved when calling `save
 ```js
 task.title = 'foooo'
 task.description = 'baaaaaar'
-task.save({fields: ['title']}).then(function() {
+task.save({fields: ['title']}).then(() => {
  // title will now be 'foooo' but description is the very same as before
 })
  
 // The equivalent call using update looks like this:
-task.update({ title: 'foooo', description: 'baaaaaar'}, {fields: ['title']}).then(function() {
+task.update({ title: 'foooo', description: 'baaaaaar'}, {fields: ['title']}).then(() => {
  // title will now be 'foooo' but description is the very same as before
 })
 ```
@@ -113,10 +114,10 @@ When you call `save` without changing any attribute, this method will execute no
 Once you created an object and got a reference to it&comma; you can delete it from the database&period; The relevant method is `destroy`&colon;
 
 ```js
-Task.create({ title: 'a task' }).then(function(task) {
+Task.create({ title: 'a task' }).then(task => {
   // now you see me...
   return task.destroy();
-}).then(function() {
+}).then(() => {
  // now i'm gone :)
 })
 ```
@@ -144,9 +145,9 @@ User.bulkCreate([
   { username: 'barfooz', isAdmin: true },
   { username: 'foo', isAdmin: true },
   { username: 'bar', isAdmin: false }
-]).then(function() { // Notice: There are no arguments here, as of right now you'll have to...
+]).then(() => { // Notice: There are no arguments here, as of right now you'll have to...
   return User.findAll();
-}).then(function(users) {
+}).then(users => {
   console.log(users) // ... in order to get the array of user objects
 })
 ```
@@ -158,18 +159,18 @@ Task.bulkCreate([
   {subject: 'programming', status: 'executing'},
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
-]).then(function() {
+]).then(() => {
   return Task.update(
     { status: 'inactive' }, /* set attributes' value */,
     { where: { subject: 'programming' }} /* where criteria */
   );
-}).spread(function(affectedCount, affectedRows) {
+}).spread((affectedCount, affectedRows) => {
   // .update returns two values in an array, therefore we use .spread
   // Notice that affectedRows will only be defined in dialects which support returning: true
   
   // affectedCount will be 2
   return Task.findAll();
-}).then(function(tasks) {
+}).then(tasks => {
   console.log(tasks) // the 'programming' tasks will both have a status of 'inactive'
 })
 ```
@@ -181,17 +182,17 @@ Task.bulkCreate([
   {subject: 'programming', status: 'executing'},
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
-]).then(function() {
+]).then(() => {
   return Task.destroy({
     where: {
       subject: 'programming'
     },
     truncate: true /* this will ignore where and truncate the table instead */
   });
-}).then(function(affectedRows) {
+}).then(affectedRows => {
   // affectedRows will be 2
   return Task.findAll();
-}).then(function(tasks) {
+}).then(tasks => {
   console.log(tasks) // no programming, just reading :(
 })
 ```
@@ -202,7 +203,7 @@ If you are accepting values directly from the user, it might be beneficial to li
 User.bulkCreate([
   { username: 'foo' },
   { username: 'bar', admin: true}
-], { fields: ['username'] }).then(function() {
+], { fields: ['username'] }).then(() => {
   // nope bar, you can't be admin!
 })
 ```
@@ -210,7 +211,7 @@ User.bulkCreate([
 `bulkCreate` was originally made to be a mainstream&sol;fast way of inserting records&comma; however&comma; sometimes you want the luxury of being able to insert multiple rows at once without sacrificing model validations even when you explicitly tell Sequelize which columns to sift through&period; You can do by adding a `validate: true` property to the options object.
 
 ```js
-var Tasks = sequelize.define('task', {
+const Tasks = sequelize.define('task', {
   name: {
     type: Sequelize.STRING,
     validate: {
@@ -229,7 +230,7 @@ Tasks.bulkCreate([
   {name: 'foo', code: '123'},
   {code: '1234'},
   {name: 'bar', code: '1'}
-], { validate: true }).catch(function(errors) {
+], { validate: true }).catch(errors => {
   /* console.log(errors) would look like:
   [
     { record:
@@ -257,7 +258,7 @@ If you log an instance you will notice&comma; that there is a lot of additional 
 Person.create({
   name: 'Rambow',
   firstname: 'John'
-}).then(function(john) {
+}).then(john => {
   console.log(john.get({
     plain: true
   }))
@@ -280,11 +281,11 @@ Person.create({
 If you need to get your instance in sync&comma; you can use the method`reload`&period; It will fetch the current data from the database and overwrite the attributes of the model on which the method has been called on&period;
 
 ```js
-Person.findOne({ where: { name: 'john' } }).then(function(person) {
+Person.findOne({ where: { name: 'john' } }).then(person => {
   person.name = 'jane'
   console.log(person.name) // 'jane'
  
-  person.reload().then(function() {
+  person.reload().then(() => {
     console.log(person.name) // 'john'
   })
 })
@@ -297,7 +298,7 @@ In order to increment values of an instance without running into concurrency iss
 First of all you can define a field and the value you want to add to it&period;
 
 ```js
-User.findById(1).then(function(user) {
+User.findById(1).then(user => {
   return user.increment('my-integer-field', {by: 2})
 }).then(/* ... */)
 ```
@@ -305,7 +306,7 @@ User.findById(1).then(function(user) {
 Second&comma; you can define multiple fields and the value you want to add to them&period;
 
 ```js
-User.findById(1).then(function(user) {
+User.findById(1).then(user => {
   return user.increment([ 'my-integer-field', 'my-very-other-field' ], {by: 2})
 }).then(/* ... */)
 ```
@@ -313,7 +314,7 @@ User.findById(1).then(function(user) {
 Third&comma; you can define an object containing fields and its increment values&period;
 
 ```js
-User.findById(1).then(function(user) {
+User.findById(1).then(user => {
   return user.increment({
     'my-integer-field':    2,
     'my-very-other-field': 3
@@ -328,7 +329,7 @@ In order to decrement values of an instance without running into concurrency iss
 First of all you can define a field and the value you want to add to it&period;
 
 ```js
-User.findById(1).then(function(user) {
+User.findById(1).then(user => {
   return user.decrement('my-integer-field', {by: 2})
 }).then(/* ... */)
 ```
@@ -336,7 +337,7 @@ User.findById(1).then(function(user) {
 Second&comma; you can define multiple fields and the value you want to add to them&period;
 
 ```js
-User.findById(1).then(function(user) {
+User.findById(1).then(user => {
   return user.decrement([ 'my-integer-field', 'my-very-other-field' ], {by: 2})
 }).then(/* ... */)
 ```
@@ -344,7 +345,7 @@ User.findById(1).then(function(user) {
 Third&comma; you can define an object containing fields and its decrement values&period;
 
 ```js
-User.findById(1).then(function(user) {
+User.findById(1).then(user => {
   return user.decrement({
     'my-integer-field':    2,
     'my-very-other-field': 3
