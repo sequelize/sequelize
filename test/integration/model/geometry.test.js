@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return Pub.sync({ force: true }).then(() => {
           return Pub.create({location: point});
-        }).then((pub) => {
+        }).then(pub => {
           expect(pub).not.to.be.null;
           expect(pub.location).to.be.deep.eql(point);
         });
@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = this.User;
         const point = { type: 'Point', coordinates: [39.807222, -76.984722]};
 
-        return User.create({username: 'username', geometry: point }).then((newUser) => {
+        return User.create({username: 'username', geometry: point }).then(newUser => {
           expect(newUser).not.to.be.null;
           expect(newUser.geometry).to.be.deep.eql(point);
         });
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.update({geometry: point2}, {where: {username: props.username}});
         }).then(() => {
           return User.findOne({where: {username: props.username}});
-        }).then((user) => {
+        }).then(user => {
           expect(user.geometry).to.be.deep.eql(point2);
         });
       });
@@ -75,7 +75,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = this.User;
         const point = { type: 'Point', coordinates: [39.807222, -76.984722]};
 
-        return User.create({username: 'username', geometry: point }).then((newUser) => {
+        return User.create({username: 'username', geometry: point }).then(newUser => {
           expect(newUser).not.to.be.null;
           expect(newUser.geometry).to.be.deep.eql(point);
         });
@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.update({geometry: point2}, {where: {username: props.username}});
         }).then(() => {
           return User.findOne({where: {username: props.username}});
-        }).then((user) => {
+        }).then(user => {
           expect(user.geometry).to.be.deep.eql(point2);
         });
       });
@@ -111,7 +111,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = this.User;
         const point = { type: 'LineString', 'coordinates': [ [100.0, 0.0], [101.0, 1.0] ] };
 
-        return User.create({username: 'username', geometry: point }).then((newUser) => {
+        return User.create({username: 'username', geometry: point }).then(newUser => {
           expect(newUser).not.to.be.null;
           expect(newUser.geometry).to.be.deep.eql(point);
         });
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.update({geometry: point2}, {where: {username: props.username}});
         }).then(() => {
           return User.findOne({where: {username: props.username}});
-        }).then((user) => {
+        }).then(user => {
           expect(user.geometry).to.be.deep.eql(point2);
         });
       });
@@ -150,7 +150,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                [100.0, 1.0], [100.0, 0.0] ]
         ]};
 
-        return User.create({username: 'username', geometry: point }).then((newUser) => {
+        return User.create({username: 'username', geometry: point }).then(newUser => {
           expect(newUser).not.to.be.null;
           expect(newUser.geometry).to.be.deep.eql(point);
         });
@@ -172,7 +172,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.update({geometry: polygon2}, {where: {username: props.username}});
         }).then(() => {
           return User.findOne({where: {username: props.username}});
-        }).then((user) => {
+        }).then(user => {
           expect(user.geometry).to.be.deep.eql(polygon2);
         });
       });

@@ -116,13 +116,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]).then(() => {
               return Tag.findAll();
             })
-          }).then((results) => {
+          }).then(results => {
             const groups = results.groups,
               ranks = results.ranks,
               tags = results.tags,
               companies = results.companies;
 
-            return Promise.each([0, 1, 2, 3, 4], (i) => {
+            return Promise.each([0, 1, 2, 3, 4], i => {
               return Promise.props({
                 user: User.create(),
                 products: Product.bulkCreate([
@@ -134,7 +134,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 ]).then(() => {
                   return Product.findAll();
                 })
-              }).then((results) => {
+              }).then(results => {
                 const user = results.user,
                   products = results.products,
                   groupMembers  = [
@@ -389,7 +389,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Tag.findAll();
           })
         ]).spread((groups, ranks, tags) => {
-          return Promise.each([0, 1, 2, 3, 4], (i) => {
+          return Promise.each([0, 1, 2, 3, 4], i => {
             return Promise.all([
               User.create(),
               Product.bulkCreate([
@@ -442,8 +442,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               order: [
                 ['id', 'ASC']
               ]
-            }).then((users) => {
-              users.forEach((user) => {
+            }).then(users => {
+              users.forEach(user => {
                 user.Memberships.sort(sortById);
 
                 expect(user.Memberships.length).to.equal(2);
@@ -505,9 +505,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               previousInstance,
               b;
 
-            singles.forEach((model) => {
+            singles.forEach(model => {
               promise = promise.then(() => {
-                return model.create({}).then((instance) => {
+                return model.create({}).then(instance => {
                   if (previousInstance) {
                     return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(() => {
                       previousInstance = instance;
@@ -526,7 +526,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return promise;
           })([B, C, D, E, F, G, H])
         ).spread((as, b) => {
-          return Promise.map(as, (a) => {
+          return Promise.map(as, a => {
             return a.setB(b);
           });
         }).then(() => {
@@ -546,10 +546,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 ]}
               ]}
             ]
-          }).then((as) => {
+          }).then(as => {
             expect(as.length).to.be.ok;
 
-            as.forEach((a) => {
+            as.forEach(a => {
               expect(a.b.c.d.e.f.g.h).to.be.ok;
             });
           });
@@ -598,7 +598,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               previousInstance,
               b;
 
-            singles.forEach((model) => {
+            singles.forEach(model => {
               const values = {};
 
               if (model.name === 'g') {
@@ -606,7 +606,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               }
 
               promise = promise.then(() => {
-                return model.create(values).then((instance) => {
+                return model.create(values).then(instance => {
                   if (previousInstance) {
                     return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(() => {
                       previousInstance = instance;
@@ -625,7 +625,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return promise;
           })([B, C, D, E, F, G, H])
         ).spread((as, b) => {
-          return Promise.map(as, (a) => {
+          return Promise.map(as, a => {
             return a.setB(b);
           });
         }).then(() => {
@@ -647,10 +647,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 ]}
               ]}
             ]
-          }).then((as) => {
+          }).then(as => {
             expect(as.length).to.be.ok;
 
-            as.forEach((a) => {
+            as.forEach(a => {
               expect(a.b.c.d.e.f.g.h).to.be.ok;
             });
           });
@@ -687,7 +687,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ]).then(() => {
             return Order.findAll({order: ['id']});
           })
-        }).then((results) => {
+        }).then(results => {
           const user1 = results.users[0];
           const user2 = results.users[1];
           const user3 = results.users[2];
@@ -721,7 +721,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             'order': [
               [Order, 'position']
             ]
-          }).then((as) => {
+          }).then(as => {
             expect(as.length).to.eql(2);
 
             expect(as[0].itemA.test).to.eql('abc');
@@ -764,7 +764,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ]).then(() => {
             return Tag.findAll();
           })
-        }).then((results) => {
+        }).then(results => {
           return Promise.join(
             results.products[0].addTag(results.tags[0], { through: {priority: 1}}),
             results.products[0].addTag(results.tags[1], { through: {priority: 2}}),
@@ -782,7 +782,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               ['id', 'ASC'],
               [Tag, 'id', 'ASC']
             ]
-          }).then((products) => {
+          }).then(products => {
             expect(products[0].Tags[0].ProductTag.priority).to.equal(1);
             expect(products[0].Tags[1].ProductTag.priority).to.equal(2);
 
@@ -810,14 +810,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           users: User.bulkCreate([{}, {}, {}]).then(() => {
             return User.findAll();
           })
-        }).then((results) => {
+        }).then(results => {
           return results.users[2].setGroup(results.groups[1]);
         }).then(() => {
           return User.findAll({
             include: [
               {model: Group, required: true}
             ]
-          }).then((users) => {
+          }).then(users => {
             expect(users.length).to.equal(1);
             expect(users[0].Group).to.be.ok;
           });
@@ -844,7 +844,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           users: User.bulkCreate([{}, {}]).then(() => {
             return User.findAll();
           })
-        }).then((results) => {
+        }).then(results => {
           return Promise.join(
             results.users[0].setGroup(results.groups[1]),
             results.users[1].setGroup(results.groups[0])
@@ -854,7 +854,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             include: [
               {model: Group, where: {name: 'A'}}
             ]
-          }).then((users) => {
+          }).then(users => {
             expect(users.length).to.equal(1);
             expect(users[0].Group).to.be.ok;
             expect(users[0].Group.name).to.equal('A');
@@ -882,7 +882,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           users: User.bulkCreate([{}, {}]).then(() => {
             return User.findAll();
           })
-        }).then((results) => {
+        }).then(results => {
           return Promise.join(
             results.users[0].setGroup(results.groups[1]),
              results.users[1].setGroup(results.groups[0])
@@ -892,8 +892,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             include: [
               {model: Group, required: true}
             ]
-          }).then((users) => {
-            users.forEach((user) => {
+          }).then(users => {
+            users.forEach(user => {
               expect(user.Group).to.be.ok;
             });
           });
@@ -915,8 +915,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       // Sync
       return this.sequelize.sync({ force: true }).then(() => {
-        return Street.create({ active: true }).then((street) => {
-          return Address.create({ active: true, streetId: street.id }).then((address ) => {
+        return Street.create({ active: true }).then(street => {
+          return Address.create({ active: true, streetId: street.id }).then(address => {
             return User.create({ username: 'John', addressId: address.id }).then(() => {
               return User.find({
                 where: { username: 'John'},
@@ -930,7 +930,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                     model: Street
                   }]
                 }]
-              }).then((john) => {
+              }).then(john => {
                 expect(john.Address).to.be.ok;
                 expect(john.Address.Street).to.be.ok;
               });
@@ -966,11 +966,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           categories: Category.bulkCreate([{}, {}]).then(() => {
             return Category.findAll();
           })
-        }).then((results) => {
+        }).then(results => {
           return Promise.join(
             results.users[0].setGroup(results.groups[1]),
             results.users[1].setGroup(results.groups[0]),
-            Promise.map(results.groups, (group) => {
+            Promise.map(results.groups, group => {
               return group.setCategories(results.categories);
             })
           );
@@ -982,9 +982,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               ]}
             ],
             limit: 1
-          }).then((users) => {
+          }).then(users => {
             expect(users.length).to.equal(1);
-            users.forEach((user) => {
+            users.forEach(user => {
               expect(user.Group).to.be.ok;
               expect(user.Group.Categories).to.be.ok;
             });
@@ -1019,11 +1019,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           categories: Category.bulkCreate([{}, {}]).then(() => {
             return Category.findAll();
           })
-        }).then((results) => {
+        }).then(results => {
           return Promise.join(
             results.users[0].setTeam(results.groups[1]),
             results.users[1].setTeam(results.groups[0]),
-            Promise.map(results.groups, (group) => {
+            Promise.map(results.groups, group => {
               return group.setTags(results.categories);
             })
           );
@@ -1035,9 +1035,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               ]}
             ],
             limit: 1
-          }).then((users) => {
+          }).then(users => {
             expect(users.length).to.equal(1);
-            users.forEach((user) => {
+            users.forEach(user => {
               expect(user.Team).to.be.ok;
               expect(user.Team.Tags).to.be.ok;
             });
@@ -1072,11 +1072,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           categories: Category.bulkCreate([{}, {}]).then(() => {
             return Category.findAll();
           })
-        }).then((results) => {
+        }).then(results => {
           return Promise.join(
             results.users[0].setGroup(results.groups[1]),
             results.users[1].setGroup(results.groups[0]),
-            Promise.map(results.groups, (group) => {
+            Promise.map(results.groups, group => {
               return group.setCategories(results.categories);
             })
           );
@@ -1088,9 +1088,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               ]}
             ],
             limit: 1
-          }).then((users) => {
+          }).then(users => {
             expect(users.length).to.equal(1);
-            users.forEach((user) => {
+            users.forEach(user => {
               expect(user.Group).to.be.ok;
               expect(user.Group.Categories).to.be.ok;
             });
@@ -1118,7 +1118,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           users: User.bulkCreate([{}, {}]).then(() => {
             return User.findAll();
           })
-        }).then((results) => {
+        }).then(results => {
           return Promise.join(
             results.users[1].setLeaderOf(results.projects[1]),
             results.users[0].setLeaderOf(results.projects[0])
@@ -1128,7 +1128,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             include: [
               {model: Project, as: 'LeaderOf', where: {title: 'Beta'}}
             ]
-          }).then((users) => {
+          }).then(users => {
             expect(users.length).to.equal(1);
             expect(users[0].LeaderOf).to.be.ok;
             expect(users[0].LeaderOf.title).to.equal('Beta');
@@ -1167,7 +1167,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ]).then(() => {
             return Tag.findAll();
           })
-        }).then((results) => {
+        }).then(results => {
           return Promise.join(
             results.products[0].addTag(results.tags[0], {priority: 1}),
             results.products[0].addTag(results.tags[1], {priority: 2}),
@@ -1181,7 +1181,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             include: [
               {model: Tag, where: {name: 'C'}}
             ]
-          }).then((products) => {
+          }).then(products => {
             expect(products.length).to.equal(1);
             expect(products[0].Tags.length).to.equal(1);
           });
@@ -1258,7 +1258,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Tag.findAll();
           })
         ]).spread((groups, ranks, tags) => {
-          return Promise.each([0, 1, 2, 3, 4], (i) => {
+          return Promise.each([0, 1, 2, 3, 4], i => {
             return Promise.props({
               user: User.create({name: 'FooBarzz'}),
               products: Product.bulkCreate([
@@ -1267,7 +1267,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               ]).then(() => {
                 return Product.findAll();
               })
-            }).then((results) => {
+            }).then(results => {
               return Promise.join(
                 GroupMember.bulkCreate([
                   {UserId: results.user.id, GroupId: groups[0].id, RankId: ranks[0].id},
@@ -1318,8 +1318,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             order: [
               ['id', 'ASC']
             ]
-          }).then((users) => {
-            users.forEach((user) => {
+          }).then(users => {
+            users.forEach(user => {
               expect(user.Memberships.length).to.equal(1);
               expect(user.Memberships[0].Rank.name).to.equal('Admin');
               expect(user.Products.length).to.equal(1);
@@ -1349,7 +1349,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           users: User.bulkCreate([{}, {}, {}, {}]).then(() => {
             return User.findAll();
           })
-        }).then((results) => {
+        }).then(results => {
           return Promise.join(
             results.users[0].setGroup(results.groups[0]),
             results.users[1].setGroup(results.groups[0]),
@@ -1362,10 +1362,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               {model: Group, where: {name: 'A'}}
             ],
             limit: 2
-          }).then((users) => {
+          }).then(users => {
             expect(users.length).to.equal(2);
 
-            users.forEach((user) => {
+            users.forEach(user => {
               expect(user.Group.name).to.equal('A');
             });
           });
@@ -1387,10 +1387,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           order: [
             [self.sequelize.col(self.models.Product.name + '.id'), 'ASC']
           ]
-        }).then((products) => {
+        }).then(products => {
           expect(products.length).to.equal(3);
 
-          products.forEach((product) => {
+          products.forEach(product => {
             expect(product.Company.name).to.equal('NYSE');
             expect(product.Tags.length).to.be.ok;
             expect(product.Prices.length).to.be.ok;
@@ -1415,7 +1415,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return parent.addChild1(child).then(() => {
           return parent;
         });
-      }).then((parent) => {
+      }).then(parent => {
         return Child1.find({
           include: [
             {
@@ -1438,10 +1438,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           include: [
             {model: self.models.Tag, through: {attributes: []}, required: true}
           ]
-        }).then((products) => {
-          products.forEach((product) => {
+        }).then(products => {
+          products.forEach(product => {
             expect(product.Tags.length).to.be.ok;
-            product.Tags.forEach((tag) => {
+            product.Tags.forEach(tag => {
               expect(tag.get().productTags).not.to.be.ok;
             });
           });
@@ -1465,7 +1465,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               required: true
             }
           ]
-        }).then((products) => {
+        }).then(products => {
           expect(products).have.length(1);
         });
       });
@@ -1488,7 +1488,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             }
           ],
           limit: 5
-        }).then((products) => {
+        }).then(products => {
           expect(products).have.length(1);
         });
       });
@@ -1555,9 +1555,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                   model: Album
                 }
               ]
-            }).then((members) => {
+            }).then(members => {
               expect(members.length).to.equal(20);
-              members.forEach((member) => {
+              members.forEach(member => {
                 expect(member.get('id')).not.to.be.ok;
                 expect(member.Albums.length).to.equal(1);
               });
@@ -1582,14 +1582,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           order: [
             ['id', 'ASC']
           ]
-        }).then((products) => {
+        }).then(products => {
           expect(products.length).to.equal(6);
 
-          products.forEach((product) => {
+          products.forEach(product => {
             expect(product.Tags.length).to.be.ok;
             expect(product.Prices.length).to.be.ok;
 
-            product.Prices.forEach((price) => {
+            product.Prices.forEach(price => {
               expect(price.value).to.be.above(5);
             });
           });
@@ -1610,14 +1610,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           order: [
             ['id', 'ASC']
           ]
-        }).then((products) => {
+        }).then(products => {
           expect(products.length).to.equal(10);
 
-          products.forEach((product) => {
+          products.forEach(product => {
             expect(product.Tags.length).to.be.ok;
             expect(product.Prices.length).to.be.ok;
 
-            product.Tags.forEach((tag) => {
+            product.Tags.forEach(tag => {
               expect(['A', 'B', 'C']).to.include(tag.name);
             });
           });
@@ -1637,15 +1637,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Group.belongsToMany(User, {through: 'group_user'});
 
       return this.sequelize.sync().then(() => {
-        return User.create({ dateField: Date.UTC(2014, 1, 20) }).then((user) => {
-          return Group.create({ dateField: Date.UTC(2014, 1, 20) }).then((group) => {
+        return User.create({ dateField: Date.UTC(2014, 1, 20) }).then(user => {
+          return Group.create({ dateField: Date.UTC(2014, 1, 20) }).then(group => {
             return user.addGroup(group).then(() => {
               return User.findAll({
                 where: {
                   id: user.id
                 },
                 include: [Group]
-              }).then((users) => {
+              }).then(users => {
                 expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
                 expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
               });
@@ -1677,7 +1677,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]
           });
         })
-        .then((as) => {
+        .then(as => {
           expect(as.length).to.equal(1);
           expect(as[0].get('bs')).deep.equal([]);
         });
@@ -1703,8 +1703,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Post.create({'public': true}),
           Post.create({'public': true}),
           Post.create({'public': true})
-        ).then((posts) => {
-          return Promise.map(posts.slice(1, 3), (post) => {
+        ).then(posts => {
+          return Promise.map(posts.slice(1, 3), post => {
             return post.createCategory({slug: 'food'});
           });
         }).then(() => {
@@ -1721,7 +1721,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 }
               }
             ]
-          }).then((posts) => {
+          }).then(posts => {
             expect(posts.length).to.equal(2);
           });
         });
@@ -1860,7 +1860,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               ['lastName', 'DESC']
             ],
             limit: 5
-          }).then((users) => {
+          }).then(users => {
             expect(users[0].lastName).to.equal('Albertsen');
             expect(users[0].Company.rank).to.equal(1);
 
@@ -1907,7 +1907,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             'Post.id'
           ]
         });
-      }).then((posts) => {
+      }).then(posts => {
         expect(posts.length).to.equal(1);
 
         const post = posts[0];
@@ -1949,7 +1949,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ],
           raw: true
         });
-      }).then((posts) => {
+      }).then(posts => {
         expect(posts.length).to.equal(1);
 
         const post = posts[0];

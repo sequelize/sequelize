@@ -86,7 +86,7 @@ if (current.dialect.supports.transactions) {
           });
         });
 
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
           // Wait for the transaction to be setup
           const interval = setInterval(() => {
             if (transactionSetup) {

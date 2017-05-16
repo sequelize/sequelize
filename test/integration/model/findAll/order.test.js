@@ -26,9 +26,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('should work with order: literal()', function() {
             return this.User.findAll({
               order: this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))
-            }).then((users) => {
+            }).then(users => {
               expect(users.length).to.equal(1);
-              users.forEach((user) => {
+              users.forEach(user => {
                 expect(user.get('email')).to.be.ok;
               });
             });
@@ -37,9 +37,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('should work with order: [literal()]', function() {
             return this.User.findAll({
               order: [this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))]
-            }).then((users) => {
+            }).then(users => {
               expect(users.length).to.equal(1);
-              users.forEach((user) => {
+              users.forEach(user => {
                 expect(user.get('email')).to.be.ok;
               });
             });
@@ -50,9 +50,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               order: [
                 [this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))]
               ]
-            }).then((users) => {
+            }).then(users => {
               expect(users.length).to.equal(1);
-              users.forEach((user) => {
+              users.forEach(user => {
                 expect(user.get('email')).to.be.ok;
               });
             });

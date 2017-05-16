@@ -174,14 +174,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this
               .ModelUnderTest
               .describe()
-              .then((fields) => {
+              .then(fields => {
                 expect(fields.identifier).to.include({ allowNull: false });
               });
           });
         });
 
         it('should support instance.destroy()', function() {
-          return this.User.create().then((user) => {
+          return this.User.create().then(user => {
             return user.destroy();
           });
         });
@@ -206,32 +206,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('bulkCreate should work', function() {
-          return this.Comment.findAll().then((comments) => {
+          return this.Comment.findAll().then(comments => {
             expect(comments[0].notes).to.equal('Number one');
             expect(comments[1].notes).to.equal('Number two');
           });
         });
 
         it('find with where should work', function() {
-          return this.Comment.findAll({ where: { notes: 'Number one' }}).then((comments) => {
+          return this.Comment.findAll({ where: { notes: 'Number one' }}).then(comments => {
             expect(comments).to.have.length(1);
             expect(comments[0].notes).to.equal('Number one');
           });
         });
 
         it('reload should work', function() {
-          return this.Comment.findById(1).then((comment) => {
+          return this.Comment.findById(1).then(comment => {
             return comment.reload();
           });
         });
 
         it('save should work', function() {
-          return this.Comment.create({ notes: 'my note' }).then((comment) => {
+          return this.Comment.create({ notes: 'my note' }).then(comment => {
             comment.notes = 'new note';
             return comment.save();
-          }).then((comment) => {
+          }).then(comment => {
             return comment.reload();
-          }).then((comment) => {
+          }).then(comment => {
             expect(comment.notes).to.equal('new note');
           });
         });
@@ -275,7 +275,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return self.User.find({
             limit: 1
           });
-        }).then((user) => {
+        }).then(user => {
           expect(user.get('name')).to.equal('Foobar');
           return user.updateAttributes({
             name: 'Barfoo'
@@ -284,7 +284,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return self.User.find({
             limit: 1
           });
-        }).then((user) => {
+        }).then(user => {
           expect(user.get('name')).to.equal('Barfoo');
         });
       });
@@ -306,7 +306,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             where: {
               strField: 'bar'
             }
-          }).then((entity) => {
+          }).then(entity => {
             expect(entity).to.be.ok;
             expect(entity.get('strField')).to.equal('bar');
           });
@@ -336,7 +336,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return Model.sync({force: true}).then(() => {
-          return Model.create({title: 'test'}).then((data) => {
+          return Model.create({title: 'test'}).then(data => {
             expect(data.get('test_title')).to.be.an('undefined');
             expect(data.get('test_id')).to.be.an('undefined');
           });
@@ -346,7 +346,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should make the aliased auto incremented primary key available after create', function() {
         return this.User.create({
           name: 'Barfoo'
-        }).then((user) => {
+        }).then(user => {
           expect(user.get('id')).to.be.ok;
         });
       });
@@ -356,11 +356,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return this.User.create({
           name: 'Barfoo'
-        }).then((user) => {
+        }).then(user => {
           return user.createTask({
             title: 'DatDo'
           });
-        }).then((task) => {
+        }).then(task => {
           return task.createComment({
             text: 'Comment'
           });
@@ -372,7 +372,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ],
             where: {title: 'DatDo'}
           });
-        }).then((task) => {
+        }).then(task => {
           expect(task.get('title')).to.equal('DatDo');
           expect(task.get('comments')[0].get('text')).to.equal('Comment');
           expect(task.get('user')).to.be.ok;
@@ -384,11 +384,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return this.User.create({
           name: 'Foobar'
-        }).then((user) => {
+        }).then(user => {
           return user.createTask({
             title: 'DoDat'
           });
-        }).then((task) => {
+        }).then(task => {
           return task.createComment({
             text: 'Comment'
           });
@@ -400,8 +400,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               ]}
             ]
           });
-        }).then((users) => {
-          users.forEach((user) => {
+        }).then(users => {
+          users.forEach(user => {
             expect(user.get('name')).to.be.ok;
             expect(user.get('tasks')[0].get('title')).to.equal('DoDat');
             expect(user.get('tasks')[0].get('comments')).to.be.ok;
@@ -410,7 +410,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should work with increment', function() {
-        return this.User.create().then((user) => {
+        return this.User.create().then(user => {
           return user.increment('taskCount');
         });
       });
@@ -426,7 +426,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               name: 'Foobar'
             }
           });
-        }).then((user) => {
+        }).then(user => {
           expect(user).to.be.ok;
         });
       });
@@ -444,7 +444,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               name: 'Lollerskates'
             })
           });
-        }).then((user) => {
+        }).then(user => {
           expect(user).to.be.ok;
         });
       });
@@ -459,8 +459,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           name: 'Cde'
         }]).then(() => {
           return self.User.findAll();
-        }).then((users) => {
-          users.forEach((user) => {
+        }).then(users => {
+          users.forEach(user => {
             expect(['Abc', 'Bcd', 'Cde'].indexOf(user.get('name')) !== -1).to.be.true;
           });
         });
@@ -491,7 +491,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             attributes: findAttributes
           });
 
-        }).then((tests) => {
+        }).then(tests => {
           expect(tests[0].get('someProperty')).to.be.ok;
           expect(tests[0].get('someProperty2')).to.be.ok;
         });
@@ -511,7 +511,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => {
           return this.User.find({ where: { name: 'test user' } });
         })
-        .then((user) => {
+        .then(user => {
           expect(user.name).to.equal('test user');
         });
       });
@@ -525,7 +525,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return self.Comment.find({
             limit: 1
           });
-        }).then((comment) => {
+        }).then(comment => {
           expect(comment.get('notes')).to.equal('Foobar');
           return comment.updateAttributes({
             notes: 'Barfoo'
@@ -534,7 +534,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return self.Comment.find({
             limit: 1
           });
-        }).then((comment) => {
+        }).then(comment => {
           expect(comment.get('notes')).to.equal('Barfoo');
         });
       });
@@ -573,14 +573,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return User.create();
           })
-          .then((user) => {
+          .then(user => {
             return user.destroy();
           })
           .then(function() {
             this.clock.tick(1000);
             return User.findAll();
           })
-          .then((users) => {
+          .then(users => {
             expect(users.length).to.equal(0);
           });
       });
@@ -597,10 +597,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({force: true}).then(() => {
-          return User.create().then((user) => {
+          return User.create().then(user => {
             return User.destroy({where: {id: user.get('id')}});
           }).then(() => {
-            return User.findAll().then((users) => {
+            return User.findAll().then(users => {
               expect(users.length).to.equal(0);
             });
           });
