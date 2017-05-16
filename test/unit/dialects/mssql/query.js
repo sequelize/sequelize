@@ -6,8 +6,9 @@ const Support = require(path.resolve('./test/support'));
 const sequelize = Support.sequelize;
 const sinon = require('sinon');
 const expect = require('chai').expect;
-const tediousIsolationLevel = require('tedious').ISOLATION_LEVEL;
-const connectionStub = { beginTransaction: () => {} };
+const tedious = require('tedious');
+const tediousIsolationLevel = tedious.ISOLATION_LEVEL;
+const connectionStub = { beginTransaction: () => {}, lib: tedious };
 
 let sandbox, query;
 

@@ -5,7 +5,8 @@ const expect = chai.expect;
 const Support = require(__dirname + '/support');
 const DataTypes = require(__dirname + '/../../lib/data-types');
 const Utils = require(__dirname + '/../../lib/utils');
-const tediousIsolationLevel = require('tedious').ISOLATION_LEVEL;
+const tedious = require('tedious');
+const tediousIsolationLevel = tedious.ISOLATION_LEVEL;
 
 suite(Support.getTestDialectTeaser('Utils'), () => {
   suite('merge', () => {
@@ -270,23 +271,27 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
   if (Support.getTestDialect() === 'mssql') {
     suite('mapIsolationLevelStringToTedious', () => {
       test('READ_UNCOMMITTED', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('READ_UNCOMMITTED')).to.equal(tediousIsolationLevel.READ_UNCOMMITTED);
+        expect(Utils.mapIsolationLevelStringToTedious('READ_UNCOMMITTED', tedious)).to.equal(tediousIsolationLevel.READ_UNCOMMITTED);
       });
 
       test('READ_COMMITTED', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('READ_COMMITTED')).to.equal(tediousIsolationLevel.READ_COMMITTED);
+        expect(Utils.mapIsolationLevelStringToTedious('READ_COMMITTED', tedious)).to.equal(tediousIsolationLevel.READ_COMMITTED);
       });
 
       test('REPEATABLE_READ', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('REPEATABLE_READ')).to.equal(tediousIsolationLevel.REPEATABLE_READ);
+        expect(Utils.mapIsolationLevelStringToTedious('REPEATABLE_READ', tedious)).to.equal(tediousIsolationLevel.REPEATABLE_READ);
       });
 
       test('SERIALIZABLE', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('SERIALIZABLE')).to.equal(tediousIsolationLevel.SERIALIZABLE);
+        expect(Utils.mapIsolationLevelStringToTedious('SERIALIZABLE', tedious)).to.equal(tediousIsolationLevel.SERIALIZABLE);
       });
 
       test('SNAPSHOT', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('SNAPSHOT')).to.equal(tediousIsolationLevel.SNAPSHOT);
+        expect(Utils.mapIsolationLevelStringToTedious('SNAPSHOT', tedious)).to.equal(tediousIsolationLevel.SNAPSHOT);
+      });
+
+      test('should throw error if tedious lib is not passed as a parameter', () => {
+        expect(Utils.mapIsolationLevelStringToTedious.bind(Utils, 'SNAPSHOT')).to.throw('An instance of tedious lib should be passed to this function');
       });
     });
   }
