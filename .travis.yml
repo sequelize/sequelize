@@ -33,7 +33,7 @@ env:
   matrix:
       # - DIALECT=sqlite COVERAGE=true
       # - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
-      - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
+      # - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
       include:
       - node_js: 4
           - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
