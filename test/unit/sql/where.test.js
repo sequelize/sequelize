@@ -146,7 +146,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: '[deleted] IS NOT true',
         oracle: 'deleted IS NOT 1',
-        mssql: "[deleted] IS NOT 1",
+        mssql: '[deleted] IS NOT 1',
         sqlite: '`deleted` IS NOT 1'
       });
 
@@ -298,8 +298,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             user_id: 2
           }
         }, {
-          default: "([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))",
-          oracle: "(\"shared\" = 1 AND (group_id = 1 OR user_id = 2))"
+          default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))',
+          oracle: '(\"shared\" = 1 AND (group_id = 1 OR user_id = 2))'
         });
 
         testsql('$and', [
@@ -972,8 +972,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     };
 
     testsql(current.where(current.fn('lower', current.col('name')), null), {
-      default: "lower([name]) IS NULL",
-      oracle: "lower(name) IS NULL"
+      default: 'lower([name]) IS NULL',
+      oracle: 'lower(name) IS NULL'
     });
   });
 });

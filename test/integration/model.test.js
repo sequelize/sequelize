@@ -306,7 +306,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(idxUnique.fields).to.deep.equal([{attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC'}]);
           } else if (dialect === 'oracle') {
             expect(indexes).to.have.length(2);
-            let idxPrimary = indexes[0];
             idxUnique = indexes[1];
             expect(idxUnique.primary).to.equal(false);
             expect(idxUnique.unique).to.equal(true);
@@ -321,55 +320,55 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       //As it produces a fake error randomly with those two tests, for Oracle, I decided to skip it 
       it('allows us to customize the error message for unique constraint', function() {
 
-      const self = this,
-        User = this.sequelize.define('UserWithUniqueUsername', {
-          username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
-          email: { type: Sequelize.STRING, unique: 'user_and_email' }
+        const self = this,
+          User = this.sequelize.define('UserWithUniqueUsername', {
+            username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
+            email: { type: Sequelize.STRING, unique: 'user_and_email' }
+          });
+
+        return User.sync({ force: true }).bind(this).then(() => {
+          return self.sequelize.Promise.all([
+            User.create({username: 'tobi', email: 'tobi@tobi.me'}),
+            User.create({username: 'tobi', email: 'tobi@tobi.me'})]);
+        }).catch (self.sequelize.UniqueConstraintError, err => {
+          expect(err.message).to.equal('User and email must be unique');
+          return true;
+        });
+      });
+
+      // If you use migrations to create unique indexes that have explicit names and/or contain fields
+      // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
+      it('allows us to map the customized error message with unique constraint name', function() {
+        // Fake migration style index creation with explicit index definition
+        const self = this;
+        let User = this.sequelize.define('UserWithUniqueUsername', {
+          user_id: { type: Sequelize.INTEGER},
+          email: { type: Sequelize.STRING}
+        }, {
+          indexes: [
+            {
+              name: 'user_and_email_index',
+              msg: 'User and email must be unique',
+              unique: true,
+              method: 'BTREE',
+              fields: ['user_id', {attribute: 'email', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5}]
+            }]
         });
 
-      return User.sync({ force: true }).bind(this).then(() => {
-        return self.sequelize.Promise.all([
-          User.create({username: 'tobi', email: 'tobi@tobi.me'}),
-          User.create({username: 'tobi', email: 'tobi@tobi.me'})]);
-      }).catch (self.sequelize.UniqueConstraintError, err => {
-        expect(err.message).to.equal('User and email must be unique');
-        return true;
-      });
-    });
-
-    // If you use migrations to create unique indexes that have explicit names and/or contain fields
-    // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
-    it('allows us to map the customized error message with unique constraint name', function() {
-      // Fake migration style index creation with explicit index definition
-      const self = this;
-      let User = this.sequelize.define('UserWithUniqueUsername', {
-        user_id: { type: Sequelize.INTEGER},
-        email: { type: Sequelize.STRING}
-      }, {
-        indexes: [
-          {
-            name: 'user_and_email_index',
-            msg: 'User and email must be unique',
-            unique: true,
-            method: 'BTREE',
-            fields: ['user_id', {attribute: 'email', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5}]
-          }]
-      });
-
-      return User.sync({ force: true }).bind(this).then(() => {
-        // Redefine the model to use the index in database and override error message
-        User = self.sequelize.define('UserWithUniqueUsername', {
-          user_id: { type: Sequelize.INTEGER, unique: { name: 'user_and_email_index', msg: 'User and email must be unique' }},
-          email: { type: Sequelize.STRING, unique: 'user_and_email_index'}
+        return User.sync({ force: true }).bind(this).then(() => {
+          // Redefine the model to use the index in database and override error message
+          User = self.sequelize.define('UserWithUniqueUsername', {
+            user_id: { type: Sequelize.INTEGER, unique: { name: 'user_and_email_index', msg: 'User and email must be unique' }},
+            email: { type: Sequelize.STRING, unique: 'user_and_email_index'}
+          });
+          return self.sequelize.Promise.all([
+            User.create({user_id: 1, email: 'tobi@tobi.me'}),
+            User.create({user_id: 1, email: 'tobi@tobi.me'})]);
+        }).catch (self.sequelize.UniqueConstraintError, err => {
+          expect(err.message).to.equal('User and email must be unique');
+          return true;
         });
-        return self.sequelize.Promise.all([
-          User.create({user_id: 1, email: 'tobi@tobi.me'}),
-          User.create({user_id: 1, email: 'tobi@tobi.me'})]);
-      }).catch (self.sequelize.UniqueConstraintError, err => {
-        expect(err.message).to.equal('User and email must be unique');
-        return true;
       });
-    });
     }
     
 
@@ -424,7 +423,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(idx2.fields).to.deep.equal([
             { attribute: 'fieldC', length: undefined, order: undefined}
           ]);
-      } else if (dialect === 'oracle') {
+        } else if (dialect === 'oracle') {
           idx1 = arguments[0];
           idx2 = arguments[1];
           primary = arguments[3];
@@ -2206,7 +2205,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return UserPublic.sync({ force: true }).then(() => {
         return UserPublic.schema('special').sync({ force: true }).then(() => {
           return self.sequelize.queryInterface.describeTable('Publics', {
-            logging: function(sql) {
+            logging: sql => {
               if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql' || dialect === 'oracle') {
                 expect(sql).to.not.contain('special');
                 count++;
@@ -2219,7 +2218,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
             return self.sequelize.queryInterface.describeTable('Publics', {
               schema: 'special',
-              logging: function(sql) {
+              logging: sql => {
                 if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql' || dialect === 'oracle') {
                   expect(sql).to.contain('special');
                   count++;
@@ -2495,8 +2494,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const self = this;
         return this.BlobUser.create({
           data: new Buffer('Sequelize')
-        }).then((user) => {
-          return self.BlobUser.findById(user.id).then((user) => {
+        }).then(user => {
+          return self.BlobUser.findById(user.id).then(user => {
             if (dialect !== 'oracle') {
               expect(user.data).to.be.an.instanceOf(Buffer);
               expect(user.data.toString()).to.have.string('Sequelize');
@@ -2542,8 +2541,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const self = this;
           return this.BlobUser.create({
             data: 'Sequelize'
-          }).then((user) => {
-            return self.BlobUser.findById(user.id).then((user) => {
+          }).then(user => {
+            return self.BlobUser.findById(user.id).then(user => {
               if (dialect !== 'oracle') {
                 expect(user.data).to.be.an.instanceOf(Buffer);
                 expect(user.data.toString()).to.have.string('Sequelize');

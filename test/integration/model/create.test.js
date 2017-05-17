@@ -131,7 +131,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (['sqlite', 'mssql', 'oracle'].indexOf(current.dialect.name) === -1) {
       it('should not deadlock with no existing entries and no outer transaction', function () {
-        var User = this.sequelize.define('User', {
+        const User = this.sequelize.define('User', {
           email: {
             type: DataTypes.STRING,
             unique: 'company_user_email'
@@ -394,7 +394,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
 
       (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'oracle' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', function() {
-        var User = this.sequelize.define('user', {
+        const User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
             unique: true,
@@ -1904,17 +1904,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     //Oracle does not return anything on bulk create, due to the specific form of inserting
     if (dialect !== 'oracle') {
       it('should return autoIncrement primary key (bulkCreate)', function() {
-          var Maya = this.sequelize.define('Maya', {});
+        const Maya = this.sequelize.define('Maya', {});
 
-          var M1 = {};
-          var M2 = {};
+        const M1 = {};
+        const M2 = {};
 
-      return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true}))
-      .then(ms => {
-        expect(ms[0].id).to.be.eql(1);
-        expect(ms[1].id).to.be.eql(2);
+        return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true}))
+        .then(ms => {
+          expect(ms[0].id).to.be.eql(1);
+          expect(ms[1].id).to.be.eql(2);
+        });
       });
-    });
     }
   });
     

@@ -846,7 +846,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         oracle : 'NUMBER'
       });
 
-      testsql('NUMERIC(15,5)', DataTypes.NUMERIC(15,5), {
+      testsql('NUMERIC(15,5)', DataTypes.NUMERIC(15, 5), {
         default: 'DECIMAL(15,5)',
         oracle : 'NUMBER(15,5)'
       });

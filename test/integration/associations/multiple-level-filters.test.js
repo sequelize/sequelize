@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
                 }
               ],
               order : ['id']
-            }).then((tasks) => {
+            }).then(tasks => {
               expect(tasks.length).to.be.equal(2);
               expect(tasks[0].title).to.be.equal('fight empire');
               expect(tasks[1].title).to.be.equal('stablish republic');
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
                 }
               ],
               order : ['id']
-            }).then((tasks) => {
+            }).then(tasks => {
               expect(tasks.length).to.be.equal(2);
               expect(tasks[0].title).to.be.equal('fight empire');
               expect(tasks[1].title).to.be.equal('stablish republic');
@@ -175,7 +175,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
                 }
               ],
               order : ['id']
-            }).then((users) => {
+            }).then(users => {
               expect(users.length).to.be.equal(1);
               expect(users[0].username).to.be.equal('leia');
             });

@@ -98,26 +98,26 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     }
 
     if(Support.getTestDialect() !== 'oracle') {
-    it('should be able to handle a where object that\'s a first class citizen.', function() {
-      const User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING }),
-        Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });
+      it('should be able to handle a where object that\'s a first class citizen.', function() {
+        const User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING }),
+          Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });
 
         User.hasOne(Task);
 
-      return User.sync({ force: true }).then(() => {
-        return Task.sync({ force: true }).then(() => {
-          return User.create({ username: 'foo' }).then(user => {
-            return Task.create({ title: 'task', status: 'inactive' }).then(task => {
-              return user.setTaskXYZ(task).then(() => {
-                return user.getTaskXYZ({where: {status: 'active'}}).then(task => {
-                  expect(task).to.be.null;
+        return User.sync({ force: true }).then(() => {
+          return Task.sync({ force: true }).then(() => {
+            return User.create({ username: 'foo' }).then(user => {
+              return Task.create({ title: 'task', status: 'inactive' }).then(task => {
+                return user.setTaskXYZ(task).then(() => {
+                  return user.getTaskXYZ({where: {status: 'active'}}).then(task => {
+                    expect(task).to.be.null;
+                  });
                 });
               });
             });
           });
         });
       });
-    });
     }
   });
 

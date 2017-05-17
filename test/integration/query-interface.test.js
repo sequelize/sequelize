@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         })
         .then(() => this.queryInterface.renameTable('myTestTable', 'myTestTableNew'))
         .then(() => this.queryInterface.showAllTables())
-        .then((tableNames) => {
+        .then(tableNames => {
           if (dialect === 'mssql' || dialect === 'oracle') {
             tableNames = _.map(tableNames, 'tableName');
           }
@@ -291,9 +291,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           autoIncrement: true
         }
       }).bind(this).then(function() {
-        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then((results) => {
+        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(results => {
           if (dialect !== 'oracle') {
-            var response = _.head(results);
+            const response = _.head(results);
             expect(response.table_id || (typeof response !== 'object' && response)).to.be.ok;
           } else {
             //On empty query, we can't return anything, we need to know at least the id column name to return its value

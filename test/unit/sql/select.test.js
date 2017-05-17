@@ -173,7 +173,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         [
           '(SELECT \"user\".id_user AS id, \"user\".last_name AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 1 AND project_users.status = 1 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
           '(SELECT \"user\".id_user AS id, \"user\".last_name AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 5 AND project_users.status = 1 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
-          ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
+        ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
         +') \"user\" ORDER BY subquery_order_0 ASC;'
       });
 
@@ -323,14 +323,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         hasMultiAssociation: true, //must be set only for mssql dialect here
         subQuery: true
       }, {
-          default: 'SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (' +
-            'SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].[last_name] ASC' +
-             sql.addLimitAndOffset({ limit: 30, offset:10, order: [['`user`.`last_name`', 'ASC']] }) +
-          ') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].[last_name] ASC;',
-          oracle: 'SELECT \"user\".*, POSTS.id AS "POSTS.id", POSTS.title AS "POSTS.title" FROM (' +
-            'SELECT \"user\".id_user AS id, \"user\".email, \"user\".first_name AS firstName, \"user\".last_name AS lastName FROM users \"user\" ORDER BY "user".last_name ASC' +
-             sql.addLimitAndOffset({ limit: 30, offset:10, order: [['user.last_name', 'ASC']] }) +
-          ') \"user\" LEFT OUTER JOIN post POSTS ON \"user\".id_user = POSTS.user_id ORDER BY "user".last_name ASC;'
+        default: 'SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (' +
+          'SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].[last_name] ASC' +
+            sql.addLimitAndOffset({ limit: 30, offset:10, order: [['`user`.`last_name`', 'ASC']] }) +
+        ') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].[last_name] ASC;',
+        oracle: 'SELECT \"user\".*, POSTS.id AS "POSTS.id", POSTS.title AS "POSTS.title" FROM (' +
+          'SELECT \"user\".id_user AS id, \"user\".email, \"user\".first_name AS firstName, \"user\".last_name AS lastName FROM users \"user\" ORDER BY "user".last_name ASC' +
+            sql.addLimitAndOffset({ limit: 30, offset:10, order: [['user.last_name', 'ASC']] }) +
+        ') \"user\" LEFT OUTER JOIN post POSTS ON \"user\".id_user = POSTS.user_id ORDER BY "user".last_name ASC;'
       });
 
       const nestedInclude = Model._validateIncludedElements({

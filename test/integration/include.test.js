@@ -729,7 +729,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           },
           include: [Group]
         });
-      }).then((user) => {
+      }).then(user => {
         if (dialect !== 'oracle') {
           expect(user.dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
           expect(user.groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));

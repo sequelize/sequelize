@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return expect(Account.create({number: 1}).then(accountA => {
           return Account.findById(accountA.id).then(accountB => {
             accountA.number += 1;
-            return accountA.save().then(function() { return accountB; });
+            return accountA.save().then(() => { return accountB; });
           });
         }).then(accountB => {
           accountB.number += 1;

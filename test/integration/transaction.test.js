@@ -10,10 +10,10 @@ const chai = require('chai'),
   current = Support.sequelize;
 
 //Function adding the from dual clause for Oracle requests
-var formatQuery = function(qry, force) {
+const formatQuery = (qry, force) => {
   if (dialect === 'oracle' && ((qry.indexOf('FROM') === -1) || force !== undefined && force)) {
     if (qry.charAt(qry.length - 1) === ';') {
-      qry = qry.substr(0,qry.length -1);
+      qry = qry.substr(0, qry.length -1);
     }
     return qry + ' FROM DUAL';
   }
@@ -125,51 +125,51 @@ if (current.dialect.supports.transactions) {
 
     });
 
-  it('does not allow queries after commit', function() {
-    var self = this;
-    return this.sequelize.transaction().then(t => {
-      return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).then(() => {
-        return t.commit();
-      }).then(() => {
-        return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true});
+    it('does not allow queries after commit', function() {
+      const self = this;
+      return this.sequelize.transaction().then(t => {
+        return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).then(() => {
+          return t.commit();
+        }).then(() => {
+          return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true});
+        });
+      }).throw(new Error('Expected error not thrown'))
+      .catch (err => {
+        expect (err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
+        expect (err.sql).to.equal(formatQuery('SELECT 1+1'));
       });
-    }).throw(new Error('Expected error not thrown'))
-    .catch ((err) => {
-      expect (err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
-      expect (err.sql).to.equal(formatQuery('SELECT 1+1'));
-    });
     });
 
     it('does not allow queries immediatly after commit call', function() {
       const self = this;
       return expect(
-      this.sequelize.transaction().then(t => {
-        return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).then(() => {
-          return Promise.join(
-            expect(t.commit()).to.eventually.be.fulfilled,
-            self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true})
+        this.sequelize.transaction().then(t => {
+          return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).then(() => {
+            return Promise.join(
+              expect(t.commit()).to.eventually.be.fulfilled,
+              self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true})
               .throw(new Error('Expected error not thrown'))
               .catch (err => {
                 expect (err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
                 expect (err.sql).to.equal(formatQuery('SELECT 1+1'));
               })
-          );
-        });
-      })
-    ).to.be.eventually.fulfilled;
+            );
+          });
+        })
+      ).to.be.eventually.fulfilled;
     });
 
-  it('does not allow queries after rollback', function() {
-    var self = this;
-    return expect(
-      this.sequelize.transaction().then(t => {
-        return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).then(() => {
-          return t.rollback();
-        }).then(() => {
-          return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true});
-        });
-      })
-    ).to.eventually.be.rejected;
+    it('does not allow queries after rollback', function() {
+      const self = this;
+      return expect(
+        this.sequelize.transaction().then(t => {
+          return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).then(() => {
+            return t.rollback();
+          }).then(() => {
+            return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true});
+          });
+        })
+      ).to.eventually.be.rejected;
     });
 
     it('does not allow queries immediatly after rollback call', function() {

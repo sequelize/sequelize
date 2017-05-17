@@ -95,32 +95,32 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
     }
 
-  if (current.dialect.name !== 'oracle') {
-  //Oracle doesn't support column names non quoted by "
-    it('should be able to handle a where object that\'s a first class citizen.', function() {
-      const User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING }),
-        Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });
+    if (current.dialect.name !== 'oracle') {
+    //Oracle doesn't support column names non quoted by "
+      it('should be able to handle a where object that\'s a first class citizen.', function() {
+        const User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING }),
+          Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING });
 
-      Task.belongsTo(User);
+        Task.belongsTo(User);
 
-      return User.sync({ force: true }).then(() => {
-        // Can't use Promise.all cause of foreign key references
-        return Task.sync({ force: true });
-      }).then(() => {
-        return Promise.all([
-          User.create({ username: 'foo', gender: 'male' }),
-          User.create({ username: 'bar', gender: 'female' }),
-          Task.create({ title: 'task', status: 'inactive' })
-        ]);
-      }).spread((userA, userB, task) => {
-        return task.setUserXYZ(userA).then(() => {
-          return task.getUserXYZ({where: {gender: 'female'}});
+        return User.sync({ force: true }).then(() => {
+          // Can't use Promise.all cause of foreign key references
+          return Task.sync({ force: true });
+        }).then(() => {
+          return Promise.all([
+            User.create({ username: 'foo', gender: 'male' }),
+            User.create({ username: 'bar', gender: 'female' }),
+            Task.create({ title: 'task', status: 'inactive' })
+          ]);
+        }).spread((userA, userB, task) => {
+          return task.setUserXYZ(userA).then(() => {
+            return task.getUserXYZ({where: {gender: 'female'}});
+          });
+        }).then(user => {
+          expect(user).to.be.null;
         });
-      }).then(user => {
-        expect(user).to.be.null;
       });
-    });
-  }
+    }
 
     it('supports schemas', function() {
       const User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING }).schema('archive'),
@@ -842,46 +842,46 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 describe('Association', () => {
   //Oracle - identifier too long
   if (Support.getTestDialect() !== 'oracle') {
-  it('should set foreignKey on foreign table', function() {
-    const Mail = this.sequelize.define('mail', {}, { timestamps: false });
-    const Entry = this.sequelize.define('entry', {}, { timestamps: false });
-    const User = this.sequelize.define('user', {}, { timestamps: false });
-    Entry.belongsTo(User, { as: 'owner', foreignKey: { name: 'ownerId', allowNull: false } });
-    Entry.belongsTo(Mail, {
-      as: 'mail',
-      foreignKey: {
-        name: 'mailId',
-        allowNull: false
-      }
-    });
-    Mail.belongsToMany(User, {
-      as: 'recipients',
-      through: 'MailRecipients',
-      otherKey: {
-        name: 'recipientId',
-        allowNull: false
-      },
-      foreignKey: {
-        name: 'mailId',
-        allowNull: false
-      },
-      timestamps: false
-    });
-    Mail.hasMany(Entry, {
-      as: 'entries',
-      foreignKey: {
-        name: 'mailId',
-        allowNull: false
-      }
-    });
-    User.hasMany(Entry, {
-      as: 'entries',
-      foreignKey: {
-        name: 'ownerId',
-        allowNull: false
-      }
-    });
-    return this.sequelize.sync({ force: true })
+    it('should set foreignKey on foreign table', function() {
+      const Mail = this.sequelize.define('mail', {}, { timestamps: false });
+      const Entry = this.sequelize.define('entry', {}, { timestamps: false });
+      const User = this.sequelize.define('user', {}, { timestamps: false });
+      Entry.belongsTo(User, { as: 'owner', foreignKey: { name: 'ownerId', allowNull: false } });
+      Entry.belongsTo(Mail, {
+        as: 'mail',
+        foreignKey: {
+          name: 'mailId',
+          allowNull: false
+        }
+      });
+      Mail.belongsToMany(User, {
+        as: 'recipients',
+        through: 'MailRecipients',
+        otherKey: {
+          name: 'recipientId',
+          allowNull: false
+        },
+        foreignKey: {
+          name: 'mailId',
+          allowNull: false
+        },
+        timestamps: false
+      });
+      Mail.hasMany(Entry, {
+        as: 'entries',
+        foreignKey: {
+          name: 'mailId',
+          allowNull: false
+        }
+      });
+      User.hasMany(Entry, {
+        as: 'entries',
+        foreignKey: {
+          name: 'ownerId',
+          allowNull: false
+        }
+      });
+      return this.sequelize.sync({ force: true })
       .then(() => User.create({}))
       .then(() => Mail.create({}))
       .then(mail =>
@@ -905,10 +905,10 @@ describe('Association', () => {
                     recipientId: 1
                   }
                 }
-                }]
               }]
-            })
-          );
-        });
-    }
-  });
+          }]
+      })
+      );
+    });
+  }
+});

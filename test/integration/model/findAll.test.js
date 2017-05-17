@@ -183,14 +183,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to handle false/true values just fine...', function() {
         const User = this.User;
-        let escapeChar = '`';
-        
-        if(dialect === 'postgres' || dialect === 'mssql'){
-          escapeChar = '"';
-        } else if (dialect === 'oracle') {
-          //Oracle doesn't need aBool to be escaped
-          escapeChar = '';
-        }
 
         return User.bulkCreate([
           {username: 'boo5', aBool: false},
@@ -1481,42 +1473,43 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     //Oracle - identifier too long
     if (dialect !== 'oracle') {
-    it('handles offset with includes', function() {
-      const Election = this.sequelize.define('Election', {
-        name: Sequelize.STRING
-      });
-      const Citizen = this.sequelize.define('Citizen', {
-        name: Sequelize.STRING
-      });
+      it('handles offset with includes', function() {
+        const Election = this.sequelize.define('Election', {
+          name: Sequelize.STRING
+        });
+        const Citizen = this.sequelize.define('Citizen', {
+          name: Sequelize.STRING
+        });
 
-      // Associations
-      Election.belongsTo(Citizen);
-      Election.belongsToMany(Citizen, { as: 'Voters', through: 'ElectionsVotes' });
-      Citizen.hasMany(Election);
-      Citizen.belongsToMany(Election, { as: 'Votes', through: 'ElectionsVotes' });
+        // Associations
+        Election.belongsTo(Citizen);
+        Election.belongsToMany(Citizen, { as: 'Voters', through: 'ElectionsVotes' });
+        Citizen.hasMany(Election);
+        Citizen.belongsToMany(Election, { as: 'Votes', through: 'ElectionsVotes' });
 
-      return this.sequelize.sync().then(() => {
-        // Add some data
-        return Citizen.create({ name: 'Alice' }).then(alice => {
-          return Citizen.create({ name: 'Bob' }).then(bob => {
-            return Election.create({ name: 'Some election' }).then(() => {
-              return Election.create({ name: 'Some other election' }).then(election => {
-                return election.setCitizen(alice).then(() => {
-                  return election.setVoters([alice, bob]).then(() => {
-                    const criteria = {
-                      offset: 5,
-                      limit: 1,
-                      where: {
-                        name: 'Some election'
-                      },
-                      include: [
-                        Citizen, // Election creator
-                        { model: Citizen, as: 'Voters' } // Election voters
-                      ]
-                    };
-                    return Election.findAndCountAll(criteria).then(elections => {
-                      expect(elections.count).to.equal(1);
-                      expect(elections.rows.length).to.equal(0);
+        return this.sequelize.sync().then(() => {
+          // Add some data
+          return Citizen.create({ name: 'Alice' }).then(alice => {
+            return Citizen.create({ name: 'Bob' }).then(bob => {
+              return Election.create({ name: 'Some election' }).then(() => {
+                return Election.create({ name: 'Some other election' }).then(election => {
+                  return election.setCitizen(alice).then(() => {
+                    return election.setVoters([alice, bob]).then(() => {
+                      const criteria = {
+                        offset: 5,
+                        limit: 1,
+                        where: {
+                          name: 'Some election'
+                        },
+                        include: [
+                          Citizen, // Election creator
+                          { model: Citizen, as: 'Voters' } // Election voters
+                        ]
+                      };
+                      return Election.findAndCountAll(criteria).then(elections => {
+                        expect(elections.count).to.equal(1);
+                        expect(elections.rows.length).to.equal(0);
+                      });
                     });
                   });
                 });
@@ -1525,7 +1518,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       });
-    });
     }
     
 

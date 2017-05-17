@@ -225,7 +225,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for DECIMAL', () => {
     const Type = new Sequelize.DECIMAL();
 
-     if (dialect === 'oracle') {
+    if (dialect === 'oracle') {
        //Oracle does not support decimal, mapping to number
       testFailure(Type);
     } else {
@@ -242,7 +242,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     } else {
       return testSuccess(Type, 1);
     }
-   });
+  });
 
   it('calls parse and stringify for DOUBLE', () => {
     const Type = new Sequelize.DOUBLE();

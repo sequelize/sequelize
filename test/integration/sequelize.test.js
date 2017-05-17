@@ -32,10 +32,10 @@ const qq = function(str) {
 };
 
 //Function adding the from dual clause for Oracle requests
-var formatQuery = function(qry, force) {
+const formatQuery = (qry, force) => {
   if(dialect === 'oracle' && ((qry.indexOf('FROM') === -1) || force !== undefined && force)) {
     if(qry.charAt(qry.length - 1) === ';') {
-      qry = qry.substr(0,qry.length -1);
+      qry = qry.substr(0, qry.length -1);
     }
     return qry + ' FROM DUAL';
   }
@@ -357,7 +357,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           benchmark: true
         }).then(() => {
           expect(logger.calledOnce).to.be.true;
-           if (dialect === 'oracle') {
+          if (dialect === 'oracle') {
             expect(logger.args[0][0]).to.be.equal('Executed (default): select 1 FROM DUAL');
           } else {
             expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
@@ -493,43 +493,43 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
 
-  //node-oracledb doesn't support this request (NJS-010 invalid data type in select list)
-  if (dialect !== 'oracle') {
-    it('properly adds and escapes replacement value', function() {
-      let logSql;
-      const number  = 1,
-        date = new Date(),
-        string = 't\'e"st',
-        boolean = true,
-        buffer = new Buffer('t\'e"st');
+    //node-oracledb doesn't support this request (NJS-010 invalid data type in select list)
+    if (dialect !== 'oracle') {
+      it('properly adds and escapes replacement value', function() {
+        let logSql;
+        const number  = 1,
+          date = new Date(),
+          string = 't\'e"st',
+          boolean = true,
+          buffer = new Buffer('t\'e"st');
 
-      date.setMilliseconds(0);
-      return this.sequelize.query({
-        query: 'select ? as number, ? as date,? as string,? as boolean,? as buffer',
-        values: [number, date, string, boolean, buffer]
-      }, {
-        type: this.sequelize.QueryTypes.SELECT,
-        logging(s) {
-          logSql = s;
-        }
-      }).then(result => {
-        const res = result[0] || {};
-        res.date = res.date && new Date(res.date);
-        res.boolean = res.boolean && true;
-        if (typeof res.buffer === 'string' && res.buffer.indexOf('\\x') === 0) {
-          res.buffer = new Buffer(res.buffer.substring(2), 'hex');
-        }
-        expect(res).to.deep.equal({
-          number,
-          date,
-          string,
-          boolean,
-          buffer
+        date.setMilliseconds(0);
+        return this.sequelize.query({
+          query: 'select ? as number, ? as date,? as string,? as boolean,? as buffer',
+          values: [number, date, string, boolean, buffer]
+        }, {
+          type: this.sequelize.QueryTypes.SELECT,
+          logging(s) {
+            logSql = s;
+          }
+        }).then(result => {
+          const res = result[0] || {};
+          res.date = res.date && new Date(res.date);
+          res.boolean = res.boolean && true;
+          if (typeof res.buffer === 'string' && res.buffer.indexOf('\\x') === 0) {
+            res.buffer = new Buffer(res.buffer.substring(2), 'hex');
+          }
+          expect(res).to.deep.equal({
+            number,
+            date,
+            string,
+            boolean,
+            buffer
+          });
+          expect(logSql.indexOf('?')).to.equal(-1);
         });
-        expect(logSql.indexOf('?')).to.equal(-1);
       });
-    });
-  }
+    }
 
     it('it allows to pass custom class instances', function() {
       let logSql;
@@ -549,7 +549,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('uses properties `query` and `values` if query is tagged', function() {
       let logSql;
-      return this.sequelize.query({ query: formatQuery('select ? as foo, ? as bar'), values: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } }).then((result) => {
+      return this.sequelize.query({ query: formatQuery('select ? as foo, ? as bar'), values: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } }).then(result => {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
         expect(logSql.indexOf('?')).to.equal(-1);
       });
@@ -558,7 +558,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('uses properties `query` and `bind` if query is tagged', function() {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
-      return this.sequelize.query({ query: formatQuery('select $1'+typeCast+' as foo, $2'+typeCast+' as bar'), bind: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } }).then((result) => {
+      return this.sequelize.query({ query: formatQuery('select $1'+typeCast+' as foo, $2'+typeCast+' as bar'), bind: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } }).then(result => {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
         if (dialect === 'postgres' || dialect === 'sqlite') {
           expect(logSql.indexOf('$1')).to.be.above(-1);
@@ -575,16 +575,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('destructs dot separated attributes when doing a raw query using nest', function() {
-      var tickChar = (dialect === 'postgres' || dialect === 'mssql' || dialect === 'oracle') ? '"' : '`'
+      const tickChar = (dialect === 'postgres' || dialect === 'mssql' || dialect === 'oracle') ? '"' : '`'
         , sql = 'select 1 as ' + Sequelize.Utils.addTicks('foo.bar.baz', tickChar);
 
-      return this.sequelize.query(formatQuery(sql), { raw: true, nest: true }).then((result) => {
+      return this.sequelize.query(formatQuery(sql), { raw: true, nest: true }).then(result => {
         expect(result).to.deep.equal([{ foo: { bar: { baz: 1 } } }]);
       });
     });
 
     it('replaces token with the passed array', function() {
-      return this.sequelize.query(formatQuery('select ? as foo, ? as bar'), { type: this.sequelize.QueryTypes.SELECT, replacements: [1, 2] }).then((result) => {
+      return this.sequelize.query(formatQuery('select ? as foo, ? as bar'), { type: this.sequelize.QueryTypes.SELECT, replacements: [1, 2] }).then(result => {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
       });
     });
@@ -637,7 +637,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds token with the passed array', function() {
       const typeCast = (dialect === 'postgres') ? '::int' : '';
       let logSql;
-      return this.sequelize.query(formatQuery('select $1'+typeCast+' as foo, $2'+typeCast+' as bar'), { type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) { logSql = s; } }).then((result) => {
+      return this.sequelize.query(formatQuery('select $1'+typeCast+' as foo, $2'+typeCast+' as bar'), { type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) { logSql = s; } }).then(result => {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
         if (dialect === 'postgres' || dialect === 'sqlite') {
           expect(logSql.indexOf('$1')).to.be.above(-1);
@@ -648,7 +648,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds named parameters with the passed object', function() {
       const typeCast = (dialect === 'postgres') ? '::int' : '';
       let logSql;
-      return this.sequelize.query(formatQuery('select $one'+typeCast+' as foo, $two'+typeCast+' as bar'), { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } }).then((result) => {
+      return this.sequelize.query(formatQuery('select $one'+typeCast+' as foo, $two'+typeCast+' as bar'), { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } }).then(result => {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: 2 }]);
         if (dialect === 'postgres') {
           expect(logSql.indexOf('$1')).to.be.above(-1);
@@ -662,7 +662,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds named parameters with the passed object using the same key twice', function() {
       const typeCast = (dialect === 'postgres') ? '::int' : '';
       let logSql;
-      return this.sequelize.query(formatQuery('select $one'+typeCast+' as foo, $two'+typeCast+' as bar, $one'+typeCast+' as baz'), { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } }).then((result) => {
+      return this.sequelize.query(formatQuery('select $one'+typeCast+' as foo, $two'+typeCast+' as bar, $one'+typeCast+' as baz'), { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } }).then(result => {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
         if (dialect === 'postgres') {
           expect(logSql.indexOf('$1')).to.be.above(-1);
@@ -674,8 +674,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('binds named parameters with the passed object having a null property', function() {
       const typeCast = (dialect === 'postgres') ? '::int' : '';
-      var logSql;
-      return this.sequelize.query(formatQuery('select $one'+typeCast+' as foo, $two'+typeCast+' as bar'), { raw: true, bind: { one: 1, two: null }}).then((result) => {
+      return this.sequelize.query(formatQuery('select $one'+typeCast+' as foo, $two'+typeCast+' as bar'), { raw: true, bind: { one: 1, two: null }}).then(result => {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: null }]);
       });
     });
@@ -683,7 +682,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds named parameters array handles escaped $$', function() {
       const typeCast = (dialect === 'postgres') ? '::int' : '';
       let logSql;
-      return this.sequelize.query(formatQuery('select $1'+typeCast+' as foo, \'$$ / $$1\' as bar'), { raw: true, bind: [1 ], logging(s) { logSql = s; } }).then((result) => {
+      return this.sequelize.query(formatQuery('select $1'+typeCast+' as foo, \'$$ / $$1\' as bar'), { raw: true, bind: [1 ], logging(s) { logSql = s; } }).then(result => {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $1' }]);
         if (dialect === 'postgres' || dialect === 'sqlite') {
           expect(logSql.indexOf('$1')).to.be.above(-1);
@@ -693,7 +692,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('binds named parameters object handles escaped $$', function() {
       const typeCast = (dialect === 'postgres') ? '::int' : '';
-      return this.sequelize.query(formatQuery('select $one'+typeCast+' as foo, \'$$ / $$one\' as bar'), { raw: true, bind: { one: 1 } }).then((result) => {
+      return this.sequelize.query(formatQuery('select $one'+typeCast+' as foo, \'$$ / $$one\' as bar'), { raw: true, bind: { one: 1 } }).then(result => {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $one' }]);
       });
     });
@@ -767,7 +766,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         datetime = '(SELECT SYSDATE FROM DUAL)';
       }
 
-      return this.sequelize.query(formatQuery('SELECT ' + datetime + ' AS t', true)).spread((result) => {
+      return this.sequelize.query(formatQuery('SELECT ' + datetime + ' AS t', true)).spread(result => {
         expect(moment(result[0].t).isValid()).to.be.true;
       });
     });
@@ -944,7 +943,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const self = this
         , Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       return Photo.sync({ force: true }).then(() => {
-        return self.sequelize.getQueryInterface().showAllTables().then((tableNames) => {
+        return self.sequelize.getQueryInterface().showAllTables().then(tableNames => {
           if (dialect === 'mssql' || dialect === 'oracle' /* current.dialect.supports.schemas */) {
             tableNames = _.map(tableNames, 'tableName');
           }

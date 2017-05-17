@@ -2087,12 +2087,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           expect(posts[0].Entity.tags[0].EntityTag.entity_id).to.equal(posts[0].post_id);
         })
         .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
-      });
+          //We catch to don't throw the ORA-00972 identifier too long error
+          console.log(error.message);
+          if (error.message.indexOf('ORA-00972') === -1) {
+            throw error;
+          }
+        });
     });
   });
 });

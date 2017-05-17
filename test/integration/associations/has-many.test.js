@@ -871,24 +871,24 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           this.Article.hasMany(this.Label);
 
-        return this.sequelize.sync({ force: true }).then(() => {
-          return Promise.all([
-            self.Article.create({ title: 'Article' }),
-            self.Label.create({ text: 'Awesomeness', until: '2014-01-01 01:00:00' }),
-            self.Label.create({ text: 'Epicness', until: '2014-01-03 01:00:00' })
-          ]);
-        }).bind({}).spread(function(article, label1, label2) {
-          this.article = article;
-          return article.setLabels([label1, label2]);
-        }).then(function() {
-          return this.article.getLabels({where: {until: {$gt: moment('2014-01-02').toDate()}}});
-        }).then(labels => {
-          expect(labels).to.be.instanceof(Array);
-          expect(labels).to.have.length(1);
-          expect(labels[0].text).to.equal('Epicness');
+          return this.sequelize.sync({ force: true }).then(() => {
+            return Promise.all([
+              self.Article.create({ title: 'Article' }),
+              self.Label.create({ text: 'Awesomeness', until: '2014-01-01 01:00:00' }),
+              self.Label.create({ text: 'Epicness', until: '2014-01-03 01:00:00' })
+            ]);
+          }).bind({}).spread(function(article, label1, label2) {
+            this.article = article;
+            return article.setLabels([label1, label2]);
+          }).then(function() {
+            return this.article.getLabels({where: {until: {$gt: moment('2014-01-02').toDate()}}});
+          }).then(labels => {
+            expect(labels).to.be.instanceof(Array);
+            expect(labels).to.have.length(1);
+            expect(labels[0].text).to.equal('Epicness');
+          });
         });
-      });
-    }
+      }
 
       it('gets all associated objects when no options are passed', function() {
         return this.User.find({where: {username: 'John'}}).then(john => {
@@ -900,10 +900,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       if (current.dialect.name !== 'oracle') {
         //Oracle - the column in order by clause should be quoted
-        it('only get objects that fulfill the options', function() {
-          return this.User.find({ where: { username: 'John' } }).then((john) => {
+        it('only get objects that fulfill the options', () => {
+          return this.User.find({ where: { username: 'John' } }).then(john => {
             return john.getTasks({ where: { active: true }, limit: 10, order: [['id', 'DESC']]});
-          }).then((tasks) => {
+          }).then(tasks => {
             expect(tasks).to.have.length(1);
           });
         });
