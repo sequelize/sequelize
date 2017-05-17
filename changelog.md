@@ -70,7 +70,8 @@
 - [FIXED] Update or soft delete breaks when querying on `JSON/JSONB` [#7376](https://github.com/sequelize/sequelize/issues/7376) [#7400](https://github.com/sequelize/sequelize/issues/7400) [#7444](https://github.com/sequelize/sequelize/issues/7444)
 - [ADDED] Support for JSON attributes in orders and groups. [#7564](https://github.com/sequelize/sequelize/issues/7564)
 - [REMOVED] Removes support for interpretation of raw properties and values in the where object. [#7568](https://github.com/sequelize/sequelize/issues/7568)
-- [FIXED] Upsert now updates all changed fields by default
+- [FIXED] Upsert now updates all changed fields by default [#7523](https://github.com/sequelize/sequelize/pull/7523)
+- [FIXED] Support more edge-cases of using attribute:[] in include or through
 
 ## BC breaks:
 - Model.validate instance method now runs validation hooks by default. Previously you needed to pass { hooks: true }. You can override this behavior by passing { hooks: false }
