@@ -1216,14 +1216,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(countries[0].industries).to.exist;
               expect(countries[0].industries[0]).to.exist;
               expect(countries[0].industries[0].name).to.equal(params[2]);
+            })
+            .catch (error => {
+              //We catch to don't throw the ORA-00972 identifier too long error
+              console.log(error.message);
+              if (error.message.indexOf('ORA-00972') === -1) {
+                throw error;
+              }
             });
-          })
-          .catch (error => {
-            //We catch to don't throw the ORA-00972 identifier too long error
-            console.log(error.message);
-            if (error.message.indexOf('ORA-00972') === -1) {
-              throw error;
-            }
           });
         });
 
