@@ -15,10 +15,10 @@ describe('[ORACLE] Connection Manager', () => {
       //  expect(config.dialectOptions.domain).to.equal('TEST.COM');
       config = {
         dialect: 'oracle',
-        host : 'vm2008ora12hot',
-        database: 'vm2008ora12hot:1521/ORCL12HOT.kimdomain.local',
-        username: 'DEV_RD',
-        password: 'DEV_RD'
+        host : 'localhost',
+        database: 'localhost:1521/xe.oracle.docker',
+        username: 'sequelize',
+        password: 'sequelize'
       };
       instance = new Sequelize(config.database, config.username, config.password, config);
 
@@ -39,10 +39,10 @@ describe('[ORACLE] Connection Manager', () => {
       //  expect(config.dialectOptions.domain).to.equal('TEST.COM');
       config = {
         dialect: 'oracle',
-        host: 'vm2008ora12hot',
-        username: 'DEV_RD',
-        password: 'DEV_RD',
-        database: 'ORCL12HOT.kimdomain.local'
+        host: 'localhost',
+        username: 'sequelize',
+        password: 'sequelize',
+        database: 'xe.oracle.docker'
       };
       instance = new Sequelize(config.database, config.username, config.password, config);
 
@@ -64,9 +64,9 @@ describe('[ORACLE] Connection Manager', () => {
       config = {
         dialect: 'oracle',
         host: '',
-        username: 'DEV_RD',
-        password: 'DEV_RD',
-        database: 'ORCL12HOT.kimdomain.local'
+        username: 'sequelize',
+        password: 'sequelize',
+        database: 'xe.oracle.docker'
       };
       instance = new Sequelize(config.database, config.username, config.password, config);
 
@@ -88,9 +88,9 @@ describe('[ORACLE] Connection Manager', () => {
       //  expect(config.dialectOptions.domain).to.equal('TEST.COM');
       config = {
         dialect: 'oracle',
-        host: 'vm2008ora12hot',
-        username: 'DEV_RD',
-        password: 'DEV_RD',
+        host: 'localhost',
+        username: 'sequelize',
+        password: 'sequelize',
         database: ''
       };
       instance = new Sequelize(config.database, config.username, config.password, config);
