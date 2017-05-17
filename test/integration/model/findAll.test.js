@@ -1156,14 +1156,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0].residents).to.exist;
               expect(continents[0].countries[0].residents[0]).to.exist;
               expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
+            })
+            .catch (error => {
+              //We catch to don't throw the ORA-00972 identifier too long error
+              console.log(error.message);
+              if (error.message.indexOf('ORA-00972') === -1) {
+                throw error;
+              }
             });
-          })
-          .catch (error => {
-            //We catch to don't throw the ORA-00972 identifier too long error
-            console.log(error.message);
-            if (error.message.indexOf('ORA-00972') === -1) {
-              throw error;
-            }
           });
         });
       }),
