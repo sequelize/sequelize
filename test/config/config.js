@@ -86,7 +86,7 @@ module.exports = {
   sqlite: {
   },
 
- /* oracle: {
+  oracle: {
     username : process.env.NODE_ORACLEDB_USER || 'sequelize',
     password : process.env.NODE_ORACLEDB_PASSWORD || 'sequelize',
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
@@ -94,18 +94,6 @@ module.exports = {
     host : process.env.NODE_ORACLEDB_HOST || 'localhost',
     dialectOptions : {stmtCacheSize:0},
     port : process.env.NODE_ORACLEDB_PORT || 1521,
-    // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
-    externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
-  },*/
-
-  oracle: {
-    username : process.env.NODE_ORACLEDB_USER || 'sequelize',
-    password : process.env.NODE_ORACLEDB_PASSWORD || 'sequelize',
-    // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
-    database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'xe',
-    host : process.env.NODE_ORACLEDB_HOST || 'localhost',
-    dialectOptions : {stmtCacheSize:0},
-    port : process.env.NODE_ORACLEDB_PORT || 49161,
     // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
     externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
   },
