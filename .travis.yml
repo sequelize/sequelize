@@ -35,10 +35,10 @@ env:
       - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
       - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
       - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
-      - include:
-        node_js : 4
+      include:
+        node_js: 4
         - ORACLE_VER=oracle-12c DIALECT=oracle
-        node_js : 6
+        node_js: 6
         - ORACLE_VER=oracle-12c DIALECT=oracle COVERAGE=true
 
 before_install:
