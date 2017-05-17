@@ -31,28 +31,11 @@ env:
     - NODE_ORACLEDB_HOST: localhost
 
   matrix:
-    include:
-    - node_js: 4
-      - DIALECT=sqlite COVERAGE=true
-    - node_js: 4
-      - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
-    - node_js: 4
-      - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
-    - node_js: 4
-      - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
-    - node_js: 4
-      - ORACLE_VER=oracle-12c DIALECT=oracle
-    - node_js: 6
-      - DIALECT=sqlite COVERAGE=true
-    - node_js: 6
-      - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
-    - node_js: 6
-      - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
-    - node_js: 6
-      - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
-    - node_js: 6
-      - ORACLE_VER=oracle-12c DIALECT=oracle COVERAGE=true
-      
+    - DIALECT=sqlite COVERAGE=true
+    - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
+    - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
+    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
+    - ORACLE_VER=oracle-12c DIALECT=oracle COVERAGE=true
 
 before_install:
   - |
