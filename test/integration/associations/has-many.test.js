@@ -898,16 +898,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         });
       });
 
-      if (current.dialect.name !== 'oracle') {
-        //Oracle - the column in order by clause should be quoted
-        it('only get objects that fulfill the options', () => {
-          return this.User.find({ where: { username: 'John' } }).then(john => {
-            return john.getTasks({ where: { active: true }, limit: 10, order: [['id', 'DESC']]});
-          }).then(tasks => {
-            expect(tasks).to.have.length(1);
-          });
+      it('only get objects that fulfill the options', function() {
+        return this.User.find({ where: { username: 'John' } }).then(john => {
+          return john.getTasks({ where: { active: true }, limit: 10, order: [['id', 'DESC']]});
+        }).then(tasks => {
+          expect(tasks).to.have.length(1);
         });
-      }
+      });
     });
 
     describe('countAssociations', () => {
