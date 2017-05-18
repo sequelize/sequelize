@@ -84,7 +84,7 @@ if (dialect === 'mysql') {
       return sequelize
         .sync()
         .then(() => cm.getConnection())
-        .then((connection) => {
+        .then(connection => {
           // Save current connection
           conn = connection;
           // simulate a unexpected end from MySQL2
@@ -98,7 +98,7 @@ if (dialect === 'mysql') {
           // Get next available connection
           return cm.getConnection();
         })
-        .then((connection) => {
+        .then(connection => {
           // Old threadId should be different from current new one
           expect(conn.threadId).to.not.be.equal(connection.threadId);
           expect(cm.validate(conn)).to.not.be.ok;
@@ -117,7 +117,7 @@ if (dialect === 'mysql') {
         .then(connection => {
           // Save current connection
           conn = connection;
-          return cm.releaseConnection(conn)
+          return cm.releaseConnection(conn);
         })
         .then(() => {
           // simulate a unexpected end from MySQL2 AFTER releasing the connection
