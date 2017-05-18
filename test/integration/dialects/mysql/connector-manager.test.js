@@ -88,10 +88,7 @@ if (dialect === 'mysql') {
           // Save current connection
           conn = connection;
           // simulate a unexpected end from MySQL2
-          connection._protocolError = new Error('Connection lost: The server closed the connection.');
-          connection._protocolError.fatal = true;
-          connection._protocolError.code = 'PROTOCOL_CONNECTION_LOST';
-          connection._notifyError(connection._protocolError);
+          conn.stream.emit('end');
         })
         .then(() => cm.releaseConnection(conn))
         .then(() => {
@@ -121,10 +118,8 @@ if (dialect === 'mysql') {
         })
         .then(() => {
           // simulate a unexpected end from MySQL2 AFTER releasing the connection
-          conn._protocolError = new Error('Connection lost: The server closed the connection.');
-          conn._protocolError.fatal = true;
-          conn._protocolError.code = 'PROTOCOL_CONNECTION_LOST';
-          conn._notifyError(conn._protocolError);
+          conn.stream.emit('end');
+
           // Get next available connection
           return cm.getConnection();
         })
