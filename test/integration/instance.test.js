@@ -2087,7 +2087,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('returns false if user is not soft deleted', function() {
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return this.ParanoidUser.findAll().then((users) => {
+        return this.ParanoidUser.findAll().then(users => {
           expect(users[0].isSoftDeleted()).to.be.false;
         });
       });
@@ -2095,11 +2095,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('returns true if user is soft deleted', function() {
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return this.ParanoidUser.findAll().then((users) => {
+        return this.ParanoidUser.findAll().then(users => {
           return users[0].destroy().then(() => {
             expect(users[0].isSoftDeleted()).to.be.true;
 
-            return users[0].reload({ paranoid: false }).then((user) => {
+            return users[0].reload({ paranoid: false }).then(user => {
               expect(user.isSoftDeleted()).to.be.true;
             });
           });
@@ -2120,13 +2120,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       return this.ParanoidUserWithCustomDeletedAt.sync({ force: true }).then(() => {
         return this.ParanoidUserWithCustomDeletedAt.create({ username: 'fnord' }).then(() => {
-          return self.ParanoidUserWithCustomDeletedAt.findAll().then((users) => {
+          return self.ParanoidUserWithCustomDeletedAt.findAll().then(users => {
             expect(users[0].isSoftDeleted()).to.be.false;
 
             return users[0].destroy().then(() => {
               expect(users[0].isSoftDeleted()).to.be.true;
 
-              return users[0].reload({ paranoid: false }).then((user) => {
+              return users[0].reload({ paranoid: false }).then(user => {
                 expect(user.isSoftDeleted()).to.be.true;
               });
             });
