@@ -28,10 +28,10 @@ env:
     - SEQ_PG_PORT: 8998
 
   matrix:
-    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
-    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
-    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
-    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
+    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true RAND=1
+    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true RAND=2
+    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true RAND=3
+    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true RAND=4
 
 before_script:
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
