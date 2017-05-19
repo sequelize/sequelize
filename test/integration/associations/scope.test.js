@@ -108,7 +108,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           expect(comment.get('commentable')).to.equal('post');
           expect(comment.get('isMain')).to.be.false;
           return this.Post.scope('withMainComment').findById(this.post.get('id'));
-        }).then((post) => {
+        }).then(post => {
           expect(post.mainComment).to.be.null;
           return post.createMainComment({
             title: 'I am a main post comment'
@@ -131,7 +131,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           return this.post.setMainComment(comment);
         }).then( function() {
           return this.post.getMainComment();
-        }).then((mainComment) => {
+        }).then(mainComment => {
           expect(mainComment.get('commentable')).to.equal('post');
           expect(mainComment.get('isMain')).to.be.true;
           expect(mainComment.get('title')).to.equal('I am a future main comment');
@@ -167,11 +167,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           );
         }).then(() => {
           return self.Comment.findAll();
-        }).then((comments) => {
-          comments.forEach((comment) => {
+        }).then(comments => {
+          comments.forEach(comment => {
             expect(comment.get('commentable')).to.be.ok;
           });
-          expect(comments.map((comment) => {
+          expect(comments.map(comment => {
             return comment.get('commentable');
           }).sort()).to.deep.equal(['image', 'post', 'question']);
         }).then(function() {
@@ -229,7 +229,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
         return this.sequelize.sync({force: true}).then(() => {
           return self.Post.create();
-        }).then((post) => {
+        }).then(post => {
           return post.createComment({
             title: 'I am a post comment'
           });
@@ -503,15 +503,15 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 expect(imageTags.length).to.equal(3);
                 expect(questionTags.length).to.equal(3);
 
-                expect(postTags.map((tag) => {
+                expect(postTags.map(tag => {
                   return tag.name;
                 }).sort()).to.deep.equal(['postTag', 'tagA', 'tagB']);
 
-                expect(imageTags.map((tag) => {
+                expect(imageTags.map(tag => {
                   return tag.name;
                 }).sort()).to.deep.equal(['imageTag', 'tagB', 'tagC']);
 
-                expect(questionTags.map((tag) => {
+                expect(questionTags.map(tag => {
                   return tag.name;
                 }).sort()).to.deep.equal(['questionTag', 'tagA', 'tagC']);
               }).then(() => {
@@ -533,15 +533,15 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                   expect(image.tags.length).to.equal(3);
                   expect(question.tags.length).to.equal(3);
 
-                  expect(post.tags.map((tag) => {
+                  expect(post.tags.map(tag => {
                     return tag.name;
                   }).sort()).to.deep.equal(['postTag', 'tagA', 'tagB']);
 
-                  expect(image.tags.map((tag) => {
+                  expect(image.tags.map(tag => {
                     return tag.name;
                   }).sort()).to.deep.equal(['imageTag', 'tagB', 'tagC']);
 
-                  expect(question.tags.map((tag) => {
+                  expect(question.tags.map(tag => {
                     return tag.name;
                   }).sort()).to.deep.equal(['questionTag', 'tagA', 'tagC']);
                 });

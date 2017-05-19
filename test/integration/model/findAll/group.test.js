@@ -46,7 +46,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ],
             group: [ 'Post.id' ]
           });
-        }).then((posts) => {
+        }).then(posts => {
           expect(parseInt(posts[0].get('comment_count'))).to.be.equal(3);
           expect(parseInt(posts[1].get('comment_count'))).to.be.equal(2);
         });

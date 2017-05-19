@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     it('allow changing attributes via beforeFind #5675', function() {
-      this.User.beforeFind((options) => {
+      this.User.beforeFind(options => {
         options.attributes = {
           include: ['id']
         };
@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           afterHook = true;
         });
 
-        return this.User.find({where: {username: 'adam'}}).then((user) => {
+        return this.User.find({where: {username: 'adam'}}).then(user => {
           expect(user.mood).to.equal('happy');
           expect(beforeHook).to.be.true;
           expect(beforeHook2).to.be.true;
@@ -71,41 +71,41 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeFind hook can change options', function() {
-        this.User.beforeFind((options) => {
+        this.User.beforeFind(options => {
           options.where.username = 'joe';
         });
 
-        return this.User.find({where: {username: 'adam'}}).then((user) => {
+        return this.User.find({where: {username: 'adam'}}).then(user => {
           expect(user.mood).to.equal('sad');
         });
       });
 
       it('beforeFindAfterExpandIncludeAll hook can change options', function() {
-        this.User.beforeFindAfterExpandIncludeAll((options) => {
+        this.User.beforeFindAfterExpandIncludeAll(options => {
           options.where.username = 'joe';
         });
 
-        return this.User.find({where: {username: 'adam'}}).then((user) => {
+        return this.User.find({where: {username: 'adam'}}).then(user => {
           expect(user.mood).to.equal('sad');
         });
       });
 
       it('beforeFindAfterOptions hook can change options', function() {
-        this.User.beforeFindAfterOptions((options) => {
+        this.User.beforeFindAfterOptions(options => {
           options.where.username = 'joe';
         });
 
-        return this.User.find({where: {username: 'adam'}}).then((user) => {
+        return this.User.find({where: {username: 'adam'}}).then(user => {
           expect(user.mood).to.equal('sad');
         });
       });
 
       it('afterFind hook can change results', function() {
-        this.User.afterFind((user) => {
+        this.User.afterFind(user => {
           user.mood = 'sad';
         });
 
-        return this.User.find({where: {username: 'adam'}}).then((user) => {
+        return this.User.find({where: {username: 'adam'}}).then(user => {
           expect(user.mood).to.equal('sad');
         });
       });
@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        return this.User.find({where: {username: 'adam'}}).catch ((err) => {
+        return this.User.find({where: {username: 'adam'}}).catch (err => {
           expect(err.message).to.equal('Oops!');
         });
       });
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        return this.User.find({where: {username: 'adam'}}).catch ((err) => {
+        return this.User.find({where: {username: 'adam'}}).catch (err => {
           expect(err.message).to.equal('Oops!');
         });
       });
@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        return this.User.find({where: {username: 'adam'}}).catch ((err) => {
+        return this.User.find({where: {username: 'adam'}}).catch (err => {
           expect(err.message).to.equal('Oops!');
         });
       });
@@ -147,7 +147,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        return this.User.find({where: {username: 'adam'}}).catch ((err) => {
+        return this.User.find({where: {username: 'adam'}}).catch (err => {
           expect(err.message).to.equal('Oops!');
         });
       });

@@ -48,7 +48,7 @@ There are currently three ways to programmatically add hooks:
 
 ```js
 // Method 1 via the .define() method
-var User = sequelize.define('user', {
+const User = sequelize.define('user', {
   username: DataTypes.STRING,
   mood: {
     type: DataTypes.ENUM,
@@ -56,34 +56,34 @@ var User = sequelize.define('user', {
   }
 }, {
   hooks: {
-    beforeValidate: function(user, options) {
-      user.mood = 'happy'
+    beforeValidate: (user, options) => {
+      user.mood = 'happy';
     },
-    afterValidate: function(user, options) {
-      user.username = 'Toni'
+    afterValidate: (user, options) => {
+      user.username = 'Toni';
     }
   }
-})
+});
 
 // Method 2 via the .hook() method
-User.hook('beforeValidate', function(user, options) {
-  user.mood = 'happy'
-})
+User.hook('beforeValidate', (user, options) => {
+  user.mood = 'happy';
+});
 
-User.hook('afterValidate', function(user, options) {
-  return sequelize.Promise.reject("I'm afraid I can't let you do that!")
-})
+User.hook('afterValidate', (user, options) => {
+  return sequelize.Promise.reject(new Error("I'm afraid I can't let you do that!"));
+});
 
 // Method 3 via the direct method
-User.beforeCreate(function(user, options) {
-  return hashPassword(user.password).then(function (hashedPw) {
+User.beforeCreate((user, options) => {
+  return hashPassword(user.password).then(hashedPw => {
     user.password = hashedPw;
   });
-})
+});
 
-User.afterValidate('myHookAfter', function(user, options, fn) {
-  user.username = 'Toni'
-})
+User.afterValidate('myHookAfter', (user, options, fn) => {
+  user.username = 'Toni';
+});
 ```
 
 ## Removing hooks
@@ -91,15 +91,15 @@ User.afterValidate('myHookAfter', function(user, options, fn) {
 Only a hook with name param can be removed.
 
 ```js
-var Book = sequelize.define('book', {
+const Book = sequelize.define('book', {
   title: DataTypes.STRING
-})
+});
 
-Book.addHook('afterCreate', 'notifyUsers', function(book, options) {
+Book.addHook('afterCreate', 'notifyUsers', (book, options) => {
   // ...
-})
+});
 
-Book.removeHook('afterCreate', 'notifyUsers')
+Book.removeHook('afterCreate', 'notifyUsers');
 ```
 
 ## Global / universal hooks
@@ -107,10 +107,10 @@ Global hooks are hooks which are run for all models. They can define behaviours 
 
 ### Sequelize.options.define (default hook)
 ```js
-var sequelize = new Sequelize(..., {
+const sequelize = new Sequelize(..., {
     define: {
         hooks: {
-            beforeCreate: function () {
+            beforeCreate: () => {
                 // Do stuff
             }
         }
@@ -121,10 +121,10 @@ var sequelize = new Sequelize(..., {
 This adds a default hook to all models, which is run if the model does not define its own `beforeCreate` hook:
 
 ```js
-var User = sequelize.define('user');
-var Project = sequelize.define('project', {}, {
+const User = sequelize.define('user');
+const Project = sequelize.define('project', {}, {
     hooks: {
-        beforeCreate: function () {
+        beforeCreate: () => {
             // Do other stuff
         }
     }
@@ -136,7 +136,7 @@ Project.create() // Runs its own hook (because the global hook is overwritten)
 
 ### Sequelize.addHook (permanent hook)
 ```js
-sequelize.addHook('beforeCreate', function () {
+sequelize.addHook('beforeCreate', () => {
     // Do stuff
 });
 ```
@@ -145,10 +145,10 @@ This hooks is always run before create, regardless of whether the model specifie
 
 
 ```js
-var User = sequelize.define('user');
-var Project = sequelize.define('project', {}, {
+const User = sequelize.define('user');
+const Project = sequelize.define('project', {}, {
     hooks: {
-        beforeCreate: function () {
+        beforeCreate: () => {
             // Do other stuff
         }
     }
@@ -174,7 +174,7 @@ afterCreate / afterUpdate / afterDestroy
 
 ```js
 // ...define ...
-User.beforeCreate(function(user) {
+User.beforeCreate(user => {
   if (user.accessLevel > 10 && user.username !== "Boss") {
     throw new Error("You can't grant this user an access level above 10!")
   }
@@ -184,17 +184,17 @@ User.beforeCreate(function(user) {
 This example will return an error:
 
 ```js
-User.create({username: 'Not a Boss', accessLevel: 20}).catch(function(err) {
-  console.log(err) // You can't grant this user an access level above 10!
-})
+User.create({username: 'Not a Boss', accessLevel: 20}).catch(err => {
+  console.log(err); // You can't grant this user an access level above 10!
+});
 ```
 
 The following example would return successful:
 
 ```js
-User.create({username: 'Boss', accessLevel: 20}).then(function(user) {
-  console.log(user) // user object with username as Boss and accessLevel of 20
-})
+User.create({username: 'Boss', accessLevel: 20}).then(user => {
+  console.log(user); // user object with username as Boss and accessLevel of 20
+});
 ```
 
 ### Model hooks
@@ -209,17 +209,17 @@ afterBulkCreate / afterBulkUpdate / afterBulkDestroy
 If you want to emit hooks for each individual record, along with the bulk hooks you can pass `individualHooks: true` to the call.
 
 ```js
-Model.destroy({ where: {accessLevel: 0}, individualHooks: true})
+Model.destroy({ where: {accessLevel: 0}, individualHooks: true});
 // Will select all records that are about to be deleted and emit before- + after- Destroy on each instance
 
-Model.update({username: 'Toni'}, { where: {accessLevel: 0}, individualHooks: true})
+Model.update({username: 'Toni'}, { where: {accessLevel: 0}, individualHooks: true});
 // Will select all records that are about to be updated and emit before- + after- Update on each instance
 ```
 
 Some model hooks have two or three parameters sent to each hook depending on it's type.
 
 ```js
-Model.beforeBulkCreate(function(records, fields) {
+Model.beforeBulkCreate((records, fields) => {
   // records = the first argument sent to .bulkCreate
   // fields = the second argument sent to .bulkCreate
 })
@@ -229,14 +229,14 @@ Model.bulkCreate([
   {username: 'Tobi'} // part of records argument
 ], ['username'] /* part of fields argument */)
 
-Model.beforeBulkUpdate(function(attributes, where) {
+Model.beforeBulkUpdate((attributes, where) => {
   // attributes = first argument sent to Model.update
   // where = second argument sent to Model.update
 })
 
 Model.update({gender: 'Male'} /*attributes argument*/, { where: {username: 'Tom'}} /*where argument*/)
 
-Model.beforeBulkDestroy(function(whereClause) {
+Model.beforeBulkDestroy(whereClause => {
   // whereClause = first argument sent to Model.destroy
 })
 
@@ -245,23 +245,26 @@ Model.destroy({ where: {username: 'Tom'}} /*whereClause argument*/)
 
 If you use `Model.bulkCreate(...)` with the `updatesOnDuplicate` option, changes made in the hook to fields that aren't given in the `updatesOnDuplicate` array will not be persisted to the database. However it is possible to change the updatesOnDuplicate option inside the hook if this is what you want.
 
-```
+```js
 // Bulk updating existing users with updatesOnDuplicate option
-Users.bulkCreate([{ id: 1, isMemeber: true},
-                 { id: 2, isMember: false}],
-                 { updatesOnDuplicate: ['isMember']})
+Users.bulkCreate([
+  { id: 1, isMemeber: true },
+  { id: 2, isMember: false }
+], {
+  updatesOnDuplicate: ['isMember']
+});
 
-User.beforeBulkCreate(function (users, options) {
-  users.forEach(function (user) {
+User.beforeBulkCreate((users, options) => {
+  for (const user of users) {
     if (user.isMember) {
-      user.memberSince = new Date()
+      user.memberSince = new Date();
     }
-  })
+  }
 
   // Add memberSince to updatesOnDuplicate otherwise the memberSince date wont be
   // saved to the database
-  options.updatesOnDuplicate.push('memberSince')
-})
+  options.updatesOnDuplicate.push('memberSince');
+});
 ```
 
 ## Associations
@@ -272,16 +275,16 @@ For the most part hooks will work the same for instances when being associated e
 2. The only way to call beforeDestroy/afterDestroy hooks are on associations with `onDelete: 'cascade'` and the option `hooks: true`. For instance:
 
 ```js
-var Projects = sequelize.define('projects', {
+const Projects = sequelize.define('projects', {
   title: DataTypes.STRING
-})
+});
 
-var Tasks = sequelize.define('tasks', {
+const Tasks = sequelize.define('tasks', {
   title: DataTypes.STRING
-})
+});
 
-Projects.hasMany(Tasks, { onDelete: 'cascade', hooks: true })
-Tasks.belongsTo(Projects)
+Projects.hasMany(Tasks, { onDelete: 'cascade', hooks: true });
+Tasks.belongsTo(Projects);
 ```
 
 This code will run beforeDestroy/afterDestroy on the Tasks table. Sequelize, by default, will try to optimize your queries as much as possible. When calling cascade on delete, Sequelize will simply execute a
@@ -304,7 +307,7 @@ Note that many model operations in Sequelize allow you to specify a transaction 
 ```js
 // Here we use the promise-style of async hooks rather than
 // the callback.
-User.hook('afterCreate', function(user, options) {
+User.hook('afterCreate', (user, options) => {
   // 'transaction' will be available in options.transaction
 
   // This operation will be part of the same transaction as the
@@ -320,11 +323,11 @@ User.hook('afterCreate', function(user, options) {
 });
 
 
-sequelize.transaction(function(t) {
+sequelize.transaction(transaction => {
   User.create({
     username: 'someguy',
     mood: 'happy',
-    transaction: t
+    transaction
   });
 });
 ```

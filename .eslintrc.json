@@ -13,6 +13,7 @@
     "space-before-function-paren": ["warn", "never"],
     "keyword-spacing": ["warn"],
     "prefer-arrow-callback": "error",
+    "arrow-parens": ["error", "as-needed"],
     "comma-style": ["warn", "last"],
     "no-bitwise": "off",
     "no-cond-assign": ["error", "except-parens"],

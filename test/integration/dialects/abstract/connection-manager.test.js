@@ -75,7 +75,7 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const resolvedPromise = new Promise((resolve) => {
+    const resolvedPromise = new Promise(resolve => {
       resolve({
         queryType: 'read'
       });
@@ -121,7 +121,7 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const resolvedPromise = new Promise((resolve) => {
+    const resolvedPromise = new Promise(resolve => {
       resolve({
         queryType: 'read'
       });

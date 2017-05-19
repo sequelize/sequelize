@@ -283,18 +283,6 @@ if (dialect === 'sqlite') {
           expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
-          title: 'HAVING clause works with string replacements',
-          arguments: ['myTable', function(sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: ['creationYear > ?', 2002]
-            };
-          }],
-          expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING creationYear > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true
-        }, {
           title: 'HAVING clause works with where-like hash',
           arguments: ['myTable', function(sequelize) {
             return {
@@ -519,7 +507,7 @@ if (dialect === 'sqlite') {
 
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
-        tests.forEach((test) => {
+        tests.forEach(test => {
           const title = test.title || 'SQLite correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly

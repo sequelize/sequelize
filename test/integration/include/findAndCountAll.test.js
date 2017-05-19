@@ -113,7 +113,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 }
               }],
               limit: 5
-            }).then((result ) => {
+            }).then(result => {
               expect(result.count).to.be.equal(2);
               expect(result.rows.length).to.be.equal(2);
             });
@@ -141,7 +141,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return Project.sync({force: true});
       }).then(() => {
         return Promise.all([User.create(), Project.create(), Project.create(), Project.create()]);
-      }).then((results) => {
+      }).then(results => {
         const user = results[0];
         userId = user.id;
         return user.setProjects([results[1], results[2], results[3]]);
@@ -151,7 +151,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           include: [Project],
           distinct: true
         });
-      }).then((result) => {
+      }).then(result => {
         expect(result.rows.length).to.equal(1);
         expect(result.rows[0].Projects.length).to.equal(3);
         expect(result.count).to.equal(1);
@@ -181,11 +181,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           return Foo.findAll({
             include: [{ model: Bar, required: true }],
             limit: 2
-          }).then((items) => {
+          }).then(items => {
             expect(items.length).to.equal(2);
           });
         });
-      }).then((result) => {
+      }).then(result => {
         expect(result.count).to.equal(4);
 
         // The first two of those should be returned due to the limit (Foo
@@ -213,7 +213,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           limit: 1,
           distinct: true
         });
-      }).then((result) => {
+      }).then(result => {
         // There should be 2 instances matching the query (Instances 1 and 2), see the findAll statement
         expect(result.count).to.equal(2);
 
@@ -289,7 +289,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]
           });
         });
-      }).then((result) => {
+      }).then(result => {
         expect(result.count).to.equal(2);
         expect(result.rows.length).to.equal(1);
       });
@@ -340,7 +340,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             }
           ]
         });
-      }).then((result) => {
+      }).then(result => {
         expect(result.count).to.equal(2);
         expect(result.rows.length).to.equal(1);
       });

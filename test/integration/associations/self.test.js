@@ -73,7 +73,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
           return chris.addParent(john);
         }).then(() => {
           return john.getChilds();
-        }).then((children) => {
+        }).then(children => {
           expect(_.map(children, 'id')).to.have.members([mary.id, chris.id]);
         });
       });

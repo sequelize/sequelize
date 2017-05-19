@@ -2,9 +2,10 @@
 
 ## Installation
 
-Sequelize is available via NPM.
+Sequelize is available via NPM and Yarn.
 
 ```bash
+// Using NPM
 $ npm install --save sequelize
 
 # And one of the following:
@@ -12,6 +13,15 @@ $ npm install --save pg pg-hstore
 $ npm install --save mysql2
 $ npm install --save sqlite3
 $ npm install --save tedious // MSSQL
+
+// Using Yarn
+$ yarn add sequelize
+
+# And one of the following:
+$ yarn add pg pg-hstore
+$ yarn add mysql2
+$ yarn add sqlite3
+$ yarn add tedious // MSSQL
 ```
 
 ## Setting up a connection
@@ -19,7 +29,7 @@ $ npm install --save tedious // MSSQL
 Sequelize will setup a connection pool on initialization so you should ideally only ever create one instance per database if you're connecting to the DB from a single process. If you're connecting to the DB from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of "max connection pool size divided by number of instances".  So, if you wanted a max connection pool size of 90 and you had 3 worker processes, each process's instance should have a max connection pool size of 30.
 
 ```js
-var sequelize = new Sequelize('database', 'username', 'password', {
+const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
   dialect: 'mysql'|'sqlite'|'postgres'|'mssql',
 
@@ -34,7 +44,7 @@ var sequelize = new Sequelize('database', 'username', 'password', {
 });
 
 // Or you can simply use a connection uri
-var sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
+const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 ```
 
 The Sequelize constructor takes a whole slew of options that are available via the [API reference](/class/lib/sequelize.js~Sequelize.html).
@@ -43,14 +53,14 @@ The Sequelize constructor takes a whole slew of options that are available via t
 
 You can use the `.authenticate()` function like this to test the connection.
 
-```
+```js
 sequelize
   .authenticate()
-  .then(function(err) {
+  .then(() => {
     console.log('Connection has been established successfully.');
   })
-  .catch(function (err) {
-    console.log('Unable to connect to the database:', err);
+  .catch(err => {
+    console.error('Unable to connect to the database:', err);
   });
 ```
 
@@ -59,7 +69,7 @@ sequelize
 Models are defined with `sequelize.define('name', {attributes}, {options})`.
 
 ```js
-var User = sequelize.define('user', {
+const User = sequelize.define('user', {
   firstName: {
     type: Sequelize.STRING
   },
@@ -69,7 +79,7 @@ var User = sequelize.define('user', {
 });
 
 // force: true will drop the table if it already exists
-User.sync({force: true}).then(function () {
+User.sync({force: true}).then(() => {
   // Table created
   return User.create({
     firstName: 'John',
@@ -82,8 +92,8 @@ You can read more about creating models at [Model API reference](/class/lib/mode
 
 ## Your first query
 
-```
-User.findAll().then(function(users) {
+```js
+User.findAll().then(users => {
   console.log(users)
 })
 ```
@@ -95,14 +105,14 @@ You can read more about finder functions on models like `.findAll()` at [Data re
 The Sequelize constructor takes a `define` option which will be used as the default options for all defined models.
 
 ```js
-var sequelize = new Sequelize('connectionUri', {
+const sequelize = new Sequelize('connectionUri', {
   define: {
     timestamps: false // true by default
   }
 });
 
-var User = sequelize.define('user', {}); // timestamps is false by default
-var Post = sequelize.define('post', {}, {
+const User = sequelize.define('user', {}); // timestamps is false by default
+const Post = sequelize.define('post', {}, {
   timestamps: true // timestamps will now be true
 });
 ```
@@ -123,8 +133,8 @@ console.log(user.get('firstName'));
 _will never work!_ This is because `user` is a promise object, not a data row from the DB. The right way to do it is:
 
 ```js
-User.findOne().then(function (user) {
-    console.log(user.get('firstName'));
+User.findOne().then(user => {
+  console.log(user.get('firstName'));
 });
 ```
 

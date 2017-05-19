@@ -22,7 +22,7 @@ if (dialect.match(/^mssql/)) {
     it('should queue concurrent requests to a connection', function() {
       const User = this.User;
 
-      return expect(this.sequelize.transaction((t) => {
+      return expect(this.sequelize.transaction(t => {
         return Promise.all([
           User.findOne({
             transaction: t

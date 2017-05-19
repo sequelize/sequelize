@@ -15,19 +15,19 @@ describe('[MSSQL Specific] ResourceLock', () => {
     }
 
     return Promise.all([
-      Promise.using(lock.lock(), (resource) => {
+      Promise.using(lock.lock(), resource => {
         validateResource(resource);
         assert.equal(last, 0);
         last = 1;
 
         return Promise.delay(15);
       }),
-      Promise.using(lock.lock(), (resource) => {
+      Promise.using(lock.lock(), resource => {
         validateResource(resource);
         assert.equal(last, 1);
         last = 2;
       }),
-      Promise.using(lock.lock(), (resource) => {
+      Promise.using(lock.lock(), resource => {
         validateResource(resource);
         assert.equal(last, 2);
         last = 3;
@@ -46,7 +46,7 @@ describe('[MSSQL Specific] ResourceLock', () => {
     }
 
     return Promise.all([
-      Promise.using(lock.lock(), (resource) => {
+      Promise.using(lock.lock(), resource => {
         validateResource(resource);
 
         throw new Error('unexpected error');
