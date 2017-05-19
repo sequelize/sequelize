@@ -111,18 +111,18 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           return Promise.resolve();
         });
 
-        this.User.beforeCreate((user) => {
+        this.User.beforeCreate(user => {
           user.beforeHookTest = true;
           return Promise.resolve();
         });
 
-        this.User.afterCreate((user) => {
+        this.User.afterCreate(user => {
           user.username = 'User' + user.id;
           return Promise.resolve();
         });
 
-        return this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).then((records) => {
-          records.forEach((record) => {
+        return this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).then(records => {
+          records.forEach(record => {
             expect(record.username).to.equal('User' + record.id);
             expect(record.beforeHookTest).to.be.true;
           });
@@ -149,12 +149,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           return Promise.reject(new Error('You shall not pass!'));
         });
 
-        this.User.afterCreate((user) => {
+        this.User.afterCreate(user => {
           user.username = 'User' + user.id;
           return Promise.resolve();
         });
 
-        return this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).catch((err) => {
+        return this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).catch(err => {
           expect(err).to.be.instanceOf(Error);
           expect(beforeBulkCreate).to.be.true;
           expect(afterBulkCreate).to.be.false;
@@ -246,12 +246,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.afterBulkUpdate(afterBulk);
 
-        this.User.beforeUpdate((user) => {
+        this.User.beforeUpdate(user => {
           expect(user.changed()).to.not.be.empty;
           user.beforeHookTest = true;
         });
 
-        this.User.afterUpdate((user) => {
+        this.User.afterUpdate(user => {
           user.username = 'User' + user.id;
         });
 
@@ -259,7 +259,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).then(() => {
           return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).spread((affectedRows, records) => {
-            records.forEach((record) => {
+            records.forEach(record => {
               expect(record.username).to.equal('User' + record.id);
               expect(record.beforeHookTest).to.be.true;
             });
@@ -272,7 +272,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should run the after/before functions for each item created successfully changing some data before updating', function() {
         const self = this;
 
-        this.User.beforeUpdate((user) => {
+        this.User.beforeUpdate(user => {
           expect(user.changed()).to.not.be.empty;
           if (user.get('id') === 1) {
             user.set('aNumber', user.get('aNumber') + 3);
@@ -283,7 +283,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).then(() => {
           return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).spread((affectedRows, records) => {
-            records.forEach((record) => {
+            records.forEach(record => {
               expect(record.aNumber).to.equal(10 + (record.id === 1 ? 3 : 0));
             });
           });
@@ -303,12 +303,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('You shall not pass!');
         });
 
-        this.User.afterUpdate((user) => {
+        this.User.afterUpdate(user => {
           user.username = 'User' + user.id;
         });
 
         return this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(() => {
-          return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).catch((err) => {
+          return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).catch(err => {
             expect(err).to.be.instanceOf(Error);
             expect(err.message).to.be.equal('You shall not pass!');
             expect(beforeBulk).to.have.been.calledOnce;
@@ -440,7 +440,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(() => {
-          return self.User.destroy({where: {aNumber: 1}, individualHooks: true}).catch((err) => {
+          return self.User.destroy({where: {aNumber: 1}, individualHooks: true}).catch(err => {
             expect(err).to.be.instanceOf(Error);
             expect(beforeBulk).to.be.true;
             expect(beforeHook).to.be.true;
@@ -555,7 +555,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           return self.ParanoidUser.destroy({where: {aNumber: 1}});
         }).then(() => {
           return self.ParanoidUser.restore({where: {aNumber: 1}, individualHooks: true});
-        }).catch((err) => {
+        }).catch(err => {
           expect(err).to.be.instanceOf(Error);
           expect(beforeBulk).to.have.been.calledOnce;
           expect(beforeHook).to.have.been.calledThrice;

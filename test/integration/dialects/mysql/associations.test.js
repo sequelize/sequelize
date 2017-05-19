@@ -81,8 +81,8 @@ if (dialect === 'mysql') {
           self.user = null;
           self.task = null;
 
-          return self.User.findAll().then((_users) => {
-            return self.Task.findAll().then((_tasks) => {
+          return self.User.findAll().then(_users => {
+            return self.Task.findAll().then(_tasks => {
               self.user = _users[0];
               self.task = _tasks[0];
             });
@@ -92,10 +92,10 @@ if (dialect === 'mysql') {
         it('should correctly add an association to the dao', function() {
           const self = this;
 
-          return self.user.getTasks().then((_tasks) => {
+          return self.user.getTasks().then(_tasks => {
             expect(_tasks.length).to.equal(0);
             return self.user.addTask(self.task).then(() => {
-              return self.user.getTasks().then((_tasks) => {
+              return self.user.getTasks().then(_tasks => {
                 expect(_tasks.length).to.equal(1);
               });
             });
@@ -110,8 +110,8 @@ if (dialect === 'mysql') {
           self.user = null;
           self.tasks = null;
 
-          return self.User.findAll().then((_users) => {
-            return self.Task.findAll().then((_tasks) => {
+          return self.User.findAll().then(_users => {
+            return self.Task.findAll().then(_tasks => {
               self.user = _users[0];
               self.tasks = _tasks;
             });
@@ -121,16 +121,16 @@ if (dialect === 'mysql') {
         it('should correctly remove associated objects', function() {
           const self = this;
 
-          return self.user.getTasks().then((__tasks) => {
+          return self.user.getTasks().then(__tasks => {
             expect(__tasks.length).to.equal(0);
             return self.user.setTasks(self.tasks).then(() => {
-              return self.user.getTasks().then((_tasks) => {
+              return self.user.getTasks().then(_tasks => {
                 expect(_tasks.length).to.equal(self.tasks.length);
                 return self.user.removeTask(self.tasks[0]).then(() => {
-                  return self.user.getTasks().then((_tasks) => {
+                  return self.user.getTasks().then(_tasks => {
                     expect(_tasks.length).to.equal(self.tasks.length - 1);
                     return self.user.removeTasks([self.tasks[1], self.tasks[2]]).then(() => {
-                      return self.user.getTasks().then((_tasks) => {
+                      return self.user.getTasks().then(_tasks => {
                         expect(_tasks).to.have.length(self.tasks.length - 3);
                       });
                     });

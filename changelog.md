@@ -1,5 +1,7 @@
 # Future
-- [FEATURE] `addConstraint`, `removeConstraint`, `showConstraint` [#7108](https://github.com/sequelize/sequelize/pull/7108)
+- [ADDED] Add `isSoftDeleted` helper method to model instance [#7408](https://github.com/sequelize/sequelize/issues/7408)
+- [FIXED] Map isolation level strings to tedious isolation level [MSSQL] [#7296](https://github.com/sequelize/sequelize/issues/7296)
+- [ADDED] `addConstraint`, `removeConstraint`, `showConstraint` [#7108](https://github.com/sequelize/sequelize/pull/7108)
 - [FIXED] `changeColumn` generates incorrect query with ENUM type [#7455](https://github.com/sequelize/sequelize/pull/7455)
 - [ADDED] `options.alter` to sequelize.sync() to alter existing tables.[#537](https://github.com/sequelize/sequelize/issues/537)
 - [ADDED] Ability to run transactions on a read-replica by marking transactions as read only [#7323](https://github.com/sequelize/sequelize/issues/7323)
@@ -68,6 +70,7 @@
 - [REMOVED] Removes support for `{raw: 'injection goes here'}` for order and group. [#7188](https://github.com/sequelize/sequelize/issues/7188)
 - [FIXED] `showIndex` breaks with newline characters [#7492](https://github.com/sequelize/sequelize/pull/7492)
 - [FIXED] Update or soft delete breaks when querying on `JSON/JSONB` [#7376](https://github.com/sequelize/sequelize/issues/7376) [#7400](https://github.com/sequelize/sequelize/issues/7400) [#7444](https://github.com/sequelize/sequelize/issues/7444)
+- [ADDED] Support for JSON attributes in orders and groups. [#7564](https://github.com/sequelize/sequelize/issues/7564)
 - [REMOVED] Removes support for interpretation of raw properties and values in the where object. [#7568](https://github.com/sequelize/sequelize/issues/7568)
 - [FIXED] Upsert now updates all changed fields by default
 

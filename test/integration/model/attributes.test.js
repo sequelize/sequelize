@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return student.addCourse(course, { through: {score: 98, test_value: 1000}});
           }).then(() => {
             expect(self.callCount).to.equal(1);
-            return self.Score.find({ where: { StudentId: 1, CourseId: 100 } }).then((score) => {
+            return self.Score.find({ where: { StudentId: 1, CourseId: 100 } }).then(score => {
               expect(score.test_value).to.equal(1001);
             });
           })

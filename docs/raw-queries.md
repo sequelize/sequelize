@@ -5,7 +5,7 @@ As there are often use cases in which it is just easier to execute raw / already
 By default the function will return two arguments - a results array, and an object containing metadata (affected rows etc.). Note that since this is a raw query, the metadata (property names etc.) is dialect specific. Some dialects return the metadata "within" the results object (as properties on an array). However, two arguments will always be returned, but for MSSQL and MySQL it will be two references to the same object.
 
 ```js
-sequelize.query("UPDATE users SET y = 42 WHERE x = 12").spread(function(results, metadata) {
+sequelize.query("UPDATE users SET y = 42 WHERE x = 12").spread((results, metadata) => {
   // Results will be an empty array and metadata will contain the number of affected rows.
 })
 ```
@@ -14,7 +14,7 @@ In cases where you don't need to access the metadata you can pass in a query typ
 
 ```js
 sequelize.query("SELECT * FROM `users`", { type: sequelize.QueryTypes.SELECT})
-  .then(function(users) {
+  .then(users => {
     // We don't need spread here, since only the results will be returned for select queries
   })
 ```
@@ -25,7 +25,7 @@ A second option is the model. If you pass a model the returned data will be inst
 
 ```js
 // Callee is the model definition. This allows you to easily map a query to a predefined model
-sequelize.query('SELECT * FROM projects', { model: Projects }).then(function(projects){
+sequelize.query('SELECT * FROM projects', { model: Projects }).then(projects => {
   // Each record will now be a instance of Project
 })
 ```
@@ -39,13 +39,13 @@ Replacements in a query can be done in two different ways, either using named pa
 ```js
 sequelize.query('SELECT * FROM projects WHERE status = ?',
   { replacements: ['active'], type: sequelize.QueryTypes.SELECT }
-).then(function(projects) {
+).then(projects => {
   console.log(projects)
 })
 
 sequelize.query('SELECT * FROM projects WHERE status = :status ',
   { replacements: { status: 'active' }, type: sequelize.QueryTypes.SELECT }
-).then(function(projects) {
+).then(projects => {
   console.log(projects)
 })
 ```
@@ -55,7 +55,7 @@ Array replacements will automatically be handled, the following query searches f
 ```js
 sequelize.query('SELECT * FROM projects WHERE status IN(:status) ',
   { replacements: { status: ['active', 'inactive'] }, type: sequelize.QueryTypes.SELECT }
-).then(function(projects) {
+).then(projects => {
   console.log(projects)
 })
 ```
@@ -65,7 +65,7 @@ To use the wildcard operator %, append it to your replacement. The following que
 ```js
 sequelize.query('SELECT * FROM users WHERE name LIKE :search_name ',
   { replacements: { search_name: 'ben%'  }, type: sequelize.QueryTypes.SELECT }
-).then(function(projects) {
+).then(projects => {
   console.log(projects)
 })
 ```
@@ -86,13 +86,13 @@ The database may add further restrictions to this. Bind parameters cannot be SQL
 ```js
 sequelize.query('SELECT *, "text with literal $$1 and literal $$status" as t FROM projects WHERE status = $1',
   { bind: ['active'], type: sequelize.QueryTypes.SELECT }
-).then(function(projects) {
+).then(projects => {
   console.log(projects)
 })
 
 sequelize.query('SELECT *, "text with literal $$1 and literal $$status" as t FROM projects WHERE status = $status',
   { bind: { status: 'active' }, type: sequelize.QueryTypes.SELECT }
-).then(function(projects) {
+).then(projects => {
   console.log(projects)
 })
 ```

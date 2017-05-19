@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
         const self = this;
-        return this.sequelize.transaction().then((t) => {
+        return this.sequelize.transaction().then(t => {
           return self.User.findOrCreate({
             where: {
               username: 'Username'
@@ -52,10 +52,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
             transaction: t
           }).then(() => {
-            return self.User.count().then((count) => {
+            return self.User.count().then(count => {
               expect(count).to.equal(0);
               return t.commit().then(() => {
-                return self.User.count().then((count) => {
+                return self.User.count().then(count => {
                   expect(count).to.equal(1);
                 });
               });
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('supports more than one models per transaction', function() {
         const self = this;
-        return this.sequelize.transaction().then((t) => {
+        return this.sequelize.transaction().then(t => {
           return self.User.findOrCreate({ where: { username: 'Username'}, defaults: { data: 'some data' }, transaction: t }).then(() => {
             return self.Account.findOrCreate({ where: { accountName: 'accountName'}, transaction: t}).then(() => {
               return t.commit();
@@ -143,7 +143,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({force: true}).then(() => {
-          return Promise.map(_.range(50), (i) => {
+          return Promise.map(_.range(50), i => {
             return User.findOrCreate({
               where: {
                 email: 'unique.email.'+i+'@sequelizejs.com',
@@ -167,7 +167,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({force: true}).then(() => {
-          return Promise.map(_.range(50), (i) => {
+          return Promise.map(_.range(50), i => {
             return User.findOrCreate({
               where: {
                 email: 'unique.email.'+i+'@sequelizejs.com',
@@ -175,7 +175,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               }
             });
           }).then(() => {
-            return Promise.map(_.range(50), (i) => {
+            return Promise.map(_.range(50), i => {
               return User.findOrCreate({
                 where: {
                   email: 'unique.email.'+i+'@sequelizejs.com',
@@ -262,7 +262,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           username: 'Username'
         };
 
-      return this.User.create(data).then((user) => {
+      return this.User.create(data).then(user => {
         return self.User.findOrCreate({ where: {
           username: user.username
         }}).spread((_user, created) => {
@@ -280,7 +280,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           data: 'ThisIsData'
         };
 
-      return this.User.create(data).then((user) => {
+      return this.User.create(data).then(user => {
         return self.User.findOrCreate({where: data}).spread((_user, created) => {
           expect(_user.id).to.equal(user.id);
           expect(_user.username).to.equal('Username');
@@ -300,13 +300,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return self.User.findOrCreate({
         where: data,
         defaults: {}
-      }).spread((user) => {
+      }).spread(user => {
         expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
       }).then(() => {
         return self.User.findOrCreate({
           where: data,
           defaults: {}
-        }).spread((user) => {
+        }).spread(user => {
           expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
         });
       });
@@ -352,7 +352,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           })
               .timeout(1000)
-              .catch (Promise.TimeoutError, (e) => {
+              .catch (Promise.TimeoutError, e => {
                 throw new Error(e);
               })
               .catch (Sequelize.ValidationError, () => {
@@ -458,7 +458,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               }
             }).then(() => {
               throw new Error('I should have ben rejected');
-            }).catch((err) => {
+            }).catch(err => {
               expect(err instanceof Sequelize.UniqueConstraintError).to.be.ok;
               expect(err.fields).to.be.ok;
             }),
@@ -471,7 +471,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               }
             }).then(() => {
               throw new Error('I should have ben rejected');
-            }).catch((err) => {
+            }).catch(err => {
               expect(err instanceof Sequelize.UniqueConstraintError).to.be.ok;
               expect(err.fields).to.be.ok;
             })
@@ -517,7 +517,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             thirdInstance = third[0],
             thirdCreated = third[1];
 
-          expect([firstCreated, secondCreated, thirdCreated].filter((value) => {
+          expect([firstCreated, secondCreated, thirdCreated].filter(value => {
             return value;
           }).length).to.equal(1);
 
@@ -547,7 +547,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       return this.sequelize.sync({force: true}).then(() => {
-        return User.create({}).then((user) => {
+        return User.create({}).then(user => {
           expect(user).to.be.ok;
           expect(user.id).to.be.ok;
         });
@@ -570,7 +570,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.create({email: 'hello@sequelize.com'}).then(() => {
           return User.create({email: 'hello@sequelize.com'}).then(() => {
             assert(false);
-          }).catch((err) => {
+          }).catch(err => {
             expect(err).to.be.ok;
             expect(err).to.be.an.instanceof(Error);
           });
@@ -595,8 +595,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         );
       }).then(() => {
         return Log.findAll();
-      }).then((logs) => {
-        logs.forEach((log) => {
+      }).then(logs => {
+        logs.forEach(log => {
           expect(log.get('id')).not.to.be.ok;
         });
       });
@@ -618,7 +618,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           updatedAt
         }, {
           silent: true
-        }).then((user) => {
+        }).then(user => {
           expect(createdAt.getTime()).to.equal(user.get('createdAt').getTime());
           expect(updatedAt.getTime()).to.equal(user.get('updatedAt').getTime());
 
@@ -628,7 +628,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 ne: null
               }
             }
-          }).then((user) => {
+          }).then(user => {
             expect(createdAt.getTime()).to.equal(user.get('createdAt').getTime());
             expect(updatedAt.getTime()).to.equal(user.get('updatedAt').getTime());
           });
@@ -662,7 +662,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       return this.sequelize.sync({force: true}).then(() => {
-        return User.create({}).then((user) => {
+        return User.create({}).then(user => {
           expect(user).to.be.ok;
           expect(user.created_time).to.be.ok;
           expect(user.updated_time).to.be.ok;
@@ -680,7 +680,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       return this.sequelize.sync({force: true}).then(() => {
-        return User.create({}).then((user) => {
+        return User.create({}).then(user => {
           expect(user).to.be.ok;
           expect(user.createdAt).to.be.ok;
           expect(user.updatedAt).to.be.ok;
@@ -694,12 +694,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
         const self = this;
-        return this.sequelize.transaction().then((t) => {
+        return this.sequelize.transaction().then(t => {
           return self.User.create({ username: 'user' }, { transaction: t }).then(() => {
-            return self.User.count().then((count) => {
+            return self.User.count().then(count => {
               expect(count).to.equal(0);
               return t.commit().then(() => {
-                return self.User.count().then((count) => {
+                return self.User.count().then(count => {
                   expect(count).to.equal(1);
                 });
               });
@@ -715,7 +715,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const User = this.sequelize.define('user', {});
 
           return User.sync({force: true}).then(() => {
-            return User.create({}, {returning: true}).then((user) => {
+            return User.create({}, {returning: true}).then(user => {
               expect(user.get('id')).to.be.ok;
               expect(user.get('id')).to.equal(1);
             });
@@ -733,7 +733,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           return User.sync({force: true}).then(() => {
-            return User.create({}, {returning: true}).then((user) => {
+            return User.create({}, {returning: true}).then(user => {
               expect(user.get('maId')).to.be.ok;
               expect(user.get('maId')).to.equal(1);
             });
@@ -754,8 +754,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(sql).to.match(new RegExp("CAST\\(N?'1' AS " + type.toUpperCase() + '\\)'));
           match = true;
         }
-      }).then((user) => {
-        return self.User.findById(user.id).then((user) => {
+      }).then(user => {
+        return self.User.findById(user.id).then(user => {
           expect(user.intVal).to.equal(1);
           expect(match).to.equal(true);
         });
@@ -782,8 +782,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
           match = true;
         }
-      }).then((user) => {
-        return self.User.findById(user.id).then((user) => {
+      }).then(user => {
+        return self.User.findById(user.id).then(user => {
           expect(user.intVal).to.equal(-1);
           expect(match).to.equal(true);
         });
@@ -795,8 +795,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return this.User.create({
         intVal: this.sequelize.literal('CAST(1-2 AS ' + (dialect === 'mysql' ? 'SIGNED' : 'INTEGER') + ')')
-      }).then((user) => {
-        return self.User.findById(user.id).then((user) => {
+      }).then(user => {
+        return self.User.findById(user.id).then(user => {
           expect(user.intVal).to.equal(-1);
         });
       });
@@ -806,8 +806,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const self = this;
       return this.User.create({
         secretValue: this.sequelize.fn('upper', 'sequelize')
-      }).then((user) => {
-        return self.User.findById(user.id).then((user) => {
+      }).then(user => {
+        return self.User.findById(user.id).then(user => {
           expect(user.secretValue).to.equal('SEQUELIZE');
         });
       });
@@ -820,7 +820,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return this.sequelize.sync({force: true}).then(() => {
         return Monkey.create();
-      }).then((monkey) => {
+      }).then(monkey => {
         expect(monkey.get('monkeyId')).to.be.ok;
       });
     });
@@ -839,7 +839,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           return userWithDefaults.sync({force: true}).then(() => {
-            return userWithDefaults.create({}).then((user) => {
+            return userWithDefaults.create({}).then(user => {
               // uuid validation regex taken from http://stackoverflow.com/a/13653180/800016
               expect(user.uuid).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
             });
@@ -856,8 +856,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return userWithDefaults.sync({force: true}).then(() => {
-          return userWithDefaults.create({}).then((user) => {
-            return userWithDefaults.findById(user.id).then((user) => {
+          return userWithDefaults.create({}).then(user => {
+            return userWithDefaults.findById(user.id).then(user => {
               const now = new Date(),
                 pad = function(number) {
                   if (number > 9) {
@@ -914,7 +914,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       let test = false;
 
       return User.sync({force: true}).then(() => {
-        return User.create({myvals: [1, 2, 3, 4], mystr: ['One', 'Two', 'Three', 'Four']}).then((user) => {
+        return User.create({myvals: [1, 2, 3, 4], mystr: ['One', 'Two', 'Three', 'Four']}).then(user => {
           user.myvals = [];
           user.mystr = [];
           return user.save({
@@ -938,7 +938,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return User.sync({ force: true }).then(() => {
         return User.create({ username: 'foo' }).then(() => {
-          return User.create({ username: 'foo' }).catch(self.sequelize.UniqueConstraintError, (err) => {
+          return User.create({ username: 'foo' }).catch(self.sequelize.UniqueConstraintError, err => {
             expect(err).to.be.ok;
           });
         });
@@ -954,7 +954,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.sequelize.options.omitNull = false;
 
       return UserNull.sync({ force: true }).then(() => {
-        return UserNull.create({ username: 'foo2', smth: null }).catch((err) => {
+        return UserNull.create({ username: 'foo2', smth: null }).catch(err => {
           expect(err).to.exist;
           expect(err.get('smth')[0].path).to.equal('smth');
           if (dialect === 'mysql') {
@@ -981,7 +981,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return UserNull.sync({ force: true }).then(() => {
         return UserNull.create({ username: 'foo', smth: 'foo' }).then(() => {
-          return UserNull.create({ username: 'foo', smth: 'bar' }).catch (self.sequelize.UniqueConstraintError, (err) => {
+          return UserNull.create({ username: 'foo', smth: 'bar' }).catch (self.sequelize.UniqueConstraintError, err => {
             expect(err).to.be.ok;
           });
         });
@@ -996,11 +996,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.sequelize.options.omitNull = false;
 
       return StringIsNullOrUrl.sync({ force: true }).then(() => {
-        return StringIsNullOrUrl.create({ str: null }).then((str1) => {
+        return StringIsNullOrUrl.create({ str: null }).then(str1 => {
           expect(str1.str).to.be.null;
-          return StringIsNullOrUrl.create({ str: 'http://sequelizejs.org' }).then((str2) => {
+          return StringIsNullOrUrl.create({ str: 'http://sequelizejs.org' }).then(str2 => {
             expect(str2.str).to.equal('http://sequelizejs.org');
-            return StringIsNullOrUrl.create({ str: '' }).catch((err) => {
+            return StringIsNullOrUrl.create({ str: '' }).catch(err => {
               expect(err).to.exist;
               expect(err.get('str')[0].message).to.match(/Validation isURL on str failed/);
             });
@@ -1030,7 +1030,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       return User.sync({ force: true }).then(() => {
-        return User.create({ big: '9223372036854775807' }).then((user) => {
+        return User.create({ big: '9223372036854775807' }).then(user => {
           expect(user.big).to.be.equal('9223372036854775807');
         });
       });
@@ -1042,9 +1042,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       return User.sync({ force: true }).then(() => {
-        return User.create({}).then((user) => {
+        return User.create({}).then(user => {
           expect(user.userid).to.equal(1);
-          return User.create({}).then((user) => {
+          return User.create({}).then(user => {
             expect(user.userid).to.equal(2);
           });
         });
@@ -1062,7 +1062,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return User.sync({ force: true }).then(() => {
         return User
           .create({ name: 'John Doe', options })
-          .then((user) => {
+          .then(user => {
             expect(user.options).to.equal(options);
           });
       });
@@ -1093,8 +1093,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const self = this,
         data = { username: 'Peter', secretValue: '42' };
 
-      return this.User.create(data, { fields: ['username'] }).then((user) => {
-        return self.User.findById(user.id).then((_user) => {
+      return this.User.create(data, { fields: ['username'] }).then(user => {
+        return self.User.findById(user.id).then(_user => {
           expect(_user.username).to.equal(data.username);
           expect(_user.secretValue).not.to.equal(data.secretValue);
           expect(_user.secretValue).to.equal(null);
@@ -1106,8 +1106,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const self = this,
         data = { username: 'Peter', secretValue: '42' };
 
-      return this.User.create(data).then((user) => {
-        return self.User.findById(user.id).then((_user) => {
+      return this.User.create(data).then(user => {
+        return self.User.findById(user.id).then(_user => {
           expect(_user.username).to.equal(data.username);
           expect(_user.secretValue).to.equal(data.secretValue);
         });
@@ -1129,13 +1129,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      books.forEach((b) => {
+      books.forEach(b => {
         sync.push(b.sync({ force: true }));
       });
 
       return Promise.all(sync).then(() => {
         books.forEach((b, index) => {
-          promises.push(b.create(data).then((book) => {
+          promises.push(b.create(data).then(book => {
             expect(book.title).to.equal(data.title);
             expect(book.author).to.equal(data.author);
             expect(books[index].rawAttributes.id.type instanceof dataTypes[index]).to.be.ok;
@@ -1149,9 +1149,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const quote = "single'quote",
         self = this;
 
-      return this.User.create({ data: quote }).then((user) => {
+      return this.User.create({ data: quote }).then(user => {
         expect(user.data).to.equal(quote);
-        return self.User.find({where: { id: user.id }}).then((user) => {
+        return self.User.find({where: { id: user.id }}).then(user => {
           expect(user.data).to.equal(quote);
         });
       });
@@ -1161,9 +1161,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const quote = 'double"quote',
         self = this;
 
-      return this.User.create({ data: quote }).then((user) => {
+      return this.User.create({ data: quote }).then(user => {
         expect(user.data).to.equal(quote);
-        return self.User.find({where: { id: user.id }}).then((user) => {
+        return self.User.find({where: { id: user.id }}).then(user => {
           expect(user.data).to.equal(quote);
         });
       });
@@ -1173,25 +1173,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const json = JSON.stringify({ key: 'value' }),
         self = this;
 
-      return this.User.create({ data: json }).then((user) => {
+      return this.User.create({ data: json }).then(user => {
         expect(user.data).to.equal(json);
-        return self.User.find({where: { id: user.id }}).then((user) => {
+        return self.User.find({where: { id: user.id }}).then(user => {
           expect(user.data).to.equal(json);
         });
       });
     });
 
     it('stores the current date in createdAt', function() {
-      return this.User.create({ username: 'foo' }).then((user) => {
+      return this.User.create({ username: 'foo' }).then(user => {
         expect(parseInt(+user.createdAt / 5000, 10)).to.be.closeTo(parseInt(+new Date() / 5000, 10), 1.5);
       });
     });
 
     it('allows setting custom IDs', function() {
       const self = this;
-      return this.User.create({ id: 42 }).then((user) => {
+      return this.User.create({ id: 42 }).then(user => {
         expect(user.id).to.equal(42);
-        return self.User.findById(42).then((user) => {
+        return self.User.findById(42).then(user => {
           expect(user).to.exist;
         });
       });
@@ -1200,7 +1200,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should allow blank creates (with timestamps: false)', function() {
       const Worker = this.sequelize.define('Worker', {}, {timestamps: false});
       return Worker.sync().then(() => {
-        return Worker.create({}, {fields: []}).then((worker) => {
+        return Worker.create({}, {fields: []}).then(worker => {
           expect(worker).to.be.ok;
         });
       });
@@ -1209,7 +1209,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should allow truly blank creates', function() {
       const Worker = this.sequelize.define('Worker', {}, {timestamps: false});
       return Worker.sync().then(() => {
-        return Worker.create({}, {fields: []}).then((worker) => {
+        return Worker.create({}, {fields: []}).then(worker => {
           expect(worker).to.be.ok;
         });
       });
@@ -1231,10 +1231,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           email: 'yolo@bear.com'
         }, {
           fields: ['name']
-        }).then((user) => {
+        }).then(user => {
           expect(user.name).to.be.ok;
           expect(user.email).not.to.be.ok;
-          return User.findById(user.id).then((user) => {
+          return User.findById(user.id).then(user => {
             expect(user.name).to.be.ok;
             expect(user.email).not.to.be.ok;
           });
@@ -1272,8 +1272,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
         return Item.sync({ force: true }).then(() => {
-          return Item.create({ state: 'available' }).then((_item) => {
-            return Item.find({ where: { state: 'available' }}).then((item) => {
+          return Item.create({ state: 'available' }).then(_item => {
+            return Item.find({ where: { state: 'available' }}).then(item => {
               expect(item.id).to.equal(_item.id);
             });
           });
@@ -1290,7 +1290,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return Enum.sync({ force: true }).then(() => {
-          return Enum.create({state: null}).then((_enum) => {
+          return Enum.create({state: null}).then(_enum => {
             expect(_enum.state).to.be.null;
           });
         });
@@ -1395,11 +1395,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction });
           })
           .then(() => User.count())
-          .then((count) => {
+          .then(count => {
             count1 = count;
             return User.count({ transaction });
           })
-          .then((count2) => {
+          .then(count2 => {
             expect(count1).to.equal(0);
             expect(count2).to.equal(2);
             return transaction.rollback();
@@ -1433,8 +1433,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 ne: null
               }
             }
-          }).then((users) => {
-            users.forEach((user) => {
+          }).then(users => {
+            users.forEach(user => {
               expect(createdAt.getTime()).to.equal(user.get('createdAt').getTime());
               expect(updatedAt.getTime()).to.equal(user.get('updatedAt').getTime());
             });
@@ -1485,7 +1485,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   {username: 'Steve', uniqueName: '3'}];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({where: {username: 'Paul'}}).then((users) => {
+        return self.User.findAll({where: {username: 'Paul'}}).then(users => {
           expect(users.length).to.equal(1);
           expect(users[0].username).to.equal('Paul');
           expect(users[0].secretValue).to.be.null;
@@ -1499,7 +1499,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   { username: 'Paul', secretValue: '23', uniqueName: '2'}];
 
       return this.User.bulkCreate(data, { fields: ['username', 'uniqueName'] }).then(() => {
-        return self.User.findAll({order: ['id']}).then((users) => {
+        return self.User.findAll({order: ['id']}).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(users[0].secretValue).to.be.null;
@@ -1515,7 +1515,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   { username: 'Paul', secretValue: '23', uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then((users) => {
+        return self.User.findAll({order: ['id']}).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(users[0].secretValue).to.equal('42');
@@ -1531,9 +1531,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   { username: 'Paul', secretValue: '23', uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then((users) => {
+        return self.User.findAll({order: ['id']}).then(users => {
           expect(users.length).to.equal(2);
-          users.forEach((user) => {
+          users.forEach(user => {
             expect(user.isNewRecord).to.equal(false);
           });
         });
@@ -1547,7 +1547,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   { username: 'Paul', data: quote, uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then((users) => {
+        return self.User.findAll({order: ['id']}).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(users[0].data).to.equal(quote);
@@ -1564,7 +1564,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   { username: 'Paul', data: quote, uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then((users) => {
+        return self.User.findAll({order: ['id']}).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(users[0].data).to.equal(quote);
@@ -1581,7 +1581,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   { username: 'Paul', data: json, uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then((users) => {
+        return self.User.findAll({order: ['id']}).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(users[0].data).to.equal(json);
@@ -1607,7 +1607,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   { username: 'Paul', uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then((users) => {
+        return self.User.findAll({order: ['id']}).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(parseInt(+users[0].createdAt / 5000, 10)).to.be.closeTo(parseInt(+new Date() / 5000, 10), 1.5);
@@ -1636,7 +1636,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {name: 'foo', code: '123'},
           {code: '1234'},
           {name: 'bar', code: '1'}
-        ], { validate: true }).catch((errors) => {
+        ], { validate: true }).catch(errors => {
           expect(errors).to.be.instanceof(Promise.AggregateError);
           expect(errors).to.have.length(2);
           expect(errors[0].record.code).to.equal('1234');
@@ -1675,7 +1675,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should allow blank arrays (return immediatly)', function() {
       const Worker = this.sequelize.define('Worker', {});
       return Worker.sync().then(() => {
-        return Worker.bulkCreate([]).then((workers) => {
+        return Worker.bulkCreate([]).then(workers => {
           expect(workers).to.be.ok;
           expect(workers.length).to.equal(0);
         });
@@ -1685,7 +1685,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should allow blank creates (with timestamps: false)', function() {
       const Worker = this.sequelize.define('Worker', {}, {timestamps: false});
       return Worker.sync().then(() => {
-        return Worker.bulkCreate([{}, {}]).then((workers) => {
+        return Worker.bulkCreate([{}, {}]).then(workers => {
           expect(workers).to.be.ok;
         });
       });
@@ -1698,7 +1698,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {id: 5},
           {id: 10}
         ]).then(() => {
-          return Worker.findAll({order: [['id', 'ASC']]}).then((workers) => {
+          return Worker.findAll({order: [['id', 'ASC']]}).then(workers => {
             expect(workers[0].id).to.equal(5);
             expect(workers[1].id).to.equal(10);
           });
@@ -1736,7 +1736,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).then(() => {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
           return self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).then(() => {
-            return self.User.findAll({order: ['id']}).then((users) => {
+            return self.User.findAll({order: ['id']}).then(users => {
               expect(users.length).to.equal(3);
               expect(users[0].uniqueName).to.equal('Peter');
               expect(users[0].secretValue).to.equal('42');
@@ -1757,7 +1757,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).then(() => {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
 
-          return self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).catch((err) => {
+          return self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).catch(err => {
             if (dialect === 'mssql') {
               expect(err.message).to.match(/mssql does not support the \'ignoreDuplicates\' option./);
             } else {
@@ -1778,7 +1778,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {},
               {},
               {}
-            ], {returning: true}).then((users) => {
+            ], {returning: true}).then(users => {
               expect(users.length).to.be.ok;
               users.forEach((user, i) => {
                 expect(user.get('id')).to.be.ok;
@@ -1803,7 +1803,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {},
               {},
               {}
-            ], {returning: true}).then((users) => {
+            ], {returning: true}).then(users => {
               expect(users.length).to.be.ok;
               users.forEach((user, i) => {
                 expect(user.get('maId')).to.be.ok;
@@ -1825,7 +1825,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return Item.sync({ force: true }).then(() => {
           return Item.bulkCreate([{state: 'in_cart', name: 'A'}, { state: 'available', name: 'B'}]).then(() => {
-            return Item.find({ where: { state: 'available' }}).then((item) => {
+            return Item.find({ where: { state: 'available' }}).then(item => {
               expect(item.name).to.equal('B');
             });
           });
@@ -1854,14 +1854,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const M2 = { id: 2, name: 'Dwitiya Maya', secret: 'You are on list #2'};
 
       return Maya.sync({ force: true }).then(() => Maya.create(M1))
-      .then((m) => {
+      .then(m => {
         expect(m.createdAt).to.be.ok;
         expect(m.id).to.be.eql(M1.id);
         expect(m.name).to.be.eql(M1.name);
         expect(m.secret).to.be.eql(M1.secret);
 
         return Maya.bulkCreate([M2]);
-      }).spread((m) => {
+      }).spread(m => {
 
         // only attributes are returned, no fields are mixed
         expect(m.createdAt).to.be.ok;
@@ -1883,7 +1883,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const M1 = {};
 
       return Maya.sync({ force: true }).then(() => Maya.create(M1, {returning: true}))
-      .then((m) => {
+      .then(m => {
         expect(m.id).to.be.eql(1);
       });
     });
@@ -1895,7 +1895,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const M2 = {};
 
       return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true}))
-      .then((ms) => {
+      .then(ms => {
         expect(ms[0].id).to.be.eql(1);
         expect(ms[1].id).to.be.eql(2);
       });
