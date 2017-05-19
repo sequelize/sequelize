@@ -45,7 +45,7 @@ if (dialect === 'mysql') {
         // This query will be queued just after the `client.end` is executed and before its callback is called
         return sequelize.query('SELECT COUNT(*) AS count FROM Users', { type: sequelize.QueryTypes.SELECT });
       })
-      .then((count) => {
+      .then(count => {
         expect(count[0].count).to.equal(1);
       });
     });
@@ -67,7 +67,7 @@ if (dialect === 'mysql') {
           // Get next available connection
           return cm.getConnection();
         })
-        .then((connection) => {
+        .then(connection => {
           // Old threadId should be different from current new one
           expect(conn.threadId).to.be.equal(connection.threadId);
           expect(cm.validate(conn)).to.be.ok;
@@ -84,7 +84,7 @@ if (dialect === 'mysql') {
       return sequelize
         .sync()
         .then(() => cm.getConnection())
-        .then((connection) => {
+        .then(connection => {
           // Save current connection
           conn = connection;
           // simulate a unexpected end
@@ -95,7 +95,7 @@ if (dialect === 'mysql') {
           // Get next available connection
           return cm.getConnection();
         })
-        .then((connection) => {
+        .then(connection => {
           // Old threadId should be different from current new one
           expect(conn.threadId).to.not.be.equal(connection.threadId);
           expect(cm.validate(conn)).to.not.be.ok;

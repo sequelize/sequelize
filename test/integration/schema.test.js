@@ -25,22 +25,22 @@ describe(Support.getTestDialectTeaser('Schema'), () => {
   });
 
   it('supports increment', function() {
-    return this.User.create({ aNumber: 1 }).then((user) => {
+    return this.User.create({ aNumber: 1 }).then(user => {
       return user.increment('aNumber', { by: 3 });
-    }).then((result) => {
+    }).then(result => {
       return result.reload();
-    }).then((user) => {
+    }).then(user => {
       expect(user).to.be.ok;
       expect(user.aNumber).to.be.equal(4);
     });
   });
 
   it('supports decrement', function() {
-    return this.User.create({ aNumber: 10 }).then((user) => {
+    return this.User.create({ aNumber: 10 }).then(user => {
       return user.decrement('aNumber', { by: 3 });
-    }).then((result) => {
+    }).then(result => {
       return result.reload();
-    }).then((user) => {
+    }).then(user => {
       expect(user).to.be.ok;
       expect(user.aNumber).to.be.equal(7);
     });

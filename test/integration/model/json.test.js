@@ -578,7 +578,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should query an instance with JSONB data and order while trying to inject', function () {
+        it('should query an instance with JSONB data and order while trying to inject', function() {
           return this.Event.create({
             data: {
               name: {

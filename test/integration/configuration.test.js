@@ -61,14 +61,14 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
             return Sequelize.Promise.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
           } else { // Node v0.10 and older don't have fs.access
             return Sequelize.Promise.promisify(fs.open)(p, 'r+')
-            .then((fd) => {
+            .then(fd => {
               return Sequelize.Promise.promisify(fs.close)(fd);
             });
           }
         });
 
         return Sequelize.Promise.promisify(fs.unlink)(p)
-        .catch((err) => {
+        .catch(err => {
           expect(err.code).to.equal('ENOENT');
         })
         .then(() => {

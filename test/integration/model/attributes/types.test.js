@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be ignored in table creation', function() {
-          return this.sequelize.getQueryInterface().describeTable(this.User.tableName).then((fields) => {
+          return this.sequelize.getQueryInterface().describeTable(this.User.tableName).then(fields => {
             expect(Object.keys(fields).length).to.equal(2);
           });
         });
@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
 
             return Post.find({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
-          }).then((post) => {
+          }).then(post => {
             expect(post.get('someBoolean')).to.be.ok;
             expect(post.get().someBoolean).to.be.ok;
           });
@@ -115,7 +115,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should be ignored in create and updateAttributes', function() {
           return this.User.create({
             field1: 'something'
-          }).then((user) => {
+          }).then(user => {
             // We already verified that the virtual is not added to the table definition, so if this succeeds, were good
 
             expect(user.virtualWithDefault).to.equal('cake');
@@ -125,7 +125,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }, {
               fields: ['storage']
             });
-          }).then((user) => {
+          }).then(user => {
             expect(user.virtualWithDefault).to.equal('cake');
             expect(user.storage).to.equal('something else');
           });
@@ -139,7 +139,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             logging: this.sqlAssert
           }).then(() => {
             return self.User.findAll();
-          }).then((users) => {
+          }).then(users => {
             expect(users[0].storage).to.equal('something');
           });
         });

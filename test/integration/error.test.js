@@ -184,7 +184,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         type: 'ValidationError',
         exception: Sequelize.ValidationError
       }
-    ].forEach((constraintTest) => {
+    ].forEach(constraintTest => {
 
       it('Can be intercepted as ' + constraintTest.type + ' using .catch', function() {
         const spy = sinon.spy(),

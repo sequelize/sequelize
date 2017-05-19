@@ -67,14 +67,14 @@ describe(Support.getTestDialectTeaser('Replication'), function() {
   });
 
   it('should run read-only transactions on the replica', () => {
-    return this.sequelize.transaction({readOnly: true}, (transaction) => {
+    return this.sequelize.transaction({readOnly: true}, transaction => {
       return this.User.findAll({transaction});
     })
     .then(expectReadCalls);
   });
 
   it('should run non-read-only transactions on the primary', () => {
-    return this.sequelize.transaction((transaction) => {
+    return this.sequelize.transaction(transaction => {
       return this.User.findAll({transaction});
     })
     .then(expectWriteCalls);

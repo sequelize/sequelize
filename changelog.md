@@ -1,5 +1,7 @@
 # Future
-- [FEATURE] `addConstraint`, `removeConstraint`, `showConstraint` [#7108](https://github.com/sequelize/sequelize/pull/7108)
+- [ADDED] Add `isSoftDeleted` helper method to model instance [#7408](https://github.com/sequelize/sequelize/issues/7408)
+- [FIXED] Map isolation level strings to tedious isolation level [MSSQL] [#7296](https://github.com/sequelize/sequelize/issues/7296)
+- [ADDED] `addConstraint`, `removeConstraint`, `showConstraint` [#7108](https://github.com/sequelize/sequelize/pull/7108)
 - [FIXED] `changeColumn` generates incorrect query with ENUM type [#7455](https://github.com/sequelize/sequelize/pull/7455)
 - [ADDED] `options.alter` to sequelize.sync() to alter existing tables.[#537](https://github.com/sequelize/sequelize/issues/537)
 - [ADDED] Ability to run transactions on a read-replica by marking transactions as read only [#7323](https://github.com/sequelize/sequelize/issues/7323)

@@ -886,7 +886,7 @@ if (dialect.match(/^postgres/)) {
           QueryGenerator.options.quoteIdentifiers = true;
         });
 
-        tests.forEach((test) => {
+        tests.forEach(test => {
           const title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
