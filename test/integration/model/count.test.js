@@ -10,7 +10,8 @@ var chai = require('chai')
 describe(Support.getTestDialectTeaser('Model'), function() {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
-      username: DataTypes.STRING
+      username: DataTypes.STRING,
+      age: DataTypes.INTEGER
     });
     this.Project = this.sequelize.define('Project', {
       name: DataTypes.STRING
@@ -67,6 +68,33 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         return self.User.count(queryObject);
       }).then(function(count) {
         expect(parseInt(count)).to.be.eql(0);
+      });
+    });
+
+    it('should be able to specify column for COUNT()', function() {
+      var self = this;
+      return this.sequelize.sync({ force: true })
+      .then(function() {
+        return self.User.bulkCreate([
+          { username: 'ember' , age: 10},
+          { username: 'angular' , age: 20},
+          { username: 'mithril' , age: 10}
+        ]);
+      })
+      .then(function() {
+        return self.User.count({
+          col: 'username'
+        });
+      })
+      .then(function(count) {
+        expect(parseInt(count)).to.be.eql(3);
+        return self.User.count({
+          col: 'age',
+          distinct: true
+        });
+      })
+      .then(function(count) {
+        expect(parseInt(count)).to.be.eql(2);
       });
     });
   });

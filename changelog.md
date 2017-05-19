@@ -1,6 +1,8 @@
 # Future
 - [FIXED] Passing parameters to model getters [#7404](https://github.com/sequelize/sequelize/issues/7404)
 - [FIXED] `changeColumn` generates incorrect query with ENUM type [#7456](https://github.com/sequelize/sequelize/pull/7456)
+- [FIXED] `Model.count` gives SQL syntax error when using `distinct` [#4840](https://github.com/sequelize/sequelize/issues/4840)
+- [ADDED] `Model.count` now allow specifying column to count on, use `options.col` [#4442](https://github.com/sequelize/sequelize/issues/4442)
 
 # 3.30.3
 - [ADDED] Ability to run transactions on a read-replica by marking transactions as read only [#7323](https://github.com/sequelize/sequelize/issues/7323)
