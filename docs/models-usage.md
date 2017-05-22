@@ -646,14 +646,14 @@ User.findAll({ include: [{ all: true }]});
 
 ### Including soft deleted records
 
-In case you want to eager load soft deleted records you can do that by setting `include.paranoid` to `true`
+In case you want to eager load soft deleted records you can do that by setting `include.paranoid` to `false`
 
 ```js
 User.findAll({
     include: [{
         model: Tool,
         where: { name: { $like: '%ooth%' } },
-        paranoid: true // query and loads the soft deleted records
+        paranoid: false // query and loads the soft deleted records
     }]
 });
 ```
