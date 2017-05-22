@@ -670,7 +670,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    t('works with custom timestamps which alias an existing field', function() {
+    it('works with custom timestamps which alias an existing field', function() {
       const User = this.sequelize.define('User', {
         username: DataTypes.STRING,
         date_of_birth: DataTypes.DATE,
