@@ -670,6 +670,42 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    t('works with custom timestamps which alias an existing field', function() {
+      const User = this.sequelize.define('User', {
+        username: DataTypes.STRING,
+        date_of_birth: DataTypes.DATE,
+        email: DataTypes.STRING,
+        password: DataTypes.STRING,
+        createdTime: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          defaultValue: DataTypes.NOW,
+          field: 'created_time'
+        },
+        updatedTime: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          defaultValue: DataTypes.NOW,
+          field: 'updated_time'
+        }
+      }, {
+        createdAt: 'createdTime',
+        updatedAt: 'updatedTime',
+        tableName: 'users',
+        underscored: true,
+        freezeTableName: true,
+        force: false
+      });
+
+      return this.sequelize.sync({force: true}).then(() => {
+        return User.create({}).then(user => {
+          expect(user).to.be.ok;
+          expect(user.created_time).to.be.ok;
+          expect(user.updated_time).to.be.ok;
+        });
+      });
+    });
+
     it('works with custom timestamps and underscored', function() {
       const User = this.sequelize.define('User', {
 
