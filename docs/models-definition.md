@@ -581,18 +581,18 @@ sequelize.import('project', (sequelize, DataTypes) => {
 })
 ```
 
-This extra capability is available if, for example, ```Error: Cannot find module``` is thrown even though ```/path/to/models/project``` seems to be correct.  Some frameworks, such as Meteor, overload ```require```, and spit out "surprise" results like :
+This extra capability is useful when, for example, `Error: Cannot find module` is thrown even though `/path/to/models/project` seems to be correct.  Some frameworks, such as Meteor, overload `require`, and spit out "surprise" results like :
 
 ```
 Error: Cannot find module '/home/you/meteorApp/.meteor/local/build/programs/server/app/path/to/models/project.js'
 ```
 
-This is solved by passing in Meteor's version of ```require```. So, while this won't work ...
+This is solved by passing in Meteor's version of `require`. So, while this probably fails ...
 
 ```js
 const AuthorModel = db.import('./path/to/models/project');
 ```
-... this will ...
+... this should succeed ...
 
 ```js
 const AuthorModel = db.import('project', require('./path/to/models/project'));
