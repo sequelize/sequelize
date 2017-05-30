@@ -2080,6 +2080,66 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
   });
 
+  describe('isSoftDeleted', () => {
+    beforeEach(function() {
+      this.ParanoidUser = this.sequelize.define('ParanoidUser', {
+        username: { type: DataTypes.STRING }
+      }, { paranoid: true });
+
+      return this.ParanoidUser.sync({ force: true });
+    });
+
+    it('returns false if user is not soft deleted', function() {
+      return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
+        return this.ParanoidUser.findAll().then(users => {
+          expect(users[0].isSoftDeleted()).to.be.false;
+        });
+      });
+    });
+
+    it('returns true if user is soft deleted', function() {
+      return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
+        return this.ParanoidUser.findAll().then(users => {
+          return users[0].destroy().then(() => {
+            expect(users[0].isSoftDeleted()).to.be.true;
+
+            return users[0].reload({ paranoid: false }).then(user => {
+              expect(user.isSoftDeleted()).to.be.true;
+            });
+          });
+        });
+      });
+    });
+
+    it('works with custom `deletedAt` field name', function() {
+      const self = this;
+      this.ParanoidUserWithCustomDeletedAt = this.sequelize.define('ParanoidUserWithCustomDeletedAt', {
+        username: { type: DataTypes.STRING }
+      }, {
+        deletedAt: 'deletedAtThisTime',
+        paranoid: true
+      });
+
+      this.ParanoidUserWithCustomDeletedAt.hasOne(this.ParanoidUser);
+
+      return this.ParanoidUserWithCustomDeletedAt.sync({ force: true }).then(() => {
+        return this.ParanoidUserWithCustomDeletedAt.create({ username: 'fnord' }).then(() => {
+          return self.ParanoidUserWithCustomDeletedAt.findAll().then(users => {
+            expect(users[0].isSoftDeleted()).to.be.false;
+
+            return users[0].destroy().then(() => {
+              expect(users[0].isSoftDeleted()).to.be.true;
+
+              return users[0].reload({ paranoid: false }).then(user => {
+                expect(user.isSoftDeleted()).to.be.true;
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
   describe('restore', () => {
     it('returns an error if the model is not paranoid', function() {
       return this.User.create({username: 'Peter', secretValue: '42'}).then(user => {

@@ -59,7 +59,7 @@ You can use the `.authenticate()` function like this to test the connection.
 ```js
 sequelize
   .authenticate()
-  .then(err => {
+  .then(() => {
     console.log('Connection has been established successfully.');
   })
   .catch(err => {

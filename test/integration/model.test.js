@@ -373,6 +373,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     
 
     it('should allow the user to specify indexes in options', function() {
+      this.retries(3);
       const indices = [{
         name: 'a_b_uniq',
         unique: true,
