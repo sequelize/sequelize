@@ -2111,33 +2111,36 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it('works with custom `deletedAt` field name', function() {
-      const self = this;
-      this.ParanoidUserWithCustomDeletedAt = this.sequelize.define('ParanoidUserWithCustomDeletedAt', {
-        username: { type: DataTypes.STRING }
-      }, {
-        deletedAt: 'deletedAtThisTime',
-        paranoid: true
-      });
+    //oracle supports names with 30 char length max
+    if (current.dialect.name !== 'oracle') {
+      it('works with custom `deletedAt` field name', function() {
+        const self = this;
+        this.ParanoidUserWithCustomDeletedAt = this.sequelize.define('ParanoidUserWithCustomDeletedAt', {
+          username: { type: DataTypes.STRING }
+        }, {
+          deletedAt: 'deletedAtThisTime',
+          paranoid: true
+        });
 
-      this.ParanoidUserWithCustomDeletedAt.hasOne(this.ParanoidUser);
+        this.ParanoidUserWithCustomDeletedAt.hasOne(this.ParanoidUser);
 
-      return this.ParanoidUserWithCustomDeletedAt.sync({ force: true }).then(() => {
-        return this.ParanoidUserWithCustomDeletedAt.create({ username: 'fnord' }).then(() => {
-          return self.ParanoidUserWithCustomDeletedAt.findAll().then(users => {
-            expect(users[0].isSoftDeleted()).to.be.false;
+        return this.ParanoidUserWithCustomDeletedAt.sync({ force: true }).then(() => {
+          return this.ParanoidUserWithCustomDeletedAt.create({ username: 'fnord' }).then(() => {
+            return self.ParanoidUserWithCustomDeletedAt.findAll().then(users => {
+              expect(users[0].isSoftDeleted()).to.be.false;
 
-            return users[0].destroy().then(() => {
-              expect(users[0].isSoftDeleted()).to.be.true;
+              return users[0].destroy().then(() => {
+                expect(users[0].isSoftDeleted()).to.be.true;
 
-              return users[0].reload({ paranoid: false }).then(user => {
-                expect(user.isSoftDeleted()).to.be.true;
+                return users[0].reload({ paranoid: false }).then(user => {
+                  expect(user.isSoftDeleted()).to.be.true;
+                });
               });
             });
           });
         });
       });
-    });
+    }
   });
 
   describe('restore', () => {
