@@ -1069,16 +1069,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    //Oracle - identifier too long
-    it('allows sql logging', function() {
-      const User = this.sequelize.define('UserWithUniqueNameAndNonNullSmth', {
-        name: {type: Sequelize.STRING, unique: true},
-        smth: {type: Sequelize.STRING, allowNull: false}
-      });
+    //Oracle -> table names are restricted to 30 chars
+    if (current.dialect.name !== 'oracle') {
+      it('allows sql logging', function() {
+        const User = this.sequelize.define('UserWithUniqueNameAndNonNullSmth', {
+          name: {type: Sequelize.STRING, unique: true},
+          smth: {type: Sequelize.STRING, allowNull: false}
+        });
 
-      let test = false;
-      return User.sync({ force: true }).then(() => {
-        return User
+        let test = false;
+        return User.sync({ force: true }).then(() => {
+          return User
           .create({ name: 'Fluffy Bunny', smth: 'else' }, {
             logging(sql) {
               expect(sql).to.exist;
@@ -1086,17 +1087,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(sql.toUpperCase().indexOf('INSERT')).to.be.above(-1);
             }
           });
-      }).then(() => {
-        expect(test).to.be.true;
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
+        }).then(() => {
+          expect(test).to.be.true;
+        });
       });
-    });
+    }
 
     it('should only store the values passed in the whitelist', function() {
       const self = this,

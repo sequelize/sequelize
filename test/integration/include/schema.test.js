@@ -191,7 +191,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       };
     });
 
-    //Oracle - identifier too long
     it('should support an include with multiple different association types', function() {
       const self = this;
 
@@ -270,7 +269,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                     {title: 'Chair'},
                     {title: 'Desk'}
                   ]).then(() => {
-                    return Product.findAll();
+                    return Product.findAll({order : ['id']});
                   })
                 ]).spread((user, products) => {
                   return Promise.all([
@@ -342,13 +341,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             });
           });
         });
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
       });
     });
 
@@ -917,7 +909,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       });
     });
 
-    //Oracle - identifier too long
     it('should be possible to extend the on clause with a where option on nested includes', function() {
       const User = this.sequelize.define('User', {
           name: DataTypes.STRING
@@ -982,9 +973,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           ])
         ]).then(() => {
           return Promise.all([
-            Group.findAll(),
-            Rank.findAll(),
-            Tag.findAll()
+            Group.findAll({order  :['id']}),
+            Rank.findAll({order  :['id']}),
+            Tag.findAll({order  :['id']})
           ]);
         }).spread((groups, ranks, tags) => {
           return Promise.resolve([0, 1, 2, 3, 4]).each(i => {
@@ -994,7 +985,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                 {title: 'Chair'},
                 {title: 'Desk'}
               ]).then(() => {
-                return Product.findAll();
+                return Product.findAll({order  :['id']});
               })
             ]).spread((user, products) => {
               return Promise.all([
@@ -1054,13 +1045,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             });
           });
         });
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
       });
     });
 

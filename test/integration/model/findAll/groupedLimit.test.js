@@ -161,7 +161,6 @@ if (current.dialect.supports['UNION ALL']) {
             });
           });
 
-          //Oracle - identifier too long
           it('works with paranoid junction models', function() {
             return this.User.findAll({
               attributes: ['id'],
@@ -208,13 +207,6 @@ if (current.dialect.supports['UNION ALL']) {
                */
               expect(users).to.have.length(3);
               expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 4]);
-            })
-            .catch (error => {
-              //We catch to don't throw the ORA-00972 identifier too long error
-              console.log(error.message);
-              if (error.message.indexOf('ORA-00972') === -1) {
-                throw error;
-              }
             });
           });
         });

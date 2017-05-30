@@ -194,7 +194,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     });
 
-    //Oracle - identifier too long
     it('should work on a nested set of relations with a where condition in between relations', function() {
       const User = this.sequelize.define('User', {}),
         SubscriptionForm = this.sequelize.define('SubscriptionForm', {}),
@@ -250,17 +249,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             }
           ]
         });
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
       });
     });
 
-    //Oracle - identifier too long
     it('should accept nested `where` and `limit` at the same time', function() {
       const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
@@ -329,17 +320,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             limit: 1
           });
         });
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
       });
     });
 
-    //Oracle - identifier too long
     it('should support an include with multiple different association types', function() {
       const User = this.sequelize.define('User', {}),
         Product = this.sequelize.define('Product', {
@@ -483,13 +466,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             });
           });
         });
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
       });
     });
 
@@ -1214,7 +1190,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    //Oracle - identifier too long
     it('should be possible to extend the on clause with a where option on nested includes', function() {
       const User = this.sequelize.define('User', {
           name: DataTypes.STRING
@@ -1353,13 +1328,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             });
           });
         });
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
       });
     });
 
@@ -1991,7 +1959,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    //Oracle - identifier too long
     it('Should return posts with nested include with inner join with a m:n association', function() {
 
       const User = this.sequelize.define('User', {
@@ -2085,13 +2052,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           expect(posts[0].Entity.tags.length).to.equal(1);
           expect(posts[0].Entity.tags[0].EntityTag.tag_name).to.equal('bob');
           expect(posts[0].Entity.tags[0].EntityTag.entity_id).to.equal(posts[0].post_id);
-        })
-        .catch (error => {
-          //We catch to don't throw the ORA-00972 identifier too long error
-          console.log(error.message);
-          if (error.message.indexOf('ORA-00972') === -1) {
-            throw error;
-          }
         });
     });
   });

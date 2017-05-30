@@ -2623,7 +2623,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       })).to.eventually.be.rejectedWith(Error, 'Support for literal replacements in the `where` object has been removed.');
     });
 
-    //Oracle - identifier too long
     it('should not fail with an include', function() {
       return this.User.findAll({
         where: this.sequelize.literal(this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title') + ' = ' + this.sequelize.queryInterface.QueryGenerator.escape('republic')),
@@ -2633,17 +2632,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).then(users => {
         expect(users.length).to.be.equal(1);
         expect(users[0].username).to.be.equal('luke');
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
       });
     });
 
-    //Oracle - identifier too long
     it('should not overwrite a specified deletedAt by setting paranoid: false', function() {
       let tableName = '';
       if (this.User.name) {
@@ -2658,13 +2649,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).then(users => {
         expect(users.length).to.be.equal(1);
         expect(users[0].username).to.be.equal('leia');
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
       });
     });
 

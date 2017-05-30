@@ -502,7 +502,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        //Oracle - identifier too long
         it('eager loads with non-id primary keys', function() {
           const self = this;
           self.User = self.sequelize.define('UserPKeagerone', {
@@ -534,13 +533,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 });
               });
             });
-          })
-          .catch (error => {
-            //We catch to don't throw the ORA-00972 identifier too long error
-            console.log(error.message);
-            if (error.message.indexOf('ORA-00972') === -1) {
-              throw error;
-            }
           });
         });
       });
@@ -669,7 +661,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        //Oracle - identifier too long
         it('eager loads with non-id primary keys', function() {
           const self = this;
           self.User = self.sequelize.define('UserPKeagerone', {
@@ -704,12 +695,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 });
               });
             });
-          }) .catch (error => {
-            //We catch to don't throw the ORA-00972 identifier too long error
-            console.log(error.message);
-            if (error.message.indexOf('ORA-00972') === -1) {
-              throw error;
-            }
           });
         });
       });

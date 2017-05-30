@@ -271,7 +271,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
-    //Oracle - identifier too long
     it('supports primary key attributes with different field names', function () {
       const User = this.sequelize.define('User', {
         id: {
@@ -323,112 +322,95 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             })
           );
         });
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
       });
     });
 
-    //Oracle - identifier too long
-    if (Support.getTestDialect() !== 'oracle') {
-      it('supports primary key attributes with different field names where parent include is required', function () {
-        const User = this.sequelize.define('User', {
-          id: {
-            type: DataTypes.UUID,
-            allowNull: false,
-            primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
-            field: 'user_id'
-          }
-        }, {
-          tableName: 'tbl_user'
-        });
+    it('supports primary key attributes with different field names where parent include is required', function () {
+      const User = this.sequelize.define('User', {
+        id: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'user_id'
+        }
+      }, {
+        tableName: 'tbl_user'
+      });
 
-        const Company = this.sequelize.define('Company', {
-          id: {
-            type: DataTypes.UUID,
-            allowNull: false,
-            primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
-            field: 'company_id'
-          }
-        }, {
-          tableName: 'tbl_company'
-        });
+      const Company = this.sequelize.define('Company', {
+        id: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'company_id'
+        }
+      }, {
+        tableName: 'tbl_company'
+      });
 
-        const Group = this.sequelize.define('Group', {
-          id: {
-            type: DataTypes.UUID,
-            allowNull: false,
-            primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
-            field: 'group_id'
-          }
-        }, {
-          tableName: 'tbl_group'
-        });
+      const Group = this.sequelize.define('Group', {
+        id: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'group_id'
+        }
+      }, {
+        tableName: 'tbl_group'
+      });
 
-        const Company_has_Group = this.sequelize.define('Company_has_Group', {
+      const Company_has_Group = this.sequelize.define('Company_has_Group', {
 
-        }, {
-          tableName: 'tbl_company_has_group'
-        });
+      }, {
+        tableName: 'tbl_company_has_group'
+      });
 
-        User.belongsTo(Company);
-        Company.hasMany(User);
-        Company.belongsToMany(Group, {through: Company_has_Group});
-        Group.belongsToMany(Company, {through: Company_has_Group});
+      User.belongsTo(Company);
+      Company.hasMany(User);
+      Company.belongsToMany(Group, {through: Company_has_Group});
+      Group.belongsToMany(Company, {through: Company_has_Group});
 
-        return this.sequelize.sync({force: true}).then(() => {
+      return this.sequelize.sync({force: true}).then(() => {
+        return Promise.join(
+          User.create(),
+          Group.create(),
+          Company.create()
+        ).spread((user, group, company) => {
           return Promise.join(
-            User.create(),
-            Group.create(),
-            Company.create()
-          ).spread((user, group, company) => {
-            return Promise.join(
-              user.setCompany(company),
-              company.addGroup(group)
-            );
-          }).then(() => {
-            return Promise.join(
-              User.findOne({
-                where: {},
-                include: [
-                  {model: Company, include: [Group]}
-                ]
-              }),
-              User.findAll({
-                include: [
-                  {model: Company, include: [Group]}
-                ]
-              }),
-              User.findOne({
-                where: {},
-                include: [
-                  {model: Company, required: true, include: [Group]}
-                ]
-              }),
-              User.findAll({
-                include: [
-                  {model: Company, required: true, include: [Group]}
-                ]
-              })
-            );
-          });
-        })
-        .catch (error => {
-          //We catch to don't throw the ORA-00972 identifier too long error
-          console.log(error.message);
-          if (error.message.indexOf('ORA-00972') === -1) {
-            throw error;
-          }
+            user.setCompany(company),
+            company.addGroup(group)
+          );
+        }).then(() => {
+          return Promise.join(
+            User.findOne({
+              where: {},
+              include: [
+                {model: Company, include: [Group]}
+              ]
+            }),
+            User.findAll({
+              include: [
+                {model: Company, include: [Group]}
+              ]
+            }),
+            User.findOne({
+              where: {},
+              include: [
+                {model: Company, required: true, include: [Group]}
+              ]
+            }),
+            User.findAll({
+              include: [
+                {model: Company, required: true, include: [Group]}
+              ]
+            })
+          );
         });
       });
-    }
+    });
   });
 
   describe('countAssociations', () => {
@@ -1275,7 +1257,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
-    //Oracle - identifier too long
     it('should correctly get associations even after a child instance is deleted', function() {
       const self = this;
       const spy = sinon.spy();
@@ -1314,13 +1295,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           project = projects[0];
 
         expect(project).to.be.ok;
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
       });
     });
 
@@ -1356,7 +1330,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
-    //Oracle - identifier too long
     it('should be able to handle nested includes properly', function() {
       const self = this;
       this.Group = this.sequelize.define('Group', { groupName: DataTypes.STRING});
@@ -1420,14 +1393,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const project = user.Projects[0];
         expect(project).to.be.ok;
         expect(project.name).to.equal('Good Will Hunting');
-      })
-      .catch (error => {
-        //We catch to don't throw the ORA-00972 identifier too long error
-        console.log(error.message);
-        if (error.message.indexOf('ORA-00972') === -1) {
-          throw error;
-        }
-        return true;
       });
     });
   });

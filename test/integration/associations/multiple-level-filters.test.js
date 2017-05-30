@@ -185,7 +185,6 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     });
   });
 
-  //Oracle - identifier too long
   it('can filter through hasMany connector', function() {
     const User = this.sequelize.define('User', {username: DataTypes.STRING }),
       Project = this.sequelize.define('Project', { title: DataTypes.STRING });
@@ -227,13 +226,6 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
           });
         });
       });
-    })
-    .catch (error => {
-      //We catch to don't throw the ORA-00972 identifier too long error
-      console.log(error.message);
-      if (error.message.indexOf('ORA-00972') === -1) {
-        throw error;
-      }
     });
   });
 });
