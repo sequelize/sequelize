@@ -17,8 +17,5 @@ coverage
 .vscode/
 *.sublime*
 esdoc
-<<<<<<< HEAD
 .history
-=======
 package-lock.json
->>>>>>> 13a3f1e4f575efe068d670af92fd2685e8437632
