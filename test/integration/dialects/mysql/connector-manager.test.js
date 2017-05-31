@@ -113,7 +113,24 @@ if (Support.dialectIsMySQL()) {
             return cm.releaseConnection(connection);
           });
       });
-    }
 
+      it('-FOUND_ROWS can be suppressed to get back legacy behavior', function() {
+        var sequelize = Support.createSequelizeInstance({ dialectOptions: { flags: '' }});
+        var User = sequelize.define('User', { username: DataTypes.STRING });
+
+        return User.sync({force: true}).then(function () {
+          return User.create({ id: 1, username: 'jozef' });
+        }).then(function() {
+          return User.update({ username: 'jozef'}, {
+            where: {
+              id: 1
+            }
+          });
+        }).spread(function(affectedCount) {
+          // https://github.com/sequelize/sequelize/issues/7184
+          affectedCount.should.equal(1);
+        });
+      });
+    }
   });
 }
