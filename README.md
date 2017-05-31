@@ -10,9 +10,14 @@
 
 Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
 
-[Stable (v4) documentation](http://docs.sequelizejs.com)
+### Version 4 (stable)
 
-[v3 documentation](https://sequelize.readthedocs.io/en/v3/)
+- [Guides](http://docs.sequelizejs.com)
+- [API documentation](http://docs.sequelizejs.com/identifiers.html)
+
+### Version 3
+
+- [documentation](https://sequelize.readthedocs.io/en/v3/)
 
 ## Installation
 
