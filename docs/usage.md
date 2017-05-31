@@ -213,6 +213,19 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 })
 ```
 
+### ORACLE
+
+The library for Oracle is`oracledb@^1.11.0` You'll just need to define the dialect:
+
+```js
+const sequelize = new Sequelize('database', 'username', 'password', {
+  dialect: 'oracle'
+})
+```
+
+As Oracle limits the length of alias names to 30 characters, some requests are rebuilt. 
+To see the rebuilt request, add in dialectOptions : ``` logAliasesQry : true ```
+
 ## Executing raw SQL queries
 
 As there are often use cases in which it is just easier to execute raw / already prepared SQL queries, you can utilize the function `sequelize.query`.
