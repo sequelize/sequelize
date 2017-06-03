@@ -1,5 +1,7 @@
+'use strict';
+
 const cheerio = require('cheerio');
-const esdocConfig = require('../.esdoc.json');
+const esdocConfig = require('../../.esdoc.json');
 
 exports.onHandleHTML = function(ev) {
   const $ = cheerio.load(ev.data.html);
@@ -21,6 +23,10 @@ exports.onHandleHTML = function(ev) {
   for (const script of scripts) {
     $(`script[src="${script}"]`).remove();
   }
+
+  // Prepare changelog
+  $('div[data-toc-name="changelog"] ul.manual-toc li:not(:first-child)').remove();
+  $('div[data-toc-name="changelog"] ul.manual-toc li:first-child a').text('Changelog');
 
   ev.data.html = $.html();
 };

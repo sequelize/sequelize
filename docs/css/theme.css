@@ -1,0 +1,19 @@
+.manual-color, .kind-class, .manual-color-faq {
+  background-color: #399af3;
+}
+
+.manual-color a, .kind-class, .manual-color-faq a {
+  color: #ffffff !important;
+}
+
+.kind-variable, .manual-color-reference, .manual-color-changelog {
+  background-color: #000000;
+}
+
+.kind-variable, .manual-color-reference a, .manual-color-changelog a {
+  color: #ffffff;
+}
+
+.manual-color-faq a {
+  color: #e5e5e5 !important;
+}
