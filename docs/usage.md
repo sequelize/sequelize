@@ -192,6 +192,13 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 })
 ```
 
+Or you can use a connection string as well with a path:
+
+```js
+const sequelize = new Sequelize('sqlite:/home/abs/path/dbname.db')
+const sequelize = new Sequelize('sqlite:relativePath/dbname.db')
+```
+
 ### PostgreSQL
 
 The library for PostgreSQL is`pg@~3.6.0` You'll just need to define the dialect:

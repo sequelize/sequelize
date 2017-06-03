@@ -73,6 +73,7 @@
 - [ADDED] Support for JSON attributes in orders and groups. [#7564](https://github.com/sequelize/sequelize/issues/7564)
 - [REMOVED] Removes support for interpretation of raw properties and values in the where object. [#7568](https://github.com/sequelize/sequelize/issues/7568)
 - [FIXED] Upsert now updates all changed fields by default
+- [ADDED] Support for paths for sqlite databases via connection strings [#4721](https://github.com/sequelize/sequelize/issues/4721)
 
 ## BC breaks:
 - Model.validate instance method now runs validation hooks by default. Previously you needed to pass { hooks: true }. You can override this behavior by passing { hooks: false }
