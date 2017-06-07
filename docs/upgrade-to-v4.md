@@ -83,9 +83,8 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
     ```
 
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
-
 - `Model.validate` instance method now runs validation hooks by default. Previously you needed to pass `{ hooks: true }`. You can override this behavior by passing `{ hooks: false }`
-- Raw options for where, order and group `where: { $raw: '..', order: [{ raw: '..' }], group: [{ raw: '..' }] }` are now deprecated to avoid SQL injection attacks.
+- Raw options for where, order and group like `where: { $raw: '..', order: [{ raw: '..' }], group: [{ raw: '..' }] }` have been removed to prevent SQL injection attacks.
 
 ### New features
 - Initial version of `sequelize.sync({ alter: true })` has been added and uses `ALTER TABLE` commands to sync tables. [Migrations](http://docs.sequelizejs.com/manual/tutorial/migrations.html) are still preferred and should be used in production.
