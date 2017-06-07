@@ -89,7 +89,13 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 ### New features
 - Initial version of `sequelize.sync({ alter: true })` has been added and uses `ALTER TABLE` commands to sync tables. [Migrations](http://docs.sequelizejs.com/manual/tutorial/migrations.html) are still preferred and should be used in production.
 - Adding and removing database contraints are now supported. Existing primary, foreignKey and other contraints can now be added/removed using migrations - [See more](http://docs.sequelizejs.com/manual/tutorial/migrations.html#addconstraint-tablename-attributes-options-).
-- Instances (database rows) are now instances of the model, instead of being an instance of a  separate class. This means you can replace `User.build()` with `new User()` and `sequelize.define` with `class User extends Sequelize.Model`
+- Instances (database rows) are now instances of the model, instead of being an instance of a  separate class. This means you can replace `User.build()` with `new User()` and `sequelize.define(attributes, options)` with
+  ```js
+  class User extends Sequelize.Model {}
+  User.init(attributes, options)
+  ```
+  You can then define custom methods, class methods and getters/setter directly in the class.
+  This also enables more usage patterns, for example with [decorators](https://www.npmjs.com/package/sequelize-decorators).
 - Added `DEBUG` support. You can now use `DEBUG=sequelize* node app.js` to enable logging for all sequlize operations. To filter logged queries, use `DEBUG=sequelize:sql:mssql sequelize:connection*` to log generated SQL queries, connection info etc.
 - `JSON` datatype support has been added for `SQLite`
 - `UPSERT` is now supported on `MSSQL` using `MERGE` statement.
