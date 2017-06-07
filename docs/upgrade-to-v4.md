@@ -1,22 +1,23 @@
 # Upgrade to V4
 
-Sequelize V4 is a major release and it introduces newer features, breaking changes and deprecations. Majority of sequelize codebase has been refactored to use ES2015 features. The following guide lists some of the changes to upgrade from v3 to v4. See [Changelog](http://docs.sequelizejs.com/manual/changelog/changelog.html#future) for full list of changes.
+Sequelize V4 is a major release and it introduces new features and breaking changes. Majority of sequelize codebase has been refactored to use ES2015 features. The following guide lists some of the changes to upgrade from v3 to v4. See [Changelog](http://docs.sequelizejs.com/manual/changelog/changelog.html#future) for full list of changes.
 
 ### Breaking Changes
 
+- Node version: To use new ES2015 features, we now require at least Node 4. From now on, we will support all current LTS versions of Node.
 - The counter cache plugin, and consequently the counterCache option for associations has been removed. The same behaviour can be achieved using `afterCreate` and `afterDelete` hooks.
-- Removed MariaDB dialect. This was just a thin wrapper around MySQL, so using dialect: 'mysql' instead should work with no further changes
+- Removed MariaDB dialect. This was just a thin wrapper around MySQL, so using `dialect: 'mysql'` instead should work with no further changes
 - Removed default `REPEATABLE_READ` transaction isolation. The isolation level now defaults to that of the database. Explicitly pass the required isolation level when initiating the transaction.
-- Removed support for `pool:false`. To use a single connection, set `pool.max` to 1.
+- Removed support for `pool: false`. To use a single connection, set `pool.max` to 1.
 - (MySQL) BIGINT now gets converted to string when number is too big
 - Removed support for referencesKey, use a references object
-    ```
+    ```js
     references: {
         key: '',
         model: ''
     }
     ```
-- `classMethods` and `instanceMethods` are now deprecated.
+- `classMethods` and `instanceMethods` are removed.
     
     Previous:
     ```js
@@ -39,13 +40,13 @@ Sequelize V4 is a major release and it introduces newer features, breaking chang
         ...
     });
 
-    //ClassMethod
-    Model.associate = models => {
+    // Class Method
+    Model.associate = function (models) {
         ...associate the models
     };
 
-    //Instance Method
-    Model.prototype.someMethod = () => {..}
+    // Instance Method
+    Model.prototype.someMethod = function () {..}
     ```
 - Sequelize now uses an independent copy of bluebird library.
     
@@ -69,7 +70,7 @@ Sequelize V4 is a major release and it introduces newer features, breaking chang
 - `DataTypes.DECIMAL` returns string for MySQL and Postgres.
 - `DataTypes.DATE` now uses `DATETIMEOFFSET` instead of `DATETIME2` sql datatype in case of MSSQL to record timezone. To migrate existing `DATETIME2` columns into `DATETIMEOFFSET`, see [#7201](https://github.com/sequelize/sequelize/pull/7201#issuecomment-278899803).
 - `options.order` now only accepts values with type of array or Sequelize method. Support for string values (ie `{order: 'name DESC'}`) has been deprecated.
-- With `BelongsToMany` relationships `add/set/create` setters now set through attributes by passing them as options.through (previously second argument was used as through attributes, now its considered options with through being a sub option)
+- With `BelongsToMany` relationships `add/set/create` setters now set through attributes by passing them as `options.through` (previously second argument was used as through attributes, now its considered options with `through` being a sub option)
 
     Previous:
     ```js
@@ -89,13 +90,13 @@ Sequelize V4 is a major release and it introduces newer features, breaking chang
 ### New features
 - Initial version of `sequelize.sync({ alter: true })` has been added and uses `ALTER TABLE` commands to sync tables. [Migrations](http://docs.sequelizejs.com/manual/tutorial/migrations.html) are still preferred and should be used in production.
 - Adding and removing database contraints are now supported. Existing primary, foreignKey and other contraints can now be added/removed using migrations - [See more](http://docs.sequelizejs.com/manual/tutorial/migrations.html#addconstraint-tablename-attributes-options-).
-- Instances (database rows) are now instances of the model, instead of being a separate class. This means you can replace `User.build()` with `new User()` and `sequelize.define` with `User extends Sequelize.Model`
+- Instances (database rows) are now instances of the model, instead of being an instance of a  separate class. This means you can replace `User.build()` with `new User()` and `sequelize.define` with `class User extends Sequelize.Model`
 - Added `DEBUG` support. You can now use `DEBUG=sequelize* node app.js` to enable logging for all sequlize operations. To filter logged queries, use `DEBUG=sequelize:sql:mssql sequelize:connection*` to log generated SQL queries, connection info etc.
 - `JSON` datatype support has been added for `SQLite`
 - `UPSERT` is now supported on `MSSQL` using `MERGE` statement.
 - Transactions are now fully supported on `MSSQL`.
 - Filtered indexes are now supported on `MSSQL` dialect. 
-    ```
+    ```js
     queryInterface.addIndex(
       'Person',
       ['firstname', 'lastname'],
