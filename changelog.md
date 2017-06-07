@@ -1,4 +1,5 @@
 # Future
+- [ADDED] Allow `updatedAt`, `createdAt`, and `deletedAt` to reference field name via alias.
 - [ADDED] Add `isSoftDeleted` helper method to model instance [#7408](https://github.com/sequelize/sequelize/issues/7408)
 - [FIXED] Map isolation level strings to tedious isolation level [MSSQL] [#7296](https://github.com/sequelize/sequelize/issues/7296)
 - [ADDED] `addConstraint`, `removeConstraint`, `showConstraint` [#7108](https://github.com/sequelize/sequelize/pull/7108)
