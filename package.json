@@ -44,7 +44,7 @@
     "env-cmd": "^5.0.0",
     "generic-pool": "^3.1.6",
     "inflection": "1.10.0",
-    "lodash": "^4.17.1",
+    "lodash": "^4.17.3",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
     "retry-as-promised": "^2.0.0",
