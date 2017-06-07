@@ -78,7 +78,7 @@
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "sqlite3": "^3.1.4",
-    "tedious": "^1.14.0",
+    "tedious": "^2.0.0",
     "uuid-validate": "^0.0.2"
   },
   "keywords": [
