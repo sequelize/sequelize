@@ -37,7 +37,8 @@
       "./docs/scopes.md",
       "./docs/hooks.md",
       "./docs/raw-queries.md",
-      "./docs/migrations.md"
+      "./docs/migrations.md",
+      "./docs/upgrade-to-v4.md"
     ],
     "changelog": [
       "./changelog.md"
