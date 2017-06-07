@@ -43,7 +43,7 @@
     "dottie": "^2.0.0",
     "env-cmd": "^5.0.0",
     "generic-pool": "^3.1.6",
-    "inflection": "1.10.0",
+    "inflection": "1.12.0",
     "lodash": "^4.17.1",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
