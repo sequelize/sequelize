@@ -1,16 +1,5 @@
 # Model usage
 
-Model class methods:
-
-- [`find`](#find---search-for-one-specific-element-in-the-database)
-- [`findOrCreate`](#findorcreate---search-for-a-specific-element-or-create-it-if-not-available)
-- [`findAndCountAll`](#findandcountall---search-for-multiple-elements-in-the-database-returns-both-data-and-total-count)
-- [`findAll`](#findall---search-for-multiple-elements-in-the-database)
-- [`count`](#count---count-the-occurrences-of-elements-in-the-database)
-- [`max`](#max---get-the-greatest-value-of-a-specific-attribute-within-a-specific-table)
-- [`min`](#min---get-the-least-value-of-a-specific-attribute-within-a-specific-table)
-- [`sum`](#sum---sum-the-value-of-specific-attributes)
-
 ## Data retrieval / Finders
 
 Finder methods are intended to query data from the database. They do *not* return plain objects but instead return model instances. Because finder methods return model instances you can call any model instance member on the result as described in the documentation for [*instances*](/manual/tutorial/instances.html).
