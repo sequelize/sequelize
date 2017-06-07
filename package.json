@@ -75,7 +75,7 @@
     "pg-native": "^1.10.0",
     "pg-types": "^1.11.0",
     "rimraf": "^2.5.4",
-    "sinon": "^1.17.6",
+    "sinon": "^2.1.0",
     "sinon-chai": "^2.8.0",
     "sqlite3": "^3.1.4",
     "tedious": "^1.14.0",
