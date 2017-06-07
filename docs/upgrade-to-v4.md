@@ -11,76 +11,76 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - Removed support for `pool: false`. To use a single connection, set `pool.max` to 1.
 - (MySQL) BIGINT now gets converted to string when number is too big
 - Removed support for referencesKey, use a references object
-    ```js
-    references: {
-        key: '',
-        model: ''
-    }
-    ```
+  ```js
+  references: {
+      key: '',
+      model: ''
+  }
+  ```
 - `classMethods` and `instanceMethods` are removed.
-    
-    Previous:
-    ```js
-    const Model = sequelize.define('Model', {
-        ...
-    }, {
-        classMethods: {
-            associate: function (model) {...}
-        },
-        instanceMethods: {
-            someMethod: function () { ...}
-        }
-    });
-    ```
 
-    New:
+  Previous:
+  ```js
+  const Model = sequelize.define('Model', {
+      ...
+  }, {
+      classMethods: {
+          associate: function (model) {...}
+      },
+      instanceMethods: {
+          someMethod: function () { ...}
+      }
+  });
+  ```
 
-    ```js
-    const Model = sequelize.define('Model', {
-        ...
-    });
+  New:
 
-    // Class Method
-    Model.associate = function (models) {
-        ...associate the models
-    };
+  ```js
+  const Model = sequelize.define('Model', {
+      ...
+  });
 
-    // Instance Method
-    Model.prototype.someMethod = function () {..}
-    ```
+  // Class Method
+  Model.associate = function (models) {
+      ...associate the models
+  };
+
+  // Instance Method
+  Model.prototype.someMethod = function () {..}
+  ```
 - Sequelize now uses an independent copy of bluebird library.
     
     - Promises returned by sequelize are now instances of `Sequelize.Promise` instead of global bluebird `Promise`.
     - The CLS patch does not affect global bluebird promise. Transaction will not automatically get passed to methods when used with `Promise.all` and other bluebird methods. Explicitly patch your bluebird instance to get CLS to work with bluebird methods.
-    
-    ```bash
-    $ npm install --save cls-bluebird
-    ```
+      
+      ```bash
+      $ npm install --save cls-bluebird
+      ```
 
-    ```js
-    const Promise = require('bluebird');
-    const Sequelize = require('sequelize');
-    const cls = require('continuation-local-storage');
-    const ns = cls.createNamespace('transaction-namespace');
-    const clsBluebird = require('cls-bluebird');
-    clsBluebird(ns, Promise);
-    Sequelize.useCLS(ns);
-    ```
+      ```js
+      const Promise = require('bluebird');
+      const Sequelize = require('sequelize');
+      const cls = require('continuation-local-storage');
+      const ns = cls.createNamespace('transaction-namespace');
+      const clsBluebird = require('cls-bluebird');
+      clsBluebird(ns, Promise);
+      Sequelize.useCLS(ns);
+      ```
 - `Sequelize.Validator` is now an independent copy of `validator` library
 - `DataTypes.DECIMAL` returns string for MySQL and Postgres.
 - `DataTypes.DATE` now uses `DATETIMEOFFSET` instead of `DATETIME2` sql datatype in case of MSSQL to record timezone. To migrate existing `DATETIME2` columns into `DATETIMEOFFSET`, see [#7201](https://github.com/sequelize/sequelize/pull/7201#issuecomment-278899803).
 - `options.order` now only accepts values with type of array or Sequelize method. Support for string values (ie `{order: 'name DESC'}`) has been deprecated.
 - With `BelongsToMany` relationships `add/set/create` setters now set through attributes by passing them as `options.through` (previously second argument was used as through attributes, now its considered options with `through` being a sub option)
 
-    Previous:
-    ```js
-    user.addProject(project, { status: 'started' })
-    ```
+  Previous:
+  ```js
+  user.addProject(project, { status: 'started' })
+  ```
 
-    New:
-    ```js
-    user.addProject(project, { through: { status: 'started' }})
-    ```
+  New:
+  ```js
+  user.addProject(project, { through: { status: 'started' }})
+  ```
 
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 - `Model.validate` instance method now runs validation hooks by default. Previously you needed to pass `{ hooks: true }`. You can override this behavior by passing `{ hooks: false }`
@@ -101,16 +101,16 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - `UPSERT` is now supported on `MSSQL` using `MERGE` statement.
 - Transactions are now fully supported on `MSSQL`.
 - Filtered indexes are now supported on `MSSQL` dialect. 
-    ```js
-    queryInterface.addIndex(
-      'Person',
-      ['firstname', 'lastname'],
-      {
-        where: {
-          lastname: {
-            $ne: null
-          }
+  ```js
+  queryInterface.addIndex(
+    'Person',
+    ['firstname', 'lastname'],
+    {
+      where: {
+        lastname: {
+          $ne: null
         }
       }
-    )
-    ```
+    }
+  )
+  ```
