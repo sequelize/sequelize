@@ -1,6 +1,6 @@
 # Upgrade to V4
 
-Sequelize V4 is a major release and it introduces new features and breaking changes. Majority of sequelize codebase has been refactored to use ES2015 features. The following guide lists some of the changes to upgrade from v3 to v4. See [Changelog](manual/changelog) for full list of changes.
+Sequelize V4 is a major release and it introduces new features and breaking changes. Majority of sequelize codebase has been refactored to use ES2015 features. The following guide lists some of the changes to upgrade from v3 to v4. See [Changelog](changelog) for full list of changes.
 
 ### Breaking Changes
 
@@ -49,10 +49,10 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
   Model.prototype.someMethod = function () {..}
   ```
 - Sequelize now uses an independent copy of bluebird library.
-    
+
     - Promises returned by sequelize are now instances of `Sequelize.Promise` instead of global bluebird `Promise`.
     - The CLS patch does not affect global bluebird promise. Transaction will not automatically get passed to methods when used with `Promise.all` and other bluebird methods. Explicitly patch your bluebird instance to get CLS to work with bluebird methods.
-      
+
       ```bash
       $ npm install --save cls-bluebird
       ```
@@ -100,7 +100,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - `JSON` datatype support has been added for `SQLite`
 - `UPSERT` is now supported on `MSSQL` using `MERGE` statement.
 - Transactions are now fully supported on `MSSQL`.
-- Filtered indexes are now supported on `MSSQL` dialect. 
+- Filtered indexes are now supported on `MSSQL` dialect.
   ```js
   queryInterface.addIndex(
     'Person',
