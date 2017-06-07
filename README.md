@@ -10,7 +10,11 @@
 
 Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
 
-[Stable (v4) documentation](http://docs.sequelizejs.com)
+## Documentation
+
+[v4 (stable) documentation](http://docs.sequelizejs.com)
+
+[v4 upgrade guide](http://docs.sequelizejs.com/manual/tutorial/upgrade-to-v4.html)
 
 [v3 documentation](https://sequelize.readthedocs.io/en/v3/)
 
@@ -36,11 +40,11 @@ Starting from 4.0.0 Sequelize will only support Node v4 and above to use ES6 fea
 - CLI ([sequelize-cli](https://github.com/sequelize/cli))
 
 ## Responsible disclosure
-If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md) 
+If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md)
 
 ## Resources
 - [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)
-- [Getting Started](http://docs.sequelizejs.com/en/v3/docs/getting-started/)
+- [Getting Started](http://docs.sequelizejs.com/manual/installation/getting-started)
 - [Express Example](https://github.com/sequelize/express-example)
 - [Documentation](http://docs.sequelizejs.com)
 - [Collaboration and pull requests](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)

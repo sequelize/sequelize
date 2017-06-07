@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.ScopeMe.bulkCreate(records);
         }).then(() => {
           return this.ScopeMe.findAll();
-        }).then((records) => {
+        }).then(records => {
           return Promise.all([
             records[0].createChild({
               priority: 1

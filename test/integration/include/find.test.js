@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         force: true
       }).then(() => {
         return User.create();
-      }).then((user) => {
+      }).then(user => {
         return Task.bulkCreate([
           {userId: user.get('id'), deletedAt: new Date()},
           {userId: user.get('id'), deletedAt: new Date()},
@@ -90,7 +90,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             {model: Task, where: {deletedAt: null}, required: false}
           ]
         });
-      }).then((user) => {
+      }).then(user => {
         expect(user).to.be.ok;
         expect(user.Tasks.length).to.equal(0);
       });
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         force: true
       }).then(() => {
         return User.create();
-      }).then((user) => {
+      }).then(user => {
         return Task.bulkCreate([
           {userId: user.get('id'), searchString: 'one'},
           {userId: user.get('id'), searchString: 'two'}
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             {model: Task, where: {searchString: 'one'} }
           ]
         });
-      }).then((user) => {
+      }).then(user => {
         expect(user).to.be.ok;
         expect(user.Tasks.length).to.equal(1);
       });
@@ -165,7 +165,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]
           });
         })
-        .then((a) => {
+        .then(a => {
           expect(a).to.not.equal(null);
           expect(a.get('bs')).to.have.length(1);
         });
@@ -198,7 +198,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]
           });
         })
-        .then((a) => {
+        .then(a => {
           expect(a).to.not.equal(null);
           expect(a.get('bs')).to.deep.equal([]);
         });
@@ -240,7 +240,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]
           });
         })
-        .then((a) => {
+        .then(a => {
           expect(a).to.not.exist;
         });
     });
@@ -252,14 +252,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'bob' }).then((newUser) => {
-          return Task.create({ title: 'some task' }).then((newTask) => {
+        return User.create({ username: 'bob' }).then(newUser => {
+          return Task.create({ title: 'some task' }).then(newTask => {
             return newTask.setUser(newUser).then(() => {
               return Task.find({
                 where: { title: 'some task' },
                 include: [ { model: User } ]
               })
-                .then((foundTask) => {
+                .then(foundTask => {
                   expect(foundTask).to.be.ok;
                   expect(foundTask.User.username).to.equal('bob');
                 });
@@ -299,7 +299,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               previousInstance,
               b;
 
-            singles.forEach((model) => {
+            singles.forEach(model => {
               const values = {};
 
               if (model.name === 'g') {
@@ -307,7 +307,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               }
 
               promise = promise.then(() => {
-                return model.create(values).then((instance) => {
+                return model.create(values).then(instance => {
                   if (previousInstance) {
                     return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(() => {
                       previousInstance = instance;
@@ -346,7 +346,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 ]}
               ]}
             ]
-          }).then((a) => {
+          }).then(a => {
             expect(a.b.c.d.e.f.g.h).to.be.ok;
           });
         });

@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should be able to merge attributes as array', function() {
       return this.ScopeMe.scope('lowAccess', 'withName').findOne()
-              .then((record) => {
+              .then(record => {
                 expect(record.other_value).to.exist;
                 expect(record.username).to.exist;
                 expect(record.access_level).to.exist;

@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         const validationFailedHook = sinon.stub().returns(Promise.resolve());
         this.User.validationFailed(validationFailedHook);
 
-        return expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected.then((err) => {
+        return expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected.then(err => {
           expect(err.name).to.equal('SequelizeValidationError');
         });
       });
@@ -111,7 +111,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         const validationFailedHook = sinon.stub().throws(new Error('validation failed hook error'));
         this.User.validationFailed(validationFailedHook);
 
-        return expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected.then((err) => {
+        return expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected.then(err => {
           expect(err.message).to.equal('validation failed hook error');
         });
       });

@@ -37,14 +37,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           beforeHook = true;
         });
 
-        return this.User.count().then((count) => {
+        return this.User.count().then(count => {
           expect(count).to.equal(3);
           expect(beforeHook).to.be.true;
         });
       });
 
       it('beforeCount hook can change options', function() {
-        this.User.beforeCount((options) => {
+        this.User.beforeCount(options => {
           options.where.username = 'adam';
         });
 

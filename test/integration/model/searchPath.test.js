@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return Restaurant.sync({force: true, searchPath: SEARCH_PATH_ONE});
         }).then(() => {
           return Restaurant.sync({force: true, searchPath: SEARCH_PATH_TWO});
-        }).catch((err) => {
+        }).catch(err => {
           expect(err).to.be.null;
         });
       });
@@ -83,12 +83,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return Restaurant.findOne({
                 where: {foo: 'one'}, searchPath: SEARCH_PATH_ONE
               });
-            }).then((obj) => {
+            }).then(obj => {
               expect(obj).to.not.be.null;
               expect(obj.foo).to.equal('one');
               restaurantId = obj.id;
               return Restaurant.findById(restaurantId, {searchPath: SEARCH_PATH_ONE});
-            }).then((obj) => {
+            }).then(obj => {
               expect(obj).to.not.be.null;
               expect(obj.foo).to.equal('one');
             });
@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           return Restaurant.create({
             foo: 'test'
-          }, {searchPath: SEARCH_PATH_TWO}).catch((err) => {
+          }, {searchPath: SEARCH_PATH_TWO}).catch(err => {
             expect(err).to.not.be.null;
           });
         });
@@ -116,12 +116,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return Restaurant.findOne({
                 where: {foo: 'two'}, searchPath: SEARCH_PATH_TWO
               });
-            }).then((obj) => {
+            }).then(obj => {
               expect(obj).to.not.be.null;
               expect(obj.foo).to.equal('two');
               restaurantId = obj.id;
               return Restaurant.findById(restaurantId, {searchPath: SEARCH_PATH_TWO});
-            }).then((obj) => {
+            }).then(obj => {
               expect(obj).to.not.be.null;
               expect(obj.foo).to.equal('two');
             });
@@ -131,7 +131,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should fail to find schema_one object in schema_two', function() {
           const Restaurant = this.Restaurant;
 
-          return Restaurant.findOne({where: {foo: 'one'}, searchPath: SEARCH_PATH_TWO}).then((RestaurantObj) => {
+          return Restaurant.findOne({where: {foo: 'one'}, searchPath: SEARCH_PATH_TWO}).then(RestaurantObj => {
             expect(RestaurantObj).to.be.null;
           });
         });
@@ -139,7 +139,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should fail to find schema_two object in schema_one', function() {
           const Restaurant = this.Restaurant;
 
-          return Restaurant.findOne({where: {foo: 'two'}, searchPath: SEARCH_PATH_ONE}).then((RestaurantObj) => {
+          return Restaurant.findOne({where: {foo: 'two'}, searchPath: SEARCH_PATH_ONE}).then(RestaurantObj => {
             expect(RestaurantObj).to.be.null;
           });
         });
@@ -166,33 +166,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return restaurauntModel.save({searchPath: SEARCH_PATH_TWO});
             }).then(() => {
               return Restaurant.findAll({searchPath: SEARCH_PATH_ONE});
-            }).then((restaurantsOne) => {
+            }).then(restaurantsOne => {
               expect(restaurantsOne).to.not.be.null;
               expect(restaurantsOne.length).to.equal(2);
-              restaurantsOne.forEach((restaurant) => {
+              restaurantsOne.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('one');
               });
               return Restaurant.findAndCountAll({searchPath: SEARCH_PATH_ONE});
-            }).then((restaurantsOne) => {
+            }).then(restaurantsOne => {
               expect(restaurantsOne).to.not.be.null;
               expect(restaurantsOne.rows.length).to.equal(2);
               expect(restaurantsOne.count).to.equal(2);
-              restaurantsOne.rows.forEach((restaurant) => {
+              restaurantsOne.rows.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('one');
               });
               return Restaurant.findAll({searchPath: SEARCH_PATH_TWO});
-            }).then((restaurantsTwo) => {
+            }).then(restaurantsTwo => {
               expect(restaurantsTwo).to.not.be.null;
               expect(restaurantsTwo.length).to.equal(3);
-              restaurantsTwo.forEach((restaurant) => {
+              restaurantsTwo.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('two');
               });
               return Restaurant.findAndCountAll({searchPath: SEARCH_PATH_TWO});
-            }).then((restaurantsTwo) => {
+            }).then(restaurantsTwo => {
               expect(restaurantsTwo).to.not.be.null;
               expect(restaurantsTwo.rows.length).to.equal(3);
               expect(restaurantsTwo.count).to.equal(3);
-              restaurantsTwo.rows.forEach((restaurant) => {
+              restaurantsTwo.rows.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('two');
               });
             });
@@ -222,28 +222,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               where: {bar: {$like: 'one%'}},
               searchPath: SEARCH_PATH_ONE
             });
-          }).then((restaurantsOne) => {
+          }).then(restaurantsOne => {
             expect(restaurantsOne).to.not.be.null;
             expect(restaurantsOne.length).to.equal(2);
-            restaurantsOne.forEach((restaurant) => {
+            restaurantsOne.forEach(restaurant => {
               expect(restaurant.bar).to.contain('one');
             });
             return Restaurant.count({searchPath: SEARCH_PATH_ONE});
-          }).then((count) => {
+          }).then(count => {
             expect(count).to.not.be.null;
             expect(count).to.equal(2);
             return Restaurant.findAll({
               where: {bar: {$like: 'two%'}},
               searchPath: SEARCH_PATH_TWO
             });
-          }).then((restaurantsTwo) => {
+          }).then(restaurantsTwo => {
             expect(restaurantsTwo).to.not.be.null;
             expect(restaurantsTwo.length).to.equal(3);
-            restaurantsTwo.forEach((restaurant) => {
+            restaurantsTwo.forEach(restaurant => {
               expect(restaurant.bar).to.contain('two');
             });
             return Restaurant.count({searchPath: SEARCH_PATH_TWO});
-          }).then((count) => {
+          }).then(count => {
             expect(count).to.not.be.null;
             expect(count).to.equal(3);
           });
@@ -258,14 +258,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return Location.sync({force: true})
             .then(() => {
               return Location.create({name: 'HQ'}).then(() => {
-                return Location.findOne({where: {name: 'HQ'}}).then((obj) => {
+                return Location.findOne({where: {name: 'HQ'}}).then(obj => {
                   expect(obj).to.not.be.null;
                   expect(obj.name).to.equal('HQ');
                   locationId = obj.id;
                 });
               });
             })
-            .catch((err) => {
+            .catch(err => {
               expect(err).to.be.null;
             });
         });
@@ -283,7 +283,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 model: Location, as: 'location'
               }], searchPath: SEARCH_PATH_ONE
             });
-          }).then((obj) => {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('one');
             expect(obj.location).to.not.be.null;
@@ -305,7 +305,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 model: Location, as: 'location'
               }], searchPath: SEARCH_PATH_TWO
             });
-          }).then((obj) => {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('two');
             expect(obj.location).to.not.be.null;
@@ -322,7 +322,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             .then(() => {
               return Employee.sync({force: true, searchPath: SEARCH_PATH_TWO});
             })
-            .catch((err) => {
+            .catch(err => {
               expect(err).to.be.null;
             });
         });
@@ -338,7 +338,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return Restaurant.findOne({
               where: {foo: 'one'}, searchPath: SEARCH_PATH_ONE
             });
-          }).then((obj) => {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('one');
             restaurantId = obj.id;
@@ -353,13 +353,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 model: Employee, as: 'employees'
               }]
             });
-          }).then((obj) => {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.employees).to.not.be.null;
             expect(obj.employees.length).to.equal(1);
             expect(obj.employees[0].last_name).to.equal('one');
             return obj.getEmployees({searchPath: SEARCH_PATH_ONE});
-          }).then((employees) => {
+          }).then(employees => {
             expect(employees.length).to.equal(1);
             expect(employees[0].last_name).to.equal('one');
             return Employee.findOne({
@@ -367,12 +367,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 model: Restaurant, as: 'restaurant'
               }]
             });
-          }).then((obj) => {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.restaurant).to.not.be.null;
             expect(obj.restaurant.foo).to.equal('one');
             return obj.getRestaurant({searchPath: SEARCH_PATH_ONE});
-          }).then((restaurant) => {
+          }).then(restaurant => {
             expect(restaurant).to.not.be.null;
             expect(restaurant.foo).to.equal('one');
           });
@@ -390,7 +390,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return Restaurant.findOne({
               where: {foo: 'two'}, searchPath: SEARCH_PATH_TWO
             });
-          }).then((obj) => {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('two');
             restaurantId = obj.id;
@@ -405,13 +405,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 model: Employee, as: 'employees'
               }]
             });
-          }).then((obj) => {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.employees).to.not.be.null;
             expect(obj.employees.length).to.equal(1);
             expect(obj.employees[0].last_name).to.equal('two');
             return obj.getEmployees({searchPath: SEARCH_PATH_TWO});
-          }).then((employees) => {
+          }).then(employees => {
             expect(employees.length).to.equal(1);
             expect(employees[0].last_name).to.equal('two');
             return Employee.findOne({
@@ -419,12 +419,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 model: Restaurant, as: 'restaurant'
               }]
             });
-          }).then((obj) => {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.restaurant).to.not.be.null;
             expect(obj.restaurant.foo).to.equal('two');
             return obj.getRestaurant({searchPath: SEARCH_PATH_TWO});
-          }).then((restaurant) => {
+          }).then(restaurant => {
             expect(restaurant).to.not.be.null;
             expect(restaurant.foo).to.equal('two');
           });
@@ -446,17 +446,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return restaurauntModelSchema1.save({searchPath: SEARCH_PATH_ONE});
             }).then(() => {
               return Restaurant.findAll({searchPath: SEARCH_PATH_ONE});
-            }).then((restaurantsOne) => {
+            }).then(restaurantsOne => {
               expect(restaurantsOne).to.not.be.null;
               expect(restaurantsOne.length).to.equal(2);
-              restaurantsOne.forEach((restaurant) => {
+              restaurantsOne.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('one');
               });
               return Restaurant.findAll({searchPath: SEARCH_PATH_TWO});
-            }).then((restaurantsTwo) => {
+            }).then(restaurantsTwo => {
               expect(restaurantsTwo).to.not.be.null;
               expect(restaurantsTwo.length).to.equal(1);
-              restaurantsTwo.forEach((restaurant) => {
+              restaurantsTwo.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('two');
               });
             });
