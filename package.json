@@ -38,7 +38,7 @@
   "dependencies": {
     "bluebird": "^3.4.6",
     "cls-bluebird": "^2.0.1",
-    "debug": "^2.3.0",
+    "debug": "^2.4.5",
     "depd": "^1.1.0",
     "dottie": "^2.0.0",
     "env-cmd": "^5.0.0",
