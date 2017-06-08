@@ -48,6 +48,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
   // Instance Method
   Model.prototype.someMethod = function () {..}
   ```
+- `Model.Instance` and `instance.Model` are removed. To access the Model from an instance, simply use [`instance.constructor`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/constructor). The Instance class (`Model.Instance`) is now the Model itself.
 - Sequelize now uses an independent copy of bluebird library.
 
     - Promises returned by sequelize are now instances of `Sequelize.Promise` instead of global bluebird `Promise`.
