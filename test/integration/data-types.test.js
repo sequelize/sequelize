@@ -415,6 +415,66 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         expect(user.get('jewelPurity')).to.be.string;
       });
     });
+
+    it('should parse the DECIMAL as a number', function(){
+      const Model = this.sequelize.define('model', {
+        jewelPurity: Sequelize.DECIMAL(10, 2)
+      });
+
+      const sampleData = {
+        id: 1,
+        jewelPurity: 133.7,
+      };
+
+      return Model.sync({ force: true }).then(() => {
+        return Model.create(sampleData);
+      }).then(() => {
+        return Model.findById(1);
+      }).then(user => {
+        expect(user.jewelPurity).to.not.be.string;
+        expect(user.jewelPurity).to.be.eql(sampleData.jewelPurity);
+      });
+    });
+
+    it('should parse the FLOAT as a number', function(){
+      const Model = this.sequelize.define('model', {
+        jewelPurity: Sequelize.FLOAT(10, 2)
+      });
+
+      const sampleData = {
+        id: 1,
+        jewelPurity: 133.7,
+      };
+
+      return Model.sync({ force: true }).then(() => {
+        return Model.create(sampleData);
+      }).then(() => {
+        return Model.findById(1);
+      }).then(user => {
+        expect(user.jewelPurity).to.not.be.string;
+        expect(user.jewelPurity).to.be.eql(sampleData.jewelPurity);
+      });
+    });
+
+    it('should parse the DOUBLE as a number', function(){
+      const Model = this.sequelize.define('model', {
+        jewelPurity: Sequelize.DOUBLE(10, 2)
+      });
+
+      const sampleData = {
+        id: 1,
+        jewelPurity: 133.7,
+      };
+
+      return Model.sync({ force: true }).then(() => {
+        return Model.create(sampleData);
+      }).then(() => {
+        return Model.findById(1);
+      }).then(user => {
+        expect(user.jewelPurity).to.not.be.string;
+        expect(user.jewelPurity).to.be.eql(sampleData.jewelPurity);
+      });
+    });
   }
 
   if (dialect === 'postgres') {
