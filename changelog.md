@@ -1,4 +1,4 @@
-# Future
+# 4.0.0 (final)
 - [ADDED] Add `isSoftDeleted` helper method to model instance [#7408](https://github.com/sequelize/sequelize/issues/7408)
 - [FIXED] Map isolation level strings to tedious isolation level [MSSQL] [#7296](https://github.com/sequelize/sequelize/issues/7296)
 - [ADDED] `addConstraint`, `removeConstraint`, `showConstraint` [#7108](https://github.com/sequelize/sequelize/pull/7108)
@@ -74,6 +74,8 @@
 - [ADDED] Support for JSON attributes in orders and groups. [#7564](https://github.com/sequelize/sequelize/issues/7564)
 - [REMOVED] Removes support for interpretation of raw properties and values in the where object. [#7568](https://github.com/sequelize/sequelize/issues/7568)
 - [FIXED] Upsert now updates all changed fields by default
+- [ADDED] Support for paths for sqlite databases via connection strings [#4721](https://github.com/sequelize/sequelize/issues/4721)
+- [FIXED] `sqlite://:memory:` no longer works [#7735](https://github.com/sequelize/sequelize/issues/7735)
 
 ## BC breaks:
 - Model.validate instance method now runs validation hooks by default. Previously you needed to pass { hooks: true }. You can override this behavior by passing { hooks: false }

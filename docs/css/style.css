@@ -1,14 +1,13 @@
-@import url(http://fonts.googleapis.com/css?family=Titillium+Web);
+@import url(https://fonts.googleapis.com/css?family=Titillium+Web);
 
-.content span.sequelize {
-  color: #2F406A;
-  position: absolute;
-  top: 30px;
-  left: 550px;
-  font-size: 100px;
-  display: inline-block;
-  height: 250px;
-  line-height: 250px;
+div.logo img {
+  width: 200px;
+  height: 200px;
+}
+
+div.sequelize {
+  color: #399af3;
+  font-size: 60px;
   font-family: 'Titillium Web', sans-serif;
 }
 
@@ -95,4 +94,8 @@ a[href^="file/lib/"] {
   height: 25px;
   position: relative;
   top: 6px;
+}
+
+.center {
+  text-align: center;
 }

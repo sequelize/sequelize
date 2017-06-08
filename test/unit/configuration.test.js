@@ -69,6 +69,42 @@ describe('Sequelize', () => {
       expect(config.port).to.equal('9821');
     });
 
+    describe('sqllite path inititalization', () =>{
+      const current   = Support.sequelize;
+      if (current.dialect.name === 'sqlite') {
+        it('should accept relative paths for sqlite', () => {
+          const sequelize = new Sequelize('sqlite:subfolder/dbname.db');
+          const options = sequelize.options;
+          expect(options.dialect).to.equal('sqlite');
+          expect(options.storage).to.equal('subfolder/dbname.db');
+        });
+
+        it('should accept absolute paths for sqlite', () => {
+          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db');
+          const options = sequelize.options;
+          expect(options.dialect).to.equal('sqlite');
+          expect(options.storage).to.equal('/home/abs/dbname.db');
+        });
+
+        it('should prefer storage in options object', () => {
+          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', {storage: '/completely/different/path.db'});
+          const options = sequelize.options;
+          expect(options.dialect).to.equal('sqlite');
+          expect(options.storage).to.equal('/completely/different/path.db');
+        });
+
+        it('should be able to use :memory:', () => {
+          const sequelize = new Sequelize('sqlite://:memory:');
+          const options = sequelize.options;
+          expect(options.dialect).to.equal('sqlite');
+
+          // empty host is treated as :memory:
+          expect(options.host).to.equal('');
+          expect(options.storage).to.equal(undefined);
+        });
+      }
+    });
+
     it('should work with no authentication options', () => {
       const sequelize = new Sequelize('mysql://example.com:9821/dbname');
       const config = sequelize.config;

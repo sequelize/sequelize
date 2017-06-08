@@ -49,9 +49,6 @@ const Foo = sequelize.define('foo', {
  // autoIncrement can be used to create auto_incrementing integer columns
  incrementMe: { type: Sequelize.INTEGER, autoIncrement: true },
 
- // Comments can be specified for each field for MySQL and PG
- hasComment: { type: Sequelize.INTEGER, comment: "I'm a comment!" },
-
  // You can specify a custom field name via the "field" attribute:
  fieldWithUnderscores: { type: Sequelize.STRING, field: "field_with_underscores" },
 
@@ -580,6 +577,25 @@ sequelize.import('project', (sequelize, DataTypes) => {
   })
 })
 ```
+
+This extra capability is useful when, for example, `Error: Cannot find module` is thrown even though `/path/to/models/project` seems to be correct.  Some frameworks, such as Meteor, overload `require`, and spit out "surprise" results like :
+
+```
+Error: Cannot find module '/home/you/meteorApp/.meteor/local/build/programs/server/app/path/to/models/project.js'
+```
+
+This is solved by passing in Meteor's version of `require`. So, while this probably fails ...
+
+```js
+const AuthorModel = db.import('./path/to/models/project');
+```
+... this should succeed ...
+
+```js
+const AuthorModel = db.import('project', require('./path/to/models/project'));
+```
+
+
 
 ## Optimistic Locking
 

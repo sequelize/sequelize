@@ -1,11 +1,12 @@
 # Model usage
+
 ## Data retrieval / Finders
 
 Finder methods are intended to query data from the database. They do *not* return plain objects but instead return model instances. Because finder methods return model instances you can call any model instance member on the result as described in the documentation for [*instances*](/manual/tutorial/instances.html).
 
 In this document we'll explore what finder methods can do:
 
-### find - Search for one specific element in the database
+### `find` - Search for one specific element in the database
 ```js
 // search for known ids
 Project.findById(123).then(project => {
@@ -28,7 +29,7 @@ Project.findOne({
 })
 ```
 
-### findOrCreate - Search for a specific element or create it if not available
+### `findOrCreate` - Search for a specific element or create it if not available
 
 The method `findOrCreate` can be used to check if a certain element already exists in the database. If that is the case the method will result in a respective instance. If the element does not yet exist, it will be created.
 
@@ -88,7 +89,7 @@ User.create({ username: 'fnord', job: 'omnomnom' })
 
 ... the existing entry will not be changed. See the `job` of the second user, and the fact that created was false.
 
-### findAndCountAll - Search for multiple elements in the database, returns both data and total count
+### `findAndCountAll` - Search for multiple elements in the database, returns both data and total count
 
 This is a convenience method that combines`findAll` and `count` (see below) this is useful when dealing with queries related to pagination where you want to retrieve data with a `limit` and `offset` but also need to know the total number of records that match the query:
 
@@ -141,7 +142,7 @@ The query above will only count users who have an active profile, because `requi
 
 The options object that you pass to `findAndCountAll` is the same as for `findAll` (described below).
 
-### findAll - Search for multiple elements in the database
+### `findAll` - Search for multiple elements in the database
 ```js
 // find multiple entries
 Project.findAll().then(projects => {
@@ -328,7 +329,7 @@ Sometimes you might be expecting a massive dataset that you just want to display
 Project.findAll({ where: { ... }, raw: true })
 ```
 
-### count - Count the occurrences of elements in the database
+### `count` - Count the occurrences of elements in the database
 
 There is also a method for counting database objects:
 
@@ -342,7 +343,7 @@ Project.count({ where: {'id': {$gt: 25}} }).then(c)  =>
 })
 ```
 
-### max - Get the greatest value of a specific attribute within a specific table
+### `max` - Get the greatest value of a specific attribute within a specific table
 
 And here is a method for getting the max value of an attribute:f
 
@@ -362,7 +363,7 @@ Project.max('age', { where: { age: { lt: 20 } } }).then(max => {
 })
 ```
 
-### min - Get the least value of a specific attribute within a specific table
+### `min` - Get the least value of a specific attribute within a specific table
 
 And here is a method for getting the min value of an attribute:
 
@@ -382,7 +383,7 @@ Project.min('age', { where: { age: { $gt: 5 } } }).then(min => {
 })
 ```
 
-### sum - Sum the value of specific attributes
+### `sum` - Sum the value of specific attributes
 
 In order to calculate the sum over a specific column of a table, you can
 use the `sum` method.
@@ -597,7 +598,7 @@ To move the where conditions from an included model from the `ON` condition to t
 User.findAll({
     where: {
         '$Instruments.name$': { $iLike: '%ooth%' }
-    }
+    },
     include: [{
         model: Tool,
         as: 'Instruments'
