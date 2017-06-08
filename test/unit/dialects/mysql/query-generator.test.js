@@ -141,6 +141,10 @@ if (dialect === 'mysql') {
         {
           arguments: ['myTable', {id: 'INTEGER auto_increment PRIMARY KEY'}, {initialAutoIncrement: 1000001}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1000001;'
+        },
+        {
+          arguments: ['myTable', {id: 'INTEGER auto_increment PRIMARY KEY'}, { 'engine': 'FEDERATED', connection: 'mysql://user:password@localhost:3306/main/myTable' }],
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=FEDERATED CONNECTION=\'mysql://user:password@localhost:3306/main/myTable\';'
         }
       ],
 
