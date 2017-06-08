@@ -427,9 +427,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         } else if (dialect === 'oracle') {
           idx1 = arguments[0];
           idx2 = arguments[1];
-          primary = arguments[3];
 
-          expect(primary.primary).to.be.ok;
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'FIELDA', collate:undefined, length: undefined, order: 'ASC'},
