@@ -1,3 +1,6 @@
+# Next
+- [ADDED] `Model.increment`, to increment multiple rows at a time [#7394](https://github.com/sequelize/sequelize/pull/7394)
+
 # 4.0.0 (final)
 - [ADDED] Add `isSoftDeleted` helper method to model instance [#7408](https://github.com/sequelize/sequelize/issues/7408)
 - [FIXED] Map isolation level strings to tedious isolation level [MSSQL] [#7296](https://github.com/sequelize/sequelize/issues/7296)
