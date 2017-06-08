@@ -598,7 +598,7 @@ To move the where conditions from an included model from the `ON` condition to t
 User.findAll({
     where: {
         '$Instruments.name$': { $iLike: '%ooth%' }
-    }
+    },
     include: [{
         model: Tool,
         as: 'Instruments'
