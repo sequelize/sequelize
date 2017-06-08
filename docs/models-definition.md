@@ -49,9 +49,6 @@ const Foo = sequelize.define('foo', {
  // autoIncrement can be used to create auto_incrementing integer columns
  incrementMe: { type: Sequelize.INTEGER, autoIncrement: true },
 
- // Comments can be specified for each field for MySQL and PG
- hasComment: { type: Sequelize.INTEGER, comment: "I'm a comment!" },
-
  // You can specify a custom field name via the "field" attribute:
  fieldWithUnderscores: { type: Sequelize.STRING, field: "field_with_underscores" },
 
