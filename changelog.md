@@ -1,4 +1,6 @@
 # Next
+
+# 4.1.0
 - [ADDED] `Model.increment`, to increment multiple rows at a time [#7394](https://github.com/sequelize/sequelize/pull/7394)
 - [FIXED] calling `.close` on Sequelize db instance does not properly close the connection socket [#7751](https://github.com/sequelize/sequelize/issues/7751)
 
