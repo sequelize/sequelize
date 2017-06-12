@@ -1,15 +1,14 @@
 'use strict';
 
-/* jshint -W030 */
-const chai = require('chai')
-  , expect = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , current   = Support.sequelize;
+const chai = require('chai'),
+  expect = chai.expect,
+  Support   = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Instance'), function() {
-  describe('set', function () {
-    it('sets nested keys in JSON objects', function () {
+describe(Support.getTestDialectTeaser('Instance'), () => {
+  describe('set', () => {
+    it('sets nested keys in JSON objects', () => {
       const User = current.define('User', {
         meta: DataTypes.JSONB
       });
@@ -31,7 +30,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(user.get('meta') === meta).to.equal(true);
     });
 
-    it('doesnt mutate the JSONB defaultValue', function() {
+    it('doesnt mutate the JSONB defaultValue', () => {
       const User = current.define('User', {
         meta: {
           type: DataTypes.JSONB,
@@ -45,7 +44,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(user2.get('meta')).to.deep.equal({});
     });
 
-    it('sets the date "1970-01-01" to previously null field', function() {
+    it('sets the date "1970-01-01" to previously null field', () => {
       const User = current.define('User', {
         date: {
           type: DataTypes.DATE,
@@ -60,7 +59,7 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       expect(user1.get('date').getTime()).to.equal(new Date('1970-01-01').getTime());
     });
 
-    it('overwrites non-date originalValue with date', function() {
+    it('overwrites non-date originalValue with date', () => {
       const User = current.define('User', {
         date: DataTypes.DATE
       });
