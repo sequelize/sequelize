@@ -21,8 +21,8 @@ module.exports = function(Sequelize) {
   });
 
   // Shim Model static methods to then shim getter/setter methods
-  ['hasOne', 'belongsTo', 'hasMany', 'belongsToMany'].forEach((type) => {
-    shimMethod(Sequelize.Model, type, (original) => {
+  ['hasOne', 'belongsTo', 'hasMany', 'belongsToMany'].forEach(type => {
+    shimMethod(Sequelize.Model, type, original => {
       return function() {
         const model = this,
           association = original.apply(this, arguments);
@@ -129,7 +129,7 @@ module.exports = function(Sequelize) {
   function shim(obj, name, index, conform, debugName) {
     index--;
 
-    shimMethod(obj, name, (original) => {
+    shimMethod(obj, name, original => {
       const sequelizeProto = obj === Sequelize.prototype;
 
       return function() {
@@ -283,7 +283,7 @@ module.exports = function(Sequelize) {
  * @returns {Object} - `obj` input
  */
 function forOwn(obj, fn) {
-  Object.getOwnPropertyNames(obj).forEach((key) => {
+  Object.getOwnPropertyNames(obj).forEach(key => {
     if (Object.getOwnPropertyDescriptor(obj, key).hasOwnProperty('value')) fn(obj[key], key, obj);
   });
   return obj;
@@ -311,7 +311,7 @@ function getFunctionCode(fn) {
  * @returns {Array} - Array of names of `method`'s arguments
  */
 function getFunctionArguments(tree) {
-  return tree.body[0].params.map((param) => {return param.name;});
+  return tree.body[0].params.map(param => {return param.name;});
 }
 
 /**
@@ -348,7 +348,7 @@ function getArgumentsConformFn(method, args, hints, tree) {
  * @returns {Object} - Clone of options
  */
 function cloneOptions(options) {
-  return _.cloneDeepWith(options, (value) => {
+  return _.cloneDeepWith(options, value => {
     if (typeof value === 'object' && !_.isPlainObject(value)) return value;
   });
 }

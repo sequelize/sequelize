@@ -75,7 +75,7 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const resolvedPromise = new Promise((resolve) => {
+    const resolvedPromise = new Promise(resolve => {
       resolve({
         queryType: 'read'
       });
@@ -121,7 +121,7 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const resolvedPromise = new Promise((resolve) => {
+    const resolvedPromise = new Promise(resolve => {
       resolve({
         queryType: 'read'
       });
@@ -144,6 +144,25 @@ describe('Connection Manager', () => {
         const calls = connectStub.getCalls();
         chai.expect(calls[1].args[0].host).to.eql('the-boss');
       });
+  });
+
+  it('should clear the pool after draining it', () => {
+    const options = {
+      replication: null
+    };
+    const sequelize = Support.createSequelizeInstance(options);
+    const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+
+    connectionManager.initPools();
+
+    const poolDrainSpy = sandbox.spy(connectionManager.pool, 'drain');
+    const poolClearSpy = sandbox.spy(connectionManager.pool, 'clear');
+
+    return connectionManager.close().then(() => {
+      expect(poolDrainSpy.calledOnce).to.be.true;
+      expect(poolClearSpy.calledOnce).to.be.true;
+    });
+
   });
 
 });

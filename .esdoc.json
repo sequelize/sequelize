@@ -10,13 +10,14 @@
   "coverage": false,
   "lint": false,
   "plugins": [
-    {"name": "./docs/esdoc-sequelize.js"}
+    {"name": "./docs/plugins/esdoc-sequelize.js"}
   ],
   "styles": [
-    "./docs/style.css"
+    "./docs/css/style.css",
+    "./docs/css/theme.css"
   ],
   "scripts": [
-    "./docs/script.js"
+    "./docs/scripts/script.js"
   ],
   "manual": {
     "globalIndex": true,
@@ -36,7 +37,11 @@
       "./docs/scopes.md",
       "./docs/hooks.md",
       "./docs/raw-queries.md",
-      "./docs/migrations.md"
+      "./docs/migrations.md",
+      "./docs/upgrade-to-v4.md"
+    ],
+    "changelog": [
+      "./changelog.md"
     ],
     "advanced": [
       "./docs/legacy.md"

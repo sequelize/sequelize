@@ -12,8 +12,8 @@ BelongsTo associations are associations where the foreign key for the one-to-one
 A simple example would be a **Player** being part of a **Team** with the foreign key on the player.
 
 ```js
-var Player = this.sequelize.define('player', {/* attributes */})
-  , Team  = this.sequelize.define('team', {/* attributes */});
+const Player = this.sequelize.define('player', {/* attributes */});
+const Team  = this.sequelize.define('team', {/* attributes */});
 
 Player.belongsTo(Team); // Will add a teamId attribute to Player to hold the primary key value for Team
 ```
@@ -25,18 +25,18 @@ By default the foreign key for a belongsTo relation will be generated from the t
 The default casing is `camelCase` however if the source model is configured with `underscored: true` the foreignKey will be `snake_case`.
 
 ```js
-var User = this.sequelize.define('user', {/* attributes */})
-  , Company  = this.sequelize.define('company', {/* attributes */});
+const User = this.sequelize.define('user', {/* attributes */})
+const Company  = this.sequelize.define('company', {/* attributes */});
 
 User.belongsTo(Company); // Will add companyId to user
 
-var User = this.sequelize.define('user', {/* attributes */}, {underscored: true})
-  , Company  = this.sequelize.define('company', {
-    uuid: {
-      type: Sequelize.UUID,
-      primaryKey: true
-    }
-  });
+const User = this.sequelize.define('user', {/* attributes */}, {underscored: true})
+const Company  = this.sequelize.define('company', {
+  uuid: {
+    type: Sequelize.UUID,
+    primaryKey: true
+  }
+});
 
 User.belongsTo(Company); // Will add company_uuid to user
 ```
@@ -44,8 +44,8 @@ User.belongsTo(Company); // Will add company_uuid to user
 In cases where `as` has been defined it will be used in place of the target model name.
 
 ```js
-var User = this.sequelize.define('user', {/* attributes */})
-  , UserRole  = this.sequelize.define('userRole', {/* attributes */});
+const User = this.sequelize.define('user', {/* attributes */})
+const UserRole  = this.sequelize.define('userRole', {/* attributes */});
 
 User.belongsTo(UserRole, {as: 'role'}); // Adds roleId to user rather than userRoleId
 ```
@@ -54,8 +54,8 @@ In all cases the default foreign key can be overwritten with the `foreignKey` op
 When the foreign key option is used, Sequelize will use it as-is:
 
 ```js
-var User = this.sequelize.define('user', {/* attributes */})
-  , Company  = this.sequelize.define('company', {/* attributes */});
+const User = this.sequelize.define('user', {/* attributes */})
+const Company  = this.sequelize.define('company', {/* attributes */});
 
 User.belongsTo(Company, {foreignKey: 'fk_company'}); // Adds fk_company to User
 ```
@@ -65,8 +65,8 @@ User.belongsTo(Company, {foreignKey: 'fk_company'}); // Adds fk_company to User
 The target key is the column on the target model that the foreign key column on the source model points to. By default the target key for a belongsTo relation will be the target model's primary key. To define a custom column, use the `targetKey` option.
 
 ```js
-var User = this.sequelize.define('user', {/* attributes */})
-  , Company  = this.sequelize.define('company', {/* attributes */});
+const User = this.sequelize.define('user', {/* attributes */})
+const Company  = this.sequelize.define('company', {/* attributes */});
 
 User.belongsTo(Company, {foreignKey: 'fk_companyname', targetKey: 'name'}); // Adds fk_companyname to User
 ```
@@ -77,8 +77,8 @@ User.belongsTo(Company, {foreignKey: 'fk_companyname', targetKey: 'name'}); // A
 HasOne associations are associations where the foreign key for the one-to-one relation exists on the **target model**.
 
 ```js
-var User = sequelize.define('user', {/* ... */})
-var Project = sequelize.define('project', {/* ... */})
+const User = sequelize.define('user', {/* ... */})
+const Project = sequelize.define('project', {/* ... */})
  
 // One-way associations
 Project.hasOne(User)
@@ -106,7 +106,7 @@ Project.hasOne(User, { as: 'Initiator' })
 // Now you will get Project#getInitiator and Project#setInitiator
  
 // Or let's define some self references
-var Person = sequelize.define('person', { /* ... */})
+const Person = sequelize.define('person', { /* ... */})
  
 Person.hasOne(Person, {as: 'Father'})
 // this will add the attribute FatherId to Person
@@ -135,8 +135,8 @@ In Sequelize 1:1 relationship can be set using HasOne and BelongsTo. They are su
 Suppose we have two tables to link **Player** and **Team**. Lets define their models.
 
 ```js
-var Player = this.sequelize.define('player', {/* attributes */})
-  , Team  = this.sequelize.define('team', {/* attributes */});
+const Player = this.sequelize.define('player', {/* attributes */})
+const Team  = this.sequelize.define('team', {/* attributes */});
 ```
 
 When we link two models in Sequelize we can refer them as pairs of **source** and **target** models. Like this
@@ -160,9 +160,9 @@ HasOne and BelongsTo insert the association key in different models from each ot
 Here is an example demonstrating use cases of BelongsTo and HasOne.
 
 ```js
-var Player = this.sequelize.define('player', {/* attributes */})
-  , Coach  = this.sequelize.define('coach', {/* attributes */})
-  , Team  = this.sequelize.define('team', {/* attributes */});
+const Player = this.sequelize.define('player', {/* attributes */})
+const Coach  = this.sequelize.define('coach', {/* attributes */})
+const Team  = this.sequelize.define('team', {/* attributes */});
 ```
 
 Suppose our `Player` model has information about its team as `teamId` column. Information about each Team's `Coach` is stored in the `Team` model as `coachId` column. These both scenarios requires different kind of 1:1 relation because foreign key relation is present on different models each time.
@@ -183,8 +183,8 @@ Coach.hasOne(Team)  // `coachId` will be added on Team / Target model
 
 One-To-Many associations are connecting one source with multiple targets. The targets however are again connected to exactly one specific source.
 ```js
-var User = sequelize.define('user', {/* ... */})
-var Project = sequelize.define('project', {/* ... */})
+const User = sequelize.define('user', {/* ... */})
+const Project = sequelize.define('project', {/* ... */})
  
 // OK. Now things get more complicated (not really visible to the user :)).
 // First let's define a hasMany association
@@ -197,8 +197,8 @@ But we want more! Let's define it the other way around by creating a many to man
 Sometimes you may need to associate records on different columns, you may use `sourceKey` option:
 
 ```js
-var City = sequelize.define('city', { countryCode: Sequelize.STRING });
-var Country = sequelize.define('country', { isoCode: Sequelize.STRING });
+const City = sequelize.define('city', { countryCode: Sequelize.STRING });
+const Country = sequelize.define('country', { isoCode: Sequelize.STRING });
 
 // Here we can connect countries and cities base on country code
 Country.hasMany(City, {foreignKey: 'countryCode', sourceKey: 'isoCode'});
@@ -244,9 +244,9 @@ Person.belongsToMany(Person, { as: 'Children', through: 'PersonChildren' })
 If you want additional attributes in your join table, you can define a model for the join table in sequelize, before you define the association, and then tell sequelize that it should use that model for joining, instead of creating a new one:
 
 ```js
-User = sequelize.define('user', {})
-Project = sequelize.define('project', {})
-UserProjects = sequelize.define('userProjects', {
+const User = sequelize.define('user', {})
+const Project = sequelize.define('project', {})
+const UserProjects = sequelize.define('userProjects', {
     status: DataTypes.STRING
 })
  
@@ -263,7 +263,7 @@ user.addProject(project, { through: { status: 'started' }})
 By default the code above will add projectId and userId to the UserProjects table, and _remove any previously defined primary key attribute_ - the table will be uniquely identified by the combination of the keys of the two tables, and there is no reason to have other PK columns. To enforce a primary key on the `UserProjects` model you can add it manually.
 
 ```js
-UserProjects = sequelize.define('userProjects', {
+const UserProjects = sequelize.define('userProjects', {
   id: {
     type: Sequelize.INTEGER,
     primaryKey: true,
@@ -295,37 +295,37 @@ Association scopes allow you to place a scope (a set of default attributes for `
 Assume we have tables Comment, Post, and Image. A comment can be associated to either an image or a post via `commentable_id` and `commentable` - we say that Post and Image are `Commentable`
 
 ```js
-this.Comment = this.sequelize.define('comment', {
+const Comment = this.sequelize.define('comment', {
   title: Sequelize.STRING,
   commentable: Sequelize.STRING,
   commentable_id: Sequelize.INTEGER
 });
 
-this.Comment.prototype.getItem = function() {
+Comment.prototype.getItem = function() {
   return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
 };
 
-this.Post.hasMany(this.Comment, {
+Post.hasMany(this.Comment, {
   foreignKey: 'commentable_id',
   constraints: false,
   scope: {
     commentable: 'post'
   }
 });
-this.Comment.belongsTo(this.Post, {
+Comment.belongsTo(this.Post, {
   foreignKey: 'commentable_id',
   constraints: false,
   as: 'post'
 });
 
-this.Image.hasMany(this.Comment, {
+Image.hasMany(this.Comment, {
   foreignKey: 'commentable_id',
   constraints: false,
   scope: {
     commentable: 'image'
   }
 });
-this.Comment.belongsTo(this.Image, {
+Comment.belongsTo(this.Image, {
   foreignKey: 'commentable_id',
   constraints: false,
   as: 'image'
@@ -355,7 +355,7 @@ Continuing with the idea of a polymorphic model, consider a tag table - an item 
 For brevity, the example only shows a Post model, but in reality Tag would be related to several other models.
 
 ```js
-ItemTag = sequelize.define('item_tag', {
+const ItemTag = sequelize.define('item_tag', {
   id : {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -375,7 +375,7 @@ ItemTag = sequelize.define('item_tag', {
     references: null
   }
 });
-Tag = sequelize.define('tag', {
+const Tag = sequelize.define('tag', {
   name: DataTypes.STRING
 });
 
@@ -447,7 +447,7 @@ User.belongsToMany(Project, { as: { singular: 'task', plural: 'tasks' }})
 If you know that a model will always use the same alias in associations, you can provide it when creating the model
 
 ```js
-var Project = sequelize.define('project', attributes, {
+const Project = sequelize.define('project', attributes, {
   name: {
     singular: 'task',
     plural: 'tasks',
@@ -486,24 +486,24 @@ Task.create()...
 Task.create()...
  
 // save them... and then:
-project.setTasks([task1, task2]).then(function() {
+project.setTasks([task1, task2]).then(() => {
   // saved!
 })
  
 // ok, now they are saved... how do I get them later on?
-project.getTasks().then(function(associatedTasks) {
+project.getTasks().then(associatedTasks => {
   // associatedTasks is an array of tasks
 })
  
 // You can also pass filters to the getter method.
 // They are equal to the options you can pass to a usual finder method.
-project.getTasks({ where: 'id > 10' }).then(function(tasks) {
+project.getTasks({ where: 'id > 10' }).then(tasks => {
   // tasks with an id greater than 10 :)
 })
  
 // You can also only retrieve certain fields of a associated object.
-project.getTasks({attributes: ['title']}).then(function(tasks) {
-    // retrieve tasks with the attributes "title" and "id"
+project.getTasks({attributes: ['title']}).then(tasks => {
+  // retrieve tasks with the attributes "title" and "id"
 })
 ```
 
@@ -511,17 +511,17 @@ To remove created associations you can just call the set method without a specif
 
 ```js
 // remove the association with task1
-project.setTasks([task2]).then(function(associatedTasks) {
+project.setTasks([task2]).then(associatedTasks => {
   // you will get task2 only
 })
  
 // remove 'em all
-project.setTasks([]).then(function(associatedTasks) {
+project.setTasks([]).then(associatedTasks => {
   // you will get an empty array
 })
  
 // or remove 'em more directly
-project.removeTask(task1).then(function() {
+project.removeTask(task1).then(() => {
   // it's gone
 })
  
@@ -573,8 +573,8 @@ u.setProjects([project1, project2], { through: { status: 'active' }})
 When getting data on an association that has a custom join table, the data from the join table will be returned as a DAO instance:
 
 ```js
-u.getProjects().then(function(projects) {
-  var project = projects[0]
+u.getProjects().then(projects => {
+  const project = projects[0]
  
   if (project.UserProjects.status === 'active') {
     // .. do magic
@@ -597,12 +597,12 @@ You can also check if an object is already associated with another one (N:M only
 
 ```js
 // check if an object is one of associated ones:
-Project.create({ /* */ }).then(function(project) {
-  return User.create({ /* */ }).then(function(user) {
-    return project.hasUser(user).then(function(result) {
+Project.create({ /* */ }).then(project => {
+  return User.create({ /* */ }).then(user => {
+    return project.hasUser(user).then(result => {
       // result would be false
-      return project.addUser(user).then(function() {
-        return project.hasUser(user).then(function(result) {
+      return project.addUser(user).then(() => {
+        return project.hasUser(user).then(result => {
           // result would be true
         })
       })
@@ -612,12 +612,12 @@ Project.create({ /* */ }).then(function(project) {
  
 // check if all associated objects are as expected:
 // let's assume we have already a project and two users
-project.setUsers([user1, user2]).then(function() {
+project.setUsers([user1, user2]).then(() => {
   return project.hasUsers([user1]);
-}).then(function(result) {
+}).then(result => {
   // result would be false
   return project.hasUsers([user1, user2]);
-}).then(function(result) {
+}).then(result => {
   // result would be true
 })
 ```
@@ -627,8 +627,8 @@ project.setUsers([user1, user2]).then(function() {
 When you create associations between your models in sequelize, foreign key references with constraints will automatically be created. The setup below:
 
 ```js
-var Task = this.sequelize.define('task', { title: Sequelize.STRING })
-  , User = this.sequelize.define('user', { username: Sequelize.STRING })
+const Task = this.sequelize.define('task', { title: Sequelize.STRING })
+const User = this.sequelize.define('user', { username: Sequelize.STRING })
  
 User.hasMany(Task)
 Task.belongsTo(User)
@@ -656,12 +656,12 @@ For 1:1 and 1:m associations the default option is `SET NULL` for deletion, and 
 Adding constraints between tables means that tables must be created in the database in a certain order, when using `sequelize.sync`. If Task has a reference to User, the User table must be created before the Task table can be created. This can sometimes lead to circular references, where sequelize cannot find an order in which to sync. Imagine a scenario of documents and versions. A document can have multiple versions, and for convenience, a document has an reference to it's current version.
 
 ```js
-var Document = this.sequelize.define('document', {
-      author: Sequelize.STRING
-    })
-  , Version = this.sequelize.define('version', {
-      timestamp: Sequelize.DATE
-    })
+const Document = this.sequelize.define('document', {
+  author: Sequelize.STRING
+})
+const Version = this.sequelize.define('version', {
+  timestamp: Sequelize.DATE
+})
 
 Document.hasMany(Version) // This adds document_id to version
 Document.belongsTo(Version, { as: 'Current', foreignKey: 'current_version_id'}) // This adds current_version_id to document
@@ -693,11 +693,9 @@ CREATE TABLE IF NOT EXISTS `Version` (
 
 Sometimes you may want to reference another table, without adding any constraints, or associations. In that case you can manually add the reference attributes to your schema definition, and mark the relations between them.
 
-```js
-var Series, Trainer, Video
- 
+```js 
 // Series has a trainer_id=Trainer.id foreign reference key after we call Trainer.hasMany(series)
-Series = sequelize.define('series', {
+const Series = sequelize.define('series', {
   title:        DataTypes.STRING,
   sub_title:    DataTypes.STRING,
   description:  DataTypes.TEXT,
@@ -712,13 +710,13 @@ Series = sequelize.define('series', {
   }
 })
  
-Trainer = sequelize.define('trainer', {
+const Trainer = sequelize.define('trainer', {
   first_name: DataTypes.STRING,
   last_name:  DataTypes.STRING
 });
  
 // Video has a series_id=Series.id foreign reference key after we call Series.hasOne(Video)...
-Video = sequelize.define('video', {
+const Video = sequelize.define('video', {
   title:        DataTypes.STRING,
   sequence:     DataTypes.INTEGER,
   description:  DataTypes.TEXT,
@@ -746,14 +744,14 @@ An instance can be created with nested association in one step, provided all ele
 Consider the following models:
 
 ```js
-var Product = this.sequelize.define('product', {
+const Product = this.sequelize.define('product', {
   title: Sequelize.STRING
 });
-var User = this.sequelize.define('user', {
+const User = this.sequelize.define('user', {
   first_name: Sequelize.STRING,
   last_name: Sequelize.STRING
 });
-var Address = this.sequelize.define('address', {
+const Address = this.sequelize.define('address', {
   type: Sequelize.STRING,
   line_1: Sequelize.STRING,
   line_2: Sequelize.STRING,
@@ -762,8 +760,8 @@ var Address = this.sequelize.define('address', {
   zip: Sequelize.STRING,
 });
 
-var Product.User = Product.belongsTo(User);
-var User.Addresses = User.hasMany(Address);
+const Product.User = Product.belongsTo(User);
+const User.Addresses = User.hasMany(Address);
 // Also works for `hasOne`
 ```
 
@@ -798,7 +796,7 @@ Here, our user model is called `user`, with a lowercase u - This means that the 
 The previous example can be extended to support an association alias.
 
 ```js
-var Creator = Product.belongsTo(User, {as: 'creator'});
+const Creator = Product.belongsTo(User, {as: 'creator'});
 
 return Product.create({
   title: 'Chair',
@@ -813,10 +811,10 @@ return Product.create({
 
 ### Creating elements of a "HasMany" or "BelongsToMany" association
 
-Let's introduce the ability to associate a project with many tags. Setting up the models could look like:
+Let's introduce the ability to associate a product with many tags. Setting up the models could look like:
 
 ```js
-var Tag = this.sequelize.define('tag', {
+const Tag = this.sequelize.define('tag', {
   name: Sequelize.STRING
 });
 
@@ -824,7 +822,7 @@ Product.hasMany(Tag);
 // Also works for `belongsToMany`.
 ```
 
-Now we can create a project with multiple tags in the following way:
+Now we can create a product with multiple tags in the following way:
 
 ```js
 Product.create({
@@ -842,7 +840,7 @@ Product.create({
 And, we can modify this example to support an alias as well:
 
 ```js
-var Categories = Product.hasMany(Tag, {as: 'categories'});
+const Categories = Product.hasMany(Tag, {as: 'categories'});
 
 Product.create({
   id: 1,

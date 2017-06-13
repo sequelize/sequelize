@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should apply defaultScope', function() {
         return this.ScopeMe.update({ username: 'ruben' }, { where: {}}).bind(this).then(function() {
           return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' }});
-        }).then((users) => {
+        }).then(users => {
           expect(users).to.have.length(2);
           expect(users[0].get('email')).to.equal('tobi@fakeemail.com');
           expect(users[1].get('email')).to.equal('dan@sequelizejs.com');
@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to override default scope', function() {
         return this.ScopeMe.update({ username: 'ruben' }, { where: { access_level: { lt: 5 }}}).bind(this).then(function() {
           return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' }});
-        }).then((users) => {
+        }).then(users => {
           expect(users).to.have.length(2);
           expect(users[0].get('email')).to.equal('tony@sequelizejs.com');
           expect(users[1].get('email')).to.equal('fred@foobar.com');
@@ -68,8 +68,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to unscope destroy', function() {
         return this.ScopeMe.unscoped().update({ username: 'ruben' }, { where: {}}).bind(this).then(function() {
           return this.ScopeMe.unscoped().findAll();
-        }).then((rubens) => {
-          expect(_.every(rubens, (r) => {
+        }).then(rubens => {
+          expect(_.every(rubens, r => {
             return r.get('username') === 'ruben';
           })).to.be.true;
         });
@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to apply other scopes', function() {
         return this.ScopeMe.scope('lowAccess').update({ username: 'ruben' }, { where: {}}).bind(this).then(function() {
           return this.ScopeMe.unscoped().findAll({ where: { username: { $ne: 'ruben' }}});
-        }).then((users) => {
+        }).then(users => {
           expect(users).to.have.length(1);
           expect(users[0].get('email')).to.equal('tobi@fakeemail.com');
         });
@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to merge scopes with where', function() {
         return this.ScopeMe.scope('lowAccess').update({ username: 'ruben' }, { where: { username: 'dan'}}).bind(this).then(function() {
           return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' }});
-        }).then((users) => {
+        }).then(users => {
           expect(users).to.have.length(1);
           expect(users[0].get('email')).to.equal('dan@sequelizejs.com');
         });

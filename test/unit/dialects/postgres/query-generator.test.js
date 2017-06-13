@@ -16,22 +16,22 @@ if (dialect.match(/^postgres/)) {
       arithmeticQuery: [
         {
           title:'Should use the plus operator',
-          arguments: ['+', 'myTable', { foo: 'bar' }, {}],
+          arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\'  RETURNING *'
         },
         {
           title:'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\' WHERE "bar" = \'biz\' RETURNING *'
         },
         {
           title:'Should use the minus operator',
-          arguments: ['-', 'myTable', { foo: 'bar' }],
+          arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\'  RETURNING *'
         },
         {
           title:'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\' WHERE "bar" = \'biz\' RETURNING *'
         }
       ],
@@ -255,9 +255,6 @@ if (dialect.match(/^postgres/)) {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
           expectation: 'SELECT count(*) AS \"count\" FROM \"foo\";'
         }, {
-          arguments: ['myTable', {where: ["foo='bar'"]}],
-          expectation: "SELECT * FROM \"myTable\" WHERE foo='bar';"
-        }, {
           arguments: ['myTable', {order: ['id']}],
           expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
           context: QueryGenerator
@@ -385,18 +382,6 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {group: ['name', 'title']}],
           expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\", \"title\";'
         }, {
-          title: 'HAVING clause works with string replacements',
-          arguments: ['myTable', function(sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: ['creationYear > ?', 2002]
-            };
-          }],
-          expectation: 'SELECT *, YEAR(\"createdAt\") AS \"creationYear\" FROM \"myTable\" GROUP BY \"creationYear\", \"title\" HAVING creationYear > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true
-        }, {
           title: 'HAVING clause works with where-like hash',
           arguments: ['myTable', function(sequelize) {
             return {
@@ -459,10 +444,6 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
           expectation: 'SELECT count(*) AS count FROM foo;',
-          context: {options: {quoteIdentifiers: false}}
-        }, {
-          arguments: ['myTable', {where: ["foo='bar'"]}],
-          expectation: "SELECT * FROM myTable WHERE foo='bar';",
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {order: ['id DESC']}],
@@ -905,7 +886,7 @@ if (dialect.match(/^postgres/)) {
           QueryGenerator.options.quoteIdentifiers = true;
         });
 
-        tests.forEach((test) => {
+        tests.forEach(test => {
           const title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly

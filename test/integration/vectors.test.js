@@ -18,10 +18,10 @@ describe(Support.getTestDialectTeaser('Vectors'), () => {
     return Student.sync({force: true}).then(() => {
       return Student.create({
         name: 'Robert\\\'); DROP TABLE "students"; --'
-      }).then((result) => {
+      }).then(result => {
         expect(result.get('name')).to.equal('Robert\\\'); DROP TABLE "students"; --');
         return Student.findAll();
-      }).then((result) => {
+      }).then(result => {
         expect(result[0].name).to.equal('Robert\\\'); DROP TABLE "students"; --');
       });
     });

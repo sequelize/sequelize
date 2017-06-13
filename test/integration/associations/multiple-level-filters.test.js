@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
                   required: true
                 }
               ]
-            }).then((tasks) => {
+            }).then(tasks => {
 
               expect(tasks.length).to.be.equal(2);
               expect(tasks[0].title).to.be.equal('fight empire');
@@ -115,7 +115,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
                   required: true
                 }
               ]
-            }).then((tasks) => {
+            }).then(tasks => {
               expect(tasks.length).to.be.equal(2);
               expect(tasks[0].title).to.be.equal('fight empire');
               expect(tasks[1].title).to.be.equal('stablish republic');
@@ -173,7 +173,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
                   required: true
                 }
               ]
-            }).then((users) => {
+            }).then(users => {
               expect(users.length).to.be.equal(1);
               expect(users[0].username).to.be.equal('leia');
             });
@@ -201,17 +201,17 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
         }, {
           title: 'empire'
         }]).then(() => {
-          return User.findById(1).then((user) => {
-            return Project.findById(1).then((project) => {
+          return User.findById(1).then(user => {
+            return Project.findById(1).then(project => {
               return user.setProjects([project]).then(() => {
-                return User.findById(2).then((user) => {
-                  return Project.findById(2).then((project) => {
+                return User.findById(2).then(user => {
+                  return Project.findById(2).then(project => {
                     return user.setProjects([project]).then(() => {
                       return User.findAll({
                         include: [
                           {model: Project, where: {title: 'republic'}}
                         ]
-                      }).then((users) => {
+                      }).then(users => {
                         expect(users.length).to.be.equal(1);
                         expect(users[0].username).to.be.equal('leia');
                       });
