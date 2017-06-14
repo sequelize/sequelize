@@ -108,45 +108,24 @@ $ npm run docs
 
 The generated documentation will be placed in `docs/tmp.md`.
 
-### 5. That's all ###
+### 5. Commit ###
 
-Just commit and send your pull request. Happy hacking and thank you for contributing.
+Sequelize follows the [AngularJS Commit Message Conventions](https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit#heading=h.em2hiij8p46d).
+Example:
+
+    feat(pencil): add 'graphiteWidth' option
+
+Commit messages are used to automatically generate a changelog, so make sure to follow the convention.
+If you are unsure, you can let [commitizen](https://github.com/commitizen/cz-cli) ask you questions and commit for you (just run `node_modules/.bin/git-cz`).
+When you commit, your commit message will be validated automatically with [validate-commit-msg](https://github.com/kentcdodds/validate-commit-msg).
+
+Then push and send your pull request. Happy hacking and thank you for contributing.
 
 ### Coding Guidelines ###
 Have a look at our [.eslintrc](https://github.com/sequelize/sequelize/blob/master/.eslintrc) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
 
-#### Spaces ####
-
-Use spaces when defining functions.
-
-```js
-function(arg1, arg2, arg3) {
-  return 1;
-}
-```
-
-Use spaces for if statements.
-
-```js
-if (condition) {
-  // do something
-} else {
-  // something else
-}
-```
-
-#### Variable declarations ####
-
-```js
-var num  = 1
-  , user = new User()
-  , date = new Date();
-```
-
-#### Semicolons ####
-Yes
-
 # Publishing a release
+
 
 1. Ensure that latest build on master is green
 2. Ensure your local code is up to date (`git pull origin master`)
