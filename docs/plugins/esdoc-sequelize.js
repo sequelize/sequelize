@@ -24,9 +24,5 @@ exports.onHandleHTML = function(ev) {
     $(`script[src="${script}"]`).remove();
   }
 
-  // Prepare changelog
-  $('div[data-toc-name="changelog"] ul.manual-toc li:not(:first-child)').remove();
-  $('div[data-toc-name="changelog"] ul.manual-toc li:first-child a').text('Changelog');
-
   ev.data.html = $.html();
 };

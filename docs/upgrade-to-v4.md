@@ -1,6 +1,6 @@
 # Upgrade to V4
 
-Sequelize V4 is a major release and it introduces new features and breaking changes. Majority of sequelize codebase has been refactored to use ES2015 features. The following guide lists some of the changes to upgrade from v3 to v4. See [Changelog](changelog) for full list of changes.
+Sequelize V4 is a major release and it introduces new features and breaking changes. Majority of sequelize codebase has been refactored to use ES2015 features. The following guide lists some of the changes to upgrade from v3 to v4. See the [Changelog](https://github.com/sequelize/sequelize/blob/b49f936e9aa316cf4a13bade76585acf4d5d8b04/changelog.md) for full list of changes.
 
 ### Breaking Changes
 
