@@ -85,6 +85,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 - `Model.validate` instance method now runs validation hooks by default. Previously you needed to pass `{ hooks: true }`. You can override this behavior by passing `{ hooks: false }`
+- The resulting promise from the `Model.validate` instance method will be rejected when validation fails. It will fulfill when validation succeeds.
 - Raw options for where, order and group like `where: { $raw: '..', order: [{ raw: '..' }], group: [{ raw: '..' }] }` have been removed to prevent SQL injection attacks.
 
 ### New features
