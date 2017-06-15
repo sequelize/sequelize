@@ -2055,7 +2055,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
   });
 
-  it('should be able to generate a correct request with inner and outer join', function() {
+  it.only('should be able to generate a correct request with inner and outer join', function() {
     const Customer = this.sequelize.define('customer', {
       name: DataTypes.STRING
     });
@@ -2099,7 +2099,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       })
       .then(result => {
         //We just want to check that the query correctly runs
-        expect(result.length).to.equal(0);
+        expect(result).to.not.be.ok;
       });
     });
   });
