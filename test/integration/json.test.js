@@ -1,32 +1,32 @@
 'use strict';
 
-const chai = require('chai')
-  , expect = chai.expect
-  , Support = require('./support')
-  , Sequelize = Support.Sequelize
-  , current = Support.sequelize
-  , DataTypes = Sequelize.DataTypes;
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require('./support'),
+  Sequelize = Support.Sequelize,
+  current = Support.sequelize,
+  DataTypes = Sequelize.DataTypes;
 
-describe('model', function () {
+describe('model', () => {
   if (current.dialect.supports.JSON) {
-    describe('json', function () {
-      beforeEach(function () {
+    describe('json', () => {
+      beforeEach(function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           emergency_contact: DataTypes.JSON,
-          emergencyContact: DataTypes.JSON,
+          emergencyContact: DataTypes.JSON
         });
         return this.sequelize.sync({ force: true });
       });
 
-      it('should tell me that a column is json', function () {
+      it('should tell me that a column is json', function() {
         return this.sequelize.queryInterface.describeTable('Users')
           .then(table => {
             expect(table.emergency_contact.type).to.equal('JSON');
           });
       });
 
-      it('should stringify json with insert', function () {
+      it('should stringify json with insert', function() {
         return this.User.create({
           username: 'bob',
           emergency_contact: { name: 'joe', phones: [1337, 42] }
@@ -44,7 +44,7 @@ describe('model', function () {
         });
       });
 
-      it('should insert json using a custom field name', function () {
+      it('should insert json using a custom field name', function() {
         this.UserFields = this.sequelize.define('UserFields', {
           emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' }
         });
@@ -57,7 +57,7 @@ describe('model', function () {
         });
       });
 
-      it('should update json using a custom field name', function () {
+      it('should update json using a custom field name', function() {
         this.UserFields = this.sequelize.define('UserFields', {
           emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' }
         });
@@ -73,7 +73,7 @@ describe('model', function () {
         });
       });
 
-      it('should be able retrieve json value as object', function () {
+      it('should be able retrieve json value as object', function() {
         const emergencyContact = { name: 'kate', phone: 1337 };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
@@ -86,7 +86,7 @@ describe('model', function () {
           });
       });
 
-      it('should be able to retrieve element of array by index', function () {
+      it('should be able to retrieve element of array by index', function() {
         const emergencyContact = { name: 'kate', phones: [1337, 42] };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
@@ -102,7 +102,7 @@ describe('model', function () {
           });
       });
 
-      it('should be able to retrieve root level value of an object by key', function () {
+      it('should be able to retrieve root level value of an object by key', function() {
         const emergencyContact = { kate: 1337 };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
@@ -118,7 +118,7 @@ describe('model', function () {
           });
       });
 
-      it('should be able to retrieve nested value of an object by path', function () {
+      it('should be able to retrieve nested value of an object by path', function() {
         const emergencyContact = { kate: { email: 'kate@kate.com', phones: [1337, 42] } };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
@@ -140,7 +140,7 @@ describe('model', function () {
           });
       });
 
-      it('should be able to retrieve a row based on the values of the json document', function () {
+      it('should be able to retrieve a row based on the values of the json document', function() {
         return this.sequelize.Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
@@ -154,7 +154,7 @@ describe('model', function () {
         });
       });
 
-      it('should be able to query using the nested query language', function () {
+      it('should be able to query using the nested query language', function() {
         return this.sequelize.Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
@@ -167,7 +167,7 @@ describe('model', function () {
         });
       });
 
-      it('should be able to query using dot notation', function () {
+      it('should be able to query using dot notation', function() {
         return this.sequelize.Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
@@ -178,7 +178,7 @@ describe('model', function () {
         });
       });
 
-      it('should be able to query using dot notation with uppercase name', function () {
+      it('should be able to query using dot notation with uppercase name', function() {
         return this.sequelize.Promise.all([
           this.User.create({ username: 'swen', emergencyContact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })
@@ -192,7 +192,7 @@ describe('model', function () {
         });
       });
 
-      it('should be able to query array using property accessor', function () {
+      it('should be able to query array using property accessor', function() {
         return this.sequelize.Promise.all([
           this.User.create({ username: 'swen', emergency_contact: ['kate', 'joe'] }),
           this.User.create({ username: 'anna', emergency_contact: [{ name: 'joe' }] })
@@ -207,8 +207,8 @@ describe('model', function () {
         });
       });
 
-      it('should be able to store values that require JSON escaping', function () {
-        const text = `Multi-line '$string' needing "escaping" for $$ and $1 type values`;
+      it('should be able to store values that require JSON escaping', function() {
+        const text = 'Multi-line \'$string\' needing "escaping" for $$ and $1 type values';
 
         return this.User.create({
           username: 'swen',
@@ -224,8 +224,8 @@ describe('model', function () {
         });
       });
 
-      it('should be able to findOrCreate with values that require JSON escaping', function () {
-        const text = `Multi-line '$string' needing "escaping" for $$ and $1 type values`;
+      it('should be able to findOrCreate with values that require JSON escaping', function() {
+        const text = 'Multi-line \'$string\' needing "escaping" for $$ and $1 type values';
 
         return this.User.findOrCreate({
           where: { username: 'swen' },

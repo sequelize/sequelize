@@ -7,12 +7,17 @@
 [![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com/)
 [![npm](https://img.shields.io/npm/dm/sequelize.svg?maxAge=2592000)](https://www.npmjs.com/package/sequelize)
 [![License](https://img.shields.io/npm/l/sequelize.svg?maxAge=2592000?style=plastic)](https://github.com/sequelize/sequelize/blob/master/LICENSE)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
 
-[Stable (v3) documentation](http://docs.sequelizejs.com/en/v3/)
+## Documentation
 
-[Master / unstable (v4-pre) documentation](http://docs.sequelizejs.com/en/latest/)
+[v4 (stable) documentation](http://docs.sequelizejs.com)
+
+[v4 upgrade guide](http://docs.sequelizejs.com/manual/tutorial/upgrade-to-v4.html)
+
+[v3 documentation](https://sequelize.readthedocs.io/en/v3/)
 
 ## Installation
 
@@ -36,13 +41,13 @@ Starting from 4.0.0 Sequelize will only support Node v4 and above to use ES6 fea
 - CLI ([sequelize-cli](https://github.com/sequelize/cli))
 
 ## Responsible disclosure
-If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md) 
+If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md)
 
 ## Resources
 - [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)
-- [Getting Started](http://docs.sequelizejs.com/en/latest/docs/getting-started/)
+- [Getting Started](http://docs.sequelizejs.com/manual/installation/getting-started)
 - [Express Example](https://github.com/sequelize/express-example)
-- [Documentation](http://docs.sequelizejs.com/en/latest/)
+- [Documentation](http://docs.sequelizejs.com)
 - [Collaboration and pull requests](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 - [Roadmap](https://github.com/sequelize/sequelize/issues/2869)
 - [Twitter](https://twitter.com/SequelizeJS): @SequelizeJS

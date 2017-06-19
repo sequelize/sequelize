@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "4.0.0-2",
+  "version": "0.0.0-development",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -60,28 +60,31 @@
     "chai-as-promised": "^5.3.0",
     "chai-datetime": "^1.4.1",
     "chai-spies": "^0.7.1",
-    "commander": "^2.9.0",
+    "cheerio": "^0.22.0",
+    "commitizen": "^2.9.6",
     "continuation-local-storage": "^3.2.0",
     "cross-env": "^3.0.0",
-    "dox": "^0.9.0",
+    "cz-conventional-changelog": "^2.0.0",
+    "esdoc": "^0.5.2",
     "eslint": "^3.6.0",
-    "git": "^0.1.5",
     "hints": "^1.1.0",
+    "husky": "^0.13.4",
     "istanbul": "^0.4.5",
-    "jshint": "^2.9.3",
     "lcov-result-merger": "^1.2.0",
     "mocha": "^3.0.2",
     "mysql2": "^1.2.0",
     "pg": "^6.1.0",
     "pg-hstore": "^2.3.2",
-    "pg-native": "^1.8.0",
+    "pg-native": "^1.10.0",
     "pg-types": "^1.11.0",
     "rimraf": "^2.5.4",
+    "semantic-release": "^6.3.6",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "sqlite3": "^3.1.4",
     "tedious": "^1.14.0",
-    "uuid-validate": "^0.0.2"
+    "uuid-validate": "^0.0.2",
+    "validate-commit-msg": "^2.12.2"
   },
   "keywords": [
     "mysql",
@@ -95,13 +98,12 @@
   ],
   "main": "index",
   "scripts": {
-    "lint": "eslint lib test",
-    "test": "npm run jshint && npm run teaser && npm run test-unit && npm run test-integration",
+    "lint": "eslint lib test --quiet",
+    "test": "npm run lint && npm run teaser && npm run test-unit && npm run test-integration",
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
     "test-docker-unit": "env-cmd ./test/config/.docker.env npm run test-unit",
     "test-docker-integration": "env-cmd ./test/config/.docker.env npm run test-integration",
-    "docs": "node docs/docs-generator.js",
-    "jshint": "jshint lib test",
+    "docs": "esdoc && cp docs/ROUTER esdoc/ROUTER",
     "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",
     "test-unit": "mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
     "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",
@@ -132,10 +134,17 @@
     "sscce": "docker-compose run sequelize /bin/sh -c \"node sscce.js\"",
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
-    "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce"
+    "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "commitmsg": "validate-commit-msg"
   },
   "engines": {
     "node": ">=4.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
 }

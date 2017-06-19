@@ -1,33 +1,32 @@
 'use strict';
 
-/* jshint -W030 */
-var chai = require('chai')
-  , Sequelize = require('../../../../index')
-  , Promise = Sequelize.Promise
-  , expect = chai.expect
-  , Support = require(__dirname + '/../../support')
-  , dialect = Support.getTestDialect();
+const chai = require('chai'),
+  Sequelize = require('../../../../index'),
+  Promise = Sequelize.Promise,
+  expect = chai.expect,
+  Support = require(__dirname + '/../../support'),
+  dialect = Support.getTestDialect();
 
-describe(Support.getTestDialectTeaser('Model'), function() {
-  describe('attributes', function() {
-    describe('types', function() {
-      describe('VIRTUAL', function() {
+describe(Support.getTestDialectTeaser('Model'), () => {
+  describe('attributes', () => {
+    describe('types', () => {
+      describe('VIRTUAL', () => {
         beforeEach(function() {
           this.User = this.sequelize.define('user', {
             storage: Sequelize.STRING,
             field1: {
               type: Sequelize.VIRTUAL,
-              set: function(val) {
+              set(val) {
                 this.setDataValue('storage', val);
                 this.setDataValue('field1', val);
               },
-              get: function() {
+              get() {
                 return this.getDataValue('field1');
               }
             },
             field2: {
               type: Sequelize.VIRTUAL,
-              get: function() {
+              get() {
                 return 42;
               }
             },
@@ -53,7 +52,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should not be ignored in dataValues get', function() {
-          var user = this.User.build({
+          const user = this.User.build({
             field1: 'field1_value',
             field2: 'field2_value'
           });
@@ -62,7 +61,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should be ignored in table creation', function() {
-          return this.sequelize.getQueryInterface().describeTable(this.User.tableName).then(function(fields) {
+          return this.sequelize.getQueryInterface().describeTable(this.User.tableName).then(fields => {
             expect(Object.keys(fields).length).to.equal(2);
           });
         });
@@ -91,23 +90,23 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should allow me to store selected values', function() {
-          var Post = this.sequelize.define('Post', {
-              text: Sequelize.TEXT,
-              someBoolean: {
-                type: Sequelize.VIRTUAL
-              }
-            });
+          const Post = this.sequelize.define('Post', {
+            text: Sequelize.TEXT,
+            someBoolean: {
+              type: Sequelize.VIRTUAL
+            }
+          });
 
-          return this.sequelize.sync({ force: true}).then(function() {
-            return Post.bulkCreate([{ text: 'text1' },{ text: 'text2' }]);
-          }).then(function() {
-            var boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
+          return this.sequelize.sync({ force: true}).then(() => {
+            return Post.bulkCreate([{ text: 'text1' }, { text: 'text2' }]);
+          }).then(() => {
+            let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
             if (dialect === 'mssql') {
               boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
             }
 
             return Post.find({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
-          }).then(function(post) {
+          }).then(post => {
             expect(post.get('someBoolean')).to.be.ok;
             expect(post.get().someBoolean).to.be.ok;
           });
@@ -116,7 +115,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         it('should be ignored in create and updateAttributes', function() {
           return this.User.create({
             field1: 'something'
-          }).then(function(user) {
+          }).then(user => {
             // We already verified that the virtual is not added to the table definition, so if this succeeds, were good
 
             expect(user.virtualWithDefault).to.equal('cake');
@@ -126,21 +125,21 @@ describe(Support.getTestDialectTeaser('Model'), function() {
             }, {
               fields: ['storage']
             });
-          }).then(function(user) {
+          }).then(user => {
             expect(user.virtualWithDefault).to.equal('cake');
             expect(user.storage).to.equal('something else');
           });
         });
 
         it('should be ignored in bulkCreate and and bulkUpdate', function() {
-          var self = this;
+          const self = this;
           return this.User.bulkCreate([{
             field1: 'something'
           }], {
             logging: this.sqlAssert
-          }).then(function() {
+          }).then(() => {
             return self.User.findAll();
-          }).then(function(users) {
+          }).then(users => {
             expect(users[0].storage).to.equal('something');
           });
         });
