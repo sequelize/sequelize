@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W110 */
 const Support = require(__dirname + '/../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -8,7 +7,7 @@ const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator')
 const _ = require('lodash');
 
 if (current.dialect.name === 'mssql') {
-  suite('[MSSQL Specific] QueryGenerator', function() {
+  suite('[MSSQL Specific] QueryGenerator', () => {
     // Dialect would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
     QueryGenerator._dialect = current.dialect;
 
@@ -175,22 +174,22 @@ if (current.dialect.name === 'mssql') {
     test('arithmeticQuery', () => {
       [{
         title:'Should use the plus operator',
-        arguments: ['+', 'myTable', { foo: 'bar' }, {}],
+        arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
         expectation: 'UPDATE myTable SET foo=foo+\'bar\' '
       },
       {
         title:'Should use the plus operator with where clause',
-        arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+        arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
         expectation: 'UPDATE myTable SET foo=foo+\'bar\' WHERE bar = \'biz\''
       },
       {
         title:'Should use the minus operator',
-        arguments: ['-', 'myTable', { foo: 'bar' }],
+        arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
         expectation: 'UPDATE myTable SET foo=foo-\'bar\' '
       },
       {
         title:'Should use the minus operator with where clause',
-        arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+        arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
         expectation: 'UPDATE myTable SET foo=foo-\'bar\' WHERE bar = \'biz\''
       }].forEach(test => {
         it(test.title, () => {

@@ -1,13 +1,11 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types');
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types');
 
-describe(Support.getTestDialectTeaser('Model'), function() {
+describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
@@ -23,26 +21,26 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     return this.sequelize.sync({force: true});
   });
 
-  describe('count', function() {
-    beforeEach(function () {
-      var self = this;
+  describe('count', () => {
+    beforeEach(function() {
+      const self = this;
       return this.User.bulkCreate([
         {username: 'boo'},
         {username: 'boo2'}
-      ]).then(function () {
+      ]).then(() => {
         return self.User.findOne();
-      }).then(function (user) {
+      }).then(user => {
         return user.createProject({
           name: 'project1'
         });
       });
     });
 
-    it('should count rows', function () {
+    it('should count rows', function() {
       return expect(this.User.count()).to.eventually.equal(2);
     });
 
-    it('should support include', function () {
+    it('should support include', function() {
       return expect(this.User.count({
         include: [{
           model: this.Project,
@@ -53,7 +51,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       })).to.eventually.equal(1);
     });
 
-    it('should return attributes', function () {
+    it('should return attributes', function() {
       return this.User.create({
         username: 'valak',
         createdAt: (new Date()).setFullYear(2015)
@@ -64,7 +62,7 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           group: ['createdAt']
         })
       )
-      .then((users) => {
+      .then(users => {
         expect(users.length).to.be.eql(2);
 
         // have attributes
@@ -77,9 +75,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return this.sequelize.sync({ force: true })
       .then(() =>
         this.User.bulkCreate([
-          { username: 'valak' , age: 10},
-          { username: 'conjuring' , age: 20},
-          { username: 'scary' , age: 10}
+          { username: 'valak', age: 10},
+          { username: 'conjuring', age: 20},
+          { username: 'scary', age: 10}
         ])
       )
       .then(() =>
@@ -89,20 +87,20 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           order: ['age']
         })
       )
-      .then((result) => {
+      .then(result => {
         expect(parseInt(result[0].count)).to.be.eql(2);
         return this.User.count({
           where: { username: 'fire' }
         });
       })
-      .then((count) => {
+      .then(count => {
         expect(count).to.be.eql(0);
         return this.User.count({
           where: { username: 'fire' },
           group: 'age'
         });
       })
-      .then((count) => {
+      .then(count => {
         expect(count).to.be.eql([]);
       });
     });
@@ -111,9 +109,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return this.sequelize.sync({ force: true })
       .then(() =>
         this.User.bulkCreate([
-          { username: 'ember' , age: 10},
-          { username: 'angular' , age: 20},
-          { username: 'mithril' , age: 10}
+          { username: 'ember', age: 10},
+          { username: 'angular', age: 20},
+          { username: 'mithril', age: 10}
         ])
       )
       .then(() =>
@@ -121,14 +119,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           col: 'username'
         })
       )
-      .then((count) => {
+      .then(count => {
         expect(parseInt(count)).to.be.eql(3);
         return this.User.count({
           col: 'age',
           distinct: true
         });
       })
-      .then((count) => {
+      .then(count => {
         expect(parseInt(count)).to.be.eql(2);
       });
     });
@@ -141,11 +139,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           '$Projects.name$': 'project1'
         }
       };
-      return this.User.count(queryObject).then((count) => {
+      return this.User.count(queryObject).then(count => {
         expect(parseInt(count)).to.be.eql(1);
         queryObject.where['$Projects.name$'] = 'project2';
         return this.User.count(queryObject);
-      }).then((count) => {
+      }).then(count => {
         expect(parseInt(count)).to.be.eql(0);
       });
     });
@@ -153,9 +151,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
     it('should be able to specify column for COUNT() with includes', function() {
       return this.sequelize.sync({ force: true }).then(() =>
         this.User.bulkCreate([
-          { username: 'ember' , age: 10},
-          { username: 'angular' , age: 20},
-          { username: 'mithril' , age: 10}
+          { username: 'ember', age: 10},
+          { username: 'angular', age: 20},
+          { username: 'mithril', age: 10}
         ])
       ).then(() =>
         this.User.count({
@@ -163,14 +161,14 @@ describe(Support.getTestDialectTeaser('Model'), function() {
           distinct: true,
           include: [this.Project]
         })
-      ).then((count) => {
+      ).then(count => {
         expect(parseInt(count)).to.be.eql(3);
         return this.User.count({
           col: 'age',
           distinct: true,
           include: [this.Project]
         });
-      }).then((count) => expect(parseInt(count)).to.be.eql(2));
+      }).then(count => expect(parseInt(count)).to.be.eql(2));
     });
 
   });
