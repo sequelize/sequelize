@@ -7,11 +7,11 @@
   color: #ffffff !important;
 }
 
-.kind-variable, .manual-color-reference, .manual-color-changelog {
+.kind-variable, .manual-color-reference {
   background-color: #074278;
 }
 
-.kind-variable, .manual-color-reference a, .manual-color-changelog a, .manual-color-faq a {
+.kind-variable, .manual-color-reference a, .manual-color-faq a {
   color: #ffffff;
 }
 
