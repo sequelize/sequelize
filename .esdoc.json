@@ -40,9 +40,6 @@
       "./docs/migrations.md",
       "./docs/upgrade-to-v4.md"
     ],
-    "changelog": [
-      "./changelog.md"
-    ],
     "advanced": [
       "./docs/legacy.md"
     ],
