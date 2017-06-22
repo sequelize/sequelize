@@ -1030,7 +1030,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {username: 'Tobi'}
         ]);
       }).then(() => {
-        return User.destory({ where: {username: 'Tobi'} });
+        return User.destroy({ where: {username: 'Tobi'} });
       }).then(() => {
         return User.findAll({ paranoid: true });
       }).then(users => {
