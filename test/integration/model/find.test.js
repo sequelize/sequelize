@@ -1031,7 +1031,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
       }).then(() => {
         return User.destroy({ where: {username: 'Tobi'} });
-      }).then(() => {
+      }).delay(5000).then(() => {
         return User.findAll({ paranoid: true });
       }).then(users => {
         expect(users.length).to.be.eql(1);
