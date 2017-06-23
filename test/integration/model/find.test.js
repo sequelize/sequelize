@@ -1025,7 +1025,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }, { paranoid: true });
 
 
-      if (dialect === 'sqlite') 
+      if (dialect === 'sqlite') { 
         return User.sync({ force: true }).then(() => {
           return User.bulkCreate([
             {username: 'Bob'},
@@ -1033,12 +1033,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
         }).then(() => {
           return User.destroy({ where: {username: 'Tobi'} });
-        }).delay(500).then(() => {
+        }).delay(5000).then(() => {
           return User.findAll({ paranoid: true });
         }).then(users => {
           expect(users.length).to.be.eql(1);
         });
-      else 
+      } else {
         return User.sync({ force: true }).then(() => {
           return User.bulkCreate([
             {username: 'Bob'},
@@ -1051,6 +1051,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }).then(users => {
           expect(users.length).to.be.eql(1);
         });
+      }
     });
 
   });
