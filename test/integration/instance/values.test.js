@@ -1,6 +1,8 @@
 'use strict';
 
-const chai = require('chai'),
+const
+  _ = require('lodash'),
+  chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
@@ -524,6 +526,8 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           title: 'Mr'
         });
 
+        user._previousDataValues = _.clone(user.dataValues);
+
         user.set('name', 'Mick Hansen');
         user.set('title', 'Dr');
 
@@ -538,6 +542,9 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         const user = User.build({
           name: 'Jan Meier'
         });
+
+        user._previousDataValues = _.clone(user.dataValues);
+
         user.set('name', 'Mick Hansen');
 
         expect(user.previous('name')).to.equal('Jan Meier');

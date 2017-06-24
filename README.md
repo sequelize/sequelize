@@ -1,3 +1,11 @@
+# Diff with Sequelize
+
+- AfterFindSeparate
+- Use lodash to compare JSON
+- Rewrite Model previous feature
+- Rewrite Model changed feature
+- Fix transaction for nested savepoints
+
 # Sequelize
 
 [![npm version](https://img.shields.io/npm/v/sequelize.svg)](https://www.npmjs.com/package/sequelize)

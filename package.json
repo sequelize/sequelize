@@ -1,40 +1,7 @@
 {
-  "name": "sequelize",
-  "description": "Multi dialect ORM for Node.JS",
-  "version": "0.0.0-development",
-  "author": "Sascha Depold <sascha@depold.com>",
-  "contributors": [
-    {
-      "name": "Sascha Depold",
-      "email": "sascha@depold.com"
-    },
-    {
-      "name": "Jan Aagaard Meier",
-      "email": [
-        "janzeh@gmail.com",
-        "jmei@itu.dk"
-      ]
-    },
-    {
-      "name": "Daniel Durante",
-      "email": "me@danieldurante.com"
-    },
-    {
-      "name": "Mick Hansen",
-      "email": "mick.kasper.hansen@gmail.com"
-    },
-    {
-      "name": "Sushant Dhiman",
-      "email": "sushantdhiman@outlook.com"
-    }
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/sequelize/sequelize.git"
-  },
-  "bugs": {
-    "url": "https://github.com/sequelize/sequelize/issues"
-  },
+  "name": "dougs-sequelize",
+  "description": "Sequelize Dougs Fork (it is not meant to replace sequelize)",
+  "version": "4.41.2",
   "dependencies": {
     "bluebird": "^3.5.0",
     "cls-bluebird": "^2.1.0",

@@ -1,5 +1,6 @@
 'use strict';
 
+const _ = require('lodash');
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require(__dirname + '/../support');
@@ -26,8 +27,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(instance.previous('text')).to.be.not.ok;
       expect(instance.previous('textCustom')).to.be.not.ok;
 
+      instance._previousDataValues = _.clone(instance.dataValues);
+
       instance.set('text', 'b');
       instance.set('textCustom', 'def');
+
+      expect(instance.previous('text')).to.be.equal('a');
+      expect(instance.previous('textCustom')).to.be.equal('abc');
+
+      instance.set('text', 'c');
+      instance.set('textCustom', 'oth');
 
       expect(instance.previous('text')).to.be.equal('a');
       expect(instance.previous('textCustom')).to.be.equal('abc');
