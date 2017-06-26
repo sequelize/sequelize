@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "4.0.0-2",
+  "version": "0.0.0-development",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -61,11 +61,14 @@
     "chai-datetime": "^1.4.1",
     "chai-spies": "^0.7.1",
     "cheerio": "^0.22.0",
+    "commitizen": "^2.9.6",
     "continuation-local-storage": "^3.2.0",
     "cross-env": "^4.0.0",
+    "cz-conventional-changelog": "^2.0.0",
     "esdoc": "^0.5.2",
     "eslint": "^3.6.0",
     "hints": "^1.1.0",
+    "husky": "^0.13.4",
     "istanbul": "^0.4.5",
     "lcov-result-merger": "^1.2.0",
     "mocha": "^3.0.2",
@@ -79,7 +82,9 @@
     "sinon-chai": "^2.8.0",
     "sqlite3": "^3.1.4",
     "tedious": "^2.0.0",
-    "uuid-validate": "^0.0.2"
+    "uuid-validate": "^0.0.2",
+    "semantic-release": "^6.3.6",
+    "validate-commit-msg": "^2.12.2"
   },
   "keywords": [
     "mysql",
@@ -129,10 +134,17 @@
     "sscce": "docker-compose run sequelize /bin/sh -c \"node sscce.js\"",
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
-    "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce"
+    "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "commitmsg": "validate-commit-msg"
   },
   "engines": {
     "node": ">=4.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
 }

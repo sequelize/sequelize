@@ -8,7 +8,6 @@ const chai = require('chai'),
   Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
-
   before(function() {
     this.clock = sinon.useFakeTimers();
   });

@@ -43,6 +43,13 @@ script:
   - npm run lint
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
 
+after_success:
+  - npm run semantic-release
+
+branches:
+  except:
+    - /^v\d+\.\d+\.\d+$/
+
 deploy:
   provider: surge
   project: ./esdoc/

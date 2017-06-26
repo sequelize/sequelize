@@ -7,10 +7,10 @@ As there are people who are suing for fun and glory, you can find the respective
 
 ```
 Main author:
- 
+
 Sascha Depold
-Uhlandstr. 122
-10717 Berlin
+Uhlandstr. 160
+10719 Berlin
 sascha [at] depold [dot] com
 [plus] 49 152 [slash] 03878582
 ```

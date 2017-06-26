@@ -1,5 +1,7 @@
+'use strict';
+
 const cheerio = require('cheerio');
-const esdocConfig = require('../.esdoc.json');
+const esdocConfig = require('../../.esdoc.json');
 
 exports.onHandleHTML = function(ev) {
   const $ = cheerio.load(ev.data.html);

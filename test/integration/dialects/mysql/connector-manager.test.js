@@ -76,6 +76,48 @@ if (dialect === 'mysql') {
         });
     });
 
+    it('should work with handleDisconnects before release', () => {
+      const sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}});
+      const cm = sequelize.connectionManager;
+      let conn;
+
+      return sequelize
+        .sync()
+        .then(() => cm.getConnection())
+        .then(connection => {
+          // Save current connection
+          conn = connection;
+          // simulate a unexpected end from MySQL2
+          conn.stream.emit('end');
+        })
+        .then(() => cm.releaseConnection(conn))
+        .then(() => {
+          // Get next available connection
+          return cm.getConnection();
+        })
+        .then(connection => {
+          // Old threadId should be different from current new one
+          expect(conn.threadId).to.not.be.equal(connection.threadId);
+          expect(cm.validate(conn)).to.not.be.ok;
+          return cm.releaseConnection(connection);
+        });
+    });
+
+    it('-FOUND_ROWS can be suppressed to get back legacy behavior', () => {
+      const sequelize = Support.createSequelizeInstance({ dialectOptions: { flags: '' }});
+      const User = sequelize.define('User', { username: DataTypes.STRING });
+
+      return User.sync({force: true})
+        .then(() => User.create({ id: 1, username: 'jozef' }))
+        .then(() => User.update({ username: 'jozef'}, {
+          where: {
+            id: 1
+          }
+        }))
+        // https://github.com/sequelize/sequelize/issues/7184
+        .spread(affectedCount => affectedCount.should.equal(1));
+    });
+
     it('should work with handleDisconnects', () => {
       const sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}});
       const cm = sequelize.connectionManager;
@@ -87,11 +129,12 @@ if (dialect === 'mysql') {
         .then(connection => {
           // Save current connection
           conn = connection;
-          // simulate a unexpected end
-          connection.close();
+          return cm.releaseConnection(conn);
         })
-        .then(() => cm.releaseConnection(conn))
         .then(() => {
+          // simulate a unexpected end from MySQL2 AFTER releasing the connection
+          conn.stream.emit('end');
+
           // Get next available connection
           return cm.getConnection();
         })
