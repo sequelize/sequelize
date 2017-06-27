@@ -154,7 +154,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(() => error.getValidatorKey(true, true))      .to.throw(Error);
     });
 
-    it('SequelizeValidationErrorItem should map old types and expose an originalType property', () => {
+    it('SequelizeValidationErrorItem should map deprecated "type" values to new "origin" values', () => {
       const data  = {
         'notNull Violation' : 'CORE',
         'string violation'  : 'CORE',
@@ -165,38 +165,18 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       Object.keys(data).forEach(k => {
         const error = new Sequelize.ValidationErrorItem('error!', k, 'foo', null);
 
-        expect(error).to.have.property('type',         data[k]);
-        expect(error).to.have.property('originalType', k);
+        expect(error).to.have.property('origin', data[k]);
+        expect(error).to.have.property('type',   k);
       });
     });
 
-    it('activating SequelizeValidationErrorItem.USE_OLD_TYPES should turn off the new type-functionality', () => {
-      Sequelize.ValidationErrorItem.USE_OLD_TYPES = true;
+    it('SequelizeValidationErrorItem.ORIGINS is valid & frozen', () => {
+      const ORIGINS = errors.ValidationErrorItem.ORIGINS;
 
-      const data  = {
-        'notNull Violation' : 'CORE',
-        'string violation'  : 'CORE',
-        'unique violation'  : 'DB',
-        'Validation error'  : 'FUNCTION'
-      };
-
-      Object.keys(data).forEach(k => {
-        const error = new Sequelize.ValidationErrorItem('error!', k, 'foo', null);
-
-        expect(error).to.have.property('type', k);
-        expect(error).to.not.have.property('originalType');
-      });
-
-      errors.ValidationErrorItem.USE_OLD_TYPES = false; // turn off again to avoid screwing up other tests!
-    });
-
-    it('SequelizeValidationErrorItem.TYPES is valid & frozen', () => {
-      const TYPES = errors.ValidationErrorItem.TYPES;
-
-      expect(TYPES).to.be.frozen;
-      expect(TYPES).to.have.property('CORE',     'CORE');
-      expect(TYPES).to.have.property('DB',       'DB');
-      expect(TYPES).to.have.property('FUNCTION', 'FUNCTION');
+      expect(ORIGINS).to.be.frozen;
+      expect(ORIGINS).to.have.property('CORE',     'CORE');
+      expect(ORIGINS).to.have.property('DB',       'DB');
+      expect(ORIGINS).to.have.property('FUNCTION', 'FUNCTION');
 
     });
 
