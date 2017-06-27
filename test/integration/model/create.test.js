@@ -991,7 +991,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const smth1 = err.get('smth')[0] || {};
 
           expect(smth1.path).to.equal('smth');
-          expect(smth1.originalType || smth1.type).to.match(/notNull Violation/);
+          expect(smth1.type || smth1.origin).to.match(/notNull Violation/);
 
           /*
           // TODO: code below specifies different tests for different dialects but all the test are exactly the same.
@@ -1683,7 +1683,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const e0name0 = errors[0].errors.get('name')[0];
 
           expect(errors[0].record.code).to.equal('1234');
-          expect(e0name0.originalType || e0name0.type).to.equal('notNull Violation');
+          expect(e0name0.type || e0name0.origin).to.equal('notNull Violation');
 
           expect(errors[1].record.name).to.equal('bar');
           expect(errors[1].record.code).to.equal('1');
