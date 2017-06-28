@@ -417,6 +417,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    suite('$rlike', () => {
+      testsql('username', {
+        $rlike: '^sw.*r$'
+      }, {
+        mysql: "[username] RLIKE '^sw.*r$'"
+      });
+    });
+
     suite('$between', () => {
       testsql('date', {
         $between: ['2013-01-01', '2013-01-11']
