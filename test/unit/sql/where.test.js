@@ -913,7 +913,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         testsql('username', {
           $rlike: '^sw.*r$'
         }, {
-          mysql: "[username] RLIKE '^sw.*r$'"
+          mysql: "`username` RLIKE '^sw.*r$'"
         });
       });
     }
