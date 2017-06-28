@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
-    it.only('should properly create composite index without affecting individual fields', function() {
+    it('should properly create composite index without affecting individual fields', function() {
       const testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.STRING
@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(data.dataValues.age).to.eql('1');
         });
     });
-    it.only('should properly create composite index that fails on constraint violation', function() {
+    it('should properly create composite index that fails on constraint violation', function() {
       const testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.STRING
