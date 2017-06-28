@@ -79,5 +79,37 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(data.dataValues.age).to.eql('1');
         });
     });
+
+    it('should properly create composite index without affecting individual fields', function() {
+      const testSync = this.sequelize.define('testSync', {
+        name: Sequelize.STRING,
+        age: Sequelize.STRING
+      }, {indexes: [{unique: true, fields: ['name', 'age']}]});
+      return this.sequelize.sync()
+        .then(() => testSync.create({name: 'test'}))
+        .then(() => testSync.create({name: 'test2'}))
+        .then(() => testSync.create({name: 'test3'}))
+        .then(() => testSync.create({age: '1'}))
+        .then(() => testSync.create({age: '2'}))
+        .then(() => testSync.create({name: 'test', age: '1'}))
+        .then(() => testSync.create({name: 'test', age: '2'}))
+        .then(() => testSync.create({name: 'test2', age: '2'}))
+        .then(() => testSync.create({name: 'test3', age: '2'}))
+        .then(() => testSync.create({name: 'test3', age: '1'}))
+        .then(data => {
+          expect(data.dataValues.name).to.eql('test3');
+          expect(data.dataValues.age).to.eql('1');
+        });
+    });
+    it('should properly create composite index that fails on constraint violation', function() {
+      const testSync = this.sequelize.define('testSync', {
+        name: Sequelize.STRING,
+        age: Sequelize.STRING
+      }, {indexes: [{unique: true, fields: ['name', 'age']}]});
+      return this.sequelize.sync()
+        .then(() => testSync.create({name: 'test', age: '1'}))
+        .then(() => testSync.create({name: 'test', age: '1'}))
+        .then(data => expect(data).not.to.be.ok, error => expect(error).to.be.ok);
+    });
   });
 });
