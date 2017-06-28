@@ -170,10 +170,9 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       });
     });
 
-    it('SequelizeValidationErrorItem.ORIGINS is valid & frozen', () => {
-      const ORIGINS = errors.ValidationErrorItem.ORIGINS;
+    it('SequelizeValidationErrorItem.Origins is valid', () => {
+      const ORIGINS = errors.ValidationErrorItem.Origins;
 
-      expect(ORIGINS).to.be.frozen;
       expect(ORIGINS).to.have.property('CORE',     'CORE');
       expect(ORIGINS).to.have.property('DB',       'DB');
       expect(ORIGINS).to.have.property('FUNCTION', 'FUNCTION');
