@@ -221,6 +221,98 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
+    it('should correctly filter and limit deep required includes', function() {
+      var TaskTag = this.sequelize.define('TaskTag', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        name: { type: DataTypes.STRING}
+      });
+
+      var Tag = this.sequelize.define('Tag', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        name: { type: DataTypes.STRING}
+      });
+
+      var Task = this.sequelize.define('Task', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        name: { type: DataTypes.STRING}
+      });
+      var Project = this.sequelize.define('Project', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        m: { type: DataTypes.STRING}
+      });
+
+      var User = this.sequelize.define('User', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        name: { type: DataTypes.STRING }
+      });
+
+      var Company = this.sequelize.define('Company', {
+        id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
+        name: { type: DataTypes.STRING }
+      });
+
+      Project.belongsTo(User);
+      User.hasMany(Project);
+      Task.belongsTo(Project);
+      Task.belongsToMany(Tag, { through: TaskTag, foreignKey: 'taskId'});
+      Tag.belongsToMany(Task, { through: TaskTag, foreignKey: 'tagId'});
+      User.belongsTo(Company);
+      // Sync them
+      return this.sequelize.sync({ force: true }).then(function() {
+        // Create an enviroment
+        return Company.bulkCreate([
+          { name: 'Company1' },
+          { name: 'Company2' }
+        ]).then(function(p){
+          return User.bulkCreate([
+            { name: 'user-name-1', CompanyId: 1 },
+            { name: 'user-name-2', CompanyId: 1 },
+          ]);
+        }).then(function(u){
+          return Project.bulkCreate([
+            { m: 'A', UserId: 1},
+            { m: 'A', UserId: 2},
+          ]);
+        }).then(function(p){
+          return Task.bulkCreate([
+            { ProjectId: 1, name: 'Just' },
+            { ProjectId: 1, name: 'for' },
+            { ProjectId: 2, name: 'testing' },
+            { ProjectId: 2, name: 'proposes' }
+          ]);
+        }).then(function(p){
+          return Company.bulkCreate([
+            { name: 'Company1', UserId: 1 },
+            { name: 'Company2', UserId: 1 },
+          ]);
+        }).then(function() {
+          // Find All Tasks with Project(m=a) and User(name=user-name-2)
+          return Task.findAndCountAll({
+            limit: 1,
+            include: [
+              {
+                model: Project,
+                include: [ {
+                    model: User,
+                    where: { '$and': [ { name: 'user-name-2' } ] },
+                    include: [{
+                      model: Company,
+                      required: true,
+                    }]
+                  }
+                ]
+              },
+              { model : Tag }
+            ]
+          });
+        });
+      }).then(function(result) {
+          console.log(result.rows[0]);
+          expect(result.count).to.equal(2);
+          expect(result.rows.length).to.equal(1);
+      });
+    });
+
     it('should correctly filter, limit and sort when multiple includes and types of associations are present.', function() {
       const TaskTag = this.sequelize.define('TaskTag', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
