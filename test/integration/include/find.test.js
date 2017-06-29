@@ -378,5 +378,55 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
       });
     });
+
+    it('should work with a belongsTo and a hasMany when specifying attributes for model', function () {
+      var User = this.sequelize.define('User', {
+            name: DataTypes.STRING
+          })
+        , Product = this.sequelize.define('Product', {
+            title: DataTypes.STRING
+          })
+        , Group = this.sequelize.define('Group', {
+            name: DataTypes.STRING
+          });
+
+      User.belongsTo(Group);
+      Group.hasMany(User);
+      User.hasMany(Product);
+      Product.belongsTo(User);
+
+      return this.sequelize.sync({force: true}).then(function() {
+        return Promise.props({
+          user: User.create({name: 'FooBar'}),
+          group: Group.create({name: 'Developers'}),
+          products: Product.bulkCreate([
+            {title: 'Chair'},
+            {title: 'Desk'}
+          ]).then(function() {
+            return Product.findAll();
+          })
+        }).then(function (results) {
+          return Promise.join(
+            results.group.setUsers([results.user]),
+            results.user.setProducts(results.products)
+          );
+        }).then(function () {
+          return User.find({
+            attributes: ['name'],
+            include: [
+              {
+                model: Group
+              },
+              {
+                model: Product
+              }
+            ]
+          }).then(function(user) {
+            expect(user.Products.length).to.equal(2);
+            expect(user.Group).to.exist;
+          });
+        });
+      });
+    });
   });
 });
