@@ -48,5 +48,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(record.access_level).to.exist;
               });
     });
+
+    it('should expose _scopeName in hooks', function () {
+      let scopeName;
+
+      this.ScopeMe.afterFind(function () {
+        scopeName = this._scopeName;
+      });
+
+      return this.ScopeMe.scope('withName').findOne().then(record => {
+        expect(record).to.exist;
+        expect(scopeName).to.equal('withName');
+      });
+    });
   });
 });

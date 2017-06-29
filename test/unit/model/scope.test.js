@@ -291,6 +291,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should expose _scopeName', () => {
+      Company.addScope('namedScope', {});
+
+      expect(Company.scope('namedScope')._scopeName).to.equal('namedScope');
+    });
   });
 
   describe('_injectScope', () => {
