@@ -73,4 +73,35 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
     });
   });
+
+  describe('with scope', function() {
+    describe('combining excludes', function() {
+      it('should combine find exclude with scope excludes', function() {
+        var User = this.sequelize.define('user', {
+          password: Sequelize.STRING,
+          firstName: Sequelize.STRING,
+          lastName: Sequelize.STRING
+        }, {
+          defaultScope: {
+            attributes: {
+              exclude: ['password']
+            }
+          }
+        });
+        return this.sequelize.sync({force: true}).then(function() {
+          return User.create({ firstName: 'John', lastName: 'Doe', password: 'abc123' }).then(function() {
+            return User.findOne({
+              attributes: {
+                exclude: ['lastName']
+              }
+            }).then(function(user) {
+              expect(user.firstName).to.eql('John');
+              expect(user.lastName).to.eql(undefined);
+              expect(user.password).to.eql(undefined);
+            });
+          });
+        });
+      });
+    });
+  });
 });
