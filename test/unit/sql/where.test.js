@@ -913,7 +913,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         testsql('username', {
           $regexp: '^sw.*r$'
         }, {
-          mysql: "`username` REGEXP '^sw.*r$'"
+          mysql: "`username` REGEXP '^sw.*r$'",
+          postgres: '"username" ~ "^sw.*r$"'
         });
       });
 
@@ -921,7 +922,24 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         testsql('username', {
           $notRegexp: '^sw.*r$'
         }, {
-          mysql: "`username` NOT REGEXP '^sw.*r$'"
+          mysql: "`username` NOT REGEXP '^sw.*r$'",
+          postgres: '"username" !~ "^sw.*r$"'
+        });
+      });
+
+      suite('$iRegexp', () => {
+        testsql('username', {
+          $iRegexp: '^sw.*r$'
+        }, {
+          postgres: '"username" ~* "^sw.*r$"'
+        });
+      });
+
+      suite('$notIRegexp', () => {
+        testsql('username', {
+          $notIRegexp: '^sw.*r$'
+        }, {
+          postgres: '"username" !~* "^sw.*r$"'
         });
       });
     }
