@@ -927,21 +927,23 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      suite('$iRegexp', () => {
-        testsql('username', {
-          $iRegexp: '^sw.*r$'
-        }, {
-          postgres: '"username" ~* "^sw.*r$"'
+      if (current.dialect.name === 'postgres') {
+        suite('$iRegexp', () => {
+          testsql('username', {
+            $iRegexp: '^sw.*r$'
+          }, {
+            postgres: '"username" ~* "^sw.*r$"'
+          });
         });
-      });
 
-      suite('$notIRegexp', () => {
-        testsql('username', {
-          $notIRegexp: '^sw.*r$'
-        }, {
-          postgres: '"username" !~* "^sw.*r$"'
+        suite('$notIRegexp', () => {
+          testsql('username', {
+            $notIRegexp: '^sw.*r$'
+          }, {
+            postgres: '"username" !~* "^sw.*r$"'
+          });
         });
-      });
+      }
     }
 
     suite('fn', () => {
