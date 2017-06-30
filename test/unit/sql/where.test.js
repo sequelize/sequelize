@@ -909,11 +909,19 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     }
 
     if (current.dialect.supports.REGEXP) {
-      suite('$rlike', () => {
+      suite('$regexp', () => {
         testsql('username', {
-          $rlike: '^sw.*r$'
+          $regexp: '^sw.*r$'
         }, {
-          mysql: "`username` RLIKE '^sw.*r$'"
+          mysql: "`username` REGEXP '^sw.*r$'"
+        });
+      });
+
+      suite('$notRegexp', () => {
+        testsql('username', {
+          $notRegexp: '^sw.*r$'
+        }, {
+          mysql: "`username` NOT REGEXP '^sw.*r$'"
         });
       });
     }
