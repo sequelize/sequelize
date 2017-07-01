@@ -927,6 +927,24 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
+      suite('$regexp', () => {
+        testsql('newline', {
+          $regexp: '^new\nline$'
+        }, {
+          mysql: "`username` REGEXP '^new\nline$'",
+          postgres: '"username" ~ \'^new\nline$\''
+        });
+      });
+
+      suite('$notRegexp', () => {
+        testsql('newline', {
+          $notRegexp: '^new\nline$'
+        }, {
+          mysql: "`username` REGEXP '^new\nline$'",
+          postgres: '"username" ~ \'^new\nline$\''
+        });
+      });
+
       if (current.dialect.name === 'postgres') {
         suite('$iRegexp', () => {
           testsql('username', {
@@ -941,6 +959,24 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             $notIRegexp: '^sw.*r$'
           }, {
             postgres: '"username" !~* \'^sw.*r$\''
+          });
+        });
+
+        suite('$iRegexp', () => {
+          testsql('newline', {
+            $iRegexp: '^new\nline$'
+          }, {
+            mysql: "`username` REGEXP '^new\nline$'",
+            postgres: '"username" ~ \'^new\nline$\''
+          });
+        });
+
+        suite('$notIRegexp', () => {
+          testsql('newline', {
+            $notIRegexp: '^new\nline$'
+          }, {
+            mysql: "`username` REGEXP '^new\nline$'",
+            postgres: '"username" ~ \'^new\nline$\''
           });
         });
       }
