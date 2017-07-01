@@ -918,6 +918,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
+      suite('$regexp', () => {
+        testsql('newline', {
+          $regexp: '^new\nline$'
+        }, {
+          mysql: "`newline` REGEXP '^new\nline$'",
+          postgres: '"newline" ~ \'^new\nline$\''
+        });
+      });
+
       suite('$notRegexp', () => {
         testsql('username', {
           $notRegexp: '^sw.*r$'
@@ -927,21 +936,12 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      suite('$regexp', () => {
-        testsql('newline', {
-          $regexp: '^new\nline$'
-        }, {
-          mysql: "`username` REGEXP '^new\nline$'",
-          postgres: '"username" ~ \'^new\nline$\''
-        });
-      });
-
       suite('$notRegexp', () => {
         testsql('newline', {
           $notRegexp: '^new\nline$'
         }, {
-          mysql: "`username` REGEXP '^new\nline$'",
-          postgres: '"username" ~ \'^new\nline$\''
+          mysql: "`newline` NOT REGEXP '^new\nline$'",
+          postgres: '"newline" !~ \'^new\nline$\''
         });
       });
 
@@ -954,6 +954,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
+        suite('$iRegexp', () => {
+          testsql('newline', {
+            $iRegexp: '^new\nline$'
+          }, {
+            postgres: '"newline" ~* \'^new\nline$\''
+          });
+        });
+
         suite('$notIRegexp', () => {
           testsql('username', {
             $notIRegexp: '^sw.*r$'
@@ -962,21 +970,11 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        suite('$iRegexp', () => {
-          testsql('newline', {
-            $iRegexp: '^new\nline$'
-          }, {
-            mysql: "`username` REGEXP '^new\nline$'",
-            postgres: '"username" ~ \'^new\nline$\''
-          });
-        });
-
         suite('$notIRegexp', () => {
           testsql('newline', {
             $notIRegexp: '^new\nline$'
           }, {
-            mysql: "`username` REGEXP '^new\nline$'",
-            postgres: '"username" ~ \'^new\nline$\''
+            postgres: '"newline" !~* \'^new\nline$\''
           });
         });
       }
