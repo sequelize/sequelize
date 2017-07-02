@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "chai-as-promised": "^5.3.0",
+    "chai-as-promised": "^7.1.0",
     "chai-datetime": "^1.4.1",
     "chai-spies": "^0.7.1",
     "cheerio": "^0.22.0",
