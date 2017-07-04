@@ -136,6 +136,11 @@ _will never work!_ This is because `user` is a promise object, not a data row fr
 User.findOne().then(user => {
   console.log(user.get('firstName'));
 });
+
+When your environment or transpiler supports [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await) this will work:
+user = await User.findOne()
+
+console.log(user.get('firstName'));
 ```
 
 Once you've got the hang of what promises are and how they work, use the [bluebird API reference](http://bluebirdjs.com/docs/api-reference.html) as your go-to tool. In particular, you'll probably be using [`.all`](http://bluebirdjs.com/docs/api/promise.all.html) a lot.  
