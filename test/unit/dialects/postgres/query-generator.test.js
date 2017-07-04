@@ -617,23 +617,19 @@ if (dialect.match(/^postgres/)) {
         }, {
           title: 'Regular Expression in where clause',
           arguments: ['myTable', {where: {field: {$regexp: '^[h|a|t]'}}}],
-          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~ '^[h|a|t]';",
-          context: {options: {quoteIdentifiers: false}}
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~ '^[h|a|t]';"
         }, {
           title: 'Regular Expression negation in where clause',
           arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
-          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~ '^[h|a|t]';",
-          context: {options: {quoteIdentifiers: false}}
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~ '^[h|a|t]';"
         }, {
           title: 'Case-insensitive Regular Expression in where clause',
           arguments: ['myTable', {where: {field: {$iRegexp: '^[h|a|t]'}}}],
-          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~* '^[h|a|t]';",
-          context: {options: {quoteIdentifiers: false}}
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~* '^[h|a|t]';"
         }, {
           title: 'Case-insensitive Regular Expression negation in where clause',
           arguments: ['myTable', {where: {field: {$notIRegexp: '^[h|a|t]'}}}],
-          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~* '^[h|a|t]';",
-          context: {options: {quoteIdentifiers: false}}
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~* '^[h|a|t]';"
         }
       ],
 
