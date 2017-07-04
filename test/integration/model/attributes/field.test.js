@@ -449,6 +449,82 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
+      if (dialect === 'mysql' || dialect === 'postgres') {
+        it('should work with a regexp where', function() {
+          const self = this;
+
+          return this.User.create({
+            name: 'Foobar'
+          }).then(() => {
+            return self.User.find({
+              where: {
+                name: {
+                  $regexp: '^Foo'
+                }
+              }
+            });
+          }).then(user => {
+            expect(user).to.be.ok;
+          });
+        });
+
+        it('should work with a not regexp where', function() {
+          const self = this;
+
+          return this.User.create({
+            name: 'Foobar'
+          }).then(() => {
+            return self.User.find({
+              where: {
+                name: {
+                  $notRegexp: '^Foo'
+                }
+              }
+            });
+          }).then(user => {
+            expect(user).to.not.be.ok;
+          });
+        });
+
+        if (dialect === 'postgres') {
+          it('should work with a case-insensitive regexp where', function() {
+            const self = this;
+
+            return this.User.create({
+              name: 'Foobar'
+            }).then(() => {
+              return self.User.find({
+                where: {
+                  name: {
+                    $iRegexp: '^foo'
+                  }
+                }
+              });
+            }).then(user => {
+              expect(user).to.be.ok;
+            });
+          });
+
+          it('should work with a case-insensitive not regexp where', function() {
+            const self = this;
+
+            return this.User.create({
+              name: 'Foobar'
+            }).then(() => {
+              return self.User.find({
+                where: {
+                  name: {
+                    $notIRegexp: '^foo'
+                  }
+                }
+              });
+            }).then(user => {
+              expect(user).to.not.be.ok;
+            });
+          });
+        }
+      }
+
       it('should work with bulkCreate and findAll', function() {
         const self = this;
         return this.User.bulkCreate([{
