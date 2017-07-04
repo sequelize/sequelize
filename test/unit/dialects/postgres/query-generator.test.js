@@ -614,8 +614,27 @@ if (dialect.match(/^postgres/)) {
           arguments: [{tableName: 'myTable', schema: 'mySchema'}, {name: "foo';DROP TABLE mySchema.myTable;"}],
           expectation: "INSERT INTO mySchema.myTable (name) VALUES ('foo'';DROP TABLE mySchema.myTable;');",
           context: {options: {quoteIdentifiers: false}}
+        }, {
+          title: 'Regular Expression in where clause',
+          arguments: ['myTable', {where: {field: {$regexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~ '^[h|a|t]';",
+          context: {options: {quoteIdentifiers: false}}
+        }, {
+          title: 'Regular Expression negation in where clause',
+          arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~ '^[h|a|t]';",
+          context: {options: {quoteIdentifiers: false}}
+        }, {
+          title: 'Case-insensitive Regular Expression in where clause',
+          arguments: ['myTable', {where: {field: {$iRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~* '^[h|a|t]';",
+          context: {options: {quoteIdentifiers: false}}
+        }, {
+          title: 'Case-insensitive Regular Expression negation in where clause',
+          arguments: ['myTable', {where: {field: {$notIRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~* '^[h|a|t]';",
+          context: {options: {quoteIdentifiers: false}}
         }
-
       ],
 
       bulkInsertQuery: [
