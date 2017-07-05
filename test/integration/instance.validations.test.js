@@ -344,6 +344,45 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
       });
     });
+    describe('Not null schema validation', () => {
+      beforeEach(function() {
+        const self = this;
+
+        const Project = this.sequelize.define('Project', {
+          name: {
+            type: Sequelize.STRING,
+            allowNull: false,
+            validate: {
+              isIn: [['unknown', 'hello', 'test']] // important to be
+            }
+          }
+        });
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          self.Project = Project;
+        });
+      });
+
+      it('correctly throws an error using create method ', function() {
+        return this.Project.create({})
+          .then(() => {
+            throw new Error('Validation must be failed');
+          }, () => {
+            // fail is ok
+          });
+      });
+
+      it('correctly throws an error using create method with default generated messages', function() {
+        return this.Project.create({}).catch(err => {
+          expect(err).to.have.ownProperty('name')
+            .and.have.ownProperty('errors');
+          expect(err).to.have.property('name', 'SequelizeValidationError');
+          expect(err.message).equal('notNull Violation: name cannot be null');
+          expect(err.errors).to.be.an('array').and.have.length(1);
+          expect(err.errors[0]).to.have.property('message', 'name cannot be null');
+        });
+      });
+    });
   });
 
   it('correctly validates using custom validation methods', function() {
