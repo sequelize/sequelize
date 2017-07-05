@@ -136,8 +136,11 @@ _will never work!_ This is because `user` is a promise object, not a data row fr
 User.findOne().then(user => {
   console.log(user.get('firstName'));
 });
+```
 
-When your environment or transpiler supports [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await) this will work:
+When your environment or transpiler supports [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await) this will work but only in the body of an [async](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) function:
+
+```js
 user = await User.findOne()
 
 console.log(user.get('firstName'));
