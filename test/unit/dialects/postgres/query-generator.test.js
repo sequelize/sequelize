@@ -502,6 +502,12 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: {field: {not: 3}}}],
           expectation: 'SELECT * FROM myTable WHERE myTable.field != 3;',
           context: {options: {quoteIdentifiers: false}}
+        },{
+          title: 'generate fulltext search',
+          arguments: ['myTable', {where: {field: {$fulltext: 'foo'}}}],
+          expectation: 'SELECT * FROM myTable WHERE myTable.field @@ plainto_tsquery(\'english\',\'foo\');',
+          context: {options: {quoteIdentifiers: false,regconfig:'english'}},
+          needsSequelize: true
         }
       ],
 
