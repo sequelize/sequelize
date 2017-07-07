@@ -344,7 +344,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
       });
     });
-    describe.only('Not null schema validation', () => {
+    describe('Not null schema validation', () => {
       beforeEach(function() {
         const Project = this.sequelize.define('Project', {
           name: {
