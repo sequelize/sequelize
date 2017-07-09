@@ -282,10 +282,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             ") VALUES ('john', 'john@gmail.com', 'HORSE', '2012-01-01 10:10:10')";
 
           return sequelize.query(insertWarningQuery)
-          .then(() => {
-            expect(logger.callCount).to.equal(3);
-            expect(logger.args[2][0]).to.be.match(/^MySQL Warnings \(default\):.*?'createdAt'/m);
-          });
+            .then(() => {
+              expect(logger.callCount).to.equal(3);
+              expect(logger.args[2][0]).to.be.match(/^MySQL Warnings \(default\):.*?'createdAt'/m);
+            });
         });
       }
 

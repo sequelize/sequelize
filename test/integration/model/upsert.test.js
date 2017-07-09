@@ -141,7 +141,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return User.sync({ force: true }).bind(this).then(() => {
           return Promise.all([
-              // Create two users
+            // Create two users
             User.upsert({ a: 'a', b: 'b', username: 'john' }),
             User.upsert({ a: 'a', b: 'a', username: 'curt' })
           ]);
