@@ -520,7 +520,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         if (dialect === 'postgres' || dialect === 'sqlite') {
           expect(logSql.indexOf('$1')).to.be.above(-1);
           expect(logSql.indexOf('$2')).to.be.above(-1);
-        } else if (dialect === 'mssql'){
+        } else if (dialect === 'mssql') {
           expect(logSql.indexOf('@0')).to.be.above(-1);
           expect(logSql.indexOf('@1')).to.be.above(-1);
         }

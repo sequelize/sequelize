@@ -248,7 +248,7 @@ if (current.dialect.supports.transactions) {
       });
     });
 
-    if (dialect === 'sqlite'){
+    if (dialect === 'sqlite') {
       it('provides persistent transactions', () => {
         const sequelize = new Support.Sequelize('database', 'username', 'password', {dialect: 'sqlite'}),
           User = sequelize.define('user', {

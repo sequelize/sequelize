@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 username: 'tony'
               }
             },
-            includeActiveProjects(){
+            includeActiveProjects() {
               return {
                 include: [{
                   model: sequelize.models.company,
