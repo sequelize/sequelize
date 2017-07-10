@@ -16,22 +16,22 @@ if (dialect.match(/^postgres/)) {
       arithmeticQuery: [
         {
           title:'Should use the plus operator',
-          arguments: ['+', 'myTable', { foo: 'bar' }, {}],
+          arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\'  RETURNING *'
         },
         {
           title:'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\' WHERE "bar" = \'biz\' RETURNING *'
         },
         {
           title:'Should use the minus operator',
-          arguments: ['-', 'myTable', { foo: 'bar' }],
+          arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\'  RETURNING *'
         },
         {
           title:'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\' WHERE "bar" = \'biz\' RETURNING *'
         }
       ],
@@ -502,6 +502,26 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: {field: {not: 3}}}],
           expectation: 'SELECT * FROM myTable WHERE myTable.field != 3;',
           context: {options: {quoteIdentifiers: false}}
+        }, {
+          title: 'Regular Expression in where clause',
+          arguments: ['myTable', {where: {field: {$regexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~ '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Regular Expression negation in where clause',
+          arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~ '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Case-insensitive Regular Expression in where clause',
+          arguments: ['myTable', {where: {field: {$iRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~* '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Case-insensitive Regular Expression negation in where clause',
+          arguments: ['myTable', {where: {field: {$notIRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~* '^[h|a|t]';",
+          context: QueryGenerator
         }
       ],
 
@@ -615,7 +635,6 @@ if (dialect.match(/^postgres/)) {
           expectation: "INSERT INTO mySchema.myTable (name) VALUES ('foo'';DROP TABLE mySchema.myTable;');",
           context: {options: {quoteIdentifiers: false}}
         }
-
       ],
 
       bulkInsertQuery: [

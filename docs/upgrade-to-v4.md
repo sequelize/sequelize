@@ -1,6 +1,6 @@
 # Upgrade to V4
 
-Sequelize V4 is a major release and it introduces new features and breaking changes. Majority of sequelize codebase has been refactored to use ES2015 features. The following guide lists some of the changes to upgrade from v3 to v4. See [Changelog](manual/changelog) for full list of changes.
+Sequelize V4 is a major release and it introduces new features and breaking changes. Majority of sequelize codebase has been refactored to use ES2015 features. The following guide lists some of the changes to upgrade from v3 to v4. See the [Changelog](https://github.com/sequelize/sequelize/blob/b49f936e9aa316cf4a13bade76585acf4d5d8b04/changelog.md) for full list of changes.
 
 ### Breaking Changes
 
@@ -48,11 +48,12 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
   // Instance Method
   Model.prototype.someMethod = function () {..}
   ```
+- `Model.Instance` and `instance.Model` are removed. To access the Model from an instance, simply use [`instance.constructor`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/constructor). The Instance class (`Model.Instance`) is now the Model itself.
 - Sequelize now uses an independent copy of bluebird library.
-    
+
     - Promises returned by sequelize are now instances of `Sequelize.Promise` instead of global bluebird `Promise`.
     - The CLS patch does not affect global bluebird promise. Transaction will not automatically get passed to methods when used with `Promise.all` and other bluebird methods. Explicitly patch your bluebird instance to get CLS to work with bluebird methods.
-      
+
       ```bash
       $ npm install --save cls-bluebird
       ```
@@ -84,7 +85,9 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 
 - `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 - `Model.validate` instance method now runs validation hooks by default. Previously you needed to pass `{ hooks: true }`. You can override this behavior by passing `{ hooks: false }`
+- The resulting promise from the `Model.validate` instance method will be rejected when validation fails. It will fulfill when validation succeeds.
 - Raw options for where, order and group like `where: { $raw: '..', order: [{ raw: '..' }], group: [{ raw: '..' }] }` have been removed to prevent SQL injection attacks.
+- `Sequelize.Utils` is not longer part of the public API, use it at your own risk
 
 ### New features
 - Initial version of `sequelize.sync({ alter: true })` has been added and uses `ALTER TABLE` commands to sync tables. [Migrations](http://docs.sequelizejs.com/manual/tutorial/migrations.html) are still preferred and should be used in production.
@@ -100,7 +103,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - `JSON` datatype support has been added for `SQLite`
 - `UPSERT` is now supported on `MSSQL` using `MERGE` statement.
 - Transactions are now fully supported on `MSSQL`.
-- Filtered indexes are now supported on `MSSQL` dialect. 
+- Filtered indexes are now supported on `MSSQL` dialect.
   ```js
   queryInterface.addIndex(
     'Person',

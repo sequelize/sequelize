@@ -287,7 +287,7 @@ User.findAll({
 ```
 
 ## Scopes
-This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/scopes.html).
+This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/manual/tutorial/scopes.html).
 
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
@@ -811,7 +811,7 @@ return Product.create({
 
 ### Creating elements of a "HasMany" or "BelongsToMany" association
 
-Let's introduce the ability to associate a project with many tags. Setting up the models could look like:
+Let's introduce the ability to associate a product with many tags. Setting up the models could look like:
 
 ```js
 const Tag = this.sequelize.define('tag', {
@@ -822,7 +822,7 @@ Product.hasMany(Tag);
 // Also works for `belongsToMany`.
 ```
 
-Now we can create a project with multiple tags in the following way:
+Now we can create a product with multiple tags in the following way:
 
 ```js
 Product.create({

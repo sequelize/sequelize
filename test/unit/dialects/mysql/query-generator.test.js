@@ -13,22 +13,22 @@ if (dialect === 'mysql') {
       arithmeticQuery: [
         {
           title:'Should use the plus operator',
-          arguments: ['+', 'myTable', { foo: 'bar' }, {}],
+          arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`+\'bar\' '
         },
         {
           title:'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`+\'bar\' WHERE `bar` = \'biz\''
         },
         {
           title:'Should use the minus operator',
-          arguments: ['-', 'myTable', { foo: 'bar' }],
+          arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`-\'bar\' '
         },
         {
           title:'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`-\'bar\' WHERE `bar` = \'biz\''
         }
       ],
@@ -380,6 +380,16 @@ if (dialect === 'mysql') {
           title: 'use != if not !== BOOLEAN',
           arguments: ['myTable', {where: {field: {not: 3}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
+          context: QueryGenerator
+        }, {
+          title: 'Regular Expression in where clause',
+          arguments: ['myTable', {where: {field: {$regexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` REGEXP '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Regular Expression negation in where clause',
+          arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` NOT REGEXP '^[h|a|t]';",
           context: QueryGenerator
         }
       ],

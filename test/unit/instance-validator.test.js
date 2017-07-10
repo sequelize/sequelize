@@ -10,7 +10,18 @@ const SequelizeValidationError = require('../../lib/errors').ValidationError;
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   beforeEach(() => {
-    this.User = Support.sequelize.define('user');
+    this.User = Support.sequelize.define('user', {
+      fails: {
+        type: Support.Sequelize.BOOLEAN,
+        validate: {
+          isNotTrue(value) {
+            if (value) {
+              throw Error('Manual model validation failure');
+            }
+          }
+        }
+      }
+    });
   });
 
   it('configures itself to run hooks by default', () => {
@@ -39,6 +50,20 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       expect(_validate).to.have.been.calledOnce;
       expect(_validateAndRunHooks).to.not.have.been.called;
+    });
+
+    it('fulfills when validation is successful', () => {
+      const instanceValidator = new InstanceValidator(this.User.build());
+      const result = instanceValidator.validate();
+
+      return expect(result).to.be.fulfilled;
+    });
+
+    it('rejects with a validation error when validation fails', () => {
+      const instanceValidator = new InstanceValidator(this.User.build({ fails: true }));
+      const result = instanceValidator.validate();
+
+      return expect(result).to.be.rejectedWith(SequelizeValidationError);
     });
   });
 

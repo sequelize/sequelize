@@ -8,7 +8,7 @@
 
 [![Snaplytics logo](asset/logo-snaplytics-green.png)](https://snaplytics.io)
 
-> We've been using sequelize since we started in the beginning of 2015. We use it for our graphql servers (in connection with [graphql-sequelize](github.com/mickhansen/graphql-sequelize)), and for all our background workers.
+> We've been using sequelize since we started in the beginning of 2015. We use it for our graphql servers (in connection with [graphql-sequelize](http://github.com/mickhansen/graphql-sequelize)), and for all our background workers.
 
 <hr />
 
