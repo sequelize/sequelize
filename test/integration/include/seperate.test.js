@@ -77,9 +77,9 @@ if (current.dialect.supports.groupedLimit) {
           return User.create({
             id: 1,
             tasks: [
-                {},
-                {},
-                {}
+              {},
+              {},
+              {}
             ]
           }, {
             include: [User.Tasks]
@@ -87,10 +87,10 @@ if (current.dialect.supports.groupedLimit) {
             return User.findAll({
               attributes: ['name'],
               include: [
-                  {association: User.Tasks, separate: true}
+                {association: User.Tasks, separate: true}
               ],
               order: [
-                  ['id', 'ASC']
+                ['id', 'ASC']
               ],
               logging: sqlSpy
             });
