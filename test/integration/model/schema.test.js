@@ -20,16 +20,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           foo: DataTypes.STRING,
           bar: DataTypes.STRING
         },
-          {tableName: 'restaurants'});
+        {tableName: 'restaurants'});
         this.Location = current.define('location', {
           name: DataTypes.STRING
         },
-          {tableName: 'locations'});
+        {tableName: 'locations'});
         this.Employee = current.define('employee', {
           first_name: DataTypes.STRING,
           last_name: DataTypes.STRING
         },
-          {tableName: 'employees'});
+        {tableName: 'employees'});
         this.EmployeeOne = this.Employee.schema(SCHEMA_ONE);
         this.Restaurant.belongsTo(this.Location,
           {
