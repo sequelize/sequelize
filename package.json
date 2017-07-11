@@ -99,7 +99,7 @@
   "main": "index",
   "scripts": {
     "lint": "eslint lib test --quiet",
-    "test": "npm run lint && npm run teaser && npm run test-unit && npm run test-integration",
+    "test": "npm run teaser && npm run test-unit && npm run test-integration",
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
     "test-docker-unit": "env-cmd ./test/config/.docker.env npm run test-unit",
     "test-docker-integration": "env-cmd ./test/config/.docker.env npm run test-integration",
