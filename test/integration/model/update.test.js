@@ -59,30 +59,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ownerId: 2,
           name: 'Account Name 1'
         })
-        .then(() => {
-          return this.Account.create({
-            ownerId: 2,
-            name: 'Account Name 2'
+          .then(() => {
+            return this.Account.create({
+              ownerId: 2,
+              name: 'Account Name 2'
+            });
+          })
+          .then(() => {
+            return this.Account.create({
+              ownerId: 2,
+              name: 'Account Name 3'
+            });
+          })
+          .then(() => {
+            const options = {
+              where: {
+                ownerId: 2
+              },
+              limit: 1
+            };
+            return this.Account.update({ name: 'New Name' }, options);
+          })
+          .then(account => {
+            expect(account[0]).to.equal(1);
           });
-        })
-        .then(() => {
-          return this.Account.create({
-            ownerId: 2,
-            name: 'Account Name 3'
-          });
-        })
-        .then(() => {
-          const options = {
-            where: {
-              ownerId: 2
-            },
-            limit: 1
-          };
-          return this.Account.update({ name: 'New Name' }, options);
-        })
-        .then(account => {
-          expect(account[0]).to.equal(1);
-        });
       });
     }
   });

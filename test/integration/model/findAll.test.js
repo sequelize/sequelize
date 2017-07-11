@@ -889,11 +889,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               this.Kingdom.create({ name: 'Water' }),
               this.Kingdom.create({ name: 'Wind' })
             ]).spread((k1, k2, k3) =>
-                Sequelize.Promise.all([
-                  k1.addAnimals([a1, a2]),
-                  k2.addAnimals([a4]),
-                  k3.addAnimals([a3])
-                ])
+              Sequelize.Promise.all([
+                k1.addAnimals([a1, a2]),
+                k2.addAnimals([a4]),
+                k3.addAnimals([a3])
+              ])
             ));
         });
 
