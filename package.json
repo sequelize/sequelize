@@ -68,7 +68,7 @@
     "esdoc": "^0.5.2",
     "eslint": "^4.2.0",
     "hints": "^1.1.0",
-    "husky": "^0.13.4",
+    "husky": "^0.14.2",
     "istanbul": "^0.4.5",
     "lcov-result-merger": "^1.2.0",
     "mocha": "^3.0.2",
