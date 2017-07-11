@@ -123,7 +123,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('preserves changes to instance', () => {
-      it('beforeValidate', function(){
+      it('beforeValidate', function() {
         let hookCalled = 0;
 
         this.User.beforeValidate(user => {

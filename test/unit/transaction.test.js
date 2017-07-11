@@ -13,13 +13,13 @@ describe('Transaction', function() {
     this.stub = sinon.stub(current, 'query').returns(Sequelize.Promise.resolve({}));
 
     this.stubConnection = sinon.stub(current.connectionManager, 'getConnection')
-    .returns(Sequelize.Promise.resolve({
-      uuid: 'ssfdjd-434fd-43dfg23-2d',
-      close(){}
-    }));
+      .returns(Sequelize.Promise.resolve({
+        uuid: 'ssfdjd-434fd-43dfg23-2d',
+        close() {}
+      }));
 
     this.stubRelease = sinon.stub(current.connectionManager, 'releaseConnection')
-    .returns(Sequelize.Promise.resolve());
+      .returns(Sequelize.Promise.resolve());
   });
 
   beforeEach(() => {
