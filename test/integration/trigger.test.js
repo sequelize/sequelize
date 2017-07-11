@@ -52,9 +52,9 @@ if (current.dialect.supports.tmpTableTrigger) {
           user.username = 'usernamechanged';
           return user.save();
         })
-        .then(() => {
-          return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
-        });
+          .then(() => {
+            return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
+          });
       });
 
       it('should return output rows after Model update', () => {
@@ -69,9 +69,9 @@ if (current.dialect.supports.tmpTableTrigger) {
             }
           });
         })
-        .then(() => {
-          return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
-        });
+          .then(() => {
+            return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
+          });
       });
 
       it('should successfully delete with a trigger on the table', () => {

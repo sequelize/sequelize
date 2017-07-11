@@ -499,21 +499,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should sync foreign keys with custom field names', function() {
         return this.sequelize.sync({ force: true })
-        .then(() => {
-          const attrs = this.Task.tableAttributes;
-          expect(attrs.user_id.references.model).to.equal('users');
-          expect(attrs.user_id.references.key).to.equal('userId');
-        });
+          .then(() => {
+            const attrs = this.Task.tableAttributes;
+            expect(attrs.user_id.references.model).to.equal('users');
+            expect(attrs.user_id.references.key).to.equal('userId');
+          });
       });
 
       it('should find the value of an attribute with a custom field name', function() {
         return this.User.create({ name: 'test user' })
-        .then(() => {
-          return this.User.find({ where: { name: 'test user' } });
-        })
-        .then(user => {
-          expect(user.name).to.equal('test user');
-        });
+          .then(() => {
+            return this.User.find({ where: { name: 'test user' } });
+          })
+          .then(user => {
+            expect(user.name).to.equal('test user');
+          });
       });
 
       it('field names that are the same as property names should create, update, and read correctly', function() {
