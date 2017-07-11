@@ -381,6 +381,16 @@ if (dialect === 'mysql') {
           arguments: ['myTable', {where: {field: {not: 3}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
           context: QueryGenerator
+        }, {
+          title: 'Regular Expression in where clause',
+          arguments: ['myTable', {where: {field: {$regexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` REGEXP '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Regular Expression negation in where clause',
+          arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` NOT REGEXP '^[h|a|t]';",
+          context: QueryGenerator
         }
       ],
 

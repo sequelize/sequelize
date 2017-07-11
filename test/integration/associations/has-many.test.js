@@ -1130,10 +1130,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
             const tableName = user.sequelize.getQueryInterface().QueryGenerator.addSchema(user.constructor);
             return user.sequelize.getQueryInterface().update(user, tableName, {id: 999}, {id: user.id})
-            .catch (self.sequelize.ForeignKeyConstraintError, () => {
+              .catch (self.sequelize.ForeignKeyConstraintError, () => {
               // Should fail due to FK violation
-              return Task.findAll();
-            });
+                return Task.findAll();
+              });
           }).then(tasks => {
             expect(tasks).to.have.length(1);
           });

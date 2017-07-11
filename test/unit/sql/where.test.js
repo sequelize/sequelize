@@ -303,8 +303,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         testsql('name', {
           $and: [
-              {like : '%someValue1%'},
-              {like : '%someValue2%'}
+            {like : '%someValue1%'},
+            {like : '%someValue2%'}
           ]
         }, {
           default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')",
@@ -906,6 +906,78 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           default: '[data] @> \'{"company":"Magnafone"}\''
         });
       });
+    }
+
+    if (current.dialect.supports.REGEXP) {
+      suite('$regexp', () => {
+        testsql('username', {
+          $regexp: '^sw.*r$'
+        }, {
+          mysql: "`username` REGEXP '^sw.*r$'",
+          postgres: '"username" ~ \'^sw.*r$\''
+        });
+      });
+
+      suite('$regexp', () => {
+        testsql('newline', {
+          $regexp: '^new\nline$'
+        }, {
+          mysql: "`newline` REGEXP '^new\nline$'",
+          postgres: '"newline" ~ \'^new\nline$\''
+        });
+      });
+
+      suite('$notRegexp', () => {
+        testsql('username', {
+          $notRegexp: '^sw.*r$'
+        }, {
+          mysql: "`username` NOT REGEXP '^sw.*r$'",
+          postgres: '"username" !~ \'^sw.*r$\''
+        });
+      });
+
+      suite('$notRegexp', () => {
+        testsql('newline', {
+          $notRegexp: '^new\nline$'
+        }, {
+          mysql: "`newline` NOT REGEXP '^new\nline$'",
+          postgres: '"newline" !~ \'^new\nline$\''
+        });
+      });
+
+      if (current.dialect.name === 'postgres') {
+        suite('$iRegexp', () => {
+          testsql('username', {
+            $iRegexp: '^sw.*r$'
+          }, {
+            postgres: '"username" ~* \'^sw.*r$\''
+          });
+        });
+
+        suite('$iRegexp', () => {
+          testsql('newline', {
+            $iRegexp: '^new\nline$'
+          }, {
+            postgres: '"newline" ~* \'^new\nline$\''
+          });
+        });
+
+        suite('$notIRegexp', () => {
+          testsql('username', {
+            $notIRegexp: '^sw.*r$'
+          }, {
+            postgres: '"username" !~* \'^sw.*r$\''
+          });
+        });
+
+        suite('$notIRegexp', () => {
+          testsql('newline', {
+            $notIRegexp: '^new\nline$'
+          }, {
+            postgres: '"newline" !~* \'^new\nline$\''
+          });
+        });
+      }
     }
 
     suite('fn', () => {
