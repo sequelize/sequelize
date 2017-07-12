@@ -159,8 +159,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should update a geometry object', function() {
         const User = this.User;
         const polygon1 = { type: 'Polygon', coordinates: [
-            [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
-              [100.0, 1.0], [100.0, 0.0] ]
+          [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
+            [100.0, 1.0], [100.0, 0.0] ]
           ]},
           polygon2 = { type: 'Polygon', coordinates: [
             [ [100.0, 0.0], [102.0, 0.0], [102.0, 1.0],
