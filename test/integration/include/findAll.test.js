@@ -885,7 +885,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         }).then(results => {
           return Promise.join(
             results.users[0].setGroup(results.groups[1]),
-             results.users[1].setGroup(results.groups[0])
+            results.users[1].setGroup(results.groups[0])
           );
         }).then(() => {
           return User.findAll({

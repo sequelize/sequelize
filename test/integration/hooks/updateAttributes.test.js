@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('preserves changes to instance', () => {
-      it('beforeValidate', function(){
+      it('beforeValidate', function() {
 
         this.User.beforeValidate(user => {
           user.mood = 'happy';

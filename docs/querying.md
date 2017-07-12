@@ -135,6 +135,10 @@ $like: '%hat',         // LIKE '%hat'
 $notLike: '%hat'       // NOT LIKE '%hat'
 $iLike: '%hat'         // ILIKE '%hat' (case insensitive) (PG only)
 $notILike: '%hat'      // NOT ILIKE '%hat'  (PG only)
+$regexp: '^[h|a|t]'    // REGEXP/~ '^[h|a|t]' (MySQL/PG only)
+$notRegexp: '^[h|a|t]' // NOT REGEXP/!~ '^[h|a|t]' (MySQL/PG only)
+$iRegexp: '^[h|a|t]'    // ~* '^[h|a|t]' (PG only)
+$notIRegexp: '^[h|a|t]' // !~* '^[h|a|t]' (PG only)
 $like: { $any: ['cat', 'hat']}
                        // LIKE ANY ARRAY['cat', 'hat'] - also works for iLike and notLike
 $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)

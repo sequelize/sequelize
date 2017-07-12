@@ -202,8 +202,8 @@ const Support = {
     if (!expectation) {
       if (expectations['default'] !== undefined) {
         expectation = expectations['default']
-                      .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-                      .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
+          .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
+          .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
       } else {
         throw new Error('Undefined expectation for "' + Support.sequelize.dialect.name + '"!');
       }

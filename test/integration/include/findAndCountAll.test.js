@@ -268,26 +268,26 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { ProjectId: 2, name: 'proposes' }
           ]);
         })
-        .then(() => {
+          .then(() => {
           // Find All Tasks with Project(m=a) and User(name=user-name-2)
-          return Task.findAndCountAll({
-            limit: 1,
-            offset: 0,
-            order: [[ 'id', 'DESC' ]],
-            include: [
-              {
-                model: Project,
-                where: { '$and': [ { m: 'A' } ] },
-                include: [ {
-                  model: User,
-                  where: { '$and': [ { name: 'user-name-2' } ] }
-                }
-                ]
-              },
-              { model : Tag }
-            ]
+            return Task.findAndCountAll({
+              limit: 1,
+              offset: 0,
+              order: [[ 'id', 'DESC' ]],
+              include: [
+                {
+                  model: Project,
+                  where: { '$and': [ { m: 'A' } ] },
+                  include: [ {
+                    model: User,
+                    where: { '$and': [ { name: 'user-name-2' } ] }
+                  }
+                  ]
+                },
+                { model : Tag }
+              ]
+            });
           });
-        });
       }).then(result => {
         expect(result.count).to.equal(2);
         expect(result.rows.length).to.equal(1);
@@ -326,8 +326,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           limit: 1,
           offset: 1,
           where: sequelize.or(
-              { first_name : { like: '%user-fname%' } },
-              { last_name : { like: '%user-lname%' } }
+            { first_name : { like: '%user-fname%' } },
+            { last_name : { like: '%user-lname%' } }
           ),
           include: [
             {
