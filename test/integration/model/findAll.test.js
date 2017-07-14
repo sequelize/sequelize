@@ -1466,7 +1466,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should return only non deleted records', function() {
+    it('should return only non deleted records', () => {
       const Model = current.define('Test', {
         username: Sequelize.STRING
       }, { paranoid: true });
