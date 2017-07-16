@@ -226,7 +226,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should concatenate scope groups', () => {
       expect(Company.scope('groupByCompanyId', 'groupByProjectId')._scope).to.deep.equal({
         group: ['company.id', 'project.id'],
-        include: [{ model: Project }],
+        include: [{ model: Project }]
       });
     });
   });
