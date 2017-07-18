@@ -617,21 +617,22 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('using scope to set associations', function() {
-      const ItemTag = this.sequelize.define('ItemTag', {
+      let self = this;
+      const ItemTag = self.sequelize.define('ItemTag', {
           id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           tag_id: { type: DataTypes.INTEGER, unique: false },
           taggable: { type: DataTypes.STRING },
           taggable_id: { type: DataTypes.INTEGER, unique: false }
         }),
-        Tag = this.sequelize.define('Tag', {
+        Tag = self.sequelize.define('Tag', {
           id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           name: DataTypes.STRING
         }),
-        Comment = this.sequelize.define('Comment', {
+        Comment = self.sequelize.define('Comment', {
           id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           name: DataTypes.STRING
         }),
-        Post = this.sequelize.define('Post', {
+        Post = self.sequelize.define('Post', {
           id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           name: DataTypes.STRING
         });
@@ -646,32 +647,37 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         foreignKey: 'taggable_id'
       });
 
-      return this.sequelize.sync({ force: true }).then(() => {
+      return self.sequelize.sync({ force: true }).then(() => {
         return Promise.all([
           Post.create({ name: 'post1' }),
           Comment.create({ name: 'comment1' }),
           Tag.create({ name: 'tag1' })
         ]);
-      }).bind({}).spread(function(post, comment, tag) {
-        this.post = post;
-        this.comment = comment;
-        this.tag = tag;
-        return this.post.setTags([this.tag]);
-      }).then(function() {
-        return this.comment.setTags([this.tag]);
-      }).then(function() {
-        return this.comment.getTags();
-      }).then(_tags => {
-        expect(_tags).to.have.length(1);
+      }).bind({}).spread( (post, comment, tag) => {
+        self.post = post;
+        self.comment = comment;
+        self.tag = tag;
+        return self.post.setTags([self.tag]);
+      }).then( () => {
+        return self.comment.setTags([self.tag]);
+      }).then( () => {
+        return Promise.all([
+          self.post.getTags(),
+          self.comment.getTags()
+        ]);
+      }).spread( (postTags, commentTags) => {
+        expect(postTags).to.have.length(1);
+        expect(commentTags).to.have.length(1);
       });
     });
 
     it('updating association via set associations with scope', function() {
-      var ItemTag = this.sequelize.define('ItemTag', {
-                      id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-                      tag_id: { type: DataTypes.INTEGER, unique: false },
-                      taggable: { type: DataTypes.STRING },
-                      taggable_id: { type: DataTypes.INTEGER, unique: false }
+      let self = this;
+      let ItemTag = this.sequelize.define('ItemTag', {
+          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          tag_id: { type: DataTypes.INTEGER, unique: false },
+          taggable: { type: DataTypes.STRING },
+          taggable_id: { type: DataTypes.INTEGER, unique: false }
       }),
       Tag = this.sequelize.define('Tag', {
         id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -696,27 +702,31 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
        foreignKey: 'taggable_id'
       });
 
-      return this.sequelize.sync({ force: true }).then(function() {
+      return this.sequelize.sync({ force: true }).then( () => {
         return Promise.all([
           Post.create({ name: 'post1' }),
           Comment.create({ name: 'comment1' }),
           Tag.create({ name: 'tag1' }),
           Tag.create({ name: 'tag2' })
         ]);
-      }).bind({}).spread(function(post, comment, tag, secondTag) {
-        this.post = post;
-        this.comment = comment;
-        this.tag = tag;
-        this.secondTag = secondTag;
-        return this.post.setTags([this.tag, this.secondTag]);
-      }).then(function() {
-        return this.comment.setTags([this.tag, this.secondTag]);
-      }).then(function() {
-        return this.post.setTags([this.tag]);
-      }).then(function() {
-        return this.comment.getTags();
-      }).then(function(_tags) {
-        expect(_tags).to.have.length(2);
+      }).bind({}).spread( (post, comment, tag, secondTag) => {
+        self.post = post;
+        self.comment = comment;
+        self.tag = tag;
+        self.secondTag = secondTag;
+        return self.post.setTags([self.tag, self.secondTag]);
+      }).then( () => {
+        return self.comment.setTags([self.tag, self.secondTag]);
+      }).then( () => {
+        return self.post.setTags([self.tag]);
+      }).then( () => {
+        return Promise.all([
+          self.post.getTags(),
+          self.comment.getTags()
+        ]);
+      }).spread( (postTags, commentTags) => {
+        expect(postTags).to.have.length(1);
+        expect(commentTags).to.have.length(2);
       });
     });
   });
