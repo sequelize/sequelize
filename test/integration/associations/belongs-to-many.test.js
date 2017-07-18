@@ -617,7 +617,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('using scope to set associations', function() {
-      let self = this;
+      const self = this;
       const ItemTag = self.sequelize.define('ItemTag', {
           id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           tag_id: { type: DataTypes.INTEGER, unique: false },
@@ -672,25 +672,25 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('updating association via set associations with scope', function() {
-      let self = this;
-      let ItemTag = this.sequelize.define('ItemTag', {
+      const self = this;
+      const ItemTag = this.sequelize.define('ItemTag', {
           id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           tag_id: { type: DataTypes.INTEGER, unique: false },
           taggable: { type: DataTypes.STRING },
           taggable_id: { type: DataTypes.INTEGER, unique: false }
-      }),
-      Tag = this.sequelize.define('Tag', {
-        id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        name: DataTypes.STRING
-      }),
-      Comment = this.sequelize.define('Comment', {
-        id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        name: DataTypes.STRING
-      }),
-      Post = this.sequelize.define('Post', {
-        id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        name: DataTypes.STRING
-      });
+        }),
+        Tag = this.sequelize.define('Tag', {
+          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          name: DataTypes.STRING
+        }),
+        Comment = this.sequelize.define('Comment', {
+          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          name: DataTypes.STRING
+        }),
+        Post = this.sequelize.define('Post', {
+          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          name: DataTypes.STRING
+        });
 
       Post.belongsToMany(Tag, {
         through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
@@ -699,7 +699,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       Comment.belongsToMany(Tag, {
         through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
-       foreignKey: 'taggable_id'
+        foreignKey: 'taggable_id'
       });
 
       return this.sequelize.sync({ force: true }).then( () => {
