@@ -527,6 +527,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
+    it('array in `bind` property working', function() {
+      let logSql;
+      return this.sequelize.query({query: 'select $prop', bind: {prop: [1]}}, {type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; }}).then(result => {
+        expect(result).to.deep.equal([{'': 1}]);
+        if (dialect === 'mssql') {
+          expect(logSql.indexOf('@prop_0')).to.be.above(-1);
+        }
+      });
+    });
+
     it('dot separated attributes when doing a raw query without nest', function() {
       const tickChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
         sql = 'select 1 as ' + Sequelize.Utils.addTicks('foo.bar.baz', tickChar);
