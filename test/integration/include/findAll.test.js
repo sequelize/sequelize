@@ -648,7 +648,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               ]}
             ]
           }).then(as => {
-            expect(as.length).to.be.ok;
+            expect(as.length).to.equal(1);
 
             as.forEach(a => {
               expect(a.b.c.d.e.f.g.h).to.be.ok;
@@ -2053,5 +2053,56 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           expect(posts[0].Entity.tags[0].EntityTag.entity_id).to.equal(posts[0].post_id);
         });
     });
+
+    it('Should not return elements that are not satisfied with a where from deep include', function() {
+      const User = this.sequelize.define('User', {});
+      const Role = this.sequelize.define('Role', {});
+      const Permission = this.sequelize.define('Permission', {});
+      const UserRole = this.sequelize.define('UserRole', {});
+      const RolePermission = this.sequelize.define('RolePermission', {});
+
+      User.belongsToMany(Role, { through:UserRole });
+      Role.belongsToMany(User, { through:UserRole });
+      UserRole.belongsTo(User);
+      UserRole.belongsTo(Role);
+
+      Role.belongsToMany(Permission, { through:RolePermission });
+      Permission.belongsToMany(Role, { through:RolePermission });
+      RolePermission.belongsTo(Role);
+      RolePermission.belongsTo(Permission);
+
+      return this.sequelize.sync({ force: true })
+        .then(() => Promise.all([
+          User.create({ id:1 }),
+          User.create({ id:2 }),
+          Role.create({ id:1 }),
+          Role.create({ id:2 }),
+          Permission.create({ id:1 }),
+          Permission.create({ id:2 }),
+        ]))
+        .then(() => Promise.all([
+          UserRole.create({ UserId:1, RoleId:1 }),
+          UserRole.create({ UserId:2, RoleId:2 }),
+          RolePermission.create({ RoleId:1, PermissionId:1 }),
+          RolePermission.create({ RoleId:2, PermissionId:2 }),
+        ]))
+        .then(() => User.findAll({
+          include: [{
+            model: Role,
+            include: [
+              {
+                model: Permission,
+                where: {
+                  id: 1,
+                },
+              },
+            ],
+          }],
+        }))
+        .then(users => {
+          expect(users.length).to.equal(1);
+        });
+    });
+
   });
 });
