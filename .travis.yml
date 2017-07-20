@@ -43,21 +43,35 @@ script:
   - npm run lint
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
 
-after_success:
-  - npm run semantic-release
-
 branches:
   except:
     - /^v\d+\.\d+\.\d+$/
 
-deploy:
-  provider: surge
-  project: ./esdoc/
-  domain: docs.sequelizejs.com
-  skip_cleanup: true
-  on:
-    branch: master
-    node: 6
-
 before_deploy:
+  # Prepare package.json with version field
+  - semantic-release pre
+  # Generate docs
   - npm run docs
+
+deploy:
+  # Publish on npm
+  - provider: npm
+    email:
+      secure: GcRjqjzsRsyOOuOVbYiIjIHv5MgCJ07EgB6f5GPs4DTBqT56O7l2D25oh+0L9NHVMTYIoaNTFb7FJMGjVJXS0uqyrTG5yMngodEQcGN6H+Tfuf1d0HDYNhvg2/DhjVpIh8WdC5bkh46z9ngHmYEwxnzs3loRrxAbbmLgp1Ya8iI=
+    api_key:
+      secure: ESYSlYkz9AxWdA1aQoUyFA+RV6Sz4ACm+OzdfAmI/FCPt/Tr7s6C11amrJOoliEtyQC08C9/7SBDxv9+dEmPRdSrpaqC8Uk4NlxD+q4LHh5r3yracL1qsAJiQihl4J9zlc7RXR5GyFh7usGrdbo9k1dOZ3vsYCBxQz/mBJsfPqc=
+    skip_cleanup: true
+    on:
+      branch: master
+  # Deploy docs
+  - provider: surge
+    project: ./esdoc/
+    domain: docs.sequelizejs.com
+    skip_cleanup: true
+    on:
+      branch: master
+      node: 6
+
+after_deploy:
+  # Publish release notes on GitHub
+  - semantic-release post
