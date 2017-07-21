@@ -603,11 +603,35 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           });
 
           testsql('userId', {
+            $like: {
+              $all: ['foo', 'bar', 'baz']
+            }
+          }, {
+            postgres: "\"userId\" LIKE ALL (ARRAY['foo','bar','baz'])"
+          });
+
+          testsql('userId', {
+            $iLike: {
+              $all: ['foo', 'bar', 'baz']
+            }
+          }, {
+            postgres: "\"userId\" ILIKE ALL (ARRAY['foo','bar','baz'])"
+          });
+
+          testsql('userId', {
+            $notLike: {
+              $all: ['foo', 'bar', 'baz']
+            }
+          }, {
+            postgres: "\"userId\" NOT LIKE ALL (ARRAY['foo','bar','baz'])"
+          });
+
+          testsql('userId', {
             $notILike: {
               $all: ['foo', 'bar', 'baz']
             }
           }, {
-            postgres: "\"userId\" NOT ILIKE ALL ARRAY['foo','bar','baz']"
+            postgres: "\"userId\" NOT ILIKE ALL (ARRAY['foo','bar','baz'])"
           });
         });
       });
