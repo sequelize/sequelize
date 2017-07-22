@@ -908,6 +908,30 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
       });
     });
+
+    it('uses and extends passed model constructor', () => {
+      const sequelize = Support.createSequelizeInstance();
+      class Model extends Sequelize.Model {
+        static foo() {}
+      };
+      const DAO = sequelize.define('foo', {bar: DataTypes.STRING}, { Model });
+      expect(Model.isPrototypeOf(DAO)).to.be.true;
+      expect(() => {
+        class NotModel {};
+        sequelize.define('foo', {bar: DataTypes.STRING}, { Model:  NotModel});
+      }).to.throw(Error, 'options.Model does not extends Sequelize.Model');
+    });
+
+    it('inherits global model', () => {
+      class Model extends Sequelize.Model {
+        static foo() {}
+      };
+      const sequelize = Support.createSequelizeInstance({ define: { Model }});
+      const DAO = sequelize.define('foo', {bar: DataTypes.STRING});
+      expect(Model.isPrototypeOf(DAO)).to.be.true;
+      expect(DAO.foo).to.equal(Model.foo);
+    });
+
   });
 
   describe('truncate', () => {

@@ -36,18 +36,37 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
   New:
 
   ```js
-  const Model = sequelize.define('Model', {
-      ...
-  });
+  class ExtendedModel extends Sequelize.Model {
+    // Class Method
+    static associate (models) {
+        ...associate the models
+    }
 
-  // Class Method
-  Model.associate = function (models) {
-      ...associate the models
-  };
-
-  // Instance Method
-  Model.prototype.someMethod = function () {..}
+    // Instance Method
+    someMethod () {..}
+  }
+  
+  const Model = sequelize.define('Model', { ... }, { Model: ExtendedModel});
   ```
+
+To replace the Model class for all defined models it is possible to set a global option on the created Sequelize instance
+
+  For Example the following `ClassicModel` class will bring back the `Model` property to every model instances:
+
+  ```js
+  class ClassicModel extends Sequelize.Model {
+    static init() {
+      this.prototype.Model = this; // Add Model property on instances
+      return super.init.apply(this, arguments);
+    }
+  };
+  const sequelize = new Sequelize('DB', 'USER', 'PASS', { define: { Model: ClassicModel }});
+  const Model = sequelize.define('Model', { ... });
+  const instance = new Model();
+
+  instance.Model === Model //true
+  ```
+
 - `Model.Instance` and `instance.Model` are removed. To access the Model from an instance, simply use [`instance.constructor`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/constructor). The Instance class (`Model.Instance`) is now the Model itself.
 - Sequelize now uses an independent copy of bluebird library.
 
