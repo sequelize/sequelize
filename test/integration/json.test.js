@@ -241,8 +241,8 @@ describe('model', () => {
         });
       });
 
-      // JSONB Supports this, but not JSON in postgres
-      if (current.dialect.name !== 'postgres') {
+      // JSONB Supports this, but not JSON in postgres/mysql
+      if (current.dialect.name !== 'postgres' && current.dialect.name !== 'mysql') {
         it('should be able to find with just string', function() {
           return this.User.create({
             username: 'swen123',
