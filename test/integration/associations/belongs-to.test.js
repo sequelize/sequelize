@@ -621,12 +621,12 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
                 const tableName = user.sequelize.getQueryInterface().QueryGenerator.addSchema(user.constructor);
                 return user.sequelize.getQueryInterface().update(user, tableName, {id: 999}, {id: user.id})
-                .then(() => {
-                  return Task.findAll().then(tasks => {
-                    expect(tasks).to.have.length(1);
-                    expect(tasks[0].UserId).to.equal(999);
+                  .then(() => {
+                    return Task.findAll().then(tasks => {
+                      expect(tasks).to.have.length(1);
+                      expect(tasks[0].UserId).to.equal(999);
+                    });
                   });
-                });
               });
             });
           });

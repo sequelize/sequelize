@@ -2130,20 +2130,20 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       User.belongsToMany(User, { through: Follow, as: 'Fan' });
 
       return this.sequelize.sync({ force: true })
-      .then(() => {
-        return self.sequelize.Promise.all([
-          User.create({ name: 'Khsama' }),
-          User.create({ name: 'Vivek' }),
-          User.create({ name: 'Satya' })
-        ]);
-      })
-      .then(users => {
-        return self.sequelize.Promise.all([
-          users[0].addFan(users[1]),
-          users[1].addUser(users[2]),
-          users[2].addFan(users[0])
-        ]);
-      });
+        .then(() => {
+          return self.sequelize.Promise.all([
+            User.create({ name: 'Khsama' }),
+            User.create({ name: 'Vivek' }),
+            User.create({ name: 'Satya' })
+          ]);
+        })
+        .then(users => {
+          return self.sequelize.Promise.all([
+            users[0].addFan(users[1]),
+            users[1].addUser(users[2]),
+            users[2].addFan(users[0])
+          ]);
+        });
     });
 
     it('should work with custom self reference', function() {
@@ -2171,20 +2171,20 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       return this.sequelize.sync({ force: true })
-      .then(() => {
-        return self.sequelize.Promise.all([
-          User.create({ name: 'Jalrangi' }),
-          User.create({ name: 'Sargrahi' })
-        ]);
-      })
-      .then(users => {
-        return self.sequelize.Promise.all([
-          users[0].addFollower(users[1]),
-          users[1].addFollower(users[0]),
-          users[0].addInvitee(users[1]),
-          users[1].addInvitee(users[0])
-        ]);
-      });
+        .then(() => {
+          return self.sequelize.Promise.all([
+            User.create({ name: 'Jalrangi' }),
+            User.create({ name: 'Sargrahi' })
+          ]);
+        })
+        .then(users => {
+          return self.sequelize.Promise.all([
+            users[0].addFollower(users[1]),
+            users[1].addFollower(users[0]),
+            users[0].addInvitee(users[1]),
+            users[1].addInvitee(users[0])
+          ]);
+        });
     });
 
     it('should setup correct foreign keys', function() {

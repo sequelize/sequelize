@@ -58,17 +58,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(score.test_value).to.equal(1001);
             });
           })
-          .then(() => {
-            return Promise.join(
-              self.Student.build({no: 1}).getCourses({where: {no: 100}}),
-              self.Score.find({ where: { StudentId: 1, CourseId: 100 } })
-            );
-          })
-          .spread((courses, score) => {
-            expect(score.test_value).to.equal(1001);
-            expect(courses[0].score.toJSON().test_value).to.equal(1001);
-            expect(self.callCount).to.equal(1);
-          });
+            .then(() => {
+              return Promise.join(
+                self.Student.build({no: 1}).getCourses({where: {no: 100}}),
+                self.Score.find({ where: { StudentId: 1, CourseId: 100 } })
+              );
+            })
+            .spread((courses, score) => {
+              expect(score.test_value).to.equal(1001);
+              expect(courses[0].score.toJSON().test_value).to.equal(1001);
+              expect(self.callCount).to.equal(1);
+            });
         });
       });
     });

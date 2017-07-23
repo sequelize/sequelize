@@ -283,7 +283,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       it('accepts condition object (auto casting)', function() {
         return Airplane.findAll({
           attributes: [
-          [this.sequelize.fn('COUNT', '*'), 'count'],
+            [this.sequelize.fn('COUNT', '*'), 'count'],
             [Sequelize.fn('SUM', {
               engines: 1
             }), 'count-engines'],

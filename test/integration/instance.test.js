@@ -310,6 +310,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     }
 
+    if (current.dialect.supports.returnValues.returning) {
+      it('supports returning', function() {
+        return this.User.findById(1).then(user1 => {
+          return user1.decrement('aNumber', { by: 2 }).then(() => {
+            expect(user1.aNumber).to.be.equal(-2);
+          });
+        });
+      });
+    }
+
     it('with array', function() {
       const self = this;
       return this.User.findById(1).then(user1 => {
@@ -770,9 +780,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                 username: 'a user'
               }
             })
-          .then(user => {
-            expect(user.isSuperUser).to.be.false;
-          });
+              .then(user => {
+                expect(user.isSuperUser).to.be.false;
+              });
           });
       });
 
@@ -789,9 +799,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                 username: 'a user'
               }
             })
-          .then(user => {
-            expect(user.isSuperUser).to.be.true;
-          });
+              .then(user => {
+                expect(user.isSuperUser).to.be.true;
+              });
           });
       });
 
@@ -808,9 +818,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                 username: 'a user'
               }
             })
-          .then(user => {
-            expect(user.isSuperUser).to.be.true;
-          });
+              .then(user => {
+                expect(user.isSuperUser).to.be.true;
+              });
           });
       });
 
@@ -819,18 +829,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'a user',
           isSuperUser: 1
         })
-        .save()
-        .bind(this)
-        .then(function() {
-          return this.User.findOne({
-            where: {
-              username: 'a user'
-            }
-          })
-        .then(user => {
-          expect(user.isSuperUser).to.be.true;
-        });
-        });
+          .save()
+          .bind(this)
+          .then(function() {
+            return this.User.findOne({
+              where: {
+                username: 'a user'
+              }
+            })
+              .then(user => {
+                expect(user.isSuperUser).to.be.true;
+              });
+          });
       });
 
       it('should throw error when given value of incorrect type', function() {
@@ -840,15 +850,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'a user',
           isSuperUser: 'INCORRECT_VALUE_TYPE'
         })
-        .save()
-        .then(() => {
-          callCount += 1;
-        })
-        .catch(err => {
-          expect(callCount).to.equal(0);
-          expect(err).to.exist;
-          expect(err.message).to.exist;
-        });
+          .save()
+          .then(() => {
+            callCount += 1;
+          })
+          .catch(err => {
+            expect(callCount).to.equal(0);
+            expect(err).to.exist;
+            expect(err.message).to.exist;
+          });
       });
     });
   });
@@ -1171,18 +1181,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         updatedAtPaul = users[0].updatedAt;
         updatedAtPeter = users[1].updatedAt;
       })
-      .then(function() {
-        this.clock.tick(150);
-        return this.User.update(
-          { aNumber: 1 },
-          { where: {}, silent: true }
-        );
-      }).then(() => {
-        return self.User.findAll();
-      }).then(users => {
-        expect(users[0].updatedAt).to.equalTime(updatedAtPeter);
-        expect(users[1].updatedAt).to.equalTime(updatedAtPaul);
-      });
+        .then(function() {
+          this.clock.tick(150);
+          return this.User.update(
+            { aNumber: 1 },
+            { where: {}, silent: true }
+          );
+        }).then(() => {
+          return self.User.findAll();
+        }).then(users => {
+          expect(users[0].updatedAt).to.equalTime(updatedAtPeter);
+          expect(users[1].updatedAt).to.equalTime(updatedAtPaul);
+        });
     });
 
     describe('when nothing changed', () => {
@@ -1337,14 +1347,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should fail a validation upon building', function() {
       return this.User.build({aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa'}).save()
-      .catch(err => {
-        expect(err).to.exist;
-        expect(err).to.be.instanceof(Object);
-        expect(err.get('validateCustom')).to.exist;
-        expect(err.get('validateCustom')).to.be.instanceof(Array);
-        expect(err.get('validateCustom')[0]).to.exist;
-        expect(err.get('validateCustom')[0].message).to.equal('Length failed.');
-      });
+        .catch(err => {
+          expect(err).to.exist;
+          expect(err).to.be.instanceof(Object);
+          expect(err.get('validateCustom')).to.exist;
+          expect(err.get('validateCustom')).to.be.instanceof(Array);
+          expect(err.get('validateCustom')[0]).to.exist;
+          expect(err.get('validateCustom')[0].message).to.equal('Length failed.');
+        });
     });
 
     it('should fail a validation when updating', function() {
@@ -2154,8 +2164,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           paranoid: true
         }),
         data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '43' },
-                  { username: 'Bob', secretValue: '44' }];
+          { username: 'Paul', secretValue: '43' },
+          { username: 'Bob', secretValue: '44' }];
 
       return ParanoidUser.sync({ force: true }).then(() => {
         return ParanoidUser.bulkCreate(data);
