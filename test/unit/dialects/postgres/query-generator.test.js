@@ -414,6 +414,10 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: { field: new Buffer('Sequelize')}}],
           expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" = E'\\\\x53657175656c697a65';",
           context: QueryGenerator
+        }, {
+          title: 'string in array should escape \' as \'\'',
+          arguments: ['myTable', {where: { aliases: {$contains: ['Queen\'s']} }}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"aliases\" @> ARRAY['Queen''s'];",
         },
 
         // Variants when quoteIdentifiers is false

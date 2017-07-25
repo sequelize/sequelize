@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           let assertVal = 'VARCHAR(255)';
           switch (dialect) {
             case 'postgres':
-              assertVal = 'CHARACTER VARYING';
+              assertVal = 'CHARACTER VARYING(255)';
               break;
             case 'mssql':
               assertVal = 'NVARCHAR';
