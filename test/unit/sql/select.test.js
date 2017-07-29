@@ -372,6 +372,49 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
       });
     });
+
+    it('include (subQuery alias)', () => {
+      const User = Support.sequelize.define('User', {
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER
+      },
+      {
+        freezeTableName: true
+      });
+      const Post = Support.sequelize.define('Post', {
+        title: DataTypes.STRING
+      },
+      {
+        freezeTableName: true
+      });
+
+      User.Posts = User.hasMany(Post, {foreignKey: 'user_id', as: 'postaliasname'});
+
+      expectsql(sql.selectQuery('User', {
+        table: User.getTableName(),
+        model: User,
+        attributes: ['name', 'age'],
+        include: Model._validateIncludedElements({
+          include: [{
+            attributes: ['title'],
+            association: User.Posts,
+            subQuery: true,
+            required: true
+          }],
+          as: 'User'
+        }).include,
+        subQuery: true
+      }, User), {
+        default: 'SELECT [User].*, [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM ' +
+          '(SELECT [User].[name], [User].[age], [User].[id] AS [id] FROM [User] AS [User] ' +
+          'WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id]) LIMIT 1 ) IS NOT NULL) AS [User] ' +
+          'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id];',
+        mssql: 'SELECT [User].*, [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM ' +
+          '(SELECT [User].[name], [User].[age], [User].[id] AS [id] FROM [User] AS [User] ' +
+          'WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id]) ORDER BY [postaliasname].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY ) IS NOT NULL) AS [User] ' +
+          'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id];'
+      });
+    });
   });
 
   suite('queryIdentifiersFalse', () => {
