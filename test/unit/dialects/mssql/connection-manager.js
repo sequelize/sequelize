@@ -5,8 +5,7 @@ const chai = require('chai'),
   Sequelize = require(__dirname + '/../../../../index'),
   tedious = require('tedious'),
   sinon = require('sinon'),
-  connectionStub = sinon.stub(tedious, 'Connection'),
-  sequelizeErrors = require('../../../../lib/errors');
+  connectionStub = sinon.stub(tedious, 'Connection');
 
 let endCb = null;
 
@@ -51,14 +50,14 @@ describe('[MSSQL] Connection Manager', () => {
     });
 
   it('connectionManager._connect() should reject if end was called and connect was not',
-    (done) => {
+    done => {
       instance.dialect.connectionManager._connect(config)
         .catch(err => {
-          expect(err.name).to.equal('SequelizeConnectionError')
-          done()
-        })
+          expect(err.name).to.equal('SequelizeConnectionError');
+          done();
+        });
       setTimeout(() => {
-        endCb()
+        endCb();
       }, 1000);
     });
 });
