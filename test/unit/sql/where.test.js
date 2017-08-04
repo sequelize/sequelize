@@ -767,6 +767,32 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         testsql('data', {
           nested: {
+            $in: [1, 2]
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) IN (1, 2)",
+          sqlite: "CAST(json_extract(`data`, '$.nested') AS DOUBLE PRECISION) IN (1, 2)"
+        });
+
+        testsql('data', {
+          nested: {
+            $between: [1, 2]
+          }
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) BETWEEN 1 AND 2",
+          sqlite: "CAST(json_extract(`data`, '$.nested') AS DOUBLE PRECISION) BETWEEN 1 AND 2"
+        });
+
+        testsql('data', {
+          nested: {
             attribute: 'value',
             prop: {
               $ne: 'None'
@@ -797,6 +823,18 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           postgres: "((\"User\".\"data\"#>>'{name,last}') = 'Simpson' AND (\"User\".\"data\"#>>'{employment}') != 'None')",
           sqlite: "(json_extract(`User`.`data`, '$.name.last') = 'Simpson' AND json_extract(`User`.`data`, '$.employment') != 'None')"
+        });
+
+        testsql('data', {
+          price: 5,
+          name: 'Product'
+        }, {
+          field: {
+            type: new DataTypes.JSONB()
+          }
+        }, {
+          postgres: "(CAST((\"data\"#>>'{price}') AS DOUBLE PRECISION) = 5 AND (\"data\"#>>'{name}') = 'Product')",
+          sqlite: "(CAST(json_extract(`data`, '$.price') AS DOUBLE PRECISION) = 5 AND json_extract(`data`, '$.name') = 'Product')"
         });
 
         testsql('data.nested.attribute', 'value', {
@@ -836,8 +874,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }, {
-          postgres: "(\"data\"#>>'{nested,attribute}') IN (3, 7)",
-          sqlite: "json_extract(`data`, '$.nested.attribute') IN (3, 7)"
+          postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) IN (3, 7)",
+          sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) IN (3, 7)"
         });
 
         testsql('data', {
@@ -883,7 +921,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS TIMESTAMPTZ) > "+sql.escape(dt),
-          sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DATETIME) > "+sql.escape(dt)
+          sqlite: "json_extract(`data`, '$.nested.attribute') > " + sql.escape(dt.toISOString())
         });
 
         testsql('data', {
