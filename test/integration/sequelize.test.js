@@ -22,7 +22,7 @@ const qq = function(str) {
   } else if (dialect === 'mysql' || dialect === 'sqlite') {
     return '`' + str + '`';
   } else if (dialect === 'oracle') {
-    if(str.indexOf('.') > -1) {
+    if (str.indexOf('.') > -1) {
       return `"${str}"`;
     }
     return str.replace('user', '"user"');
@@ -33,8 +33,8 @@ const qq = function(str) {
 
 //Function adding the from dual clause for Oracle requests
 const formatQuery = (qry, force) => {
-  if(dialect === 'oracle' && ((qry.indexOf('FROM') === -1) || force !== undefined && force)) {
-    if(qry.charAt(qry.length - 1) === ';') {
+  if (dialect === 'oracle' && ((qry.indexOf('FROM') === -1) || force !== undefined && force)) {
+    if (qry.charAt(qry.length - 1) === ';') {
       qry = qry.substr(0, qry.length -1);
     }
     return qry + ' FROM DUAL';

@@ -65,15 +65,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(users => {
           expect(users.length).to.be.eql(2);
 
-        // have attributes
-        if (this.sequelize.dialect.name === 'oracle') {
-          expect(users[0].createdat).to.exist;
-          expect(users[1].createdat).to.exist;
-        }  else {
-          expect(users[0].createdAt).to.exist;
-          expect(users[1].createdAt).to.exist;
-        }
-      });
+          // have attributes
+          if (this.sequelize.dialect.name === 'oracle') {
+            expect(users[0].createdat).to.exist;
+            expect(users[1].createdat).to.exist;
+          }  else {
+            expect(users[0].createdAt).to.exist;
+            expect(users[1].createdAt).to.exist;
+          }
+        });
     });
 
     it('should not return NaN', function() {
