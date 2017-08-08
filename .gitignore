@@ -18,4 +18,5 @@ coverage
 .vscode/
 *.sublime*
 esdoc
+.history
 package-lock.json

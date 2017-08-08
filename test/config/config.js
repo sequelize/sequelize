@@ -54,6 +54,18 @@ module.exports = {
   sqlite: {
   },
 
+  oracle: {
+    username : process.env.NODE_ORACLEDB_USER || 'sequelize',
+    password : process.env.NODE_ORACLEDB_PASSWORD || 'sequelize',
+    // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#connectionstrings
+    database : process.env.NODE_ORACLEDB_CONNECTIONSTRING || 'xe.oracle.docker',
+    host : process.env.NODE_ORACLEDB_HOST || 'localhost',
+    dialectOptions : {stmtCacheSize:0, logAliasesQry:false},
+    port : process.env.NODE_ORACLEDB_PORT || 1521,
+    // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#extauth
+    externalAuth : process.env.NODE_ORACLEDB_EXTERNALAUTH ? process.env.NODE_ORACLEDB_EXTERNALAUTH : false
+  },
+
   postgres: {
     database: process.env.SEQ_PG_DB   || process.env.SEQ_DB    || 'sequelize_test',
     username: process.env.SEQ_PG_USER || process.env.SEQ_USER  || 'postgres',

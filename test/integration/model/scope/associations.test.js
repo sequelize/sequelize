@@ -292,7 +292,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should scope columns properly', function() {
+        it('should scope columns properly', function () {
           return expect(this.ScopeMe.scope('includeActiveProjects').findAll()).not.to.be.rejected;
         });
 

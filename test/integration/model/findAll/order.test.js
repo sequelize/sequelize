@@ -22,8 +22,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        if (current.dialect.name !== 'mssql') {
-          it('should work with order: literal()', function() {
+        if (current.dialect.name !== 'mssql' && current.dialect.name !== 'oracle') {
+          it('should work with order: literal()', function () {
             return this.User.findAll({
               order: this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))
             }).then(users => {
@@ -84,13 +84,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         }
 
-        it('should not throw on a literal', function() {
-          return this.User.findAll({
-            order: [
-              ['id', this.sequelize.literal('ASC, name DESC')]
-            ]
+        //Oracle doesn't suport if ASC is stuck to the identifier
+        if (current.dialect.name !== 'oracle') {
+          it('should not throw on a literal', function () {
+            return this.User.findAll({
+              order: [
+                ['id', this.sequelize.literal('ASC, name DESC')]
+              ]
+            });
           });
-        });
+        }
 
         it('should not throw with include when last order argument is a field', function() {
           return this.User.findAll({

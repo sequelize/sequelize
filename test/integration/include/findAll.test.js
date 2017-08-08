@@ -89,7 +89,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               {name: 'Designers'},
               {name: 'Managers'}
             ]).then(() => {
-              return Group.findAll();
+              return Group.findAll({order : ['id']}); //Order is mandatory, Oracle doesn't sort in any way if not specified
             }),
             companies: Company.bulkCreate([
               {name: 'Sequelize'},
@@ -98,14 +98,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               {name: 'NYSE'},
               {name: 'Coshopr'}
             ]).then(() => {
-              return Company.findAll();
+              return Company.findAll({order : ['id']});
             }),
             ranks: Rank.bulkCreate([
               {name: 'Admin', canInvite: 1, canRemove: 1, canPost: 1},
               {name: 'Trustee', canInvite: 1, canRemove: 0, canPost: 1},
               {name: 'Member', canInvite: 1, canRemove: 0, canPost: 0}
             ]).then(() => {
-              return Rank.findAll();
+              return Rank.findAll({order : ['id']});
             }),
             tags: Tag.bulkCreate([
               {name: 'A'},
@@ -114,7 +114,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               {name: 'D'},
               {name: 'E'}
             ]).then(() => {
-              return Tag.findAll();
+              return Tag.findAll({order : ['id']});
             })
           }).then(results => {
             const groups = results.groups,
@@ -132,7 +132,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                   {title: 'Pen'},
                   {title: 'Monitor'}
                 ]).then(() => {
-                  return Product.findAll();
+                  return Product.findAll({order : ['id']});
                 })
               }).then(results => {
                 const user = results.user,
@@ -191,6 +191,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           });
         });
       };
+
     });
 
     it('should work on a nested set of relations with a where condition in between relations', function() {
@@ -288,8 +289,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ).then(() => {
           return Promise.join(
             Set.findAll(),
-            Product.findAll(),
-            Tag.findAll()
+            Product.findAll({order : ['id']}),
+            Tag.findAll({order : ['id']})
           );
         }).spread((sets, products, tags) => {
           return Promise.join(
@@ -373,20 +374,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             {name: 'Developers'},
             {name: 'Designers'}
           ]).then(() => {
-            return Group.findAll();
+            return Group.findAll({order : ['id']});
           }),
           Rank.bulkCreate([
             {name: 'Admin', canInvite: 1, canRemove: 1},
             {name: 'Member', canInvite: 1, canRemove: 0}
           ]).then(() => {
-            return Rank.findAll();
+            return Rank.findAll({order : ['id']});
           }),
           Tag.bulkCreate([
             {name: 'A'},
             {name: 'B'},
             {name: 'C'}
           ]).then(() => {
-            return Tag.findAll();
+            return Tag.findAll({order : ['id']});
           })
         ]).spread((groups, ranks, tags) => {
           return Promise.each([0, 1, 2, 3, 4], i => {
@@ -396,7 +397,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 {title: 'Chair'},
                 {title: 'Desk'}
               ]).then(() => {
-                return Product.findAll();
+                return Product.findAll({order : ['id']});
               })
             ]).spread((user, products) => {
               return Promise.all([
@@ -755,14 +756,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             {title: 'Desk'},
             {title: 'Dress'}
           ]).then(() => {
-            return Product.findAll();
+            return Product.findAll({order : ['id']});
           }),
           tags: Tag.bulkCreate([
             {name: 'A'},
             {name: 'B'},
             {name: 'C'}
           ]).then(() => {
-            return Tag.findAll();
+            return Tag.findAll({order : ['id']});
           })
         }).then(results => {
           return Promise.join(
@@ -1265,7 +1266,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 {title: 'Chair'},
                 {title: 'Desk'}
               ]).then(() => {
-                return Product.findAll();
+                return Product.findAll({order : ['id']});
               })
             }).then(results => {
               return Promise.join(

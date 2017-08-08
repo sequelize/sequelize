@@ -897,7 +897,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ));
         });
 
-        it('N:M with ignoring include.attributes only', function() {
+        it('N:M with ignoring include.attributes only', function () {
           return this.Kingdom.findAll({
             include:[{
               model: this.Animal,
@@ -913,7 +913,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('N:M with ignoring through.attributes only', function() {
+        it('N:M with ignoring through.attributes only', function () {
           return this.Kingdom.findAll({
             include:[{
               model: this.Animal,
@@ -931,7 +931,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('N:M with ignoring include.attributes but having through.attributes', function() {
+        it('N:M with ignoring include.attributes but having through.attributes', function () {
           return this.Kingdom.findAll({
             include:[{
               model: this.Animal,
@@ -1213,7 +1213,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('sorts the results via id in ascending order', function() {
         return this.User.findAll().then(users => {
           expect(users.length).to.equal(2);
-          expect(users[0].id).to.be.below(users[1].id);
+          //Oracle - no order by is setted, as for mssql, so how can it be ordered ?
+          if (dialect !== 'oracle') {
+            expect(users[0].id).to.be.below(users[1].id);
+          }
         });
       });
 
@@ -1418,6 +1421,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
     });
+    
 
     it('handles attributes', function() {
       return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}, attributes: ['data']}).then(info => {

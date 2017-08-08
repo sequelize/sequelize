@@ -113,7 +113,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: {'specialkey': 'awesome'},
           logging(sql) {
             test = true;
-            expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = N?'awesome'/);
+            if (dialect === 'oracle') {
+              expect(sql).to.match(/WHERE UserPrimary.specialkey = 'awesome'/);
+            } else {
+              expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = N?'awesome'/);
+            }
           }
         }).then(() => {
           expect(test).to.be.true;
@@ -438,7 +442,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                       'user_id',
                       'message'
                     ],
-                    include: [{ model: User, attributes: ['username'] }]
+                    include: [{ model: User, attributes: ['username'] }],
+                    order : ['id'] //Order is mandatory, on Oracle may return results in any order
                   }).then(messages => {
                     expect(messages.length).to.equal(2);
 

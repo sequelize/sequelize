@@ -13,6 +13,7 @@ $ npm install --save pg pg-hstore
 $ npm install --save mysql2
 $ npm install --save sqlite3
 $ npm install --save tedious // MSSQL
+$ npm install --save oracledb //ORACLE
 
 // Using Yarn
 $ yarn add sequelize
@@ -22,7 +23,10 @@ $ yarn add pg pg-hstore
 $ yarn add mysql2
 $ yarn add sqlite3
 $ yarn add tedious // MSSQL
+$ yarn add oracledb //ORACLE
 ```
+
+Note : Oracle needs extra stuff, see part installation of [Node OracleDB installation](https://github.com/oracle/node-oracledb)
 
 ## Setting up a connection
 

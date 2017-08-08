@@ -114,10 +114,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                 ])
               ]).then(() => {
                 return Promise.all([
-                  Group.findAll(),
-                  Company.findAll(),
-                  Rank.findAll(),
-                  Tag.findAll()
+                  Group.findAll({order : ['id']}),
+                  Company.findAll({order : ['id']}),
+                  Rank.findAll({order : ['id']}),
+                  Tag.findAll({order : ['id']})
                 ]);
               }).spread((groups, companies, ranks, tags) => {
                 return Promise.each([0, 1, 2, 3, 4], i => {
@@ -130,7 +130,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                       {title: 'Pen'},
                       {title: 'Monitor'}
                     ]).then(() => {
-                      return Product.findAll();
+                      return Product.findAll({order : ['id']});
                     })
                   ]).spread((user, products) => {
                     const groupMembers = [
@@ -163,7 +163,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                         products[i * 5 + 3].setTags([
                           tags[0]
                         ])
-                      ),
+                    ),
                       Promise.join(
                         products[i * 5 + 0].setCompany(companies[4]),
                         products[i * 5 + 1].setCompany(companies[3]),
@@ -269,7 +269,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                     {title: 'Chair'},
                     {title: 'Desk'}
                   ]).then(() => {
-                    return Product.findAll();
+                    return Product.findAll({order : ['id']});
                   })
                 ]).spread((user, products) => {
                   return Promise.all([
@@ -484,6 +484,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         });
       });
     });
+
 
     it('should include attributes from through models', function() {
       const Product = this.sequelize.define('Product', {
@@ -972,9 +973,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           ])
         ]).then(() => {
           return Promise.all([
-            Group.findAll(),
-            Rank.findAll(),
-            Tag.findAll()
+            Group.findAll({order  :['id']}),
+            Rank.findAll({order  :['id']}),
+            Tag.findAll({order  :['id']})
           ]);
         }).spread((groups, ranks, tags) => {
           return Promise.resolve([0, 1, 2, 3, 4]).each(i => {
@@ -984,7 +985,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                 {title: 'Chair'},
                 {title: 'Desk'}
               ]).then(() => {
-                return Product.findAll();
+                return Product.findAll({order  :['id']});
               })
             ]).spread((user, products) => {
               return Promise.all([
@@ -1102,7 +1103,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           ],
           limit: 3,
           order: [
-            ['id', 'ASC']
+            [self.sequelize.col(self.models.Product.name + '.title'), 'ASC']
           ]
         }).then(products => {
           expect(products.length).to.equal(3);
@@ -1129,7 +1130,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           ],
           limit: 6,
           order: [
-            ['id', 'ASC']
+            ['id']
           ]
         }).then(products => {
           expect(products.length).to.equal(6);
@@ -1157,7 +1158,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           ],
           limit: 10,
           order: [
-            ['id', 'ASC']
+            ['id']
           ]
         }).then(products => {
           expect(products.length).to.equal(10);

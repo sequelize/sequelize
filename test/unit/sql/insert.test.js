@@ -29,7 +29,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           mssql:'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp VALUES (N\'triggertest\');select * from @tmp;',
           postgres: 'INSERT INTO "users" ("user_name") VALUES (\'triggertest\') RETURNING *;',
-          default: "INSERT INTO `users` (`user_name`) VALUES ('triggertest');"
+          oracle: "INSERT INTO users (user_name) VALUES ('triggertest') RETURNING id INTO $:id;INTEGER$",
+          default: "INSERT INTO `users` (`user_name`) VALUES ('triggertest');",
         });
     });
 
@@ -54,6 +55,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           postgres: 'INSERT INTO "users" ("date") VALUES (\'2015-01-20 01:00:00.000 +01:00\');',
           sqlite: 'INSERT INTO `users` (`date`) VALUES (\'2015-01-20 00:00:00.000 +00:00\');',
           mssql: 'INSERT INTO [users] ([date]) VALUES (N\'2015-01-20 01:00:00.000 +01:00\');',
+          oracle: 'INSERT INTO users ("date") VALUES (TO_TIMESTAMP_TZ(\'2015-01-20 01:00:00.000 +01:00\',\'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM\'))',
           mysql: "INSERT INTO `users` (`date`) VALUES ('2015-01-20 01:00:00');"
         });
     });
@@ -76,6 +78,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           postgres: 'INSERT INTO "users" ("date") VALUES (\'2015-01-20 02:02:03.089 +01:00\');',
           sqlite: 'INSERT INTO `users` (`date`) VALUES (\'2015-01-20 01:02:03.089 +00:00\');',
           mssql: 'INSERT INTO [users] ([date]) VALUES (N\'2015-01-20 02:02:03.089 +01:00\');',
+          oracle: 'INSERT INTO users ("date") VALUES (TO_TIMESTAMP_TZ(\'2015-01-20 02:02:03.089 +01:00\',\'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM\'))',
           mysql: "INSERT INTO `users` (`date`) VALUES ('2015-01-20 02:02:03.089');"
         });
     });
@@ -84,7 +87,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('bulkCreate', () => {
     it('bulk create with onDuplicateKeyUpdate', () => {
       // Skip mssql for now, it seems broken
-      if (Support.getTestDialect() === 'mssql') {
+      if (Support.getTestDialect() === 'mssql' || Support.getTestDialect() === 'oracle') {
         return;
       }
 

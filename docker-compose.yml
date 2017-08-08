@@ -35,3 +35,11 @@ services:
     ports:
       - "127.0.0.1:8999:3306"
     container_name: mysql-57
+
+  oracle-12c:
+    image: konnecteam/oracle12c-database
+    volumes:
+      - ./oracle-data:/u01/app/oracle
+    ports:
+      - "127.0.0.1:1521:1521"
+    container_name: oracle

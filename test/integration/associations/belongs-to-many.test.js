@@ -139,13 +139,17 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
-    it('only gets objects that fulfill options with a formatted value', function() {
-      return this.User.find({where: {username: 'John'}}).then(john => {
-        return john.getTasks({where: {active: true}});
-      }).then(tasks => {
-        expect(tasks).to.have.length(1);
+
+    //Oracle doesn't support column names non quoted by "
+    if (current.dialect.name !== 'oracle') {
+      it('only gets objects that fulfill options with a formatted value', function() {
+        return this.User.find({where: {username: 'John'}}).then(john => {
+          return john.getTasks({where: {active: true}});
+        }).then(tasks => {
+          expect(tasks).to.have.length(1);
+        });
       });
-    });
+    }
 
     it('get associated objects with an eager load', function() {
       return this.User.find({where: {username: 'John'}, include: [this.Task]}).then(john => {
@@ -267,7 +271,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
-    it('supports primary key attributes with different field names', function() {
+    it('supports primary key attributes with different field names', function () {
       const User = this.sequelize.define('User', {
         id: {
           type: DataTypes.UUID,
@@ -321,7 +325,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
-    it('supports primary key attributes with different field names where parent include is required', function() {
+    it('supports primary key attributes with different field names where parent include is required', function () {
       const User = this.sequelize.define('User', {
         id: {
           type: DataTypes.UUID,
@@ -723,8 +727,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     }
 
     it('supports setting through table attributes', function() {
-      const User = this.sequelize.define('user', {}),
-        Group = this.sequelize.define('group', {}),
+      const User = this.sequelize.define('User', {}),
+        Group = this.sequelize.define('Group', {}),
         UserGroups = this.sequelize.define('user_groups', {
           isAdmin: Sequelize.BOOLEAN
         });
@@ -744,11 +748,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         );
       }).then(userGroups => {
         userGroups.sort((a, b) => {
-          return a.userId < b.userId ? - 1 : 1;
+          return a.UserId < b.UserId ? - 1 : 1;
         });
-        expect(userGroups[0].userId).to.equal(1);
+        expect(userGroups[0].UserId).to.equal(1);
         expect(userGroups[0].isAdmin).to.be.ok;
-        expect(userGroups[1].userId).to.equal(2);
+        expect(userGroups[1].UserId).to.equal(2);
         expect(userGroups[1].isAdmin).not.to.be.ok;
       });
     });
@@ -1840,6 +1844,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       }).then(result => {
         if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
           result = _.map(result, 'tableName');
+        } else if (dialect === 'oracle') {
+          //oracle returns the table names in UpperCase
+          result = _.map(result, table => {
+            return table.tableName.toLowerCase();
+          });
         }
 
         expect(result.indexOf('group_user')).not.to.equal(-1);
@@ -1860,6 +1869,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       }).then(result => {
         if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
           result = _.map(result, 'tableName');
+        } else if (dialect === 'oracle') {
+          //oracle returns the table names in UpperCase
+          result = _.map(result, table => {
+            return table.tableName.toLowerCase();
+          });
         }
 
         expect(result.indexOf('user_groups')).not.to.equal(-1);

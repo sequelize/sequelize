@@ -201,7 +201,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).to.be.ok;
           }
 
-
           this.clock.tick(1000);
           return this.User.upsert({ id: 42, username: 'doe', blob: new Buffer('andrea') });
         }).then(function(created) {
@@ -215,7 +214,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }).then(user => {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
-          expect(user.blob.toString()).to.equal('andrea');
+          if (dialect === 'oracle') {
+            user.blob.iLob.read((err, lobData) => {
+              expect(lobData).to.be.an.instanceOf(Buffer);
+              expect(lobData.toString()).to.have.string('andrea');
+            });
+          } else {
+            expect(user.blob.toString()).to.equal('andrea');
+          }
           expect(user.updatedAt).to.be.afterTime(user.createdAt);
         });
       });

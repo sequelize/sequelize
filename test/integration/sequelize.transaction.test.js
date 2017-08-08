@@ -73,6 +73,9 @@ if (current.dialect.supports.transactions) {
               case 'mssql':
                 query = 'WAITFOR DELAY \'00:00:02\';';
                 break;
+              case 'oracle':
+                query = 'BEGIN DBMS_LOCK.sleep(2); END;';
+                break;
               default:
                 break;
             }

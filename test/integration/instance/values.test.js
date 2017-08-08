@@ -124,6 +124,9 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
             if (dialect === 'mssql') {
               now = self.sequelize.fn('', self.sequelize.fn('getdate'));
             }
+            if (dialect === 'oracle') {
+              now = self.sequelize.fn('', self.sequelize.literal('CURRENT_DATE'));
+            }
             user.set({
               d: now,
               b: self.sequelize.col('always_false')

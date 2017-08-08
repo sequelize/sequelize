@@ -35,10 +35,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => this.queryInterface.renameTable('myTestTable', 'myTestTableNew'))
         .then(() => this.queryInterface.showAllTables())
         .then(tableNames => {
-          if (dialect === 'mssql') {
+          if (dialect === 'mssql' || dialect === 'oracle') {
             tableNames = _.map(tableNames, 'tableName');
           }
-          expect(tableNames).to.contain('myTestTableNew');
+
+          expect(tableNames).to.contain(dialect === 'oracle' ? 'MYTESTTABLENEW' : 'myTestTableNew');
           expect(tableNames).to.not.contain('myTestTable');
         });
     });
@@ -80,7 +81,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
               tableNames = _.map(tableNames, 'tableName');
             }
-            expect(tableNames).to.contain('skipme');
+
+            if (dialect === 'oracle') {
+              //AS always, everything is upper case with Oracle
+              tableNames = _.map(tableNames, 'tableName');
+              expect(tableNames).to.contain('SKIPME');
+            } else {
+              expect(tableNames).to.contain('skipme');
+            }
+
           });
         });
       });
@@ -179,11 +188,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             case 'mssql':
               assertVal = 'NVARCHAR';
               break;
+            case 'oracle':
+              assertVal = 'NVARCHAR2';
+              break;
           }
           expect(username.type).to.equal(assertVal);
           expect(username.allowNull).to.be.true;
 
           switch (dialect) {
+            case 'oracle':
             case 'sqlite':
               expect(username.defaultValue).to.be.undefined;
               break;
@@ -205,10 +218,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             case 'mssql':
               assertVal = 'BIT';
               break;
+            case 'oracle':
+              assertVal = 'NUMBER';
+              break;
           }
           expect(isAdmin.type).to.equal(assertVal);
           expect(isAdmin.allowNull).to.be.true;
           switch (dialect) {
+            case 'oracle':
             case 'sqlite':
               expect(isAdmin.defaultValue).to.be.undefined;
               break;
@@ -275,8 +292,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }
       }).bind(this).then(function() {
         return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(results => {
-          const response = _.head(results);
-          expect(response.table_id || typeof response !== 'object' && response).to.be.ok;
+          if (dialect !== 'oracle') {
+            const response = _.head(results);
+            expect(response.table_id || (typeof response !== 'object' && response)).to.be.ok;
+          } else {
+            //On empty query, we can't return anything, we need to know at least the id column name to return its value
+            expect(results).to.be.null;
+          }
         });
       });
     });
@@ -601,7 +623,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             autoIncrement: true
           }
         });
-      });
+      }); 
     });
 
     it('should be able to add a foreign key reference', function() {

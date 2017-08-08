@@ -103,6 +103,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
             if (dialect === 'mssql') {
               boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
+            } else if (dialect === 'oracle') {
+              boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END AS NUMBER) AS "someBoolean"';
             }
 
             return Post.find({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
