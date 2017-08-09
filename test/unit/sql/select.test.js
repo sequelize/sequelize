@@ -454,7 +454,10 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'SELECT [User].*, [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM ' +
           '(SELECT [User].[name], [User].[age], [User].[id] AS [id] FROM [User] AS [User] ' +
           'WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id]) ORDER BY [postaliasname].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY ) IS NOT NULL) AS [User] ' +
-          'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id];'
+          'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id];',
+        oracle: 'SELECT "User".*, postaliasname.id AS "postaliasname.id", postaliasname.title AS "postaliasname.title" FROM (SELECT "User".name, "User".age, "User".id AS id FROM "User" "User" ' + 
+          'WHERE ( SELECT user_id FROM Post postaliasname WHERE (postaliasname.user_id = "User".id) ORDER BY id OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY ) IS NOT NULL) "User" ' +
+          'INNER JOIN Post postaliasname ON "User".id = postaliasname.user_id;'
       });
     });
   });
