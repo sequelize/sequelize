@@ -40,8 +40,3 @@ after_test:
         Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
         bash codecov.sh -f "coverage\lcov.info"
       }
-
-branches:
-  only:
-    - master
-    - v3
