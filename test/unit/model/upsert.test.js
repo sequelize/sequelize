@@ -28,6 +28,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         secretValue: {
           type: DataTypes.INTEGER,
           allowNull: false
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+          field: 'created_at',
         }
       });
 
@@ -54,6 +58,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return expect(User.upsert({
           name: 'Grumpy Cat'
         })).not.to.be.rejectedWith(current.ValidationError);
+      });
+
+      it('creates new record with correct field names', () => {
+        return User
+          .upsert({
+            name: 'Young Cat',
+            virtualValue: 999
+          })
+          .then(() => {
+            expect(Object.keys(self.stub.getCall(0).args[1])).to.deep.equal([
+              'name', 'value', 'created_at', 'updatedAt'
+            ]);
+          });
       });
 
       it('updates all changed fields by default', () => {
