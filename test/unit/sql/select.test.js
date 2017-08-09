@@ -234,9 +234,9 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           field: 'last_name'
         }
       },
-        {
-          tableName: 'users'
-        });
+      {
+        tableName: 'users'
+      });
       const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING,
         userId: {
@@ -244,9 +244,9 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           field: 'user_id'
         }
       },
-        {
-          tableName: 'post'
-        });
+      {
+        tableName: 'post'
+      });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'userId', as: 'POSTS'});
 
@@ -257,9 +257,9 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           field: 'post_id'
         }
       },
-        {
-          tableName: 'comment'
-        });
+      {
+        tableName: 'comment'
+      });
 
       Post.Comments = Post.hasMany(Comment, {foreignKey: 'postId', as: 'COMMENTS'});
 
@@ -387,15 +387,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
       const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
 
@@ -420,15 +420,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
       const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'user_id', as: 'postaliasname'});
 
@@ -490,15 +490,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
       const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
 
@@ -525,21 +525,21 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
       const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
       const Comment = Support.sequelize.define('Comment', {
         title: DataTypes.STRING
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
       Post.Comments = Post.hasMany(Comment, {foreignKey: 'post_id'});

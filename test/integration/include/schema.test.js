@@ -163,7 +163,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                         products[i * 5 + 3].setTags([
                           tags[0]
                         ])
-                    ),
+                      ),
                       Promise.join(
                         products[i * 5 + 0].setCompany(companies[4]),
                         products[i * 5 + 1].setCompany(companies[3]),

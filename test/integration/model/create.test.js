@@ -1079,8 +1079,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         let test = false;
         return User.sync({ force: true }).then(() => {
-          return User
-          .create({ name: 'Fluffy Bunny', smth: 'else' }, {
+          return User.create({ name: 'Fluffy Bunny', smth: 'else' }, {
             logging(sql) {
               expect(sql).to.exist;
               test = true;
@@ -1904,8 +1903,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const M1 = {};
         const M2 = {};
 
-        return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true}))
-        .then(ms => {
+        return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true})).then(ms => {
           expect(ms[0].id).to.be.eql(1);
           expect(ms[1].id).to.be.eql(2);
         });

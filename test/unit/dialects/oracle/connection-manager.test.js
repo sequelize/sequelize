@@ -99,8 +99,7 @@ describe('[ORACLE] Connection Manager', () => {
         .then(() => {
           done('You shall not pass');
           expect(instance.getDialect()).to.equal('oracle');
-          instance.dialect.connectionManager.disconnect(null)
-          .then(() => {
+          instance.dialect.connectionManager.disconnect(null).then(() => {
             done('You shall not pass');
           });
         })

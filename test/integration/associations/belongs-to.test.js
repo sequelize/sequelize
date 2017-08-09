@@ -879,33 +879,31 @@ describe('Association', () => {
         allowNull: false
       }
     });
-    return this.sequelize.sync({ force: true })
-    .then(() => User.create({}))
-    .then(() => Mail.create({}))
-    .then(mail =>
-      Entry.create({ mailId: mail.id, ownerId: 1 })
-        .then(() => Entry.create({ mailId: mail.id, ownerId: 1 }))
-        // set recipients
-        .then(() => mail.setRecipients([1]))
-    )
-    .then(() => Entry.findAndCount({
-      offset: 0,
-      limit: 10,
-      order: [['id', 'DESC']],
-      include: [
-        {
-          association: Entry.associations.mail,
-          include: [
-            {
-              association: Mail.associations.recipients,
-              through: {
-                where: {
-                  recipientId: 1
+    return this.sequelize.sync({ force: true }).then(() => User.create({})).then(() => Mail.create({}))
+      .then(mail =>
+        Entry.create({ mailId: mail.id, ownerId: 1 })
+          .then(() => Entry.create({ mailId: mail.id, ownerId: 1 }))
+          // set recipients
+          .then(() => mail.setRecipients([1]))
+      )
+      .then(() => Entry.findAndCount({
+        offset: 0,
+        limit: 10,
+        order: [['id', 'DESC']],
+        include: [
+          {
+            association: Entry.associations.mail,
+            include: [
+              {
+                association: Mail.associations.recipients,
+                through: {
+                  where: {
+                    recipientId: 1
+                  }
                 }
-              }
-            }]
-        }]
-    })
-    );
+              }]
+          }]
+      })
+      );
   });
 });

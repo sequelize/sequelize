@@ -1261,8 +1261,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                       expect(count1).to.equal(1);
                       expect(count2).to.equal(0);
                       return t.rollback();
-                    })
-                    .catch(err => {
+                    }).catch(err => {
                       t.rollback();
                       throw err;
                     });

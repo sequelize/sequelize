@@ -133,8 +133,7 @@ if (current.dialect.supports.transactions) {
         }).then(() => {
           return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true});
         });
-      }).throw(new Error('Expected error not thrown'))
-      .catch (err => {
+      }).throw(new Error('Expected error not thrown')).catch (err => {
         expect (err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
         expect (err.sql).to.equal(formatQuery('SELECT 1+1'));
       });
@@ -147,9 +146,7 @@ if (current.dialect.supports.transactions) {
           return self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).then(() => {
             return Promise.join(
               expect(t.commit()).to.eventually.be.fulfilled,
-              self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true})
-              .throw(new Error('Expected error not thrown'))
-              .catch (err => {
+              self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).throw(new Error('Expected error not thrown')).catch (err => {
                 expect (err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
                 expect (err.sql).to.equal(formatQuery('SELECT 1+1'));
               })
@@ -174,19 +171,17 @@ if (current.dialect.supports.transactions) {
 
     it('does not allow queries immediatly after rollback call', function() {
       const self = this;
-      return expect(
-      this.sequelize.transaction().then(t => {
+      return expect(this.sequelize.transaction().then(t => {
         return Promise.join(
           expect(t.rollback()).to.eventually.be.fulfilled,
-          self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true})
-            .throw(new Error('Expected error not thrown'))
+          self.sequelize.query(formatQuery('SELECT 1+1'), {transaction: t, raw: true}).throw(new Error('Expected error not thrown'))
             .catch (err => {
               expect (err.message).to.match(/rollback has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
               expect (err.sql).to.equal(formatQuery('SELECT 1+1'));
             })
         );
       })
-    ).to.eventually.be.fulfilled;
+      ).to.eventually.be.fulfilled;
     });
 
     it('does not allow commits after commit', function() {
@@ -422,42 +417,40 @@ if (current.dialect.supports.transactions) {
           User.belongsToMany(Task, { through: 'UserTasks' });
           Task.belongsToMany(User, { through: 'UserTasks' });
 
-          return this.sequelize.sync({ force: true })
-          .then(() => {
+          return this.sequelize.sync({ force: true }).then(() => {
             return Promise.join(
               User.create({ username: 'John'}),
               Task.create({ title: 'Get rich', active: false}),
               (john, task1) => {
                 return john.setTasks([task1]);
-              })
-              .then(() => {
-                return self.sequelize.transaction(t1 => {
+              }).then(() => {
+              return self.sequelize.transaction(t1 => {
 
-                  if (current.dialect.supports.lockOuterJoinFailure) {
+                if (current.dialect.supports.lockOuterJoinFailure) {
 
-                    return expect(User.find({
-                      where: {
-                        username: 'John'
-                      },
-                      include: [Task],
-                      lock: t1.LOCK.UPDATE,
-                      transaction: t1
-                    })).to.be.rejectedWith('FOR UPDATE cannot be applied to the nullable side of an outer join');
+                  return expect(User.find({
+                    where: {
+                      username: 'John'
+                    },
+                    include: [Task],
+                    lock: t1.LOCK.UPDATE,
+                    transaction: t1
+                  })).to.be.rejectedWith('FOR UPDATE cannot be applied to the nullable side of an outer join');
 
-                  } else {
+                } else {
 
-                    return User.find({
-                      where: {
-                        username: 'John'
-                      },
-                      include: [Task],
-                      lock: t1.LOCK.UPDATE,
-                      transaction: t1
-                    });
+                  return User.find({
+                    where: {
+                      username: 'John'
+                    },
+                    include: [Task],
+                    lock: t1.LOCK.UPDATE,
+                    transaction: t1
+                  });
 
-                  }
-                });
+                }
               });
+            });
           });
         });
 

@@ -1552,8 +1552,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it.skip('Should assign a property to the instance', function() {
       // @thanpolas rethink this test, it doesn't make sense, a relation has
       // to be created first in the beforeEach().
-      return this.User.findOne({id: udo.id})
-      .then(user => {
+      return this.User.findOne({id: udo.id}).then(user => {
         user.NiceProjectId = 1;
         expect(user.NiceProjectId).to.equal(1);
       });
@@ -1645,8 +1644,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                 expect(_user.Projects).to.exist;
                 expect(JSON.parse(JSON.stringify(_user)).Projects).to.exist;
 
-                return self.Project.findAll({include: [{ model: self.User, as: 'LovelyUser' }]})
-                .then(projects => {
+                return self.Project.findAll({include: [{ model: self.User, as: 'LovelyUser' }]}).then(projects => {
                   const _project = projects[0];
 
                   expect(_project.LovelyUser).to.exist;
