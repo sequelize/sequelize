@@ -31,8 +31,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
         createdAt: {
           type: DataTypes.DATE,
-          field: 'created_at',
+          field: 'created_at'
         }
+      });
+
+      const UserNoTime = current.define('UserNoTime', {
+        name: DataTypes.STRING
+      }, {
+        timestamps: false
       });
 
       before(function() {
@@ -69,6 +75,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             expect(Object.keys(self.stub.getCall(0).args[1])).to.deep.equal([
               'name', 'value', 'created_at', 'updatedAt'
+            ]);
+          });
+      });
+
+      it('creates new record with timestamps disabled', () => {
+        return UserNoTime
+          .upsert({
+            name: 'Young Cat'
+          })
+          .then(() => {
+            expect(Object.keys(self.stub.getCall(0).args[1])).to.deep.equal([
+              'name'
             ]);
           });
       });
