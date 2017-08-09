@@ -152,6 +152,10 @@ Sequelize uses a pool to manage connections to your replicas. The default option
   max: 10,
   min: 0,
   idle: 1000
+  idle: 10000,
+  acquire: 10000,
+  evict: 60000,
+  handleDisconnects: true		  
 }
 ```
 
