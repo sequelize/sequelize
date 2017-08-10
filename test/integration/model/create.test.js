@@ -104,6 +104,38 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should error correctly when defaults contain a unique key and the where clause is complex', function() {
+      const User = this.sequelize.define('user', {
+        objectId: {
+          type: DataTypes.STRING,
+          unique: true
+        },
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        }
+      });
+
+      return User.sync({force: true}).then(() => {
+        return User.create({
+          username: 'gottlieb'
+        });
+      }).then(() => {
+        return expect(User.findOrCreate({
+          where: {
+            $or: [{
+              objectId: 'asdasdasd1'
+            }, {
+              objectId: 'asdasdasd2'
+            }]
+          },
+          defaults: {
+            username: 'gottlieb'
+          }
+        })).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
+      });
+    });
+
     it('should work with undefined uuid primary key in where', function() {
       const User = this.sequelize.define('User', {
         id: {
