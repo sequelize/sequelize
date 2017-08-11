@@ -69,7 +69,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     suite('TEXT', () => {
       testsql('TEXT', DataTypes.TEXT, {
         default: 'TEXT',
-        oracle: 'NVARCHAR2(2000)',
+        oracle: 'CLOB',
         mssql: 'NVARCHAR(MAX)' // in mssql text is actually representing a non unicode text field
       });
 
@@ -97,7 +97,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
-        oracle: 'NVARCHAR2(2000)',
+        oracle: 'NVARCHAR2(4000)',
         mysql: 'LONGTEXT'
       });
 
