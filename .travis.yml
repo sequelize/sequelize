@@ -65,8 +65,10 @@ jobs:
     - stage: release
       node_js: 4
       script: npm run lint
+      env:
+        - TRAVIS_JOB_NUMBER=WORKAROUND.1
       deploy:
         provider: script
-        script: TRAVIS_JOB_NUMBER=WORKAROUND.1 npm run semantic-release
+        script: ./node_modules/.bin/semantic-release pre && npm publish && ./node_modules/.bin/semantic-release post
         on:
           branch: master
