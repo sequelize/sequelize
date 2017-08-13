@@ -299,7 +299,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
       });
     });
-    describe('Pass all paths when validating', () => {
+    
+    describe('pass all paths when validating', () => {
       beforeEach(function() {
         const self = this;
         const Project = this.sequelize.define('Project', {
@@ -344,7 +345,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
       });
     });
-    describe('Not null schema validation', () => {
+    
+    describe('not null schema validation', () => {
       beforeEach(function() {
         const Project = this.sequelize.define('Project', {
           name: {
