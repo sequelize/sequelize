@@ -3,36 +3,41 @@ dist: trusty
 
 language: node_js
 
-node_js:
-  - "4"
-  - "6"
-
 branches:
   only:
-  - master
-  - v3
-  - /^greenkeeper/.*$/
+    - master
+    - v3
+    - /^greenkeeper/.*$/
+  except:
+    - /^v\d+\.\d+\.\d+$/
+
+cache:
+  directories:
+    - node_modules
 
 env:
   global:
     # mysql info
-    - SEQ_MYSQL_DB: sequelize_test
-    - SEQ_MYSQL_USER: sequelize_test
-    - SEQ_MYSQL_PW: sequelize_test
-    - SEQ_MYSQL_HOST: 127.0.0.1
-    - SEQ_MYSQL_PORT: 8999
+    - SEQ_MYSQL_DB=sequelize_test
+    - SEQ_MYSQL_USER=sequelize_test
+    - SEQ_MYSQL_PW=sequelize_test
+    - SEQ_MYSQL_HOST=127.0.0.1
+    - SEQ_MYSQL_PORT=8999
     # postgres info
-    - SEQ_PG_DB: sequelize_test
-    - SEQ_PG_USER: sequelize_test
-    - SEQ_PG_PW: sequelize_test
-    - SEQ_PG_HOST: 127.0.0.1
-    - SEQ_PG_PORT: 8998
-
+    - SEQ_PG_DB=sequelize_test
+    - SEQ_PG_USER=sequelize_test
+    - SEQ_PG_PW=sequelize_test
+    - SEQ_PG_HOST=127.0.0.1
+    - SEQ_PG_PORT=8998
   matrix:
     - DIALECT=sqlite COVERAGE=true
     - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
     - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
     - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
+
+node_js:
+  - "4"
+  - "6"
 
 before_script:
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
@@ -43,21 +48,24 @@ script:
   - npm run lint
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
 
-after_success:
-  - npm run semantic-release
-
-branches:
-  except:
-    - /^v\d+\.\d+\.\d+$/
-
-deploy:
-  provider: surge
-  project: ./esdoc/
-  domain: docs.sequelizejs.com
-  skip_cleanup: true
-  on:
-    branch: master
-    node: 6
-
-before_deploy:
-  - npm run docs
+jobs:
+  include:
+    - stage: docs
+      node_js: 6
+      script:
+        - npm run lint
+        - npm run docs
+      deploy:
+        provider: surge
+        project: ./esdoc/
+        domain: docs.sequelizejs.com
+        skip_cleanup: true
+        on:
+          branch: master
+    - stage: release
+      node_js: 4
+      env:
+        - TRAVIS_JOB_NUMBER=WORKAROUND.1
+      script:
+        - npm run lint
+        - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then npm run semantic-release; fi'
