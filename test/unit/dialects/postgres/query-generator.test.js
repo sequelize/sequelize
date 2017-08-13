@@ -414,6 +414,10 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: { field: new Buffer('Sequelize')}}],
           expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" = E'\\\\x53657175656c697a65';",
           context: QueryGenerator
+        }, {
+          title: 'string in array should escape \' as \'\'',
+          arguments: ['myTable', {where: { aliases: {$contains: ['Queen\'s']} }}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"aliases\" @> ARRAY['Queen''s'];",
         },
 
         // Variants when quoteIdentifiers is false
@@ -502,6 +506,26 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: {field: {not: 3}}}],
           expectation: 'SELECT * FROM myTable WHERE myTable.field != 3;',
           context: {options: {quoteIdentifiers: false}}
+        }, {
+          title: 'Regular Expression in where clause',
+          arguments: ['myTable', {where: {field: {$regexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~ '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Regular Expression negation in where clause',
+          arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~ '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Case-insensitive Regular Expression in where clause',
+          arguments: ['myTable', {where: {field: {$iRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~* '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Case-insensitive Regular Expression negation in where clause',
+          arguments: ['myTable', {where: {field: {$notIRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~* '^[h|a|t]';",
+          context: QueryGenerator
         }
       ],
 
@@ -615,7 +639,6 @@ if (dialect.match(/^postgres/)) {
           expectation: "INSERT INTO mySchema.myTable (name) VALUES ('foo'';DROP TABLE mySchema.myTable;');",
           context: {options: {quoteIdentifiers: false}}
         }
-
       ],
 
       bulkInsertQuery: [
