@@ -17,4 +17,5 @@ mkdocs.yml
 .dockerignore
 .editorconfig
 .travis.yml
+.deploy.sh
 

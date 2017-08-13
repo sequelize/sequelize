@@ -1,0 +1,1 @@
+./node_modules/.bin/semantic-release pre && npm publish && ./node_modules/.bin/semantic-release post

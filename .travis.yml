@@ -69,6 +69,6 @@ jobs:
         - TRAVIS_JOB_NUMBER=WORKAROUND.1
       deploy:
         provider: script
-        script: ./node_modules/.bin/semantic-release pre && npm publish && ./node_modules/.bin/semantic-release post
+        script: ./deploy.sh
         on:
           branch: master
