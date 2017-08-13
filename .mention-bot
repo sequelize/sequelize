@@ -1,9 +1,0 @@
-{
-  "findPotentialReviewers": true,
-  "fileBlacklist": ["*.md", "*.json"],
-  "userBlacklist": ["sdepold"],
-  "userBlacklistForPR": ["greenkeeperio-bot"],
-  "actions": ["opened"],
-  "delayed": true,
-  "delayedUntil": "3d"
-}
