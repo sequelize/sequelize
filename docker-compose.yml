@@ -20,13 +20,14 @@ services:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
       POSTGRES_DB: sequelize_test
+      PGDATA: /pgtmpfs
     ports:
       - "127.0.0.1:8998:5432"
     container_name: postgres-95
 
   # MySQL
   mysql-57:
-    image: mysql:5.7
+    image: yfix/mysql-tmpfs:latest
     environment:
       MYSQL_ROOT_PASSWORD: lollerskates
       MYSQL_DATABASE: sequelize_test
