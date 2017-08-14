@@ -29,17 +29,11 @@ env:
     - SEQ_PG_PW=sequelize_test
     - SEQ_PG_HOST=127.0.0.1
     - SEQ_PG_PORT=8998
-  matrix:
-    - DIALECT=sqlite COVERAGE=true
-    - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
-    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
-    - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
-
-node_js:
-  - "4"
-  - "6"
+    - COVERAGE=true
 
 before_script:
+  - sudo mkdir /mnt/sequelize-ramdisk
+  - sudo mount -t ramfs ramfs -o size=100m /mnt/sequelize-ramdisk
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
@@ -50,6 +44,24 @@ script:
 
 jobs:
   include:
+    - stage: tests
+      node_js: 4
+      env: DIALECT=sqlite
+    - stage: tests
+      node_js: 4
+      env: MYSQL_VER=mysql-57 DIALECT=mysql
+    - stage: tests
+      node_js: 4
+      env: POSTGRES_VER=postgres-95 DIALECT=postgres
+    - stage: tests
+      node_js: 4
+      env: POSTGRES_VER=postgres-95 DIALECT=postgres-native
+    - stage: tests
+      node_js: 6
+      env: DIALECT=sqlite
+    - stage: tests
+      node_js: 8
+      env: DIALECT=sqlite
     - stage: docs
       node_js: 6
       script:
