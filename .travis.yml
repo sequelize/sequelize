@@ -33,7 +33,7 @@ env:
 
 before_script:
   - sudo mkdir /mnt/sequelize-ramdisk
-  - sudo mount -t ramfs ramfs -o size=100m /mnt/sequelize-ramdisk
+  - sudo mount -t tmpfs tmpfs -o size=300m /mnt/sequelize-ramdisk
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"

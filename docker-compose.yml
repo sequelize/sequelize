@@ -38,6 +38,4 @@ services:
       - /mnt/sequelize-ramdisk:/var/lib/mysql
     ports:
       - "127.0.0.1:8999:3306"
-    tmpfs:
-     - /tmp/:rw,noexec,nosuid,size=50m
     container_name: mysql-57
