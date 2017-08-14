@@ -20,7 +20,6 @@ services:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
       POSTGRES_DB: sequelize_test
-      PGDATA: /dev/shm/pgdata/data
     ports:
       - "127.0.0.1:8998:5432"
     container_name: postgres-95

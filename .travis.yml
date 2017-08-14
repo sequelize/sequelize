@@ -30,8 +30,8 @@ env:
     - SEQ_PG_HOST=127.0.0.1
     - SEQ_PG_PORT=8998
   matrix:
-    - DIALECT=sqlite COVERAGE=true
-    - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
+    #- DIALECT=sqlite COVERAGE=true
+    #- MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
     - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
     - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
 
@@ -42,7 +42,7 @@ node_js:
 before_script:
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
-  - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
+  - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --tmpfs=/pgtmpfs -e PGDATA=/pgtmpfs --net sequelize_default giorgos/takis; fi"
 
 script:
   - npm run lint
