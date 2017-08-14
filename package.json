@@ -82,7 +82,7 @@
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "sqlite3": "^3.1.4",
-    "tedious": "^1.14.0",
+    "tedious": "1.14.0",
     "uuid-validate": "^0.0.2",
     "validate-commit-msg": "^2.12.2"
   },
@@ -135,7 +135,7 @@
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "semantic-release": "./node_modules/.bin/semantic-release pre && npm publish && ./node_modules/.bin/semantic-release post",
     "commitmsg": "validate-commit-msg"
   },
   "engines": {
