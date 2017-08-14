@@ -10,6 +10,7 @@ daysUntilClose: 7
 # Issues with these labels will never be considered stale
 exemptLabels:
   - pinned
+  - feature
 
 # Label to use when marking an issue as stale
 staleLabel: stale
