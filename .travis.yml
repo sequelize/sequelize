@@ -58,10 +58,10 @@ jobs:
       env: POSTGRES_VER=postgres-95 DIALECT=postgres-native
     - stage: tests
       node_js: 6
-      env: DIALECT=sqlite
+      env: POSTGRES_VER=postgres-95 DIALECT=postgres
     - stage: tests
       node_js: 8
-      env: DIALECT=sqlite
+      env: MYSQL_VER=mysql-57 DIALECT=mysql
     - stage: docs
       node_js: 6
       script:
