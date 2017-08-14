@@ -27,7 +27,7 @@ services:
 
   # MySQL
   mysql-57:
-    image: mysql:5.7
+    image: yfix/mysql-tmpfs:latest
     environment:
       MYSQL_ROOT_PASSWORD: lollerskates
       MYSQL_DATABASE: sequelize_test

@@ -31,9 +31,9 @@ env:
     - SEQ_PG_PORT=8998
   matrix:
     #- DIALECT=sqlite COVERAGE=true
-    #- MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
-    - POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
-    - POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
+    - MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
+    #- POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
+    #- POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
 
 node_js:
   - "4"
