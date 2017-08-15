@@ -75,8 +75,9 @@ jobs:
         on:
           branch: master
     - stage: release
-      node_js: 6
+      node_js: 4
       env:
         - TRAVIS_JOB_NUMBER=WORKAROUND.1
       script:
+        - npm run lint
         - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then npm run semantic-release; fi'
