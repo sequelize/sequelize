@@ -29,11 +29,14 @@ env:
     - SEQ_PG_PW=sequelize_test
     - SEQ_PG_HOST=127.0.0.1
     - SEQ_PG_PORT=8998
+    # coverage
     - COVERAGE=true
 
 before_script:
+  # mount ram disk
   - sudo mkdir /mnt/sequelize-ramdisk
   - sudo mount -t tmpfs tmpfs -o size=300m /mnt/sequelize-ramdisk
+  # setup docker
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
@@ -58,10 +61,10 @@ jobs:
       env: POSTGRES_VER=postgres-95 DIALECT=postgres-native
     - stage: tests
       node_js: 6
-      env: POSTGRES_VER=postgres-95 DIALECT=postgres
+      env: DIALECT=sqlite
     - stage: tests
       node_js: 8
-      env: MYSQL_VER=mysql-57 DIALECT=mysql
+      env: DIALECT=sqlite
     - stage: docs
       node_js: 6
       script:
@@ -75,7 +78,7 @@ jobs:
         on:
           branch: master
     - stage: release
-      node_js: 4
+      node_js: 6
       env:
         - TRAVIS_JOB_NUMBER=WORKAROUND.1
       script:
