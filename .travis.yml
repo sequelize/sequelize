@@ -29,13 +29,11 @@ env:
     - SEQ_PG_PW=sequelize_test
     - SEQ_PG_HOST=127.0.0.1
     - SEQ_PG_PORT=8998
-    # coverage
-    - COVERAGE=true
 
 before_script:
-  # mount ram disk
-  - sudo mkdir /mnt/sequelize-ramdisk
-  - sudo mount -t tmpfs tmpfs -o size=300m /mnt/sequelize-ramdisk
+  # mount ramdisk
+  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mkdir /mnt/sequelize-ramdisk; fi"
+  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mount -t ramfs tmpfs /mnt/sequelize-ramdisk; fi"
   # setup docker
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
@@ -49,16 +47,16 @@ jobs:
   include:
     - stage: tests
       node_js: 4
-      env: DIALECT=sqlite
+      env: DIALECT=sqlite COVERAGE=true
     - stage: tests
       node_js: 4
-      env: MYSQL_VER=mysql-57 DIALECT=mysql
+      env: MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
     - stage: tests
       node_js: 4
-      env: POSTGRES_VER=postgres-95 DIALECT=postgres
+      env: POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
     - stage: tests
       node_js: 4
-      env: POSTGRES_VER=postgres-95 DIALECT=postgres-native
+      env: POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
     - stage: tests
       node_js: 6
       env: DIALECT=sqlite
@@ -68,8 +66,7 @@ jobs:
     - stage: docs
       node_js: 6
       script:
-        - npm run lint
-        - npm run docs
+        - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then npm run docs; fi'
       deploy:
         provider: surge
         project: ./esdoc/
@@ -82,5 +79,4 @@ jobs:
       env:
         - TRAVIS_JOB_NUMBER=WORKAROUND.1
       script:
-        - npm run lint
         - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then npm run semantic-release; fi'
