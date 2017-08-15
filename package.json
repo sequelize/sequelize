@@ -136,7 +136,7 @@
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
+    "semantic-release": "./node_modules/.bin/semantic-release pre && npm publish && ./node_modules/.bin/semantic-release post",
     "commitmsg": "validate-commit-msg"
   },
   "engines": {

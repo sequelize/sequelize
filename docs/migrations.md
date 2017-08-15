@@ -359,6 +359,7 @@ queryInterface.addConstraint('Users', ['username'], {
 //Foreign Key
 queryInterface.addConstraint('Posts', ['username'], {
   type: 'FOREIGN KEY',
+  name: 'custom_fkey_constraint_name',
   references: { //Required field
     table: 'target_table_name',
     field: 'target_column_name'
