@@ -17,3 +17,25 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
     expect(errorFunction).to.throw(AssociationError, errorMessage);
   });
 });
+
+describe(Support.getTestDialectTeaser('belongsToMany'), () => {
+  it('should not break if the associated model is scoped', () => {
+    const User = current.define('User');
+    const Task = current.define('Task');
+    const Role = current.define('Role');
+
+
+    User.addScope('withTasks', {
+      include: [{
+        model: Role
+      }]
+    })
+
+    Task.belongsToMany(User.scope('withTasks'), { through: 'user_tasks' });
+
+    let u = new User();
+    let t = new Task();
+
+    t.addUser(u);
+  });
+});
