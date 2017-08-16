@@ -2081,8 +2081,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Shipment.belongsTo(Order);
       Order.hasOne(Shipment);
 
-      return this.sequelize.sync({ force: true })
-      .then(() => {
+      return this.sequelize.sync({ force: true }).then(() => {
         return Shipment.findOne({
           include: [{
             model: Order,
