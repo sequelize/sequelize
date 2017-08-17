@@ -286,6 +286,80 @@ User.findAll({
 });
 ```
 
+### Using BelongsToMany with Non Primary Key Relationships
+
+If you want to create a belongs to many relationship that does not use the default primary key some setup work is required.  You must set the `foreignKey`, `tarketKey`, and `sourceKey` appropriately for the two ends of the belongs to many. Further you must also ensure you have appropriate indexes created on your relationships. For example:
+
+```js
+const User = this.sequelize.define('User', {
+  id: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4
+  },
+  secondId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    defaultValue: DataTypes.UUIDV4,
+    field: 'second_id'
+  }
+}, {
+  tableName: 'tbl_user',
+  indexes: [
+    {
+      unique: true,
+      fields: ['second_id']
+    }
+  ]
+});
+
+const Group = this.sequelize.define('Group', {
+  id: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4,
+    field: 'group_id'
+  }
+}, {
+  tableName: 'tbl_group'
+});
+
+const UserHasGroup = this.sequelize.define('UserHasGroup', {
+  secondId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    field: 'second_id'
+  },
+  groupId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    field: 'group_id'
+  }
+}, {
+  tableName: 'tbl_user_has_group',
+  indexes: [
+    {
+      unique: true,
+      fields: ['group_id', 'second_id']
+    }
+  ]
+});
+
+User.belongsToMany(Group, {
+  through: UserHasGroup,
+  foreignKey: 'secondId',
+  sourceKey: 'secondId'
+});
+
+Group.belongsToMany(User, {
+  through: UserHasGroup,
+  foreignKey: 'groupId',
+  targetKey: 'secondId'
+});
+```
+
 ## Scopes
 This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/manual/tutorial/scopes.html).
 

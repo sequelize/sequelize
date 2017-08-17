@@ -321,6 +321,95 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
+    it('supports non primary key attributes for joins', function() {
+      const User = this.sequelize.define('User', {
+        id: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4
+        },
+        secondId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'second_id'
+        }
+      }, {
+        tableName: 'tbl_user',
+        indexes: [
+          {
+            unique: true,
+            fields: ['second_id']
+          }
+        ]
+      });
+
+      const Group = this.sequelize.define('Group', {
+        id: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'group_id'
+        }
+      }, {
+        tableName: 'tbl_group'
+      });
+
+      const User_has_Group = this.sequelize.define('User_has_Group', {
+        secondId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          field: 'second_id'
+        },
+        groupId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          field: 'group_id'
+        }
+      }, {
+        tableName: 'tbl_user_has_group',
+        indexes: [
+          {
+            unique: true,
+            fields: ['group_id', 'second_id']
+          }
+        ]
+      });
+
+      User.belongsToMany(Group, {
+        through: User_has_Group,
+        foreignKey: 'secondId',
+        sourceKey: 'secondId'
+      });
+
+      Group.belongsToMany(User, {
+        through: User_has_Group,
+        foreignKey: 'groupId',
+        targetKey: 'secondId'
+      });
+
+      return this.sequelize.sync({force: true}).then(() => {
+        return Promise.join(
+          User.create(),
+          Group.create()
+        ).spread((user, group) => {
+          return user.addGroup(group);
+        }).then(() => {
+          return Promise.join(
+            User.findOne({
+              where: {},
+              include: [Group]
+            }),
+            User.findAll({
+              include: [Group]
+            })
+          );
+        });
+      });
+    });
+
     it('supports primary key attributes with different field names where parent include is required', function() {
       const User = this.sequelize.define('User', {
         id: {
