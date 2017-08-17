@@ -138,6 +138,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             tableName: 'table'
           }).then(indexes => {
             expect(indexes.length).to.eq(1);
+            const index = indexes[0];
+            expect(index.name).to.eq('table_name_is_admin');
           });
         });
       });
