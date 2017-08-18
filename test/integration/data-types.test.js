@@ -262,6 +262,36 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }
   });
 
+  it('calls parse and stringify for CIDR', () => {
+    const Type = new Sequelize.CIDR();
+
+    if (['postgres'].indexOf(dialect) !== -1) {
+      return testSuccess(Type, uuid.v4());
+    } else {
+      testFailure(Type);
+    }
+  });
+
+  it('calls parse and stringify for INET', () => {
+    const Type = new Sequelize.INET();
+
+    if (['postgres'].indexOf(dialect) !== -1) {
+      return testSuccess(Type, '127.0.0.1');
+    } else {
+      testFailure(Type);
+    }
+  });
+
+  it('calls parse and stringify for MACADDR', () => {
+    const Type = new Sequelize.MACADDR();
+
+    if (['postgres'].indexOf(dialect) !== -1) {
+      return testSuccess(Type, '01:23:45:67:89:ab');
+    } else {
+      testFailure(Type);
+    }
+  });
+
   it('calls parse and stringify for ENUM', () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
