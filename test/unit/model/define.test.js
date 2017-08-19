@@ -2,19 +2,23 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require(__dirname + '/../support'),
+  Support = require(__dirname + '/../support'),
   DataTypes = require('../../../lib/data-types'),
-  current   = Support.sequelize;
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('define', () => {
     it('should allow custom timestamps with underscored: true', () => {
-      const Model = current.define('User', {}, {
-        createdAt   : 'createdAt',
-        updatedAt   : 'updatedAt',
-        timestamps  : true,
-        underscored : true
-      });
+      const Model = current.define(
+        'User',
+        {},
+        {
+          createdAt: 'createdAt',
+          updatedAt: 'updatedAt',
+          timestamps: true,
+          underscored: true
+        }
+      );
 
       expect(Model.rawAttributes.createdAt).to.be.defined;
       expect(Model.rawAttributes.updatedAt).to.be.defined;
@@ -26,12 +30,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.rawAttributes.updated_at).not.to.be.defined;
     });
 
+    it('should create attributes that are camelCase', () => {
+      const Model = current.define('User', { dueDate: DataTypes.DATE });
+
+      expect(Model.rawAttributes.dueDate).to.be.defined;
+
+      expect(Model.rawAttributes.due_date).not.to.be.defined;
+    });
+
     it('should throw when id is added but not marked as PK', () => {
       expect(() => {
         current.define('foo', {
           id: DataTypes.INTEGER
         });
-      }).to.throw("A column called 'id' was added to the attributes of 'foos' but not marked with 'primaryKey: true'");
+      }).to.throw(
+        "A column called 'id' was added to the attributes of 'foos' but not marked with 'primaryKey: true'"
+      );
 
       expect(() => {
         current.define('bar', {
@@ -39,7 +53,54 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             type: DataTypes.INTEGER
           }
         });
-      }).to.throw("A column called 'id' was added to the attributes of 'bars' but not marked with 'primaryKey: true'");
+      }).to.throw(
+        "A column called 'id' was added to the attributes of 'bars' but not marked with 'primaryKey: true'"
+      );
+    });
+  });
+
+  describe('define with underscoreAttributes option', () => {
+    it('should create underscored attributes with underscoreAttributes: true', () => {
+      const Model = current.define(
+        'User',
+        {
+          dueDate: DataTypes.DATE
+        },
+        {
+          underscoreAttributes: true
+        }
+      );
+
+      expect(Model.rawAttributes.due_date).to.be.defined;
+
+      expect(Model.rawAttributes.dueDate).not.to.be.defined;
+    });
+
+    it('should allow custom timestamps with underscored: true and underscoreAttributes: true', () => {
+      const Model = current.define(
+        'User',
+        {
+          dueDate: DataTypes.DATE
+        },
+        {
+          createdAt: 'createdAt',
+          updatedAt: 'updatedAt',
+          timestamps: true,
+          underscored: true,
+          underscoreAttributes: true
+        }
+      );
+
+      expect(Model.rawAttributes.createdAt).to.be.defined;
+      expect(Model.rawAttributes.updatedAt).to.be.defined;
+      expect(Model.rawAttributes.due_date).to.be.defined;
+
+      expect(Model._timestampAttributes.createdAt).to.equal('createdAt');
+      expect(Model._timestampAttributes.updatedAt).to.equal('updatedAt');
+
+      expect(Model.rawAttributes.created_at).not.to.be.defined;
+      expect(Model.rawAttributes.updated_at).not.to.be.defined;
+      expect(Model.rawAttributes.dueDate).not.to.be.defined;
     });
   });
 });
