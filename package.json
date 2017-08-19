@@ -51,7 +51,7 @@
     "terraformer-wkt-parser": "^1.1.2",
     "toposort-class": "^1.0.1",
     "uuid": "^3.0.0",
-    "validator": "^6.3.0",
+    "validator": "^8.0.0",
     "wkx": "^0.4.1"
   },
   "devDependencies": {
