@@ -73,7 +73,7 @@
     "lcov-result-merger": "^1.2.0",
     "mocha": "^3.0.2",
     "mysql2": "^1.4.1",
-    "pg": "^6.1.0",
+    "pg": "^7.2.0",
     "pg-hstore": "^2.3.2",
     "pg-native": "^1.10.0",
     "pg-types": "^1.11.0",
