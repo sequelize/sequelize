@@ -88,6 +88,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - The resulting promise from the `Model.validate` instance method will be rejected when validation fails. It will fulfill when validation succeeds.
 - Raw options for where, order and group like `where: { $raw: '..', order: [{ raw: '..' }], group: [{ raw: '..' }] }` have been removed to prevent SQL injection attacks.
 - `Sequelize.Utils` is not longer part of the public API, use it at your own risk
+- `Hooks` should return Promises now. Callbacks are deprecated.
 
 ### New features
 - Initial version of `sequelize.sync({ alter: true })` has been added and uses `ALTER TABLE` commands to sync tables. [Migrations](http://docs.sequelizejs.com/manual/tutorial/migrations.html) are still preferred and should be used in production.
