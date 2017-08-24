@@ -47,8 +47,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterValidate(user => {
           //if username is defined and has more than 5 char
           user.username = user.username
-                          ? user.username.length < 5 ? null : user.username
-                          : null;
+            ? user.username.length < 5 ? null : user.username
+            : null;
           user.username = user.username || 'Samorost 3';
 
         });

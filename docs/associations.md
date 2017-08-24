@@ -287,7 +287,7 @@ User.findAll({
 ```
 
 ## Scopes
-This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/scopes.html).
+This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/manual/tutorial/scopes.html).
 
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
@@ -760,8 +760,8 @@ const Address = this.sequelize.define('address', {
   zip: Sequelize.STRING,
 });
 
-const Product.User = Product.belongsTo(User);
-const User.Addresses = User.hasMany(Address);
+Product.User = Product.belongsTo(User);
+User.Addresses = User.hasMany(Address);
 // Also works for `hasOne`
 ```
 

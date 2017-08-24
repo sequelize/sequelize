@@ -266,7 +266,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for ENUM', () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
-     // No dialects actually allow us to identify that we get an enum back..
+    // No dialects actually allow us to identify that we get an enum back..
     testFailure(Type);
   });
 
@@ -428,12 +428,12 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       });
 
       return Model.sync({ force: true })
-              .then(() => Model.create({ interval: [1, 4] }) )
-              .then(() => Model.findAll() )
-              .spread(m => {
-                expect(m.interval[0]).to.be.eql(1);
-                expect(m.interval[1]).to.be.eql(4);
-              });
+        .then(() => Model.create({ interval: [1, 4] }) )
+        .then(() => Model.findAll() )
+        .spread(m => {
+          expect(m.interval[0]).to.be.eql(1);
+          expect(m.interval[1]).to.be.eql(4);
+        });
     });
   }
 

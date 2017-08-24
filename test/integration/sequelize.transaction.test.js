@@ -23,29 +23,29 @@ if (current.dialect.supports.transactions) {
       it('gets triggered once a transaction has been successfully committed', function() {
         let called = false;
         return this
-        .sequelize
-        .transaction().then(t => {
-          return t.commit().then(() => {
-            called = 1;
+          .sequelize
+          .transaction().then(t => {
+            return t.commit().then(() => {
+              called = 1;
+            });
+          })
+          .then(() => {
+            expect(called).to.be.ok;
           });
-        })
-        .then(() => {
-          expect(called).to.be.ok;
-        });
       });
 
       it('gets triggered once a transaction has been successfully rolled back', function() {
         let called = false;
         return this
-        .sequelize
-        .transaction().then(t => {
-          return t.rollback().then(() => {
-            called = 1;
+          .sequelize
+          .transaction().then(t => {
+            return t.rollback().then(() => {
+              called = 1;
+            });
+          })
+          .then(() => {
+            expect(called).to.be.ok;
           });
-        })
-        .then(() => {
-          expect(called).to.be.ok;
-        });
       });
 
       if (Support.getTestDialect() !== 'sqlite') {
@@ -107,17 +107,17 @@ if (current.dialect.supports.transactions) {
               expect(transaction).to.be.instanceOf(Transaction);
 
               return Test
-              .create({ name: 'Peter' }, { transaction })
-              .then(() => {
-                return Promise.delay(1000).then(() => {
-                  return transaction
-                    .commit()
-                    .then(() => { return Test.count(); })
-                    .then(count => {
-                      expect(count).to.equal(1);
-                    });
+                .create({ name: 'Peter' }, { transaction })
+                .then(() => {
+                  return Promise.delay(1000).then(() => {
+                    return transaction
+                      .commit()
+                      .then(() => { return Test.count(); })
+                      .then(count => {
+                        expect(count).to.equal(1);
+                      });
+                  });
                 });
-              });
             });
           });
         });

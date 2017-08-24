@@ -24,7 +24,7 @@ const Project = sequelize.define('project', {
       include: [
         { model: User, where: { active: true }}
       ]
-    }
+    },
     random: function () {
       return {
         where: {

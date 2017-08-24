@@ -94,7 +94,7 @@ module.exports = {
     })
   },
   down(queryInterface, Sequelize) {
-    return queryInterface.dropAllTables()
+    return queryInterface.dropTable('my-table');
   },
 }
 
@@ -759,7 +759,7 @@ sequelize.define('user', {}, {
 ```
 
 
-[0]: #configuration
+[0]: /manual/tutorial/models-definition.html#configuration
 [3]: https://github.com/chriso/validator.js
 [5]: /docs/final/misc#asynchronicity
 [6]: http://bluebirdjs.com/docs/api/spread.html

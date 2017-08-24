@@ -502,6 +502,32 @@ if (dialect === 'sqlite') {
           expectation: "UPDATE `myTable` SET `bar`=`foo` WHERE `name` = 'foo'",
           needsSequelize: true
         }
+      ],
+      renameColumnQuery: [
+        {
+          title: 'Properly quotes column names',
+          arguments: ['myTable', 'foo', 'commit', {commit: 'VARCHAR(255)', bar: 'VARCHAR(255)'}],
+          expectation:
+            'CREATE TEMPORARY TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable_backup` SELECT `foo` AS `commit`, `bar` FROM `myTable`;' +
+            'DROP TABLE `myTable`;' +
+            'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;' +
+            'DROP TABLE `myTable_backup`;'
+        }
+      ],
+      removeColumnQuery: [
+        {
+          title: 'Properly quotes column names',
+          arguments: ['myTable', {commit: 'VARCHAR(255)', bar: 'VARCHAR(255)'}],
+          expectation:
+            'CREATE TEMPORARY TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;' +
+            'DROP TABLE `myTable`;' +
+            'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;' +
+            'DROP TABLE `myTable_backup`;'
+        }
       ]
     };
 

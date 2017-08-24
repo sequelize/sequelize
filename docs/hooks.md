@@ -1,44 +1,44 @@
 # Hooks
 
-Hooks (also known as callbacks or lifecycle events), are functions which are called before and after calls in sequelize are executed. For example, if you want to always set a value on a model before saving it, you can add a `beforeUpdate` hook.
+Hooks (also known as lifecycle events), are functions which are called before and after calls in sequelize are executed. For example, if you want to always set a value on a model before saving it, you can add a `beforeUpdate` hook.
 
-For a full list of hooks, see [Hooks API](/api/hooks).
+For a full list of hooks, see [Hooks file](https://github.com/sequelize/sequelize/blob/master/lib/hooks.js#L7).
 
 ## Order of Operations
 
 ```
 (1)
-  beforeBulkCreate(instances, options, fn)
-  beforeBulkDestroy(options, fn)
-  beforeBulkUpdate(options, fn)
+  beforeBulkCreate(instances, options)
+  beforeBulkDestroy(options)
+  beforeBulkUpdate(options)
 (2)
-  beforeValidate(instance, options, fn)
+  beforeValidate(instance, options)
 (-)
   validate
 (3)
-  afterValidate(instance, options, fn)
+  afterValidate(instance, options)
   - or -
-  validationFailed(instance, options, error, fn)
+  validationFailed(instance, options, error)
 (4)
-  beforeCreate(instance, options, fn)
-  beforeDestroy(instance, options, fn)
-  beforeUpdate(instance, options, fn)
-  beforeSave(instance, options, fn)
-  beforeUpsert(values, options, fn)
+  beforeCreate(instance, options)
+  beforeDestroy(instance, options)
+  beforeUpdate(instance, options)
+  beforeSave(instance, options)
+  beforeUpsert(values, options)
 (-)
   create
   destroy
   update
 (5)
-  afterCreate(instance, options, fn)
-  afterDestroy(instance, options, fn)
-  afterUpdate(instance, options, fn)
-  afterSave(instance, options, fn)
-  afterUpsert(created, options, fn)
+  afterCreate(instance, options)
+  afterDestroy(instance, options)
+  afterUpdate(instance, options)
+  afterSave(instance, options)
+  afterUpsert(created, options)
 (6)
-  afterBulkCreate(instances, options, fn)
-  afterBulkDestroy(options, fn)
-  afterBulkUpdate(options, fn)
+  afterBulkCreate(instances, options)
+  afterBulkDestroy(options)
+  afterBulkUpdate(options)
 ```
 
 ## Declaring Hooks
@@ -81,7 +81,7 @@ User.beforeCreate((user, options) => {
   });
 });
 
-User.afterValidate('myHookAfter', (user, options, fn) => {
+User.afterValidate('myHookAfter', (user, options) => {
   user.username = 'Toni';
 });
 ```
