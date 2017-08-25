@@ -760,8 +760,8 @@ const Address = this.sequelize.define('address', {
   zip: Sequelize.STRING,
 });
 
-const Product.User = Product.belongsTo(User);
-const User.Addresses = User.hasMany(Address);
+Product.User = Product.belongsTo(User);
+User.Addresses = User.hasMany(Address);
 // Also works for `hasOne`
 ```
 
