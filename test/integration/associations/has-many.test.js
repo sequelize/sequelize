@@ -1305,6 +1305,23 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
     });
 
+    it('should create with nested associated models', function() {
+      const User = this.User,
+        Task = this.Task,
+        values = {
+          username: 'John',
+          email: 'john@example.com',
+          tasks: [{ title: 'Fix PR' }]
+        };
+
+      return User.create(values, { include: ['tasks'] }).then(user => {
+        return Task.findOne({ where: { userEmail: user.email } }).then(task => {
+          expect(task).to.be.an('object');
+          expect(task.title).to.be.equal('Fix PR', 'task title is correct');
+        });
+      });
+    });
+
   });
 
   describe('sourceKey with where clause in include', () => {
