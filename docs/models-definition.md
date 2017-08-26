@@ -1,7 +1,6 @@
 # Model definition
 
-To define mappings between a model and a table, use the `define` method. Sequelize will then automatically add the attributes `createdAt` and `updatedAt` to it. So you will be able to know when the database entry went into the db and when it was updated the last time. If you do not want timestamps on your models, only want some timestamps, or you are working with an existing database where the columns are named something else, jump straight on to [configuration ][0]to see how to do that.
-
+To define mappings between a model and a table, use the `define` method.
 
 ```js
 const Project = sequelize.define('project', {
@@ -21,7 +20,7 @@ You can also set some options on each column:
 ```js
 const Foo = sequelize.define('foo', {
  // instantiating will automatically set the flag to true if not set
- flag: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: true},
+ flag: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: true },
 
  // default values for dates => current time
  myDate: { type: Sequelize.DATE, defaultValue: Sequelize.NOW },
@@ -29,28 +28,29 @@ const Foo = sequelize.define('foo', {
  // setting allowNull to false will add NOT NULL to the column, which means an error will be
  // thrown from the DB when the query is executed if the column is null. If you want to check that a value
  // is not null before querying the DB, look at the validations section below.
- title: { type: Sequelize.STRING, allowNull: false},
+ title: { type: Sequelize.STRING, allowNull: false },
 
  // Creating two objects with the same value will throw an error. The unique property can be either a
  // boolean, or a string. If you provide the same string for multiple columns, they will form a
  // composite unique key.
- uniqueOne: { type: Sequelize.STRING,  unique: 'compositeIndex'},
- uniqueTwo: { type: Sequelize.INTEGER, unique: 'compositeIndex'}
+ uniqueOne: { type: Sequelize.STRING,  unique: 'compositeIndex' },
+ uniqueTwo: { type: Sequelize.INTEGER, unique: 'compositeIndex' },
 
  // The unique property is simply a shorthand to create a unique constraint.
- someUnique: {type: Sequelize.STRING, unique: true}
+ someUnique: { type: Sequelize.STRING, unique: true },
+ 
  // It's exactly the same as creating the index in the model's options.
- {someUnique: {type: Sequelize.STRING}},
- {indexes: [{unique: true, fields: ['someUnique']}]}
+ { someUnique: { type: Sequelize.STRING } },
+ { indexes: [ { unique: true, fields: [ 'someUnique' ] } ] },
 
  // Go on reading for further information about primary keys
- identifier: { type: Sequelize.STRING, primaryKey: true},
+ identifier: { type: Sequelize.STRING, primaryKey: true },
 
  // autoIncrement can be used to create auto_incrementing integer columns
  incrementMe: { type: Sequelize.INTEGER, autoIncrement: true },
 
- // You can specify a custom field name via the "field" attribute:
- fieldWithUnderscores: { type: Sequelize.STRING, field: "field_with_underscores" },
+ // You can specify a custom field name via the 'field' attribute:
+ fieldWithUnderscores: { type: Sequelize.STRING, field: 'field_with_underscores' },
 
  // It is possible to create foreign keys:
  bar_id: {
@@ -71,6 +71,37 @@ const Foo = sequelize.define('foo', {
 ```
 
 The comment option can also be used on a table, see [model configuration][0]
+
+## Timestamps
+
+By default, Sequelize will add the attributes `createdAt` and `updatedAt` to your model so you will be able to know when the database entry went into the db and when it was updated last. 
+
+Note that if you are using Sequelize migrations you will need to add the `createdAt` and `updatedAt` fields to your migration definition:
+
+```js
+module.exports = {
+  up(queryInterface, Sequelize) {
+    return queryInterface.createTable('my-table', {
+      id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+
+      // Timestamps
+      createdAt: Sequelize.DATE,
+      updatedAt: Sequelize.DATE,
+    })
+  },
+  down(queryInterface, Sequelize) {
+    return queryInterface.dropTable('my-table');
+  },
+}
+
+```
+
+If you do not want timestamps on your models, only want some timestamps, or you are working with an existing database where the columns are named something else, jump straight on to [configuration ][0]to see how to do that.
+
 
 ## Data types
 
@@ -137,7 +168,7 @@ If you are working with the PostgreSQL TIMESTAMP WITHOUT TIME ZONE and you need 
 
 ```js
 require('pg').types.setTypeParser(1114, stringValue => {
-  return new Date(stringValue + "+0000");
+  return new Date(stringValue + '+0000');
   // e.g., UTC offset. Use any offset that you would like.
 });
 ```
@@ -728,7 +759,7 @@ sequelize.define('user', {}, {
 ```
 
 
-[0]: /tutorial/models-definition.html#configuration
+[0]: /manual/tutorial/models-definition.html#configuration
 [3]: https://github.com/chriso/validator.js
 [5]: /docs/final/misc#asynchronicity
 [6]: http://bluebirdjs.com/docs/api/spread.html
