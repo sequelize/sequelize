@@ -758,6 +758,44 @@ sequelize.define('user', {}, {
 })
 ```
 
+Sequelize also supports defining each index with an object literal:
+
+```js
+sequelize.define('user', {}, {
+  indexes: {
+
+    // Create a unique index on poem
+    user_poem: {
+      unique: true,
+      fields: ['poem']
+    },
+
+    // Creates a gin index on data with the jsonb_path_ops operator
+    user_data: {
+      fields: ['data'],
+      using: 'gin',
+      operator: 'jsonb_path_ops'
+    },
+
+    // By default index name will be [table]_[fields]
+    // Creates a multi column partial index
+    public_by_author: {
+      fields: ['author', 'status'],
+      where: {
+        status: 'public'
+      }
+    },
+
+    // A BTREE index with a ordered field
+    title_index: {
+      method: 'BTREE',
+      fields: ['author', {attribute: 'title', collate: 'en_US', order: 'DESC', length: 5}]
+    }
+  }
+})
+
+```
+
 
 [0]: /manual/tutorial/models-definition.html#configuration
 [3]: https://github.com/chriso/validator.js
