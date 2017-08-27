@@ -66,5 +66,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(User.rawAttributes.name.unique).to.be.undefined;
       expect(User.rawAttributes.address.unique).to.be.undefined;
     });
+
+    it('should set the name property when indexes are defined via an object', () => {
+      const Model = current.define('m', {}, {
+        indexes: {
+          first: {
+            type: 'unique'
+          },
+          second: {
+            type: 'UNIQUE'
+          }
+        }
+      });
+
+      expect(Model.options.indexes[0].name).to.eql('first');
+      expect(Model.options.indexes[1].name).to.eql('second');
+
+    });
   });
 });
