@@ -225,7 +225,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
 ### ORACLE
 
-The library for Oracle is`oracledb@^1.11.0` You'll just need to define the dialect:
+The library for Oracle is`oracledb@^1.13.0` You'll just need to define the dialect:
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {

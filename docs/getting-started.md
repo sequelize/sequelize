@@ -35,7 +35,7 @@ Sequelize will setup a connection pool on initialization so you should ideally o
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
-  dialect: 'mysql'|'sqlite'|'postgres'|'mssql',
+  dialect: 'mysql'|'sqlite'|'postgres'|'mssql'|'oracle',
 
   pool: {
     max: 5,

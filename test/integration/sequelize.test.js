@@ -143,7 +143,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
                 err.message.match(/invalid port number/) ||
                 err.message.match(/should be >=? 0 and < 65536/) ||
                 err.message.match(/Login failed for user/) ||
-                err.message.match(/ORA-01017/)
+                err.message.match(/ORA-12541/)
               ).to.be.ok;
             });
         });
@@ -1029,7 +1029,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           } else if (dialect === 'mssql') {
             expect(err.message).to.equal('Login failed for user \'bar\'.');
           } else if (dialect === 'oracle') {
-            expect(err.message).to.equal('ORA-01017 : invalid username/password; logon denied');
+            expect(err.message).to.equal('ORA-12514: TNS:listener does not currently know of service requested in connect descriptor\n');
           } else {
             expect(err.message.toString()).to.match(/.*Access\ denied.*/);
           }
