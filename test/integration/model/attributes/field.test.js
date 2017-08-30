@@ -95,6 +95,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           foreignKey: 'task_id'
         });
 
+        this.User.belongsToMany(this.Comment, {
+          foreignKey: 'userId',
+          otherKey: 'commentId',
+          through: 'userComments'
+        });
+
         return Promise.all([
           queryInterface.createTable('users', {
             userId: {
@@ -151,6 +157,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
             updated_at: {
               type: DataTypes.DATE
+            }
+          }),
+          queryInterface.createTable('userComments', {
+            commentId: {
+              type: DataTypes.INTEGER
+            },
+            userId: {
+              type: DataTypes.INTEGER
             }
           })
         ]);
@@ -539,7 +553,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should work with with an belongsTo association getter', function() {
+      it('should work with a belongsTo association getter', function() {
         const userId = Math.floor(Math.random() * 100000);
         return Promise.join(
           this.User.create({
@@ -605,6 +619,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
         });
+      });
+
+      it('should work with association `count`', function() {
+        return this.User.create({
+          name: 'John'
+        })
+          .then(user => user.countComments())
+          .then(commentCount => expect(commentCount).to.equal(0));
       });
     });
   });
