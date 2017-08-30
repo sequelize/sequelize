@@ -716,6 +716,28 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           postgres: "\"Timeline\".\"range\" <@ '[\"2000-02-01 00:00:00.000 +00:00\",\"2000-03-01 00:00:00.000 +00:00\")'"
         });
 
+        testsql('unboundedRange', {
+          $contains: [new Date(Date.UTC(2000, 1, 1)), null]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE(DataTypes.DATE)
+          },
+          prefix: 'Timeline'
+        }, {
+          postgres: "\"Timeline\".\"unboundedRange\" @> '[\"2000-02-01 00:00:00.000 +00:00\",)'"
+        });
+
+        testsql('unboundedRange', {
+          $contains: [-Infinity, Infinity]
+        }, {
+          field: {
+            type: new DataTypes.postgres.RANGE(DataTypes.DATE)
+          },
+          prefix: 'Timeline'
+        }, {
+          postgres: "\"Timeline\".\"unboundedRange\" @> '[-infinity,infinity)'"
+        });
+
         testsql('reservedSeats', {
           $overlap: [1, 4]
         }, {
