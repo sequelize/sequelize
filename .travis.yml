@@ -50,21 +50,20 @@ before_install:
 
 before_script:
   # mount ramdisk
-  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mkdir /mnt/sequelize-ramdisk; fi"
-  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mount -t ramfs tmpfs /mnt/sequelize-ramdisk; fi"
-  # setup docker
-  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
-  - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
-  - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - |
-    if [ $ORACLE_VER ]; then 
-      wget https://s3.amazonaws.com/sequelize/data.tar.gz
+    if [ $ORACLE_VER ]; then
+    wget https://s3.amazonaws.com/sequelize/data.tar.gz
       mkdir oracle-data
       sudo tar xvf data.tar.gz -C ./oracle-data
       sudo chmod -R +rw ./oracle-data
-      docker-compose up -d oracle-12c
-      sleep 30
     fi
+  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mkdir /mnt/sequelize-ramdisk; fi"
+  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mount -t ramfs tmpfs /mnt/sequelize-ramdisk; fi"
+  # setup docker
+  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ] || [ $ORACLE_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER} ${ORACLE_VER}; fi"
+  - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
+  - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
+  - "if [ $ORACLE_VER ]; then docker run --link ${ORACLE_VER}:db -e CHECK_PORT=1521 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
 
 script:
   - npm run lint
