@@ -74,6 +74,9 @@ jobs:
   include:
     - stage: tests
       node_js: 4
+      env: ORACLE_VER=oracle-12c DIALECT=oracle COVERAGE=true
+    - stage: tests
+      node_js: 4
       env: DIALECT=sqlite COVERAGE=true
     - stage: tests
       node_js: 4
