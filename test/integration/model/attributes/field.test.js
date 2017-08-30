@@ -621,12 +621,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should work with association `count`', function() {
+      it('should work with `belongsToMany` association `count`', function() {
         return this.User.create({
           name: 'John'
         })
           .then(user => user.countComments())
           .then(commentCount => expect(commentCount).to.equal(0));
+      });
+
+      it('should work with `hasMany` association `count`', function() {
+        return this.User.create({
+          name: 'John'
+        })
+          .then(user => user.countTasks())
+          .then(taskCount => expect(taskCount).to.equal(0));
       });
     });
   });
