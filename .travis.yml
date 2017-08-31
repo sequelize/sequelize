@@ -41,7 +41,7 @@ before_install:
       wget https://s3.amazonaws.com/sequelize/instantclient-sdk-linux.x64-12.2.0.1.0.zip &&
       unzip instantclient-basic-linux.x64-12.2.0.1.0.zip &&
       unzip instantclient-sdk-linux.x64-12.2.0.1.0.zip &&
-      mv instantclient_12_1 instantclient &&
+      mv instantclient_12_2 instantclient &&
       cd instantclient && 
       ln -s libclntsh.so.12.1 libclntsh.so &&
       export LD_LIBRARY_PATH=/opt/oracle/instantclient:$LD_LIBRARY_PATH &&
