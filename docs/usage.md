@@ -233,7 +233,8 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 })
 ```
 
-As Oracle limits the length of alias names to 30 characters, some requests are rebuilt. 
+As Oracle 12.1 limits the length of alias names to 30 characters, some requests are rebuilt.
+Oracle 12.2 supports alias names up to 128 characters, request rebuilding is not done for this version.
 To see the rebuilt request, add in dialectOptions : ``` logAliasesQry : true ```
 
 ## Executing raw SQL queries
