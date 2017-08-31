@@ -55,7 +55,7 @@
     "wkx": "^0.4.1"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "chai": "^4.1.2",
     "chai-as-promised": "^5.3.0",
     "chai-datetime": "^1.4.1",
     "chai-spies": "^0.7.1",
