@@ -7,6 +7,7 @@ const chai = require('chai'),
   Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   HasMany   = require(__dirname + '/../../../lib/associations/has-many'),
+  Op        = require(__dirname + '/../../../lib/operators'),
   current   = Support.sequelize,
   Promise   = current.Promise;
 
@@ -148,7 +149,8 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
     });
 
     it('should fetch associations for multiple source instances', () => {
-      const findAll = stub(Task, 'findAll').returns(Promise.resolve([
+      const findAll = stub(Task, 'findAll').returns(
+        Promise.resolve([
           Task.build({
             'user_id': idA
           }),
@@ -161,8 +163,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
           Task.build({
             'user_id': idB
           })
-        ])),
-        where = {};
+        ]));
 
       User.Tasks = User.hasMany(Task, {foreignKey});
       const actual = User.Tasks.get([
@@ -171,12 +172,10 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         User.build({id: idC})
       ]);
 
-      where[foreignKey] = {
-        $in: [idA, idB, idC]
-      };
-
       expect(findAll).to.have.been.calledOnce;
-      expect(findAll.firstCall.args[0].where).to.deep.equal(where);
+      expect(findAll.firstCall.args[0].where).to.have.property(foreignKey);
+      expect(findAll.firstCall.args[0].where[foreignKey]).to.have.property(Op.in);
+      expect(findAll.firstCall.args[0].where[foreignKey][Op.in]).to.deep.equal([idA, idB, idC]);
 
       return actual.then(result => {
         expect(result).to.be.an('object');

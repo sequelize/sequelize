@@ -98,11 +98,12 @@ The success handler will always receive an object with two properties:
 * `count` - an integer, total number records matching the where clause
 * `rows` - an array of objects, the records matching the where clause, within the limit and offset range
 ```js
+const {like} = Sequelize.Operators;
 Project
   .findAndCountAll({
      where: {
         title: {
-          $like: 'foo%'
+          [like]: 'foo%'
         }
      },
      offset: 10,
@@ -144,6 +145,8 @@ The options object that you pass to `findAndCountAll` is the same as for `findAl
 
 ### `findAll` - Search for multiple elements in the database
 ```js
+const Op = Sequelize.Operators;
+
 // find multiple entries
 Project.findAll().then(projects => {
   // projects will be an array of all Project instances
@@ -168,28 +171,28 @@ Project.findAll({ where: { id: [1,2,3] } }).then(projects => {
 Project.findAll({
   where: {
     id: {
-      $and: {a: 5}           // AND (a = 5)
-      $or: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
-      $gt: 6,                // id > 6
-      $gte: 6,               // id >= 6
-      $lt: 10,               // id < 10
-      $lte: 10,              // id <= 10
-      $ne: 20,               // id != 20
-      $between: [6, 10],     // BETWEEN 6 AND 10
-      $notBetween: [11, 15], // NOT BETWEEN 11 AND 15
-      $in: [1, 2],           // IN [1, 2]
-      $notIn: [1, 2],        // NOT IN [1, 2]
-      $like: '%hat',         // LIKE '%hat'
-      $notLike: '%hat'       // NOT LIKE '%hat'
-      $iLike: '%hat'         // ILIKE '%hat' (case insensitive)  (PG only)
-      $notILike: '%hat'      // NOT ILIKE '%hat'  (PG only)
-      $overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
-      $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
-      $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
-      $any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
+      [Op.and]: {a: 5}           // AND (a = 5)
+      [Op.or]: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
+      [Op.gt]: 6,                // id > 6
+      [Op.gte]: 6,               // id >= 6
+      [Op.lt]: 10,               // id < 10
+      [Op.lte]: 10,              // id <= 10
+      [Op.ne]: 20,               // id != 20
+      [Op.between]: [6, 10],     // BETWEEN 6 AND 10
+      [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
+      [Op.in]: [1, 2],           // IN [1, 2]
+      [Op.notIn]: [1, 2],        // NOT IN [1, 2]
+      [Op.like]: '%hat',         // LIKE '%hat'
+      [Op.notLike]: '%hat'       // NOT LIKE '%hat'
+      [Op.iLike]: '%hat'         // ILIKE '%hat' (case insensitive)  (PG only)
+      [Op.notILike]: '%hat'      // NOT ILIKE '%hat'  (PG only)
+      [Op.overlap]: [1, 2]       // && [1, 2] (PG array overlap operator)
+      [Op.contains]: [1, 2]      // @> [1, 2] (PG array contains operator)
+      [Op.contained]: [1, 2]     // <@ [1, 2] (PG array contained by operator)
+      [Op.any]: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
     },
     status: {
-      $not: false,           // status NOT FALSE
+      [Op.not]: false,           // status NOT FALSE
     }
   }
 })
@@ -197,15 +200,17 @@ Project.findAll({
 
 ### Complex filtering / OR / NOT queries
 
-It's possible to do complex where queries with multiple levels of nested AND, OR and NOT conditions. In order to do that you can use `$or`, `$and` or `$not`:
+It's possible to do complex where queries with multiple levels of nested AND, OR and NOT conditions. In order to do that you can use `or`, `and` or `not` `Operators`:
 
 ```js
+const {or, gt} = Sequelize.Operators;
+
 Project.findOne({
   where: {
     name: 'a project',
-    $or: [
+    [or]: [
       { id: [1,2,3] },
-      { id: { $gt: 10 } }
+      { id: { [gt]: 10 } }
     ]
   }
 })
@@ -214,9 +219,9 @@ Project.findOne({
   where: {
     name: 'a project',
     id: {
-      $or: [
+      [or]: [
         [1,2,3],
-        { $gt: 10 }
+        { [gt]: 10 }
       ]
     }
   }
@@ -235,15 +240,17 @@ WHERE (
 LIMIT 1;
 ```
 
-`$not` example:
+`not` example:
 
 ```js
+const {not, contains} = Sequelize.Operators;
+
 Project.findOne({
   where: {
     name: 'a project',
-    $not: [
+    [not]: [
       { id: [1,2,3] },
-      { array: { $contains: [3,4,5] } }
+      { array: { [contains]: [3,4,5] } }
     ]
   }
 });
@@ -334,11 +341,12 @@ Project.findAll({ where: { ... }, raw: true })
 There is also a method for counting database objects:
 
 ```js
+const {gt} = Sequelize.Operators;
 Project.count().then(c =>
   console.log("There are " + c + " projects!")
 })
 
-Project.count({ where: {'id': {$gt: 25}} }).then(c =>
+Project.count({ where: {'id': {[gt]: 25}} }).then(c =>
   console.log("There are " + c + " projects with an id greater than 25.")
 })
 ```
@@ -348,6 +356,7 @@ Project.count({ where: {'id': {$gt: 25}} }).then(c =>
 And here is a method for getting the max value of an attribute:f
 
 ```js
+const {lt} = Sequelize.Operators;
 /*
   Let's assume 3 person objects with an attribute age.
   The first one is 10 years old,
@@ -358,7 +367,7 @@ Project.max('age').then(max => {
   // this will return 40
 })
 
-Project.max('age', { where: { age: { lt: 20 } } }).then(max => {
+Project.max('age', { where: { age: { [lt]: 20 } } }).then(max => {
   // will be 10
 })
 ```
@@ -368,6 +377,7 @@ Project.max('age', { where: { age: { lt: 20 } } }).then(max => {
 And here is a method for getting the min value of an attribute:
 
 ```js
+const {gt} = Sequelize.Operators;
 /*
   Let's assume 3 person objects with an attribute age.
   The first one is 10 years old,
@@ -378,7 +388,7 @@ Project.min('age').then(min => {
   // this will return 5
 })
 
-Project.min('age', { where: { age: { $gt: 5 } } }).then(min => {
+Project.min('age', { where: { age: { [gt]: 5 } } }).then(min => {
   // will be 10
 })
 ```
@@ -389,6 +399,7 @@ In order to calculate the sum over a specific column of a table, you can
 use the `sum` method.
 
 ```js
+const {gt} = Sequelize.Operators;
 /*
   Let's assume 3 person objects with an attribute age.
   The first one is 10 years old,
@@ -399,7 +410,7 @@ Project.sum('age').then(sum => {
   // this will return 55
 })
 
-Project.sum('age', { where: { age: { $gt: 5 } } }).then(sum => {
+Project.sum('age', { where: { age: { [gt]: 5 } } }).then(sum => {
   // will be 50
 })
 ```
@@ -546,11 +557,12 @@ User.findAll({ include: [{ association: 'Instruments' }] }).then(users => {
 When eager loading we can also filter the associated model using `where`. This will return all `User`s in which the `where` clause of `Tool` model matches rows.
 
 ```js
+const {like} = Sequelize.Operators;
 User.findAll({
     include: [{
         model: Tool,
         as: 'Instruments',
-        where: { name: { $like: '%ooth%' } }
+        where: { name: { [like]: '%ooth%' } }
     }]
 }).then(users => {
     console.log(JSON.stringify(users))
@@ -595,9 +607,10 @@ When an eager loaded model is filtered using `include.where` then `include.requi
 To move the where conditions from an included model from the `ON` condition to the top level `WHERE` you can use the `'$nested.column$'` syntax:
 
 ```js
+const {iLike} = Sequelize.Operators;
 User.findAll({
     where: {
-        '$Instruments.name$': { $iLike: '%ooth%' }
+        '$Instruments.name$': { [iLike]: '%ooth%' }
     },
     include: [{
         model: Tool,
@@ -650,10 +663,11 @@ User.findAll({ include: [{ all: true }]});
 In case you want to eager load soft deleted records you can do that by setting `include.paranoid` to `false`
 
 ```js
+const {like} = Sequelize.Operators;
 User.findAll({
     include: [{
         model: Tool,
-        where: { name: { $like: '%ooth%' } },
+        where: { name: { [like]: '%ooth%' } },
         paranoid: false // query and loads the soft deleted records
     }]
 });

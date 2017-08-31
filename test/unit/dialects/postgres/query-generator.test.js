@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
+  Operators = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/postgres/query-generator'),
   Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
@@ -922,6 +923,7 @@ if (dialect.match(/^postgres/)) {
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             QueryGenerator.sequelize = this.sequelize;
+            QueryGenerator.setOperatorsAliases(Operators.LegacyAliases);
             const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
