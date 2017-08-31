@@ -37,8 +37,8 @@ before_install:
     if [ $ORACLE_VER ]; then 
       mkdir -p /opt/oracle && 
       cd /opt/oracle && 
-      wget https://s3.amazonaws.com/sequelize/instantclient-basic-linux.x64-12.1.0.2.0.zip &&
-      wget https://s3.amazonaws.com/sequelize/instantclient-sdk-linux.x64-12.1.0.2.0.zip &&
+      wget https://s3.amazonaws.com/sequelize/instantclient-basic-linux.x64-12.2.0.1.0.zip &&
+      wget https://s3.amazonaws.com/sequelize/instantclient-sdk-linux.x64-12.2.0.1.0.zip &&
       unzip instantclient-basic-linux.x64-12.1.0.2.0.zip &&
       unzip instantclient-sdk-linux.x64-12.1.0.2.0.zip &&
       mv instantclient_12_1 instantclient &&
@@ -49,7 +49,6 @@ before_install:
     fi
 
 before_script:
-  # mount ramdisk
   - |
     if [ $ORACLE_VER ]; then
     wget https://s3.amazonaws.com/sequelize/data.tar.gz
@@ -57,6 +56,7 @@ before_script:
       sudo tar xvf data.tar.gz -C ./oracle-data
       sudo chmod -R +rw ./oracle-data
     fi
+  # mount ramdisk
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mkdir /mnt/sequelize-ramdisk; fi"
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mount -t ramfs tmpfs /mnt/sequelize-ramdisk; fi"
   # setup docker
@@ -73,6 +73,9 @@ jobs:
   include:
     - stage: tests
       node_js: 4
+      env: ORACLE_VER=oracle-12c DIALECT=oracle
+    - stage: tests
+      node_js: 6
       env: ORACLE_VER=oracle-12c DIALECT=oracle COVERAGE=true
     - stage: tests
       node_js: 4

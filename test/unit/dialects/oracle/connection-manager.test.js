@@ -69,20 +69,20 @@ describe('[ORACLE] Connection Manager', () => {
         database: 'xe.oracle.docker'
       };
       instance = new Sequelize(config.database, config.username, config.password, config);
-      try {
-        instance.dialect.connectionManager.connect(config)
-          .then(result => {
-            done('You shall not pass');
-            expect(instance.getDialect()).to.equal('oracle');
-            instance.dialect.connectionManager.disconnect(result)
-              .then(() => {
-                done('You shall not pass');
-              });
-          });
-      } catch (err) {
-        expect(err.message).to.equal('You have to specify the host');
-        done();
-      }
+
+      instance.dialect.connectionManager.connect(config)
+        .then(result => {
+          done('You shall not pass');
+          expect(instance.getDialect()).to.equal('oracle');
+          instance.dialect.connectionManager.disconnect(result)
+            .then(() => {
+              done('You shall not pass');
+            });
+        })
+        .catch(err => {
+          expect(err.message).to.equal('You have to specify the host');
+          done();
+        });
     });
 
     it('database empty, should fail', done => {
@@ -95,19 +95,18 @@ describe('[ORACLE] Connection Manager', () => {
         database: ''
       };
       instance = new Sequelize(config.database, config.username, config.password, config);
-      try {
-        instance.dialect.connectionManager.connect(config)
-          .then(() => {
+      instance.dialect.connectionManager.connect(config)
+        .then(() => {
+          done('You shall not pass');
+          expect(instance.getDialect()).to.equal('oracle');
+          instance.dialect.connectionManager.disconnect(null).then(() => {
             done('You shall not pass');
-            expect(instance.getDialect()).to.equal('oracle');
-            instance.dialect.connectionManager.disconnect(null).then(() => {
-              done('You shall not pass');
-            });
           });
-      } catch (err) {
-        expect(err.message.indexOf('The database cannot be blank, you must specify the database name')).to.equal(0);
-        done();
-      }
+        })
+        .catch(err => {
+          expect(err.message.indexOf('The database cannot be blank, you must specify the database name')).to.equal(0);
+          done();
+        });
     });
   }
 });
