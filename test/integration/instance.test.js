@@ -310,6 +310,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     }
 
+    if (current.dialect.supports.returnValues.returning) {
+      it('supports returning', function() {
+        return this.User.findById(1).then(user1 => {
+          return user1.decrement('aNumber', { by: 2 }).then(() => {
+            expect(user1.aNumber).to.be.equal(-2);
+          });
+        });
+      });
+    }
+
     it('with array', function() {
       const self = this;
       return this.User.findById(1).then(user1 => {

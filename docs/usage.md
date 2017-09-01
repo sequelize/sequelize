@@ -149,9 +149,12 @@ Sequelize uses a pool to manage connections to your replicas. The default option
 
 ```js
 {
-  max: 10,
+  max: 5,
   min: 0,
-  idle: 1000
+  idle: 10000,
+  acquire: 10000,
+  evict: 60000,
+  handleDisconnects: true  
 }
 ```
 
@@ -201,7 +204,7 @@ const sequelize = new Sequelize('sqlite:relativePath/dbname.db')
 
 ### PostgreSQL
 
-The library for PostgreSQL is`pg@~3.6.0` You'll just need to define the dialect:
+The library for PostgreSQL is`pg@^5.0.0 || ^6.0.0 || ^7.0.0` You'll just need to define the dialect:
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
