@@ -13,10 +13,10 @@ function quoteIdentifier(identifier) {
 
 function getQueryGenerator(sequelize) {
   return Object.assign(
-      {},
-      QueryGenerator,
-      {options: sequelize.options, _dialect: sequelize.dialect, sequelize, quoteIdentifier}
-    );
+    {},
+    QueryGenerator,
+    {options: sequelize.options, _dialect: sequelize.dialect, sequelize, quoteIdentifier}
+  );
 }
 
 describe('QueryGenerator', () => {

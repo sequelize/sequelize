@@ -204,9 +204,9 @@ const Support = {
         expectation = expectations['default'];
         if (Array.isArray(expectation)) {
           expectation = expectation.map(val =>
-              val.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
+            val.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
               .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT)
-            );
+          );
         } else {
           expectation = expectation
             .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
