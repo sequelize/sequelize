@@ -49,13 +49,6 @@ before_install:
     fi
 
 before_script:
-  - |
-    if [ $ORACLE_VER ]; then
-    wget https://s3.amazonaws.com/sequelize/data.tar.gz
-      mkdir oracle-data
-      sudo tar xvf data.tar.gz -C ./oracle-data
-      sudo chmod -R +rw ./oracle-data
-    fi
   # mount ramdisk
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mkdir /mnt/sequelize-ramdisk; fi"
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mount -t ramfs tmpfs /mnt/sequelize-ramdisk; fi"

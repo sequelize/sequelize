@@ -41,9 +41,7 @@ services:
     container_name: mysql-57
 
   oracle-12c:
-    image: konnecteam/oracle12c-database
-    volumes:
-      - ./oracle-data:/u01/app/oracle
+    image: konnecteam/oracle12c-database-sequelize
     ports:
       - "127.0.0.1:1521:1521"
     container_name: oracle
