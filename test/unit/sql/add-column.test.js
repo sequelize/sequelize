@@ -42,26 +42,14 @@ if (current.dialect.name === 'mysql') {
         });
       });
 
-      it('properly generate alter queries with AFTER option', () => {
-        return expectsql(sql.addColumnQuery(Model.getTableName(), 'test_added_col_after', current.normalizeAttribute({
-          type: DataTypes.STRING
-        }), {
-          after: 'level_id'
-        }), {
-          mysql: 'ALTER TABLE `users` ADD `test_added_col_after` VARCHAR(255) AFTER `level_id`;'
-        });
-      });
-
-      it('properly generate alter queries with FIRST option', () => {
+      it('properly generate alter queries with FIRST', () => {
         return expectsql(sql.addColumnQuery(Model.getTableName(), 'test_added_col_first', current.normalizeAttribute({
-          type: DataTypes.STRING
-        }), {
+          type: DataTypes.STRING,
           first: true
-        }), {
+        })), {
           mysql: 'ALTER TABLE `users` ADD `test_added_col_first` VARCHAR(255) FIRST;'
         });
       });
-
     });
   });
 }
