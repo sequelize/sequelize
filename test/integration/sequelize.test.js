@@ -728,6 +728,23 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
+    it('connections should be released only once', function() {
+      return this.sequelize.query('THIS IS A WRONG SQL', {
+        retry: {
+          max: 2,
+          // retry for all errors
+          match: null
+        }
+      }).catch(err => {
+        // If the connection is released multiple times,
+        // than an Error(not Sequelize BaseError) will be raised by generic-pool.
+        // If the connection is released only once,
+        // then a DatabaseError which inherits Sequelize BaseError will be raised,
+        // because this is a wrong sql.
+        expect(err).to.be.an.instanceof(this.sequelize.Error);
+      });
+    });
+
     if (Support.getTestDialect() === 'postgres') {
       it('replaces named parameters with the passed object and ignores casts', function() {
         return expect(this.sequelize.query('select :one as foo, :two as bar, \'1000\'::integer as baz', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
