@@ -728,7 +728,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
-    it('connections should be released only once', function() {
+    it('connection should be released only once when retry fails', function() {
+      const spy = this.sequelize.connectionManager.releaseConnection = sinon.spy(this.sequelize.connectionManager.releaseConnection);
       return this.sequelize.query('THIS IS A WRONG SQL', {
         retry: {
           max: 2,
@@ -742,6 +743,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         // then a DatabaseError which inherits Sequelize BaseError will be raised,
         // because this is a wrong sql.
         expect(err).to.be.an.instanceof(this.sequelize.Error);
+      }).finally(() => {
+        expect(spy).to.have.been.calledOnce;
       });
     });
 
