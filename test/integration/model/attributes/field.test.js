@@ -95,6 +95,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           foreignKey: 'task_id'
         });
 
+        this.User.belongsToMany(this.Comment, {
+          foreignKey: 'userId',
+          otherKey: 'commentId',
+          through: 'userComments'
+        });
+
         return Promise.all([
           queryInterface.createTable('users', {
             userId: {
@@ -151,6 +157,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
             updated_at: {
               type: DataTypes.DATE
+            }
+          }),
+          queryInterface.createTable('userComments', {
+            commentId: {
+              type: DataTypes.INTEGER
+            },
+            userId: {
+              type: DataTypes.INTEGER
             }
           })
         ]);
@@ -499,21 +513,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should sync foreign keys with custom field names', function() {
         return this.sequelize.sync({ force: true })
-        .then(() => {
-          const attrs = this.Task.tableAttributes;
-          expect(attrs.user_id.references.model).to.equal('users');
-          expect(attrs.user_id.references.key).to.equal('userId');
-        });
+          .then(() => {
+            const attrs = this.Task.tableAttributes;
+            expect(attrs.user_id.references.model).to.equal('users');
+            expect(attrs.user_id.references.key).to.equal('userId');
+          });
       });
 
       it('should find the value of an attribute with a custom field name', function() {
         return this.User.create({ name: 'test user' })
-        .then(() => {
-          return this.User.find({ where: { name: 'test user' } });
-        })
-        .then(user => {
-          expect(user.name).to.equal('test user');
-        });
+          .then(() => {
+            return this.User.find({ where: { name: 'test user' } });
+          })
+          .then(user => {
+            expect(user.name).to.equal('test user');
+          });
       });
 
       it('field names that are the same as property names should create, update, and read correctly', function() {
@@ -539,7 +553,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should work with with an belongsTo association getter', function() {
+      it('should work with a belongsTo association getter', function() {
         const userId = Math.floor(Math.random() * 100000);
         return Promise.join(
           this.User.create({
@@ -605,6 +619,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
         });
+      });
+
+      it('should work with `belongsToMany` association `count`', function() {
+        return this.User.create({
+          name: 'John'
+        })
+          .then(user => user.countComments())
+          .then(commentCount => expect(commentCount).to.equal(0));
+      });
+
+      it('should work with `hasMany` association `count`', function() {
+        return this.User.create({
+          name: 'John'
+        })
+          .then(user => user.countTasks())
+          .then(taskCount => expect(taskCount).to.equal(0));
       });
     });
   });

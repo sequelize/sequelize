@@ -549,8 +549,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
 
-          it(`throws an error indicating an incorrect alias was entered if an association
-              and alias exist but the alias doesn't match`, function() {
+          it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', function() {
             const self = this;
             return self.Worker.findOne({ include: [{ model: self.Task, as: 'Work' }] }).catch (err => {
               expect(err.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias defined in your association.');
@@ -711,8 +710,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
 
-          it(`throws an error indicating an incorrect alias was entered if an association
-              and alias exist but the alias doesn't match`, function() {
+          it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', function() {
             const self = this;
             return self.Worker.findOne({ include: [{ model: self.Task, as: 'Work' }] }).catch (err => {
               expect(err.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias defined in your association.');

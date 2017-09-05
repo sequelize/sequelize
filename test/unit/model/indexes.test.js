@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.options.indexes[1].unique).to.eql(true);
     });
 
-    it('should set rawAttributes when indexes are defined via options', () => {
+    it('should not set rawAttributes when indexes are defined via options', () => {
       const User = current.define('User', {
         username: DataTypes.STRING
       }, {
@@ -49,11 +49,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }]
       });
 
-      expect(User.rawAttributes.username).to.have.property('unique');
-      expect(User.rawAttributes.username.unique).to.be.true;
+      expect(User.rawAttributes.username.unique).to.be.undefined;
     });
 
-    it('should set rawAttributes when composite unique indexes are defined via options', () => {
+    it('should not set rawAttributes when composite unique indexes are defined via options', () => {
       const User = current.define('User', {
         name: DataTypes.STRING,
         address: DataTypes.STRING
@@ -64,11 +63,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }]
       });
 
-      expect(User.rawAttributes.name).to.have.property('unique');
-      expect(User.rawAttributes.name.unique).to.be.equal('users_name_address');
-
-      expect(User.rawAttributes.address).to.have.property('unique');
-      expect(User.rawAttributes.address.unique).to.be.equal('users_name_address');
+      expect(User.rawAttributes.name.unique).to.be.undefined;
+      expect(User.rawAttributes.address.unique).to.be.undefined;
     });
   });
 });

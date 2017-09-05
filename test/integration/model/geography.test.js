@@ -145,7 +145,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = this.User;
         const point = { type: 'Polygon', coordinates: [
           [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
-               [100.0, 1.0], [100.0, 0.0] ]
+            [100.0, 1.0], [100.0, 0.0] ]
         ]};
 
         return User.create({username: 'username', geography: point }).then(newUser => {
@@ -157,12 +157,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should update a geography object', function() {
         const User = this.User;
         const polygon1 = { type: 'Polygon', coordinates: [
-          [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
-                [100.0, 1.0], [100.0, 0.0] ]
+            [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0] ]
           ]},
           polygon2 = { type: 'Polygon', coordinates: [
             [ [100.0, 0.0], [102.0, 0.0], [102.0, 1.0],
-                [100.0, 1.0], [100.0, 0.0] ]
+              [100.0, 1.0], [100.0, 0.0] ]
           ]};
         const props = {username: 'username', geography: polygon1};
 

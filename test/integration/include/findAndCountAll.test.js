@@ -17,6 +17,61 @@ describe(Support.getTestDialectTeaser('Include'), () => {
   });
 
   describe('findAndCountAll', () => {
+    it('should be able to include two required models with a limit. Result rows should match limit.', function() {
+      const Project = this.sequelize.define('Project', { id: { type: DataTypes.INTEGER, primaryKey: true }, name: DataTypes.STRING(40) }),
+        Task = this.sequelize.define('Task', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER }),
+        Employee = this.sequelize.define('Employee', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });
+
+      Project.hasMany(Task, { foreignKey: 'fk', constraints: false  });
+      Project.hasMany(Employee, { foreignKey: 'fk', constraints: false  });
+
+      Task.belongsTo(Project, { foreignKey: 'fk', constraints: false  });
+      Employee.belongsTo(Project, { foreignKey: 'fk', constraints: false  });
+
+      // Sync them
+      return this.sequelize.sync({ force: true }).then(() => {
+        // Create an enviroment
+        return Promise.join(
+          Project.bulkCreate([
+            { id: 1, name: 'No tasks'},
+            { id: 2, name: 'No tasks no employees' },
+            { id: 3, name: 'No employees' },
+            { id: 4, name: 'In progress A' },
+            { id: 5, name: 'In progress B' },
+            { id: 6, name: 'In progress C' }
+          ]),
+          Task.bulkCreate([
+            { name: 'Important task', fk: 3},
+            { name: 'Important task', fk: 4},
+            { name: 'Important task', fk: 5},
+            { name: 'Important task', fk: 6}
+          ]),
+          Employee.bulkCreate([
+            { name: 'Jane Doe', fk: 1},
+            { name: 'John Doe', fk: 4},
+            { name: 'Jane John Doe', fk: 5},
+            { name: 'John Jane Doe', fk: 6}
+          ])
+        ).then(() =>{
+          //Find all projects with tasks and employees
+          const availableProjects = 3;
+          const limit = 2;
+
+          return Project.findAndCountAll({
+            include: [{
+              model: Task, required: true
+            },
+            {
+              model: Employee, required: true
+            }],
+            limit
+          }).then(result => {
+            expect(result.count).to.be.equal(availableProjects);
+            expect(result.rows.length).to.be.equal(limit, 'Complete set of available rows were not returned.');
+          });
+        });
+      });
+    });
     it('should be able to include a required model. Result rows should match count', function() {
       const User = this.sequelize.define('User', { name: DataTypes.STRING(40) }, { paranoid: true }),
         SomeConnection = this.sequelize.define('SomeConnection', {
@@ -268,26 +323,26 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { ProjectId: 2, name: 'proposes' }
           ]);
         })
-        .then(() => {
+          .then(() => {
           // Find All Tasks with Project(m=a) and User(name=user-name-2)
-          return Task.findAndCountAll({
-            limit: 1,
-            offset: 0,
-            order: [[ 'id', 'DESC' ]],
-            include: [
-              {
-                model: Project,
-                where: { '$and': [ { m: 'A' } ] },
-                include: [ {
-                  model: User,
-                  where: { '$and': [ { name: 'user-name-2' } ] }
-                }
-                ]
-              },
-              { model : Tag }
-            ]
+            return Task.findAndCountAll({
+              limit: 1,
+              offset: 0,
+              order: [[ 'id', 'DESC' ]],
+              include: [
+                {
+                  model: Project,
+                  where: { '$and': [ { m: 'A' } ] },
+                  include: [ {
+                    model: User,
+                    where: { '$and': [ { name: 'user-name-2' } ] }
+                  }
+                  ]
+                },
+                { model : Tag }
+              ]
+            });
           });
-        });
       }).then(result => {
         expect(result.count).to.equal(2);
         expect(result.rows.length).to.equal(1);
@@ -326,8 +381,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           limit: 1,
           offset: 1,
           where: sequelize.or(
-              { first_name : { like: '%user-fname%' } },
-              { last_name : { like: '%user-lname%' } }
+            { first_name : { like: '%user-fname%' } },
+            { last_name : { like: '%user-lname%' } }
           ),
           include: [
             {
