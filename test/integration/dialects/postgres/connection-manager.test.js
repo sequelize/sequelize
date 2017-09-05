@@ -8,7 +8,7 @@ const chai = require('chai'),
   _ = require('lodash');
 
 if (dialect.match(/^postgres/)) {
-  describe('[POSTGRES] Sequelize', () => {
+  describe.only('[POSTGRES] Sequelize', () => {
     function checkTimezoneParsing(baseOptions) {
       const options = _.extend({}, baseOptions, { timezone: 'Asia/Kolkata', timestamps: true });
       const sequelize = Support.createSequelizeInstance(options);
@@ -31,5 +31,31 @@ if (dialect.match(/^postgres/)) {
       DataTypes.HSTORE.types.postgres.array_oids = [];
       return checkTimezoneParsing(this.sequelize.options);
     });
+
+    it('should properly pass statement_timeout to postgres', function() {
+      const options = _.extend({}, this.sequelize.options, { dialectOptions: { 'statement_timeout': 10 } });
+      const sequelize = Support.createSequelizeInstance(options);
+
+      return sequelize.query('SHOW statement_timeout')
+        .then( result => {
+          const timeout = _.get( result, '[0].statement_timeout' );
+          expect(timeout).to.equal('10ms');
+        });
+    });
+
+    it('should properly error when a statement is cancelled due to a statement_timeout', function() {
+      const self = this;
+      const options = _.extend({}, this.sequelize.options, { dialectOptions: { 'statement_timeout': 10 } });
+      const sequelize = Support.createSequelizeInstance(options);
+
+      return sequelize.query('SELECT pg_sleep(1)')
+        .then( () => {
+          expect.fail('Postgres should have cancelled the query with an error');
+        })
+        .catch( self.sequelize.DatabaseError, error => {
+          expect(error.parent.code).to.equal('57014'); // postgres query_cancelled error
+        });
+    });
+
   });
 }
