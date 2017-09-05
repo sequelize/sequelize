@@ -7,7 +7,7 @@ const chai = require('chai'),
   DataTypes = require(__dirname + '/../../../../lib/data-types'),
   _ = require('lodash');
 
-if (dialect.match(/^postgres/)) {
+if ( dialect === 'postgres' ) {
   describe.only('[POSTGRES] Sequelize', () => {
     function checkTimezoneParsing(baseOptions) {
       const options = _.extend({}, baseOptions, { timezone: 'Asia/Kolkata', timestamps: true });
