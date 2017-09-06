@@ -131,11 +131,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         }).catch(error => {
           expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-          if (dialect === 'sqilite') {
-            expect(error.fields).to.include('username');
-          } else {
-            expect(error.fields).to.include({ username: 'gottlieb' });
-          }
+          expect(_.isArray(error.fields) ? error.fields : _.keys(error.fields)).to.include('username');
         }));
     });
 
