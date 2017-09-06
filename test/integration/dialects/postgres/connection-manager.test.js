@@ -8,7 +8,7 @@ const chai = require('chai'),
   _ = require('lodash');
 
 if ( dialect.match(/^postgres/) ) {
-  describe.only('[POSTGRES] Sequelize', () => {
+  describe('[POSTGRES] Sequelize', () => {
     function checkTimezoneParsing(baseOptions) {
       const options = _.extend({}, baseOptions, { timezone: 'Asia/Kolkata', timestamps: true });
       const sequelize = Support.createSequelizeInstance(options);
