@@ -2053,5 +2053,49 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           expect(posts[0].Entity.tags[0].EntityTag.entity_id).to.equal(posts[0].post_id);
         });
     });
+
+    it('should be able to generate a correct request with inner and outer join', function() {
+      const Customer = this.sequelize.define('customer', {
+        name: DataTypes.STRING
+      });
+
+      const ShippingAddress = this.sequelize.define('shippingAddress', {
+        address: DataTypes.STRING,
+        verified: DataTypes.BOOLEAN
+      });
+
+      const Order = this.sequelize.define('purchaseOrder', {
+        description: DataTypes.TEXT
+      });
+
+      const Shipment = this.sequelize.define('shipment', {
+        trackingNumber: DataTypes.STRING
+      });
+
+      Customer.hasMany(ShippingAddress);
+      ShippingAddress.belongsTo(Customer);
+
+      Customer.hasMany(Order);
+      Order.belongsTo(Customer);
+
+      Shipment.belongsTo(Order);
+      Order.hasOne(Shipment);
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Shipment.findOne({
+          include: [{
+            model: Order,
+            required: true,
+            include: [{
+              model: Customer,
+              include: [{
+                model: ShippingAddress,
+                where: { verified: true }
+              }]
+            }]
+          }]
+        });
+      });
+    });
   });
 });
