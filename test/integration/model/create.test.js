@@ -131,10 +131,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         }).catch(error => {
           expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-          if (_.includes(['mysql', 'postgres'], dialect)) {
-            expect(error.fields).to.include({ username: 'gottlieb' });
-          } else {
+          if (dialect === 'sqilite') {
             expect(error.fields).to.include('username');
+          } else {
+            expect(error.fields).to.include({ username: 'gottlieb' });
           }
         }));
     });
