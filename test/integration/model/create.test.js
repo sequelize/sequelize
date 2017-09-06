@@ -116,12 +116,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      return User.sync({force: true}).then(() => {
-        return User.create({
-          username: 'gottlieb'
-        });
-      }).then(() => {
-        return expect(User.findOrCreate({
+      return User.sync({force: true})
+        .then(() => User.create({ username: 'gottlieb' }))
+        .then(() => User.findOrCreate({
           where: {
             $or: [{
               objectId: 'asdasdasd1'
@@ -132,8 +129,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           defaults: {
             username: 'gottlieb'
           }
-        })).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
-      });
+        }).catch(error => {
+          expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
+          expect(error.fields).to.include({ username: 'gottlieb' });
+        }));
     });
 
     it('should work with undefined uuid primary key in where', function() {

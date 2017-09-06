@@ -41,8 +41,6 @@
     "debug": "^3.0.0",
     "depd": "^1.1.0",
     "dottie": "^2.0.0",
-    "env-cmd": "^5.0.0",
-    "flat": "^4.0.0",
     "generic-pool": "^3.1.6",
     "inflection": "1.12.0",
     "lodash": "^4.17.1",
