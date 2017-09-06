@@ -131,7 +131,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         }).catch(error => {
           expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-          expect(error.fields).to.include({ username: 'gottlieb' });
+          if (dialect === 'mysql') {
+            expect(error.fields).to.include({ username: 'gottlieb' });
+          } else {
+            expect(error.fields).to.include('username');
+          }
         }));
     });
 
