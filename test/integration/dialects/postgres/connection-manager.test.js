@@ -4,6 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../../support'),
   DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  dialect = Support.getTestDialect(),
   _ = require('lodash');
 
 if ( dialect.match(/^postgres/) ) {
@@ -32,7 +33,7 @@ if ( dialect.match(/^postgres/) ) {
     });
 
     if ( process.env.DIALECT === 'postgres' ) {
-      
+
       // This test will only run with node-pg 7.3.0 or greater. node-pg requires node-pg-native 2.0.0 or greater.
       // node-pg-native 2.0.0 breaks a bunch of tests.
       it.skip('should properly pass statement_timeout to postgres', function() {
