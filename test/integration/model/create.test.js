@@ -131,7 +131,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         }).catch(error => {
           expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-          expect(_.isArray(error.fields) ? error.fields : _.keys(error.fields)).to.include('username');
+          expect(error.errors[0].path).to.be.a('string', 'username');
         }));
     });
 
