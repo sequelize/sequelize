@@ -65,12 +65,12 @@ const User = sequelize.define('user', {
   }
 });
 
-// Method 2 via the .hook() method
+// Method 2 via the .hook() method (or it's alias .addHook() method)
 User.hook('beforeValidate', (user, options) => {
   user.mood = 'happy';
 });
 
-User.hook('afterValidate', (user, options) => {
+User.addHook('afterValidate', 'someCustomName', (user, options) => {
   return sequelize.Promise.reject(new Error("I'm afraid I can't let you do that!"));
 });
 
@@ -101,6 +101,8 @@ Book.addHook('afterCreate', 'notifyUsers', (book, options) => {
 
 Book.removeHook('afterCreate', 'notifyUsers');
 ```
+
+You could have many hooks with the same name. If so they would all be removed on `.removeHook()` call.
 
 ## Global / universal hooks
 Global hooks are hooks which are run for all models. They can define behaviours that you want for all your models, and are especially useful for plugins. They can be defined in two ways, which have slightly different semantics:
