@@ -728,26 +728,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
-    it('connection should be released only once when retry fails', function() {
-      const spy = this.sequelize.connectionManager.releaseConnection = sinon.spy(this.sequelize.connectionManager.releaseConnection);
-      return this.sequelize.query('THIS IS A WRONG SQL', {
-        retry: {
-          max: 2,
-          // retry for all errors
-          match: null
-        }
-      }).catch(err => {
-        // If the connection is released multiple times,
-        // than an Error(not Sequelize BaseError) will be raised by generic-pool.
-        // If the connection is released only once,
-        // then a DatabaseError which inherits Sequelize BaseError will be raised,
-        // because this is a wrong sql.
-        expect(err).to.be.an.instanceof(this.sequelize.Error);
-      }).finally(() => {
-        expect(spy).to.have.been.calledOnce;
-      });
-    });
-
     if (Support.getTestDialect() === 'postgres') {
       it('replaces named parameters with the passed object and ignores casts', function() {
         return expect(this.sequelize.query('select :one as foo, :two as bar, \'1000\'::integer as baz', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
