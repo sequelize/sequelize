@@ -1777,8 +1777,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should support the updateOnDuplicate option', function() {
         const self = this;
         const data = [
-            { uniqueName: 'Peter', secretValue: '42' },
-            { uniqueName: 'Paul', secretValue: '23' }
+          { uniqueName: 'Peter', secretValue: '42' },
+          { uniqueName: 'Paul', secretValue: '23' }
         ];
 
         return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
