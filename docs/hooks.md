@@ -102,7 +102,7 @@ Book.addHook('afterCreate', 'notifyUsers', (book, options) => {
 Book.removeHook('afterCreate', 'notifyUsers');
 ```
 
-You could have many hooks with the same name. If so they would all be removed on `.removeHook()` call.
+You can have many hooks with same name. Calling `.removeHook()` will remove all of them.
 
 ## Global / universal hooks
 Global hooks are hooks which are run for all models. They can define behaviours that you want for all your models, and are especially useful for plugins. They can be defined in two ways, which have slightly different semantics:
