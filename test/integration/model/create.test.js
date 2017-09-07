@@ -1760,12 +1760,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (dialect !== 'postgres' && dialect !== 'mssql') {
       it('should support the ignoreDuplicates option', function() {
-        const self = this,
-          data = [{ uniqueName: 'Peter', secretValue: '42' },
-            { uniqueName: 'Paul', secretValue: '23' }];
+        const self = this;
+        const data = [
+          { uniqueName: 'Peter', secretValue: '42' },
+          { uniqueName: 'Paul', secretValue: '23' }
+        ];
 
         return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).then(() => {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
+
           return self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).then(() => {
             return self.User.findAll({order: ['id']}).then(users => {
               expect(users.length).to.equal(3);
@@ -1781,9 +1784,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     } else {
       it('should throw an error when the ignoreDuplicates option is passed', function() {
-        const self = this,
-          data = [{ uniqueName: 'Peter', secretValue: '42' },
-            { uniqueName: 'Paul', secretValue: '23' }];
+        const self = this;
+        const data = [
+          { uniqueName: 'Peter', secretValue: '42' },
+          { uniqueName: 'Paul', secretValue: '23' }
+        ];
 
         return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).then(() => {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
@@ -1794,6 +1799,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             } else {
               expect(err.message).to.match(/postgres does not support the \'ignoreDuplicates\' option./);
             }
+          });
+        });
+      });
+    }
+
+    if (current.dialect.supports.updateOnDuplicate) {
+      it('should support the updateOnDuplicate option', function() {
+        const self = this;
+        const data = [
+          { uniqueName: 'Peter', secretValue: '42' },
+          { uniqueName: 'Paul', secretValue: '23' }
+        ];
+
+        return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
+          const new_data = [
+            { uniqueName: 'Peter', secretValue: '43' },
+            { uniqueName: 'Paul', secretValue: '24' },
+            { uniqueName: 'Michael', secretValue: '26' }
+          ];
+          return self.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
+            return self.User.findAll({order: ['id']}).then(users => {
+              expect(users.length).to.equal(3);
+              expect(users[0].uniqueName).to.equal('Peter');
+              expect(users[0].secretValue).to.equal('43');
+              expect(users[1].uniqueName).to.equal('Paul');
+              expect(users[1].secretValue).to.equal('24');
+              expect(users[2].uniqueName).to.equal('Michael');
+              expect(users[2].secretValue).to.equal('26');
+            });
           });
         });
       });
