@@ -30,6 +30,11 @@ if (dialect.match(/^postgres/)) {
           expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\'  RETURNING *'
         },
         {
+          title:'Should use the minus operator with negative value',
+          arguments: ['-', 'myTable', { foo: -1 }, {}, {}],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"- -1  RETURNING *'
+        },
+        {
           title:'Should use the minus operator with where clause',
           arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\' WHERE "bar" = \'biz\' RETURNING *'
