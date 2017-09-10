@@ -398,22 +398,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it('with negative value', function () {
-      const self = this;
-      return this.User.findById(1).then(user1 => {
-        return self.sequelize.Promise.all([
-          user1.decrement('aNumber', { by: -2 }),
-          user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
-          user1.decrement({ 'aNumber': -1, 'bNumber': -2 }),
-        ]).then(() => {
-          return self.User.findById(1).then(user3 => {
-            expect(user3.aNumber).to.be.equal(+5);
-            expect(user3.bNumber).to.be.equal(+4);
-          });
-        });
-      });
-    });
-
     it('with timestamps set to true', function() {
       const User = this.sequelize.define('IncrementUser', {
         aNumber: DataTypes.INTEGER

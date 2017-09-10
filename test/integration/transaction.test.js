@@ -417,34 +417,34 @@ if (current.dialect.supports.transactions) {
               Task.create({ title: 'Get rich', active: false}),
               (john, task1) => {
                 return john.setTasks([task1]);
-              })
-              .then(() => {
-                return self.sequelize.transaction(t1 => {
+              }).then(() => {
+              return self.sequelize.transaction(t1 => {
 
-                  if (current.dialect.supports.lockOuterJoinFailure) {
+                if (current.dialect.supports.lockOuterJoinFailure) {
 
-                    return expect(User.find({
-                      where: {
-                        username: 'John'
-                      },
-                      include: [Task],
-                      lock: t1.LOCK.UPDATE,
-                      transaction: t1
-                    })).to.be.rejectedWith('FOR UPDATE cannot be applied to the nullable side of an outer join');
+                  return expect(User.find({
+                    where: {
+                      username: 'John'
+                    },
+                    include: [Task],
+                    lock: t1.LOCK.UPDATE,
+                    transaction: t1
+                  })).to.be.rejectedWith('FOR UPDATE cannot be applied to the nullable side of an outer join');
 
-                  } else {
+                } else {
 
-                    return User.find({
-                      where: {
-                        username: 'John'
-                      },
-                      include: [Task],
-                      lock: t1.LOCK.UPDATE,
-                      transaction: t1
-                    });
-                  }
-                });
+                  return User.find({
+                    where: {
+                      username: 'John'
+                    },
+                    include: [Task],
+                    lock: t1.LOCK.UPDATE,
+                    transaction: t1
+                  });
+
+                }
               });
+            });
           });
         });
 
@@ -464,38 +464,37 @@ if (current.dialect.supports.transactions) {
                 Task.create({ title: 'Die trying', active: false}),
                 (john, task1) => {
                   return john.setTasks([task1]);
-                })
-                .then(() => {
-                  return self.sequelize.transaction(t1 => {
-                    return User.find({
-                      where: {
-                        username: 'John'
-                      },
-                      include: [Task],
-                      lock: {
-                        level: t1.LOCK.UPDATE,
-                        of: User
-                      },
-                      transaction: t1
-                    }).then(t1John => {
-                    // should not be blocked by the lock of the other transaction
-                      return self.sequelize.transaction(t2 => {
-                        return Task.update({
-                          active: true
-                        }, {
-                          where: {
-                            active: false
-                          },
-                          transaction: t2
-                        });
-                      }).then(() => {
-                        return t1John.save({
-                          transaction: t1
-                        });
+                }).then(() => {
+                return self.sequelize.transaction(t1 => {
+                  return User.find({
+                    where: {
+                      username: 'John'
+                    },
+                    include: [Task],
+                    lock: {
+                      level: t1.LOCK.UPDATE,
+                      of: User
+                    },
+                    transaction: t1
+                  }).then(t1John => {
+                  // should not be blocked by the lock of the other transaction
+                    return self.sequelize.transaction(t2 => {
+                      return Task.update({
+                        active: true
+                      }, {
+                        where: {
+                          active: false
+                        },
+                        transaction: t2
+                      });
+                    }).then(() => {
+                      return t1John.save({
+                        transaction: t1
                       });
                     });
                   });
                 });
+              });
             });
           });
         }

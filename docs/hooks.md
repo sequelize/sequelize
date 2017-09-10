@@ -65,12 +65,12 @@ const User = sequelize.define('user', {
   }
 });
 
-// Method 2 via the .hook() method (or it's alias .addHook() method)
+// Method 2 via the .hook() method
 User.hook('beforeValidate', (user, options) => {
   user.mood = 'happy';
 });
 
-User.addHook('afterValidate', 'someCustomName', (user, options) => {
+User.hook('afterValidate', (user, options) => {
   return sequelize.Promise.reject(new Error("I'm afraid I can't let you do that!"));
 });
 
@@ -101,8 +101,6 @@ Book.addHook('afterCreate', 'notifyUsers', (book, options) => {
 
 Book.removeHook('afterCreate', 'notifyUsers');
 ```
-
-You can have many hooks with same name. Calling `.removeHook()` will remove all of them.
 
 ## Global / universal hooks
 Global hooks are hooks which are run for all models. They can define behaviours that you want for all your models, and are especially useful for plugins. They can be defined in two ways, which have slightly different semantics:
@@ -201,15 +199,11 @@ User.create({username: 'Boss', accessLevel: 20}).then(user => {
 
 ### Model hooks
 
-Sometimes you'll be editing more than one record at a time by utilizing the `bulkCreate, update, destroy` methods on the model. The following will emit whenever you're using one of those methods:
+Sometimes you'll be editing more than one record at a time by utilizing the `bulkCreate, update, destroy` methods on the model. The following will emit whenever you're using one of those methods.
 
 ```
-beforeBulkCreate(instances, options)
-beforeBulkUpdate(options)
-beforeBulkDestroy(options)
-afterBulkCreate(instances, options)
-afterBulkUpdate(options)
-afterBulkDestroy(options)
+beforeBulkCreate / beforeBulkUpdate / beforeBulkDestroy
+afterBulkCreate / afterBulkUpdate / afterBulkDestroy
 ```
 
 If you want to emit hooks for each individual record, along with the bulk hooks you can pass `individualHooks: true` to the call.
@@ -222,34 +216,31 @@ Model.update({username: 'Toni'}, { where: {accessLevel: 0}, individualHooks: tru
 // Will select all records that are about to be updated and emit before- + after- Update on each instance
 ```
 
-The `options` argument of hook method would be the second argument provided to the corresponding method or it's
-cloned and extended version.
+Some model hooks have two or three parameters sent to each hook depending on it's type.
 
 ```js
-Model.beforeBulkCreate((records, {fields}) => {
+Model.beforeBulkCreate((records, fields) => {
   // records = the first argument sent to .bulkCreate
-  // fields = one of the second argument fields sent to .bulkCreate
+  // fields = the second argument sent to .bulkCreate
 })
 
 Model.bulkCreate([
-    {username: 'Toni'}, // part of records argument
-    {username: 'Tobi'} // part of records argument
-  ], {fields: ['username']} // options parameter
-)
+  {username: 'Toni'}, // part of records argument
+  {username: 'Tobi'} // part of records argument
+], ['username'] /* part of fields argument */)
 
-Model.beforeBulkUpdate(({attributes, where}) => {
-  // where - in one of the fields of the clone of second argument sent to .update
-  // attributes - is one of the fields that the clone of second argument of .update would be extended with 
+Model.beforeBulkUpdate((attributes, where) => {
+  // attributes = first argument sent to Model.update
+  // where = second argument sent to Model.update
 })
 
 Model.update({gender: 'Male'} /*attributes argument*/, { where: {username: 'Tom'}} /*where argument*/)
 
-Model.beforeBulkDestroy(({where, individualHooks}) => {
-  // individualHooks - default of overridden value of extended clone of second argument sent to Model.destroy
-  // where - in one of the fields of the clone of second argument sent to Model.destroy
+Model.beforeBulkDestroy(whereClause => {
+  // whereClause = first argument sent to Model.destroy
 })
 
-Model.destroy({ where: {username: 'Tom'}} /*where argument*/)
+Model.destroy({ where: {username: 'Tom'}} /*whereClause argument*/)
 ```
 
 If you use `Model.bulkCreate(...)` with the `updatesOnDuplicate` option, changes made in the hook to fields that aren't given in the `updatesOnDuplicate` array will not be persisted to the database. However it is possible to change the updatesOnDuplicate option inside the hook if this is what you want.

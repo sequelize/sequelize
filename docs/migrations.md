@@ -207,30 +207,6 @@ queryInterface.addColumn(
   }
 )
 
-// or with first attribute to put the column at the beginning of the table
-// currently supports only in MySQL
-
-queryInterface.addColumn(
-  'nameOfAnExistingTable',
-  'nameOfTheNewAttribute',
-  {
-    type: Sequelize.STRING,
-    first: true
-  }
-)
-
-// or with after attribute to put the column after a specific column
-// currently supports only in MySQL
-
-queryInterface.addColumn(
-  'nameOfAnExistingTable',
-  'nameOfTheNewAttribute',
-  {
-    type: Sequelize.STRING,
-    after: 'nameOfAnExistingColumn'
-  }
-)
-
 // or with an explicit schema:
 
 queryInterface.addColumn({

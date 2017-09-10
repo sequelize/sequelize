@@ -58,10 +58,10 @@ jobs:
       node_js: 4
       env: POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
     - stage: tests
-      node_js: 8
+      node_js: 6
       env: DIALECT=sqlite
     - stage: tests
-      node_js: 6
+      node_js: 8
       env: DIALECT=sqlite
     - stage: docs
       node_js: 6

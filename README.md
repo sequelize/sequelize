@@ -18,7 +18,7 @@ Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and Microso
 - [Installation](#installation)
 - [Features](#features)
 - [Documentation](#documentation)
-- [Responsible disclosure](#responsible-disclosure)
+- [Responsible disclosure](#responsible_disclosure)
 - [Resources](#resources)
 
 ## Installation
