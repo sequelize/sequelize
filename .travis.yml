@@ -80,4 +80,4 @@ jobs:
         - TRAVIS_JOB_NUMBER=WORKAROUND.1
       script:
         - npm run lint
-        - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then npm run semantic-release; fi || true'
+        - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then npm run semantic-release; fi'
