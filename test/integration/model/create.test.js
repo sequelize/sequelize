@@ -104,6 +104,37 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should error correctly when defaults contain a unique key and the where clause is complex', function() {
+      const User = this.sequelize.define('user', {
+        objectId: {
+          type: DataTypes.STRING,
+          unique: true
+        },
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        }
+      });
+
+      return User.sync({force: true})
+        .then(() => User.create({ username: 'gottlieb' }))
+        .then(() => User.findOrCreate({
+          where: {
+            $or: [{
+              objectId: 'asdasdasd1'
+            }, {
+              objectId: 'asdasdasd2'
+            }]
+          },
+          defaults: {
+            username: 'gottlieb'
+          }
+        }).catch(error => {
+          expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
+          expect(error.errors[0].path).to.be.a('string', 'username');
+        }));
+    });
+
     it('should work with undefined uuid primary key in where', function() {
       const User = this.sequelize.define('User', {
         id: {
@@ -1734,12 +1765,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (dialect !== 'postgres' && dialect !== 'mssql' && dialect !== 'oracle') {
       it('should support the ignoreDuplicates option', function() {
-        const self = this,
-          data = [{ uniqueName: 'Peter', secretValue: '42' },
-            { uniqueName: 'Paul', secretValue: '23' }];
+        const self = this;
+        const data = [
+          { uniqueName: 'Peter', secretValue: '42' },
+          { uniqueName: 'Paul', secretValue: '23' }
+        ];
 
         return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).then(() => {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
+
           return self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).then(() => {
             return self.User.findAll({order: ['id']}).then(users => {
               expect(users.length).to.equal(3);
@@ -1755,9 +1789,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     } else {
       it('should throw an error when the ignoreDuplicates option is passed', function() {
-        const self = this,
-          data = [{ uniqueName: 'Peter', secretValue: '42' },
-            { uniqueName: 'Paul', secretValue: '23' }];
+        const self = this;
+        const data = [
+          { uniqueName: 'Peter', secretValue: '42' },
+          { uniqueName: 'Paul', secretValue: '23' }
+        ];
 
         return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).then(() => {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
@@ -1770,6 +1806,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             } else {
               expect(err.message).to.match(/postgres does not support the \'ignoreDuplicates\' option./);
             }
+          });
+        });
+      });
+    }
+
+    if (current.dialect.supports.updateOnDuplicate) {
+      it('should support the updateOnDuplicate option', function() {
+        const self = this;
+        const data = [
+          { uniqueName: 'Peter', secretValue: '42' },
+          { uniqueName: 'Paul', secretValue: '23' }
+        ];
+
+        return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
+          const new_data = [
+            { uniqueName: 'Peter', secretValue: '43' },
+            { uniqueName: 'Paul', secretValue: '24' },
+            { uniqueName: 'Michael', secretValue: '26' }
+          ];
+          return self.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
+            return self.User.findAll({order: ['id']}).then(users => {
+              expect(users.length).to.equal(3);
+              expect(users[0].uniqueName).to.equal('Peter');
+              expect(users[0].secretValue).to.equal('43');
+              expect(users[1].uniqueName).to.equal('Paul');
+              expect(users[1].secretValue).to.equal('24');
+              expect(users[2].uniqueName).to.equal('Michael');
+              expect(users[2].secretValue).to.equal('26');
+            });
           });
         });
       });

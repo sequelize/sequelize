@@ -20,3 +20,4 @@ coverage
 esdoc
 .history
 package-lock.json
+yarn.lock
