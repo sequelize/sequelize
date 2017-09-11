@@ -52,7 +52,7 @@ Organization.belongsTo(User, {foreignKey: 'owner_id'});
 User.hasOne(Organization, {foreignKey: 'owner_id'});
 
 // 1:M
-Project.hasMany(Task, {foreignkey: 'tasks_pk'});
+Project.hasMany(Task, {foreignKey: 'tasks_pk'});
 Task.belongsTo(Project, {foreignKey: 'tasks_pk'});
 
 // N:M

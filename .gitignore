@@ -19,3 +19,4 @@ coverage
 *.sublime*
 esdoc
 package-lock.json
+yarn.lock
