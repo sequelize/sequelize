@@ -37,6 +37,33 @@ if (Support.sequelize.dialect.supports.upserts) {
             expect(afterHook).to.have.been.calledOnce;
           });
         });
+
+        it('should run hooks when "hooks = undefined" option passed', function() {
+          const beforeHook = sinon.spy(),
+            afterHook = sinon.spy();
+
+          this.User.beforeUpsert(beforeHook);
+          this.User.afterUpsert(afterHook);
+
+          return this.User.upsert({username: 'Toni', mood: 'happy'}, {hooks: undefined}).then(() => {
+            expect(beforeHook).to.have.been.calledOnce;
+            expect(afterHook).to.have.been.calledOnce;
+          });
+        });
+
+        it('should not run hooks when "hooks = false" option passed', function() {
+          const beforeHook = sinon.spy(),
+            afterHook = sinon.spy();
+
+          this.User.beforeUpsert(beforeHook);
+          this.User.afterUpsert(afterHook);
+
+          return this.User.upsert({username: 'Toni', mood: 'happy'}, {hooks: false}).then(() => {
+            expect(beforeHook).to.not.have.been.called;
+            expect(afterHook).to.not.have.been.called;
+          });
+        });
+
       });
 
       describe('on error', () => {

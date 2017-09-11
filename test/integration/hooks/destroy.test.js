@@ -37,6 +37,37 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           });
         });
       });
+
+      it('should run hooks when "hooks = undefined" option passed', function() {
+        const beforeHook = sinon.spy(),
+          afterHook = sinon.spy();
+
+        this.User.beforeDestroy(beforeHook);
+        this.User.afterDestroy(afterHook);
+
+        return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
+          return user.destroy({hooks: undefined}).then(() => {
+            expect(beforeHook).to.have.been.calledOnce;
+            expect(afterHook).to.have.been.calledOnce;
+          });
+        });
+      });
+
+      it('should not run hooks when "hooks = false" option passed', function() {
+        const beforeHook = sinon.spy(),
+          afterHook = sinon.spy();
+
+        this.User.beforeDestroy(beforeHook);
+        this.User.afterDestroy(afterHook);
+
+        return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
+          return user.destroy({hooks: false}).then(() => {
+            expect(beforeHook).to.not.have.been.called;
+            expect(afterHook).to.not.have.been.called;
+          });
+        });
+      });
+
     });
 
     describe('on error', () => {

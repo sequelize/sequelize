@@ -44,6 +44,51 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           });
         });
       });
+
+      it('should run hooks when "hooks = undefined" option passed', function() {
+        const beforeHook = sinon.spy(),
+          afterHook = sinon.spy(),
+          beforeSave = sinon.spy(),
+          afterSave = sinon.spy();
+
+        this.User.beforeUpdate(beforeHook);
+        this.User.afterUpdate(afterHook);
+        this.User.beforeSave(beforeSave);
+        this.User.afterSave(afterSave);
+
+        return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
+          return user.updateAttributes({username: 'Chong'}, {hooks: undefined}).then(user => {
+            expect(beforeHook).to.have.been.calledOnce;
+            expect(afterHook).to.have.been.calledOnce;
+            expect(beforeSave).to.have.been.calledTwice;
+            expect(afterSave).to.have.been.calledTwice;
+            expect(user.username).to.equal('Chong');
+          });
+        });
+      });
+
+      it('should not run hooks when "hooks = false" option passed', function() {
+        const beforeHook = sinon.spy(),
+          afterHook = sinon.spy(),
+          beforeSave = sinon.spy(),
+          afterSave = sinon.spy();
+
+        this.User.beforeUpdate(beforeHook);
+        this.User.afterUpdate(afterHook);
+        this.User.beforeSave(beforeSave);
+        this.User.afterSave(afterSave);
+
+        return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
+          return user.updateAttributes({username: 'Chong'}, {hooks: false}).then(user => {
+            expect(beforeHook).to.not.have.been.called;
+            expect(afterHook).to.not.have.been.called;
+            expect(beforeSave).to.have.been.calledOnce;
+            expect(afterSave).to.have.been.calledOnce;
+            expect(user.username).to.equal('Chong');
+          });
+        });
+      });
+
     });
 
     describe('on error', () => {
