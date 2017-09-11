@@ -1314,12 +1314,11 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           tasks: [{ title: 'Fix PR' }]
         };
 
-      return User.create(values, { include: ['tasks'] }).then(user => {
-        return Task.findOne({ where: { userEmail: user.email } }).then(task => {
+      return User.create(values, { include: ['tasks'] }).then(user =>
+        Task.findOne({ where: { userEmail: user.email } }).then(task => {
           expect(task).to.be.an('object');
           expect(task.title).to.be.equal('Fix PR', 'task title is correct');
-        });
-      });
+        }));
     });
   });
 
