@@ -3,7 +3,9 @@
 const chai = require('chai'),
   expect = chai.expect,
   Op = require('../../../../lib/operators'),
-  {getAbstructQueryGenerator} = require(__dirname + '/../../support');
+  getAbstructQueryGenerator = require(__dirname + '/../../support').getAbstructQueryGenerator;
+
+
 
 describe('QueryGenerator', () => {
   describe('whereItemQuery', () => {
