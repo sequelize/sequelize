@@ -76,7 +76,7 @@ It's also possible to generate complex AND/OR conditions by nesting sets of `or`
 
 ### Basics
 ```js
-const Op = Sequelize.Operators;
+const {Op} = Sequelize;
 
 Post.findAll({
   where: {
@@ -119,9 +119,9 @@ Post.findAll({
 
 ### Operators
 
-Sequelize has exposes symbol operators that can be used for to create more complex comparisons -
+Sequelize exposes symbol operators that can be used for to create more complex comparisons -
 ```js
-const Op = Sequelize.Operators
+const {Op} = Sequelize
 
 [Op.and]: {a: 5}           // AND (a = 5)
 [Op.or]: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
@@ -178,7 +178,7 @@ as well.
 
 #### Combinations
 ```js
-const {or, gt, lt, eq, like} = Sequelize.Operators;
+const {or, gt, lt, eq, like} = Sequelize.Op;
 
 {
   rank: {
@@ -218,7 +218,7 @@ const {or, gt, lt, eq, like} = Sequelize.Operators;
 #### Operators Aliases
 Sequelize allows setting specific strings as aliases for operators -
 ```js
-const Op = Sequelize.Operators;
+const {Op} = Sequelize;
 const operatorsAliases = {
   $gt: Op.gt
 }
@@ -244,7 +244,7 @@ ne, not, in, notIn, gte, gt, lte, lt, like, ilike, $ilike, nlike, $notlike, noti
 Due to the security improvements it is highly advised to only use the specific aliases you need.
 
 ```js
-const Op = Sequelize.Operators;
+const {Op} = Sequelize;
 
 //use sequelize without any operators aliases
 const connection = new Sequelize(db, user, pass, { operatorsAliases: {} });
@@ -257,7 +257,7 @@ Sequelize will warn you if your using the default aliases and not limiting them
 if you want to keep using all default aliases (excluding legacy ones) without the warning you can pass the following operatorsAliases option -
 
 ```js
-const Op = Sequelize.Operators;
+const {Op} = Sequelize;
 const operatorsAliases = {
   $eq: Op.eq,
   $ne: Op.ne,

@@ -6,7 +6,7 @@ Scoping allows you to define commonly used queries that you can easily use later
 Scopes are defined in the model definition and can be finder objects, or functions returning finder objects - except for the default scope, which can only be an object:
 
 ```js
-const {gte} = Sequelize.Operators;
+const {gte} = Sequelize.Op;
 const Project = sequelize.define('project', {
   // Attributes
 }, {
@@ -124,7 +124,7 @@ SELECT * FROM projects WHERE active = true AND deleted = true
 When invoking several scopes, keys from subsequent scopes will overwrite previous ones (similar to [_.assign](https://lodash.com/docs#assign)). Consider two scopes:
 
 ```js
-const {gt} = Sequelize.Operators;
+const {gt} = Sequelize.Op;
 
 {
   scope1: {

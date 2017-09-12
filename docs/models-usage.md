@@ -98,7 +98,7 @@ The success handler will always receive an object with two properties:
 * `count` - an integer, total number records matching the where clause
 * `rows` - an array of objects, the records matching the where clause, within the limit and offset range
 ```js
-const {like} = Sequelize.Operators;
+const {like} = Sequelize.Op;
 Project
   .findAndCountAll({
      where: {
@@ -145,7 +145,7 @@ The options object that you pass to `findAndCountAll` is the same as for `findAl
 
 ### `findAll` - Search for multiple elements in the database
 ```js
-const Op = Sequelize.Operators;
+const {Op} = Sequelize;
 
 // find multiple entries
 Project.findAll().then(projects => {
@@ -203,7 +203,7 @@ Project.findAll({
 It's possible to do complex where queries with multiple levels of nested AND, OR and NOT conditions. In order to do that you can use `or`, `and` or `not` `Operators`:
 
 ```js
-const {or, gt} = Sequelize.Operators;
+const {or, gt} = Sequelize.Op;
 
 Project.findOne({
   where: {
@@ -243,7 +243,7 @@ LIMIT 1;
 `not` example:
 
 ```js
-const {not, contains} = Sequelize.Operators;
+const {not, contains} = Sequelize.Op;
 
 Project.findOne({
   where: {
@@ -341,7 +341,7 @@ Project.findAll({ where: { ... }, raw: true })
 There is also a method for counting database objects:
 
 ```js
-const {gt} = Sequelize.Operators;
+const {gt} = Sequelize.Op;
 Project.count().then(c =>
   console.log("There are " + c + " projects!")
 })
@@ -356,7 +356,7 @@ Project.count({ where: {'id': {[gt]: 25}} }).then(c =>
 And here is a method for getting the max value of an attribute:f
 
 ```js
-const {lt} = Sequelize.Operators;
+const {lt} = Sequelize.Op;
 /*
   Let's assume 3 person objects with an attribute age.
   The first one is 10 years old,
@@ -377,7 +377,7 @@ Project.max('age', { where: { age: { [lt]: 20 } } }).then(max => {
 And here is a method for getting the min value of an attribute:
 
 ```js
-const {gt} = Sequelize.Operators;
+const {gt} = Sequelize.Op;
 /*
   Let's assume 3 person objects with an attribute age.
   The first one is 10 years old,
@@ -399,7 +399,7 @@ In order to calculate the sum over a specific column of a table, you can
 use the `sum` method.
 
 ```js
-const {gt} = Sequelize.Operators;
+const {gt} = Sequelize.Op;
 /*
   Let's assume 3 person objects with an attribute age.
   The first one is 10 years old,
@@ -557,7 +557,7 @@ User.findAll({ include: [{ association: 'Instruments' }] }).then(users => {
 When eager loading we can also filter the associated model using `where`. This will return all `User`s in which the `where` clause of `Tool` model matches rows.
 
 ```js
-const {like} = Sequelize.Operators;
+const {like} = Sequelize.Op;
 User.findAll({
     include: [{
         model: Tool,
@@ -607,7 +607,7 @@ When an eager loaded model is filtered using `include.where` then `include.requi
 To move the where conditions from an included model from the `ON` condition to the top level `WHERE` you can use the `'$nested.column$'` syntax:
 
 ```js
-const {iLike} = Sequelize.Operators;
+const {iLike} = Sequelize.Op;
 User.findAll({
     where: {
         '$Instruments.name$': { [iLike]: '%ooth%' }
@@ -663,7 +663,7 @@ User.findAll({ include: [{ all: true }]});
 In case you want to eager load soft deleted records you can do that by setting `include.paranoid` to `false`
 
 ```js
-const {like} = Sequelize.Operators;
+const {like} = Sequelize.Op;
 User.findAll({
     include: [{
         model: Tool,
