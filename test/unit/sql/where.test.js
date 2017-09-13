@@ -634,6 +634,20 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             postgres: "\"userId\" NOT ILIKE ALL (ARRAY['foo','bar','baz'])"
           });
         });
+
+        suite('$ts', () => {
+          testsql('muscles', {
+            $ts: this.sequelize.fn('to_tsquery', 'test')
+          }, {
+            postgres: '"muscles" @@ to_tsquery(\'test\')'
+          });
+
+          testsql('muscles', {
+            '@@': this.sequelize.fn('to_tsquery', 'test')
+          }, {
+            postgres: '"muscles" @@ to_tsquery(\'test\')'
+          });
+        });
       });
     }
 
