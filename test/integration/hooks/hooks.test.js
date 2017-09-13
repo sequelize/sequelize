@@ -277,6 +277,19 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
       });
 
+      it('should run hooks when "hooks = undefined" option passed', function() {
+        const beforeHook = sinon.spy(),
+          afterHook = sinon.spy();
+
+        this.User.beforeSync(beforeHook);
+        this.User.afterSync(afterHook);
+
+        return this.User.sync({ hooks: undefined }).then(() => {
+          expect(beforeHook).to.have.been.calledOnce;
+          expect(afterHook).to.have.been.calledOnce;
+        });
+      });
+
       it('should not run hooks when "hooks = false" option passed', function() {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
