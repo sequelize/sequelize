@@ -88,8 +88,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             group: ['PostId']
           });
         }).then(posts => {
-          expect(posts[0].get().hasOwnProperty('id')).to.not.be.ok;
-          expect(posts[1].get().hasOwnProperty('id')).to.not.be.ok;
+          expect(posts[0].get().hasOwnProperty('id')).to.equal(false);
+          expect(posts[1].get().hasOwnProperty('id')).to.equal(false);
           expect(parseInt(posts[0].get('comment_count'))).to.be.equal(3);
           expect(parseInt(posts[1].get('comment_count'))).to.be.equal(2);
         });
