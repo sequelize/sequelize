@@ -301,8 +301,8 @@ const Comment = this.sequelize.define('comment', {
   commentable_id: Sequelize.INTEGER
 });
 
-Comment.prototype.getItem = function() {
-  return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
+Comment.prototype.getItem = function(options) {
+  return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)](options);
 };
 
 Post.hasMany(this.Comment, {
@@ -347,7 +347,7 @@ image.addComment(comment);
 UPDATE comments SET commentable_id = 42, commentable = 'image'
 ```
 
-The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to either `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image.
+The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to either `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image. You can pass a normal options object as a parameter to `getItem(options)` to specify any where conditions or includes.
 
 #### n:m
 Continuing with the idea of a polymorphic model, consider a tag table - an item can have multiple tags, and a tag can be related to several items.
@@ -760,8 +760,8 @@ const Address = this.sequelize.define('address', {
   zip: Sequelize.STRING,
 });
 
-const Product.User = Product.belongsTo(User);
-const User.Addresses = User.hasMany(Address);
+Product.User = Product.belongsTo(User);
+User.Addresses = User.hasMany(Address);
 // Also works for `hasOne`
 ```
 

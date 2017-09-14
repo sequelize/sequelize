@@ -207,6 +207,30 @@ queryInterface.addColumn(
   }
 )
 
+// or with first attribute to put the column at the beginning of the table
+// currently supports only in MySQL
+
+queryInterface.addColumn(
+  'nameOfAnExistingTable',
+  'nameOfTheNewAttribute',
+  {
+    type: Sequelize.STRING,
+    first: true
+  }
+)
+
+// or with after attribute to put the column after a specific column
+// currently supports only in MySQL
+
+queryInterface.addColumn(
+  'nameOfAnExistingTable',
+  'nameOfTheNewAttribute',
+  {
+    type: Sequelize.STRING,
+    after: 'nameOfAnExistingColumn'
+  }
+)
+
 // or with an explicit schema:
 
 queryInterface.addColumn({
@@ -359,6 +383,7 @@ queryInterface.addConstraint('Users', ['username'], {
 //Foreign Key
 queryInterface.addConstraint('Posts', ['username'], {
   type: 'FOREIGN KEY',
+  name: 'custom_fkey_constraint_name',
   references: { //Required field
     table: 'target_table_name',
     field: 'target_column_name'

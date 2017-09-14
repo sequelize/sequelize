@@ -14,21 +14,26 @@
 
 Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
 
-## Documentation
-
-[v4 (stable) documentation](http://docs.sequelizejs.com)
-
-[v4 upgrade guide](http://docs.sequelizejs.com/manual/tutorial/upgrade-to-v4.html)
-
-[v3 documentation](https://sequelize.readthedocs.io/en/v3/)
+## Table of Contents
+- [Installation](#installation)
+- [Features](#features)
+- [Documentation](#documentation)
+- [Responsible disclosure](#responsible-disclosure)
+- [Resources](#resources)
 
 ## Installation
 
-`npm install sequelize`
+```bash
+$ npm install --save sequelize
 
-From 3.0.0 and up Sequelize will follow [SEMVER](http://semver.org). 3.0.0 contains important security fixes so we highly recommend that users upgrade.
+# And one of the following:
+$ npm install --save pg pg-hstore
+$ npm install --save mysql2
+$ npm install --save sqlite3
+$ npm install --save tedious // MSSQL
+```
 
-Starting from 4.0.0 Sequelize will only support Node v4 and above to use ES6 features.
+Sequelize follows [SEMVER](http://semver.org). Supports Node v4 and above to use ES6 features.
 
 ## Features
 
@@ -43,18 +48,21 @@ Starting from 4.0.0 Sequelize will only support Node v4 and above to use ES6 fea
 - Migrations
 - CLI ([sequelize-cli](https://github.com/sequelize/cli))
 
+## Documentation
+
+- [Stable v4 documentation](http://docs.sequelizejs.com)
+- [Upgrading from v3 to v4](http://docs.sequelizejs.com/manual/tutorial/upgrade-to-v4.html)
+- [v3 documentation](https://sequelize.readthedocs.io/en/v3/)
+
 ## Responsible disclosure
 If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md)
 
 ## Resources
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Getting Started](http://docs.sequelizejs.com/manual/installation/getting-started)
+- [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 - [Express Example](https://github.com/sequelize/express-example)
 - [Documentation](http://docs.sequelizejs.com)
-- [Collaboration and pull requests](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
-- [Roadmap](https://github.com/sequelize/sequelize/issues/2869)
-- [Twitter](https://twitter.com/SequelizeJS): @SequelizeJS
 - [Slack](http://sequelize-slack.herokuapp.com/)
-- [IRC](http://webchat.freenode.net?channels=sequelizejs): sequelizejs on Freenode
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
 - [Add-ons & Plugins](https://github.com/sequelize/sequelize/wiki/Add-ons-&-Plugins)
