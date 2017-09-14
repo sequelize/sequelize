@@ -1,7 +1,7 @@
 'use strict';
 
-const Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+const Support = require(__dirname+'/../support'),
+  DataTypes = require(__dirname+'/../../../lib/data-types'),
   util = require('util'),
   chai = require('chai'),
   expect = chai.expect,
@@ -13,13 +13,13 @@ const Support = require(__dirname + '/../support'),
 
 suite(Support.getTestDialectTeaser('SQL'), () => {
   suite('whereQuery', () => {
-    const testsql = function (params, options, expectation) {
+    const testsql = function(params, options, expectation) {
       if (expectation === undefined) {
         expectation = options;
         options = undefined;
       }
 
-      test(util.inspect(params, {depth: 10}) + (options && ', ' + util.inspect(options) || ''), () => {
+      test(util.inspect(params, { depth: 10 })+(options && ', '+util.inspect(options) || ''), () => {
         return expectsql(sql.whereQuery(params, options), expectation);
       });
     };
@@ -30,15 +30,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     testsql([], {
       default: ''
     });
-    testsql({id: 1}, {
+    testsql({ id: 1 }, {
       default: 'WHERE [id] = 1'
     });
-    testsql({id: 1}, {prefix: 'User'}, {
+    testsql({ id: 1 }, { prefix: 'User' }, {
       default: 'WHERE [User].[id] = 1'
     });
 
     test("{ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'})) }", () => {
-      expectsql(sql.whereQuery({id: 1}, {
+      expectsql(sql.whereQuery({ id: 1 }, {
         prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {
           schema: 'yolo',
           tableName: 'User'
@@ -53,8 +53,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     testsql({
       name: 'a project',
       $or: [
-        {id: [1, 2, 3]},
-        {id: {$gt: 10}}
+        { id: [1, 2, 3] },
+        { id: { $gt: 10 } }
       ]
     }, {
       default: "WHERE [name] = 'a project' AND ([id] IN (1, 2, 3) OR [id] > 10)",
@@ -66,7 +66,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       id: {
         $or: [
           [1, 2, 3],
-          {$gt: 10}
+          { $gt: 10 }
         ]
       }
     }, {
@@ -76,13 +76,13 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
   });
 
   suite('whereItemQuery', () => {
-    const testsql = function (key, value, options, expectation) {
+    const testsql = function(key, value, options, expectation) {
       if (expectation === undefined) {
         expectation = options;
         options = undefined;
       }
 
-      test(key + ': ' + util.inspect(value, {depth: 10}) + (options && ', ' + util.inspect(options) || ''), () => {
+      test(key+': '+util.inspect(value, { depth: 10 })+(options && ', '+util.inspect(options) || ''), () => {
         return expectsql(sql.whereItemQuery(key, value, options), expectation);
       });
     };
@@ -206,8 +206,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('$or', [
-          {email: 'maker@mhansen.io'},
-          {email: 'janzeh@gmail.com'}
+          { email: 'maker@mhansen.io' },
+          { email: 'janzeh@gmail.com' }
         ], {
           default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')',
           mssql: '([email] = N\'maker@mhansen.io\' OR [email] = N\'janzeh@gmail.com\')'
@@ -242,14 +242,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           mssql: "([roleName] = N'NEW' OR ([roleName] = N'CLIENT' AND [type] = N'CLIENT'))"
         });
 
-        test('sequelize.or({group_id: 1}, {user_id: 2})', function () {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2})), {
+        test('sequelize.or({group_id: 1}, {user_id: 2})', function() {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({ group_id: 1 }, { user_id: 2 })), {
             default: '([group_id] = 1 OR [user_id] = 2)'
           });
         });
 
-        test("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function () {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})), {
+        test("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function() {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({ group_id: 1 }, { user_id: 2, role: 'admin' })), {
             default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))",
             mssql: "([group_id] = 1 OR ([user_id] = 2 AND [role] = N'admin'))"
           });
@@ -263,7 +263,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           default: '0 = 1'
         });
 
-        test('sequelize.or()', function () {
+        test('sequelize.or()', function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.or()), {
             default: '0 = 1'
           });
@@ -308,16 +308,16 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         testsql('name', {
           $and: [
-            {like: '%someValue1%'},
-            {like: '%someValue2%'}
+            { like: '%someValue1%' },
+            { like: '%someValue2%' }
           ]
         }, {
           default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')",
           mssql: "([name] LIKE N'%someValue1%' AND [name] LIKE N'%someValue2%')"
         });
 
-        test('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function () {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.and({shared: 1}, this.sequelize.or({group_id: 1}, {user_id: 2}))), {
+        test('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function() {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.and({ shared: 1 }, this.sequelize.or({ group_id: 1 }, { user_id: 2 }))), {
             default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
           });
         });
@@ -368,8 +368,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       testsql('$or', [
-        {'ownerId': {$col: 'user.id'}},
-        {'ownerId': {$col: 'organization.id'}}
+        { 'ownerId': { $col: 'user.id' } },
+        { 'ownerId': { $col: 'organization.id' } }
       ], {
         default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])'
       });
@@ -785,7 +785,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     if (current.dialect.supports.JSON) {
       suite('JSON', () => {
-        test('sequelize.json("profile.id"), sequelize.cast(2, \'text\')")', function () {
+        test('sequelize.json("profile.id"), sequelize.cast(2, \'text\')")', function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.json('profile.id', this.sequelize.cast('12346-78912', 'text'))), {
             postgres: "(\"profile\"#>>'{id}') = CAST('12346-78912' AS TEXT)",
             sqlite: "json_extract(`profile`, '$.id') = CAST('12346-78912' AS TEXT)"
@@ -923,8 +923,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
-          postgres: "CAST((\"data\"#>>'{nested,attribute}') AS TIMESTAMPTZ) > " + sql.escape(dt),
-          sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DATETIME) > " + sql.escape(dt)
+          postgres: "CAST((\"data\"#>>'{nested,attribute}') AS TIMESTAMPTZ) > "+sql.escape(dt),
+          sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DATETIME) > "+sql.escape(dt)
         });
 
         testsql('data', {
@@ -1046,8 +1046,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     }
 
     suite('fn', () => {
-      test('{name: this.sequelize.fn(\'LOWER\', \'DERP\')}', function () {
-        expectsql(sql.whereQuery({name: this.sequelize.fn('LOWER', 'DERP')}), {
+      test('{name: this.sequelize.fn(\'LOWER\', \'DERP\')}', function() {
+        expectsql(sql.whereQuery({ name: this.sequelize.fn('LOWER', 'DERP') }), {
           default: "WHERE [name] = LOWER('DERP')",
           mssql: "WHERE [name] = LOWER(N'DERP')"
         });
@@ -1056,10 +1056,10 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
   });
 
   suite('getWhereConditions', () => {
-    const testsql = function (value, expectation) {
+    const testsql = function(value, expectation) {
       const User = current.define('user', {});
 
-      test(util.inspect(value, {depth: 10}), () => {
+      test(util.inspect(value, { depth: 10 }), () => {
         return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
       });
     };
