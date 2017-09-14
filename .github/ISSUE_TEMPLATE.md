@@ -27,6 +27,6 @@ __Dialect:__ mysql / postgres / sqlite / mssql / any
 __Dialect version:__ XXX
 __Database version:__ XXX
 __Sequelize version:__ XXX
-__Test with master branch:__ No
+__Tested with master branch:__ No
 
 **Note :** _Your issue may be ignored by maintainers if its not tested against `master` branch OR does not follow issue template._
