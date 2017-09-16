@@ -1,59 +1,118 @@
 # Migrations
 
-Sequelize `2.0.0` introduces a new CLI which is based on [gulp][0] and combines [sequelize-cli][1] and [gulp-sequelize][2]. The CLI ships support for migrations and project bootstrapping. With migrations you can transfer your existing database into another state and vice versa: Those state transitions are saved in migration files, which describe the way how to get to the new state and how to revert the changes in order to get back to the old state.
+Just like you use Git / SVN to manage changes in your source code, you can use migrations to keep track of changes to database. With migrations you can transfer your existing database into another state and vice versa: Those state transitions are saved in migration files, which describe the way how to get to the new state and how to revert the changes in order to get back to the old state.
+
+You will need [Sequelize CLI][0]. The CLI ships support for migrations and project bootstrapping.
 
 ## The CLI
 
-In order to use the CLI you need to install the respective package:
+### Installing CLI
+Lets start with installing CLI, you can find instructions [here][0]. Most preferred way is installing locally like this
 
 ```bash
 $ npm install --save sequelize-cli
 ```
 
-As with any npm package, you can use the global flag (`-g`) to install the CLI globally. If you have installed the CLI without the global flag, use `node_modules/.bin/sequelize [command]` instead of `sequelize [command]`.
-
-The CLI currently supports the following commands:
-
-```bash
-$ sequelize db:migrate        # Run pending migrations.
-$ sequelize db:migrate:undo   # Revert the last migration run.
-$ sequelize help              # Display this help text.
-$ sequelize init              # Initializes the project.
-$ sequelize migration:create  # Generates a new migration file.
-$ sequelize version           # Prints the version number.
-```
-
-Further and more detailed information about the available commands
-can be obtained via the help command:
+### Bootstrapping
+To create an empty project you will need to execute `init` command
 
 ```bash
-$ sequelize help:init
-$ sequelize help:db:migrate
-$ sequelize help:db:migrate:undo
-# etc
+$ node_modules/.bin/sequelize init
 ```
 
-The latter one for example will print out the following output:
+This will create following folders
+
+1) `config`, contains config file, which tells CLI how to connect with database
+2) `models`, contains all models for your project
+3) `migrations`, contains all migration files
+4) `seeders`, contains all seed files
+
+#### Configuration
+Before continuing further we will need to tell CLI how to connect to database. To do that lets open default config file `config/config.json`. It looks something like this
+
+```json
+{
+  development: {
+    username: 'root',
+    password: null,
+    database: 'database_development',
+    host: '127.0.0.1',
+    dialect: 'mysql'
+  },
+  test: {
+    username: 'root',
+    password: null,
+    database: 'database_test',
+    host: '127.0.0.1',
+    dialect: 'mysql'
+  },
+  production: {
+    username: 'root',
+    password: null,
+    database: 'database_production',
+    host: '127.0.0.1',
+    dialect: 'mysql'
+  }
+}
+```
+
+Now edit this file and set correct database credentails and dialect.
+
+**Note:** _If your database doesnot exists yet, you can just call `db:create` command. With proper access it will create that database for you._
+
+### Creating first Model (and Migration)
+Once you have properly configured CLI config file you are ready to create you first migration. Its as simple as executing a simple command.
+
+We will use `model:generate` command. This command requires two options
+
+1) `name`, Name of the model
+2) `attributes`, List of model attributes
+
+Lets create a model named `User`
 
 ```bash
-Sequelize [CLI: v0.0.2, ORM: v1.7.5]
-
-COMMANDS
-    sequelize db:migrate:undo -- Revert the last migration run.
-
-DESCRIPTION
-    Revert the last migration run.
-
-OPTIONS
-    --env           The environment to run the command in. Default: development
-    --options-path  The path to a JSON file with additional options. Default: none
-    --coffee        Enables coffee script support. Default: false
-    --config        The path to the config file. Default: config/config.json
+$ node_modules/.bin/sequelize model:generate --name User --attributes firstName:string,lastName:string,email:string
 ```
 
-## Skeleton
+This will do following
 
-The following skeleton shows a typical migration file. All migrations are expected to be located in a folder called `migrations` at the very top of the project. The sequelize binary can generate a migration skeleton. See the above section for more details.
+1) Create a model named `User` in `models` folder
+2) Create a migration file with name like `XXXXXXXXXXXXXX-create-user.js` in `migrations` folder
+
+**Note:** _Sequelize will only use Model files, its the table representation. On other hand migration file is a change in that model or more specifically that table, used by CLI. Treat migrations like a commit or a log for some change in database._
+
+### Running Migrations
+Now till this step CLI havent inserted anything into database. We have just created required model and migration files for our first model `User`. Now to actually create that table in database you need to run `db:migrate` command.
+
+```bash
+$ node_modules/.bin/sequelize db:migrate
+```
+
+This command will do some nice things
+
+1) It will ensure a table called `SequelizeMeta` in database. This table is used to record which migration have ran on current database
+2) Start looking for any migration files which haven't ran yet. This is possible by checking `SequelizeMeta` table. In this case it will run `XXXXXXXXXXXXXX-create-user.js` migration, which we created in last step.
+3) Creates a table called `User` with all columns as specified in its migration file.
+
+### Undoing Migrations
+Now our table has been created and saved in database. With migration you can revert to old state by just running a command.
+
+You can use `db:migrate:undo`, this command will revert most recent migration.
+
+```bash
+$ node_modules/.bin/sequelize db:migrate:undo
+```
+
+You can revert back to initial state by undoing all migrations with `db:migrate:undo:all` command. You can also revert back to a specific migration by passing its name in `--to` option.
+
+```bash
+$ node_modules/.bin/sequelize db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js
+```
+
+## Advance Topics
+
+### Migration Skeleton
+The following skeleton shows a typical migration file.
 
 ```js
 module.exports = {
@@ -67,19 +126,30 @@ module.exports = {
 }
 ```
 
-The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. Function `up` or `down` should return a `Promise`. Here is some code:
+The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. Function `up` or `down` should return a `Promise`. Lets look at an example
 
 ```js
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.dropAllTables();
+    return queryInterface.createTable('Person', {
+        name: Sequelize.STRING,
+        isBetaMember: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false,
+          allowNull: false
+        }
+      });
+  },
+  down: (queryInterface, Sequelize) => {
+    return queryInterface.dropTable('Person');
   }
 }
 ```
 
-The available methods of the queryInterface object are the following.
+### Programmatic use
+Sequelize has a [sister library][1] for programmatically handling execution and logging of migration tasks.
 
-## Functions
+## Query Interface Functions
 
 Using the `queryInterface` object described before, you will have access to most of already introduced functions. Furthermore there are some other methods, which are designed to actually change the database schema.
 
@@ -411,10 +481,6 @@ queryInterface.showConstraint('Users');
 // Returns array of objects/constraints
 ```
 
-## Programmatic use
-Sequelize has a [sister library](https://github.com/sequelize/umzug) for programmatically handling execution and logging of migration tasks.
 
-
-[0]: http://gulpjs.com/
-[1]: https://github.com/sequelize/cli
-[2]: https://github.com/sequelize/gulp-sequelize
+[0]: https://github.com/sequelize/cli
+[1]: https://github.com/sequelize/umzug
