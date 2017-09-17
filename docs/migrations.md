@@ -88,7 +88,7 @@ Now till this step CLI haven't inserted anything into database. We have just cre
 $ node_modules/.bin/sequelize db:migrate
 ```
 
-This command will do some nice things
+This command will execute these steps
 
 1) It will ensure a table called `SequelizeMeta` in database. This table is used to record which migration have ran on current database
 2) Start looking for any migration files which haven't ran yet. This is possible by checking `SequelizeMeta` table. In this case it will run `XXXXXXXXXXXXXX-create-user.js` migration, which we created in last step.
@@ -146,16 +146,15 @@ module.exports = {
 }
 ```
 
-### `.sequelizerc` File
-
-This is a special configuration file. It let you specify various options that you would usually pass as arguments to CLI. Some scenario you can use it.
+### The `.sequelizerc` File
+This is a special configuration file. It let you specify various options that you would usually pass as arguments to CLI. Some scenarios where you can use it.
 
 1) You want to override default path to `migrations`, `models`, `seeders` or `config` folder.
 2) You want to rename `config.json` to something else like `database.json`
 
 And a whole lot more. Let see how you can use this file for custom configuration.
 
-For starts let create a empty file in root directory of your project.
+For starters lets create an empty file in root directory of your project.
 
 ```bash
 $ touch .sequelizerc
@@ -168,9 +167,9 @@ const path = require('path');
 
 module.exports = {
   'config': path.resolve('config', 'database.json'),
-  'migrations-path': path.resolve('db', 'migrations'),
-  'seeders-path': path.resolve('db', 'seeders'),
   'models-path': path.resolve('db', 'models'),
+  'seeders-path': path.resolve('db', 'seeders'),
+  'migrations-path': path.resolve('db', 'migrations')
 }
 ```
 
@@ -181,8 +180,103 @@ With this config you are telling CLI to
 3) Use `db/seeders` as seeders folder
 4) Use `db/migrations` as migrations folder
 
-### Storage
+### Dynamic Configuration
+Configuration file is by default a JSON file called `config.json`. But sometimes you want to execute some code or access environment variables which is not possible in JSON files.
 
+Sequelize CLI can read from both `JSON` and `JS` files. This can be setup with `.sequelizerc` file. Let see how
+
+First you need to create a `.sequelizerc` file in root folder of your project. This file should override config path to a `JS` file. Like this
+
+```js
+const path = require('path');
+
+module.exports = {
+  'config': path.resolve('config', 'config.js')
+}
+```
+
+Now Sequelize CLI will load `config/config.js` for getting configuration options. Since this is a JS file you can have any code executed and export final dynamic configuration file.
+
+An example of `config/config.js` file
+
+```js
+var fs = require('fs');
+
+module.exports = {
+  development: {
+    username: 'database_dev',
+    password: 'database_dev',
+    database: 'database_dev',
+    host: '127.0.0.1',
+    dialect: 'mysql'
+  },
+  test: {
+    username: 'database_test',
+    password: null,
+    database: 'database_test',
+    host: '127.0.0.1',
+    dialect: 'mysql'
+  },
+  production: {
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOSTNAME,
+    dialect: 'mysql',
+    dialectOptions: {
+      ssl: {
+        ca: fs.readFileSync(__dirname + '/mysql-ca-master.crt')
+      }
+    }
+  }
+};
+```
+
+### Using Environment Variables
+With CLI you can directly access the environment variables inside the `config/config.js`. You can use `.sequelizerc` to tell CLI to use `config/config.js` for configuration. This is explained in last section.
+
+Then you can just expose file with proper environment variables.
+
+```js
+module.exports = {
+  development: {
+    username: 'database_dev',
+    password: 'database_dev',
+    database: 'database_dev',
+    host: '127.0.0.1',
+    dialect: 'mysql'
+  },
+  test: {
+    username: process.env.CI_DB_USERNAME,
+    password: process.env.CI_DB_PASSWORD,
+    database: process.env.CI_DB_NAME,
+    host: '127.0.0.1',
+    dialect: 'mysql'
+  },
+  production: {
+    username: process.env.PROD_DB_USERNAME,
+    password: process.env.PROD_DB_PASSWORD,
+    database: process.env.PROD_DB_NAME,
+    host: process.env.PROD_DB_HOSTNAME,
+    dialect: 'mysql'
+  }
+```
+
+### Specifying Dialect Options
+Sometime you want to specify a dialectOption, if its a general config you can just add it in `config/config.json`. Sometime you want to execute some code to get dialectOptions, you should use dynamic config file for those cases.
+
+```json
+{
+    "production": {
+        "dialect":"mysql",
+        "dialectOptions": {
+            "bigNumberStrings": true
+        }
+    }
+}
+```
+
+### Storage
 There are three types of storage that you can use: `sequelize`, `json`, and `none`.
 
 - `sequelize` : stores migrations and seeds in a table on the sequelize database
@@ -191,7 +285,6 @@ There are three types of storage that you can use: `sequelize`, `json`, and `non
 
 
 #### Migration Storage
-
 By default the CLI will create a table in your database called `SequelizeMeta` containing an entry
 for each executed migration. To change this behavior, there are three options you can add to the
 configuration file. Using `migrationStorage`, you can choose the type of storage to be used for
@@ -221,12 +314,10 @@ database, using `sequelize`, but want to use a different table, you can change t
 }
 ```
 
-NOTE: The `none` storage is not recommended as a migration storage. If you decide to use it, be
-aware of the implications of having no record of what migrations did or didn't run.
-
+**Note:** _The `none` storage is not recommended as a migration storage. If you decide to use it, be
+aware of the implications of having no record of what migrations did or didn't run._
 
 #### Seed Storage
-
 By default the CLI will not save any seed that is executed. If you choose to change this behavior (!),
 you can use `seederStorage` in the configuration file to change the storage type. If you choose `json`,
 you can specify the path of the file using `seederStoragePath` or the CLI will write to the file
@@ -248,6 +339,29 @@ specify the table name using `seederStorageTableName`, or it will default to `Se
     // Use a different table name. Default: SequelizeData
     "seederStorageTableName": "sequelize_data"
   }
+}
+```
+
+### Configuration Connection String
+As an alternative to the `--config` option with configuration files defining your database, you can
+use the `--url` option to pass in a connection string. For example:
+
+```bash
+$ node_modules/.bin/sequelize db:migrate --url 'mysql://root:password@mysql_host.com/database_name'
+```
+
+### Connecting over SSL
+Ensure ssl is specified in both `dialectOptions` and in the base config.
+
+```json
+{
+    "production": {
+        "dialect":"postgres",
+        "ssl": true,
+        "dialectOptions": {
+            "ssl": true
+        }
+    }
 }
 ```
 
