@@ -470,7 +470,7 @@ Sequelize has a [sister library][1] for programmatically handling execution and 
 
 ## Query Interface Functions
 
-Using the `queryInterface` object described before, you will have access to most of already introduced functions. Furthermore there are some other methods, which are designed to actually change the database schema.
+Using `queryInterface` object described before you can change database schema. Here is a list of various useful methods it supports.
 
 ### createTable(tableName, attributes, options)
 
