@@ -76,7 +76,7 @@ $ node_modules/.bin/sequelize model:generate --name User --attributes firstName:
 
 This will do following
 
-1) Create a model named `User` in `models` folder
+1) Create a model file `user` in `models` folder
 2) Create a migration file with name like `XXXXXXXXXXXXXX-create-user.js` in `migrations` folder
 
 **Note:** _Sequelize will only use Model files, its the table representation. On other hand migration file is a change in that model or more specifically that table, used by CLI. Treat migrations like a commit or a log for some change in database._
@@ -107,6 +107,66 @@ You can revert back to initial state by undoing all migrations with `db:migrate:
 
 ```bash
 $ node_modules/.bin/sequelize db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js
+```
+
+### Creating First Seed
+Suppose we want to insert some data into few tables by default. If we follow up on previous example we can consider creating a demo user for `User` table.
+
+To manage all data migrations you can use seeders. Seed files are some change in data that can be used to populate database table with sample data or test data.
+
+Lets create a seed file which will add a demo user to our `User` table.
+
+```bash
+$ node_modules/.bin/sequelize seed:generate --name demo-user
+```
+
+This command will create a seed file in `seeders` folder. File name will look something like `XXXXXXXXXXXXXX-demo-user.js`, It follows same `up / down` semantics like migration files.
+
+Now we should edit this file to insert demo user to `User` table.
+
+```js
+'use strict';
+
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    return queryInterface.bulkInsert('User', [{
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'demo@demo.com'
+      }], {});
+  },
+
+  down: (queryInterface, Sequelize) => {
+    return queryInterface.bulkDelete('User', null, {});
+  }
+};
+
+```
+
+### Running Seeds
+In last step you have create a seed file. Its still not committed to database. To do that we need to run a simple command.
+
+```bash
+$ node_modules/.bin/sequelize db:seed
+```
+
+This will execute that seed file and you will have a demo user inserted into `User` table.
+
+**Note:** _Seeders execution is not stored anywhere unlike migration which use `SequelizeMeta` table. If you wish to override this please read `Storage` section_
+
+### Undoing Seeds
+Seeders if they are using any storage can be undo. There are two commands available for that
+
+If you wish to undo most recent seed
+
+```bash
+node_modules/.bin/sequelize db:seed:undo
+```
+
+If you wish to undo all seeds
+
+```bash
+node_modules/.bin/sequelize db:migrate:undo:all
 ```
 
 ## Advance Topics
@@ -200,7 +260,7 @@ Now Sequelize CLI will load `config/config.js` for getting configuration options
 An example of `config/config.js` file
 
 ```js
-var fs = require('fs');
+const fs = require('fs');
 
 module.exports = {
   development: {
@@ -275,6 +335,46 @@ Sometime you want to specify a dialectOption, if its a general config you can ju
     }
 }
 ```
+
+### Production Usages
+Some tips around using CLI and migration setup in production environment.
+
+1) Use environment variables for config settings. This is better achieved with dynamic configuration. A sample production safe configuration may look like.
+
+```js
+const fs = require('fs');
+
+module.exports = {
+  development: {
+    username: 'database_dev',
+    password: 'database_dev',
+    database: 'database_dev',
+    host: '127.0.0.1',
+    dialect: 'mysql'
+  },
+  test: {
+    username: 'database_test',
+    password: null,
+    database: 'database_test',
+    host: '127.0.0.1',
+    dialect: 'mysql'
+  },
+  production: {
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOSTNAME,
+    dialect: 'mysql',
+    dialectOptions: {
+      ssl: {
+        ca: fs.readFileSync(__dirname + '/mysql-ca-master.crt')
+      }
+    }
+  }
+};
+```
+
+Our goal is to use environment variables for various database secrets and not accidentally checkout them to source control.
 
 ### Storage
 There are three types of storage that you can use: `sequelize`, `json`, and `none`.
