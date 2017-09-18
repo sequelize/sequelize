@@ -147,6 +147,8 @@ $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
 $any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
 
 $col: 'user.organization_id' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
+
+$ts: sequelize.fn('to_tsquery', 'query')  // @@ to_tsquery('query') (PG only)
 ```
 
 ### Range Operators

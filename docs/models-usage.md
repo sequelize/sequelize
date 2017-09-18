@@ -187,6 +187,7 @@ Project.findAll({
       $contains: [1, 2]      // @> [1, 2] (PG array contains operator)
       $contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
       $any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
+      $ts: sequelize.fn('to_tsquery', 'query')  // @@ to_tsquery('query') (PG only)
     },
     status: {
       $not: false,           // status NOT FALSE
