@@ -79,7 +79,7 @@
     "pg-types": "^1.11.0",
     "rimraf": "^2.5.4",
     "semantic-release": "^7.0.2",
-    "sinon": "^1.17.6",
+    "sinon": "^3.3.0",
     "sinon-chai": "^2.13.0",
     "sqlite3": "^3.1.4",
     "tedious": "1.14.0",
