@@ -1465,6 +1465,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users.length).to.equal(2);
       });
     });
+
+    it('should return only non deleted records', () => {
+      const Model = current.define('Test', {
+        username: Sequelize.STRING
+      }, { paranoid: true });
+      return Model.sync({ force: true }).then(() => {
+        return Model.bulkCreate([
+          { username: 'Bob' },
+          { username: 'Tobi' }
+        ]);
+      }).then(() => {
+        return Model.destroy({ where: { username: 'Tobi' } });
+      }).then(() => {
+        return Model.findAll();
+      }).then(users => {
+        expect(users.length).to.be.eql(1);
+      });
+    });
   });
 
   it('should support logging', function() {
