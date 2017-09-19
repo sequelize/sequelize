@@ -15,8 +15,14 @@
   color: #ffffff;
 }
 
-.manual-toc-root ul li a {
+.manual-toc-root ul li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
   font-weight: normal !important;
+}
+
+.manual-toc .indent-h1 {
+  margin: 0.5em 0 0 .5em;
 }
 
 /* Class Summay*/

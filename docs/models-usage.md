@@ -334,11 +334,11 @@ Project.findAll({ where: { ... }, raw: true })
 There is also a method for counting database objects:
 
 ```js
-Project.count().then(c =>
+Project.count().then(c => {
   console.log("There are " + c + " projects!")
 })
 
-Project.count({ where: {'id': {[Op.gt]: 25}} }).then(c =>
+Project.count({ where: {'id': {[Op.gt]: 25}} }).then(c => {
   console.log("There are " + c + " projects with an id greater than 25.")
 })
 ```
