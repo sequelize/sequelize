@@ -65,7 +65,7 @@
     "cross-env": "^5.0.5",
     "cz-conventional-changelog": "^2.0.0",
     "env-cmd": "^5.1.0",
-    "esdoc": "^0.5.2",
+    "esdoc": "^1.0.3",
     "eslint": "^4.6.0",
     "hints": "^1.1.0",
     "husky": "^0.14.2",
