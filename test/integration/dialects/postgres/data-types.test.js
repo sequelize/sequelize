@@ -22,6 +22,7 @@ if (dialect.match(/^postgres/)) {
 
       // create dummy user
       it('should be able to create and update records with Infinity/-Infinity', function() {
+        this.sequelize.options.typeValidation = true;
         const User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           beforeTime: {
@@ -42,7 +43,10 @@ if (dialect.match(/^postgres/)) {
           force: true
         }).then(() => {
           return User.create({
-            username: 'bob'
+            username: 'bob',
+            sometime: Infinity
+          }, {
+            validate: true
           });
         }).then(user => {
           expect(user.username).to.equal('bob');
@@ -60,6 +64,13 @@ if (dialect.match(/^postgres/)) {
           });
         }).then(user => {
           expect(user.sometime).to.not.equal(Infinity);
+
+          // find
+          return User.findAll();
+        }).then(users => {
+          expect(users[0].beforeTime).to.equal(-Infinity);
+          expect(users[0].sometime).to.not.equal(Infinity);
+          expect(users[0].afterTime).to.equal(Infinity);
         });
       });
 
