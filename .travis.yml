@@ -78,6 +78,6 @@ jobs:
       node_js: 8
       env: TRAVIS_JOB_NUMBER=WORKAROUND.1
       script:
-        - npm i semantic-release@8 bltechnology/customizable-commit-analyzer@1.0.2-0
+        - npm i semantic-release@8 @bltechnology/customizable-commit-analyzer@1.0.2-0
         - npm run lint
         - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then ./node_modules/.bin/semantic-release pre && npm publish && ./node_modules/.bin/semantic-release post; fi || true'
