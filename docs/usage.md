@@ -213,6 +213,10 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 })
 ```
 
+If you're using pg@^7.3.0, you can optionally provide a `statement_timeout` value in milliseconds in your `dialect` settings. 
+If provided, PostgreSQL will cancel any query after it exceeds your `statement_timeout` value. This is useful for running on systems
+like Heroku where queries cannot exceed the maximum HTTP timeout of 30 seconds.
+
 ### MSSQL
 
 The library for MSSQL is`tedious@^1.7.0` You'll just need to define the dialect:
