@@ -55,7 +55,6 @@
     "wkx": "^0.4.1"
   },
   "devDependencies": {
-    "@bubltechnology/customizable-commit-analyzer": "1.0.2-0",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.3.0",
     "chai-datetime": "^1.4.1",
@@ -135,7 +134,6 @@
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
-    "semantic-release": "./node_modules/.bin/semantic-release pre && npm publish && ./node_modules/.bin/semantic-release post",
     "commitmsg": "validate-commit-msg"
   },
   "engines": {
