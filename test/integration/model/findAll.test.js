@@ -1034,6 +1034,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', function() {
+          const self = this;
+          return this.sequelize.Promise.map([['ASC', 'Asia', 'Europe', 'England']], params => {
+            return self.Continent.findAll({
+              include: [{
+                model: self.Country,
+                required: false,
+                where: {
+                  name: params[3]
+                }
+              }],
+              limit: 2,
+              order: [['name', params[0]], [self.Country, 'name', params[0]]]
+            }).then(continents => {
+              expect(continents).to.exist;
+              expect(continents[0]).to.exist;
+              expect(continents[0].name).to.equal(params[1]);
+              expect(continents[0].countries).to.exist;
+              expect(continents[0].countries.length).to.equal(0);
+              expect(continents[1]).to.exist;
+              expect(continents[1].name).to.equal(params[2]);
+              expect(continents[1].countries).to.exist;
+              expect(continents[1].countries.length).to.equal(1);
+              expect(continents[1].countries[0]).to.exist;
+              expect(continents[1].countries[0].name).to.equal(params[3]);
+            });
+          });
+        });
+
         it('sorts by 2nd degree association', function() {
           const self = this;
           return this.sequelize.Promise.map([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']], params => {
