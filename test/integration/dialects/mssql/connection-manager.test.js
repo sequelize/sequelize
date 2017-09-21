@@ -56,6 +56,30 @@ if (dialect.match(/^mssql/)) {
         });
     });
 
+    it('should not throw when non pooled connection is unexpectedly closed', () => {
+      const sequelize = Support.createSequelizeInstance({ pool: { min: 1, max: 1, idle: 5000 } });
+      const cm = sequelize.connectionManager;
+
+      let conn;
+
+      return sequelize
+        .sync()
+        .then(() => cm.getConnection())
+        .then(connection => {
+          conn = connection;
+
+          // remove from pool
+          return cm.pool.destroy(connection);
+        })
+        .then(() => {
+          // unexpected disconnect
+          const unwrapConn = conn.unwrap();
+          unwrapConn.emit('error', {
+            code: 'ESOCKET'
+          });
+        });
+    });
+
     describe('Errors', () => {
       it('ECONNREFUSED', () => {
         const sequelize = Support.createSequelizeInstance({ port: 34237 });
