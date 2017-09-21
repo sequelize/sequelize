@@ -4,39 +4,47 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require(__dirname + '/../../support');
 const dialect = Support.getTestDialect();
-const DataTypes = require(__dirname + '/../../../../lib/data-types')[dialect];
+const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
-if (dialect.match(/^postgres/)) {
+if (dialect === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
     describe('DATE', () => {
       // quick test of DATE methods
       it('should validate Infinity/-Infinity as true', () => {
-        expect(DataTypes.DATE().validate(Infinity)).to.equal(true);
-        expect(DataTypes.DATE().validate(-Infinity)).to.equal(true);
+        expect(DataTypes[dialect].DATE().validate(Infinity)).to.equal(true);
+        expect(DataTypes[dialect].DATE().validate(-Infinity)).to.equal(true);
       });
 
       it('should stringify Infinity/-Infinity to infinity/-infinity', () => {
-        expect(DataTypes.DATE().stringify(Infinity)).to.equal('infinity');
-        expect(DataTypes.DATE().stringify(-Infinity)).to.equal('-infinity');
+        expect(DataTypes[dialect].DATE().stringify(Infinity)).to.equal('infinity');
+        expect(DataTypes[dialect].DATE().stringify(-Infinity)).to.equal('-infinity');
       });
+    });
 
+    describe('DATE SQL', () => {
       // create dummy user
       it('should be able to create and update records with Infinity/-Infinity', function() {
         this.sequelize.options.typeValidation = true;
+
         const User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
+          username: this.sequelize.Sequelize.STRING,
           beforeTime: {
-            type: DataTypes.DATE,
+            type: this.sequelize.Sequelize.DATE,
             defaultValue: -Infinity
           },
           sometime: {
-            type: DataTypes.DATE,
+            type: this.sequelize.Sequelize.DATE,
             defaultValue: this.sequelize.fn('NOW')
           },
+          anotherTime: {
+            type: this.sequelize.Sequelize.DATE
+          },
           afterTime: {
-            type: DataTypes.DATE,
+            type: this.sequelize.Sequelize.DATE,
             defaultValue: Infinity
           }
+        }, {
+          timestamps: false
         });
 
         return User.sync({
@@ -44,13 +52,15 @@ if (dialect.match(/^postgres/)) {
         }).then(() => {
           return User.create({
             username: 'bob',
-            sometime: Infinity
+            anotherTime: Infinity
           }, {
             validate: true
           });
         }).then(user => {
           expect(user.username).to.equal('bob');
           expect(user.beforeTime).to.equal(-Infinity);
+          expect(user.sometime).to.not.equal(Infinity);
+          expect(user.anotherTime).to.equal(Infinity);
           expect(user.afterTime).to.equal(Infinity);
 
           return user.update({
