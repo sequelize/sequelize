@@ -2555,6 +2555,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should not fail with an include', function() {
       return this.User.findAll({
         where: this.sequelize.literal(this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title') + ' = ' + this.sequelize.queryInterface.QueryGenerator.escape('republic')),
+        substitution: false,
         include: [
           {model: this.Project}
         ]
