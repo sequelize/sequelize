@@ -22,10 +22,10 @@ $ node_modules/.bin/sequelize init
 
 This will create following folders
 
-1) `config`, contains config file, which tells CLI how to connect with database
-2) `models`, contains all models for your project
-3) `migrations`, contains all migration files
-4) `seeders`, contains all seed files
+- `config`, contains config file, which tells CLI how to connect with database
+- `models`, contains all models for your project
+- `migrations`, contains all migration files
+- `seeders`, contains all seed files
 
 #### Configuration
 Before continuing further we will need to tell CLI how to connect to database. To do that lets open default config file `config/config.json`. It looks something like this
@@ -65,8 +65,8 @@ Once you have properly configured CLI config file you are ready to create you fi
 
 We will use `model:generate` command. This command requires two options
 
-1) `name`, Name of the model
-2) `attributes`, List of model attributes
+- `name`, Name of the model
+- `attributes`, List of model attributes
 
 Lets create a model named `User`
 
@@ -76,8 +76,8 @@ $ node_modules/.bin/sequelize model:generate --name User --attributes firstName:
 
 This will do following
 
-1) Create a model file `user` in `models` folder
-2) Create a migration file with name like `XXXXXXXXXXXXXX-create-user.js` in `migrations` folder
+- Create a model file `user` in `models` folder
+- Create a migration file with name like `XXXXXXXXXXXXXX-create-user.js` in `migrations` folder
 
 **Note:** _Sequelize will only use Model files, its the table representation. On other hand migration file is a change in that model or more specifically that table, used by CLI. Treat migrations like a commit or a log for some change in database._
 
@@ -90,9 +90,9 @@ $ node_modules/.bin/sequelize db:migrate
 
 This command will execute these steps
 
-1) It will ensure a table called `SequelizeMeta` in database. This table is used to record which migration have ran on current database
-2) Start looking for any migration files which haven't ran yet. This is possible by checking `SequelizeMeta` table. In this case it will run `XXXXXXXXXXXXXX-create-user.js` migration, which we created in last step.
-3) Creates a table called `User` with all columns as specified in its migration file.
+- Will ensure a table called `SequelizeMeta` in database. This table is used to record which migration have ran on current database
+- Start looking for any migration files which haven't ran yet. This is possible by checking `SequelizeMeta` table. In this case it will run `XXXXXXXXXXXXXX-create-user.js` migration, which we created in last step.
+- Creates a table called `User` with all columns as specified in its migration file.
 
 ### Undoing Migrations
 Now our table has been created and saved in database. With migration you can revert to old state by just running a command.
@@ -209,8 +209,8 @@ module.exports = {
 ### The `.sequelizerc` File
 This is a special configuration file. It let you specify various options that you would usually pass as arguments to CLI. Some scenarios where you can use it.
 
-1) You want to override default path to `migrations`, `models`, `seeders` or `config` folder.
-2) You want to rename `config.json` to something else like `database.json`
+- You want to override default path to `migrations`, `models`, `seeders` or `config` folder.
+- You want to rename `config.json` to something else like `database.json`
 
 And a whole lot more. Let see how you can use this file for custom configuration.
 
@@ -235,10 +235,10 @@ module.exports = {
 
 With this config you are telling CLI to
 
-1) Use `config/database.json` file for config settings
-2) Use `db/models` as models folder
-3) Use `db/seeders` as seeders folder
-4) Use `db/migrations` as migrations folder
+- Use `config/database.json` file for config settings
+- Use `db/models` as models folder
+- Use `db/seeders` as seeders folder
+- Use `db/migrations` as migrations folder
 
 ### Dynamic Configuration
 Configuration file is by default a JSON file called `config.json`. But sometimes you want to execute some code or access environment variables which is not possible in JSON files.
