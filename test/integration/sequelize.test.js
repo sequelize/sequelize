@@ -65,20 +65,20 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       sinon.stub(Utils, 'deprecate');
       Support.createSequelizeInstance();
       expect(Utils.deprecate.calledOnce).to.be.true;
-      expect(Utils.deprecate.args[0][0]).to.be.equal('Limiting available operators aliases offers improved security and will be forced in future versions. check: http://docs.sequelizejs.com/manual/tutorial/querying.html#operators');
+      expect(Utils.deprecate.args[0][0]).to.be.equal('String based operators are now deprecated. Please use Symbol based operators for better security, read more at http://docs.sequelizejs.com/manual/tutorial/querying.html#operators');
       Utils.deprecate.reset();
-      Support.createSequelizeInstance({ operatorsAliases: {} });
+      Support.createSequelizeInstance({ operators: {} });
       expect(Utils.deprecate.called).to.be.false;
     });
 
     it('should set operators aliases on dialect QueryGenerator', () => {
-      const operatorsAliases = { fake: true };
-      const sequelize = Support.createSequelizeInstance({ operatorsAliases });
+      const operators = { fake: true };
+      const sequelize = Support.createSequelizeInstance({ operators });
 
       expect(sequelize).to.have.property('dialect');
       expect(sequelize.dialect).to.have.property('QueryGenerator');
       expect(sequelize.dialect.QueryGenerator).to.have.property('OperatorsAliasMap');
-      expect(sequelize.dialect.QueryGenerator.OperatorsAliasMap).to.be.eql(operatorsAliases);
+      expect(sequelize.dialect.QueryGenerator.OperatorsAliasMap).to.be.eql(operators);
     });
 
     if (dialect === 'sqlite') {

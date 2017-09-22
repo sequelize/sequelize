@@ -219,10 +219,10 @@ const Op = Sequelize.Op;
 Sequelize allows setting specific strings as aliases for operators -
 ```js
 const Op = Sequelize.Op;
-const operatorsAliases = {
+const operators = {
   $gt: Op.gt
 }
-const connection = new Sequelize(db, user, pass, { operatorsAliases })
+const connection = new Sequelize(db, user, pass, { operators })
 
 [Op.gt]: 6 // > 6
 $gt: 6 // same as using Op.gt (> 6)
@@ -247,18 +247,18 @@ Due to the security improvements it is highly advised to only use the specific a
 const Op = Sequelize.Op;
 
 //use sequelize without any operators aliases
-const connection = new Sequelize(db, user, pass, { operatorsAliases: {} });
+const connection = new Sequelize(db, user, pass, { operators: false });
 
 //use sequelize with only alias for $and => Op.and
-const connection2 = new Sequelize(db, user, pass, { operatorsAliases: { $and: Op.and } });
+const connection2 = new Sequelize(db, user, pass, { operators: { $and: Op.and } });
 ```
 
 Sequelize will warn you if your using the default aliases and not limiting them
-if you want to keep using all default aliases (excluding legacy ones) without the warning you can pass the following operatorsAliases option -
+if you want to keep using all default aliases (excluding legacy ones) without the warning you can pass the following operators option -
 
 ```js
 const Op = Sequelize.Op;
-const operatorsAliases = {
+const operators = {
   $eq: Op.eq,
   $ne: Op.ne,
   $gte: Op.gte,
@@ -295,7 +295,7 @@ const operatorsAliases = {
   $col: Op.col
 };
 
-const connection = new Sequelize(db, user, pass, { operatorsAliases });
+const connection = new Sequelize(db, user, pass, { operators });
 ```
 
 ### JSONB
