@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const sinon = require('sinon');
+// const sinon = require('sinon');
 const Support = require(__dirname + '/../../support');
 const dialect = Support.getTestDialect();
 const DataTypes = require(__dirname + '/../../../../lib/data-types');
