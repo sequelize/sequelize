@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-// const sinon = require('sinon');
+const sinon = require('sinon');
 const Support = require(__dirname + '/../../support');
 const dialect = Support.getTestDialect();
 const DataTypes = require(__dirname + '/../../../../lib/data-types');
@@ -87,123 +87,227 @@ if (dialect === 'postgres') {
 
     });
 
-    // describe('when nothing changed', () => {
-    //   beforeEach(function() {
-    //     this.clock = sinon.useFakeTimers();
-    //   });
+    // REMOVE AFTER FINISHING!
+    describe('BOOLEAN', () => {
+      beforeEach(function() {
+        this.User = this.sequelize.define('User', {
+          username: { type: DataTypes.STRING },
+          uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
+          uuidv4: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
+          touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+          aNumber: { type: DataTypes.INTEGER },
+          bNumber: { type: DataTypes.INTEGER },
+          aDate: { type: DataTypes.DATE },
 
-    //   afterEach(function() {
-    //     this.clock.restore();
-    //   });
+          validateTest: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            validate: {isInt: true}
+          },
+          validateCustom: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            validate: {len: {msg: 'Length failed.', args: [1, 20]}}
+          },
 
-    //   it('does not update timestamps', function() {
-    //     this.sequelize.options.typeValidation = true;
+          dateAllowNullTrue: {
+            type: DataTypes.DATE,
+            allowNull: true
+          },
 
-    //     const User = this.sequelize.define('User', {
-    //       username: this.sequelize.Sequelize.STRING
-    //     }, {
-    //       timestamps: true
-    //     });
+          isSuperUser: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+          }
+        });
+        return this.User.sync({ force: true });
+      });
 
-    //     return User.sync({
-    //       force: true
-    //     }).then(() => {
-    //       return User.create({ username: 'John' }).then(() => {
-    //         return User.findOne({ where: { username: 'John' } }).then(user => {
-    //           const updatedAt = user.updatedAt;
-    //           this.clock.tick(2000);
-    //           return user.save().then(newlySavedUser => {
-    //             expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
-    //             return User.findOne({ where: { username: 'John' } }).then(newlySavedUser => {
-    //               expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
-    //             });
-    //           });
-    //         });
-    //       });
-    //     });
+      it('should override default when given truthy boolean-int (1)', function() {
+        return this.User.build({
+          username: 'a user',
+          isSuperUser: 1
+        })
+          .save()
+          .bind(this)
+          .then(function() {
+            return this.User.findOne({
+              where: {
+                username: 'a user'
+              }
+            })
+              .then(user => {
+                expect(user.isSuperUser).to.be.true;
+              });
+          });
+      });
 
-    //   });
+      it('should be just "null" and not Date with Invalid Date', function() {
+        const self = this;
+        return this.User.build({ username: 'a user'}).save().then(() => {
+          return self.User.findOne({where: {username: 'a user'}}).then(user => {
+            expect(user.dateAllowNullTrue).to.be.null;
+          });
+        });
+      });
+    });
 
-    // describe('when nothing changed', () => {
-    //   it('doesn\'t set timestamps', function() {
-    //     const User = this.sequelize.define('User', {
-    //       identifier: {type: DataTypes.STRING, primaryKey: true}
-    //     });
+    describe('when nothing changed', () => {
+      beforeEach(function() {
+        this.clock = sinon.useFakeTimers();
+      });
 
-    //     const user = User.build({}, {
-    //       isNewRecord: false
-    //     });
+      afterEach(function() {
+        this.clock.restore();
+      });
 
-    //     user.set({
-    //       createdAt: new Date(2000, 1, 1),
-    //       updatedAt: new Date(2000, 1, 1)
-    //     });
+      it('does not update timestamps', function() {
+        this.sequelize.options.typeValidation = true;
 
-    //     expect(user.get('createdAt')).not.to.be.ok;
-    //     expect(user.get('updatedAt')).not.to.be.ok;
-    //   });
+        const User = this.sequelize.define('User', {
+          username: this.sequelize.Sequelize.STRING
+        }, {
+          timestamps: true
+        });
 
-    //   it('doesn\'t set underscored timestamps', function() {
-    //     const User = this.sequelize.define('User', {
-    //       identifier: {type: DataTypes.STRING, primaryKey: true}
-    //     }, {
-    //       underscored: true
-    //     });
+        return User.sync({
+          force: true
+        }).then(() => {
+          return User.create({ username: 'John' }).then(() => {
+            return User.findOne({ where: { username: 'John' } }).then(user => {
+              const updatedAt = user.updatedAt;
+              this.clock.tick(2000);
+              return user.save().then(newlySavedUser => {
+                expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
+                return User.findOne({ where: { username: 'John' } }).then(newlySavedUser => {
+                  expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
+                });
+              });
+            });
+          });
+        });
 
-    //     const user = User.build({}, {
-    //       isNewRecord: false
-    //     });
+      });
+    });
 
-    //     user.set({
-    //       created_at: new Date(2000, 1, 1),
-    //       updated_at: new Date(2000, 1, 1)
-    //     });
+    describe('when nothing changed', () => {
+      it('doesn\'t set timestamps', function() {
+        const User = this.sequelize.define('User', {
+          identifier: {type: DataTypes.STRING, primaryKey: true}
+        });
 
-    //     expect(user.get('created_at')).not.to.be.ok;
-    //     expect(user.get('updated_at')).not.to.be.ok;
-    //   });
+        const user = User.build({}, {
+          isNewRecord: false
+        });
 
-    // });
+        user.set({
+          createdAt: new Date(2000, 1, 1),
+          updatedAt: new Date(2000, 1, 1)
+        });
 
-    // describe('on update', () => {
-    //   beforeEach(function() {
-    //     this.clock = sinon.useFakeTimers();
-    //   });
+        expect(user.get('createdAt')).not.to.be.ok;
+        expect(user.get('updatedAt')).not.to.be.ok;
+      });
 
-    //   afterEach(function() {
-    //     this.clock.restore();
-    //   });
+      it('doesn\'t set underscored timestamps', function() {
+        const User = this.sequelize.define('User', {
+          identifier: {type: DataTypes.STRING, primaryKey: true}
+        }, {
+          underscored: true
+        });
 
-    //   it('doesn\'t update primary keys or timestamps', function() {
-    //     const User = this.sequelize.define('User', {
-    //       name: DataTypes.STRING,
-    //       bio: DataTypes.TEXT,
-    //       identifier: {type: DataTypes.STRING, primaryKey: true}
-    //     });
+        const user = User.build({}, {
+          isNewRecord: false
+        });
 
-    //     return User.sync({ force: true }).bind(this).then(() => {
-    //       return User.create({
-    //         name: 'snafu',
-    //         identifier: 'identifier'
-    //       });
-    //     }).then(function(user) {
-    //       const oldCreatedAt = user.createdAt,
-    //         oldUpdatedAt = user.updatedAt,
-    //         oldIdentifier = user.identifier;
+        user.set({
+          created_at: new Date(2000, 1, 1),
+          updated_at: new Date(2000, 1, 1)
+        });
 
-    //       this.clock.tick(1000);
-    //       return user.update({
-    //         name: 'foobar',
-    //         createdAt: new Date(2000, 1, 1),
-    //         identifier: 'another identifier'
-    //       }).then(user => {
-    //         expect(new Date(user.createdAt)).to.equalDate(new Date(oldCreatedAt));
-    //         expect(new Date(user.updatedAt)).to.not.equalTime(new Date(oldUpdatedAt));
-    //         expect(user.identifier).to.equal(oldIdentifier);
-    //       });
-    //     });
-    //   });
-    // });
+        expect(user.get('created_at')).not.to.be.ok;
+        expect(user.get('updated_at')).not.to.be.ok;
+      });
+
+    });
+
+    describe('on update', () => {
+      beforeEach(function() {
+        this.clock = sinon.useFakeTimers();
+      });
+
+      afterEach(function() {
+        this.clock.restore();
+      });
+
+      it('doesn\'t update primary keys or timestamps', function() {
+        const User = this.sequelize.define('User', {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          identifier: {type: DataTypes.STRING, primaryKey: true}
+        });
+
+        return User.sync({ force: true }).bind(this).then(() => {
+          return User.create({
+            name: 'snafu',
+            identifier: 'identifier'
+          });
+        }).then(function(user) {
+          const oldCreatedAt = user.createdAt,
+            oldUpdatedAt = user.updatedAt,
+            oldIdentifier = user.identifier;
+
+          this.clock.tick(1000);
+          return user.update({
+            name: 'foobar',
+            createdAt: new Date(2000, 1, 1),
+            identifier: 'another identifier'
+          }).then(user => {
+            expect(new Date(user.createdAt)).to.equalDate(new Date(oldCreatedAt));
+            expect(new Date(user.updatedAt)).to.not.equalTime(new Date(oldUpdatedAt));
+            expect(user.identifier).to.equal(oldIdentifier);
+          });
+        });
+      });
+    });
+
+    describe('null values', () => {
+      it('stores and restores null values', function() {
+        const Download = this.sequelize.define('download', {
+          startedAt: DataTypes.DATE,
+          canceledAt: DataTypes.DATE,
+          finishedAt: DataTypes.DATE
+        });
+
+        return Download.sync().then(() => {
+          return Download.create({
+            startedAt: new Date()
+          }).then(download => {
+            expect(download.startedAt instanceof Date).to.be.true;
+            expect(download.canceledAt).to.not.be.ok;
+            expect(download.finishedAt).to.not.be.ok;
+
+            return download.update({
+              canceledAt: new Date()
+            }).then(download => {
+              expect(download.startedAt instanceof Date).to.be.true;
+              expect(download.canceledAt instanceof Date).to.be.true;
+              expect(download.finishedAt).to.not.be.ok;
+
+              return Download.findAll({
+                where: {finishedAt: null}
+              }).then(downloads => {
+                downloads.forEach(download => {
+                  expect(download.startedAt instanceof Date).to.be.true;
+                  expect(download.canceledAt instanceof Date).to.be.true;
+                  expect(download.finishedAt).to.not.be.ok;
+                });
+              });
+            });
+          });
+        });
+      });
+    });
 
   });
 }
