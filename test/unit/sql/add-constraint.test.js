@@ -68,10 +68,7 @@ if (current.dialect.supports.constraints.addConstraint) {
               }
             }
           }), {
-            default: [
-              'ALTER TABLE [myTable] ADD CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100));',
-              'ALTER TABLE [myTable] ADD CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] < 100 AND [myColumn] > 50));'
-            ]
+            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100));'
           });
         });
 

@@ -211,17 +211,9 @@ const Support = {
 
     if (!expectation) {
       if (expectations['default'] !== undefined) {
-        expectation = expectations['default'];
-        if (Array.isArray(expectation)) {
-          expectation = expectation.map(val =>
-            val.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-              .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT)
-          );
-        } else {
-          expectation = expectation
-            .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-            .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
-        }
+        expectation = expectations['default']
+          .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
+          .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
       } else {
         throw new Error('Undefined expectation for "' + Support.sequelize.dialect.name + '"!');
       }
@@ -230,11 +222,7 @@ const Support = {
     if (_.isError(query)) {
       expect(query.message).to.equal(expectation.message);
     } else {
-      if (Array.isArray(expectation)) {
-        expect(query).to.be.oneOf(expectation);
-      } else {
-        expect(query).to.equal(expectation);
-      }
+      expect(query).to.equal(expectation);
     }
   }
 };

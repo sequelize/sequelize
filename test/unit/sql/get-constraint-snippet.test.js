@@ -68,10 +68,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }), {
-          default: [
-            'CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100))',
-            'CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] < 100 AND [myColumn] > 50))'
-          ]
+          default: 'CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100))'
         });
       });
 

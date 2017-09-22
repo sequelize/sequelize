@@ -197,7 +197,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             $eq: null
           }
         }, {
-          default: ['([rank] < 100 OR [rank] IS NULL)', '([rank] IS NULL OR [rank] < 100)']
+          default: '([rank] < 100 OR [rank] IS NULL)'
         });
 
         testsql('$or', [
@@ -298,7 +298,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             $between: [10, 20]
           }
         }, {
-          default: ['([rank] != 15 AND [rank] BETWEEN 10 AND 20)', '([rank] BETWEEN 10 AND 20 AND [rank] != 15)']
+          default: '([rank] != 15 AND [rank] BETWEEN 10 AND 20)'
         });
 
         testsql('name', {
@@ -429,14 +429,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         between: ['2012-12-10', '2013-01-02'],
         nbetween: ['2013-01-04', '2013-01-20']
       }, {
-        default: [
-          "([date] BETWEEN '2012-12-10' AND '2013-01-02' AND [date] NOT BETWEEN '2013-01-04' AND '2013-01-20')",
-          "([date] NOT BETWEEN '2013-01-04' AND '2013-01-20' AND [date] BETWEEN '2012-12-10' AND '2013-01-02')"
-        ],
-        mssql: [
-          "([date] BETWEEN N'2012-12-10' AND N'2013-01-02' AND [date] NOT BETWEEN N'2013-01-04' AND N'2013-01-20')",
-          "([date] NOT BETWEEN N'2013-01-04' AND N'2013-01-20' AND [date] BETWEEN N'2012-12-10' AND N'2013-01-02')"
-        ]
+        default:"([date] BETWEEN '2012-12-10' AND '2013-01-02' AND [date] NOT BETWEEN '2013-01-04' AND '2013-01-20')",
+        mssql: "([date] BETWEEN N'2012-12-10' AND N'2013-01-02' AND [date] NOT BETWEEN N'2013-01-04' AND N'2013-01-20')"
       });
     });
 
