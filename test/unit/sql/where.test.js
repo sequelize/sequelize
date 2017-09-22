@@ -429,7 +429,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         between: ['2012-12-10', '2013-01-02'],
         nbetween: ['2013-01-04', '2013-01-20']
       }, {
-        default:"([date] BETWEEN '2012-12-10' AND '2013-01-02' AND [date] NOT BETWEEN '2013-01-04' AND '2013-01-20')",
+        default: "([date] BETWEEN '2012-12-10' AND '2013-01-02' AND [date] NOT BETWEEN '2013-01-04' AND '2013-01-20')",
         mssql: "([date] BETWEEN N'2012-12-10' AND N'2013-01-02' AND [date] NOT BETWEEN N'2013-01-04' AND N'2013-01-20')"
       });
     });
