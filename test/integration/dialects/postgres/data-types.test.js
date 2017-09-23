@@ -3,9 +3,9 @@
 const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
-const _ = require('lodash');
-const moment = require('moment');
-const Sequelize = require('../../../../index');
+// const _ = require('lodash');
+// const moment = require('moment');
+// const Sequelize = require('../../../../index');
 const Support = require(__dirname + '/../../support');
 const current = Support.sequelize;
 const dialect = Support.getTestDialect();
