@@ -313,91 +313,91 @@ if (dialect === 'postgres') {
       });
     });
 
-    describe(Support.getTestDialectTeaser('DataTypes'), () => {
-      afterEach(function() {
-        // Restore some sanity by resetting all parsers
-        switch (dialect) {
-          case 'postgres':
-            const types = require('pg-types');
+    // describe(Support.getTestDialectTeaser('DataTypes'), () => {
+    //   afterEach(function() {
+    //     // Restore some sanity by resetting all parsers
+    //     switch (dialect) {
+    //       case 'postgres':
+    //         const types = require('pg-types');
 
-            _.each(DataTypes, dataType => {
-              if (dataType.types && dataType.types.postgres) {
-                dataType.types.postgres.oids.forEach(oid => {
-                  types.setTypeParser(oid, _.identity);
-                });
-              }
-            });
+    //         _.each(DataTypes, dataType => {
+    //           if (dataType.types && dataType.types.postgres) {
+    //             dataType.types.postgres.oids.forEach(oid => {
+    //               types.setTypeParser(oid, _.identity);
+    //             });
+    //           }
+    //         });
 
-            require('pg-types/lib/binaryParsers').init((oid, converter) => {
-              types.setTypeParser(oid, 'binary', converter);
-            });
-            require('pg-types/lib/textParsers').init((oid, converter) => {
-              types.setTypeParser(oid, 'text', converter);
-            });
-            break;
-          default:
-            this.sequelize.connectionManager._clearTypeParser();
-        }
+    //         require('pg-types/lib/binaryParsers').init((oid, converter) => {
+    //           types.setTypeParser(oid, 'binary', converter);
+    //         });
+    //         require('pg-types/lib/textParsers').init((oid, converter) => {
+    //           types.setTypeParser(oid, 'text', converter);
+    //         });
+    //         break;
+    //       default:
+    //         this.sequelize.connectionManager._clearTypeParser();
+    //     }
 
-        this.sequelize.connectionManager.refreshTypeParser(DataTypes[dialect]); // Reload custom parsers
-      });
+    //     this.sequelize.connectionManager.refreshTypeParser(DataTypes[dialect]); // Reload custom parsers
+    //   });
 
-      it('allows me to return values from a custom parse function', () => {
-        const parse = Sequelize.DATE.parse = sinon.spy(value => {
-          return moment(value, 'YYYY-MM-DD HH:mm:ss');
-        });
+    //   it('allows me to return values from a custom parse function', () => {
+    //     const parse = Sequelize.DATE.parse = sinon.spy(value => {
+    //       return moment(value, 'YYYY-MM-DD HH:mm:ss');
+    //     });
 
-        const stringify = Sequelize.DATE.prototype.stringify = sinon.spy(function(value, options) {
-          if (!moment.isMoment(value)) {
-            value = this._applyTimezone(value, options);
-          }
-          return value.format('YYYY-MM-DD HH:mm:ss');
-        });
+    //     const stringify = Sequelize.DATE.prototype.stringify = sinon.spy(function(value, options) {
+    //       if (!moment.isMoment(value)) {
+    //         value = this._applyTimezone(value, options);
+    //       }
+    //       return value.format('YYYY-MM-DD HH:mm:ss');
+    //     });
 
-        const set = Sequelize.DataTypes[dialect].DATE.prototype.set = sinon.spy(value => {
-          return value;
-        });
+    //     const set = Sequelize.DataTypes[dialect].DATE.prototype.set = sinon.spy(value => {
+    //       return value;
+    //     });
 
-        const compare = Sequelize.DataTypes[dialect].DATE.prototype.compare = sinon.spy((value, originalValue, key, options) => {
-          if (!options.raw && !!value) {
-            if (originalValue) {
-              if (!value.diff(originalValue)) {
-                return false;
-              }
-            }
+    //     const compare = Sequelize.DataTypes[dialect].DATE.prototype.compare = sinon.spy((value, originalValue, key, options) => {
+    //       if (!options.raw && !!value) {
+    //         if (originalValue) {
+    //           if (!value.diff(originalValue)) {
+    //             return false;
+    //           }
+    //         }
 
-            return true;
-          }
-        });
+    //         return true;
+    //       }
+    //     });
 
-        current.refreshTypes();
+    //     current.refreshTypes();
 
-        const User = current.define('user', {
-          dateField: Sequelize.DATE
-        }, {
-          timestamps: false
-        });
+    //     const User = current.define('user', {
+    //       dateField: Sequelize.DATE
+    //     }, {
+    //       timestamps: false
+    //     });
 
-        return current.sync({ force: true }).then(() => {
-          return User.create({
-            dateField: moment('2011 10 31', 'YYYY MM DD')
-          });
-        }).then(() => {
-          return User.findAll().get(0);
-        }).then(user => {
-          expect(parse).to.have.been.called;
-          expect(stringify).to.have.been.called;
-          expect(set).to.have.been.called;
-          expect(compare).to.have.been.called;
+    //     return current.sync({ force: true }).then(() => {
+    //       return User.create({
+    //         dateField: moment('2011 10 31', 'YYYY MM DD')
+    //       });
+    //     }).then(() => {
+    //       return User.findAll().get(0);
+    //     }).then(user => {
+    //       expect(parse).to.have.been.called;
+    //       expect(stringify).to.have.been.called;
+    //       expect(set).to.have.been.called;
+    //       expect(compare).to.have.been.called;
 
-          expect(moment.isMoment(user.dateField)).to.be.ok;
+    //       expect(moment.isMoment(user.dateField)).to.be.ok;
 
-          delete Sequelize.DATE.parse;
-          delete Sequelize.DataTypes[dialect].DATE.prototype.compare;
-          delete Sequelize.DataTypes[dialect].DATE.prototype.set;
-        });
-      });
-    });
+    //       delete Sequelize.DATE.parse;
+    //       delete Sequelize.DataTypes[dialect].DATE.prototype.compare;
+    //       delete Sequelize.DataTypes[dialect].DATE.prototype.set;
+    //     });
+    //   });
+    // });
 
     describe('changed', () => {
       beforeEach(function() {

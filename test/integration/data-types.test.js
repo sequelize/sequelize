@@ -54,10 +54,12 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return value.format('YYYY-MM-DD HH:mm:ss');
     });
 
+    const setOriginal = Sequelize.DataTypes[dialect].DATE.prototype.set;
     const set = Sequelize.DataTypes[dialect].DATE.prototype.set = sinon.spy(value => {
       return value;
     });
 
+    const compareOriginal = Sequelize.DataTypes[dialect].DATE.prototype.compare;
     const compare = Sequelize.DataTypes[dialect].DATE.prototype.compare = sinon.spy((value, originalValue, key, options) => {
       if (!options.raw && !!value) {
         if (originalValue) {
@@ -93,8 +95,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       expect(moment.isMoment(user.dateField)).to.be.ok;
 
       delete Sequelize.DATE.parse;
-      delete Sequelize.DataTypes[dialect].DATE.prototype.compare;
-      delete Sequelize.DataTypes[dialect].DATE.prototype.set;
+
+      Sequelize.DataTypes[dialect].DATE.prototype.compare = compareOriginal;
+      Sequelize.DataTypes[dialect].DATE.prototype.set = setOriginal;
     });
   });
 
