@@ -93,6 +93,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       expect(moment.isMoment(user.dateField)).to.be.ok;
 
       delete Sequelize.DATE.parse;
+      delete Sequelize.DataTypes[dialect].DATE.prototype.compare;
+      delete Sequelize.DataTypes[dialect].DATE.prototype.set;
     });
   });
 
