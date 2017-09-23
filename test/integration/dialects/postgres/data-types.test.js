@@ -11,8 +11,6 @@ const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
-const debug = require('debug')('sequelize:test:integration:dialects:postgres');
-
 if (dialect === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
     describe('DATE', () => {
