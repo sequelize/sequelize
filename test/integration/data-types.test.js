@@ -54,6 +54,22 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return value.format('YYYY-MM-DD HH:mm:ss');
     });
 
+    const set = Sequelize.DataTypes[dialect].DATE.prototype.set = sinon.spy(value => {
+      return value;
+    });
+
+    const compare = Sequelize.DataTypes[dialect].DATE.prototype.compare = sinon.spy((value, originalValue, key, options) => {
+      if (!options.raw && !!value) {
+        if (originalValue) {
+          if (!value.diff(originalValue)) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+    });
+
     current.refreshTypes();
 
     const User = current.define('user', {
@@ -71,6 +87,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }).then(user => {
       expect(parse).to.have.been.called;
       expect(stringify).to.have.been.called;
+      expect(set).to.have.been.called;
+      expect(compare).to.have.been.called;
 
       expect(moment.isMoment(user.dateField)).to.be.ok;
 

@@ -3,9 +3,15 @@
 const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
+const _ = require('lodash');
+const moment = require('moment');
+const Sequelize = require('../../../../index');
 const Support = require(__dirname + '/../../support');
+const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 const DataTypes = require(__dirname + '/../../../../lib/data-types');
+
+const debug = require('debug')('sequelize:test:integration:dialects:postgres');
 
 if (dialect === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
@@ -308,6 +314,116 @@ if (dialect === 'postgres') {
         });
       });
     });
+
+    describe('changed', () => {
+      beforeEach(function() {
+        this.User = current.define('User', {
+          name: DataTypes.STRING,
+          birthdate: DataTypes.DATE,
+          meta: DataTypes.JSON
+        });
+      });
+
+      it('should return false for two instances with same value', function() {
+        const milliseconds = 1436921941088;
+        const firstDate = new Date(milliseconds);
+        const secondDate = new Date(milliseconds);
+
+        const user = this.User.build({
+          birthdate: firstDate
+        }, {
+          isNewRecord: false,
+          raw: true
+        });
+
+        user.set('birthdate', secondDate);
+        expect(user.changed('birthdate')).to.equal(false);
+      });
+    });
+
+    // describe(Support.getTestDialectTeaser('DataTypes'), () => {
+    //   afterEach(function() {
+    //     // Restore some sanity by resetting all parsers
+    //     switch (dialect) {
+    //       case 'postgres':
+    //         const types = require('pg-types');
+
+    //         _.each(DataTypes, dataType => {
+    //           if (dataType.types && dataType.types.postgres) {
+    //             dataType.types.postgres.oids.forEach(oid => {
+    //               types.setTypeParser(oid, _.identity);
+    //             });
+    //           }
+    //         });
+
+    //         require('pg-types/lib/binaryParsers').init((oid, converter) => {
+    //           types.setTypeParser(oid, 'binary', converter);
+    //         });
+    //         require('pg-types/lib/textParsers').init((oid, converter) => {
+    //           types.setTypeParser(oid, 'text', converter);
+    //         });
+    //         break;
+    //       default:
+    //         this.sequelize.connectionManager._clearTypeParser();
+    //     }
+
+    //     this.sequelize.connectionManager.refreshTypeParser(DataTypes[dialect]); // Reload custom parsers
+    //   });
+
+    //   it('allows me to return values from a custom parse function', () => {
+    //     const parse = Sequelize.DATE.parse = sinon.spy(value => {
+    //       return moment(value, 'YYYY-MM-DD HH:mm:ss');
+    //     });
+
+    //     const stringify = Sequelize.DATE.prototype.stringify = sinon.spy(function(value, options) {
+    //       if (!moment.isMoment(value)) {
+    //         value = this._applyTimezone(value, options);
+    //       }
+    //       return value.format('YYYY-MM-DD HH:mm:ss');
+    //     });
+
+    //     const set = Sequelize.DataTypes[dialect].DATE.prototype.set = sinon.spy(value => {
+    //       return value;
+    //     });
+
+    //     const compare = Sequelize.DataTypes[dialect].DATE.prototype.compare = sinon.spy((value, originalValue, key, options) => {
+    //       if (!options.raw && !!value) {
+    //         if (originalValue) {
+    //           if (!value.diff(originalValue)) {
+    //             return false;
+    //           }
+    //         }
+
+    //         return true;
+    //       }
+    //     });
+
+    //     current.refreshTypes();
+
+    //     const User = current.define('user', {
+    //       dateField: Sequelize.DATE
+    //     }, {
+    //       timestamps: false
+    //     });
+
+    //     return current.sync({ force: true }).then(() => {
+    //       return User.create({
+    //         dateField: moment('2011 10 31', 'YYYY MM DD')
+    //       });
+    //     }).then(() => {
+    //       return User.findAll().get(0);
+    //     }).then(user => {
+    //       expect(parse).to.have.been.called;
+    //       expect(stringify).to.have.been.called;
+    //       expect(set).to.have.been.called;
+    //       expect(compare).to.have.been.called;
+
+    //       expect(moment.isMoment(user.dateField)).to.be.ok;
+
+    //       delete Sequelize.DATE.parse;
+    //     });
+    //   });
+    // });
 
   });
 }
