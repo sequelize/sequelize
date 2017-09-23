@@ -358,9 +358,9 @@ if (dialect.match(/^postgres/)) {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'single string argument is not quoted',
+          title: 'single string argument should be quoted',
           arguments: ['myTable', {group: 'name'}],
-          expectation: 'SELECT * FROM \"myTable\" GROUP BY name;'
+          expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\";'
         }, {
           arguments: ['myTable', {group: ['name']}],
           expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\";'
