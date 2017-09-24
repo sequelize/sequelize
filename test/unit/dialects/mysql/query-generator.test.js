@@ -484,6 +484,9 @@ if (dialect === 'mysql') {
         }, {
           arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], {updateOnDuplicate: ['name']}],
           expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar') ON DUPLICATE KEY UPDATE `name`=VALUES(`name`);"
+        }, {
+          arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], {updateOnDuplicate: ['name'], preserveValuesOnNull: ['name']}],
+          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar') ON DUPLICATE KEY UPDATE `name`=IF(VALUES(`name`) IS NOT NULL, VALUES(`name`), `name`);"
         }
       ],
 
