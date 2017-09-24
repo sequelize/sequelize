@@ -9,7 +9,14 @@ const DataTypes = require(__dirname + '/../../../../lib/data-types');
 if (dialect === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
     describe('DATE/DATEONLY Validate and Stringify', () => {
-      // quick test of DATE methods
+      const now = new Date();
+      const nowString = now.toISOString();
+
+      it('DATE should validate a Date as normal', () => {
+        expect(DataTypes[dialect].DATE().validate(now)).to.equal(true);
+        expect(DataTypes[dialect].DATE().validate(nowString)).to.equal(true);
+      });
+
       it('DATE should validate Infinity/-Infinity as true', () => {
         expect(DataTypes[dialect].DATE().validate(Infinity)).to.equal(true);
         expect(DataTypes[dialect].DATE().validate(-Infinity)).to.equal(true);
@@ -23,6 +30,42 @@ if (dialect === 'postgres') {
       it('DATEONLY should stringify Infinity/-Infinity to infinity/-infinity', () => {
         expect(DataTypes[dialect].DATEONLY().stringify(Infinity)).to.equal('Infinity');
         expect(DataTypes[dialect].DATEONLY().stringify(-Infinity)).to.equal('-Infinity');
+      });
+    });
+
+    describe('DATE/DATEONLY Sanitize', () => {
+      const now = new Date();
+      const nowString = now.toISOString();
+      const nowDateOnly = nowString.substr(0, 10);
+
+      it('DATE should sanitize a Date as normal', () => {
+        expect(DataTypes[dialect].DATE()._sanitize(now)).to.equalTime(now);
+        expect(DataTypes[dialect].DATE()._sanitize(nowString)).to.equalTime(now);
+      });
+
+      it('DATE should sanitize Infinity/-Infinity as Infinity/-Infinity', () => {
+        expect(DataTypes[dialect].DATE()._sanitize(Infinity)).to.equal(Infinity);
+        expect(DataTypes[dialect].DATE()._sanitize(-Infinity)).to.equal(-Infinity);
+      });
+
+      it('DATE should sanitize "Infinity"/"-Infinity" as Infinity/-Infinity', () => {
+        expect(DataTypes[dialect].DATE()._sanitize('Infinity')).to.equal(Infinity);
+        expect(DataTypes[dialect].DATE()._sanitize('-Infinity')).to.equal(-Infinity);
+      });
+
+      it('DATEONLY should sanitize a Date as normal', () => {
+        expect(DataTypes[dialect].DATEONLY()._sanitize(now)).to.equal(nowDateOnly);
+        expect(DataTypes[dialect].DATEONLY()._sanitize(nowString)).to.equal(nowDateOnly);
+      });
+
+      it('DATEONLY should sanitize Infinity/-Infinity as Infinity/-Infinity', () => {
+        expect(DataTypes[dialect].DATEONLY()._sanitize(Infinity)).to.equal(Infinity);
+        expect(DataTypes[dialect].DATEONLY()._sanitize(-Infinity)).to.equal(-Infinity);
+      });
+
+      it('DATEONLY should sanitize "Infinity"/"-Infinity" as Infinity/-Infinity', () => {
+        expect(DataTypes[dialect].DATEONLY()._sanitize('Infinity')).to.equal(Infinity);
+        expect(DataTypes[dialect].DATEONLY()._sanitize('-Infinity')).to.equal(-Infinity);
       });
     });
 
