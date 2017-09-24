@@ -129,7 +129,7 @@ Now we should edit this file to insert demo user to `User` table.
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.bulkInsert('User', [{
+    return queryInterface.bulkInsert('Users', [{
         firstName: 'John',
         lastName: 'Doe',
         email: 'demo@demo.com'
@@ -137,7 +137,7 @@ module.exports = {
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.bulkDelete('User', null, {});
+    return queryInterface.bulkDelete('Users', null, {});
   }
 };
 
@@ -147,7 +147,7 @@ module.exports = {
 In last step you have create a seed file. Its still not committed to database. To do that we need to run a simple command.
 
 ```bash
-$ node_modules/.bin/sequelize db:seed
+$ node_modules/.bin/sequelize db:seed:all
 ```
 
 This will execute that seed file and you will have a demo user inserted into `User` table.

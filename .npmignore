@@ -17,4 +17,5 @@ mkdocs.yml
 .dockerignore
 .editorconfig
 .travis.yml
+package-lock.json
 
