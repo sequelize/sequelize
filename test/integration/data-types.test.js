@@ -488,4 +488,31 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       });
   });
 
+  it('should be able to cast buffer as boolean', function() {
+    const ByteModel = this.sequelize.define('Model', {
+      byteToBool: this.sequelize.Sequelize.BLOB
+    }, {
+      timestamps: false
+    });
+
+    const BoolModel = this.sequelize.define('Model', {
+      byteToBool: this.sequelize.Sequelize.BOOLEAN
+    }, {
+      timestamps: false
+    });
+
+    return ByteModel.sync({
+      force: true
+    }).then(() => {
+      return ByteModel.create({
+        byteToBool: new Buffer([true])
+      });
+    }).then(byte => {
+      expect(byte.byteToBool).to.be.ok;
+
+      return BoolModel.findById(byte.id);
+    }).then(bool => {
+      expect(bool.byteToBool).to.be.true;
+    });
+  });
 });
