@@ -31,6 +31,7 @@ if (dialect === 'postgres') {
       it('should be able to create and update records with Infinity/-Infinity', function() {
         this.sequelize.options.typeValidation = true;
 
+        const date = new Date();
         const User = this.sequelize.define('User', {
           username: this.sequelize.Sequelize.STRING,
           beforeTime: {
@@ -64,8 +65,17 @@ if (dialect === 'postgres') {
         }).then(user => {
           expect(user.username).to.equal('bob');
           expect(user.beforeTime).to.equal(-Infinity);
+          expect(user.sometime).to.be.withinTime(date, new Date());
           expect(user.anotherTime).to.equal(Infinity);
           expect(user.afterTime).to.equal(Infinity);
+
+          return user.update({
+            sometime: Infinity
+          }, {
+            returning: true
+          });
+        }).then(user => {
+          expect(user.sometime).to.equal(Infinity);
 
           return user.update({
             sometime: Infinity
@@ -75,9 +85,11 @@ if (dialect === 'postgres') {
 
           return user.update({
             sometime: this.sequelize.fn('NOW')
+          }, {
+            returning: true
           });
         }).then(user => {
-          expect(user.sometime).to.not.equal(Infinity);
+          expect(user.sometime).to.be.withinTime(date, new Date());
 
           // find
           return User.findAll();
@@ -85,6 +97,18 @@ if (dialect === 'postgres') {
           expect(users[0].beforeTime).to.equal(-Infinity);
           expect(users[0].sometime).to.not.equal(Infinity);
           expect(users[0].afterTime).to.equal(Infinity);
+
+          return users[0].update({
+            sometime: date
+          });
+        }).then(user => {
+          expect(user.sometime).to.equalTime(date);
+
+          return user.update({
+            sometime: date
+          });
+        }).then(user => {
+          expect(user.sometime).to.equalTime(date);
         });
       });
     });
@@ -94,6 +118,7 @@ if (dialect === 'postgres') {
       it('should be able to create and update records with Infinity/-Infinity', function() {
         this.sequelize.options.typeValidation = true;
 
+        const date = new Date();
         const User = this.sequelize.define('User', {
           username: this.sequelize.Sequelize.STRING,
           beforeTime: {
@@ -127,8 +152,17 @@ if (dialect === 'postgres') {
         }).then(user => {
           expect(user.username).to.equal('bob');
           expect(user.beforeTime).to.equal(-Infinity);
+          expect(new Date(user.sometime)).to.be.withinDate(date, new Date());
           expect(user.anotherTime).to.equal(Infinity);
           expect(user.afterTime).to.equal(Infinity);
+
+          return user.update({
+            sometime: Infinity
+          }, {
+            returning: true
+          });
+        }).then(user => {
+          expect(user.sometime).to.equal(Infinity);
 
           return user.update({
             sometime: Infinity
@@ -138,9 +172,12 @@ if (dialect === 'postgres') {
 
           return user.update({
             sometime: this.sequelize.fn('NOW')
+          }, {
+            returning: true
           });
         }).then(user => {
           expect(user.sometime).to.not.equal(Infinity);
+          expect(new Date(user.sometime)).to.be.withinDate(date, new Date());
 
           // find
           return User.findAll();
@@ -150,6 +187,12 @@ if (dialect === 'postgres') {
           expect(users[0].afterTime).to.equal(Infinity);
 
           return users[0].update({
+            sometime: '1969-07-20'
+          });
+        }).then(user => {
+          expect(user.sometime).to.equal('1969-07-20');
+
+          return user.update({
             sometime: '1969-07-20'
           });
         }).then(user => {

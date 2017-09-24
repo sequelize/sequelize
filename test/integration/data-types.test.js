@@ -455,16 +455,36 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       stamp: Sequelize.DATEONLY
     });
     const testDate = moment().format('YYYY-MM-DD');
+    const newDate = new Date();
 
     return Model.sync({ force: true})
       .then(() => Model.create({ stamp: testDate }))
       .then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
+
         return Model.findById(record.id);
       }).then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
+
+        return record.update({
+          stamp: testDate
+        });
+      }).then(record => {
+        return record.reload();
+      }).then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+
+        return record.update({
+          stamp: newDate
+        });
+      }).then(record => {
+        return record.reload();
+      }).then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(new Date(record.stamp)).to.equalDate(newDate);
       });
   });
 
