@@ -1,4 +1,4 @@
-sudo: required
+sudo: false
 dist: trusty
 
 language: node_js
@@ -50,18 +50,21 @@ jobs:
       env: DIALECT=sqlite COVERAGE=true
     - stage: tests
       node_js: 4
+      sudo: required
       env: MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
     - stage: tests
       node_js: 4
+      sudo: required
       env: POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
     - stage: tests
       node_js: 4
+      sudo: required
       env: POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
     - stage: tests
-      node_js: 6
+      node_js: 8
       env: DIALECT=sqlite
     - stage: tests
-      node_js: 8
+      node_js: 6
       env: DIALECT=sqlite
     - stage: docs
       node_js: 6
@@ -75,9 +78,10 @@ jobs:
         on:
           branch: master
     - stage: release
-      node_js: 4
-      env:
-        - TRAVIS_JOB_NUMBER=WORKAROUND.1
+      node_js: 8
+      env: BUILD_LEADER_ID=8
       script:
+        - npm install --no-save --no-package-lock semantic-release@8 @bubltechnology/customizable-commit-analyzer@1.0.2-0
         - npm run lint
-        - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then npm run semantic-release; fi'
+      after_success:
+        - ./node_modules/.bin/semantic-release pre && npm publish && ./node_modules/.bin/semantic-release post

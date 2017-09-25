@@ -23,22 +23,27 @@ if (dialect === 'sqlite') {
         {
           title:'Should use the plus operator',
           arguments: ['+', 'myTable', { foo: 'bar' }, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+\'bar\' '
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' '
         },
         {
           title:'Should use the plus operator with where clause',
           arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+\'bar\' WHERE `bar` = \'biz\''
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\''
         },
         {
           title:'Should use the minus operator',
           arguments: ['-', 'myTable', { foo: 'bar' }],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`-\'bar\' '
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' '
+        },
+        {
+          title:'Should use the minus operator with negative value',
+          arguments: ['-', 'myTable', { foo: -1 }],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1 '
         },
         {
           title:'Should use the minus operator with where clause',
           arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`-\'bar\' WHERE `bar` = \'biz\''
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\''
         }
       ],
       attributesToSQL: [
@@ -246,9 +251,9 @@ if (dialect === 'sqlite') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'single string argument is not quoted',
+          title: 'single string argument should be quoted',
           arguments: ['myTable', {group: 'name'}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
           context: QueryGenerator
         }, {
           arguments: ['myTable', {group: ['name']}],
@@ -280,7 +285,7 @@ if (dialect === 'sqlite') {
           context: QueryGenerator
         }, {
           arguments: ['myTable', {group: 'name', order: [['id', 'DESC']]}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY `id` DESC;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
           title: 'HAVING clause works with where-like hash',
