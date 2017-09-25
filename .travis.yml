@@ -1,4 +1,4 @@
-sudo: required
+sudo: false
 dist: trusty
 
 language: node_js
@@ -50,12 +50,15 @@ jobs:
       env: DIALECT=sqlite COVERAGE=true
     - stage: tests
       node_js: 4
+      sudo: required
       env: MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
     - stage: tests
       node_js: 4
+      sudo: required
       env: POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
     - stage: tests
       node_js: 4
+      sudo: required
       env: POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
     - stage: tests
       node_js: 8
