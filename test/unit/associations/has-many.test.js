@@ -4,6 +4,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
   stub = sinon.stub,
+  _         = require('lodash'),
   Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   HasMany   = require(__dirname + '/../../../lib/associations/has-many'),
@@ -98,7 +99,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         createTask: 'create'
       };
 
-      current.Utils._.each(methods, (alias, method) => {
+      _.each(methods, (alias, method) => {
         User.prototype[method] = function() {
           const realMethod = this.constructor.associations.task[alias];
           expect(realMethod).to.be.a('function');
@@ -110,7 +111,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
       const user = User.build();
 
-      current.Utils._.each(methods, (alias, method) => {
+      _.each(methods, (alias, method) => {
         expect(user[method]()).to.be.a('function');
       });
     });
