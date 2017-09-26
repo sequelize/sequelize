@@ -76,6 +76,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
+    it('should allow concurrent unique duplicate where duplicate unique key contains comma', function() {
+      const User = this.sequelize.define('user', {
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        }
+      });
+
+      return User.sync({force: true}).then(() => {
+        return Promise.all([
+          User.findOrCreate({
+            where: {
+              username: 'hello, world',
+            },
+            defaults: {
+              username: 'hello, world',
+            }
+          }),
+          User.findOrCreate({
+            where: {
+              username: 'hello, world',
+            },
+            defaults: {
+              username: 'hello, world',
+            }
+          }),
+        ]);
+      });
+    });
+
     it('should error correctly when defaults contain a unique key', function() {
       const User = this.sequelize.define('user', {
         objectId: {
