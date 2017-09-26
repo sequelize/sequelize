@@ -238,10 +238,10 @@ Not having any string aliases will make it extremely unlikely that operators cou
 For backward compatibility reasons Sequelize sets the following aliases by default -
 $eq, $ne, $gte, $gt, $lte, $lt, $not, $in, $notIn, $is, $like, $notLike, $iLike, $notILike, $regexp, $notRegexp, $iRegexp, $notIRegexp, $between, $notBetween, $overlap, $contains, $contained, $adjacent, $strictLeft, $strictRight, $noExtendRight, $noExtendLeft, $and, $or, $any, $all, $values, $col
 
-currently the following legacy aliases are also set but are planned to be fully removed in the near future -
+Currently the following legacy aliases are also set but are planned to be fully removed in the near future -
 ne, not, in, notIn, gte, gt, lte, lt, like, ilike, $ilike, nlike, $notlike, notilike, .., between, !.., notbetween, nbetween, overlap, &&, @>, <@
 
-Due to the security improvements it is highly advised to only use the specific aliases you need.
+For better security it is highly advised to use `Sequelize.Op` and not depend on any string alias at all. You can limit alias your application will need by setting `operatorsAliases` option, remember to sanitize user input especially when you are directly passing them to Sequelize methods.
 
 ```js
 const Op = Sequelize.Op;
