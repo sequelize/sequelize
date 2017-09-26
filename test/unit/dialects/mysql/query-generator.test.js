@@ -262,9 +262,9 @@ if (dialect === 'mysql') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'single string argument is not quoted',
+          title: 'single string argument should be quoted',
           arguments: ['myTable', {group: 'name'}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
           context: QueryGenerator
         }, {
           arguments: ['myTable', { group: ['name'] }],
@@ -292,7 +292,7 @@ if (dialect === 'mysql') {
           needsSequelize: true
         }, {
           arguments: ['myTable', {group: 'name', order: [['id', 'DESC']]}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY `id` DESC;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
           title: 'HAVING clause works with where-like hash',
