@@ -9,7 +9,7 @@ const fs = require('fs'),
   supportShim = require(__dirname + '/supportShim'),
   chai = require('chai'),
   expect = chai.expect,
-  AbstructQueryGenerator = require('../lib/dialects/abstract/query-generator');
+  AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
 
 
 chai.use(require('chai-spies'));
@@ -158,7 +158,7 @@ const Support = {
   getAbstractQueryGenerator(sequelize) {
     return Object.assign(
       {},
-      AbstructQueryGenerator,
+      AbstractQueryGenerator,
       {options: sequelize.options, _dialect: sequelize.dialect, sequelize, quoteIdentifier(identifier) { return identifier; }}
     );
   },
