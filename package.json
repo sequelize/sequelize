@@ -64,7 +64,7 @@
     "continuation-local-storage": "^3.2.0",
     "cross-env": "^5.0.5",
     "cz-conventional-changelog": "^2.0.0",
-    "env-cmd": "^6.0.0",
+    "env-cmd": "^7.0.0",
     "esdoc": "^0.5.2",
     "eslint": "^4.6.0",
     "hints": "^1.1.0",
