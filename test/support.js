@@ -155,7 +155,7 @@ const Support = {
     }
   },
 
-  getAbstructQueryGenerator(sequelize) {
+  getAbstractQueryGenerator(sequelize) {
     return Object.assign(
       {},
       AbstructQueryGenerator,
