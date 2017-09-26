@@ -247,7 +247,7 @@ For better security it is highly advised to use `Sequelize.Op` and not depend on
 const Op = Sequelize.Op;
 
 //use sequelize without any operators aliases
-const connection = new Sequelize(db, user, pass, { operatorsAliases: {} });
+const connection = new Sequelize(db, user, pass, { operatorsAliases: false });
 
 //use sequelize with only alias for $and => Op.and
 const connection2 = new Sequelize(db, user, pass, { operatorsAliases: { $and: Op.and } });
