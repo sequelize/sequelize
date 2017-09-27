@@ -976,7 +976,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
-          mysql: "CAST((`data`->>'$.nested.attribute') AS DECIMAL) = true",
+          mysql: "(`data`->>'$.nested.attribute') = 'true'",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS BOOLEAN) = true",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS BOOLEAN) = 1"
         });
