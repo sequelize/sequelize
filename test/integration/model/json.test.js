@@ -251,9 +251,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be possible to query dates with array operators', function() {
-          const now = moment().toDate();
-          const before = moment().subtract(1, 'day').toDate();
-          const after = moment().add(1, 'day').toDate();
+          const now = moment().milliseconds(0).toDate();
+          const before = moment().milliseconds(0).subtract(1, 'day').toDate();
+          const after = moment().milliseconds(0).add(1, 'day').toDate();
           return Promise.join(
             this.Event.create({
               json: {
