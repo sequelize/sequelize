@@ -4,6 +4,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const expect = chai.expect;
 const stub = sinon.stub;
+const _ = require('lodash');
 const Support = require(__dirname + '/../support');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const BelongsTo = require(__dirname + '/../../../lib/associations/belongs-to');
@@ -72,7 +73,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     const User = current.define('User');
     const Task = current.define('Task');
 
-    current.Utils._.each(methods, (alias, method) => {
+    _.each(methods, (alias, method) => {
       User.prototype[method] = function() {
         const realMethod = this.constructor.associations.task[alias];
         expect(realMethod).to.be.a('function');
@@ -84,7 +85,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
     const user = User.build();
 
-    current.Utils._.each(methods, (alias, method) => {
+    _.each(methods, (alias, method) => {
       expect(user[method]()).to.be.a('function');
     });
   });

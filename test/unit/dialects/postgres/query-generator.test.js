@@ -358,9 +358,9 @@ if (dialect.match(/^postgres/)) {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'single string argument is not quoted',
+          title: 'single string argument should be quoted',
           arguments: ['myTable', {group: 'name'}],
-          expectation: 'SELECT * FROM \"myTable\" GROUP BY name;'
+          expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\";'
         }, {
           arguments: ['myTable', {group: ['name']}],
           expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\";'
@@ -422,7 +422,7 @@ if (dialect.match(/^postgres/)) {
         }, {
           title: 'string in array should escape \' as \'\'',
           arguments: ['myTable', {where: { aliases: {$contains: ['Queen\'s']} }}],
-          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"aliases\" @> ARRAY['Queen''s'];",
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"aliases\" @> ARRAY['Queen''s'];"
         },
 
         // Variants when quoteIdentifiers is false
@@ -904,6 +904,25 @@ if (dialect.match(/^postgres/)) {
           expectation: 'ROLLBACK TO SAVEPOINT \"transaction-uid\";',
           context: {options: {quoteIdentifiers: true}}
         }
+      ],
+
+      createTrigger: [
+        {
+          arguments: ['myTable', 'myTrigger', 'after', ['insert'],  'myFunction', [], []],
+          expectation: 'CREATE TRIGGER myTrigger\n\tAFTER INSERT\n\tON myTable\n\t\n\tEXECUTE PROCEDURE myFunction();'
+        },
+        {
+          arguments: ['myTable', 'myTrigger', 'before', ['insert', 'update'],  'myFunction', [{name: 'bar', type: 'INTEGER'}], []],
+          expectation: 'CREATE TRIGGER myTrigger\n\tBEFORE INSERT OR UPDATE\n\tON myTable\n\t\n\tEXECUTE PROCEDURE myFunction(bar INTEGER);'
+        },
+        {
+          arguments: ['myTable', 'myTrigger', 'instead_of', ['insert', 'update'],  'myFunction', [], ['FOR EACH ROW']],
+          expectation: 'CREATE TRIGGER myTrigger\n\tINSTEAD OF INSERT OR UPDATE\n\tON myTable\n\t\n\tFOR EACH ROW\n\tEXECUTE PROCEDURE myFunction();'
+        },
+        {
+          arguments: ['myTable', 'myTrigger', 'after_constraint', ['insert', 'update'],  'myFunction', [{name: 'bar', type: 'INTEGER'}], ['FOR EACH ROW']],
+          expectation:'CREATE CONSTRAINT TRIGGER myTrigger\n\tAFTER INSERT OR UPDATE\n\tON myTable\n\t\n\tFOR EACH ROW\n\tEXECUTE PROCEDURE myFunction(bar INTEGER);'
+        }
       ]
     };
 
@@ -924,6 +943,7 @@ if (dialect.match(/^postgres/)) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
+
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             QueryGenerator.sequelize = this.sequelize;
