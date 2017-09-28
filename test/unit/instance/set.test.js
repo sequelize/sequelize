@@ -92,34 +92,36 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         phoneNumber: {
           type: DataTypes.STRING,
           set (val) {
-            if (typeof value === 'string') {
+            if (typeof val === 'string') {
+              // Canonicalize phone number
               val = val.replace(/^\+/, '00').replace(/\(0\)|[\s+\/.\-\(\)]/g, '');
+              console.log('val', val);
             }
-            this.setDataValue('phoneNumber', val.split(' ').reverse().join(' '));
+            this.setDataValue('phoneNumber', val);
           }
         }
       });
 
       it('does not set field to changed if field is set to the same value with custom setter', () => {
         const user = User.build({
-          phoneNumber: 'hello world'
+          phoneNumber: '+1 234 567'
         });
         return user.save().then(() => {
           expect(user.changed('phoneNumber')).to.be.false;
 
-          user.set('phoneNumber', 'hello world');
+          user.set('phoneNumber', '+1 (0) 234567'); // Canonical equivalent of existing phone number
           expect(user.changed('phoneNumber')).to.be.false;
         });
       });
 
       it('sets field to changed if field is set to the another value with custom setter', () => {
         const user = User.build({
-          phoneNumber: 'hello world'
+          phoneNumber: '+1 234 567'
         });
         return user.save().then(() => {
           expect(user.changed('phoneNumber')).to.be.false;
 
-          user.set('phoneNumber', 'goodbye world');
+          user.set('phoneNumber', '+1 (0) 765432'); // Canonical non-equivalent of existing phone number
           expect(user.changed('phoneNumber')).to.be.true;
         });
       });
