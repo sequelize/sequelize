@@ -271,7 +271,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             group_id: 1,
             user_id: 2
           },
-          shared: 1,
+          shared: 1
         }, {
           default: '(([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
@@ -324,7 +324,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             group_id: 1,
             user_id: 2
           },
-          shared: 1,
+          shared: 1
         }, {
           default: 'NOT (([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
