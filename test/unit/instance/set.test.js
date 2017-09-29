@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     describe('custom setter', () => {
       before(function() {
         this.stubCreate = sinon.stub(current.getQueryInterface(), 'insert', instance => {
-          return Promise.resolve([ instance, 1]);
+          return Promise.resolve([instance, 1]);
         });
       });
 
