@@ -67,7 +67,7 @@ const Support = {
           resolve();
         }
       }).then(() => {
-        const options = Sequelize.Utils._.extend({}, sequelize.options, { storage: p }),
+        const options = _.extend({}, sequelize.options, { storage: p }),
           _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
         if (callback) {
