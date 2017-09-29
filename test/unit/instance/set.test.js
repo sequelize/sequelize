@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('custom setter', () => {
       before(function() {
-        this.stubCreate = sinon.stub(current.getQueryInterface(), 'insert', (instance) => {
+        this.stubCreate = sinon.stub(current.getQueryInterface(), 'insert', instance => {
           return Promise.resolve([ instance, 1]);
         });
       });
@@ -92,17 +92,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         phoneNumber: {
           type: DataTypes.STRING,
           set (val) {
+            if (typeof val === 'object' && val !== null) {
+              val = `00${val.country}${val.area}${val.local}`;
+            }
             if (typeof val === 'string') {
               // Canonicalize phone number
               val = val.replace(/^\+/, '00').replace(/\(0\)|[\s+\/.\-\(\)]/g, '');
-              console.log('val', val);
             }
             this.setDataValue('phoneNumber', val);
           }
         }
       });
 
-      it('does not set field to changed if field is set to the same value with custom setter', () => {
+      it('does not set field to changed if field is set to the same value with custom setter using primitive value', () => {
         const user = User.build({
           phoneNumber: '+1 234 567'
         });
@@ -114,7 +116,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
       });
 
-      it('sets field to changed if field is set to the another value with custom setter', () => {
+      it('sets field to changed if field is set to the another value with custom setter using primitive value', () => {
         const user = User.build({
           phoneNumber: '+1 234 567'
         });
@@ -122,6 +124,30 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           expect(user.changed('phoneNumber')).to.be.false;
 
           user.set('phoneNumber', '+1 (0) 765432'); // Canonical non-equivalent of existing phone number
+          expect(user.changed('phoneNumber')).to.be.true;
+        });
+      });
+
+      it('does not set field to changed if field is set to the same value with custom setter using object', () => {
+        const user = User.build({
+          phoneNumber: '+1 234 567'
+        });
+        return user.save().then(() => {
+          expect(user.changed('phoneNumber')).to.be.false;
+
+          user.set('phoneNumber', { country: '1', area: '234', local: '567' }); // Canonical equivalent of existing phone number
+          expect(user.changed('phoneNumber')).to.be.false;
+        });
+      });
+
+      it('sets field to changed if field is set to the another value with custom setter using object', () => {
+        const user = User.build({
+          phoneNumber: '+1 234 567'
+        });
+        return user.save().then(() => {
+          expect(user.changed('phoneNumber')).to.be.false;
+
+          user.set('phoneNumber', { country: '1', area: '765', local: '432' }); // Canonical non-equivalent of existing phone number
           expect(user.changed('phoneNumber')).to.be.true;
         });
       });
