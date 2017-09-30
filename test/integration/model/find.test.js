@@ -1017,5 +1017,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should find only non deleted records', function() {
+      const User = this.sequelize.define('paranoiduser', {
+        username: Sequelize.STRING
+      }, { paranoid: true });
+
+
+      if (dialect === 'sqlite') { 
+        return User.sync({ force: true }).then(() => {
+          return User.bulkCreate([
+            {username: 'Bob'},
+            {username: 'Tobi'}
+          ]);
+        }).then(() => {
+          return User.destroy({ where: {username: 'Tobi'} });
+        }).delay(5000).then(() => {
+          return User.findAll({ paranoid: true });
+        }).then(users => {
+          expect(users.length).to.be.eql(1);
+        });
+      } else {
+        return User.sync({ force: true }).then(() => {
+          return User.bulkCreate([
+            {username: 'Bob'},
+            {username: 'Tobi'}
+          ]);
+        }).then(() => {
+          return User.destroy({ where: {username: 'Tobi'} });
+        }).then(() => {
+          return User.findAll({ paranoid: true });
+        }).then(users => {
+          expect(users.length).to.be.eql(1);
+        });
+      }
+    });
+
   });
 });
