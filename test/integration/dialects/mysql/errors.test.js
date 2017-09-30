@@ -1,11 +1,10 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  dialect = Support.getTestDialect(),
-  DataTypes = require(__dirname + '/../../../../lib/data-types')
-  ;
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../../support');
+const dialect = Support.getTestDialect();
+const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Errors', () => {
