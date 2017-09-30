@@ -13,3 +13,9 @@
 <hr />
 
 [![Connected Cars logo](asset/connected-cars.png)](https://connectedcars.dk/)
+
+<hr />
+
+[![Bitovi Logo](asset/bitovi-logo.png)](https://bitovi.com)
+
+> We have used Sequelize in enterprise projects for some of our Fortune 100 and Fortune 500 clients.  It is used in deployments that are depended on by hundreds of millions of devices every year.
