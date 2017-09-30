@@ -555,6 +555,12 @@ if (dialect === 'mysql') {
           arguments: ['User', ['foo', 'bar']],
           expectation: 'DROP INDEX `user_foo_bar` ON `User`'
         }
+      ],
+      getForeignKeyQuery: [
+        {
+          arguments: ['User', 'email'],
+          expectation: "SELECT CONSTRAINT_NAME as constraint_name FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (REFERENCED_TABLE_NAME = 'User' AND REFERENCED_COLUMN_NAME = 'email') OR (TABLE_NAME = 'User' AND COLUMN_NAME = 'email' AND REFERENCED_TABLE_NAME IS NOT NULL)"
+        }
       ]
     };
 

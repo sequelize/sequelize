@@ -730,6 +730,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         return this.task.getUsers();
       }).then(_users => {
         expect(_users).to.have.length(0);
+      }).finally(() => {
+        this.sequelize.options.omitNull = false;
       });
     });
 
