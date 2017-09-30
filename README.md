@@ -66,3 +66,4 @@ If you have any security issue to report, contact project maintainers privately.
 - [Slack](http://sequelize-slack.herokuapp.com/)
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
 - [Add-ons & Plugins](https://github.com/sequelize/sequelize/wiki/Add-ons-&-Plugins)
+- [Sequelize & TypeScript](https://github.com/RobinBuschmann/sequelize-typescript)
