@@ -5,6 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
+  Operators = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
 if (dialect === 'mysql') {
@@ -554,6 +555,12 @@ if (dialect === 'mysql') {
           arguments: ['User', ['foo', 'bar']],
           expectation: 'DROP INDEX `user_foo_bar` ON `User`'
         }
+      ],
+      getForeignKeyQuery: [
+        {
+          arguments: ['User', 'email'],
+          expectation: "SELECT CONSTRAINT_NAME as constraint_name FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (REFERENCED_TABLE_NAME = 'User' AND REFERENCED_COLUMN_NAME = 'email') OR (TABLE_NAME = 'User' AND COLUMN_NAME = 'email' AND REFERENCED_TABLE_NAME IS NOT NULL)"
+        }
       ]
     };
 
@@ -571,6 +578,7 @@ if (dialect === 'mysql') {
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             QueryGenerator.sequelize = this.sequelize;
+            QueryGenerator.setOperatorsAliases(Operators.LegacyAliases);
             const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
