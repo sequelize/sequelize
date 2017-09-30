@@ -3,6 +3,7 @@
 const Support = require(__dirname + '/../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
+const Operators = require('../../../../lib/operators');
 const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator');
 const _ = require('lodash');
 
@@ -10,6 +11,8 @@ if (current.dialect.name === 'mssql') {
   suite('[MSSQL Specific] QueryGenerator', () => {
     // Dialect would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
     QueryGenerator._dialect = current.dialect;
+    //Aliases might not be needed here since it doesn't seem like this test uses any operators
+    QueryGenerator.setOperatorsAliases(Operators.Aliases);
 
     test('getDefaultConstraintQuery', () => {
       expectsql(QueryGenerator.getDefaultConstraintQuery({tableName: 'myTable', schema: 'mySchema'}, 'myColumn'), {

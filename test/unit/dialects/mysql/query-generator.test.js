@@ -5,6 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
+  Operators = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
 if (dialect === 'mysql') {
@@ -577,6 +578,7 @@ if (dialect === 'mysql') {
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             QueryGenerator.sequelize = this.sequelize;
+            QueryGenerator.setOperatorsAliases(Operators.LegacyAliases);
             const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
