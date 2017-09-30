@@ -8,7 +8,7 @@ const chai = require('chai'),
   ;
 
 if (dialect === 'mysql') {
-  describe.only('[MYSQL Specific] Errors', () => {
+  describe('[MYSQL Specific] Errors', () => {
 
     const validateError = (promise, errClass, errValues) => {
       const wanted = Object.assign({}, errValues);
