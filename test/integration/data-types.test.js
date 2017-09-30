@@ -488,6 +488,33 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       });
   });
 
+  it('should return set DATEONLY field to NULL correctly', function() {
+    const Model = this.sequelize.define('user', {
+      stamp: Sequelize.DATEONLY
+    });
+    const testDate = moment().format('YYYY-MM-DD');
+
+    return Model.sync({ force: true})
+      .then(() => Model.create({ stamp: testDate }))
+      .then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+
+        return Model.findById(record.id);
+      }).then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+
+        return record.update({
+          stamp: null
+        });
+      }).then(record => {
+        return record.reload();
+      }).then(record => {
+        expect(record.stamp).to.be.eql(null);
+      });
+  });
+
   it('should be able to cast buffer as boolean', function() {
     const ByteModel = this.sequelize.define('Model', {
       byteToBool: this.sequelize.Sequelize.BLOB
