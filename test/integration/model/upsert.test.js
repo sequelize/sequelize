@@ -487,6 +487,44 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
         });
       }
+
+      if (dialect.match(/^postgres/)) {
+        it('works when deletedAt is Infinity and part of primary key', function() {
+          const User = this.sequelize.define('User', {
+            name: {
+              type: DataTypes.STRING,
+              primaryKey: true
+            },
+            address: DataTypes.STRING,
+            deletedAt: {
+              type: DataTypes.DATE,
+              primaryKey: true,
+              allowNull: false,
+              defaultValue: Infinity
+            }
+          }, {
+            paranoid: true
+          });
+
+          return User.sync({ force: true }).then(() => {
+            return Promise.all([
+              User.create({ name: 'user1' }),
+              User.create({ name: 'user2', deletedAt: Infinity }),
+
+              // this record is soft deleted
+              User.create({ name: 'user3', deletedAt: -Infinity })
+            ]).then(() => {
+              return User.upsert({ name: 'user1', address: 'address' });
+            }).then(() => {
+              return User.findAll({
+                where: { address: null }
+              });
+            }).then(users => {
+              expect(users).to.have.lengthOf(2);
+            });
+          });
+        });
+      }
     });
   }
 });
