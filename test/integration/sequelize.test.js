@@ -1549,4 +1549,176 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
   });
+
+  if (dialect === 'postgres') {
+    describe('validateSchemas', () => {
+      beforeEach(function () {
+        const TestTable = this.sequelize.define('TestTable', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            allowNull: false
+          },
+          testInteger: DataTypes.INTEGER,
+          testString: DataTypes.STRING,
+          testDateOnly: DataTypes.DATEONLY,
+          testDate: DataTypes.DATE,
+          testBigint: DataTypes.BIGINT,
+          // testForeignKey: DataTypes.INTEGER,
+          testIndexString: DataTypes.STRING,
+          testCombinedIndexString: DataTypes.STRING,
+          testUniqueIndexString: DataTypes.STRING,
+          testUniqueString: {
+            unique: true,
+            type: DataTypes.STRING,
+          },
+          testNonIndexString: DataTypes.STRING
+        }, {
+          tableName: 'TestTable',
+          indexes: [
+            {
+              fields: ['testIndexString']
+            },
+            {
+              fields: ['testIndexString', 'testCombinedIndexString']
+            },
+            {
+              fields: ['testUniqueIndexString', 'testCombinedIndexString'],
+              unique: true
+            },
+            {
+              fields: ['testUniqueIndexString'],
+              unique: true
+            }
+          ],
+        });
+
+        const ForeignTable = this.sequelize.define('ForeignTable', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            allowNull: false
+          },
+          testString: DataTypes.STRING,
+        }, {
+          tableName: 'ForeignTable',
+        });
+
+        TestTable.belongsTo(ForeignTable, { as: 'testForeignKey' });
+
+        return this.sequelize
+          .sync({force: true})
+          .then(()=>{
+            return this.sequelize.query('CREATE TABLE public."SequelizeMeta" (meta VARCHAR(255) NOT NULL);');
+          })
+          .then(() => {
+            return this.sequelize.validateSchemas();
+          });
+      });
+
+      describe('option.exclude', ()=>{
+
+        it('skip tables', function () {
+          return this.sequelize.query('CREATE TABLE public."UnknownTable" (meta VARCHAR(255) NOT NULL);')
+            .then(()=>{
+              return this.sequelize.validateSchemas({
+                exclude: ['SequelizeMeta', 'UnknownTable']
+              });
+            });
+        });
+
+        it('can check unknown table', function () {
+          return this.sequelize
+            .validateSchemas({
+              exclude: []
+            })
+            .then(() => {
+              assert.fail();
+            })
+            .catch(error => {
+              expect(error.message).to.include('SequelizeMeta has not been defined');
+            });
+        });
+      });
+
+      describe('checkAttributes', ()=>{
+
+        it('field modified by migration only', function () {
+          return this.sequelize.queryInterface
+            .changeColumn('TestTable', 'testString', {type: new Sequelize.STRING(100)})
+            .then(() => {
+              return this.sequelize.validateSchemas();
+            })
+            .then(() => {
+              assert.fail();
+            })
+            .catch(error => {
+              expect(error.message).to.include('field type is invalid');
+            });
+        });
+
+        it('field created by migration only', function () {
+          return this.sequelize
+            .getQueryInterface()
+            .addColumn('TestTable', 'unknownField', {type: DataTypes.STRING})
+            .then(() => {
+              return this.sequelize.validateSchemas();
+            })
+            .then(() => {
+              assert.fail();
+            })
+            .catch(error => {
+              expect(error.message).to.include('unknownField is not defined');
+            });
+        });
+
+      });
+
+      describe('checkForeignKey', ()=> {
+        it('foreignKey created by migration only', function () {
+          return this.sequelize
+            .getQueryInterface()
+            .addConstraint('TestTable', ['unknownForeignKey'], {
+              type: 'FOREIGN KEY',
+              references: {
+                table: 'ForeignTable',
+                field: 'id'
+              }
+            })
+            .then(() => {
+              return this.sequelize.validateSchemas();
+            })
+            .then(() => {
+              assert.fail();
+            })
+            .catch(error => {
+              expect(error.message).to.include('"unknownForeignKey" referenced in foreign key constraint does not exist');
+            });
+
+        });
+      });
+
+      describe('checkIndexes', ()=> {
+        it('index created by migration only', function () {
+          return this.sequelize
+            .getQueryInterface()
+            .addIndex('TestTable', {fields: ['testNonIndexString']})
+            .then(() => {
+              return this.sequelize.validateSchemas();
+            })
+            .then(() => {
+              assert.fail();
+            })
+            .catch(error => {
+              expect(error.message).to.include('[testNonIndexString] is not defined index');
+            });
+
+        });
+
+      });
+
+    });
+  }
 });

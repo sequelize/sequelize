@@ -472,6 +472,21 @@ Sequelize has a [sister library][1] for programmatically handling execution and 
 
 Using `queryInterface` object described before you can change database schema. To see full list of public methods it supports check [QueryInterface API][2]
 
+## Schema Validation
+
+**Note:** _The `Sequelize#validateSchemas` still supports postgresql only._
+
+You can check mistake of Migration with `Sequelize#validateSchemas` .
+ValidateSchemas is search different between DB-Table and Sequelize-Models.
+
+```js
+sequlize.sync({force: process.env.NODE_ENV !== 'production'})
+  .then(()=>{
+    return sequlize.validateSchemas()
+  }).then(()=>{
+    // do something
+  })
+```
 
 [0]: https://github.com/sequelize/cli
 [1]: https://github.com/sequelize/umzug
