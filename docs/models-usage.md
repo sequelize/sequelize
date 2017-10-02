@@ -46,7 +46,7 @@ User
 
     /*
      findOrCreate returns an array containing the object that was found or created and a boolean that will be true if a new object was created and false if not, like so:
-     
+
     [ {
         username: 'sdepold',
         job: 'Technical Lead JavaScript',
@@ -55,7 +55,7 @@ User
         updatedAt: Fri Mar 22 2013 21: 28: 34 GMT + 0100(CET)
       },
       true ]
-      
+
  In the example above, the "spread" on line 39 divides the array into its 2 parts and passes them as arguments to the callback function defined beginning at line 39, which treats them as "user" and "created" in this case. (So "user" will be the object from index 0 of the returned array and "created" will equal "true".)
     */
   })
@@ -168,8 +168,8 @@ Project.findAll({ where: { id: [1,2,3] } }).then(projects => {
 Project.findAll({
   where: {
     id: {
-      [Op.and]: {a: 5}           // AND (a = 5)
-      [Op.or]: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
+      [Op.and]: {a: 5},           // AND (a = 5)
+      [Op.or]: [{a: 5}, {a: 6}],  // (a = 5 OR a = 6)
       [Op.gt]: 6,                // id > 6
       [Op.gte]: 6,               // id >= 6
       [Op.lt]: 10,               // id < 10
@@ -180,16 +180,16 @@ Project.findAll({
       [Op.in]: [1, 2],           // IN [1, 2]
       [Op.notIn]: [1, 2],        // NOT IN [1, 2]
       [Op.like]: '%hat',         // LIKE '%hat'
-      [Op.notLike]: '%hat'       // NOT LIKE '%hat'
-      [Op.iLike]: '%hat'         // ILIKE '%hat' (case insensitive)  (PG only)
-      [Op.notILike]: '%hat'      // NOT ILIKE '%hat'  (PG only)
-      [Op.overlap]: [1, 2]       // && [1, 2] (PG array overlap operator)
-      [Op.contains]: [1, 2]      // @> [1, 2] (PG array contains operator)
-      [Op.contained]: [1, 2]     // <@ [1, 2] (PG array contained by operator)
+      [Op.notLike]: '%hat',       // NOT LIKE '%hat'
+      [Op.iLike]: '%hat',         // ILIKE '%hat' (case insensitive)  (PG only)
+      [Op.notILike]: '%hat',      // NOT ILIKE '%hat'  (PG only)
+      [Op.overlap]: [1, 2],       // && [1, 2] (PG array overlap operator)
+      [Op.contains]: [1, 2],      // @> [1, 2] (PG array contains operator)
+      [Op.contained]: [1, 2],     // <@ [1, 2] (PG array contained by operator)
       [Op.any]: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
     },
     status: {
-      [Op.not]: false,           // status NOT FALSE
+      [Op.not]: false           // status NOT FALSE
     }
   }
 })
