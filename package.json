@@ -72,7 +72,7 @@
     "husky": "^0.14.2",
     "istanbul": "^0.4.5",
     "lcov-result-merger": "^1.2.0",
-    "mocha": "^3.0.2",
+    "mocha": "^4.0.0",
     "mysql2": "^1.4.1",
     "pg": "^6.1.0",
     "pg-hstore": "^2.3.2",
