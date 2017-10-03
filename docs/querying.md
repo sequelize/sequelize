@@ -72,10 +72,12 @@ Whether you are querying with findAll/find or doing bulk updates/destroys you ca
 
 `where` generally takes an object from attribute:value pairs, where value can be primitives for equality matches or keyed objects for other operators.
 
-It's also possible to generate complex AND/OR conditions by nesting sets of `$or` and `$and`.
+It's also possible to generate complex AND/OR conditions by nesting sets of `or` and `and` `Operators`.
 
 ### Basics
 ```js
+const Op = Sequelize.Op;
+
 Post.findAll({
   where: {
     authorId: 2
@@ -103,7 +105,7 @@ Post.update({
 }, {
   where: {
     deletedAt: {
-      $ne: null
+      [Op.ne]: null
     }
   }
 });
@@ -117,39 +119,42 @@ Post.findAll({
 
 ### Operators
 
+Sequelize exposes symbol operators that can be used for to create more complex comparisons -
 ```js
-$and: {a: 5}           // AND (a = 5)
-$or: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
-$gt: 6,                // > 6
-$gte: 6,               // >= 6
-$lt: 10,               // < 10
-$lte: 10,              // <= 10
-$ne: 20,               // != 20
-$eq: 3,                // = 3
-$not: true,            // IS NOT TRUE
-$between: [6, 10],     // BETWEEN 6 AND 10
-$notBetween: [11, 15], // NOT BETWEEN 11 AND 15
-$in: [1, 2],           // IN [1, 2]
-$notIn: [1, 2],        // NOT IN [1, 2]
-$like: '%hat',         // LIKE '%hat'
-$notLike: '%hat'       // NOT LIKE '%hat'
-$iLike: '%hat'         // ILIKE '%hat' (case insensitive) (PG only)
-$notILike: '%hat'      // NOT ILIKE '%hat'  (PG only)
-$regexp: '^[h|a|t]'    // REGEXP/~ '^[h|a|t]' (MySQL/PG only)
-$notRegexp: '^[h|a|t]' // NOT REGEXP/!~ '^[h|a|t]' (MySQL/PG only)
-$iRegexp: '^[h|a|t]'    // ~* '^[h|a|t]' (PG only)
-$notIRegexp: '^[h|a|t]' // !~* '^[h|a|t]' (PG only)
-$like: { $any: ['cat', 'hat']}
-                       // LIKE ANY ARRAY['cat', 'hat'] - also works for iLike and notLike
-$overlap: [1, 2]       // && [1, 2] (PG array overlap operator)
-$contains: [1, 2]      // @> [1, 2] (PG array contains operator)
-$contained: [1, 2]     // <@ [1, 2] (PG array contained by operator)
-$any: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
+const Op = Sequelize.Op
 
-$col: 'user.organization_id' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
+[Op.and]: {a: 5}           // AND (a = 5)
+[Op.or]: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
+[Op.gt]: 6,                // > 6
+[Op.gte]: 6,               // >= 6
+[Op.lt]: 10,               // < 10
+[Op.lte]: 10,              // <= 10
+[Op.ne]: 20,               // != 20
+[Op.eq]: 3,                // = 3
+[Op.not]: true,            // IS NOT TRUE
+[Op.between]: [6, 10],     // BETWEEN 6 AND 10
+[Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
+[Op.in]: [1, 2],           // IN [1, 2]
+[Op.notIn]: [1, 2],        // NOT IN [1, 2]
+[Op.like]: '%hat',         // LIKE '%hat'
+[Op.notLike]: '%hat'       // NOT LIKE '%hat'
+[Op.iLike]: '%hat'         // ILIKE '%hat' (case insensitive) (PG only)
+[Op.notILike]: '%hat'      // NOT ILIKE '%hat'  (PG only)
+[Op.regexp]: '^[h|a|t]'    // REGEXP/~ '^[h|a|t]' (MySQL/PG only)
+[Op.notRegexp]: '^[h|a|t]' // NOT REGEXP/!~ '^[h|a|t]' (MySQL/PG only)
+[Op.iRegexp]: '^[h|a|t]'    // ~* '^[h|a|t]' (PG only)
+[Op.notIRegexp]: '^[h|a|t]' // !~* '^[h|a|t]' (PG only)
+[Op.like]: { [Op.any]: ['cat', 'hat']}
+                       // LIKE ANY ARRAY['cat', 'hat'] - also works for iLike and notLike
+[Op.overlap]: [1, 2]       // && [1, 2] (PG array overlap operator)
+[Op.contains]: [1, 2]      // @> [1, 2] (PG array contains operator)
+[Op.contained]: [1, 2]     // <@ [1, 2] (PG array contained by operator)
+[Op.any]: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
+
+[Op.col]: 'user.organization_id' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
 ```
 
-### Range Operators
+#### Range Operators
 
 Range types can be queried with all supported operators.
 
@@ -160,24 +165,26 @@ as well.
 ```js
 // All the above equality and inequality operators plus the following:
 
-$contains: 2           // @> '2'::integer (PG range contains element operator)
-$contains: [1, 2]      // @> [1, 2) (PG range contains range operator)
-$contained: [1, 2]     // <@ [1, 2) (PG range is contained by operator)
-$overlap: [1, 2]       // && [1, 2) (PG range overlap (have points in common) operator)
-$adjacent: [1, 2]      // -|- [1, 2) (PG range is adjacent to operator)
-$strictLeft: [1, 2]    // << [1, 2) (PG range strictly left of operator)
-$strictRight: [1, 2]   // >> [1, 2) (PG range strictly right of operator)
-$noExtendRight: [1, 2] // &< [1, 2) (PG range does not extend to the right of operator)
-$noExtendLeft: [1, 2]  // &> [1, 2) (PG range does not extend to the left of operator)
+[Op.contains]: 2           // @> '2'::integer (PG range contains element operator)
+[Op.contains]: [1, 2]      // @> [1, 2) (PG range contains range operator)
+[Op.contained]: [1, 2]     // <@ [1, 2) (PG range is contained by operator)
+[Op.overlap]: [1, 2]       // && [1, 2) (PG range overlap (have points in common) operator)
+[Op.adjacent]: [1, 2]      // -|- [1, 2) (PG range is adjacent to operator)
+[Op.strictLeft]: [1, 2]    // << [1, 2) (PG range strictly left of operator)
+[Op.strictRight]: [1, 2]   // >> [1, 2) (PG range strictly right of operator)
+[Op.noExtendRight]: [1, 2] // &< [1, 2) (PG range does not extend to the right of operator)
+[Op.noExtendLeft]: [1, 2]  // &> [1, 2) (PG range does not extend to the left of operator)
 ```
 
-### Combinations
+#### Combinations
 ```js
+const Op = Sequelize.Op;
+
 {
   rank: {
-    $or: {
-      $lt: 1000,
-      $eq: null
+    [Op.or]: {
+      [Op.lt]: 1000,
+      [Op.eq]: null
     }
   }
 }
@@ -185,27 +192,110 @@ $noExtendLeft: [1, 2]  // &> [1, 2) (PG range does not extend to the left of ope
 
 {
   createdAt: {
-    $lt: new Date(),
-    $gt: new Date(new Date() - 24 * 60 * 60 * 1000)
+    [Op.lt]: new Date(),
+    [Op.gt]: new Date(new Date() - 24 * 60 * 60 * 1000)
   }
 }
 // createdAt < [timestamp] AND createdAt > [timestamp]
 
 {
-  $or: [
+  [Op.or]: [
     {
       title: {
-        $like: 'Boat%'
+        [Op.like]: 'Boat%'
       }
     },
     {
       description: {
-        $like: '%boat%'
+        [Op.like]: '%boat%'
       }
     }
   ]
 }
 // title LIKE 'Boat%' OR description LIKE '%boat%'
+```
+
+#### Operators Aliases
+Sequelize allows setting specific strings as aliases for operators -
+```js
+const Op = Sequelize.Op;
+const operatorsAliases = {
+  $gt: Op.gt
+}
+const connection = new Sequelize(db, user, pass, { operatorsAliases })
+
+[Op.gt]: 6 // > 6
+$gt: 6 // same as using Op.gt (> 6)
+```
+
+
+#### Operators security
+Using Sequelize without any aliases improves security.
+Some frameworks automatically parse user input into js objects and if you fail to sanitize your input it might be possible to inject an Object with string operators to Sequelize.
+
+Not having any string aliases will make it extremely unlikely that operators could be injected but you should always properly validate and sanitize user input.
+
+For backward compatibility reasons Sequelize sets the following aliases by default -
+$eq, $ne, $gte, $gt, $lte, $lt, $not, $in, $notIn, $is, $like, $notLike, $iLike, $notILike, $regexp, $notRegexp, $iRegexp, $notIRegexp, $between, $notBetween, $overlap, $contains, $contained, $adjacent, $strictLeft, $strictRight, $noExtendRight, $noExtendLeft, $and, $or, $any, $all, $values, $col
+
+Currently the following legacy aliases are also set but are planned to be fully removed in the near future -
+ne, not, in, notIn, gte, gt, lte, lt, like, ilike, $ilike, nlike, $notlike, notilike, .., between, !.., notbetween, nbetween, overlap, &&, @>, <@
+
+For better security it is highly advised to use `Sequelize.Op` and not depend on any string alias at all. You can limit alias your application will need by setting `operatorsAliases` option, remember to sanitize user input especially when you are directly passing them to Sequelize methods.
+
+```js
+const Op = Sequelize.Op;
+
+//use sequelize without any operators aliases
+const connection = new Sequelize(db, user, pass, { operatorsAliases: false });
+
+//use sequelize with only alias for $and => Op.and
+const connection2 = new Sequelize(db, user, pass, { operatorsAliases: { $and: Op.and } });
+```
+
+Sequelize will warn you if your using the default aliases and not limiting them
+if you want to keep using all default aliases (excluding legacy ones) without the warning you can pass the following operatorsAliases option -
+
+```js
+const Op = Sequelize.Op;
+const operatorsAliases = {
+  $eq: Op.eq,
+  $ne: Op.ne,
+  $gte: Op.gte,
+  $gt: Op.gt,
+  $lte: Op.lte,
+  $lt: Op.lt,
+  $not: Op.not,
+  $in: Op.in,
+  $notIn: Op.notIn,
+  $is: Op.is,
+  $like: Op.like,
+  $notLike: Op.notLike,
+  $iLike: Op.iLike,
+  $notILike: Op.notILike,
+  $regexp: Op.regexp,
+  $notRegexp: Op.notRegexp,
+  $iRegexp: Op.iRegexp,
+  $notIRegexp: Op.notIRegexp,
+  $between: Op.between,
+  $notBetween: Op.notBetween,
+  $overlap: Op.overlap,
+  $contains: Op.contains,
+  $contained: Op.contained,
+  $adjacent: Op.adjacent,
+  $strictLeft: Op.strictLeft,
+  $strictRight: Op.strictRight,
+  $noExtendRight: Op.noExtendRight,
+  $noExtendLeft: Op.noExtendLeft,
+  $and: Op.and,
+  $or: Op.or,
+  $any: Op.any,
+  $all: Op.all,
+  $values: Op.values,
+  $col: Op.col
+};
+
+const connection = new Sequelize(db, user, pass, { operatorsAliases });
 ```
 
 ### JSONB
@@ -218,7 +308,7 @@ JSONB can be queried in three different ways.
   meta: {
     video: {
       url: {
-        $ne: null
+        [Op.ne]: null
       }
     }
   }
@@ -229,7 +319,7 @@ JSONB can be queried in three different ways.
 ```js
 {
   "meta.audio.length": {
-    $gt: 20
+    [Op.gt]: 20
   }
 }
 ```
@@ -238,7 +328,7 @@ JSONB can be queried in three different ways.
 ```js
 {
   "meta": {
-    $contains: {
+    [Op.contains]: {
       site: {
         url: 'http://google.com'
       }

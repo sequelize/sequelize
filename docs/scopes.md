@@ -36,7 +36,7 @@ const Project = sequelize.define('project', {
       return {
         where: {
           accessLevel: {
-            $gte: value
+            [Op.gte]: value
           }
         }
       }
@@ -128,7 +128,7 @@ When invoking several scopes, keys from subsequent scopes will overwrite previou
     where: {
       firstName: 'bob',
       age: {
-        $gt: 20
+        [Op.gt]: 20
       }
     },
     limit: 2
@@ -136,7 +136,7 @@ When invoking several scopes, keys from subsequent scopes will overwrite previou
   scope2: {
     where: {
       age: {
-        $gt: 30
+        [Op.gt]: 30
       }
     },
     limit: 10

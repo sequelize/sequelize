@@ -267,13 +267,13 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
       suite('$and', () => {
         testsql('$and', {
-          shared: 1,
           $or: {
             group_id: 1,
             user_id: 2
-          }
+          },
+          shared: 1
         }, {
-          default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
+          default: '(([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
 
         testsql('$and', [
@@ -320,13 +320,13 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
       suite('$not', () => {
         testsql('$not', {
-          shared: 1,
           $or: {
             group_id: 1,
             user_id: 2
-          }
+          },
+          shared: 1
         }, {
-          default: 'NOT ([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
+          default: 'NOT (([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
 
         testsql('$not', [], {

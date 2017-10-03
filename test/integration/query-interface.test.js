@@ -689,6 +689,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               model: 'users',
               key:   'id'
             }
+          },
+          email: {
+            type: DataTypes.STRING,
+            unique: true
           }
         });
       });
@@ -730,6 +734,19 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       });
 
+      // From MSSQL documentation on ALTER COLUMN:
+      //    The modified column cannot be any one of the following:
+      //      - Used in a CHECK or UNIQUE constraint.
+      // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql#arguments
+      if (dialect !== 'mssql') {
+        it('should be able to remove a column with unique contraint', function() {
+          return this.queryInterface.removeColumn('users', 'email').bind(this).then(function() {
+            return this.queryInterface.describeTable('users');
+          }).then(table => {
+            expect(table).to.not.have.property('email');
+          });
+        });
+      }
     });
 
     describe('(with a schema)', () => {
@@ -750,6 +767,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             },
             lastName: {
               type: DataTypes.STRING
+            },
+            email: {
+              type: DataTypes.STRING,
+              unique: true
             }
           });
         });
@@ -798,6 +819,26 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(table).to.not.have.property('id');
         });
       });
+
+      // From MSSQL documentation on ALTER COLUMN:
+      //    The modified column cannot be any one of the following:
+      //      - Used in a CHECK or UNIQUE constraint.
+      // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql#arguments
+      if (dialect !== 'mssql') {
+        it('should be able to remove a column with unique contraint', function() {
+          return this.queryInterface.removeColumn({
+            tableName: 'users',
+            schema: 'archive'
+          }, 'email').bind(this).then(function() {
+            return this.queryInterface.describeTable({
+              tableName: 'users',
+              schema: 'archive'
+            });
+          }).then(table => {
+            expect(table).to.not.have.property('email');
+          });
+        });
+      }
     });
   });
 
