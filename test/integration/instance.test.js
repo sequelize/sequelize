@@ -2102,6 +2102,32 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
       });
     });
+
+    if (dialect.match(/^postgres/)) {
+      it('converts Infinity in where clause to a timestamp', function() {
+        const Date = this.sequelize.define('Date',
+          {
+            date: {
+              type: DataTypes.DATE,
+              primaryKey: true
+            },
+            deletedAt: {
+              type: DataTypes.DATE,
+              defaultValue: Infinity
+            }
+          },
+          { paranoid: true });
+
+        return this.sequelize.sync({ force: true })
+          .then(() => {
+            return Date.build({ date: Infinity })
+              .save()
+              .then(date => {
+                return date.destroy();
+              });
+          });
+      });
+    }
   });
 
   describe('isSoftDeleted', () => {

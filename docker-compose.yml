@@ -6,6 +6,7 @@ services:
     links:
      - mysql-57
      - postgres-95
+     - mssql
     volumes:
       - .:/sequelize
     environment:
@@ -41,3 +42,13 @@ services:
     ports:
       - "127.0.0.1:1521:1521"
     container_name: oracle
+    
+  # MSSQL
+  mssql:
+    image: microsoft/mssql-server-linux:latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: yourStrong(!)Password
+    ports:
+      - "127.0.0.1:8997:1433"
+    container_name: mssql

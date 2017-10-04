@@ -7,6 +7,7 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
   moment = require('moment'),
+  Operators = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
 
 if (dialect === 'sqlite') {
@@ -251,9 +252,9 @@ if (dialect === 'sqlite') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'single string argument is not quoted',
+          title: 'single string argument should be quoted',
           arguments: ['myTable', {group: 'name'}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
           context: QueryGenerator
         }, {
           arguments: ['myTable', {group: ['name']}],
@@ -285,7 +286,7 @@ if (dialect === 'sqlite') {
           context: QueryGenerator
         }, {
           arguments: ['myTable', {group: 'name', order: [['id', 'DESC']]}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY `id` DESC;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
           title: 'HAVING clause works with where-like hash',
@@ -550,6 +551,7 @@ if (dialect === 'sqlite') {
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             QueryGenerator.sequelize = this.sequelize;
+            QueryGenerator.setOperatorsAliases(Operators.LegacyAliases);
             const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });

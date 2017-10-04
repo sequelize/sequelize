@@ -2812,7 +2812,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.User = this.sequelize.define('User', {
         id: { type: DataTypes.INTEGER, primaryKey: true },
         aNumber: { type: DataTypes.INTEGER },
-        bNumber: { type: DataTypes.INTEGER }
+        bNumber: { type: DataTypes.INTEGER },
+        cNumber: { type: DataTypes.INTEGER, field: 'c_number'}
       });
 
       const self = this;
@@ -2829,6 +2830,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           id: 3,
           aNumber: 0,
           bNumber: 0
+        }, {
+          id: 4,
+          aNumber: 0,
+          bNumber: 0,
+          cNumber: 0
         }]);
       });
     });
@@ -2840,6 +2846,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return self.User.findById(2).then(user3 => {
             expect(user3.aNumber).to.be.equal(0);
           });
+        });
+      });
+    });
+
+    it('uses correct column names for where conditions', function() {
+      const self = this;
+      return this.User.increment(['aNumber'], {by: 2, where: {cNumber: 0}}).then(() => {
+        return self.User.findById(4).then(user4 => {
+          expect(user4.aNumber).to.be.equal(2);
         });
       });
     });

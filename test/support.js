@@ -8,7 +8,9 @@ const fs = require('fs'),
   Config = require(__dirname + '/config/config'),
   supportShim = require(__dirname + '/supportShim'),
   chai = require('chai'),
-  expect = chai.expect;
+  expect = chai.expect,
+  AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+
 
 chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));
@@ -67,7 +69,7 @@ const Support = {
           resolve();
         }
       }).then(() => {
-        const options = Sequelize.Utils._.extend({}, sequelize.options, { storage: p }),
+        const options = _.extend({}, sequelize.options, { storage: p }),
           _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
         if (callback) {
@@ -151,6 +153,14 @@ const Support = {
     } else {
       throw new Error('Undefined expectation for "' + dialect + '"!');
     }
+  },
+
+  getAbstractQueryGenerator(sequelize) {
+    return Object.assign(
+      {},
+      AbstractQueryGenerator,
+      {options: sequelize.options, _dialect: sequelize.dialect, sequelize, quoteIdentifier(identifier) { return identifier; }}
+    );
   },
 
   getTestDialect() {

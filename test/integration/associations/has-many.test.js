@@ -734,6 +734,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         return this.task.getUsers();
       }).then(_users => {
         expect(_users).to.have.length(0);
+      }).finally(() => {
+        this.sequelize.options.omitNull = false;
       });
     });
 
@@ -1312,6 +1314,33 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
     });
 
+    it('should create with nested associated models', function() {
+      const User = this.User,
+        values = {
+          username: 'John',
+          email: 'john@example.com',
+          tasks: [{ title: 'Fix new PR' }]
+        };
+
+      return User.create(values, { include: ['tasks'] })
+        .then(user => {
+          // Make sure tasks are defined for created user
+          expect(user).to.have.property('tasks');
+          expect(user.tasks).to.be.an('array');
+          expect(user.tasks).to.lengthOf(1);
+          expect(user.tasks[0].title).to.be.equal(values.tasks[0].title, 'task title is correct');
+
+          return User.findOne({ where: { email: values.email } });
+        })
+        .then(user =>
+          user.getTasks()
+            .then(tasks => {
+              // Make sure tasks relationship is successful
+              expect(tasks).to.be.an('array');
+              expect(tasks).to.lengthOf(1);
+              expect(tasks[0].title).to.be.equal(values.tasks[0].title, 'task title is correct');
+            }));
+    });
   });
 
   describe('sourceKey with where clause in include', () => {

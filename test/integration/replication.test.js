@@ -57,26 +57,22 @@ describe(Support.getTestDialectTeaser('Replication'), function() {
   it('should be able to make a write', () => {
     return this.User.create({
       firstName: Math.random().toString()
-    })
-      .then(expectWriteCalls);
+    }).then(expectWriteCalls);
   });
 
   it('should be able to make a read', () => {
-    return this.User.findAll()
-      .then(expectReadCalls);
+    return this.User.findAll().then(expectReadCalls);
   });
 
   it('should run read-only transactions on the replica', () => {
     return this.sequelize.transaction({readOnly: true}, transaction => {
       return this.User.findAll({transaction});
-    })
-      .then(expectReadCalls);
+    }).then(expectReadCalls);
   });
 
   it('should run non-read-only transactions on the primary', () => {
     return this.sequelize.transaction(transaction => {
       return this.User.findAll({transaction});
-    })
-      .then(expectWriteCalls);
+    }).then(expectWriteCalls);
   });
 });

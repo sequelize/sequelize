@@ -122,7 +122,7 @@ When you commit, your commit message will be validated automatically with [valid
 Then push and send your pull request. Happy hacking and thank you for contributing.
 
 ### Coding Guidelines ###
-Have a look at our [.eslintrc](https://github.com/sequelize/sequelize/blob/master/.eslintrc) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
+Have a look at our [.eslintrc.json](https://github.com/sequelize/sequelize/blob/master/.eslintrc.json) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
 
 # Publishing a release
 

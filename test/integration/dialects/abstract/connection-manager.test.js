@@ -18,7 +18,6 @@ const poolEntry = {
 };
 
 describe('Connection Manager', () => {
-
   let sandbox;
 
   beforeEach(() => {
@@ -162,7 +161,6 @@ describe('Connection Manager', () => {
       expect(poolDrainSpy.calledOnce).to.be.true;
       expect(poolClearSpy.calledOnce).to.be.true;
     });
-
   });
 
 });
