@@ -155,7 +155,7 @@ User.bulkCreate([
 To update several rows at once:
 
 ```js
-Task.bulkCreate([
+Task.update([
   {subject: 'programming', status: 'executing'},
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
@@ -178,7 +178,7 @@ Task.bulkCreate([
 And delete them:
 
 ```js
-Task.bulkCreate([
+Task.destroy([
   {subject: 'programming', status: 'executing'},
   {subject: 'reading', status: 'executing'},
   {subject: 'programming', status: 'finished'}
