@@ -166,7 +166,7 @@ node_modules/.bin/sequelize db:seed:undo
 If you wish to undo all seeds
 
 ```bash
-node_modules/.bin/sequelize db:migrate:undo:all
+node_modules/.bin/sequelize db:seed:undo:all
 ```
 
 ## Advance Topics
