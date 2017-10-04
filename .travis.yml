@@ -56,7 +56,11 @@ before_script:
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ] || [ $ORACLE_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER} ${ORACLE_VER}; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
-  - "if [ $ORACLE_VER ]; then docker run --link ${ORACLE_VER}:db -e CHECK_PORT=1521 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
+  - |
+    if [ $ORACLE_VER ]; then 
+      docker run --link ${ORACLE_VER}:db -e CHECK_PORT=1521 -e CHECK_HOST=db --net sequelize_default giorgos/takis
+      sleep 20
+    fi
 
 script:
   - npm run lint
