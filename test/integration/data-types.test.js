@@ -565,7 +565,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
       return BoolModel.findById(byte.id);
     }).then(bool => {
-      expect(bool.byteToBool).to.be.true;
+      if (dialect === 'oracle') {
+        //BLOB in Oracle needs to be read
+        bool.byteToBool.read(content => {
+          expect(content).to.be.true;
+        });
+      } else {
+        expect(bool.byteToBool).to.be.true;
+      }
     });
   });
 });
