@@ -37,9 +37,7 @@ if (current.dialect.supports.transactions) {
         const self = this;
 
         return Sequelize._clsRun(() => {
-          return this.sequelize.transaction()
-          .then(transaction => {
-            console.error(self.ns.get('transaction'));
+          return this.sequelize.transaction().then(() => {
             expect(self.ns.get('transaction')).to.be.undefined;
           });
         });
