@@ -33,6 +33,18 @@ if (current.dialect.supports.transactions) {
     });
 
     describe('context', () => {
+      it('does not use continuation storage on manually managed transactions', function() {
+        const self = this;
+
+        return Sequelize._clsRun(() => {
+          return this.sequelize.transaction()
+          .then(transaction => {
+            console.error(self.ns.get('transaction'));
+            expect(self.ns.get('transaction')).to.be.undefined;
+          });
+        });
+      });
+
       it('supports several concurrent transactions', function() {
         let t1id, t2id;
         const self = this;
