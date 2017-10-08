@@ -97,6 +97,7 @@ The success handler will always receive an object with two properties:
 
 * `count` - an integer, total number records matching the where clause
 * `rows` - an array of objects, the records matching the where clause, within the limit and offset range
+
 ```js
 Project
   .findAndCountAll({
