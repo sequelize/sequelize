@@ -374,7 +374,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
     });
 
-    it('should be able to merge aliassed includes with the same model', () => {
+    it('should be able to merge aliased includes with the same model', () => {
       const scope = {
         include: [{model: User, as: 'someUser'}]
       };
