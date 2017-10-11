@@ -65,7 +65,7 @@ const User = sequelize.define('user', {
   }
 });
 
-// Method 2 via the .hook() method (or it's alias .addHook() method)
+// Method 2 via the .hook() method (or its alias .addHook() method)
 User.hook('beforeValidate', (user, options) => {
   user.mood = 'happy';
 });
@@ -222,7 +222,7 @@ Model.update({username: 'Toni'}, { where: {accessLevel: 0}, individualHooks: tru
 // Will select all records that are about to be updated and emit before- + after- Update on each instance
 ```
 
-The `options` argument of hook method would be the second argument provided to the corresponding method or it's
+The `options` argument of hook method would be the second argument provided to the corresponding method or its
 cloned and extended version.
 
 ```js
