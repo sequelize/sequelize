@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('attributes', () => {
-      it('should not inject the aliassed PK again, if its already there', function() {
+      it('should not inject the aliased PK again, if it\'s already there', function() {
         let options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [

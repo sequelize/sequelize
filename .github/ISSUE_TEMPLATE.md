@@ -29,4 +29,4 @@ __Database version:__ XXX
 __Sequelize version:__ XXX
 __Tested with master branch:__ No
 
-**Note :** _Your issue may be ignored by maintainers if its not tested against `master` branch OR does not follow issue template._
+**Note :** _Your issue may be ignored by maintainers if it's not tested against `master` branch OR does not follow issue template._

@@ -79,7 +79,7 @@ This will do following
 - Create a model file `user` in `models` folder
 - Create a migration file with name like `XXXXXXXXXXXXXX-create-user.js` in `migrations` folder
 
-**Note:** _Sequelize will only use Model files, its the table representation. On other hand migration file is a change in that model or more specifically that table, used by CLI. Treat migrations like a commit or a log for some change in database._
+**Note:** _Sequelize will only use Model files, it's the table representation. On other hand migration file is a change in that model or more specifically that table, used by CLI. Treat migrations like a commit or a log for some change in database._
 
 ### Running Migrations
 Now till this step CLI haven't inserted anything into database. We have just created required model and migration files for our first model `User`. Now to actually create that table in database you need to run `db:migrate` command.
@@ -323,7 +323,7 @@ module.exports = {
 ```
 
 ### Specifying Dialect Options
-Sometime you want to specify a dialectOption, if its a general config you can just add it in `config/config.json`. Sometime you want to execute some code to get dialectOptions, you should use dynamic config file for those cases.
+Sometime you want to specify a dialectOption, if it's a general config you can just add it in `config/config.json`. Sometime you want to execute some code to get dialectOptions, you should use dynamic config file for those cases.
 
 ```json
 {

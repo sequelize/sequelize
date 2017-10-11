@@ -54,7 +54,7 @@ Model.findAll({
 SELECT id, foo, bar, baz, quz, COUNT(hats) AS no_hats ...
 ```
 
-Similarly, its also possible to remove a selected few attributes:
+Similarly, it's also possible to remove a selected few attributes:
 
 ```js
 Model.findAll({
