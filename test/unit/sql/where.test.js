@@ -86,10 +86,12 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       default: 'lol=1'
     });
 
-    testsql('deleted', null, {
-      default: '`deleted` IS NULL',
-      postgres: '"deleted" IS NULL',
-      mssql: '[deleted] IS NULL'
+    [null, undefined].forEach(value => {
+      testsql('deleted', value, {
+        default: '`deleted` IS NULL',
+        postgres: '"deleted" IS NULL',
+        mssql: '[deleted] IS NULL'
+      });
     });
 
     suite('$in', () => {
