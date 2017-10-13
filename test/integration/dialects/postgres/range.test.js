@@ -227,7 +227,7 @@ if (dialect.match(/^postgres/)) {
     describe('convert to json', () => {
       it('should return both the value and inclusivity', () => {
         const data = "[5, 10)";
-        const jsonified = JSON.stringify(DataTypes.postgres.RANGE.parse(data, () => { return DataTypes.postgres.INTEGER.parse; });
+        const jsonified = JSON.stringify(DataTypes.postgres.RANGE.parse(data, () => { return DataTypes.postgres.INTEGER.parse; }));
         expect(jsonified).to.deep.equal([{value: 5, inclusive: true}, {value: 10, inclusive: false}]);
       });
     });
