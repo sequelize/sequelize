@@ -239,7 +239,7 @@ Model.bulkCreate([
 
 Model.beforeBulkUpdate(({attributes, where}) => {
   // where - in one of the fields of the clone of second argument sent to .update
-  // attributes - is one of the fields that the clone of second argument of .update would be extended with 
+  // attributes - is one of the fields that the clone of second argument of .update would be extended with
 })
 
 Model.update({gender: 'Male'} /*attributes argument*/, { where: {username: 'Tom'}} /*where argument*/)
@@ -257,7 +257,7 @@ If you use `Model.bulkCreate(...)` with the `updatesOnDuplicate` option, changes
 ```js
 // Bulk updating existing users with updatesOnDuplicate option
 Users.bulkCreate([
-  { id: 1, isMemeber: true },
+  { id: 1, isMember: true },
   { id: 2, isMember: false }
 ], {
   updatesOnDuplicate: ['isMember']
