@@ -167,7 +167,7 @@ allows the configuration of the transaction.
 return sequelize.transaction({ /* options */ });
 ```
 
-The following options (with it's default values) are available:
+The following options (with their default values) are available:
 
 ```js
 {
