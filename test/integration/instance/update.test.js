@@ -5,7 +5,6 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
-  dialect = Support.getTestDialect(),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   config = require(__dirname + '/../../config/config'),
   current = Support.sequelize;
