@@ -140,36 +140,34 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    if (dialect === 'mysql') {
-      it('should update timestamps w milliseconds', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
-          name: DataTypes.STRING,
-          bio: DataTypes.TEXT,
-          email: DataTypes.STRING,
-          createdAt: {type: DataTypes.DATE(6), allowNull: false},
-          updatedAt: {type: DataTypes.DATE(6), allowNull: false}
-        }, {
-          timestamps: true
-        });
+    it('should update timestamps with milliseconds', function() {
+      const User = this.sequelize.define('User' + config.rand(), {
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
+        email: DataTypes.STRING,
+        createdAt: {type: DataTypes.DATE(6), allowNull: false},
+        updatedAt: {type: DataTypes.DATE(6), allowNull: false}
+      }, {
+        timestamps: true
+      });
 
-        this.clock.tick(2100); //move the clock forward 2100 ms.
+      this.clock.tick(2100); //move the clock forward 2100 ms.
 
-        return User.sync({force: true}).then(() => {
-          return User.create({
-            name: 'snafu',
-            email: 'email'
-          }).then(user => {
-            return user.reload();
-          }).then(user => {
-            expect(user.get('name')).to.equal('snafu');
-            expect(user.get('email')).to.equal('email');
-            const testDate = new Date();
-            testDate.setTime(2100);
-            expect(user.get('createdAt')).to.equalTime(testDate);
-          });
+      return User.sync({force: true}).then(() => {
+        return User.create({
+          name: 'snafu',
+          email: 'email'
+        }).then(user => {
+          return user.reload();
+        }).then(user => {
+          expect(user.get('name')).to.equal('snafu');
+          expect(user.get('email')).to.equal('email');
+          const testDate = new Date();
+          testDate.setTime(2100);
+          expect(user.get('createdAt')).to.equalTime(testDate);
         });
       });
-    }
+    });
 
     it('should only save passed attributes', function() {
       const user = this.User.build();
