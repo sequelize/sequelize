@@ -17,6 +17,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   });
 
   afterEach(function() {
+    this.clock.reset();
+  });
+
+  after(function() {
     this.clock.restore();
   });
 
@@ -51,8 +55,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         defaultValue: false
       }
     });
-
-    this.clock.restore();
 
     return this.User.sync({ force: true });
   });
@@ -252,18 +254,21 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = this.sequelize.define('IncrementUser', {
         aNumber: DataTypes.INTEGER
       }, { timestamps: true });
+
       let oldDate;
 
-      return User.sync({ force: true }).bind(this).then(() => {
-        return User.create({aNumber: 1});
-      }).then(function(user) {
-        oldDate = user.updatedAt;
+      return User.sync({ force: true })
+        .then(() => User.create({ aNumber: 1 }))
+        .then(user => {
+          oldDate = user.get('updatedAt');
 
-        this.clock.tick(1000);
-        return user.increment('aNumber', {by: 1});
-      }).then(() => {
-        return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
-      });
+          this.clock.tick(1000);
+          return user.increment('aNumber', { by: 1 });
+        })
+        .then(user => user.reload())
+        .then(user => {
+          return expect(user).to.have.property('updatedAt').afterTime(oldDate);
+        });
     });
 
     it('with timestamps set to true and options.silent set to true', function() {
