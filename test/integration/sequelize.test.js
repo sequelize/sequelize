@@ -987,6 +987,18 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
+    it('fails with incorrect match condition', function() {
+      const sequelize = new Sequelize('cyber_bird', 'user', 'pass', {
+        dialect: this.sequelize.options.dialect
+      });
+
+      sequelize.define('Project', {title: Sequelize.STRING});
+      sequelize.define('Task', {title: Sequelize.STRING});
+
+      return expect(sequelize.sync({force: true, match: /$phoenix/}))
+        .to.be.rejectedWith('Database "cyber_bird" does not match sync match parameter "/$phoenix/"');
+    });
+
     if (dialect !== 'sqlite') {
       it('fails with incorrect database credentials (1)', function() {
         this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
