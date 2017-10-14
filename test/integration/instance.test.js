@@ -16,7 +16,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     this.clock = sinon.useFakeTimers();
   });
 
-  after(function() {
+  afterEach(function() {
     this.clock.restore();
   });
 
@@ -51,6 +51,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         defaultValue: false
       }
     });
+
+    this.clock.restore();
+
     return this.User.sync({ force: true });
   });
 
@@ -1162,11 +1165,20 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('updates the timestamps', function() {
-      const now = new Date(),
-        user = this.User.build({ username: 'user' });
+      const now = new Date();
+      now.setMilliseconds(0);
 
+      const user = this.User.build({ username: 'user' });
       this.clock.tick(1000);
-      return expect(user.save()).to.eventually.have.property('updatedAt').afterTime(now);
+
+      return user.save().then(savedUser => {
+        expect(savedUser).have.property('updatedAt').afterTime(now);
+
+        this.clock.tick(1000);
+        return savedUser.save();
+      }).then(updatedUser => {
+        expect(updatedUser).have.property('updatedAt').afterTime(now);
+      });
     });
 
     it('does not update timestamps when passing silent=true', function() {
@@ -1212,15 +1224,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('when nothing changed', () => {
-
-      beforeEach(function() {
-        this.clock = sinon.useFakeTimers();
-      });
-
-      afterEach(function() {
-        this.clock.restore();
-      });
-
       it('does not update timestamps', function() {
         const self = this;
         return self.User.create({ username: 'John' }).then(() => {
