@@ -438,7 +438,7 @@ return Bank.findAll({
         initial: {
             where: {
                 amount: {
-                    $gt: 20000
+                    [Op.get]: 20000
                 }
             }
         }
@@ -548,10 +548,10 @@ User.findAll({
         recursive: {
             where: {
                 model: {
-                    timeWorked: { $lt: 40 }
+                    timeWorked: { [Op.lt]: 40 }
                 },
                 cte: {
-                    depth: { $lt: 10 }   
+                    depth: { [Op.lt]: 10 }   
                 }
             }
         }
