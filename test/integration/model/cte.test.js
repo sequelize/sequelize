@@ -2,15 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  things = require('chai-things'),
   Promise = require('bluebird'),
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   current = Support.sequelize;
-
-chai.use(things);
-
-
 
 describe(Support.getTestDialectTeaser('CTEs'), () => {
   if (current.dialect.supports.ctes) {

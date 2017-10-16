@@ -16,6 +16,7 @@ chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
+chai.use(require('chai-things'));
 chai.config.includeStack = true;
 chai.should();
 
