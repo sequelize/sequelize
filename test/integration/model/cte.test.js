@@ -13,7 +13,7 @@ chai.use(things);
 
 
 describe(Support.getTestDialectTeaser('CTEs'), () => {
-  if (current.dialect.supports.cteQueries) {
+  if (current.dialect.supports.ctes) {
     describe('with findAll', () => {
 
       it('can automatically use a CTE if one is given and cteSelect is not', function() {

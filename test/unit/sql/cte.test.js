@@ -9,7 +9,7 @@ const Support = require(__dirname + '/../support'),
   sql = current.dialect.QueryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
-  if (current.dialect.supports.cteQueries) {
+  if (current.dialect.supports.ctes) {
     describe('CTE', () => {
       const User = current.define('user', { amount: DataTypes.INTEGER });
       const Project = current.define('project', { name: DataTypes.STRING, budget: DataTypes.INTEGER });
