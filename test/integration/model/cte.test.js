@@ -131,44 +131,43 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
         User.belongsToMany(User, { as: 'friends', through: 'friend_users' });
 
         return this.sequelize.sync({ force: true }).then(() => {
-          return User.create({ username: 'user1' }).then(user1 => {
-            return User.create({ username: 'user2' }).then(user2 => {
-              return User.create({ username: 'user3' }).then(user3 => {
-                return User.create({ username: 'user4' }).then(user4 => {
-                  return User.create({ username: 'user5' }).then(user5 => {
-                    return User.create({ username: 'user6' }).then(() => {
-                      return user1.addFriends([user4, user5]).then(() => {
-                        return user2.addFriends([user3, user4]).then(() => {
-                          return User.findAll({
-                            cte: [{
-                              name: 'a',
-                              model: User,
-                              cteAttributes: ['distance'],
-                              initial: { where: { username: 'user1' }, distance: 0 },
-                              recursive: {
-                                next: 'friends',
-                                distance: { $add: [{ $cte: 'distance' }, 1] },
-                                where: { cte: { distance: { $lt: 1 } } },
-                                order: [['distance', 'ASC']]
-                              }
-                            }],
-                            cteSelect: 'a'
-                          }).then(selectedUsers => {
-                            expect(selectedUsers).to.have.length(3);
-                            expect(selectedUsers).to.contain.a.thing.with.property('username', 'user1');
-                            expect(selectedUsers).to.contain.a.thing.with.property('username', 'user4');
-                            expect(selectedUsers).to.contain.a.thing.with.property('username', 'user5');
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
+          return Promise.all([
+            User.create({ username: 'user0' }),
+            User.create({ username: 'user1' }),
+            User.create({ username: 'user2' }),
+            User.create({ username: 'user3' }),
+            User.create({ username: 'user4' }),
+            User.create({ username: 'user5' })
+          ]).then((users) => {
+            return Promise.all([
+              users[0].addFriends([users[3], users[4]]),
+              users[1].addFriends([users[2], users[3]])
+            ]).then(() => {
+              return User.findAll({
+                cte: [{
+                  name: 'a',
+                  model: User,
+                  cteAttributes: ['distance'],
+                  initial: { where: { username: 'user0' }, distance: 0 },
+                  recursive: {
+                    next: 'friends',
+                    distance: { $add: [{ $cte: 'distance' }, 1] },
+                    where: { cte: { distance: { $lt: 1 } } },
+                    order: [['distance', 'ASC']]
+                  }
+                }],
+                cteSelect: 'a'
+              }).then(selectedUsers => {
+                expect(selectedUsers).to.have.length(3);
+                expect(selectedUsers).to.contain.a.thing.with.property('username', 'user0');
+                expect(selectedUsers).to.contain.a.thing.with.property('username', 'user3');
+                expect(selectedUsers).to.contain.a.thing.with.property('username', 'user4');
               });
             });
           });
         });
       });
+
 
       if (current.dialect.supports.cteLimitOffsetOrder) {
 
