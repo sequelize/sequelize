@@ -11,7 +11,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     beforeEach(function() {
       this.User = current.define('User', {
         name: DataTypes.STRING,
-        birthdate: DataTypes.DATE,
+        birthday: DataTypes.DATE,
+        yoj: DataTypes.DATEONLY,
         meta: DataTypes.JSON
       });
     });
@@ -49,16 +50,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should return true for multiple changed values', function() {
       const user = this.User.build({
         name: 'a',
-        birthdate: new Date(new Date() - 10)
+        birthday: new Date(new Date() - 10)
       }, {
         isNewRecord: false,
         raw: true
       });
 
       user.set('name', 'b');
-      user.set('birthdate', new Date());
+      user.set('birthday', new Date());
       expect(user.changed('name')).to.equal(true);
-      expect(user.changed('birthdate')).to.equal(true);
+      expect(user.changed('birthday')).to.equal(true);
     });
 
     it('should return false for two instances with same value', function() {
@@ -67,14 +68,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const secondDate = new Date(milliseconds);
 
       const user = this.User.build({
-        birthdate: firstDate
+        birthday: firstDate
       }, {
         isNewRecord: false,
         raw: true
       });
 
-      user.set('birthdate', secondDate);
-      expect(user.changed('birthdate')).to.equal(false);
+      user.set('birthday', secondDate);
+      expect(user.changed('birthday')).to.equal(false);
     });
 
     it('should return true for changed JSON with same object', function() {
@@ -148,6 +149,26 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       user.set('meta.address', { street: 'Main street', number: '40' } );
       expect(user.changed('meta')).to.equal(false);
+    });
+
+    it('should return false when changed from null to null', function() {
+      const attributes = {};
+      for (const attr in this.User.rawAttributes) {
+        attributes[attr] = null;
+      }
+
+      const user = this.User.build(attributes, {
+        isNewRecord: false,
+        raw: true
+      });
+
+      for (const attr in this.User.rawAttributes) {
+        user.set(attr, null);
+      }
+
+      for (const attr in this.User.rawAttributes) {
+        expect(user.changed(attr), `${attr} is not changed`).to.equal(false);
+      }
     });
   });
 });
