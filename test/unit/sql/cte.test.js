@@ -6,6 +6,7 @@ const Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   expectsql = Support.expectsql,
   current = Support.sequelize,
+  Op = require(__dirname + '/../../../lib/operators'),
   sql = current.dialect.QueryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
@@ -74,12 +75,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               name: 'a',
               cteAttributes: ['total'],
               initial: {
-                total: { $model: 'amount' },
+                total: { [Op.cteModel]: 'amount' },
                 where: { username: 'user3' }
               },
               recursive: {
                 next: 'report',
-                total: { $add: [{ $cte: 'total' }, { $model: 'amount' }] }
+                total: { [Op.cteAdd]: [{ [Op.cteCte]: 'total' }, { [Op.cteModel]: 'amount' }] }
               }
             }]
           },
@@ -162,7 +163,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               recursive: {
                 next: 'report',
                 where: {
-                  model: { amount: { $gt: 30 } }
+                  model: { amount: { [Op.gt]: 30 } }
                 }
               }
             }]
@@ -179,14 +180,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               name: 'a',
               cteAttributes: ['total'],
               initial: {
-                total: { $model: 'amount' },
+                total: { [Op.cteModel]: 'amount' },
                 where: { username: 'user3' }
               },
               recursive: {
                 next: 'report',
-                total: { $add: [{ $cte: 'total' }, { $model: 'amount' }] },
+                total: { [Op.cteAdd]: [{ [Op.cteCte]: 'total' }, { [Op.cteModel]: 'amount' }] },
                 where: {
-                  cte: { total: { $lt: 500 } }
+                  cte: { total: { [Op.lt]: 500 } }
                 }
               }
             }]
@@ -203,15 +204,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               name: 'a',
               cteAttributes: ['total'],
               initial: {
-                total: { $model: 'amount' },
+                total: { [Op.cteModel]: 'amount' },
                 where: { username: 'user3' }
               },
               recursive: {
                 next: 'report',
-                total: { $add: [{ $cte: 'total' }, { $model: 'amount' }] },
+                total: { [Op.cteAdd]: [{ [Op.cteCte]: 'total' }, { [Op.cteModel]: 'amount' }] },
                 where: {
-                  model: { amount: { $gt: 30 } },
-                  cte: { total: { $lt: 500 } }
+                  model: { amount: { [Op.gt]: 30 } },
+                  cte: { total: { [Op.lt]: 500 } }
                 }
               }
             }]
@@ -228,14 +229,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               name: 'a',
               cteAttributes: ['total'],
               initial: {
-                total: { $model: 'amount' },
+                total: { [Op.cteModel]: 'amount' },
                 where: { username: 'user3' }
               },
               recursive: {
                 next: 'report',
-                total: { $add: [{ $cte: 'total' }, { $model: 'amount' }] },
+                total: { [Op.cteAdd]: [{ [Op.cteCte]: 'total' }, { [Op.cteModel]: 'amount' }] },
                 where: {
-                  cte: { total: { $lt: 500 } }
+                  cte: { total: { [Op.lt]: 500 } }
                 }
               }
             }],

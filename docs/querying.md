@@ -438,7 +438,7 @@ return Bank.findAll({
         initial: {
             where: {
                 amount: {
-                    [Op.get]: 20000
+                    [Op.gt]: 20000
                 }
             }
         }
@@ -584,7 +584,7 @@ initial: {
 },
 recursive: {
     depth: {
-        $add: [{ $cte: 'depth', 1}]
+        $add: [{ [Op.cteCte]: 'depth', 1}]
     }
 }
 ```

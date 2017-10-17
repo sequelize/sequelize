@@ -5,6 +5,7 @@ const chai = require('chai'),
   Promise = require('bluebird'),
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Op = require(__dirname + '/../../../lib/operators'),
   current = Support.sequelize;
 
 chai.use(require('chai-things'));
@@ -153,8 +154,8 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                   initial: { where: { username: 'user0' }, distance: 0 },
                   recursive: {
                     next: 'friends',
-                    distance: { $add: [{ $cte: 'distance' }, 1] },
-                    where: { cte: { distance: { $lt: 1 } } },
+                    distance: { [Op.cteAdd]: [{ [Op.cteCte]: 'distance' }, 1] },
+                    where: { cte: { distance: { [Op.lt]: 1 } } },
                     order: [['distance', 'ASC']]
                   }
                 }],
@@ -261,7 +262,7 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                     where: { username: 'user1' }
                   },
                   recursive: {
-                    level: { $add: [{ $cte: 'level' }, 1] },
+                    level: { [Op.cteAdd]: [{ [Op.cteCte]: 'level' }, 1] },
                     next: 'reports'
                   },
                   order: [['level', 'DESC']]
@@ -374,7 +375,7 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                   include: [{
                     model: User,
                     as: 'report',
-                    where: { user_id: { $gt: 99 } }
+                    where: { user_id: { [Op.gt]: 99 } }
                   }]
                 },
                 recursive: { next: 'report' }
@@ -437,7 +438,7 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                   model: PicStore,
                   as: 'picStore',
                   where: {
-                    amount: { $gt: 30 }
+                    amount: { [Op.gt]: 30 }
                   }
                 }]
               }
@@ -478,8 +479,8 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                 },
                 recursive: {
                   next: 'report',
-                  count: { $add: [{ $cte: 'count' }, 1] },
-                  where: { cte: { count: { $lt: 2 } } }
+                  count: { [Op.cteAdd]: [{ [Op.cteCte]: 'count' }, 1] },
+                  where: { cte: { count: { [Op.lt]: 2 } } }
                 }
               }]
             }).then(selectedUsers => {
@@ -515,7 +516,7 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                   where: { username: 'user1' }
                 },
                 recursive: {
-                  level: { $add: [{ $cte: 'level' }, 1] },
+                  level: { [Op.cteAdd]: [{ [Op.cteCte]: 'level' }, 1] },
                   next: 'reports',
                   order: [['level', 'ASC']]
                 }
@@ -559,13 +560,13 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                   where: { username: 'user1' }
                 },
                 recursive: {
-                  level: { $add: [{ $cte: 'level' }, 1] },
+                  level: { [Op.cteAdd]: [{ [Op.cteCte]: 'level' }, 1] },
                   next: 'reports',
                   order: [['level', 'DESC']],
                   where: {
                     cte: {
                       level: {
-                        $lt: 2
+                        [Op.lt]: 2
                       }
                     }
                   }
@@ -606,20 +607,20 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                 model: User,
                 cteAttributes: ['totalAmount'],
                 initial: {
-                  totalAmount: { $model: 'amount' },
+                  totalAmount: { [Op.cteModel]: 'amount' },
                   where: { username: 'user1' }
                 },
                 recursive: {
                   totalAmount: {
-                    $add: [{ $cte: 'totalAmount' },
-                      { $model: 'amount' }]
+                    [Op.cteAdd]: [{ [Op.cteCte]: 'totalAmount' },
+                      { [Op.cteModel]: 'amount' }]
                   },
                   next: 'report',
                   order: [['level', 'DESC']],
                   where: {
                     cte: {
                       totalAmount: {
-                        $lt: 20
+                        [Op.lt]: 20
                       }
                     }
                   }
@@ -636,7 +637,7 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
         });
       });
 
-      it('can use a counter based on a model attribute in a recursive CTE (with $col cte operand)', function() {
+      it('can use a counter based on a model attribute in a recursive CTE (with Op.cteCol operand)', function() {
         const User = this.sequelize.define('UserXYZ',
           {
             user_id: { type: DataTypes.INTEGER, primaryKey: true },
@@ -661,20 +662,20 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                 model: User,
                 cteAttributes: ['totalAmount'],
                 initial: {
-                  totalAmount: { $model: 'amount' },
+                  totalAmount: { [Op.cteModel]: 'amount' },
                   where: { username: 'user1' }
                 },
                 recursive: {
                   totalAmount: {
-                    $add: [{ $cte: 'totalAmount' },
-                      { $col: 'report.amount' }]
+                    [Op.cteAdd]: [{ [Op.cteCte]: 'totalAmount' },
+                      { [Op.cteCol]: 'report.amount' }]
                   },
                   next: 'report',
                   order: [['level', 'DESC']],
                   where: {
                     cte: {
                       totalAmount: {
-                        $lt: 20
+                        [Op.lt]: 20
                       }
                     }
                   }
@@ -746,7 +747,7 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                 where: { username: 'user1' }
               },
               recursive: {
-                level: { $add: [{ $cte: 'level' }, 1] },
+                level: { [Op.cteAdd]: [{ [Op.cteCte]: 'level' }, 1] },
                 next: 'reports',
                 order: [['level', 'ASC']]
               }
@@ -801,7 +802,7 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                 where: { username: 'user1' }
               },
               recursive: {
-                level: { $add: [{ $cte: 'level' }, 1], $sub: 4 },
+                level: { [Op.cteAdd]: [{ [Op.cteCte]: 'level' }, 1], [Op.cteSub]: 4 },
                 next: 'reports',
                 order: [['level', 'ASC']]
               }
@@ -829,14 +830,14 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                 where: { username: 'user1' }
               },
               recursive: {
-                level: { $swizzle: [{ $cte: 'level' }, 1]},
+                level: { $swizzle: [{ [Op.cteCte]: 'level' }, 1]},
                 next: 'reports',
                 order: [['level', 'ASC']]
               }
             }],
             includeCTEAttributes: ['level']
           }).catch(err => {
-            expect(err.message).to.equal('Unrecognized property key in attribute');
+            expect(err.message).to.equal('Unexpected structure of attribute object.');
           });
         });
       });
@@ -857,7 +858,7 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
                 where: { username: 'user1' }
               },
               recursive: {
-                level: { $add: 1},
+                level: { [Op.cteAdd]: 1},
                 next: 'reports',
                 order: [['level', 'ASC']]
               }
