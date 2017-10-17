@@ -283,8 +283,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 json: {
                   lastLogin: {$between: [before, after]}
                 }
-              },
-              logging: console.log.bind(console)
+              }
             }).then(events => {
               const event = events[0];
 
