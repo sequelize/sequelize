@@ -65,6 +65,20 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       return expect(result).to.be.rejectedWith(SequelizeValidationError);
     });
+
+    it('has a useful default error message for not null validation failures', () => {
+      const User = Support.sequelize.define('user', {
+        name: {
+          type: Support.Sequelize.STRING,
+          allowNull: false
+        }
+      });
+
+      const instanceValidator = new InstanceValidator(User.build());
+      const result = instanceValidator.validate();
+
+      return expect(result).to.be.rejectedWith(SequelizeValidationError, /user\.name cannot be null/);
+    });
   });
 
   describe('_validateAndRunHooks', () => {
