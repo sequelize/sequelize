@@ -7,6 +7,8 @@ const chai = require('chai'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   current = Support.sequelize;
 
+chai.use(require('chai-things'));
+
 describe(Support.getTestDialectTeaser('CTEs'), () => {
   if (current.dialect.supports.ctes) {
     describe('with findAll', () => {
