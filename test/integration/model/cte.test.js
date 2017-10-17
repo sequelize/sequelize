@@ -141,7 +141,7 @@ describe(Support.getTestDialectTeaser('CTEs'), () => {
             User.create({ username: 'user3' }),
             User.create({ username: 'user4' }),
             User.create({ username: 'user5' })
-          ]).then((users) => {
+          ]).then(users => {
             return Promise.all([
               users[0].addFriends([users[3], users[4]]),
               users[1].addFriends([users[2], users[3]])
