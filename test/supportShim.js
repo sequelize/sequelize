@@ -305,7 +305,7 @@ function getFunctionCode(fn) {
 }
 
 /**
- * Returns arguments of a function as an array, from it's AST
+ * Returns arguments of a function as an array, from its AST
  *
  * @param {Object} tree - Abstract syntax tree of function's code
  * @returns {Array} - Array of names of `method`'s arguments
