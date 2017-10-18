@@ -130,21 +130,18 @@ if (current.dialect.supports.JSON) {
         test('json function', () => {
           expectsql(sql.handleSequelizeMethod(Sequelize.json('json(\'{"profile":{"name":"david"}}\')')), {
             default: 'json(\'{"profile":{"name":"david"}}\')',
-            //mysql: '`json(\'{"profile":{"name":"david"}}\')`->>\'$.\''
           });
         });
 
         test('nested json functions', () => {
           expectsql(sql.handleSequelizeMethod(Sequelize.json('json_extract(json_object(\'{"profile":null}\'), "profile")')), {
             default: 'json_extract(json_object(\'{"profile":null}\'), "profile")',
-            //mysql: '`json_extract(json_object(\'{"profile":null}\'), "profile")`->>\'$.\''
           });
         });
 
         test('escaped string argument', () => {
           expectsql(sql.handleSequelizeMethod(Sequelize.json('json(\'{"quote":{"single":"\'\'","double":""""},"parenthesis":"())("}\')')), {
             default: 'json(\'{"quote":{"single":"\'\'","double":""""},"parenthesis":"())("}\')',
-            //mysql: '`json(\'{"quote":{"single":"\'\'","double":""""},"parenthesis":"())("}\')`->>\'$.\''
           });
         });
 
