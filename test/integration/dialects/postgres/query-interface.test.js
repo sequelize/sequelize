@@ -34,10 +34,17 @@ if (dialect.match(/^postgres/)) {
           });
       });
 
-      it('errors if the schema exists', function() {
+      it('works even when schema exists', function() {
         return this.queryInterface.createSchema('testschema')
-          .catch(err => {
-            expect(err.message).to.be.equal('schema "testschema" already exists');
+          .then(() => this.queryInterface.createSchema('testschema'))
+          .then(() => this.sequelize.query(`
+            SELECT schema_name
+            FROM information_schema.schemata
+            WHERE schema_name = 'testschema';
+          `, { type: this.sequelize.QueryTypes.SELECT }))
+          .then(res => {
+            expect(res, 'query results').to.not.be.empty;
+            expect(res[0].schema_name).to.be.equal('testschema');
           });
       });
     });

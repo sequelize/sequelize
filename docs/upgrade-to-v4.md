@@ -71,7 +71,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - `DataTypes.DECIMAL` returns string for MySQL and Postgres.
 - `DataTypes.DATE` now uses `DATETIMEOFFSET` instead of `DATETIME2` sql datatype in case of MSSQL to record timezone. To migrate existing `DATETIME2` columns into `DATETIMEOFFSET`, see [#7201](https://github.com/sequelize/sequelize/pull/7201#issuecomment-278899803).
 - `options.order` now only accepts values with type of array or Sequelize method. Support for string values (ie `{order: 'name DESC'}`) has been deprecated.
-- With `BelongsToMany` relationships `add/set/create` setters now set through attributes by passing them as `options.through` (previously second argument was used as through attributes, now its considered options with `through` being a sub option)
+- With `BelongsToMany` relationships `add/set/create` setters now set through attributes by passing them as `options.through` (previously second argument was used as through attributes, now it's considered options with `through` being a sub option)
 
   Previous:
   ```js
@@ -88,6 +88,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - The resulting promise from the `Model.validate` instance method will be rejected when validation fails. It will fulfill when validation succeeds.
 - Raw options for where, order and group like `where: { $raw: '..', order: [{ raw: '..' }], group: [{ raw: '..' }] }` have been removed to prevent SQL injection attacks.
 - `Sequelize.Utils` is not longer part of the public API, use it at your own risk
+- `Hooks` should return Promises now. Callbacks are deprecated.
 
 ### New features
 - Initial version of `sequelize.sync({ alter: true })` has been added and uses `ALTER TABLE` commands to sync tables. [Migrations](http://docs.sequelizejs.com/manual/tutorial/migrations.html) are still preferred and should be used in production.

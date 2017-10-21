@@ -11,6 +11,7 @@ const chai = require('chai'),
   config = require(__dirname + '/../config/config'),
   moment = require('moment'),
   Transaction = require(__dirname + '/../../lib/transaction'),
+  Utils = require(__dirname + '/../../lib/utils'),
   sinon = require('sinon'),
   semver = require('semver'),
   current = Support.sequelize;
@@ -28,6 +29,10 @@ const qq = function(str) {
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('constructor', () => {
+    afterEach(() => {
+      Utils.deprecate.restore && Utils.deprecate.restore();
+    });
+
     if (dialect !== 'sqlite') {
       it.skip('should work with min connections', () => {
         const ConnectionManager = current.dialect.connectionManager,
@@ -53,6 +58,27 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const sequelize = Support.createSequelizeInstance({ host: '127.0.0.1', port: 1234 });
       expect(sequelize.config.port).to.equal(1234);
       expect(sequelize.config.host).to.equal('127.0.0.1');
+    });
+
+
+    it('should log deprecated warning if operators aliases were not set', () => {
+      sinon.stub(Utils, 'deprecate');
+      Support.createSequelizeInstance();
+      expect(Utils.deprecate.calledOnce).to.be.true;
+      expect(Utils.deprecate.args[0][0]).to.be.equal('String based operators are now deprecated. Please use Symbol based operators for better security, read more at http://docs.sequelizejs.com/manual/tutorial/querying.html#operators');
+      Utils.deprecate.reset();
+      Support.createSequelizeInstance({ operatorsAliases: {} });
+      expect(Utils.deprecate.called).to.be.false;
+    });
+
+    it('should set operators aliases on dialect QueryGenerator', () => {
+      const operatorsAliases = { fake: true };
+      const sequelize = Support.createSequelizeInstance({ operatorsAliases });
+
+      expect(sequelize).to.have.property('dialect');
+      expect(sequelize.dialect).to.have.property('QueryGenerator');
+      expect(sequelize.dialect.QueryGenerator).to.have.property('OperatorsAliasMap');
+      expect(sequelize.dialect.QueryGenerator.OperatorsAliasMap).to.be.eql(operatorsAliases);
     });
 
     if (dialect === 'sqlite') {
@@ -959,6 +985,18 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       return User.sync().then(() => {
         expect(true).to.be.true;
       });
+    });
+
+    it('fails with incorrect match condition', function() {
+      const sequelize = new Sequelize('cyber_bird', 'user', 'pass', {
+        dialect: this.sequelize.options.dialect
+      });
+
+      sequelize.define('Project', {title: Sequelize.STRING});
+      sequelize.define('Task', {title: Sequelize.STRING});
+
+      return expect(sequelize.sync({force: true, match: /$phoenix/}))
+        .to.be.rejectedWith('Database "cyber_bird" does not match sync match parameter "/$phoenix/"');
     });
 
     if (dialect !== 'sqlite') {

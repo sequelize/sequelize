@@ -41,6 +41,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     projects: {
       include: [Project]
     },
+    groupByCompanyId: {
+      group: ['company.id']
+    },
+    groupByProjectId: {
+      group: ['project.id'],
+      include: [Project]
+    },
     noArgs() {
       // This does not make much sense, since it does not actually need to be in a function,
       // In reality it could be used to do for example new Date or random in the scope - but we want it deterministic
@@ -215,6 +222,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         Company.scope('doesntexist');
       }).to.throw('Invalid scope doesntexist called.');
     });
+
+    it('should concatenate scope groups', () => {
+      expect(Company.scope('groupByCompanyId', 'groupByProjectId')._scope).to.deep.equal({
+        group: ['company.id', 'project.id'],
+        include: [{ model: Project }]
+      });
+    });
   });
 
   describe('addScope', () => {
@@ -360,7 +374,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
     });
 
-    it('should be able to merge aliassed includes with the same model', () => {
+    it('should be able to merge aliased includes with the same model', () => {
       const scope = {
         include: [{model: User, as: 'someUser'}]
       };

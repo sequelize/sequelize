@@ -16,6 +16,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     this.clock = sinon.useFakeTimers();
   });
 
+  afterEach(function() {
+    this.clock.reset();
+  });
+
   after(function() {
     this.clock.restore();
   });
@@ -51,6 +55,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         defaultValue: false
       }
     });
+
     return this.User.sync({ force: true });
   });
 
@@ -249,18 +254,21 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = this.sequelize.define('IncrementUser', {
         aNumber: DataTypes.INTEGER
       }, { timestamps: true });
+
       let oldDate;
 
-      return User.sync({ force: true }).bind(this).then(() => {
-        return User.create({aNumber: 1});
-      }).then(function(user) {
-        oldDate = user.updatedAt;
+      return User.sync({ force: true })
+        .then(() => User.create({ aNumber: 1 }))
+        .then(user => {
+          oldDate = user.get('updatedAt');
 
-        this.clock.tick(1000);
-        return user.increment('aNumber', {by: 1});
-      }).then(() => {
-        return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
-      });
+          this.clock.tick(1000);
+          return user.increment('aNumber', { by: 1 });
+        })
+        .then(user => user.reload())
+        .then(user => {
+          return expect(user).to.have.property('updatedAt').afterTime(oldDate);
+        });
     });
 
     it('with timestamps set to true and options.silent set to true', function() {
@@ -305,6 +313,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                 });
               });
             });
+          });
+        });
+      });
+    }
+
+    if (current.dialect.supports.returnValues.returning) {
+      it('supports returning', function() {
+        return this.User.findById(1).then(user1 => {
+          return user1.decrement('aNumber', { by: 2 }).then(() => {
+            expect(user1.aNumber).to.be.equal(-2);
           });
         });
       });
@@ -383,6 +401,22 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           return self.User.findById(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(-1);
             expect(user3.bNumber).to.be.equal(-2);
+          });
+        });
+      });
+    });
+
+    it('with negative value', function () {
+      const self = this;
+      return this.User.findById(1).then(user1 => {
+        return self.sequelize.Promise.all([
+          user1.decrement('aNumber', { by: -2 }),
+          user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
+          user1.decrement({ 'aNumber': -1, 'bNumber': -2 }),
+        ]).then(() => {
+          return self.User.findById(1).then(user3 => {
+            expect(user3.aNumber).to.be.equal(+5);
+            expect(user3.bNumber).to.be.equal(+4);
           });
         });
       });
@@ -1136,11 +1170,20 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('updates the timestamps', function() {
-      const now = new Date(),
-        user = this.User.build({ username: 'user' });
+      const now = new Date();
+      now.setMilliseconds(0);
 
+      const user = this.User.build({ username: 'user' });
       this.clock.tick(1000);
-      return expect(user.save()).to.eventually.have.property('updatedAt').afterTime(now);
+
+      return user.save().then(savedUser => {
+        expect(savedUser).have.property('updatedAt').afterTime(now);
+
+        this.clock.tick(1000);
+        return savedUser.save();
+      }).then(updatedUser => {
+        expect(updatedUser).have.property('updatedAt').afterTime(now);
+      });
     });
 
     it('does not update timestamps when passing silent=true', function() {
@@ -1186,15 +1229,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('when nothing changed', () => {
-
-      beforeEach(function() {
-        this.clock = sinon.useFakeTimers();
-      });
-
-      afterEach(function() {
-        this.clock.restore();
-      });
-
       it('does not update timestamps', function() {
         const self = this;
         return self.User.create({ username: 'John' }).then(() => {
@@ -2074,6 +2108,32 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
       });
     });
+
+    if (dialect.match(/^postgres/)) {
+      it('converts Infinity in where clause to a timestamp', function() {
+        const Date = this.sequelize.define('Date',
+          {
+            date: {
+              type: DataTypes.DATE,
+              primaryKey: true
+            },
+            deletedAt: {
+              type: DataTypes.DATE,
+              defaultValue: Infinity
+            }
+          },
+          { paranoid: true });
+
+        return this.sequelize.sync({ force: true })
+          .then(() => {
+            return Date.build({ date: Infinity })
+              .save()
+              .then(date => {
+                return date.destroy();
+              });
+          });
+      });
+    }
   });
 
   describe('isSoftDeleted', () => {

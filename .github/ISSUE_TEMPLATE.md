@@ -7,7 +7,7 @@ For bugs, please fill out the template below.
 
 -->
 
-## What you are doing?
+## What are you doing?
 <!-- Post a minimal, self-contained code sample that reproduces the issue, including models and associations -->
 
 ```js
@@ -24,5 +24,9 @@ _Output, either JSON or SQL_
 
 
 __Dialect:__ mysql / postgres / sqlite / mssql / any
+__Dialect version:__ XXX
 __Database version:__ XXX
 __Sequelize version:__ XXX
+__Tested with master branch:__ No
+
+**Note :** _Your issue may be ignored by maintainers if it's not tested against `master` branch OR does not follow issue template._
