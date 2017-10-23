@@ -386,15 +386,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid INTEGER');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid integer');
 
           expect(() => {
             type.validate('123.45');
-          }).to.throw(Sequelize.ValidationError, '"123.45" is not a valid INTEGER');
+          }).to.throw(Sequelize.ValidationError, '"123.45" is not a valid integer');
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid INTEGER');
+          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid integer');
         });
 
         test('should return `true` if `value` is a valid integer', () => {
@@ -500,11 +500,11 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid TINYINT');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid tinyint');
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid TINYINT');
+          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid tinyint');
         });
 
         test('should return `true` if `value` is an integer', () => {
@@ -610,11 +610,11 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid SMALLINT');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid smallint');
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid SMALLINT');
+          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid smallint');
         });
 
         test('should return `true` if `value` is an integer', () => {
@@ -720,11 +720,11 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid MEDIUMINT');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid mediumint');
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid MEDIUMINT');
+          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid mediumint');
         });
 
         test('should return `true` if `value` is an integer', () => {
@@ -799,11 +799,11 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate('foobar');
-          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid BIGINT');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid bigint');
 
           expect(() => {
             type.validate(123.45);
-          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid BIGINT');
+          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid bigint');
         });
 
         test('should return `true` if `value` is an integer', () => {
