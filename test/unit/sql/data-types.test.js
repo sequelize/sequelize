@@ -640,8 +640,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT.UNSIGNED,
           expect: {
             default: 'MEDIUMINT UNSIGNED',
-            postgres: 'MEDIUMINT',
-            mssql: 'MEDIUMINT'
+            postgres: 'MEDIUMINT'
           }
         },
         {
@@ -649,8 +648,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT.UNSIGNED.ZEROFILL,
           expect: {
             default: 'MEDIUMINT UNSIGNED ZEROFILL',
-            postgres: 'MEDIUMINT',
-            mssql: 'MEDIUMINT'
+            postgres: 'MEDIUMINT'
           }
         },
         {
@@ -658,8 +656,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6),
           expect: {
             default: 'MEDIUMINT(6)',
-            postgres: 'MEDIUMINT',
-            mssql: 'MEDIUMINT'
+            postgres: 'MEDIUMINT'
           }
         },
         {
@@ -667,8 +664,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT({ length: 6 }),
           expect: {
             default: 'MEDIUMINT(6)',
-            postgres: 'MEDIUMINT',
-            mssql: 'MEDIUMINT'
+            postgres: 'MEDIUMINT'
           }
         },
         {
@@ -676,8 +672,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).UNSIGNED,
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED',
-            postgres: 'MEDIUMINT',
-            mssql: 'MEDIUMINT'
+            postgres: 'MEDIUMINT'
           }
         },
         {
@@ -685,8 +680,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).UNSIGNED.ZEROFILL,
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
-            postgres: 'MEDIUMINT',
-            mssql: 'MEDIUMINT'
+            postgres: 'MEDIUMINT'
           }
         },
         {
@@ -695,8 +689,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'MEDIUMINT(6) ZEROFILL',
             sqlite: 'MEDIUMINT ZEROFILL(6)',
-            postgres: 'MEDIUMINT',
-            mssql: 'MEDIUMINT'
+            postgres: 'MEDIUMINT'
           }
         },
         {
@@ -705,8 +698,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
             sqlite: 'MEDIUMINT UNSIGNED ZEROFILL(6)',
-            postgres: 'MEDIUMINT',
-            mssql: 'MEDIUMINT'
+            postgres: 'MEDIUMINT'
           }
         }
       ];
