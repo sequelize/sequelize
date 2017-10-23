@@ -416,29 +416,10 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           }
         },
         {
-          title: 'TINYINT.UNSIGNED',
-          dataType: DataTypes.TINYINT.UNSIGNED,
-          expect: {
-            default: 'TINYINT UNSIGNED',
-            postgres: 'TINYINT',
-            mssql: 'TINYINT'
-          }
-        },
-        {
-          title: 'TINYINT.UNSIGNED.ZEROFILL',
-          dataType: DataTypes.TINYINT.UNSIGNED.ZEROFILL,
-          expect: {
-            default: 'TINYINT UNSIGNED ZEROFILL',
-            postgres: 'TINYINT',
-            mssql: 'TINYINT'
-          }
-        },
-        {
           title: 'TINYINT(2)',
           dataType: DataTypes.TINYINT(2),
           expect: {
             default: 'TINYINT(2)',
-            postgres: 'TINYINT',
             mssql: 'TINYINT'
           }
         },
@@ -447,7 +428,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT({ length: 2 }),
           expect: {
             default: 'TINYINT(2)',
-            postgres: 'TINYINT',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT.UNSIGNED',
+          dataType: DataTypes.TINYINT.UNSIGNED,
+          expect: {
+            default: 'TINYINT UNSIGNED',
             mssql: 'TINYINT'
           }
         },
@@ -456,7 +444,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2).UNSIGNED,
           expect: {
             default: 'TINYINT(2) UNSIGNED',
-            postgres: 'TINYINT',
+            sqlite: 'TINYINT UNSIGNED(2)',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT.UNSIGNED.ZEROFILL',
+          dataType: DataTypes.TINYINT.UNSIGNED.ZEROFILL,
+          expect: {
+            default: 'TINYINT UNSIGNED ZEROFILL',
             mssql: 'TINYINT'
           }
         },
@@ -465,7 +461,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2).UNSIGNED.ZEROFILL,
           expect: {
             default: 'TINYINT(2) UNSIGNED ZEROFILL',
-            postgres: 'TINYINT',
+            sqlite: 'TINYINT UNSIGNED ZEROFILL(2)',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT.ZEROFILL',
+          dataType: DataTypes.TINYINT.ZEROFILL,
+          expect: {
+            default: 'TINYINT ZEROFILL',
             mssql: 'TINYINT'
           }
         },
@@ -475,7 +479,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2) ZEROFILL',
             sqlite: 'TINYINT ZEROFILL(2)',
-            postgres: 'TINYINT',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT.ZEROFILL.UNSIGNED',
+          dataType: DataTypes.TINYINT.ZEROFILL.UNSIGNED,
+          expect: {
+            default: 'TINYINT UNSIGNED ZEROFILL',
             mssql: 'TINYINT'
           }
         },
@@ -485,7 +496,6 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2) UNSIGNED ZEROFILL',
             sqlite: 'TINYINT UNSIGNED ZEROFILL(2)',
-            postgres: 'TINYINT',
             mssql: 'TINYINT'
           }
         }
@@ -526,24 +536,6 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           }
         },
         {
-          title: 'SMALLINT.UNSIGNED',
-          dataType: DataTypes.SMALLINT.UNSIGNED,
-          expect: {
-            default: 'SMALLINT UNSIGNED',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
-          }
-        },
-        {
-          title: 'SMALLINT.UNSIGNED.ZEROFILL',
-          dataType: DataTypes.SMALLINT.UNSIGNED.ZEROFILL,
-          expect: {
-            default: 'SMALLINT UNSIGNED ZEROFILL',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
-          }
-        },
-        {
           title: 'SMALLINT(4)',
           dataType: DataTypes.SMALLINT(4),
           expect: {
@@ -562,10 +554,29 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           }
         },
         {
+          title: 'SMALLINT.UNSIGNED',
+          dataType: DataTypes.SMALLINT.UNSIGNED,
+          expect: {
+            default: 'SMALLINT UNSIGNED',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
           title: 'SMALLINT(4).UNSIGNED',
           dataType: DataTypes.SMALLINT(4).UNSIGNED,
           expect: {
             default: 'SMALLINT(4) UNSIGNED',
+            sqlite: 'SMALLINT UNSIGNED(4)',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT.UNSIGNED.ZEROFILL',
+          dataType: DataTypes.SMALLINT.UNSIGNED.ZEROFILL,
+          expect: {
+            default: 'SMALLINT UNSIGNED ZEROFILL',
             postgres: 'SMALLINT',
             mssql: 'SMALLINT'
           }
@@ -575,6 +586,16 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).UNSIGNED.ZEROFILL,
           expect: {
             default: 'SMALLINT(4) UNSIGNED ZEROFILL',
+            sqlite: 'SMALLINT UNSIGNED ZEROFILL(4)',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT.ZEROFILL',
+          dataType: DataTypes.SMALLINT.ZEROFILL,
+          expect: {
+            default: 'SMALLINT ZEROFILL',
             postgres: 'SMALLINT',
             mssql: 'SMALLINT'
           }
@@ -585,6 +606,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'SMALLINT(4) ZEROFILL',
             sqlite: 'SMALLINT ZEROFILL(4)',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT.ZEROFILL.UNSIGNED',
+          dataType: DataTypes.SMALLINT.ZEROFILL.UNSIGNED,
+          expect: {
+            default: 'SMALLINT UNSIGNED ZEROFILL',
             postgres: 'SMALLINT',
             mssql: 'SMALLINT'
           }
@@ -636,35 +666,24 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           }
         },
         {
-          title: 'MEDIUMINT.UNSIGNED',
-          dataType: DataTypes.MEDIUMINT.UNSIGNED,
-          expect: {
-            default: 'MEDIUMINT UNSIGNED',
-            postgres: 'MEDIUMINT'
-          }
-        },
-        {
-          title: 'MEDIUMINT.UNSIGNED.ZEROFILL',
-          dataType: DataTypes.MEDIUMINT.UNSIGNED.ZEROFILL,
-          expect: {
-            default: 'MEDIUMINT UNSIGNED ZEROFILL',
-            postgres: 'MEDIUMINT'
-          }
-        },
-        {
           title: 'MEDIUMINT(6)',
           dataType: DataTypes.MEDIUMINT(6),
           expect: {
-            default: 'MEDIUMINT(6)',
-            postgres: 'MEDIUMINT'
+            default: 'MEDIUMINT(6)'
           }
         },
         {
           title: 'MEDIUMINT({ length: 6 })',
           dataType: DataTypes.MEDIUMINT({ length: 6 }),
           expect: {
-            default: 'MEDIUMINT(6)',
-            postgres: 'MEDIUMINT'
+            default: 'MEDIUMINT(6)'
+          }
+        },
+        {
+          title: 'MEDIUMINT.UNSIGNED',
+          dataType: DataTypes.MEDIUMINT.UNSIGNED,
+          expect: {
+            default: 'MEDIUMINT UNSIGNED'
           }
         },
         {
@@ -672,7 +691,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).UNSIGNED,
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED',
-            postgres: 'MEDIUMINT'
+            sqlite: 'MEDIUMINT UNSIGNED(6)'
+          }
+        },
+        {
+          title: 'MEDIUMINT.UNSIGNED.ZEROFILL',
+          dataType: DataTypes.MEDIUMINT.UNSIGNED.ZEROFILL,
+          expect: {
+            default: 'MEDIUMINT UNSIGNED ZEROFILL'
           }
         },
         {
@@ -680,7 +706,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).UNSIGNED.ZEROFILL,
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
-            postgres: 'MEDIUMINT'
+            sqlite: 'MEDIUMINT UNSIGNED ZEROFILL(6)'
+          }
+        },
+        {
+          title: 'MEDIUMINT.ZEROFILL',
+          dataType: DataTypes.MEDIUMINT.ZEROFILL,
+          expect: {
+            default: 'MEDIUMINT ZEROFILL'
           }
         },
         {
@@ -688,8 +721,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).ZEROFILL,
           expect: {
             default: 'MEDIUMINT(6) ZEROFILL',
-            sqlite: 'MEDIUMINT ZEROFILL(6)',
-            postgres: 'MEDIUMINT'
+            sqlite: 'MEDIUMINT ZEROFILL(6)'
+          }
+        },
+        {
+          title: 'MEDIUMINT.ZEROFILL.UNSIGNED',
+          dataType: DataTypes.MEDIUMINT.ZEROFILL.UNSIGNED,
+          expect: {
+            default: 'MEDIUMINT UNSIGNED ZEROFILL'
           }
         },
         {
@@ -697,8 +736,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).ZEROFILL.UNSIGNED,
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
-            sqlite: 'MEDIUMINT UNSIGNED ZEROFILL(6)',
-            postgres: 'MEDIUMINT'
+            sqlite: 'MEDIUMINT UNSIGNED ZEROFILL(6)'
           }
         }
       ];
