@@ -407,7 +407,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     suite('TINYINT', () => {
-      let cases = [
+      const cases = [
         {
           title: 'TINYINT',
           dataType: DataTypes.TINYINT,
@@ -492,7 +492,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       ];
       cases.forEach(row => {
         testsql(row.title, row.dataType, row.expect);
-      })
+      });
 
       suite('validate', () => {
         test('should throw an error if `value` is invalid', () => {
@@ -517,7 +517,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     suite('SMALLINT', () => {
-      let cases = [
+      const cases = [
         {
           title: 'SMALLINT',
           dataType: DataTypes.SMALLINT,
@@ -602,7 +602,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       ];
       cases.forEach(row => {
         testsql(row.title, row.dataType, row.expect);
-      })
+      });
 
       suite('validate', () => {
         test('should throw an error if `value` is invalid', () => {
@@ -627,7 +627,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     suite('MEDIUMINT', () => {
-      let cases = [
+      const cases = [
         {
           title: 'MEDIUMINT',
           dataType: DataTypes.MEDIUMINT,
@@ -712,7 +712,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       ];
       cases.forEach(row => {
         testsql(row.title, row.dataType, row.expect);
-      })
+      });
 
       suite('validate', () => {
         test('should throw an error if `value` is invalid', () => {
