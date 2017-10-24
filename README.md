@@ -30,7 +30,7 @@ $ npm install --save sequelize
 $ npm install --save pg@6 pg-hstore # Note that `pg@7` is not supported yet
 $ npm install --save mysql2
 $ npm install --save sqlite3
-$ npm install --save tedious // MSSQL
+$ npm install --save tedious # MSSQL
 ```
 
 Sequelize follows [SEMVER](http://semver.org). Supports Node v4 and above to use ES6 features.
