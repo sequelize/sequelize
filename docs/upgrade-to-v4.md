@@ -100,7 +100,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
   ```
   You can then define custom methods, class methods and getters/setter directly in the class.
   This also enables more usage patterns, for example with [decorators](https://www.npmjs.com/package/sequelize-decorators).
-- Added `DEBUG` support. You can now use `DEBUG=sequelize* node app.js` to enable logging for all sequlize operations. To filter logged queries, use `DEBUG=sequelize:sql:mssql sequelize:connection*` to log generated SQL queries, connection info etc.
+- Added `DEBUG` support. You can now use `DEBUG=sequelize* node app.js` to enable logging for all sequelize operations. To filter logged queries, use `DEBUG=sequelize:sql:mssql sequelize:connection*` to log generated SQL queries, connection info etc.
 - `JSON` datatype support has been added for `SQLite`
 - `UPSERT` is now supported on `MSSQL` using `MERGE` statement.
 - Transactions are now fully supported on `MSSQL`.
