@@ -2931,5 +2931,48 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return expect(User.findById(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
       });
     });
+
+    it('should work with scopes', function() {
+      const User = this.sequelize.define('User', {
+        aNumber: DataTypes.INTEGER,
+        name: DataTypes.STRING
+      }, {
+        scopes: {
+          jeff: {
+            where: {
+              name: 'Jeff'
+            }
+          }
+        }
+      });
+
+      return User.sync({ force: true }).then(() => {
+        return User.bulkCreate([
+          {
+            aNumber: 1,
+            name: 'Jeff'
+          },
+          {
+            aNumber: 3,
+            name: 'Not Jeff'
+          }
+        ]);
+      }).then(() => {
+        return User.scope('jeff').increment('aNumber', {
+        });
+      }).then(() => {
+        return User.scope('jeff').findOne();
+      }).then(jeff => {
+        expect(jeff.aNumber).to.equal(2);
+      }).then(() => {
+        return User.findOne({
+          where: {
+            name: 'Not Jeff'
+          }
+        });
+      }).then(notJeff => {
+        expect(notJeff.aNumber).to.equal(3);
+      });
+    });
   });
 });
