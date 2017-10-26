@@ -86,6 +86,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           ), {
             default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo'",
             postgres: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
+            sqlite:   "DELETE FROM `public.test_users` WHERE `name` = 'foo'",
             mssql:    "DELETE FROM [public].[test_users] WHERE [name] = N'foo'; SELECT @@ROWCOUNT AS AFFECTEDROWS;"
           }
         );
@@ -108,7 +109,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             User
           ), {
             postgres: 'DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
-            sqlite:   "DELETE FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;'",
+            sqlite:   "DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)",
             mssql:    "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
             default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"
           }
@@ -139,7 +140,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         return expectsql(
           query, {
             postgres: new Error('Cannot LIMIT delete without a model.'),
-            sqlite:   "DELETE FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;'",
+            sqlite:   "DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)",
             mssql:    "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
             default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"
           }
@@ -173,7 +174,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             User
           ), {
             postgres: 'DELETE FROM "test_user" WHERE "test_user_id" IN (SELECT "test_user_id" FROM "test_user" WHERE "test_user_id" = 100 LIMIT 1)',
-            sqlite:   'DELETE FROM `test_user` WHERE `test_user_id` = 100',
+            sqlite:   'DELETE FROM `test_user` WHERE rowid IN (SELECT rowid FROM `test_user` WHERE `test_user_id` = 100 LIMIT 1)',
             mssql:    'DELETE TOP(1) FROM [test_user] WHERE [test_user_id] = 100; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
             default:  'DELETE FROM [test_user] WHERE [test_user_id] = 100 LIMIT 1'
           }

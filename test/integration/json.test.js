@@ -34,7 +34,12 @@ describe('model', () => {
           fields: ['id', 'username', 'document', 'emergency_contact'],
           logging: sql => {
             const expected = '\'{"name":"joe","phones":[1337,42]}\'';
-            expect(sql.indexOf(expected)).not.to.equal(-1);
+            const expectedEscaped = '\'{\\"name\\":\\"joe\\",\\"phones\\":[1337,42]}\'';
+            if (sql.indexOf(expected) === -1) {
+              expect(sql.indexOf(expectedEscaped)).not.to.equal(-1);
+            } else {
+              expect(sql.indexOf(expected)).not.to.equal(-1);
+            }
           }
         });
       });
@@ -235,6 +240,22 @@ describe('model', () => {
           expect(user.username).to.equal('swen');
         });
       });
+
+      // JSONB Supports this, but not JSON in postgres/mysql
+      if (current.dialect.name === 'sqlite') {
+        it('should be able to find with just string', function() {
+          return this.User.create({
+            username: 'swen123',
+            emergency_contact: 'Unknown',
+          }).then(() => {
+            return this.User.find({where: {
+              emergency_contact: 'Unknown',
+            }});
+          }).then(user => {
+            expect(user.username).to.equal('swen123');
+          });
+        });
+      }
     });
   }
 });
