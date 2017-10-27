@@ -992,21 +992,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(smth1.path).to.equal('smth');
           expect(smth1.type || smth1.origin).to.match(/notNull Violation/);
-
-          /*
-          // TODO: code below specifies different tests for different dialects but all the test are exactly the same.
-                   can we remove this or do we need to add tests to actually support different dialects?
-          if (dialect === 'mysql') {
-            // We need to allow two different errors for MySQL, see:
-            // http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_trans_tables
-            expect(err.get('smth')[0].type).to.match(/notNull Violation/);
-          }
-          else if (dialect === 'sqlite') {
-            expect(err.get('smth')[0].type).to.match(/notNull Violation/);
-          } else {
-            expect(err.get('smth')[0].type).to.match(/notNull Violation/);
-          }
-          //*/
         });
       });
     });
