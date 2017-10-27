@@ -478,6 +478,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       }, User), {
         postgres: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (E\'\\\\x313233\');',
         mysql: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
+        oracle: 'SELECT name, age, data FROM "User" "User" WHERE "User".data IN (hextoraw(\'313233\'));',
         sqlite: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
         mssql: 'SELECT [name], [age], [data] FROM [User] AS [User] WHERE [User].[data] IN (0x313233);'
       });
