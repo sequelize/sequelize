@@ -460,6 +460,28 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           'INNER JOIN Post postaliasname ON "User".id = postaliasname.user_id;'
       });
     });
+
+    it('properly stringify IN values as per field definition', () => {
+      const User = Support.sequelize.define('User', {
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER,
+        data: DataTypes.BLOB
+      }, {
+        freezeTableName: true
+      });
+
+      expectsql(sql.selectQuery('User', {
+        attributes: ['name', 'age', 'data'],
+        where: {
+          data: ['123']
+        }
+      }, User), {
+        postgres: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (E\'\\\\x313233\');',
+        mysql: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
+        sqlite: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
+        mssql: 'SELECT [name], [age], [data] FROM [User] AS [User] WHERE [User].[data] IN (0x313233);'
+      });
+    });
   });
 
   suite('queryIdentifiersFalse', () => {

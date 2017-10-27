@@ -51,6 +51,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: "UPDATE TOP(1) [Users] SET [username]=N'new.username' OUTPUT INSERTED.* WHERE [username] = N'username'",
         mysql: "UPDATE `Users` SET `username`='new.username' WHERE `username` = 'username' LIMIT 1",
         oracle: 'UPDATE Users SET username=\'new.username\' WHERE username = \'username\' AND rownum <= 1',
+        sqlite: "UPDATE `Users` SET `username`='new.username' WHERE rowid IN (SELECT rowid FROM `Users` WHERE `username` = 'username' LIMIT 1)",
         default: "UPDATE [Users] SET [username]='new.username' WHERE [username] = 'username'"
       });
     });

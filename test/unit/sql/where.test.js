@@ -812,7 +812,16 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         test('sequelize.json("profile.id"), sequelize.cast(2, \'text\')")', function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.json('profile.id', this.sequelize.cast('12346-78912', 'text'))), {
             postgres: "(\"profile\"#>>'{id}') = CAST('12346-78912' AS TEXT)",
-            sqlite: "json_extract(`profile`, '$.id') = CAST('12346-78912' AS TEXT)"
+            sqlite: "json_extract(`profile`, '$.id') = CAST('12346-78912' AS TEXT)",
+            mysql: "`profile`->>'$.id' = CAST('12346-78912' AS CHAR)"
+          });
+        });
+
+        test('sequelize.json({profile: {id: "12346-78912", name: "test"}})', function () {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.json({profile: {id: '12346-78912', name: 'test'}})), {
+            postgres: "(\"profile\"#>>'{id}') = '12346-78912' AND (\"profile\"#>>'{name}') = 'test'",
+            sqlite: "json_extract(`profile`, '$.id') = '12346-78912' AND json_extract(`profile`, '$.name') = 'test'",
+            mysql: "`profile`->>'$.id' = '12346-78912' and `profile`->>'$.name' = 'test'"
           });
         });
 
@@ -826,6 +835,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           },
           prefix: 'User'
         }, {
+          mysql: "(`User`.`data`->>'$.nested.attribute') = 'value'",
           postgres: "(\"User\".\"data\"#>>'{nested,attribute}') = 'value'",
           sqlite: "json_extract(`User`.`data`, '$.nested.attribute') = 'value'"
         });
@@ -839,6 +849,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
+          mysql: "CAST((`data`->>'$.nested') AS DECIMAL) IN (1, 2)",
           postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) IN (1, 2)",
           sqlite: "CAST(json_extract(`data`, '$.nested') AS DOUBLE PRECISION) IN (1, 2)"
         });
@@ -852,6 +863,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
+          mysql: "CAST((`data`->>'$.nested') AS DECIMAL) BETWEEN 1 AND 2",
           postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) BETWEEN 1 AND 2",
           sqlite: "CAST(json_extract(`data`, '$.nested') AS DOUBLE PRECISION) BETWEEN 1 AND 2"
         });
@@ -867,8 +879,9 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           field: {
             type: new DataTypes.JSONB()
           },
-          prefix: 'User'
+          prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {tableName: 'User'}))
         }, {
+          mysql: "((`User`.`data`->>'$.nested.attribute') = 'value' AND (`User`.`data`->>'$.nested.prop') != 'None')",
           postgres: "((\"User\".\"data\"#>>'{nested,attribute}') = 'value' AND (\"User\".\"data\"#>>'{nested,prop}') != 'None')",
           sqlite: "(json_extract(`User`.`data`, '$.nested.attribute') = 'value' AND json_extract(`User`.`data`, '$.nested.prop') != 'None')"
         });
@@ -886,6 +899,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           },
           prefix: 'User'
         }, {
+          mysql: "((`User`.`data`->>'$.name.last') = 'Simpson' AND (`User`.`data`->>'$.employment') != 'None')",
           postgres: "((\"User\".\"data\"#>>'{name,last}') = 'Simpson' AND (\"User\".\"data\"#>>'{employment}') != 'None')",
           sqlite: "(json_extract(`User`.`data`, '$.name.last') = 'Simpson' AND json_extract(`User`.`data`, '$.employment') != 'None')"
         });
@@ -898,6 +912,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
+          mysql: "(CAST((`data`->>'$.price') AS DECIMAL) = 5 AND (`data`->>'$.name') = 'Product')",
           postgres: "(CAST((\"data\"#>>'{price}') AS DOUBLE PRECISION) = 5 AND (\"data\"#>>'{name}') = 'Product')",
           sqlite: "(CAST(json_extract(`data`, '$.price') AS DOUBLE PRECISION) = 5 AND json_extract(`data`, '$.name') = 'Product')"
         });
@@ -911,6 +926,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }, {
+          mysql: "(`data`->>'$.nested.attribute') = 'value'",
           postgres: "(\"data\"#>>'{nested,attribute}') = 'value'",
           sqlite: "json_extract(`data`, '$.nested.attribute') = 'value'"
         });
@@ -924,6 +940,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }, {
+          mysql: "CAST((`data`->>'$.nested.attribute') AS DECIMAL) = 4",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) = 4",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) = 4"
         });
@@ -939,6 +956,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }, {
+          mysql: "CAST((`data`->>'$.nested.attribute') AS DECIMAL) IN (3, 7)",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) IN (3, 7)",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) IN (3, 7)"
         });
@@ -954,6 +972,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
+          mysql: "CAST((`data`->>'$.nested.attribute') AS DECIMAL) > 2",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) > 2",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) > 2"
         });
@@ -969,6 +988,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
+          mysql: "CAST((`data`->>'$.nested.attribute') AS DECIMAL) > 2",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS INTEGER) > 2",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS INTEGER) > 2"
         });
@@ -985,6 +1005,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
+          mysql: "CAST((`data`->>'$.nested.attribute') AS DATETIME) > "+sql.escape(dt),
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS TIMESTAMPTZ) > "+sql.escape(dt),
           sqlite: "json_extract(`data`, '$.nested.attribute') > " + sql.escape(dt.toISOString())
         });
@@ -998,6 +1019,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
+          mysql: "(`data`->>'$.nested.attribute') = 'true'",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS BOOLEAN) = true",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS BOOLEAN) = 1"
         });
@@ -1013,6 +1035,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }, {
+          mysql: "(`meta_data`->>'$.nested.attribute') = 'value'",
           postgres: "(\"meta_data\"#>>'{nested,attribute}') = 'value'",
           sqlite: "json_extract(`meta_data`, '$.nested.attribute') = 'value'"
         });

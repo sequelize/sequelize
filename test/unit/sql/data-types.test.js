@@ -431,6 +431,366 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    suite('TINYINT', () => {
+      const cases = [
+        {
+          title: 'TINYINT',
+          dataType: DataTypes.TINYINT,
+          expect: {
+            default: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT(2)',
+          dataType: DataTypes.TINYINT(2),
+          expect: {
+            default: 'TINYINT(2)',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT({ length: 2 })',
+          dataType: DataTypes.TINYINT({ length: 2 }),
+          expect: {
+            default: 'TINYINT(2)',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT.UNSIGNED',
+          dataType: DataTypes.TINYINT.UNSIGNED,
+          expect: {
+            default: 'TINYINT UNSIGNED',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT(2).UNSIGNED',
+          dataType: DataTypes.TINYINT(2).UNSIGNED,
+          expect: {
+            default: 'TINYINT(2) UNSIGNED',
+            sqlite: 'TINYINT UNSIGNED(2)',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT.UNSIGNED.ZEROFILL',
+          dataType: DataTypes.TINYINT.UNSIGNED.ZEROFILL,
+          expect: {
+            default: 'TINYINT UNSIGNED ZEROFILL',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT(2).UNSIGNED.ZEROFILL',
+          dataType: DataTypes.TINYINT(2).UNSIGNED.ZEROFILL,
+          expect: {
+            default: 'TINYINT(2) UNSIGNED ZEROFILL',
+            sqlite: 'TINYINT UNSIGNED ZEROFILL(2)',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT.ZEROFILL',
+          dataType: DataTypes.TINYINT.ZEROFILL,
+          expect: {
+            default: 'TINYINT ZEROFILL',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT(2).ZEROFILL',
+          dataType: DataTypes.TINYINT(2).ZEROFILL,
+          expect: {
+            default: 'TINYINT(2) ZEROFILL',
+            sqlite: 'TINYINT ZEROFILL(2)',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT.ZEROFILL.UNSIGNED',
+          dataType: DataTypes.TINYINT.ZEROFILL.UNSIGNED,
+          expect: {
+            default: 'TINYINT UNSIGNED ZEROFILL',
+            mssql: 'TINYINT'
+          }
+        },
+        {
+          title: 'TINYINT(2).ZEROFILL.UNSIGNED',
+          dataType: DataTypes.TINYINT(2).ZEROFILL.UNSIGNED,
+          expect: {
+            default: 'TINYINT(2) UNSIGNED ZEROFILL',
+            sqlite: 'TINYINT UNSIGNED ZEROFILL(2)',
+            mssql: 'TINYINT'
+          }
+        }
+      ];
+      cases.forEach(row => {
+        testsql(row.title, row.dataType, row.expect);
+      });
+
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
+          const type = DataTypes.TINYINT();
+
+          expect(() => {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid tinyint');
+
+          expect(() => {
+            type.validate(123.45);
+          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid tinyint');
+        });
+
+        test('should return `true` if `value` is an integer', () => {
+          const type = DataTypes.TINYINT();
+
+          expect(type.validate(-128)).to.equal(true);
+          expect(type.validate('127')).to.equal(true);
+        });
+      });
+    });
+
+    suite('SMALLINT', () => {
+      const cases = [
+        {
+          title: 'SMALLINT',
+          dataType: DataTypes.SMALLINT,
+          expect: {
+            default: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT(4)',
+          dataType: DataTypes.SMALLINT(4),
+          expect: {
+            default: 'SMALLINT(4)',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT({ length: 4 })',
+          dataType: DataTypes.SMALLINT({ length: 4 }),
+          expect: {
+            default: 'SMALLINT(4)',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT.UNSIGNED',
+          dataType: DataTypes.SMALLINT.UNSIGNED,
+          expect: {
+            default: 'SMALLINT UNSIGNED',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT(4).UNSIGNED',
+          dataType: DataTypes.SMALLINT(4).UNSIGNED,
+          expect: {
+            default: 'SMALLINT(4) UNSIGNED',
+            sqlite: 'SMALLINT UNSIGNED(4)',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT.UNSIGNED.ZEROFILL',
+          dataType: DataTypes.SMALLINT.UNSIGNED.ZEROFILL,
+          expect: {
+            default: 'SMALLINT UNSIGNED ZEROFILL',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT(4).UNSIGNED.ZEROFILL',
+          dataType: DataTypes.SMALLINT(4).UNSIGNED.ZEROFILL,
+          expect: {
+            default: 'SMALLINT(4) UNSIGNED ZEROFILL',
+            sqlite: 'SMALLINT UNSIGNED ZEROFILL(4)',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT.ZEROFILL',
+          dataType: DataTypes.SMALLINT.ZEROFILL,
+          expect: {
+            default: 'SMALLINT ZEROFILL',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT(4).ZEROFILL',
+          dataType: DataTypes.SMALLINT(4).ZEROFILL,
+          expect: {
+            default: 'SMALLINT(4) ZEROFILL',
+            sqlite: 'SMALLINT ZEROFILL(4)',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT.ZEROFILL.UNSIGNED',
+          dataType: DataTypes.SMALLINT.ZEROFILL.UNSIGNED,
+          expect: {
+            default: 'SMALLINT UNSIGNED ZEROFILL',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        },
+        {
+          title: 'SMALLINT(4).ZEROFILL.UNSIGNED',
+          dataType: DataTypes.SMALLINT(4).ZEROFILL.UNSIGNED,
+          expect: {
+            default: 'SMALLINT(4) UNSIGNED ZEROFILL',
+            sqlite: 'SMALLINT UNSIGNED ZEROFILL(4)',
+            postgres: 'SMALLINT',
+            mssql: 'SMALLINT'
+          }
+        }
+      ];
+      cases.forEach(row => {
+        testsql(row.title, row.dataType, row.expect);
+      });
+
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
+          const type = DataTypes.SMALLINT();
+
+          expect(() => {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid smallint');
+
+          expect(() => {
+            type.validate(123.45);
+          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid smallint');
+        });
+
+        test('should return `true` if `value` is an integer', () => {
+          const type = DataTypes.SMALLINT();
+
+          expect(type.validate(-32768)).to.equal(true);
+          expect(type.validate('32767')).to.equal(true);
+        });
+      });
+    });
+
+    suite('MEDIUMINT', () => {
+      const cases = [
+        {
+          title: 'MEDIUMINT',
+          dataType: DataTypes.MEDIUMINT,
+          expect: {
+            default: 'MEDIUMINT'
+          }
+        },
+        {
+          title: 'MEDIUMINT(6)',
+          dataType: DataTypes.MEDIUMINT(6),
+          expect: {
+            default: 'MEDIUMINT(6)'
+          }
+        },
+        {
+          title: 'MEDIUMINT({ length: 6 })',
+          dataType: DataTypes.MEDIUMINT({ length: 6 }),
+          expect: {
+            default: 'MEDIUMINT(6)'
+          }
+        },
+        {
+          title: 'MEDIUMINT.UNSIGNED',
+          dataType: DataTypes.MEDIUMINT.UNSIGNED,
+          expect: {
+            default: 'MEDIUMINT UNSIGNED'
+          }
+        },
+        {
+          title: 'MEDIUMINT(6).UNSIGNED',
+          dataType: DataTypes.MEDIUMINT(6).UNSIGNED,
+          expect: {
+            default: 'MEDIUMINT(6) UNSIGNED',
+            sqlite: 'MEDIUMINT UNSIGNED(6)'
+          }
+        },
+        {
+          title: 'MEDIUMINT.UNSIGNED.ZEROFILL',
+          dataType: DataTypes.MEDIUMINT.UNSIGNED.ZEROFILL,
+          expect: {
+            default: 'MEDIUMINT UNSIGNED ZEROFILL'
+          }
+        },
+        {
+          title: 'MEDIUMINT(6).UNSIGNED.ZEROFILL',
+          dataType: DataTypes.MEDIUMINT(6).UNSIGNED.ZEROFILL,
+          expect: {
+            default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
+            sqlite: 'MEDIUMINT UNSIGNED ZEROFILL(6)'
+          }
+        },
+        {
+          title: 'MEDIUMINT.ZEROFILL',
+          dataType: DataTypes.MEDIUMINT.ZEROFILL,
+          expect: {
+            default: 'MEDIUMINT ZEROFILL'
+          }
+        },
+        {
+          title: 'MEDIUMINT(6).ZEROFILL',
+          dataType: DataTypes.MEDIUMINT(6).ZEROFILL,
+          expect: {
+            default: 'MEDIUMINT(6) ZEROFILL',
+            sqlite: 'MEDIUMINT ZEROFILL(6)'
+          }
+        },
+        {
+          title: 'MEDIUMINT.ZEROFILL.UNSIGNED',
+          dataType: DataTypes.MEDIUMINT.ZEROFILL.UNSIGNED,
+          expect: {
+            default: 'MEDIUMINT UNSIGNED ZEROFILL'
+          }
+        },
+        {
+          title: 'MEDIUMINT(6).ZEROFILL.UNSIGNED',
+          dataType: DataTypes.MEDIUMINT(6).ZEROFILL.UNSIGNED,
+          expect: {
+            default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
+            sqlite: 'MEDIUMINT UNSIGNED ZEROFILL(6)'
+          }
+        }
+      ];
+      cases.forEach(row => {
+        testsql(row.title, row.dataType, row.expect);
+      });
+
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
+          const type = DataTypes.MEDIUMINT();
+
+          expect(() => {
+            type.validate('foobar');
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid mediumint');
+
+          expect(() => {
+            type.validate(123.45);
+          }).to.throw(Sequelize.ValidationError, '123.45 is not a valid mediumint');
+        });
+
+        test('should return `true` if `value` is an integer', () => {
+          const type = DataTypes.MEDIUMINT();
+
+          expect(type.validate(-8388608)).to.equal(true);
+          expect(type.validate('8388607')).to.equal(true);
+        });
+      });
+    });
+
     suite('BIGINT', () => {
       testsql('BIGINT', DataTypes.BIGINT, {
         default: 'BIGINT',

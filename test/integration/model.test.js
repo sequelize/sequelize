@@ -735,6 +735,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(u.username).to.equal('A fancy name');
         });
     });
+
+    // https://github.com/sequelize/sequelize/issues/8406
+    it('should work if model is paranoid and only operator in where clause is a Symbol', function() {
+      const User = this.sequelize.define('User', { username: Sequelize.STRING }, { paranoid: true } );
+
+      return User.sync({ force: true})
+        .then(() => {
+          return User.create({ username: 'foo' });
+        })
+        .then(() => {
+          return User.findOne({
+            where: {
+              [Sequelize.Op.or]: [
+                { username: 'bar' },
+                { username: 'baz' }
+              ]
+            }
+          });
+        })
+        .then(user => {
+          expect(user).to.not.be.ok;
+        });
+    });
   });
 
   describe('findOrInitialize', () => {
