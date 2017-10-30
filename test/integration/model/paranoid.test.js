@@ -102,7 +102,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
-    if (current.dialect.supports.JSON) {
+    if (current.dialect.supports.JSONB) {
       describe('JSONB', () => {
         before(function() {
           this.Model = this.sequelize.define('Model', {

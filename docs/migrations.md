@@ -92,7 +92,7 @@ This command will execute these steps
 
 - Will ensure a table called `SequelizeMeta` in database. This table is used to record which migration have ran on current database
 - Start looking for any migration files which haven't ran yet. This is possible by checking `SequelizeMeta` table. In this case it will run `XXXXXXXXXXXXXX-create-user.js` migration, which we created in last step.
-- Creates a table called `User` with all columns as specified in its migration file.
+- Creates a table called `Users` with all columns as specified in its migration file.
 
 ### Undoing Migrations
 Now our table has been created and saved in database. With migration you can revert to old state by just running a command.
