@@ -253,7 +253,7 @@ const connection = new Sequelize(db, user, pass, { operatorsAliases: false });
 const connection2 = new Sequelize(db, user, pass, { operatorsAliases: { $and: Op.and } });
 ```
 
-Sequelize will warn you if your using the default aliases and not limiting them
+Sequelize will warn you if you're using the default aliases and not limiting them
 if you want to keep using all default aliases (excluding legacy ones) without the warning you can pass the following operatorsAliases option -
 
 ```js
