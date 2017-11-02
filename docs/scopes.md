@@ -86,7 +86,7 @@ DeletedProjects.findAll();
 DeletedProjects.findAll();
 ```
 
-Scopes apply to `.find`, `.findAll`, `.count`, `.update` and `.destroy`.
+Scopes apply to `.find`, `.findAll`, `.count`, `.update`, `.increment` and `.destroy`.
 
 Scopes which are functions can be invoked in two ways. If the scope does not take any arguments it can be invoked as normally. If the scope takes arguments, pass an object:
 
