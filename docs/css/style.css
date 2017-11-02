@@ -113,3 +113,7 @@ a[href^="file/lib/"] {
 .center {
   text-align: center;
 }
+
+pre {
+  white-space: pre-wrap;
+}
