@@ -987,17 +987,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return UserNull.sync({ force: true }).then(() => {
         return UserNull.create({ username: 'foo2', smth: null }).catch(err => {
           expect(err).to.exist;
-          expect(err.get('smth')[0].path).to.equal('smth');
-          if (dialect === 'mysql') {
-            // We need to allow two different errors for MySQL, see:
-            // http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_trans_tables
-            expect(err.get('smth')[0].type).to.match(/notNull Violation/);
-          }
-          else if (dialect === 'sqlite') {
-            expect(err.get('smth')[0].type).to.match(/notNull Violation/);
-          } else {
-            expect(err.get('smth')[0].type).to.match(/notNull Violation/);
-          }
+
+          const smth1 = err.get('smth')[0] || {};
+
+          expect(smth1.path).to.equal('smth');
+          expect(smth1.type || smth1.origin).to.match(/notNull Violation/);
         });
       });
     });
@@ -1670,8 +1664,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ], { validate: true }).catch(errors => {
           expect(errors).to.be.instanceof(Promise.AggregateError);
           expect(errors).to.have.length(2);
+
+          const e0name0 = errors[0].errors.get('name')[0];
+
           expect(errors[0].record.code).to.equal('1234');
-          expect(errors[0].errors.get('name')[0].type).to.equal('notNull Violation');
+          expect(e0name0.type || e0name0.origin).to.equal('notNull Violation');
+
           expect(errors[1].record.name).to.equal('bar');
           expect(errors[1].record.code).to.equal('1');
           expect(errors[1].errors.get('code')[0].message).to.equal('Validation len on code failed');
