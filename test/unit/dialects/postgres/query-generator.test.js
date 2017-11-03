@@ -135,6 +135,10 @@ if (dialect.match(/^postgres/)) {
           expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));'
         },
         {
+          arguments: ['myTable', {title: 'VARCHAR(255) UNIQUE', name: 'VARCHAR(255)'}],
+          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));'
+        },
+        {
           arguments: ['myTable', {data: current.normalizeDataType(DataTypes.BLOB).toSql()}],
           expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" BYTEA);'
         },

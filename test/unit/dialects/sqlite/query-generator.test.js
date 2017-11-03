@@ -122,6 +122,10 @@ if (dialect === 'sqlite') {
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));'
         },
         {
+          arguments: ['myTable', {title: 'VARCHAR(255) UNIQUE', name: 'VARCHAR(255)'}],
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));'
+        },
+        {
           arguments: ['myTable', {title: 'VARCHAR BINARY(255)', number: 'INTEGER(5) UNSIGNED PRIMARY KEY '}], // length and unsigned are not allowed on primary key
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR BINARY(255), `number` INTEGER PRIMARY KEY);'
         },
