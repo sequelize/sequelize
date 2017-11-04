@@ -152,6 +152,7 @@ const Op = Sequelize.Op
 [Op.any]: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
 
 [Op.col]: 'user.organization_id' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
+[Op.fulltext]: 'foo' // @@ plainto_tsquery('english','foo') (PG only,language could be passed as option named 'regconfig' and 'english' as default value if no option specified)
 ```
 
 #### Range Operators
