@@ -292,20 +292,18 @@ Notice how in the two examples above, the string provided is inserted verbatim i
 ```js
 something.findOne({
   order: [
-    'name',
     // will return `name`
-    'username DESC',
-    // will return `username DESC` -- i.e. don't do it!
-    ['username', 'DESC'],
+    ['name'],
     // will return `username` DESC
-    sequelize.fn('max', sequelize.col('age')),
+    ['username', 'DESC'],
     // will return max(`age`)
-    [sequelize.fn('max', sequelize.col('age')), 'DESC'],
+    sequelize.fn('max', sequelize.col('age')),
     // will return max(`age`) DESC
-    [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
+    [sequelize.fn('max', sequelize.col('age')), 'DESC'],
     // will return otherfunction(`col1`, 12, 'lalala') DESC
-    [sequelize.fn('otherfunction', sequelize.fn('awesomefunction', sequelize.col('col'))), 'DESC']
+    [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
     // will return otherfunction(awesomefunction(`col`)) DESC, This nesting is potentially infinite!
+    [sequelize.fn('otherfunction', sequelize.fn('awesomefunction', sequelize.col('col'))), 'DESC']
   ]
 })
 ```
