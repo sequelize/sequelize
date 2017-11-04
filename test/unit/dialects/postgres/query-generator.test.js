@@ -536,7 +536,7 @@ if (dialect.match(/^postgres/)) {
         {
           title: 'generate fulltext search',
           arguments: ['myTable', {where: {field: {$fulltext: 'foo'}}}],
-          expectation: 'SELECT * FROM myTable WHERE myTable.field @@ plainto_tsquery(\'english\',\'foo\');',
+          expectation: 'SELECT * FROM myTable WHERE myTable.field @@ plainto_tsquery(\'english\', \'foo\');',
           context: {options: {quoteIdentifiers: false, regconfig:'english'}},
           needsSequelize: true
         }
