@@ -144,7 +144,7 @@ Unmanaged transactions force you to manually rollback or commit the transaction.
 ```js
 return sequelize.transaction().then(function (t) {
   return User.create({
-    firstName: 'Homer',
+    firstName: 'Bart',
     lastName: 'Simpson'
   }, {transaction: t}).then(function (user) {
     return user.addSibling({
