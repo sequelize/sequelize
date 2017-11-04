@@ -7,6 +7,7 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
   moment = require('moment'),
+  Operators = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
 
 if (dialect === 'sqlite') {
@@ -23,22 +24,27 @@ if (dialect === 'sqlite') {
         {
           title:'Should use the plus operator',
           arguments: ['+', 'myTable', { foo: 'bar' }, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+\'bar\' '
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' '
         },
         {
           title:'Should use the plus operator with where clause',
           arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+\'bar\' WHERE `bar` = \'biz\''
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\''
         },
         {
           title:'Should use the minus operator',
           arguments: ['-', 'myTable', { foo: 'bar' }],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`-\'bar\' '
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' '
+        },
+        {
+          title:'Should use the minus operator with negative value',
+          arguments: ['-', 'myTable', { foo: -1 }],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1 '
         },
         {
           title:'Should use the minus operator with where clause',
           arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`-\'bar\' WHERE `bar` = \'biz\''
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\''
         }
       ],
       attributesToSQL: [
@@ -246,9 +252,9 @@ if (dialect === 'sqlite') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'single string argument is not quoted',
+          title: 'single string argument should be quoted',
           arguments: ['myTable', {group: 'name'}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
           context: QueryGenerator
         }, {
           arguments: ['myTable', {group: ['name']}],
@@ -280,7 +286,7 @@ if (dialect === 'sqlite') {
           context: QueryGenerator
         }, {
           arguments: ['myTable', {group: 'name', order: [['id', 'DESC']]}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY `id` DESC;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
           title: 'HAVING clause works with where-like hash',
@@ -502,6 +508,32 @@ if (dialect === 'sqlite') {
           expectation: "UPDATE `myTable` SET `bar`=`foo` WHERE `name` = 'foo'",
           needsSequelize: true
         }
+      ],
+      renameColumnQuery: [
+        {
+          title: 'Properly quotes column names',
+          arguments: ['myTable', 'foo', 'commit', {commit: 'VARCHAR(255)', bar: 'VARCHAR(255)'}],
+          expectation:
+            'CREATE TEMPORARY TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable_backup` SELECT `foo` AS `commit`, `bar` FROM `myTable`;' +
+            'DROP TABLE `myTable`;' +
+            'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;' +
+            'DROP TABLE `myTable_backup`;'
+        }
+      ],
+      removeColumnQuery: [
+        {
+          title: 'Properly quotes column names',
+          arguments: ['myTable', {commit: 'VARCHAR(255)', bar: 'VARCHAR(255)'}],
+          expectation:
+            'CREATE TEMPORARY TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;' +
+            'DROP TABLE `myTable`;' +
+            'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;' +
+            'DROP TABLE `myTable_backup`;'
+        }
       ]
     };
 
@@ -519,6 +551,7 @@ if (dialect === 'sqlite') {
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             QueryGenerator.sequelize = this.sequelize;
+            QueryGenerator.setOperatorsAliases(Operators.LegacyAliases);
             const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });

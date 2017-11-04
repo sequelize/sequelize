@@ -124,7 +124,7 @@ Sequelize.Transaction.ISOLATION_LEVELS.REPEATABLE_READ  // "REPEATABLE READ"
 Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE // "SERIALIZABLE"
 ```
 
-By default, sequelize uses "REPEATABLE READ". If you want to use a different isolation level, pass in the desired level as the first argument:
+By default, sequelize uses the isolation level of the database. If you want to use a different isolation level, pass in the desired level as the first argument:
 
 ```js
 return sequelize.transaction({
@@ -144,7 +144,7 @@ Unmanaged transactions force you to manually rollback or commit the transaction.
 ```js
 return sequelize.transaction().then(function (t) {
   return User.create({
-    firstName: 'Homer',
+    firstName: 'Bart',
     lastName: 'Simpson'
   }, {transaction: t}).then(function (user) {
     return user.addSibling({
@@ -167,7 +167,7 @@ allows the configuration of the transaction.
 return sequelize.transaction({ /* options */ });
 ```
 
-The following options (with it's default values) are available:
+The following options (with their default values) are available:
 
 ```js
 {

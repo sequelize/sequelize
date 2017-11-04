@@ -1,5 +1,8 @@
 {
   "rules": {
+    "mocha/no-exclusive-tests": "error",
+    "mocha/no-skipped-tests": "warn",
+
     "no-console": "off",
     "no-extra-parens": "warn",
     "valid-jsdoc": "off",
@@ -11,7 +14,8 @@
     "prefer-const": "error",
     "semi": ["error", "always"],
     "space-before-function-paren": ["warn", "never"],
-    "keyword-spacing": ["warn"],
+    "space-before-blocks": ["error"],
+    "keyword-spacing": ["error"],
     "prefer-arrow-callback": "error",
     "arrow-parens": ["error", "as-needed"],
     "comma-style": ["warn", "last"],
@@ -41,6 +45,9 @@
     "ecmaVersion": 6,
     "sourceType": "script"
   },
+  "plugins": [
+    "mocha"
+  ],
   "env": {
     "node": true,
     "mocha": true,

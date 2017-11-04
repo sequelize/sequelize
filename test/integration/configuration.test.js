@@ -61,71 +61,71 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
             return Sequelize.Promise.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
           } else { // Node v0.10 and older don't have fs.access
             return Sequelize.Promise.promisify(fs.open)(p, 'r+')
-            .then(fd => {
-              return Sequelize.Promise.promisify(fs.close)(fd);
-            });
+              .then(fd => {
+                return Sequelize.Promise.promisify(fs.close)(fd);
+              });
           }
         });
 
         return Sequelize.Promise.promisify(fs.unlink)(p)
-        .catch(err => {
-          expect(err.code).to.equal('ENOENT');
-        })
-        .then(() => {
-          const sequelizeReadOnly = new Sequelize('sqlite://foo', {
-            storage: p,
-            dialectOptions: {
-              mode: sqlite3.OPEN_READONLY
-            }
-          });
-          const sequelizeReadWrite = new Sequelize('sqlite://foo', {
-            storage: p,
-            dialectOptions: {
-              mode: sqlite3.OPEN_READWRITE
-            }
-          });
+          .catch(err => {
+            expect(err.code).to.equal('ENOENT');
+          })
+          .then(() => {
+            const sequelizeReadOnly = new Sequelize('sqlite://foo', {
+              storage: p,
+              dialectOptions: {
+                mode: sqlite3.OPEN_READONLY
+              }
+            });
+            const sequelizeReadWrite = new Sequelize('sqlite://foo', {
+              storage: p,
+              dialectOptions: {
+                mode: sqlite3.OPEN_READWRITE
+              }
+            });
 
-          expect(sequelizeReadOnly.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READONLY);
-          expect(sequelizeReadWrite.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READWRITE);
+            expect(sequelizeReadOnly.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READONLY);
+            expect(sequelizeReadWrite.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READWRITE);
 
-          return Sequelize.Promise.join(
-            sequelizeReadOnly.query(createTableFoo)
-              .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
-            sequelizeReadWrite.query(createTableFoo)
-              .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file')
-          );
-        })
-        .then(() => {
+            return Sequelize.Promise.join(
+              sequelizeReadOnly.query(createTableFoo)
+                .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
+              sequelizeReadWrite.query(createTableFoo)
+                .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file')
+            );
+          })
+          .then(() => {
           // By default, sqlite creates a connection that's READWRITE | CREATE
-          const sequelize = new Sequelize('sqlite://foo', {
-            storage: p
-          });
-          return sequelize.query(createTableFoo);
-        })
-        .then(testAccess)
-        .then(() => {
-          const sequelizeReadOnly = new Sequelize('sqlite://foo', {
-            storage: p,
-            dialectOptions: {
-              mode: sqlite3.OPEN_READONLY
-            }
-          });
-          const sequelizeReadWrite = new Sequelize('sqlite://foo', {
-            storage: p,
-            dialectOptions: {
-              mode: sqlite3.OPEN_READWRITE
-            }
-          });
+            const sequelize = new Sequelize('sqlite://foo', {
+              storage: p
+            });
+            return sequelize.query(createTableFoo);
+          })
+          .then(testAccess)
+          .then(() => {
+            const sequelizeReadOnly = new Sequelize('sqlite://foo', {
+              storage: p,
+              dialectOptions: {
+                mode: sqlite3.OPEN_READONLY
+              }
+            });
+            const sequelizeReadWrite = new Sequelize('sqlite://foo', {
+              storage: p,
+              dialectOptions: {
+                mode: sqlite3.OPEN_READWRITE
+              }
+            });
 
-          return Sequelize.Promise.join(
-            sequelizeReadOnly.query(createTableBar)
-              .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
-            sequelizeReadWrite.query(createTableBar)
-          );
-        })
-        .finally(() => {
-          return Sequelize.Promise.promisify(fs.unlink)(p);
-        });
+            return Sequelize.Promise.join(
+              sequelizeReadOnly.query(createTableBar)
+                .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
+              sequelizeReadWrite.query(createTableBar)
+            );
+          })
+          .finally(() => {
+            return Sequelize.Promise.promisify(fs.unlink)(p);
+          });
       });
     }
   });

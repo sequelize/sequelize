@@ -209,9 +209,9 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           field: 'last_name'
         }
       },
-        {
-          tableName: 'users'
-        });
+      {
+        tableName: 'users'
+      });
       const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING,
         userId: {
@@ -219,9 +219,9 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           field: 'user_id'
         }
       },
-        {
-          tableName: 'post'
-        });
+      {
+        tableName: 'post'
+      });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'userId', as: 'POSTS'});
 
@@ -232,9 +232,9 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           field: 'post_id'
         }
       },
-        {
-          tableName: 'comment'
-        });
+      {
+        tableName: 'comment'
+      });
 
       Post.Comments = Post.hasMany(Comment, {foreignKey: 'postId', as: 'COMMENTS'});
 
@@ -346,15 +346,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
       const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
 
@@ -370,6 +370,71 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         model: User
       }, User), {
         default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
+      });
+    });
+
+    it('include (subQuery alias)', () => {
+      const User = Support.sequelize.define('User', {
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER
+      },
+      {
+        freezeTableName: true
+      });
+      const Post = Support.sequelize.define('Post', {
+        title: DataTypes.STRING
+      },
+      {
+        freezeTableName: true
+      });
+
+      User.Posts = User.hasMany(Post, {foreignKey: 'user_id', as: 'postaliasname'});
+
+      expectsql(sql.selectQuery('User', {
+        table: User.getTableName(),
+        model: User,
+        attributes: ['name', 'age'],
+        include: Model._validateIncludedElements({
+          include: [{
+            attributes: ['title'],
+            association: User.Posts,
+            subQuery: true,
+            required: true
+          }],
+          as: 'User'
+        }).include,
+        subQuery: true
+      }, User), {
+        default: 'SELECT [User].*, [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM ' +
+          '(SELECT [User].[name], [User].[age], [User].[id] AS [id] FROM [User] AS [User] ' +
+          'WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id]) LIMIT 1 ) IS NOT NULL) AS [User] ' +
+          'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id];',
+        mssql: 'SELECT [User].*, [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM ' +
+          '(SELECT [User].[name], [User].[age], [User].[id] AS [id] FROM [User] AS [User] ' +
+          'WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id]) ORDER BY [postaliasname].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY ) IS NOT NULL) AS [User] ' +
+          'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id];'
+      });
+    });
+
+    it('properly stringify IN values as per field definition', () => {
+      const User = Support.sequelize.define('User', {
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER,
+        data: DataTypes.BLOB
+      }, {
+        freezeTableName: true
+      });
+
+      expectsql(sql.selectQuery('User', {
+        attributes: ['name', 'age', 'data'],
+        where: {
+          data: ['123']
+        }
+      }, User), {
+        postgres: 'SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (E\'\\\\x313233\');',
+        mysql: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
+        sqlite: 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
+        mssql: 'SELECT [name], [age], [data] FROM [User] AS [User] WHERE [User].[data] IN (0x313233);'
       });
     });
   });
@@ -403,15 +468,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
       const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
 
@@ -437,21 +502,21 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
       const Post = Support.sequelize.define('Post', {
         title: DataTypes.STRING
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
       const Comment = Support.sequelize.define('Comment', {
         title: DataTypes.STRING
       },
-        {
-          freezeTableName: true
-        });
+      {
+        freezeTableName: true
+      });
 
       User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
       Post.Comments = Post.hasMany(Comment, {foreignKey: 'post_id'});

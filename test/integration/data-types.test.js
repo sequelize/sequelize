@@ -266,7 +266,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for ENUM', () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
-     // No dialects actually allow us to identify that we get an enum back..
+    // No dialects actually allow us to identify that we get an enum back..
     testFailure(Type);
   });
 
@@ -428,12 +428,12 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       });
 
       return Model.sync({ force: true })
-              .then(() => Model.create({ interval: [1, 4] }) )
-              .then(() => Model.findAll() )
-              .spread(m => {
-                expect(m.interval[0]).to.be.eql(1);
-                expect(m.interval[1]).to.be.eql(4);
-              });
+        .then(() => Model.create({ interval: [1, 4] }) )
+        .then(() => Model.findAll() )
+        .spread(m => {
+          expect(m.interval[0]).to.be.eql(1);
+          expect(m.interval[1]).to.be.eql(4);
+        });
     });
   }
 
@@ -455,17 +455,91 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       stamp: Sequelize.DATEONLY
     });
     const testDate = moment().format('YYYY-MM-DD');
+    const newDate = new Date();
 
     return Model.sync({ force: true})
       .then(() => Model.create({ stamp: testDate }))
       .then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
+
         return Model.findById(record.id);
       }).then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
+
+        return record.update({
+          stamp: testDate
+        });
+      }).then(record => {
+        return record.reload();
+      }).then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+
+        return record.update({
+          stamp: newDate
+        });
+      }).then(record => {
+        return record.reload();
+      }).then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(new Date(record.stamp)).to.equalDate(newDate);
       });
   });
 
+  it('should return set DATEONLY field to NULL correctly', function() {
+    const Model = this.sequelize.define('user', {
+      stamp: Sequelize.DATEONLY
+    });
+    const testDate = moment().format('YYYY-MM-DD');
+
+    return Model.sync({ force: true})
+      .then(() => Model.create({ stamp: testDate }))
+      .then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+
+        return Model.findById(record.id);
+      }).then(record => {
+        expect(typeof record.stamp).to.be.eql('string');
+        expect(record.stamp).to.be.eql(testDate);
+
+        return record.update({
+          stamp: null
+        });
+      }).then(record => {
+        return record.reload();
+      }).then(record => {
+        expect(record.stamp).to.be.eql(null);
+      });
+  });
+
+  it('should be able to cast buffer as boolean', function() {
+    const ByteModel = this.sequelize.define('Model', {
+      byteToBool: this.sequelize.Sequelize.BLOB
+    }, {
+      timestamps: false
+    });
+
+    const BoolModel = this.sequelize.define('Model', {
+      byteToBool: this.sequelize.Sequelize.BOOLEAN
+    }, {
+      timestamps: false
+    });
+
+    return ByteModel.sync({
+      force: true
+    }).then(() => {
+      return ByteModel.create({
+        byteToBool: new Buffer([true])
+      });
+    }).then(byte => {
+      expect(byte.byteToBool).to.be.ok;
+
+      return BoolModel.findById(byte.id);
+    }).then(bool => {
+      expect(bool.byteToBool).to.be.true;
+    });
+  });
 });

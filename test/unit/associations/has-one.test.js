@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
+  _         = require('lodash'),
   Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   current   = Support.sequelize;
@@ -12,10 +13,10 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
       Task = current.define('Task', { title: DataTypes.STRING });
 
     User.hasOne(Task);
-    expect(Task.attributes.UserId).not.to.be.empty;
+    expect(Task.rawAttributes.UserId).not.to.be.empty;
 
     User.hasOne(Task, {as : 'Shabda'});
-    expect(Task.attributes.ShabdaId).not.to.be.empty;
+    expect(Task.rawAttributes.ShabdaId).not.to.be.empty;
   });
 
   it('should not override custom methods with association mixin', () => {
@@ -27,7 +28,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
     const User = current.define('User');
     const Task = current.define('Task');
 
-    current.Utils._.each(methods, (alias, method) => {
+    _.each(methods, (alias, method) => {
       User.prototype[method] = function() {
         const realMethod = this.constructor.associations.task[alias];
         expect(realMethod).to.be.a('function');
@@ -39,7 +40,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
 
     const user = User.build();
 
-    current.Utils._.each(methods, (alias, method) => {
+    _.each(methods, (alias, method) => {
       expect(user[method]()).to.be.a('function');
     });
   });

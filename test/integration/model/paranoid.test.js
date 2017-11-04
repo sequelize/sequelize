@@ -38,9 +38,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(count => {
           expect(count).to.be.equal(1);
           return Account.destroy({ where: { ownerId: 12 }})
-          .then(result => {
-            expect(result).to.be.equal(1);
-          });
+            .then(result => {
+              expect(result).to.be.equal(1);
+            });
         })
         .then(() => Account.count())
         .then(count => {
@@ -102,7 +102,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
-    if (current.dialect.supports.JSON) {
+    if (current.dialect.supports.JSONB) {
       describe('JSONB', () => {
         before(function() {
           this.Model = this.sequelize.define('Model', {

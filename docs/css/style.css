@@ -1,5 +1,38 @@
 @import url(https://fonts.googleapis.com/css?family=Titillium+Web);
 
+.algolia-autocomplete .algolia-docsearch-suggestion--category-header,
+.algolia-autocomplete .algolia-docsearch-suggestion--title,
+.algolia-autocomplete .algolia-docsearch-suggestion--subcategory-column,
+#docs-search-input {
+  font-size: 16px !important;
+  line-height: normal;
+}
+
+.algolia-autocomplete .algolia-docsearch-suggestion--wrapper {
+  padding: 0 !important;
+}
+
+.docs-search-container {
+  float: right;
+  margin-right: 30px;
+}
+
+#docs-search-input {
+  border: none;
+  background: transparent;
+  padding: 10px;
+}
+
+#docs-search-input, .docs-search-container {
+  height: 40px;
+  width: 300px;
+}
+
+/* ESDoc search */
+.search-box {
+  display: none;
+}
+
 div.logo img {
   width: 200px;
   height: 200px;
@@ -60,25 +93,6 @@ a[href^="file/lib/"] {
   display: none;
 }
 
-.search-box {
-  display: none;
-}
-
-.search-container {
-  position: absolute;
-  width: 500px;
-  top: 0;
-  right: 50px;
-  padding-right: 8px;
-  padding-bottom: 10px;
-  line-height: normal;
-  font-size: 12px;
-}
-
-.search-container .gsc-control-cse {
-  padding: 2px 0 0 0 !important;
-}
-
 .manual-color:after  {
   content: '' !important;
 }
@@ -98,4 +112,8 @@ a[href^="file/lib/"] {
 
 .center {
   text-align: center;
+}
+
+pre {
+  white-space: pre-wrap;
 }

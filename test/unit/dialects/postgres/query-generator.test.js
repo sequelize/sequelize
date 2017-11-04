@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
+  Operators = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/postgres/query-generator'),
   Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
@@ -17,22 +18,27 @@ if (dialect.match(/^postgres/)) {
         {
           title:'Should use the plus operator',
           arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\'  RETURNING *'
+          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\'  RETURNING *'
         },
         {
           title:'Should use the plus operator with where clause',
           arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+\'bar\' WHERE "bar" = \'biz\' RETURNING *'
+          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' WHERE "bar" = \'biz\' RETURNING *'
         },
         {
           title:'Should use the minus operator',
           arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\'  RETURNING *'
+          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\'  RETURNING *'
+        },
+        {
+          title:'Should use the minus operator with negative value',
+          arguments: ['-', 'myTable', { foo: -1 }, {}, {}],
+          expectation: 'UPDATE "myTable" SET "foo"="foo"- -1  RETURNING *'
         },
         {
           title:'Should use the minus operator with where clause',
           arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"-\'bar\' WHERE "bar" = \'biz\' RETURNING *'
+          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' WHERE "bar" = \'biz\' RETURNING *'
         }
       ],
       attributesToSQL: [
@@ -353,9 +359,9 @@ if (dialect.match(/^postgres/)) {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'single string argument is not quoted',
+          title: 'single string argument should be quoted',
           arguments: ['myTable', {group: 'name'}],
-          expectation: 'SELECT * FROM \"myTable\" GROUP BY name;'
+          expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\";'
         }, {
           arguments: ['myTable', {group: ['name']}],
           expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\";'
@@ -414,6 +420,10 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: { field: new Buffer('Sequelize')}}],
           expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" = E'\\\\x53657175656c697a65';",
           context: QueryGenerator
+        }, {
+          title: 'string in array should escape \' as \'\'',
+          arguments: ['myTable', {where: { aliases: {$contains: ['Queen\'s']} }}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"aliases\" @> ARRAY['Queen''s'];"
         },
 
         // Variants when quoteIdentifiers is false
@@ -502,7 +512,28 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: {field: {not: 3}}}],
           expectation: 'SELECT * FROM myTable WHERE myTable.field != 3;',
           context: {options: {quoteIdentifiers: false}}
-        },{
+        }, {
+          title: 'Regular Expression in where clause',
+          arguments: ['myTable', {where: {field: {$regexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~ '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Regular Expression negation in where clause',
+          arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~ '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Case-insensitive Regular Expression in where clause',
+          arguments: ['myTable', {where: {field: {$iRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~* '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Case-insensitive Regular Expression negation in where clause',
+          arguments: ['myTable', {where: {field: {$notIRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~* '^[h|a|t]';",
+          context: QueryGenerator
+        },
+        {
           title: 'generate fulltext search',
           arguments: ['myTable', {where: {field: {$fulltext: 'foo'}}}],
           expectation: 'SELECT * FROM myTable WHERE myTable.field @@ plainto_tsquery(\'english\',\'foo\');',
@@ -621,7 +652,6 @@ if (dialect.match(/^postgres/)) {
           expectation: "INSERT INTO mySchema.myTable (name) VALUES ('foo'';DROP TABLE mySchema.myTable;');",
           context: {options: {quoteIdentifiers: false}}
         }
-
       ],
 
       bulkInsertQuery: [
@@ -882,6 +912,25 @@ if (dialect.match(/^postgres/)) {
           expectation: 'ROLLBACK TO SAVEPOINT \"transaction-uid\";',
           context: {options: {quoteIdentifiers: true}}
         }
+      ],
+
+      createTrigger: [
+        {
+          arguments: ['myTable', 'myTrigger', 'after', ['insert'],  'myFunction', [], []],
+          expectation: 'CREATE TRIGGER myTrigger\n\tAFTER INSERT\n\tON myTable\n\t\n\tEXECUTE PROCEDURE myFunction();'
+        },
+        {
+          arguments: ['myTable', 'myTrigger', 'before', ['insert', 'update'],  'myFunction', [{name: 'bar', type: 'INTEGER'}], []],
+          expectation: 'CREATE TRIGGER myTrigger\n\tBEFORE INSERT OR UPDATE\n\tON myTable\n\t\n\tEXECUTE PROCEDURE myFunction(bar INTEGER);'
+        },
+        {
+          arguments: ['myTable', 'myTrigger', 'instead_of', ['insert', 'update'],  'myFunction', [], ['FOR EACH ROW']],
+          expectation: 'CREATE TRIGGER myTrigger\n\tINSTEAD OF INSERT OR UPDATE\n\tON myTable\n\t\n\tFOR EACH ROW\n\tEXECUTE PROCEDURE myFunction();'
+        },
+        {
+          arguments: ['myTable', 'myTrigger', 'after_constraint', ['insert', 'update'],  'myFunction', [{name: 'bar', type: 'INTEGER'}], ['FOR EACH ROW']],
+          expectation:'CREATE CONSTRAINT TRIGGER myTrigger\n\tAFTER INSERT OR UPDATE\n\tON myTable\n\t\n\tFOR EACH ROW\n\tEXECUTE PROCEDURE myFunction(bar INTEGER);'
+        }
       ]
     };
 
@@ -902,9 +951,11 @@ if (dialect.match(/^postgres/)) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
+
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             QueryGenerator.sequelize = this.sequelize;
+            QueryGenerator.setOperatorsAliases(Operators.LegacyAliases);
             const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });

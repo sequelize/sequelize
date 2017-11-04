@@ -1,9 +1,10 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+
 const SEARCH_PATH_ONE = 'schema_one,public';
 const SEARCH_PATH_TWO = 'schema_two,public';
 
@@ -24,16 +25,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           foo: DataTypes.STRING,
           bar: DataTypes.STRING
         },
-          {tableName: 'restaurants'});
+        {tableName: 'restaurants'});
         this.Location = current.define('location', {
           name: DataTypes.STRING
         },
-          {tableName: 'locations'});
+        {tableName: 'locations'});
         this.Employee = current.define('employee', {
           first_name: DataTypes.STRING,
           last_name: DataTypes.STRING
         },
-          {tableName: 'employees'});
+        {tableName: 'employees'});
         this.Restaurant.belongsTo(this.Location,
           {
             foreignKey: 'location_id',

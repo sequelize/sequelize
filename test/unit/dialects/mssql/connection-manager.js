@@ -26,15 +26,15 @@ describe('[MSSQL] Connection Manager', () => {
       }
     };
     instance = new Sequelize(config.database
-                             , config.username
-                             , config.password
-                             , config);
+      , config.username
+      , config.password
+      , config);
   });
 
   it('connectionManager._connect() Does not delete `domain` from config.dialectOptions',
-     () => {
-       expect(config.dialectOptions.domain).to.equal('TEST.COM');
-       instance.dialect.connectionManager._connect(config);
-       expect(config.dialectOptions.domain).to.equal('TEST.COM');
-     });
+    () => {
+      expect(config.dialectOptions.domain).to.equal('TEST.COM');
+      instance.dialect.connectionManager._connect(config);
+      expect(config.dialectOptions.domain).to.equal('TEST.COM');
+    });
 });

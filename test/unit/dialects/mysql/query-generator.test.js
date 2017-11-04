@@ -5,6 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
+  Operators = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
 if (dialect === 'mysql') {
@@ -14,22 +15,27 @@ if (dialect === 'mysql') {
         {
           title:'Should use the plus operator',
           arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+\'bar\' '
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' '
         },
         {
           title:'Should use the plus operator with where clause',
           arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+\'bar\' WHERE `bar` = \'biz\''
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\''
         },
         {
           title:'Should use the minus operator',
           arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`-\'bar\' '
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' '
+        },
+        {
+          title:'Should use the minus operator with negative value',
+          arguments: ['-', 'myTable', { foo: -1 }, {}, {}],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1 '
         },
         {
           title:'Should use the minus operator with where clause',
           arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`-\'bar\' WHERE `bar` = \'biz\''
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\''
         }
       ],
       attributesToSQL: [
@@ -256,9 +262,9 @@ if (dialect === 'mysql') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'single string argument is not quoted',
+          title: 'single string argument should be quoted',
           arguments: ['myTable', {group: 'name'}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
           context: QueryGenerator
         }, {
           arguments: ['myTable', { group: ['name'] }],
@@ -286,7 +292,7 @@ if (dialect === 'mysql') {
           needsSequelize: true
         }, {
           arguments: ['myTable', {group: 'name', order: [['id', 'DESC']]}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY `id` DESC;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
           title: 'HAVING clause works with where-like hash',
@@ -380,6 +386,16 @@ if (dialect === 'mysql') {
           title: 'use != if not !== BOOLEAN',
           arguments: ['myTable', {where: {field: {not: 3}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
+          context: QueryGenerator
+        }, {
+          title: 'Regular Expression in where clause',
+          arguments: ['myTable', {where: {field: {$regexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` REGEXP '^[h|a|t]';",
+          context: QueryGenerator
+        }, {
+          title: 'Regular Expression negation in where clause',
+          arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` NOT REGEXP '^[h|a|t]';",
           context: QueryGenerator
         }
       ],
@@ -539,6 +555,12 @@ if (dialect === 'mysql') {
           arguments: ['User', ['foo', 'bar']],
           expectation: 'DROP INDEX `user_foo_bar` ON `User`'
         }
+      ],
+      getForeignKeyQuery: [
+        {
+          arguments: ['User', 'email'],
+          expectation: "SELECT CONSTRAINT_NAME as constraint_name FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (REFERENCED_TABLE_NAME = 'User' AND REFERENCED_COLUMN_NAME = 'email') OR (TABLE_NAME = 'User' AND COLUMN_NAME = 'email' AND REFERENCED_TABLE_NAME IS NOT NULL)"
+        }
       ]
     };
 
@@ -556,6 +578,7 @@ if (dialect === 'mysql') {
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             QueryGenerator.sequelize = this.sequelize;
+            QueryGenerator.setOperatorsAliases(Operators.LegacyAliases);
             const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });

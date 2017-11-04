@@ -889,11 +889,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               this.Kingdom.create({ name: 'Water' }),
               this.Kingdom.create({ name: 'Wind' })
             ]).spread((k1, k2, k3) =>
-                Sequelize.Promise.all([
-                  k1.addAnimals([a1, a2]),
-                  k2.addAnimals([a4]),
-                  k3.addAnimals([a3])
-                ])
+              Sequelize.Promise.all([
+                k1.addAnimals([a1, a2]),
+                k2.addAnimals([a4]),
+                k3.addAnimals([a3])
+              ])
             ));
         });
 
@@ -1030,6 +1030,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries).to.exist;
               expect(continents[0].countries[0]).to.exist;
               expect(continents[0].countries[0].name).to.equal(params[2]);
+            });
+          });
+        });
+
+        it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', function() {
+          const self = this;
+          return this.sequelize.Promise.map([['ASC', 'Asia', 'Europe', 'England']], params => {
+            return self.Continent.findAll({
+              include: [{
+                model: self.Country,
+                required: false,
+                where: {
+                  name: params[3]
+                }
+              }],
+              limit: 2,
+              order: [['name', params[0]], [self.Country, 'name', params[0]]]
+            }).then(continents => {
+              expect(continents).to.exist;
+              expect(continents[0]).to.exist;
+              expect(continents[0].name).to.equal(params[1]);
+              expect(continents[0].countries).to.exist;
+              expect(continents[0].countries.length).to.equal(0);
+              expect(continents[1]).to.exist;
+              expect(continents[1].name).to.equal(params[2]);
+              expect(continents[1].countries).to.exist;
+              expect(continents[1].countries.length).to.equal(1);
+              expect(continents[1].countries[0]).to.exist;
+              expect(continents[1].countries[0].name).to.equal(params[3]);
             });
           });
         });

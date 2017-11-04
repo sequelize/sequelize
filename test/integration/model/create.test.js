@@ -104,6 +104,37 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should error correctly when defaults contain a unique key and the where clause is complex', function() {
+      const User = this.sequelize.define('user', {
+        objectId: {
+          type: DataTypes.STRING,
+          unique: true
+        },
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        }
+      });
+
+      return User.sync({force: true})
+        .then(() => User.create({ username: 'gottlieb' }))
+        .then(() => User.findOrCreate({
+          where: {
+            $or: [{
+              objectId: 'asdasdasd1'
+            }, {
+              objectId: 'asdasdasd2'
+            }]
+          },
+          defaults: {
+            username: 'gottlieb'
+          }
+        }).catch(error => {
+          expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
+          expect(error.errors[0].path).to.be.a('string', 'username');
+        }));
+    });
+
     it('should work with undefined uuid primary key in where', function() {
       const User = this.sequelize.define('User', {
         id: {
@@ -351,13 +382,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               no: 1
             }
           })
-              .timeout(1000)
-              .catch (Promise.TimeoutError, e => {
-                throw new Error(e);
-              })
-              .catch (Sequelize.ValidationError, () => {
-                return test(times + 1);
-              });
+            .timeout(1000)
+            .catch (Promise.TimeoutError, e => {
+              throw new Error(e);
+            })
+            .catch (Sequelize.ValidationError, () => {
+              return test(times + 1);
+            });
         };
 
         return test(0);
@@ -956,17 +987,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return UserNull.sync({ force: true }).then(() => {
         return UserNull.create({ username: 'foo2', smth: null }).catch(err => {
           expect(err).to.exist;
-          expect(err.get('smth')[0].path).to.equal('smth');
-          if (dialect === 'mysql') {
-            // We need to allow two different errors for MySQL, see:
-            // http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html#sqlmode_strict_trans_tables
-            expect(err.get('smth')[0].type).to.match(/notNull Violation/);
-          }
-          else if (dialect === 'sqlite') {
-            expect(err.get('smth')[0].type).to.match(/notNull Violation/);
-          } else {
-            expect(err.get('smth')[0].type).to.match(/notNull Violation/);
-          }
+
+          const smth1 = err.get('smth')[0] || {};
+
+          expect(smth1.path).to.equal('smth');
+          expect(smth1.type || smth1.origin).to.match(/notNull Violation/);
         });
       });
     });
@@ -1481,8 +1506,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('properly handles disparate field lists', function() {
       const self = this,
         data = [{username: 'Peter', secretValue: '42', uniqueName: '1' },
-                  {username: 'Paul', uniqueName: '2'},
-                  {username: 'Steve', uniqueName: '3'}];
+          {username: 'Paul', uniqueName: '2'},
+          {username: 'Steve', uniqueName: '3'}];
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.findAll({where: {username: 'Paul'}}).then(users => {
@@ -1496,7 +1521,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('inserts multiple values respecting the white list', function() {
       const self = this,
         data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
-                  { username: 'Paul', secretValue: '23', uniqueName: '2'}];
+          { username: 'Paul', secretValue: '23', uniqueName: '2'}];
 
       return this.User.bulkCreate(data, { fields: ['username', 'uniqueName'] }).then(() => {
         return self.User.findAll({order: ['id']}).then(users => {
@@ -1512,7 +1537,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should store all values if no whitelist is specified', function() {
       const self = this,
         data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
-                  { username: 'Paul', secretValue: '23', uniqueName: '2'}];
+          { username: 'Paul', secretValue: '23', uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.findAll({order: ['id']}).then(users => {
@@ -1528,7 +1553,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should set isNewRecord = false', function() {
       const self = this,
         data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
-                  { username: 'Paul', secretValue: '23', uniqueName: '2'}];
+          { username: 'Paul', secretValue: '23', uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.findAll({order: ['id']}).then(users => {
@@ -1544,7 +1569,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const self = this,
         quote = "Single'Quote",
         data = [{ username: 'Peter', data: quote, uniqueName: '1'},
-                  { username: 'Paul', data: quote, uniqueName: '2'}];
+          { username: 'Paul', data: quote, uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.findAll({order: ['id']}).then(users => {
@@ -1561,7 +1586,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const self = this,
         quote = 'Double"Quote',
         data = [{ username: 'Peter', data: quote, uniqueName: '1'},
-                  { username: 'Paul', data: quote, uniqueName: '2'}];
+          { username: 'Paul', data: quote, uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.findAll({order: ['id']}).then(users => {
@@ -1578,7 +1603,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const self = this,
         json = JSON.stringify({ key: 'value' }),
         data = [{ username: 'Peter', data: json, uniqueName: '1'},
-                  { username: 'Paul', data: json, uniqueName: '2'}];
+          { username: 'Paul', data: json, uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.findAll({order: ['id']}).then(users => {
@@ -1604,7 +1629,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('stores the current date in createdAt', function() {
       const self = this,
         data = [{ username: 'Peter', uniqueName: '1'},
-                  { username: 'Paul', uniqueName: '2'}];
+          { username: 'Paul', uniqueName: '2'}];
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.findAll({order: ['id']}).then(users => {
@@ -1639,8 +1664,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ], { validate: true }).catch(errors => {
           expect(errors).to.be.instanceof(Promise.AggregateError);
           expect(errors).to.have.length(2);
+
+          const e0name0 = errors[0].errors.get('name')[0];
+
           expect(errors[0].record.code).to.equal('1234');
-          expect(errors[0].errors.get('name')[0].type).to.equal('notNull Violation');
+          expect(e0name0.type || e0name0.origin).to.equal('notNull Violation');
+
           expect(errors[1].record.name).to.equal('bar');
           expect(errors[1].record.code).to.equal('1');
           expect(errors[1].errors.get('code')[0].message).to.equal('Validation len on code failed');
@@ -1729,12 +1758,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (dialect !== 'postgres' && dialect !== 'mssql') {
       it('should support the ignoreDuplicates option', function() {
-        const self = this,
-          data = [{ uniqueName: 'Peter', secretValue: '42' },
-                    { uniqueName: 'Paul', secretValue: '23' }];
+        const self = this;
+        const data = [
+          { uniqueName: 'Peter', secretValue: '42' },
+          { uniqueName: 'Paul', secretValue: '23' }
+        ];
 
         return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).then(() => {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
+
           return self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).then(() => {
             return self.User.findAll({order: ['id']}).then(users => {
               expect(users.length).to.equal(3);
@@ -1750,9 +1782,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     } else {
       it('should throw an error when the ignoreDuplicates option is passed', function() {
-        const self = this,
-          data = [{ uniqueName: 'Peter', secretValue: '42' },
-                    { uniqueName: 'Paul', secretValue: '23' }];
+        const self = this;
+        const data = [
+          { uniqueName: 'Peter', secretValue: '42' },
+          { uniqueName: 'Paul', secretValue: '23' }
+        ];
 
         return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).then(() => {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
@@ -1763,6 +1797,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             } else {
               expect(err.message).to.match(/postgres does not support the \'ignoreDuplicates\' option./);
             }
+          });
+        });
+      });
+    }
+
+    if (current.dialect.supports.updateOnDuplicate) {
+      it('should support the updateOnDuplicate option', function() {
+        const self = this;
+        const data = [
+          { uniqueName: 'Peter', secretValue: '42' },
+          { uniqueName: 'Paul', secretValue: '23' }
+        ];
+
+        return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
+          const new_data = [
+            { uniqueName: 'Peter', secretValue: '43' },
+            { uniqueName: 'Paul', secretValue: '24' },
+            { uniqueName: 'Michael', secretValue: '26' }
+          ];
+          return self.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
+            return self.User.findAll({order: ['id']}).then(users => {
+              expect(users.length).to.equal(3);
+              expect(users[0].uniqueName).to.equal('Peter');
+              expect(users[0].secretValue).to.equal('43');
+              expect(users[1].uniqueName).to.equal('Paul');
+              expect(users[1].secretValue).to.equal('24');
+              expect(users[2].uniqueName).to.equal('Michael');
+              expect(users[2].secretValue).to.equal('26');
+            });
           });
         });
       });
@@ -1854,27 +1917,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const M2 = { id: 2, name: 'Dwitiya Maya', secret: 'You are on list #2'};
 
       return Maya.sync({ force: true }).then(() => Maya.create(M1))
-      .then(m => {
-        expect(m.createdAt).to.be.ok;
-        expect(m.id).to.be.eql(M1.id);
-        expect(m.name).to.be.eql(M1.name);
-        expect(m.secret).to.be.eql(M1.secret);
+        .then(m => {
+          expect(m.createdAt).to.be.ok;
+          expect(m.id).to.be.eql(M1.id);
+          expect(m.name).to.be.eql(M1.name);
+          expect(m.secret).to.be.eql(M1.secret);
 
-        return Maya.bulkCreate([M2]);
-      }).spread(m => {
+          return Maya.bulkCreate([M2]);
+        }).spread(m => {
 
         // only attributes are returned, no fields are mixed
-        expect(m.createdAt).to.be.ok;
-        expect(m.created_at).to.not.exist;
-        expect(m.secret_given).to.not.exist;
-        expect(m.get('secret_given')).not.to.be.defined;
-        expect(m.get('created_at')).not.to.be.defined;
+          expect(m.createdAt).to.be.ok;
+          expect(m.created_at).to.not.exist;
+          expect(m.secret_given).to.not.exist;
+          expect(m.get('secret_given')).not.to.be.defined;
+          expect(m.get('created_at')).not.to.be.defined;
 
-        // values look fine
-        expect(m.id).to.be.eql(M2.id);
-        expect(m.name).to.be.eql(M2.name);
-        expect(m.secret).to.be.eql(M2.secret);
-      });
+          // values look fine
+          expect(m.id).to.be.eql(M2.id);
+          expect(m.name).to.be.eql(M2.name);
+          expect(m.secret).to.be.eql(M2.secret);
+        });
     });
 
     it('should return autoIncrement primary key (create)', function() {
@@ -1883,9 +1946,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const M1 = {};
 
       return Maya.sync({ force: true }).then(() => Maya.create(M1, {returning: true}))
-      .then(m => {
-        expect(m.id).to.be.eql(1);
-      });
+        .then(m => {
+          expect(m.id).to.be.eql(1);
+        });
     });
 
     it('should return autoIncrement primary key (bulkCreate)', function() {
@@ -1895,10 +1958,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const M2 = {};
 
       return Maya.sync({ force: true }).then(() => Maya.bulkCreate([M1, M2], {returning: true}))
-      .then(ms => {
-        expect(ms[0].id).to.be.eql(1);
-        expect(ms[1].id).to.be.eql(2);
-      });
+        .then(ms => {
+          expect(ms[0].id).to.be.eql(1);
+          expect(ms[1].id).to.be.eql(2);
+        });
     });
   });
 

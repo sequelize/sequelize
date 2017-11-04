@@ -209,6 +209,39 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(hook2).not.to.have.been.called;
       });
     });
+
+    it('should not remove other hooks', function() {
+      const hook1 = sinon.spy(),
+        hook2 = sinon.spy(),
+        hook3 = sinon.spy(),
+        hook4 = sinon.spy();
+
+      this.Model.addHook('beforeCreate', hook1);
+      this.Model.addHook('beforeCreate', 'myHook', hook2);
+      this.Model.beforeCreate('myHook2', hook3);
+      this.Model.beforeCreate(hook4);
+
+      return this.Model.runHooks('beforeCreate').bind(this).then(function() {
+        expect(hook1).to.have.been.calledOnce;
+        expect(hook2).to.have.been.calledOnce;
+        expect(hook3).to.have.been.calledOnce;
+        expect(hook4).to.have.been.calledOnce;
+
+        hook1.reset();
+        hook2.reset();
+        hook3.reset();
+        hook4.reset();
+
+        this.Model.removeHook('beforeCreate', 'myHook');
+
+        return this.Model.runHooks('beforeCreate');
+      }).then(() => {
+        expect(hook1).to.have.been.calledOnce;
+        expect(hook2).not.to.have.been.called;
+        expect(hook3).to.have.been.calledOnce;
+        expect(hook4).to.have.been.calledOnce;
+      });
+    });
   });
 
   describe('#addHook', () => {

@@ -708,6 +708,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(u.username).to.equal('A fancy name');
         });
     });
+
+    // https://github.com/sequelize/sequelize/issues/8406
+    it('should work if model is paranoid and only operator in where clause is a Symbol', function() {
+      const User = this.sequelize.define('User', { username: Sequelize.STRING }, { paranoid: true } );
+
+      return User.sync({ force: true})
+        .then(() => {
+          return User.create({ username: 'foo' });
+        })
+        .then(() => {
+          return User.findOne({
+            where: {
+              [Sequelize.Op.or]: [
+                { username: 'bar' },
+                { username: 'baz' }
+              ]
+            }
+          });
+        })
+        .then(user => {
+          expect(user).to.not.be.ok;
+        });
+    });
   });
 
   describe('findOrInitialize', () => {
@@ -891,8 +914,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('updates only values that match filter', function() {
       const self = this,
         data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '42' },
-                  { username: 'Bob', secretValue: '43' }];
+          { username: 'Paul', secretValue: '42' },
+          { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.update({username: 'Bill'}, {where: {secretValue: '42'}}).then(() => {
@@ -1069,8 +1092,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('sets updatedAt to the current timestamp', function() {
       const data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '42' },
-                  { username: 'Bob', secretValue: '43' }];
+        { username: 'Paul', secretValue: '42' },
+        { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).bind(this).then(function() {
         return this.User.findAll({order: ['id']});
@@ -1098,8 +1121,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('returns the number of affected rows', function() {
       const self = this,
         data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '42' },
-                  { username: 'Bob', secretValue: '43' }];
+          { username: 'Paul', secretValue: '42' },
+          { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.update({username: 'Bill'}, {where: {secretValue: '42'}}).spread(affectedRows => {
@@ -1116,8 +1139,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('returns the affected rows if `options.returning` is true', function() {
         const self = this,
           data = [{ username: 'Peter', secretValue: '42' },
-                    { username: 'Paul', secretValue: '42' },
-                    { username: 'Bob', secretValue: '43' }];
+            { username: 'Paul', secretValue: '42' },
+            { username: 'Bob', secretValue: '43' }];
 
         return this.User.bulkCreate(data).then(() => {
           return self.User.update({ username: 'Bill' }, { where: {secretValue: '42' }, returning: true }).spread((count, rows) => {
@@ -1137,8 +1160,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('supports limit clause', function() {
         const self = this,
           data = [{ username: 'Peter', secretValue: '42' },
-                    { username: 'Peter', secretValue: '42' },
-                    { username: 'Peter', secretValue: '42' }];
+            { username: 'Peter', secretValue: '42' },
+            { username: 'Peter', secretValue: '42' }];
 
         return this.User.bulkCreate(data).then(() => {
           return self.User.update({secretValue: '43'}, {where: {username: 'Peter'}, limit: 1}).spread(affectedRows => {
@@ -1154,8 +1177,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('convenient method `truncate` should clear the table', function() {
       const User = this.sequelize.define('User', { username: DataTypes.STRING }),
         data = [
-            { username: 'user1' },
-            { username: 'user2' }
+          { username: 'user1' },
+          { username: 'user2' }
         ];
 
       return this.sequelize.sync({ force: true }).then(() => {
@@ -1170,8 +1193,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('truncate should clear the table', function() {
       const User = this.sequelize.define('User', { username: DataTypes.STRING }),
         data = [
-            { username: 'user1' },
-            { username: 'user2' }
+          { username: 'user1' },
+          { username: 'user2' }
         ];
 
       return this.sequelize.sync({ force: true }).then(() => {
@@ -1199,8 +1222,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('deletes all instances when given an empty where object', function() {
       const User = this.sequelize.define('User', { username: DataTypes.STRING }),
         data = [
-            { username: 'user1' },
-            { username: 'user2' }
+          { username: 'user1' },
+          { username: 'user2' }
         ];
 
       return this.sequelize.sync({ force: true }).then(() => {
@@ -1245,8 +1268,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('deletes values that match filter', function() {
       const self = this,
         data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '42' },
-                  { username: 'Bob', secretValue: '43' }];
+          { username: 'Paul', secretValue: '42' },
+          { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.destroy({where: {secretValue: '42'}})
@@ -1323,8 +1346,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           paranoid: true
         }),
         data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '42' },
-                  { username: 'Bob', secretValue: '43' }];
+          { username: 'Paul', secretValue: '42' },
+          { username: 'Bob', secretValue: '43' }];
 
       return ParanoidUser.sync({ force: true }).then(() => {
         return ParanoidUser.bulkCreate(data);
@@ -1453,32 +1476,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       let user;
       return User.sync({ force: true })
-          .then(() => { return Pet.sync({ force: true }); })
-          .then(() => { return User.create({ username: 'Joe' }); })
-          .then(_user => {
-            user = _user;
-            return Pet.bulkCreate([
-              { name: 'Fido', UserId: user.id },
-              { name: 'Fifi', UserId: user.id }
-            ]);
-          })
-          .then(() => { return Pet.findById(1); })
-          .then(pet => { return pet.destroy(); })
-          .then(() => {
-            return [
-              User.find({ where: {id: user.id}, include: Pet }),
-              User.find({
-                where: {id: user.id},
-                include: [{ model: Pet, paranoid: false }]
-              })
-            ];
-          })
-          .spread((user, userWithDeletedPets) => {
-            expect(user).to.exist;
-            expect(user.Pets).to.have.length(1);
-            expect(userWithDeletedPets).to.exist;
-            expect(userWithDeletedPets.Pets).to.have.length(2);
-          });
+        .then(() => { return Pet.sync({ force: true }); })
+        .then(() => { return User.create({ username: 'Joe' }); })
+        .then(_user => {
+          user = _user;
+          return Pet.bulkCreate([
+            { name: 'Fido', UserId: user.id },
+            { name: 'Fifi', UserId: user.id }
+          ]);
+        })
+        .then(() => { return Pet.findById(1); })
+        .then(pet => { return pet.destroy(); })
+        .then(() => {
+          return [
+            User.find({ where: {id: user.id}, include: Pet }),
+            User.find({
+              where: {id: user.id},
+              include: [{ model: Pet, paranoid: false }]
+            })
+          ];
+        })
+        .spread((user, userWithDeletedPets) => {
+          expect(user).to.exist;
+          expect(user.Pets).to.have.length(1);
+          expect(userWithDeletedPets).to.exist;
+          expect(userWithDeletedPets.Pets).to.have.length(2);
+        });
     });
 
     it('should delete a paranoid record if I set force to true', function() {
@@ -1525,8 +1548,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('returns the number of affected rows', function() {
       const self = this,
         data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '42' },
-                  { username: 'Bob', secretValue: '43' }];
+          { username: 'Paul', secretValue: '42' },
+          { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.destroy({where: {secretValue: '42'}}).then(affectedRows => {
@@ -1542,8 +1565,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('supports table schema/prefix', function() {
       const self = this,
         data = [{ username: 'Peter', secretValue: '42' },
-           { username: 'Paul', secretValue: '42' },
-           { username: 'Bob', secretValue: '43' }],
+          { username: 'Paul', secretValue: '42' },
+          { username: 'Bob', secretValue: '43' }],
         prefixUser = self.User.schema('prefix');
 
       const run = function() {
@@ -1572,9 +1595,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const self = this;
 
       return this.User.create({username: 'Peter', secretValue: '42'})
-      .then(() => {
-        expect(() => {self.User.restore({where: {secretValue: '42'}});}).to.throw(Error, 'Model is not paranoid');
-      });
+        .then(() => {
+          expect(() => {self.User.restore({where: {secretValue: '42'}});}).to.throw(Error, 'Model is not paranoid');
+        });
     });
 
     it('restores a previously deleted model', function() {
@@ -1588,8 +1611,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           paranoid: true
         }),
         data = [{ username: 'Peter', secretValue: '42' },
-                  { username: 'Paul', secretValue: '43' },
-                  { username: 'Bob', secretValue: '44' }];
+          { username: 'Paul', secretValue: '43' },
+          { username: 'Bob', secretValue: '44' }];
 
       return ParanoidUser.sync({ force: true }).then(() => {
         return ParanoidUser.bulkCreate(data);
@@ -1789,8 +1812,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => Post.create({}))
         .then(post => PostComment.bulkCreate([{ PostId: post.id }, { PostId: post.id }]))
         .then(() => Promise.join(
-            Post.count({ distinct: false, include: [{ model: PostComment, required: false }] }),
-            Post.count({ distinct: true, include: [{ model: PostComment, required: false }] }),
+          Post.count({ distinct: false, include: [{ model: PostComment, required: false }] }),
+          Post.count({ distinct: true, include: [{ model: PostComment, required: false }] }),
           (count1, count2) => {
             expect(count1).to.equal(2);
             expect(count2).to.equal(1);
@@ -2716,8 +2739,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('bulkCreate errors', () => {
     it('should return array of errors if validate and individualHooks are true', function() {
       const data = [{ username: null },
-                  { username: null },
-                  { username: null }];
+        { username: null },
+        { username: null }];
 
       const user = this.sequelize.define('Users', {
         username: {
@@ -2742,7 +2765,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.User = this.sequelize.define('User', {
         id: { type: DataTypes.INTEGER, primaryKey: true },
         aNumber: { type: DataTypes.INTEGER },
-        bNumber: { type: DataTypes.INTEGER }
+        bNumber: { type: DataTypes.INTEGER },
+        cNumber: { type: DataTypes.INTEGER, field: 'c_number'}
       });
 
       const self = this;
@@ -2759,6 +2783,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           id: 3,
           aNumber: 0,
           bNumber: 0
+        }, {
+          id: 4,
+          aNumber: 0,
+          bNumber: 0,
+          cNumber: 0
         }]);
       });
     });
@@ -2770,6 +2799,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return self.User.findById(2).then(user3 => {
             expect(user3.aNumber).to.be.equal(0);
           });
+        });
+      });
+    });
+
+    it('uses correct column names for where conditions', function() {
+      const self = this;
+      return this.User.increment(['aNumber'], {by: 2, where: {cNumber: 0}}).then(() => {
+        return self.User.findById(4).then(user4 => {
+          expect(user4.aNumber).to.be.equal(2);
         });
       });
     });
@@ -2891,6 +2929,49 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.increment('aNumber', {by: 1, silent: true, where: { }});
       }).then(() => {
         return expect(User.findById(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+      });
+    });
+
+    it('should work with scopes', function() {
+      const User = this.sequelize.define('User', {
+        aNumber: DataTypes.INTEGER,
+        name: DataTypes.STRING
+      }, {
+        scopes: {
+          jeff: {
+            where: {
+              name: 'Jeff'
+            }
+          }
+        }
+      });
+
+      return User.sync({ force: true }).then(() => {
+        return User.bulkCreate([
+          {
+            aNumber: 1,
+            name: 'Jeff'
+          },
+          {
+            aNumber: 3,
+            name: 'Not Jeff'
+          }
+        ]);
+      }).then(() => {
+        return User.scope('jeff').increment('aNumber', {
+        });
+      }).then(() => {
+        return User.scope('jeff').findOne();
+      }).then(jeff => {
+        expect(jeff.aNumber).to.equal(2);
+      }).then(() => {
+        return User.findOne({
+          where: {
+            name: 'Not Jeff'
+          }
+        });
+      }).then(notJeff => {
+        expect(notJeff.aNumber).to.equal(3);
       });
     });
   });

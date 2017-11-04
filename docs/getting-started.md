@@ -29,6 +29,7 @@ $ yarn add tedious // MSSQL
 Sequelize will setup a connection pool on initialization so you should ideally only ever create one instance per database if you're connecting to the DB from a single process. If you're connecting to the DB from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of "max connection pool size divided by number of instances".  So, if you wanted a max connection pool size of 90 and you had 3 worker processes, each process's instance should have a max connection pool size of 30.
 
 ```js
+const Sequelize = require('sequelize');
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
   dialect: 'mysql'|'sqlite'|'postgres'|'mssql',
@@ -136,6 +137,14 @@ _will never work!_ This is because `user` is a promise object, not a data row fr
 User.findOne().then(user => {
   console.log(user.get('firstName'));
 });
+```
+
+When your environment or transpiler supports [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await) this will work but only in the body of an [async](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) function:
+
+```js
+user = await User.findOne()
+
+console.log(user.get('firstName'));
 ```
 
 Once you've got the hang of what promises are and how they work, use the [bluebird API reference](http://bluebirdjs.com/docs/api-reference.html) as your go-to tool. In particular, you'll probably be using [`.all`](http://bluebirdjs.com/docs/api/promise.all.html) a lot.  

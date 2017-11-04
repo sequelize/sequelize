@@ -3,6 +3,7 @@
 const Support = require(__dirname + '/../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
+const Operators = require('../../../../lib/operators');
 const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator');
 const _ = require('lodash');
 
@@ -10,6 +11,8 @@ if (current.dialect.name === 'mssql') {
   suite('[MSSQL Specific] QueryGenerator', () => {
     // Dialect would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
     QueryGenerator._dialect = current.dialect;
+    //Aliases might not be needed here since it doesn't seem like this test uses any operators
+    QueryGenerator.setOperatorsAliases(Operators.Aliases);
 
     test('getDefaultConstraintQuery', () => {
       expectsql(QueryGenerator.getDefaultConstraintQuery({tableName: 'myTable', schema: 'mySchema'}, 'myColumn'), {
@@ -175,22 +178,27 @@ if (current.dialect.name === 'mssql') {
       [{
         title:'Should use the plus operator',
         arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
-        expectation: 'UPDATE myTable SET foo=foo+\'bar\' '
+        expectation: 'UPDATE myTable SET foo=foo+ \'bar\' '
       },
       {
         title:'Should use the plus operator with where clause',
         arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
-        expectation: 'UPDATE myTable SET foo=foo+\'bar\' WHERE bar = \'biz\''
+        expectation: 'UPDATE myTable SET foo=foo+ \'bar\' WHERE bar = \'biz\''
       },
       {
         title:'Should use the minus operator',
         arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
-        expectation: 'UPDATE myTable SET foo=foo-\'bar\' '
+        expectation: 'UPDATE myTable SET foo=foo- \'bar\' '
+      },
+      {
+        title:'Should use the minus operator with negative value',
+        arguments: ['-', 'myTable', { foo: -1 }, {}, {}],
+        expectation: 'UPDATE myTable SET foo=foo- -1 '
       },
       {
         title:'Should use the minus operator with where clause',
         arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
-        expectation: 'UPDATE myTable SET foo=foo-\'bar\' WHERE bar = \'biz\''
+        expectation: 'UPDATE myTable SET foo=foo- \'bar\' WHERE bar = \'biz\''
       }].forEach(test => {
         it(test.title, () => {
           expectsql(QueryGenerator.arithmeticQuery.call(QueryGenerator, test.arguments), {

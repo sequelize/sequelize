@@ -287,7 +287,7 @@ User.findAll({
 ```
 
 ## Scopes
-This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/scopes.html).
+This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/manual/tutorial/scopes.html).
 
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
@@ -301,8 +301,8 @@ const Comment = this.sequelize.define('comment', {
   commentable_id: Sequelize.INTEGER
 });
 
-Comment.prototype.getItem = function() {
-  return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
+Comment.prototype.getItem = function(options) {
+  return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)](options);
 };
 
 Post.hasMany(this.Comment, {
@@ -347,7 +347,7 @@ image.addComment(comment);
 UPDATE comments SET commentable_id = 42, commentable = 'image'
 ```
 
-The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to either `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image.
+The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to either `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image. You can pass a normal options object as a parameter to `getItem(options)` to specify any where conditions or includes.
 
 #### n:m
 Continuing with the idea of a polymorphic model, consider a tag table - an item can have multiple tags, and a tag can be related to several items.
@@ -540,7 +540,7 @@ task2.setProject(null).then(function() {
 })
 ```
 
-For hasOne/belongsTo its basically the same:
+For hasOne/belongsTo it's basically the same:
 
 ```js
 Task.hasOne(User, {as: "Author"})
@@ -653,7 +653,7 @@ The relation between task and user injects the `user_id` foreign key on tasks, a
 
 For 1:1 and 1:m associations the default option is `SET NULL` for deletion, and `CASCADE` for updates. For n:m, the default for both is `CASCADE`. This means, that if you delete or update a row from one side of an n:m association, all the rows in the join table referencing that row will also be deleted or updated.
 
-Adding constraints between tables means that tables must be created in the database in a certain order, when using `sequelize.sync`. If Task has a reference to User, the User table must be created before the Task table can be created. This can sometimes lead to circular references, where sequelize cannot find an order in which to sync. Imagine a scenario of documents and versions. A document can have multiple versions, and for convenience, a document has an reference to it's current version.
+Adding constraints between tables means that tables must be created in the database in a certain order, when using `sequelize.sync`. If Task has a reference to User, the User table must be created before the Task table can be created. This can sometimes lead to circular references, where sequelize cannot find an order in which to sync. Imagine a scenario of documents and versions. A document can have multiple versions, and for convenience, a document has a reference to its current version.
 
 ```js
 const Document = this.sequelize.define('document', {
@@ -760,8 +760,8 @@ const Address = this.sequelize.define('address', {
   zip: Sequelize.STRING,
 });
 
-const Product.User = Product.belongsTo(User);
-const User.Addresses = User.hasMany(Address);
+Product.User = Product.belongsTo(User);
+User.Addresses = User.hasMany(Address);
 // Also works for `hasOne`
 ```
 
