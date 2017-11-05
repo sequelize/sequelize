@@ -80,6 +80,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
+    it('should properly sync foreign key index with alter', function() {
+      const testSync = this.sequelize.define('testSync', {
+        name: Sequelize.STRING,
+        age: Sequelize.INTEGER
+      });
+      let testSyncChild;
+      return this.sequelize.sync()
+        .then(() => {
+          testSyncChild = this.sequelize.define('testSyncChild', {
+            name: Sequelize.STRING,
+            age: Sequelize.INTEGER
+          });
+          testSync.hasMany(testSyncChild);
+        })
+        .then(() => this.sequelize.sync({alter: true}))
+        // twice because it tried to insert duplicate foreign keys before
+        .then(() => this.sequelize.sync({alter: true}))
+        .then(() => testSyncChild.QueryInterface.showConstraint(testSyncChild.tableName))
+        .then(constraints => {
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.include('testSyncChildren_testSyncId_foreign_idx');
+        });
+    });
+
     it('should properly create composite index without affecting individual fields', function() {
       const testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
