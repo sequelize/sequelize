@@ -134,8 +134,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         +') AS [user] ORDER BY [subquery_order_0] ASC;',
         oracle: 'SELECT \"user\".* FROM ('+
         [
-          '(SELECT \"user\".id_user AS id, \"user\".last_name AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 1 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
-          '(SELECT \"user\".id_user AS id, \"user\".last_name AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 5 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+          '(SELECT \"user\".id_user AS id, \"user\".last_name AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 1 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', "user".id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+          '(SELECT \"user\".id_user AS id, \"user\".last_name AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 5 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', "user".id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
         ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
         +') \"user\" ORDER BY subquery_order_0 ASC;'
       });
@@ -171,8 +171,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         +') AS [user] ORDER BY [subquery_order_0] ASC;',
         oracle: 'SELECT \"user\".* FROM ('+
         [
-          '(SELECT \"user\".id_user AS id, \"user\".last_name AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 1 AND project_users.status = 1 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
-          '(SELECT \"user\".id_user AS id, \"user\".last_name AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 5 AND project_users.status = 1 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+          '(SELECT \"user\".id_user AS id, \"user\".last_name AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 1 AND project_users.status = 1 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', "user".id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+          '(SELECT \"user\".id_user AS id, \"user\".last_name AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 5 AND project_users.status = 1 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', "user".id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
         ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
         +') \"user\" ORDER BY subquery_order_0 ASC;'
       });
@@ -209,8 +209,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         +') AS [user] ORDER BY [subquery_order_0] ASC;',
         oracle: 'SELECT \"user\".* FROM ('+
         [
-          '(SELECT \"user\".id_user AS id, \"user\".id_user AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 1 WHERE \"user\".age >= 21 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
-          '(SELECT \"user\".id_user AS id, \"user\".id_user AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 5 WHERE \"user\".age >= 21 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', id_user' : '') +sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
+          '(SELECT \"user\".id_user AS id, \"user\".id_user AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 1 WHERE \"user\".age >= 21 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', "user".id_user' : '') + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')',
+          '(SELECT \"user\".id_user AS id, \"user\".id_user AS subquery_order_0, project_users.user_id AS "project_users.userId", project_users.project_id AS "project_users.projectId" FROM users \"user\" INNER JOIN project_users project_users ON \"user\".id_user = project_users.user_id AND project_users.project_id = 5 WHERE \"user\".age >= 21 ORDER BY subquery_order_0 ASC'+ (current.dialect.name === 'oracle' ? ', "user".id_user' : '') +sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+')'
         ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
         +') \"user\" ORDER BY subquery_order_0 ASC;'
       });
@@ -456,7 +456,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           'WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id]) ORDER BY [postaliasname].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY ) IS NOT NULL) AS [User] ' +
           'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id];',
         oracle: 'SELECT "User".*, postaliasname.id AS "postaliasname.id", postaliasname.title AS "postaliasname.title" FROM (SELECT "User".name, "User".age, "User".id AS id FROM "User" "User" ' + 
-          'WHERE ( SELECT user_id FROM Post postaliasname WHERE (postaliasname.user_id = "User".id) ORDER BY id OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY ) IS NOT NULL) "User" ' +
+          'WHERE ( SELECT user_id FROM Post postaliasname WHERE (postaliasname.user_id = "User".id) ORDER BY postaliasname.id OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY ) IS NOT NULL) "User" ' +
           'INNER JOIN Post postaliasname ON "User".id = postaliasname.user_id;'
       });
     });

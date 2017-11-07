@@ -462,7 +462,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         $between: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] BETWEEN '2013-01-01' AND '2013-01-11'",
-        oracle: "\"date\" BETWEEN TO_DATE('2013-01-01','YYYY-MM-DD') AND TO_DATE('2013-01-11','YYYY-MM-DD')",
+        oracle: "\"date\" BETWEEN '2013-01-01' AND '2013-01-11'",
         mssql: "[date] BETWEEN N'2013-01-01' AND N'2013-01-11'"
       });
 
@@ -471,7 +471,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         nbetween: ['2013-01-04', '2013-01-20']
       }, {
         default: "([date] BETWEEN '2012-12-10' AND '2013-01-02' AND [date] NOT BETWEEN '2013-01-04' AND '2013-01-20')",
-        oracle: "(\"date\" BETWEEN TO_DATE('2012-12-10','YYYY-MM-DD') AND TO_DATE('2013-01-02','YYYY-MM-DD') AND \"date\" NOT BETWEEN TO_DATE('2013-01-04','YYYY-MM-DD') AND TO_DATE('2013-01-20','YYYY-MM-DD'))",
+        oracle: "(\"date\" BETWEEN '2012-12-10' AND '2013-01-02' AND \"date\" NOT BETWEEN '2013-01-04' AND '2013-01-20')",
         mssql: "([date] BETWEEN N'2012-12-10' AND N'2013-01-02' AND [date] NOT BETWEEN N'2013-01-04' AND N'2013-01-20')"
       });
     });
@@ -481,7 +481,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         $notBetween: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] NOT BETWEEN '2013-01-01' AND '2013-01-11'",
-        oracle: "\"date\" NOT BETWEEN TO_DATE('2013-01-01','YYYY-MM-DD') AND TO_DATE('2013-01-11','YYYY-MM-DD')",
+        oracle: "\"date\" NOT BETWEEN '2013-01-01' AND '2013-01-11'",
         mssql: "[date] NOT BETWEEN N'2013-01-01' AND N'2013-01-11'"
       });
     });

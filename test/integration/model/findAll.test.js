@@ -156,10 +156,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
 
       it('should be able to find a row between a certain date using the between shortcut', function() {
+        let betweenDte = ['2013-01-02', '2013-01-11'];
+        if (dialect === 'oracle') {
+          //Specific where we have to use the TO_DATE as in Oracle, the date format is related to the current language settings
+          betweenDte = ["TO_DATE('2013-01-02','YYYY-MM-DD')", "TO_DATE('2013-01-11','YYYY-MM-DD')"];
+        }
         return this.User.findAll({
           where: {
             theDate: {
-              '..': ['2013-01-02', '2013-01-11']
+              '..': betweenDte
             }
           }
         }).then(users => {
@@ -296,10 +301,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row between a certain date', function() {
+
+        let betweenDte = ['2013-01-02', '2013-01-11'];
+        if (dialect === 'oracle') {
+          //Specific where we have to use the TO_DATE as in Oracle, the date format is related to the current language settings
+          betweenDte = ["TO_DATE('2013-01-02','YYYY-MM-DD')", "TO_DATE('2013-01-11','YYYY-MM-DD')"];
+        }
         return this.User.findAll({
           where: {
             theDate: {
-              between: ['2013-01-02', '2013-01-11']
+              between: betweenDte
             }
           }
         }).then(users => {
@@ -309,10 +320,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row between a certain date and an additional where clause', function() {
+        let betweenDte = ['2013-01-02', '2013-01-11'];
+        if (dialect === 'oracle') {
+          //Specific where we have to use the TO_DATE as in Oracle, the date format is related to the current language settings
+          betweenDte = ["TO_DATE('2013-01-02','YYYY-MM-DD')", "TO_DATE('2013-01-11','YYYY-MM-DD')"];
+        }
         return this.User.findAll({
           where: {
             theDate: {
-              between: ['2013-01-02', '2013-01-11']
+              between: betweenDte
             },
             intVal: 10
           }
@@ -336,11 +352,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using not between and between logic', function() {
+        let betweenDte = ['2012-12-10', '2013-01-02'];
+        let notBetweenDte = ['2013-01-04', '2013-01-20'];
+        if (dialect === 'oracle') {
+          //Specific where we have to use the TO_DATE as in Oracle, the date format is related to the current language settings
+          betweenDte = ["TO_DATE('2012-12-10','YYYY-MM-DD')", "TO_DATE('2013-01-02','YYYY-MM-DD')"];
+          notBetweenDte = ["TO_DATE('2013-01-04','YYYY-MM-DD')", "TO_DATE('2013-01-20','YYYY-MM-DD')"];
+        }
         return this.User.findAll({
           where: {
             theDate: {
-              between: ['2012-12-10', '2013-01-02'],
-              nbetween: ['2013-01-04', '2013-01-20']
+              between: betweenDte,
+              nbetween: notBetweenDte
             }
           }
         }).then(users => {
