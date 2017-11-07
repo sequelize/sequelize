@@ -140,16 +140,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
 
-    //Oracle doesn't support column names non quoted by "
-    if (current.dialect.name !== 'oracle') {
-      it('only gets objects that fulfill options with a formatted value', function() {
-        return this.User.find({where: {username: 'John'}}).then(john => {
-          return john.getTasks({where: {active: true}});
-        }).then(tasks => {
-          expect(tasks).to.have.length(1);
-        });
+    it('only gets objects that fulfill options with a formatted value', function() {
+      return this.User.find({where: {username: 'John'}}).then(john => {
+        return john.getTasks({where: {active: true}});
+      }).then(tasks => {
+        expect(tasks).to.have.length(1);
       });
-    }
+    });
 
     it('get associated objects with an eager load', function() {
       return this.User.find({where: {username: 'John'}, include: [this.Task]}).then(john => {

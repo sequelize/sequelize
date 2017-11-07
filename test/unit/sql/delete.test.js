@@ -90,7 +90,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
             mssql:    "DELETE FROM [public].[test_users] WHERE [name] = N'foo'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
             sqlite:   "DELETE FROM `public.test_users` WHERE `name` = 'foo'",
-            oracle:    "DELETE FROM \"public\".test_users WHERE name = 'foo';"
+            oracle:    "DELETE FROM \"public\".test_users WHERE name = 'foo'"
           }
         );
       });
@@ -115,7 +115,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             sqlite:   "DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)",
             mssql:    "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
             default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10",
-            oracle: "DELETE FROM \"public\".test_users WHERE name = 'foo'';DROP TABLE mySchema.myTable;' AND rowid IN(SELECT rowid FROM <%= table %> WHERE rownum <=10);"
+            oracle: "DELETE FROM \"public\".test_users WHERE rowid IN (SELECT rowid FROM \"public\".test_users WHERE rownum <= 10 AND name = 'foo'';DROP TABLE mySchema.myTable;')"
           }
         );
       });
@@ -146,7 +146,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             postgres: new Error('Cannot LIMIT delete without a model.'),
             sqlite:   "DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)",
             mssql:    "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
-            oracle: "DELETE FROM \"public\".test_users WHERE name = 'foo'';DROP TABLE mySchema.myTable;' AND rowid IN(SELECT rowid FROM <%= table %> WHERE rownum <=10);",
+            oracle: "DELETE FROM \"public\".test_users WHERE rowid IN (SELECT rowid FROM \"public\".test_users WHERE rownum <= 10 AND name = 'foo'';DROP TABLE mySchema.myTable;')",
             default:  "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"
           }
         );
@@ -180,7 +180,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           ), {
             postgres: 'DELETE FROM "test_user" WHERE "test_user_id" IN (SELECT "test_user_id" FROM "test_user" WHERE "test_user_id" = 100 LIMIT 1)',
             sqlite:   'DELETE FROM `test_user` WHERE rowid IN (SELECT rowid FROM `test_user` WHERE `test_user_id` = 100 LIMIT 1)',
-            oracle:  'DELETE FROM test_user WHERE test_user_id = 100;',
+            oracle:  'DELETE FROM test_user WHERE test_user_id = 100',
             mssql:    'DELETE TOP(1) FROM [test_user] WHERE [test_user_id] = 100; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
             default:  'DELETE FROM [test_user] WHERE [test_user_id] = 100 LIMIT 1'
           }
