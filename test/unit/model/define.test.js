@@ -2,18 +2,18 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require(__dirname + '/../support'),
+  Support = require(__dirname + '/../support'),
   DataTypes = require('../../../lib/data-types'),
-  current   = Support.sequelize;
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('define', () => {
     it('should allow custom timestamps with underscored: true', () => {
       const Model = current.define('User', {}, {
-        createdAt   : 'createdAt',
-        updatedAt   : 'updatedAt',
-        timestamps  : true,
-        underscored : true
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt',
+        timestamps: true,
+        underscored: true
       });
 
       expect(Model.rawAttributes.createdAt).to.be.defined;
@@ -40,6 +40,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
       }).to.throw("A column called 'id' was added to the attributes of 'bars' but not marked with 'primaryKey: true'");
+    });
+    it('should defend against null or undefined "unique" attributes', () => {
+      expect(() => {
+        current.define('baz', {
+          foo: {
+            type: DataTypes.STRING,
+            unique: null
+          },
+          bar: {
+            type: DataTypes.STRING,
+            unique: undefined
+          }
+        });
+      }).not.to.throw();
     });
   });
 });
