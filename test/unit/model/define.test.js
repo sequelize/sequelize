@@ -51,6 +51,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           bar: {
             type: DataTypes.STRING,
             unique: undefined
+          },
+          bop: {
+            type: DataTypes.DATE
           }
         });
       }).not.to.throw();
