@@ -84,6 +84,8 @@ Then to run the tests simply run:
 npm run test-docker
 ```
 
+**Note:** _Its possible that you wont be able to run both postgres and mysql containers at same time, this is because they share ram-disk partition. You can usually run either of them after running `sudo rm -rf /mnt/sequelize-ramdisk`_
+
 If sequelize is unable to connect to mysql you might want to try running `sudo docker-compose up` in a second terminal window.
 
 ### 4. Run the tests ###
