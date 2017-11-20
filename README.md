@@ -53,6 +53,7 @@ Sequelize follows [SEMVER](http://semver.org). Supports Node v4 and above to use
 - [Stable v4 documentation](http://docs.sequelizejs.com)
 - [Upgrading from v3 to v4](http://docs.sequelizejs.com/manual/tutorial/upgrade-to-v4.html)
 - [v3 documentation](https://sequelize.readthedocs.io/en/v3/)
+- [中文文档 v4](https://github.com/demopark/sequelize-docs-Zh-CN)
 
 ## Responsible disclosure
 If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md)
