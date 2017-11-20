@@ -9,7 +9,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   Promise = require('bluebird');
 
-describe.only(Support.getTestDialectTeaser('Hooks'), () => {
+describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
       username: {
