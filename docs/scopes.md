@@ -1,4 +1,5 @@
 # Scopes
+
 Scoping allows you to define commonly used queries that you can easily use later. Scopes can include all the same attributes as regular finders, `where`, `include`, `limit` etc.
 
 ## Definition

@@ -1,4 +1,4 @@
-## Basic usage
+# Basic usage
 
 To get the ball rollin' you first have to create an instance of Sequelize. Use it the following way:
 
@@ -154,7 +154,7 @@ Sequelize uses a pool to manage connections to your replicas. The default option
   idle: 10000,
   acquire: 10000,
   evict: 60000,
-  handleDisconnects: true  
+  handleDisconnects: true
 }
 ```
 
