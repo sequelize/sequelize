@@ -73,7 +73,7 @@
     "istanbul": "^0.4.5",
     "lcov-result-merger": "^1.2.0",
     "mocha": "^3.0.2",
-    "mysql2": "^1.5.0",
+    "mysql2": "^1.5.1",
     "pg": "^6.1.0",
     "pg-hstore": "^2.3.2",
     "pg-native": "^1.10.0",
