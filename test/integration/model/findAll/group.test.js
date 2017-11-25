@@ -40,11 +40,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
         }).then(() => {
           return Post.findAll({
-            attributes: [ [ Sequelize.fn('COUNT', Sequelize.col('Comments.id')), 'comment_count' ] ],
+            attributes: [[Sequelize.fn('COUNT', Sequelize.col('Comments.id')), 'comment_count']],
             include: [
               { model: Comment, attributes: [] }
             ],
-            group: [ 'Post.id' ]
+            group: ['Post.id']
           });
         }).then(posts => {
           expect(parseInt(posts[0].get('comment_count'))).to.be.equal(3);

@@ -257,7 +257,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return newTask.setUser(newUser).then(() => {
               return Task.find({
                 where: { title: 'some task' },
-                include: [ { model: User } ]
+                include: [{ model: User }]
               })
                 .then(foundTask => {
                   expect(foundTask).to.be.ok;

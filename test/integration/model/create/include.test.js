@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(savedProduct.User.createOptions.parentRecord).to.be.equal(savedProduct);
             return Product.findOne({
               where: { id: savedProduct.id },
-              include: [ User ]
+              include: [User]
             }).then(persistedProduct => {
               expect(persistedProduct.User).to.be.ok;
               expect(persistedProduct.User.first_name).to.be.equal('Mick');
@@ -79,11 +79,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               last_name: 'Hansen'
             }
           }, {
-            include: [ Creator ]
+            include: [Creator]
           }).then(savedProduct => {
             return Product.findOne({
               where: { id: savedProduct.id },
-              include: [ Creator ]
+              include: [Creator]
             }).then(persistedProduct => {
               expect(persistedProduct.creator).to.be.ok;
               expect(persistedProduct.creator.first_name).to.be.equal('Matt');
@@ -139,7 +139,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(savedProduct.Tags[1].createOptions.parentRecord).to.be.equal(savedProduct);
             return Product.find({
               where: { id: savedProduct.id },
-              include: [ Tag ]
+              include: [Tag]
             }).then(persistedProduct => {
               expect(persistedProduct.Tags).to.be.ok;
               expect(persistedProduct.Tags.length).to.equal(2);
@@ -167,11 +167,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {id: 2, name: 'Beta'}
             ]
           }, {
-            include: [ Categories ]
+            include: [Categories]
           }).then(savedProduct => {
             return Product.find({
               where: { id: savedProduct.id },
-              include: [ Categories ]
+              include: [Categories]
             }).then(persistedProduct => {
               expect(persistedProduct.categories).to.be.ok;
               expect(persistedProduct.categories.length).to.equal(2);
@@ -198,11 +198,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               title: 'Eat Clocks'
             }
           }, {
-            include: [ Task ]
+            include: [Task]
           }).then(savedUser => {
             return User.find({
               where: { id: savedUser.id },
-              include: [ Task ]
+              include: [Task]
             }).then(persistedUser => {
               expect(persistedUser.Task).to.be.ok;
             });
@@ -229,11 +229,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               title: 'Eat Clocks'
             }
           }, {
-            include: [ Job ]
+            include: [Job]
           }).then(savedUser => {
             return User.find({
               where: { id: savedUser.id },
-              include: [ Job ]
+              include: [Job]
             }).then(persistedUser => {
               expect(persistedUser.job).to.be.ok;
             });
@@ -289,7 +289,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(savedUser.Tasks[1].createOptions.parentRecord).to.be.equal(savedUser);
             return User.find({
               where: { id: savedUser.id },
-              include: [ Task ]
+              include: [Task]
             }).then(persistedUser => {
               expect(persistedUser.Tasks).to.be.ok;
               expect(persistedUser.Tasks.length).to.equal(2);
@@ -419,11 +419,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               { title: 'Die trying', active: false }
             ]
           }, {
-            include: [ Jobs ]
+            include: [Jobs]
           }).then(savedUser => {
             return User.find({
               where: { id: savedUser.id },
-              include: [ Jobs ]
+              include: [Jobs]
             }).then(persistedUser => {
               expect(persistedUser.jobs).to.be.ok;
               expect(persistedUser.jobs.length).to.equal(2);

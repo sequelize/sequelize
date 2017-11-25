@@ -1252,7 +1252,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     beforeEach(function() {
       const User = this.sequelize.define('UserXYZ',
         { username: Sequelize.STRING, email: Sequelize.STRING },
-        { indexes: [ {fields: ['email'], unique: true} ] }
+        { indexes: [{fields: ['email'], unique: true}] }
       );
       const Task = this.sequelize.define('TaskXYZ',
         { title: Sequelize.STRING, userEmail: { type: Sequelize.STRING, field: 'user_email_xyz'} });
@@ -1340,7 +1340,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     beforeEach(function() {
       this.User = this.sequelize.define('User',
         { username: Sequelize.STRING, email: { type: Sequelize.STRING, field: 'mail'} },
-        { indexes: [ {fields: ['mail'], unique: true} ] }
+        { indexes: [{fields: ['mail'], unique: true}] }
       );
       this.Task = this.sequelize.define('Task',
         { title: Sequelize.STRING, userEmail: Sequelize.STRING, taskStatus: Sequelize.STRING });

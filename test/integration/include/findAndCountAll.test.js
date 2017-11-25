@@ -328,14 +328,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Task.findAndCountAll({
               limit: 1,
               offset: 0,
-              order: [[ 'id', 'DESC' ]],
+              order: [['id', 'DESC']],
               include: [
                 {
                   model: Project,
-                  where: { '$and': [ { m: 'A' } ] },
-                  include: [ {
+                  where: { '$and': [{ m: 'A' }] },
+                  include: [{
                     model: User,
-                    where: { '$and': [ { name: 'user-name-2' } ] }
+                    where: { '$and': [{ name: 'user-name-2' }] }
                   }
                   ]
                 },

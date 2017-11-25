@@ -406,13 +406,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it('with negative value', function () {
+    it('with negative value', function() {
       const self = this;
       return this.User.findById(1).then(user1 => {
         return self.sequelize.Promise.all([
           user1.decrement('aNumber', { by: -2 }),
           user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
-          user1.decrement({ 'aNumber': -1, 'bNumber': -2 }),
+          user1.decrement({ 'aNumber': -1, 'bNumber': -2 })
         ]).then(() => {
           return self.User.findById(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(+5);
@@ -1573,7 +1573,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it.skip('Should assign a property to the instance', function() {
+    it('Should assign a property to the instance', function() {
       // @thanpolas rethink this test, it doesn't make sense, a relation has
       // to be created first in the beforeEach().
       return this.User.findOne({id: udo.id})

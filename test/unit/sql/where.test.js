@@ -774,7 +774,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        test('sequelize.json({profile: {id: "12346-78912", name: "test"}})', function () {
+        test('sequelize.json({profile: {id: "12346-78912", name: "test"}})', function() {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.json({profile: {id: '12346-78912', name: 'test'}})), {
             postgres: "(\"profile\"#>>'{id}') = '12346-78912' AND (\"profile\"#>>'{name}') = 'test'",
             sqlite: "json_extract(`profile`, '$.id') = '12346-78912' AND json_extract(`profile`, '$.name') = 'test'",
