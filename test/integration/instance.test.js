@@ -1572,16 +1572,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
       });
     });
-
-    it('Should assign a property to the instance', function() {
-      // @thanpolas rethink this test, it doesn't make sense, a relation has
-      // to be created first in the beforeEach().
-      return this.User.findOne({id: udo.id})
-        .then(user => {
-          user.NiceProjectId = 1;
-          expect(user.NiceProjectId).to.equal(1);
-        });
-    });
   });
 
   describe('toJSON', () => {

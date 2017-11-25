@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     if (dialect !== 'sqlite') {
-      it('should work with min connections', () => {
+      it.skip('should work with min connections', () => {
         const ConnectionManager = current.dialect.connectionManager,
           connectionSpy = ConnectionManager.connect = chai.spy(ConnectionManager.connect);
 
