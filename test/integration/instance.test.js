@@ -1547,33 +1547,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
   });
 
-  describe('many to many relations', () => {
-    let udo;
-    beforeEach(function() {
-      const self = this;
-      this.User = this.sequelize.define('UserWithUsernameAndAgeAndIsAdmin', {
-        username: DataTypes.STRING,
-        age: DataTypes.INTEGER,
-        isAdmin: DataTypes.BOOLEAN
-      }, {timestamps: false});
-
-      this.Project = this.sequelize.define('NiceProject',
-        { title: DataTypes.STRING }, {timestamps: false});
-
-      this.Project.hasMany(this.User);
-      this.User.hasMany(this.Project);
-
-      return this.User.sync({ force: true }).then(() => {
-        return self.Project.sync({ force: true }).then(() => {
-          return self.User.create({ username: 'fnord', age: 1, isAdmin: true })
-            .then(user => {
-              udo = user;
-            });
-        });
-      });
-    });
-  });
-
   describe('toJSON', () => {
     beforeEach(function() {
       const self = this;
