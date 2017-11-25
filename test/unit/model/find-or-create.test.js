@@ -41,8 +41,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should use transaction from cls if available', function() {
 
       const options = {
-        where : {
-          name : 'John'
+        where: {
+          name: 'John'
         }
       };
 
@@ -54,10 +54,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should not use transaction from cls if provided as argument', function() {
 
       const options = {
-        where : {
-          name : 'John'
+        where: {
+          name: 'John'
         },
-        transaction : { id : 123 }
+        transaction: { id: 123 }
       };
 
       this.User.findOrCreate(options);

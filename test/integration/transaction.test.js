@@ -258,11 +258,11 @@ if (current.dialect.supports.transactions) {
         let persistentTransaction;
 
         return sequelize.transaction().then(t => {
-          return sequelize.sync({ transaction:t }).then(( ) => {
+          return sequelize.sync({ transaction: t }).then(( ) => {
             return t;
           });
         }).then(t => {
-          return User.create({}, {transaction:t}).then(( ) => {
+          return User.create({}, {transaction: t}).then(( ) => {
             return t.commit();
           });
         }).then(() => {
@@ -312,7 +312,7 @@ if (current.dialect.supports.transactions) {
           return User.sync({ force: true }).then(() => {
             const newTransactionFunc = function() {
               return sequelize.transaction({type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE}).then(t => {
-                return User.create({}, {transaction:t}).then(( ) => {
+                return User.create({}, {transaction: t}).then(( ) => {
                   return t.commit();
                 });
               });
@@ -334,7 +334,7 @@ if (current.dialect.supports.transactions) {
               return sequelize.transaction({type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE, retry: {match: ['NO_MATCH']}}).then(t => {
               // introduce delay to force the busy state race condition to fail
                 return Promise.delay(1000).then(() => {
-                  return User.create({id: null, username: 'test ' + t.id}, {transaction:t}).then(() => {
+                  return User.create({id: null, username: 'test ' + t.id}, {transaction: t}).then(() => {
                     return t.commit();
                   });
                 });

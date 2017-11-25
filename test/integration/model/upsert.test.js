@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         autoIncrement: true,
         primaryKey: true
       },
-      foo:{
+      foo: {
         type: DataTypes.STRING,
         unique: true
       }

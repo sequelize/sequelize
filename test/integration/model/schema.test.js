@@ -414,7 +414,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(obj.employees).to.not.be.null;
             expect(obj.employees.length).to.equal(1);
             expect(obj.employees[0].last_name).to.equal('one');
-            return obj.getEmployees({schema:SCHEMA_ONE});
+            return obj.getEmployees({schema: SCHEMA_ONE});
           }).then(employees => {
             expect(employees.length).to.equal(1);
             expect(employees[0].last_name).to.equal('one');
@@ -427,7 +427,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(obj).to.not.be.null;
             expect(obj.restaurant).to.not.be.null;
             expect(obj.restaurant.foo).to.equal('one');
-            return obj.getRestaurant({schema:SCHEMA_ONE});
+            return obj.getRestaurant({schema: SCHEMA_ONE});
           }).then(restaurant => {
             expect(restaurant).to.not.be.null;
             expect(restaurant.foo).to.equal('one');
@@ -465,7 +465,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(obj.employees).to.not.be.null;
             expect(obj.employees.length).to.equal(1);
             expect(obj.employees[0].last_name).to.equal('two');
-            return obj.getEmployees({schema:SCHEMA_TWO});
+            return obj.getEmployees({schema: SCHEMA_TWO});
           }).then(employees => {
             expect(employees.length).to.equal(1);
             expect(employees[0].last_name).to.equal('two');
@@ -478,7 +478,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(obj).to.not.be.null;
             expect(obj.restaurant).to.not.be.null;
             expect(obj.restaurant.foo).to.equal('two');
-            return obj.getRestaurant({schema:SCHEMA_TWO});
+            return obj.getRestaurant({schema: SCHEMA_TWO});
           }).then(restaurant => {
             expect(restaurant).to.not.be.null;
             expect(restaurant.foo).to.equal('two');

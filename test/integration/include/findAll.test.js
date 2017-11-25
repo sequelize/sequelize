@@ -1731,32 +1731,32 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     it('should work on a nested set of required 1:1 relations', function() {
       const Person = this.sequelize.define('Person', {
         name: {
-          type          : Sequelize.STRING,
-          allowNull     : false
+          type: Sequelize.STRING,
+          allowNull: false
         }
       });
 
       const UserPerson = this.sequelize.define('UserPerson', {
         PersonId: {
-          type          : Sequelize.INTEGER,
-          primaryKey    : true
+          type: Sequelize.INTEGER,
+          primaryKey: true
         },
 
         rank: {
-          type          : Sequelize.STRING
+          type: Sequelize.STRING
         }
       });
 
       const User = this.sequelize.define('User', {
         UserPersonId: {
-          type          : Sequelize.INTEGER,
-          primaryKey    : true
+          type: Sequelize.INTEGER,
+          primaryKey: true
         },
 
         login: {
-          type          : Sequelize.STRING,
-          unique        : true,
-          allowNull     : false
+          type: Sequelize.STRING,
+          unique: true,
+          allowNull: false
         }
       });
 
@@ -1790,17 +1790,17 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return this.sequelize.sync({force: true}).then(() => {
         return Person.findAll({
-          offset        : 0,
-          limit         : 20,
-          attributes    : ['id', 'name'],
-          include       : [{
-            model         : UserPerson,
-            required      : true,
-            attributes    : ['rank'],
-            include       : [{
-              model         : User,
-              required      : true,
-              attributes    : ['login']
+          offset: 0,
+          limit: 20,
+          attributes: ['id', 'name'],
+          include: [{
+            model: UserPerson,
+            required: true,
+            attributes: ['rank'],
+            include: [{
+              model: User,
+              required: true,
+              attributes: ['login']
             }]
           }]
         });

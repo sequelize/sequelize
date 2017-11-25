@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     like: '%@sequelizejs.com'
                   }
                 },
-                { access_level : 3 }
+                { access_level: 3 }
               ]
             }
           }

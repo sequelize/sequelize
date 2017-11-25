@@ -619,21 +619,21 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     it('using scope to set associations', function() {
       const self = this;
       const ItemTag = self.sequelize.define('ItemTag', {
-          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           tag_id: { type: DataTypes.INTEGER, unique: false },
           taggable: { type: DataTypes.STRING },
           taggable_id: { type: DataTypes.INTEGER, unique: false }
         }),
         Tag = self.sequelize.define('Tag', {
-          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           name: DataTypes.STRING
         }),
         Comment = self.sequelize.define('Comment', {
-          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           name: DataTypes.STRING
         }),
         Post = self.sequelize.define('Post', {
-          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           name: DataTypes.STRING
         });
 
@@ -674,21 +674,21 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     it('updating association via set associations with scope', function() {
       const self = this;
       const ItemTag = this.sequelize.define('ItemTag', {
-          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           tag_id: { type: DataTypes.INTEGER, unique: false },
           taggable: { type: DataTypes.STRING },
           taggable_id: { type: DataTypes.INTEGER, unique: false }
         }),
         Tag = this.sequelize.define('Tag', {
-          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           name: DataTypes.STRING
         }),
         Comment = this.sequelize.define('Comment', {
-          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           name: DataTypes.STRING
         }),
         Post = this.sequelize.define('Post', {
-          id : { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           name: DataTypes.STRING
         });
 
@@ -2185,7 +2185,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   describe('selfAssociations', () => {
     it('should work with self reference', function() {
       const User = this.sequelize.define('User', {
-          name : Sequelize.STRING(100)
+          name: Sequelize.STRING(100)
         }),
         Follow = this.sequelize.define('Follow'),
         self = this;
@@ -2212,7 +2212,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     it('should work with custom self reference', function() {
       const User = this.sequelize.define('User', {
-          name : Sequelize.STRING(100)
+          name: Sequelize.STRING(100)
         }),
         UserFollowers = this.sequelize.define('UserFollower'),
         self = this;

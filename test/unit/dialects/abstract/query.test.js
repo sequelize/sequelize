@@ -215,21 +215,21 @@ describe('[ABSTRACT]', () => {
           id: 'x',
           'players.id': '1-1',
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
-          'players.lastModified': new Date('2017-03-06T15:47:30.000Z'),
+          'players.lastModified': new Date('2017-03-06T15:47:30.000Z')
         },
         {
           uuid: teamTwoUuid,
           id: 'y',
           'players.id': '2-1',
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
-          'players.lastModified': new Date('2017-08-22T11:16:44.000Z'),
+          'players.lastModified': new Date('2017-08-22T11:16:44.000Z')
         },
         {
           uuid: teamOneUuid,
           id: 'x',
           'players.id': '1-2',
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
-          'players.lastModified': new Date('2017-08-24T11:16:44.000Z'),
+          'players.lastModified': new Date('2017-08-24T11:16:44.000Z')
         }
       ];
 
@@ -242,12 +242,12 @@ describe('[ABSTRACT]', () => {
         {
           'id': '1-1',
           'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-03-06T15:47:30.000Z'),
+          'lastModified': new Date('2017-03-06T15:47:30.000Z')
         },
         {
           'id': '1-2',
           'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-08-24T11:16:44.000Z'),
+          'lastModified': new Date('2017-08-24T11:16:44.000Z')
         }
       ]);
 
@@ -255,7 +255,7 @@ describe('[ABSTRACT]', () => {
       expect(result[1].players).to.be.deep.equal([{
         'id': '2-1',
         'created': new Date('2017-03-06T15:47:30.000Z'),
-        'lastModified': new Date('2017-08-22T11:16:44.000Z'),
+        'lastModified': new Date('2017-08-22T11:16:44.000Z')
       }]);
     });
 
@@ -294,19 +294,19 @@ describe('[ABSTRACT]', () => {
           uuid: teamOneUuid,
           'players.id': '1-1',
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
-          'players.lastModified': new Date('2017-03-06T15:47:30.000Z'),
+          'players.lastModified': new Date('2017-03-06T15:47:30.000Z')
         },
         {
           uuid: teamTwoUuid,
           'players.id': '2-1',
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
-          'players.lastModified': new Date('2017-08-22T11:16:44.000Z'),
+          'players.lastModified': new Date('2017-08-22T11:16:44.000Z')
         },
         {
           uuid: teamOneUuid,
           'players.id': '1-2',
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
-          'players.lastModified': new Date('2017-08-24T11:16:44.000Z'),
+          'players.lastModified': new Date('2017-08-24T11:16:44.000Z')
         }
       ];
 
@@ -319,12 +319,12 @@ describe('[ABSTRACT]', () => {
         {
           'id': '1-1',
           'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-03-06T15:47:30.000Z'),
+          'lastModified': new Date('2017-03-06T15:47:30.000Z')
         },
         {
           'id': '1-2',
           'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-08-24T11:16:44.000Z'),
+          'lastModified': new Date('2017-08-24T11:16:44.000Z')
         }
       ]);
 
@@ -332,7 +332,7 @@ describe('[ABSTRACT]', () => {
       expect(result[1].players).to.be.deep.equal([{
         'id': '2-1',
         'created': new Date('2017-03-06T15:47:30.000Z'),
-        'lastModified': new Date('2017-08-22T11:16:44.000Z'),
+        'lastModified': new Date('2017-08-22T11:16:44.000Z')
       }]);
     });
 
@@ -371,13 +371,13 @@ describe('[ABSTRACT]', () => {
           id: '1',
           'players.uuid': playerOneUuid,
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
-          'players.lastModified': new Date('2017-03-06T15:47:30.000Z'),
+          'players.lastModified': new Date('2017-03-06T15:47:30.000Z')
         },
         {
           id: '1',
           'players.uuid': playerTwoUuid,
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
-          'players.lastModified': new Date('2017-08-22T11:16:44.000Z'),
+          'players.lastModified': new Date('2017-08-22T11:16:44.000Z')
         }
       ];
 
@@ -390,12 +390,12 @@ describe('[ABSTRACT]', () => {
         {
           'uuid': playerOneUuid,
           'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-03-06T15:47:30.000Z'),
+          'lastModified': new Date('2017-03-06T15:47:30.000Z')
         },
         {
           'uuid': playerTwoUuid,
           'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-08-22T11:16:44.000Z'),
+          'lastModified': new Date('2017-08-22T11:16:44.000Z')
         }
       ]);
     });
@@ -440,14 +440,14 @@ describe('[ABSTRACT]', () => {
           'players.uuid': playerOneUuid,
           'players.id': 'x',
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
-          'players.lastModified': new Date('2017-03-06T15:47:30.000Z'),
+          'players.lastModified': new Date('2017-03-06T15:47:30.000Z')
         },
         {
           id: '1',
           'players.uuid': playerTwoUuid,
           'players.id': 'y',
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
-          'players.lastModified': new Date('2017-08-22T11:16:44.000Z'),
+          'players.lastModified': new Date('2017-08-22T11:16:44.000Z')
         }
       ];
 
@@ -461,13 +461,13 @@ describe('[ABSTRACT]', () => {
           'uuid': playerOneUuid,
           'id': 'x',
           'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-03-06T15:47:30.000Z'),
+          'lastModified': new Date('2017-03-06T15:47:30.000Z')
         },
         {
           'uuid': playerTwoUuid,
           'id': 'y',
           'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-08-22T11:16:44.000Z'),
+          'lastModified': new Date('2017-08-22T11:16:44.000Z')
         }
       ]);
     });

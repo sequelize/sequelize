@@ -367,7 +367,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           real: -Infinity
         });
       }).then(() => {
-        return Model.find({ where:{ id: 1 } });
+        return Model.find({ where: { id: 1 } });
       }).then(user => {
         expect(user.get('float')).to.be.NaN;
         expect(user.get('double')).to.eq(Infinity);

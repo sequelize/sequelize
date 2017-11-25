@@ -668,7 +668,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds named parameters array handles escaped $$', function() {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
-      return this.sequelize.query('select $1'+typeCast+' as foo, \'$$ / $$1\' as bar', { raw: true, bind: [1 ], logging(s) { logSql = s; } }).then(result => {
+      return this.sequelize.query('select $1'+typeCast+' as foo, \'$$ / $$1\' as bar', { raw: true, bind: [1], logging(s) { logSql = s; } }).then(result => {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $1' }]);
         if (dialect === 'postgres' || dialect === 'sqlite') {
           expect(logSql.indexOf('$1')).to.be.above(-1);
@@ -685,7 +685,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
       it ('does not improperly escape arrays of strings bound to named parameters', function() {
-        return this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: [ '"string"' ] } }).then(result => {
+        return this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: ['"string"'] } }).then(result => {
           expect(result[0]).to.deep.equal([{ foo: '"string"' }]);
         });
       });

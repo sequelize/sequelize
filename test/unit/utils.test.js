@@ -12,7 +12,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
   suite('merge', () => {
     test('does not clone sequelize models', () => {
       const User = Support.sequelize.define('user');
-      const merged = Utils.merge({}, { include: [{model : User }]});
+      const merged = Utils.merge({}, { include: [{model: User }]});
       const merged2 = Utils.merge({}, { user: User });
 
       expect(merged.include[0].model).to.equal(User);
