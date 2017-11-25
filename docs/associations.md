@@ -179,7 +179,7 @@ When information about association is present in **target** model we can use `ha
 Coach.hasOne(Team)  // `coachId` will be added on Team / Target model
 ```
 
-## One-To-Many associations
+## One-To-Many associations (hasMany)
 
 One-To-Many associations are connecting one source with multiple targets. The targets however are again connected to exactly one specific source.
 ```js
@@ -704,7 +704,7 @@ const Series = sequelize.define('series', {
   trainer_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: "trainers",
+      model: "trainer",
       key: "id"
     }
   }
