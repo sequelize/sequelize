@@ -95,8 +95,8 @@ This is a convenience method that combines`findAll` and `count` (see below) this
 
 The success handler will always receive an object with two properties:
 
-* `count` - an integer, total number records matching the where clause and other filters due to associated tables
-* `rows` - an array of objects, the records matching the where clause, within the limit and offset range
+* `count` - an integer, total number records matching the where clause and other filters due to associations
+* `rows` - an array of objects, the records matching the where clause and other filters due to associations, within the limit and offset range
 
 ```js
 Project
@@ -115,8 +115,7 @@ Project
   });
 ```
 
-`findAndCountAll` also supports distinct. If marked as distinct, included assoications will not be counted.
-`findAndCountAll` also supports includes. Only the includes that are marked as `required` will be added to the count part:
+It support includes. Only the includes that are marked as `required` will be added to the count part:
 
 Suppose you want to find all users who have a profile attached:
 ```js
