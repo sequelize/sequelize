@@ -231,17 +231,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('should correctly determine the primary key columns', function() {
       const self = this;
       const Country = self.sequelize.define('_Country', {
-        code:     {type: DataTypes.STRING, primaryKey: true },
-        name:     {type: DataTypes.STRING, allowNull: false}
+        code: {type: DataTypes.STRING, primaryKey: true },
+        name: {type: DataTypes.STRING, allowNull: false}
       }, { freezeTableName: true });
       const Alumni = self.sequelize.define('_Alumni', {
-        year:     {type: DataTypes.INTEGER, primaryKey: true },
-        num:      {type: DataTypes.INTEGER, primaryKey: true },
+        year: {type: DataTypes.INTEGER, primaryKey: true },
+        num: {type: DataTypes.INTEGER, primaryKey: true },
         username: {type: DataTypes.STRING, allowNull: false, unique: true },
-        dob:      {type: DataTypes.DATEONLY, allowNull: false },
-        dod:      {type: DataTypes.DATEONLY, allowNull: true },
-        city:     {type: DataTypes.STRING, allowNull: false},
-        ctrycod:  {type: DataTypes.STRING, allowNull: false,
+        dob: {type: DataTypes.DATEONLY, allowNull: false },
+        dod: {type: DataTypes.DATEONLY, allowNull: true },
+        city: {type: DataTypes.STRING, allowNull: false},
+        ctrycod: {type: DataTypes.STRING, allowNull: false,
           references: { model: Country, key: 'code'}}
       }, { freezeTableName: true });
 
@@ -580,7 +580,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: DataTypes.INTEGER,
           references: {
             model: 'level',
-            key:   'id'
+            key: 'id'
           },
           onUpdate: 'cascade',
           onDelete: 'cascade'
@@ -618,7 +618,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: DataTypes.INTEGER,
           references: {
             model: 'level',
-            key:   'id'
+            key: 'id'
           },
           onUpdate: 'cascade',
           onDelete: 'set null'
@@ -689,7 +689,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             type: DataTypes.INTEGER,
             references: {
               model: 'users',
-              key:   'id'
+              key: 'id'
             }
           },
           email: {
@@ -863,14 +863,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             type: DataTypes.INTEGER,
             references: {
               model: 'users',
-              key:   'id'
+              key: 'id'
             }
           },
           operator: {
             type: DataTypes.INTEGER,
             references: {
               model: 'users',
-              key:   'id'
+              key: 'id'
             },
             onUpdate: 'cascade'
           },
@@ -878,7 +878,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             type: DataTypes.INTEGER,
             references: {
               model: 'users',
-              key:   'id'
+              key: 'id'
             },
             onUpdate: 'cascade',
             onDelete: 'set null'

@@ -2,8 +2,12 @@
   "rules": {
     "mocha/no-exclusive-tests": "error",
     "mocha/no-skipped-tests": "warn",
+
     "array-bracket-spacing": "error",
     "comma-spacing": "error",
+    "key-spacing": "error",
+    "keyword-spacing": "error",
+
     "no-console": "off",
     "no-extra-parens": "warn",
     "valid-jsdoc": "off",
@@ -11,13 +15,6 @@
       "warn",
       {
         "properties": false
-      }
-    ],
-    "comma-spacing": [
-      "error",
-      {
-        "before": false,
-        "after": true
       }
     ],
     "no-extra-boolean-cast": "warn",
@@ -35,12 +32,7 @@
       "warn",
       "never"
     ],
-    "space-before-blocks": [
-      "error"
-    ],
-    "keyword-spacing": [
-      "error"
-    ],
+    "space-before-blocks": "error",
     "prefer-arrow-callback": "error",
     "arrow-parens": [
       "error",

@@ -56,7 +56,7 @@ if (current.dialect.name !== 'sqlite') {
           type: DataTypes.INTEGER,
           references: {
             model: 'level',
-            key:   'id'
+            key: 'id'
           },
           onUpdate: 'cascade',
           onDelete: 'cascade'

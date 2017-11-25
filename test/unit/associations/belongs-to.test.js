@@ -9,7 +9,7 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('belongsTo'), () => {
   it('should not override custom methods with association mixin', () => {
     const methods = {
-      getTask : 'get',
+      getTask: 'get',
       setTask: 'set',
       createTask: 'create'
     };

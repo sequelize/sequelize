@@ -303,8 +303,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         testsql('name', {
           $and: [
-            {like : '%someValue1%'},
-            {like : '%someValue2%'}
+            {like: '%someValue1%'},
+            {like: '%someValue2%'}
           ]
         }, {
           default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')",

@@ -134,19 +134,19 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                 id: 1,
                 tasks: [
                   {title: 'b', subtasks: [
-                    {title:'c'},
-                    {title:'a'}
+                    {title: 'c'},
+                    {title: 'a'}
                   ]},
                   {title: 'd'},
                   {title: 'c', subtasks: [
-                    {title:'b'},
-                    {title:'a'},
-                    {title:'c'}
+                    {title: 'b'},
+                    {title: 'a'},
+                    {title: 'c'}
                   ]},
                   {title: 'a', subtasks: [
-                    {title:'c'},
-                    {title:'a'},
-                    {title:'b'}
+                    {title: 'c'},
+                    {title: 'a'},
+                    {title: 'b'}
                   ]}
                 ]
               }, {
@@ -156,16 +156,16 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                 id: 2,
                 tasks: [
                   {title: 'a', subtasks: [
-                    {title:'b'},
-                    {title:'a'},
-                    {title:'c'}
+                    {title: 'b'},
+                    {title: 'a'},
+                    {title: 'c'}
                   ]},
                   {title: 'c', subtasks: [
-                    {title:'a'}
+                    {title: 'a'}
                   ]},
                   {title: 'b', subtasks: [
-                    {title:'a'},
-                    {title:'b'}
+                    {title: 'a'},
+                    {title: 'b'}
                   ]}
                 ]
               }, {

@@ -949,9 +949,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should work on a model with an attribute named length', function() {
       const Box = this.sequelize.define('box', {
-        length : DataTypes.INTEGER,
-        width : DataTypes.INTEGER,
-        height : DataTypes.INTEGER
+        length: DataTypes.INTEGER,
+        width: DataTypes.INTEGER,
+        height: DataTypes.INTEGER
       });
 
       return Box.sync({force: true}).then(() => {

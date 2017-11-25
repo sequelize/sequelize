@@ -138,14 +138,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         B = this.sequelize.define('b', {}),
         AB = this.sequelize.define('a_b', {
           name: {
-            type : DataTypes.STRING(40),
+            type: DataTypes.STRING(40),
             field: 'name_id',
-            primaryKey : true
+            primaryKey: true
           }
         });
 
-      A.belongsToMany(B, { through : AB });
-      B.belongsToMany(A, { through : AB });
+      A.belongsToMany(B, { through: AB });
+      B.belongsToMany(A, { through: AB });
 
       return this.sequelize
         .sync({force: true})
@@ -156,12 +156,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           );
         })
         .spread((a, b) => {
-          return a.addB(b, { through: {name : 'Foobar'}});
+          return a.addB(b, { through: {name: 'Foobar'}});
         })
         .then(() => {
           return A.find({
             include: [
-              {model: B, through : { where: {name: 'Foobar'} }, required : true }
+              {model: B, through: { where: {name: 'Foobar'} }, required: true }
             ]
           });
         })

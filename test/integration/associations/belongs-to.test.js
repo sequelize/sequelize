@@ -713,7 +713,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     it('should support a non-primary key as the association column with a field option', function() {
       const User = this.sequelize.define('User', {
           username: {
-            type:  DataTypes.STRING,
+            type: DataTypes.STRING,
             field: 'the_user_name_field'
           }
         }),
