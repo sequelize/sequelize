@@ -131,7 +131,7 @@
     "cover-integration": "cross-env COVERAGE=true node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -t 60000 --ui tdd \"test/integration/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
     "cover-unit": "cross-env COVERAGE=true node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -t 30000 --ui tdd \"test/unit/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",
     "merge-coverage": "lcov-result-merger \"coverage/*.info\" \"coverage/lcov.info\"",
-    "sscce": "docker-compose run sequelize /bin/sh -c \"node sscce.js\"",
+    "sscce": "env-cmd ./test/config/.docker.env node sscce.js",
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
