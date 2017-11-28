@@ -276,37 +276,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
     }
   });
 
-  it('should parse an empty GEOMETRY field', function () {
-   var Type = new Sequelize.GEOMETRY();
-
-   if (current.dialect.supports.GEOMETRY) {
-     current.refreshTypes();
-
-     var User = current.define('user', { field: Type }, { timestamps: false });
-     var point = { type: "Point", coordinates: [0, 0] };
-
-     return current.sync({ force: true }).then(function () {
-       return User.create({
-          //insert a null GEOMETRY type
-          field: point
-        });
-      }).then(function () {
-        //This case throw unhandled exception
-        return User.findAll();
-      }).then(function(users){
-        if (Support.dialectIsMySQL()) {
-          // MySQL will return NULL, becuase they lack EMPTY geometry data support.
-          expect(users[0].field).to.be.eql(null);
-        } else if (dialect === 'postgres' || dialect === 'postgres-native') {
-          //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
-          expect(users[0].field).to.be.deep.eql({ type: "Point", coordinates: [0,0] });
-        } else {
-          expect(users[0].field).to.be.deep.eql(point);
-        }
-      });
-   }
- });
-
   if (dialect === 'postgres' || dialect === 'sqlite') {
     // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
     it('should store and parse IEEE floating point literals (NaN and Infinity)', function () {
