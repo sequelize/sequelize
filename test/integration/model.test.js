@@ -2715,7 +2715,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         type: Sequelize.STRING,
         references: {
           model: 'Users',
-          key:   'UUID'
+          key: 'UUID'
         }
       }
     });

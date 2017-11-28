@@ -495,7 +495,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Product.create({
             id: 1,
             title: 'Chair',
-            Prices: [{ value: 5 }, { value: 10 }  ]
+            Prices: [{ value: 5 }, { value: 10 }]
           }, { include: [Price]}),
           Product.create({
             id: 2,

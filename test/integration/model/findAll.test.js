@@ -899,9 +899,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('N:M with ignoring include.attributes only', function() {
           return this.Kingdom.findAll({
-            include:[{
+            include: [{
               model: this.Animal,
-              where: { age: { $gte : 29 } },
+              where: { age: { $gte: 29 } },
               attributes: []
             }]
           }).then(kingdoms => {
@@ -915,9 +915,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('N:M with ignoring through.attributes only', function() {
           return this.Kingdom.findAll({
-            include:[{
+            include: [{
               model: this.Animal,
-              where: { age: { $gte : 29 } },
+              where: { age: { $gte: 29 } },
               through: {
                 attributes: []
               }
@@ -933,9 +933,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('N:M with ignoring include.attributes but having through.attributes', function() {
           return this.Kingdom.findAll({
-            include:[{
+            include: [{
               model: this.Animal,
-              where: { age: { $gte : 29 } },
+              where: { age: { $gte: 29 } },
               attributes: [],
               through: {
                 attributes: ['mutation']

@@ -25,7 +25,8 @@
     "asset": "./docs/images",
     "badge": false,
     "installation": [
-      "./docs/getting-started.md"
+      "./docs/getting-started.md",
+      "./docs/usage.md"
     ],
     "tutorial": [
       "./docs/models-definition.md",

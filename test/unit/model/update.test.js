@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const Where = function() { this.secretValue = '1'; };
 
       expect(() => {
-        User.update(self.updates, {where:new Where()});
+        User.update(self.updates, {where: new Where()});
       }).to.throw();
 
     });

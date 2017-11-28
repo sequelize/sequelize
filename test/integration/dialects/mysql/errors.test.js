@@ -44,14 +44,14 @@ if (dialect === 'mysql') {
         }).then(function() {
           return Promise.all([
             validateError(this.user1.destroy(), ForeignKeyConstraintError, {
-              fields: [ 'userId' ],
+              fields: ['userId'],
               table: 'users',
               value: undefined,
               index: 'tasksusers_ibfk_1',
               reltype: 'parent'
             }),
             validateError(this.task1.destroy(), ForeignKeyConstraintError, {
-              fields: [ 'taskId' ],
+              fields: ['taskId'],
               table: 'tasks',
               value: undefined,
               index: 'tasksusers_ibfk_2',
@@ -67,7 +67,7 @@ if (dialect === 'mysql') {
 
         return this.sequelize.sync({ force: true }).then(() =>
           validateError(self.Task.create({ title: 'task', primaryUserId: 5 }), ForeignKeyConstraintError, {
-            fields: [ 'primaryUserId' ],
+            fields: ['primaryUserId'],
             table: 'users',
             value: 5,
             index: 'tasks_ibfk_1',

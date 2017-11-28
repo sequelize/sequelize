@@ -395,13 +395,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('should throw when passing string', () => {
           return expect(User.update({
             age: 'jan'
-          }, { where : {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
         });
 
         it('should throw when passing decimal', () => {
           return expect(User.update({
             age: 4.5
-          }, { where : {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
         });
       });
 
@@ -458,7 +458,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           return expect(User.update({
             age: 1,
             name: 'noerror'
-          }, { where : {}})).not.to.be.rejected;
+          }, { where: {}})).not.to.be.rejected;
         });
       });
     });
@@ -483,13 +483,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('custom attribute validation function fails', () => {
           return expect(User.update({
             age: -1
-          }, { where : {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
         });
 
         it('when custom model validation function fails', () => {
           return expect(User.update({
             name: 'error'
-          }, { where : {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
         });
       });
     });
@@ -531,7 +531,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('custom model validation functions are successful', () => {
           return expect(User.update({
             name: 'noerror'
-          }, { where : {}})).not.to.be.rejected;
+          }, { where: {}})).not.to.be.rejected;
         });
       });
     });
@@ -550,7 +550,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('when custom model validation function fails', () => {
           return expect(User.update({
             name: 'error'
-          }, { where : {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
         });
       });
     });

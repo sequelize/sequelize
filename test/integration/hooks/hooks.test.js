@@ -467,6 +467,5 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(narutoHook).to.have.been.calledTwice;
       });
     });
-
   });
 });

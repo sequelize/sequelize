@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {
         phoneNumber: {
           type: DataTypes.STRING,
-          set (val) {
+          set(val) {
             if (typeof val === 'object' && val !== null) {
               val = `00${val.country}${val.area}${val.local}`;
             }
