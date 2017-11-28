@@ -269,9 +269,11 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
 
   it('calls parse and stringify for ENUM', function () {
     var Type = new Sequelize.ENUM('hat', 'cat');
-
-     // No dialects actually allow us to identify that we get an enum back..
-    testFailure(Type);
+    if (['postgres'].indexOf(dialect) !== -1) {
+      return testSuccess(Type, 'hat');
+    } else {
+      testFailure(Type);
+    }
   });
 
   it('should parse an empty GEOMETRY field', function () {
