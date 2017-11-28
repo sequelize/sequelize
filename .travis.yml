@@ -17,6 +17,7 @@ env:
 
 addons:
   postgresql: "9.4"
+  mysql: "5.6"
   apt:
     packages:
       - postgresql-9.4-postgis-2.3
