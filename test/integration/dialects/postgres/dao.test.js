@@ -481,6 +481,29 @@ if (dialect.match(/^postgres/)) {
             });
         });
 
+        it('should fail when trying to insert foreign element on ARRAY(ENUM)', function() {
+          var User = this.sequelize.define('UserEnums', {
+            name: DataTypes.STRING,
+            type: DataTypes.ENUM('A', 'B', 'C'),
+            owners: DataTypes.ARRAY(DataTypes.STRING),
+            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+              'access',
+              'write',
+              'check',
+              'delete'
+            ]))
+          });
+
+          return expect(User.sync({ force: true }).then(function() {
+            return User.create({
+              name: 'file.exe',
+              type: 'C',
+              owners: ['userA', 'userB'],
+              permissions: ['cosmic_ray_disk_access']
+            });
+          })).to.be.rejectedWith(/invalid input value for enum "enum_UserEnums_permissions": "cosmic_ray_disk_access"/);
+        });
+
         it('should be able to find records', function() {
           var User = this.sequelize.define('UserEnums', {
             name: DataTypes.STRING,
