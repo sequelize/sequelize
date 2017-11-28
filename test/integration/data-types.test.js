@@ -283,7 +283,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), function() {
      current.refreshTypes();
 
      var User = current.define('user', { field: Type }, { timestamps: false });
-     var point = { type: "Point", coordinates: [] };
+     var point = { type: "Point", coordinates: [0, 0] };
 
      return current.sync({ force: true }).then(function () {
        return User.create({
