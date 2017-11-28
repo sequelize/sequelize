@@ -26,6 +26,87 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
   });
 
+  describe('proxies', () => {
+    beforeEach(() => {
+      sinon.stub(current, 'query').returns(Promise.resolve([{
+        _previousDataValues: {},
+        dataValues: {id: 1, name: 'abc'}
+      }]));
+    });
+
+    afterEach(() => {
+      current.query.restore();
+    });
+
+    describe('defined by options.hooks', () => {
+      beforeEach(() => {
+        this.beforeSaveHook = sinon.spy();
+        this.afterSaveHook = sinon.spy();
+        this.afterCreateHook = sinon.spy();
+
+        this.Model = current.define('m', {
+          name: Support.Sequelize.STRING
+        }, {
+          hooks: {
+            beforeSave: this.beforeSaveHook,
+            afterSave: this.afterSaveHook,
+            afterCreate: this.afterCreateHook
+          }
+        });
+      });
+
+      it('calls beforeSave/afterSave', () => {
+        return this.Model.create({}).then(() => {
+          expect(this.afterCreateHook).to.have.been.calledOnce;
+          expect(this.beforeSaveHook).to.have.been.calledOnce;
+          expect(this.afterSaveHook).to.have.been.calledOnce;
+        });
+      });
+    });
+
+    describe('defined by addHook method', () => {
+      beforeEach(() => {
+        this.beforeSaveHook = sinon.spy();
+        this.afterSaveHook = sinon.spy();
+
+        this.Model = current.define('m', {
+          name: Support.Sequelize.STRING
+        });
+
+        this.Model.addHook('beforeSave', this.beforeSaveHook);
+        this.Model.addHook('afterSave', this.afterSaveHook);
+      });
+
+      it('calls beforeSave/afterSave', () => {
+        return this.Model.create({}).then(() => {
+          expect(this.beforeSaveHook).to.have.been.calledOnce;
+          expect(this.afterSaveHook).to.have.been.calledOnce;
+        });
+      });
+    });
+
+    describe('defined by hook method', () => {
+      beforeEach(() => {
+        this.beforeSaveHook = sinon.spy();
+        this.afterSaveHook = sinon.spy();
+
+        this.Model = current.define('m', {
+          name: Support.Sequelize.STRING
+        });
+
+        this.Model.hook('beforeSave', this.beforeSaveHook);
+        this.Model.hook('afterSave', this.afterSaveHook);
+      });
+
+      it('calls beforeSave/afterSave', () => {
+        return this.Model.create({}).then(() => {
+          expect(this.beforeSaveHook).to.have.been.calledOnce;
+          expect(this.afterSaveHook).to.have.been.calledOnce;
+        });
+      });
+    });
+  });
+
   describe('multiple hooks', () => {
     beforeEach(function() {
       this.hook1 = sinon.spy();

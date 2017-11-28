@@ -16,11 +16,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('createSchema', () => {
-      before(function () {
+      before(function() {
         this.version = current.options.databaseVersion;
       });
 
-      after(function () {
+      after(function() {
         current.options.databaseVersion = this.version;
       });
 

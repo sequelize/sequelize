@@ -13,8 +13,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       let stub, instance;
       const Model = current.define('User', {
         id: {
-          type:          Sequelize.BIGINT,
-          primaryKey:    true,
+          type: Sequelize.BIGINT,
+          primaryKey: true,
           autoIncrement: true
         }
       });

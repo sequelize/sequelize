@@ -103,7 +103,7 @@ Project.hasOne(User, { foreignKey: 'initiator_id' })
 */
  
 Project.hasOne(User, { as: 'Initiator' })
-// Now you will get Project#getInitiator and Project#setInitiator
+// Now you will get Project.getInitiator and Project.setInitiator
  
 // Or let's define some self references
 const Person = sequelize.define('person', { /* ... */})
@@ -116,8 +116,8 @@ Person.hasOne(Person, {as: 'Father', foreignKey: 'DadId'})
 // this will add the attribute DadId to Person
  
 // In both cases you will be able to do:
-Person#setFather
-Person#getFather
+Person.setFather
+Person.getFather
  
 // If you need to join a table twice you can double join the same table
 Team.hasOne(Game, {as: 'HomeTeam', foreignKey : 'homeTeamId'});
@@ -179,7 +179,7 @@ When information about association is present in **target** model we can use `ha
 Coach.hasOne(Team)  // `coachId` will be added on Team / Target model
 ```
 
-## One-To-Many associations
+## One-To-Many associations (hasMany)
 
 One-To-Many associations are connecting one source with multiple targets. The targets however are again connected to exactly one specific source.
 ```js
@@ -191,8 +191,7 @@ const Project = sequelize.define('project', {/* ... */})
 Project.hasMany(User, {as: 'Workers'})
 ```
 
-This will add the attribute `projectId` or `project_id` to User. Instances of Project will get the accessors `getWorkers` and `setWorkers`. We could just leave it the way it is and let it be a one-way association.
-But we want more! Let's define it the other way around by creating a many to many association in the next section:
+This will add the attribute `projectId` or `project_id` to User. Instances of Project will get the accessors `getWorkers` and `setWorkers`. 
 
 Sometimes you may need to associate records on different columns, you may use `sourceKey` option:
 
@@ -205,6 +204,7 @@ Country.hasMany(City, {foreignKey: 'countryCode', sourceKey: 'isoCode'});
 City.belongsTo(Country, {foreignKey: 'countryCode', targetKey: 'isoCode'});
 ```
 
+So far we dealt with a one-way association. But we want more! Let's define it the other way around by creating a many to many association in the next section.
 
 ## Belongs-To-Many associations
 
@@ -704,7 +704,7 @@ const Series = sequelize.define('series', {
   trainer_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: "trainers",
+      model: "trainer",
       key: "id"
     }
   }

@@ -33,7 +33,7 @@ if (current.dialect.name === 'mysql') {
           type: DataTypes.INTEGER,
           references: {
             model: 'level',
-            key:   'id'
+            key: 'id'
           },
           onUpdate: 'cascade',
           onDelete: 'cascade'

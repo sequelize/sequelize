@@ -93,6 +93,22 @@ Post.findAll({
 });
 // SELECT * FROM post WHERE authorId = 12 AND status = 'active';
 
+Post.findAll({
+  where: {
+    [Op.or]: [{authorId: 12}, {authorId: 13}]
+  }
+});
+// SELECT * FROM post WHERE authorId = 12 OR authorId = 13;
+
+Post.findAll({
+  where: {
+    authorId: {
+      [Op.or]: [12, 13]
+    }
+  }
+});
+// SELECT * FROM post WHERE authorId = 12 OR authorId = 13;
+
 Post.destroy({
   where: {
     status: 'inactive'
@@ -253,7 +269,7 @@ const connection = new Sequelize(db, user, pass, { operatorsAliases: false });
 const connection2 = new Sequelize(db, user, pass, { operatorsAliases: { $and: Op.and } });
 ```
 
-Sequelize will warn you if your using the default aliases and not limiting them
+Sequelize will warn you if you're using the default aliases and not limiting them
 if you want to keep using all default aliases (excluding legacy ones) without the warning you can pass the following operatorsAliases option -
 
 ```js
@@ -404,7 +420,7 @@ Subtask.findAll({
     // Will order by a nested associated model's created_at simple association objects.
     [{model: Task, as: 'Task'}, {model: Project, as: 'Project'}, 'createdAt', 'DESC']
   ]
-  
+
   // Will order by max age descending
   order: sequelize.literal('max(age) DESC')
 

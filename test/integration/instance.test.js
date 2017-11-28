@@ -406,13 +406,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it('with negative value', function () {
+    it('with negative value', function() {
       const self = this;
       return this.User.findById(1).then(user1 => {
         return self.sequelize.Promise.all([
           user1.decrement('aNumber', { by: -2 }),
           user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
-          user1.decrement({ 'aNumber': -1, 'bNumber': -2 }),
+          user1.decrement({ 'aNumber': -1, 'bNumber': -2 })
         ]).then(() => {
           return self.User.findById(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(+5);
@@ -949,9 +949,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should work on a model with an attribute named length', function() {
       const Box = this.sequelize.define('box', {
-        length : DataTypes.INTEGER,
-        width : DataTypes.INTEGER,
-        height : DataTypes.INTEGER
+        length: DataTypes.INTEGER,
+        width: DataTypes.INTEGER,
+        height: DataTypes.INTEGER
       });
 
       return Box.sync({force: true}).then(() => {
@@ -1544,43 +1544,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           });
         });
       });
-    });
-  });
-
-  describe('many to many relations', () => {
-    let udo;
-    beforeEach(function() {
-      const self = this;
-      this.User = this.sequelize.define('UserWithUsernameAndAgeAndIsAdmin', {
-        username: DataTypes.STRING,
-        age: DataTypes.INTEGER,
-        isAdmin: DataTypes.BOOLEAN
-      }, {timestamps: false});
-
-      this.Project = this.sequelize.define('NiceProject',
-        { title: DataTypes.STRING }, {timestamps: false});
-
-      this.Project.hasMany(this.User);
-      this.User.hasMany(this.Project);
-
-      return this.User.sync({ force: true }).then(() => {
-        return self.Project.sync({ force: true }).then(() => {
-          return self.User.create({ username: 'fnord', age: 1, isAdmin: true })
-            .then(user => {
-              udo = user;
-            });
-        });
-      });
-    });
-
-    it.skip('Should assign a property to the instance', function() {
-      // @thanpolas rethink this test, it doesn't make sense, a relation has
-      // to be created first in the beforeEach().
-      return this.User.findOne({id: udo.id})
-        .then(user => {
-          user.NiceProjectId = 1;
-          expect(user.NiceProjectId).to.equal(1);
-        });
     });
   });
 

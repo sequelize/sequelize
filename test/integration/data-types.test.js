@@ -307,7 +307,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
           return current.sync({ force: true }).then(() => {
             return User.create({
-              //insert a null GEOMETRY type
+              //insert a empty GEOMETRY type
               field: point
             });
           }).then(() => {
@@ -325,6 +325,27 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
             }
           });
         }
+      });
+    });
+
+    it('should parse null GEOMETRY field', () => {
+      const Type = new Sequelize.GEOMETRY();
+
+      current.refreshTypes();
+
+      const User = current.define('user', { field: Type }, { timestamps: false });
+      const point = null;
+
+      return current.sync({ force: true }).then(() => {
+        return User.create({
+          // insert a null GEOMETRY type
+          field: point
+        });
+      }).then(() => {
+        //This case throw unhandled exception
+        return User.findAll();
+      }).then(users =>{
+        expect(users[0].field).to.be.eql(null);
       });
     });
   }
@@ -346,7 +367,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           real: -Infinity
         });
       }).then(() => {
-        return Model.find({ where:{ id: 1 } });
+        return Model.find({ where: { id: 1 } });
       }).then(user => {
         expect(user.get('float')).to.be.NaN;
         expect(user.get('double')).to.eq(Infinity);

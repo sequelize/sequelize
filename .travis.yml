@@ -32,8 +32,10 @@ env:
 
 before_script:
   # mount ramdisk
-  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mkdir /mnt/sequelize-ramdisk; fi"
-  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then sudo mount -t ramfs tmpfs /mnt/sequelize-ramdisk; fi"
+  - "if [ $POSTGRES_VER ]; then sudo mkdir /mnt/sequelize-postgres-ramdisk; fi"
+  - "if [ $POSTGRES_VER ]; then sudo mount -t ramfs tmpfs /mnt/sequelize-postgres-ramdisk; fi"
+  - "if [ $MYSQL_VER ]; then sudo mkdir /mnt/sequelize-mysql-ramdisk; fi"
+  - "if [ $MYSQL_VER ]; then sudo mount -t ramfs tmpfs /mnt/sequelize-mysql-ramdisk; fi"
   # setup docker
   - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"

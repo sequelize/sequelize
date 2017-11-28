@@ -206,14 +206,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should be able to use raw queries', () => {
       expect(Company.scope([{method: ['complexFunction', 'qux']}])._scope).to.deep.equal({
-        where: [ 'qux IN (SELECT foobar FROM some_sql_function(foo.bar))' ]
+        where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))']
       });
     });
 
     it('should override the default scope', () => {
       expect(Company.scope(['defaultScope', {method: ['complexFunction', 'qux']}])._scope).to.deep.equal({
         include: [{ model: Project }],
-        where: [ 'qux IN (SELECT foobar FROM some_sql_function(foo.bar))' ]
+        where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))']
       });
     });
 
