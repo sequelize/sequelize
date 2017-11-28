@@ -53,7 +53,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         , where = {prop: Math.random().toString()}
         , findSpy = this.sinon.stub(Model, 'findOne');
 
-      this.sinon.stub(Model, 'create').returns(Promise.reject(new UniqueConstraintError()));
+      this.sinon.stub(Model, 'create', function() {
+        return Promise.reject(new UniqueConstraintError());
+      });
 
       findSpy.onFirstCall().returns(Promise.resolve(null));
       findSpy.onSecondCall().returns(Promise.resolve(result));
