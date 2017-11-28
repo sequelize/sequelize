@@ -79,6 +79,7 @@
     "pg-native": "^1.10.0",
     "pg-types": "^1.11.0",
     "rimraf": "^2.5.4",
+    "semantic-release": "^11.0.0",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.13.0",
     "sqlite3": "^3.1.4",
@@ -135,7 +136,8 @@
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
-    "commitmsg": "validate-commit-msg"
+    "commitmsg": "validate-commit-msg",
+    "semantic-release": "semantic-release"
   },
   "engines": {
     "node": ">=4.0.0"
@@ -144,19 +146,12 @@
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
-    },
-    "commitTypeMap": {
-      "docs": null,
-      "fix": "patch",
-      "perf": "patch",
-      "feat": "minor",
-      "refactor": null,
-      "release": "minor",
-      "ci": null,
-      "tests": null
     }
   },
   "release": {
-    "analyzeCommits": "@bubltechnology/customizable-commit-analyzer"
+    "verifyConditions": [
+      "@semantic-release/npm",
+      "@semantic-release/github"
+    ]
   }
 }
