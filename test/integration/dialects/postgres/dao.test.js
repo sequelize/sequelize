@@ -471,7 +471,7 @@ if (dialect.match(/^postgres/)) {
                 type: 'C',
                 owners: ['userA', 'userB'],
                 permissions: ['access', 'write']
-              })
+              });
             })
             .then(function (user) {
               expect(user.name).to.equal('file.exe');
@@ -507,7 +507,7 @@ if (dialect.match(/^postgres/)) {
                 name: 'file3.exe',
                 type: 'B',
                 permissions: ['access', 'write', 'delete']
-              }])
+              }]);
             })
             .then(function() {
               return User.findAll({
