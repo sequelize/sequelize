@@ -544,7 +544,7 @@ For hasOne/belongsTo it's basically the same:
 
 ```js
 Task.hasOne(User, {as: "Author"})
-Task#setAuthor(anAuthor)
+Task.setAuthor(anAuthor)
 ```
 
 Adding associations to a relation with a custom join table can be done in two ways (continuing with the associations defined in the previous chapter):
