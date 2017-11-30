@@ -9,6 +9,25 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - Removed MariaDB dialect. This was just a thin wrapper around MySQL, so using `dialect: 'mysql'` instead should work with no further changes
 - Removed default `REPEATABLE_READ` transaction isolation. The isolation level now defaults to that of the database. Explicitly pass the required isolation level when initiating the transaction.
 - Removed support for `pool: false`. To use a single connection, set `pool.max` to 1.
+- Removed support for old connection pooling configuration keys. Instead of
+  ```js
+  pool: {
+    maxIdleTime: 30000,
+    minConnections: 20,
+    maxConnections: 30
+  }
+  ```
+
+  use
+
+  ```js
+  pool: {
+    idle: 30000,
+    min: 20,
+    max: 30
+  }
+  ```
+
 - (MySQL) BIGINT now gets converted to string when number is too big
 - (MySQL) `DECIMAL` and `NEWDECIMAL` types now returned as String unless
   ```js
