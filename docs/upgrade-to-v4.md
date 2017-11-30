@@ -10,6 +10,13 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - Removed default `REPEATABLE_READ` transaction isolation. The isolation level now defaults to that of the database. Explicitly pass the required isolation level when initiating the transaction.
 - Removed support for `pool: false`. To use a single connection, set `pool.max` to 1.
 - (MySQL) BIGINT now gets converted to string when number is too big
+- (MySQL) `DECIMAL` and `NEWDECIMAL` types now returned as String unless
+  ```js
+  dialectOptions: {
+    decimalNumbers: true
+  }
+  ```
+  is specified.
 - Removed support for referencesKey, use a references object
   ```js
   references: {
