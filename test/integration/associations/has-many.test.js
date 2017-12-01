@@ -26,6 +26,35 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     });
   });
 
+  describe('count', () => {
+    it('the COUNT() attribute should be `{Model.name}.{Model.primaryKeyField}`', function() {
+      const User = this.sequelize.define('User', {}),
+        Task = this.sequelize.define('Task', {});
+
+      const user = User.build({});
+
+      const as = Math.random().toString(),
+        association = User.hasMany(Task, { as });
+
+      const get = sinon.stub(association, 'get');
+
+      get.onFirstCall().returns(Promise.resolve({
+        count: 10,
+      }));
+
+      return association.count(user)
+        .then(() => {
+          expect(get).to.have.been.calledOnce;
+          expect(get.firstCall.args[1].attributes[0][0].args[0].col).to.equal(
+            [association.target.name, association.target.primaryKeyField].join('.')
+          );
+        })
+        .finally(() => {
+          get.restore();
+        });
+    });
+  });
+
   describe('get', () => {
     if (current.dialect.supports.groupedLimit) {
       describe('multiple', () => {
