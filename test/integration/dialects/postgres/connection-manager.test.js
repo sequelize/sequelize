@@ -25,12 +25,5 @@ if (dialect.match(/^postgres/)) {
     it('should correctly parse the moment based timezone', function() {
       return checkTimezoneParsing(this.sequelize.options);
     });
-
-    it('should correctly parse the moment based timezone while fetching hstore oids', function() {
-      // reset oids so we need to refetch them
-      DataTypes.HSTORE.types.postgres.oids = [];
-      DataTypes.HSTORE.types.postgres.array_oids = [];
-      return checkTimezoneParsing(this.sequelize.options);
-    });
   });
 }
