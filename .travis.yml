@@ -25,7 +25,7 @@ addons:
 before_script:
   - "mysql -e 'create database sequelize_test;'"
   - "psql -c 'create database sequelize_test;' -U postgres"
-  - "psql sequelize_test -c 'create extension postgis;' -U postgres"
+  - "psql sequelize_test -c 'create extension postgis;create extension if not exists hstore;create extension if not exists btree_gist;' -U postgres"
 
 script:
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
