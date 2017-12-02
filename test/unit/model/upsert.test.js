@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.query = current.query;
         current.query = sinon.stub().returns(Promise.resolve());
 
-        self.stub = sinon.stub(current.getQueryInterface(), 'upsert', () => {
+        self.stub = sinon.stub(current.getQueryInterface(), 'upsert').callsFake(() => {
           return User.build({});
         });
       });

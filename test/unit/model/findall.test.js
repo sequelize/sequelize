@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }, { timestamps: false });
 
     before(() => {
-      this.stub = sinon.stub(current.getQueryInterface(), 'select', () => {
+      this.stub = sinon.stub(current.getQueryInterface(), 'select').callsFake(() => {
         return Model.build({});
       });
       this.warnOnInvalidOptionsStub = sinon.stub(Model, 'warnOnInvalidOptions');
