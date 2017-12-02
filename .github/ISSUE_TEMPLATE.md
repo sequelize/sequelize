@@ -29,4 +29,6 @@ __Database version:__ XXX
 __Sequelize version:__ XXX
 __Tested with master branch:__ No
 
+(To test your issue with the `master` branch on an existing project, install Sequelize from GitHub: `npm install https://github.com/sequelize/sequelize`.)
+
 **Note :** _Your issue may be ignored by maintainers if it's not tested against `master` branch OR does not follow issue template._
