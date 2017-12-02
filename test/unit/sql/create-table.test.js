@@ -47,6 +47,17 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'CREATE TABLE IF NOT EXISTS "foo"."users" ("id"   SERIAL , "mood" "foo"."enum_users_mood", PRIMARY KEY ("id"));'
           });
         });
+        const ArrayUser = current.define('user', {
+          mood: DataTypes.ARRAY(DataTypes.ENUM('happy', 'sad'))
+        }, {
+          schema: 'foo',
+          timestamps: false
+        });
+        it('supports array enum in the right schema', () => {
+          expectsql(sql.createTableQuery(ArrayUser.getTableName(), sql.attributesToSQL(ArrayUser.rawAttributes), { }), {
+            postgres: 'CREATE TABLE IF NOT EXISTS "foo"."users" ("id"   SERIAL , "mood" "foo"."enum_users_mood"[], PRIMARY KEY ("id"));'
+          });
+        });
       });
 
       describe('Attempt to use different lodash template settings', () => {

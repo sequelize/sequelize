@@ -1380,6 +1380,10 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           postgres: 'REAL[]'
         });
 
+        testsql('ARRAY(ENUM)', DataTypes.ARRAY(DataTypes.ENUM()), {
+          postgres: 'ENUM[]'
+        });
+
         if (current.dialect.supports.JSON) {
           testsql('ARRAY(JSON)', DataTypes.ARRAY(DataTypes.JSON), {
             postgres: 'JSON[]'
