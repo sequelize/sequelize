@@ -27,8 +27,7 @@ __Dialect:__ mysql / postgres / sqlite / mssql / any
 __Dialect version:__ XXX
 __Database version:__ XXX
 __Sequelize version:__ XXX
-__Tested with master branch:__ No
+__Tested with latest release:__ No (If yes, specify that version)
 
-(To test your issue with the `master` branch on an existing project, install Sequelize from GitHub: `npm install https://github.com/sequelize/sequelize`.)
 
-**Note :** _Your issue may be ignored by maintainers if it's not tested against `master` branch OR does not follow issue template._
+**Note :** _Your issue may be ignored OR closed by maintainers if it's not tested against latest version OR does not follow issue template._
