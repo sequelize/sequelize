@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         }).then(users => {
           expect(users).to.have.length(1);
-          expect(users[0].binary).to.be.an.instanceof.string;
+          expect(users[0].binary.toString()).to.equal(this.buf.toString());
           expect(users[0].username).to.equal('boo2');
         });
       });
@@ -276,8 +276,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                         return _user.setBinary(_binary).then(() => {
                           return _user.getBinary().then(_binaryRetrieved => {
                             return user.getBinary().then(binaryRetrieved => {
-                              expect(binaryRetrieved.id).to.be.an.instanceof.string;
-                              expect(_binaryRetrieved.id).to.be.an.instanceof.string;
                               expect(binaryRetrieved.id).to.have.length(16);
                               expect(_binaryRetrieved.id).to.have.length(16);
                               expect(binaryRetrieved.id.toString()).to.be.equal(buf1.toString());
