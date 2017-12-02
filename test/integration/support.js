@@ -1,7 +1,7 @@
 'use strict';
 
-const Support = require('../support'),
-  dialect = Support.getTestDialect();
+const Support = require('../support');
+const dialect = Support.getTestDialect();
 
 before(() => {
   if (dialect !== 'postgres' && dialect !== 'postgres-native') {
