@@ -665,6 +665,125 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(workers[0].tasks[0].title).to.equal('homework');
           });
         });
+
+        // https://github.com/sequelize/sequelize/issues/8739
+        it('supports sorting on renamed sub-query attribute', function() {
+          const User = this.sequelize.define('user', {
+            name: {
+              type: Sequelize.STRING,
+              field: 'some_other_name'
+            }
+          });
+          const Project = this.sequelize.define('project', { title: Sequelize.STRING });
+          User.hasMany(Project);
+
+          return User.sync({ force: true })
+            .then(() => Project.sync({ force: true }))
+            .then(() => {
+              return User.bulkCreate([
+                { name: 'a' },
+                { name: 'b' },
+                { name: 'c' }
+              ]);
+            })
+            .then(() => {
+              return User.findAll({
+                order: ['name'],
+                limit: 2, // to force use of a sub-query
+                include: [Project]
+              });
+            })
+            .then(users => {
+              expect(users).to.have.lengthOf(2);
+              expect(users[0].name).to.equal('a');
+              expect(users[1].name).to.equal('b');
+            });
+        });
+
+        it('supports sorting DESC on renamed sub-query attribute', function() {
+          const User = this.sequelize.define('user', {
+            name: {
+              type: Sequelize.STRING,
+              field: 'some_other_name'
+            }
+          });
+          const Project = this.sequelize.define('project', { title: Sequelize.STRING });
+          User.hasMany(Project);
+
+          return User.sync({ force: true })
+            .then(() => Project.sync({ force: true }))
+            .then(() => {
+              return User.bulkCreate([
+                { name: 'a' },
+                { name: 'b' },
+                { name: 'c' }
+              ]);
+            })
+            .then(() => {
+              return User.findAll({
+                order: [['name', 'DESC']],
+                limit: 2,
+                include: [Project]
+              });
+            })
+            .then(users => {
+              expect(users).to.have.lengthOf(2);
+              expect(users[0].name).to.equal('c');
+              expect(users[1].name).to.equal('b');
+            });
+        });
+
+        it('supports sorting on multiple renamed sub-query attributes', function() {
+          const User = this.sequelize.define('user', {
+            name: {
+              type: Sequelize.STRING,
+              field: 'some_other_name'
+            },
+            age: {
+              type: Sequelize.INTEGER,
+              field: 'a_g_e'
+            }
+          });
+          const Project = this.sequelize.define('project', { title: Sequelize.STRING });
+          User.hasMany(Project);
+
+          return User.sync({ force: true })
+            .then(() => Project.sync({ force: true }))
+            .then(() => {
+              return User.bulkCreate([
+                { name: 'a', age: 1 },
+                { name: 'a', age: 2 },
+                { name: 'b', age: 3 }
+              ]);
+            })
+            .then(() => {
+              return User.findAll({
+                order: [['name', 'ASC'], ['age', 'DESC']],
+                limit: 2,
+                include: [Project]
+              });
+            })
+            .then(users => {
+              expect(users).to.have.lengthOf(2);
+              expect(users[0].name).to.equal('a');
+              expect(users[0].age).to.equal(2);
+              expect(users[1].name).to.equal('a');
+              expect(users[1].age).to.equal(1);
+            })
+            .then(() => {
+              return User.findAll({
+                order: [['name', 'DESC'], 'age'],
+                limit: 2,
+                include: [Project]
+              });
+            })
+            .then(users => {
+              expect(users).to.have.lengthOf(2);
+              expect(users[0].name).to.equal('b');
+              expect(users[1].name).to.equal('a');
+              expect(users[1].age).to.equal(1);
+            });
+        });
       });
 
       describe('hasMany with alias', () => {
