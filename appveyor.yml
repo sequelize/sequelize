@@ -1,19 +1,21 @@
 version: '{build}'
 
+image: Visual Studio 2017
+
 platform:
   - x64
 
 services:
   - mssql2016
 
-shallow_clone: true
+clone_depth: 1
 
 cache:
-  - node_modules
+  - '%APPDATA%\npm-cache'
 
 environment:
   matrix:
-    - {NODE_VERSION: 4, DIALECT: mssql, COVERAGE: true}
+    - {NODE_VERSION: '4', DIALECT: mssql, COVERAGE: 'true'}
 
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
@@ -40,6 +42,7 @@ after_test:
         bash codecov.sh -f "coverage\lcov.info"
       }
 
+skip_tags: true
 branches:
   only:
     - master
