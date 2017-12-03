@@ -16,14 +16,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         underscored: true
       });
 
-      expect(Model.rawAttributes.createdAt).to.be.defined;
-      expect(Model.rawAttributes.updatedAt).to.be.defined;
+      expect(Model.rawAttributes).to.haveOwnProperty('createdAt');
+      expect(Model.rawAttributes).to.haveOwnProperty('updatedAt');
 
       expect(Model._timestampAttributes.createdAt).to.equal('createdAt');
       expect(Model._timestampAttributes.updatedAt).to.equal('updatedAt');
 
-      expect(Model.rawAttributes.created_at).not.to.be.defined;
-      expect(Model.rawAttributes.updated_at).not.to.be.defined;
+      expect(Model.rawAttributes).not.to.have.property('created_at');
+      expect(Model.rawAttributes).not.to.have.property('updated_at');
     });
 
     it('should throw when id is added but not marked as PK', () => {

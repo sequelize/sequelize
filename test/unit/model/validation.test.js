@@ -272,7 +272,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     before(function() {
-      this.stub = sinon.stub(current, 'query', () => {
+      this.stub = sinon.stub(current, 'query').callsFake(() => {
         return new Promise(resolve => {
           resolve([User.build({}), 1]);
         });

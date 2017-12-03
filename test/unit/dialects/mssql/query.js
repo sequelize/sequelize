@@ -21,7 +21,7 @@ describe('[MSSQL]', () => {
         isolationLevel: 'REPEATABLE_READ',
         logging: false
       };
-      sandbox.stub(connectionStub, 'beginTransaction', cb => {
+      sandbox.stub(connectionStub, 'beginTransaction').callsFake(cb => {
         cb();
       });
       query = new Query(connectionStub, sequelize, options);

@@ -387,7 +387,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         return self.sequelize.Promise.resolve();
       });
 
-      return expect(this.Model.runHooks('beforeBulkCreate')).to.be.resolved;
+      return expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;
     });
 
     it('can return undefined', function() {
@@ -395,7 +395,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         // This space intentionally left blank
       });
 
-      return expect(this.Model.runHooks('beforeBulkCreate')).to.be.resolved;
+      return expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;
     });
 
     it('can return an error by rejecting', function() {

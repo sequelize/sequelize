@@ -186,7 +186,7 @@ if (current.dialect.supports.transactions) {
             return t.commit();
           });
         })
-      ).to.be.rejectedWith('Error: Transaction cannot be committed because it has been finished with state: commit');
+      ).to.be.rejectedWith('Transaction cannot be committed because it has been finished with state: commit');
     });
 
     it('does not allow commits after rollback', function() {
@@ -195,7 +195,7 @@ if (current.dialect.supports.transactions) {
         return t.rollback().then(() => {
           return t.commit();
         });
-      })).to.be.rejectedWith('Error: Transaction cannot be committed because it has been finished with state: rollback');
+      })).to.be.rejectedWith('Transaction cannot be committed because it has been finished with state: rollback');
     });
 
     it('does not allow rollbacks after commit', function() {
@@ -204,7 +204,7 @@ if (current.dialect.supports.transactions) {
         return t.commit().then(() => {
           return t.rollback();
         });
-      })).to.be.rejectedWith('Error: Transaction cannot be rolled back because it has been finished with state: commit');
+      })).to.be.rejectedWith('Transaction cannot be rolled back because it has been finished with state: commit');
     });
 
     it('does not allow rollbacks after rollback', function() {
@@ -213,7 +213,7 @@ if (current.dialect.supports.transactions) {
         return t.rollback().then(() => {
           return t.rollback();
         });
-      })).to.be.rejectedWith('Error: Transaction cannot be rolled back because it has been finished with state: rollback');
+      })).to.be.rejectedWith('Transaction cannot be rolled back because it has been finished with state: rollback');
     });
 
     it('works even if a transaction: null option is passed', function() {

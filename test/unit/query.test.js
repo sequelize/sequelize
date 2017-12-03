@@ -10,13 +10,13 @@ const chai = require('chai'),
 
 describe('sequelize.query', () => {
   it('connection should be released only once when retry fails', () => {
-    const getConnectionStub = sinon.stub(current.connectionManager, 'getConnection', () => {
+    const getConnectionStub = sinon.stub(current.connectionManager, 'getConnection').callsFake(() => {
       return Promise.resolve({});
     });
-    const releaseConnectionStub = sinon.stub(current.connectionManager, 'releaseConnection', () => {
+    const releaseConnectionStub = sinon.stub(current.connectionManager, 'releaseConnection').callsFake(() => {
       return Promise.resolve();
     });
-    const queryStub = sinon.stub(current.dialect.Query.prototype, 'run', () => {
+    const queryStub = sinon.stub(current.dialect.Query.prototype, 'run').callsFake(() => {
       return Promise.reject(new Error('wrong sql'));
     });
     return current.query('THIS IS A WRONG SQL', {

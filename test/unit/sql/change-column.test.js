@@ -25,13 +25,13 @@ if (current.dialect.name !== 'sqlite') {
 
       before(function() {
 
-        this.stub = sinon.stub(current, 'query', sql => {
+        this.stub = sinon.stub(current, 'query').callsFake(sql => {
           return Promise.resolve(sql);
         });
       });
 
       beforeEach(function() {
-        this.stub.reset();
+        this.stub.resetHistory();
       });
 
       after(function() {
