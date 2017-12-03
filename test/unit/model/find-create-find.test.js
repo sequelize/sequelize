@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         where = {prop: Math.random().toString()},
         findSpy = this.sinon.stub(Model, 'findOne');
 
-      this.sinon.stub(Model, 'create', () => {
+      this.sinon.stub(Model, 'create').callsFake(() => {
         return Promise.reject(new UniqueConstraintError());
       });
 
