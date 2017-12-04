@@ -95,9 +95,14 @@ sequelize.transaction(function (t1) {
 
 After you've used `Sequelize.useCLS()` all promises returned from sequelize will be patched to maintain CLS context. CLS is a complicated subject - more details in the docs for [cls-bluebird](https://www.npmjs.com/package/cls-bluebird), the patch used to make bluebird promises work with CLS.
 
+**Note:** _[CLS only supports async/await, at the moment, when using cls-hooked package](https://github.com/othiym23/node-continuation-local-storage/issues/98#issuecomment-323503807). Although, [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked/blob/master/README.md) relies on *experimental API* [async_hooks](https://github.com/nodejs/node/blob/master/doc/api/async_hooks.md)_
+
+
 ## Concurrent/Partial transactions
 
 You can have concurrent transactions within a sequence of queries or have some of them excluded from any transactions. Use the `{transaction: }` option to control which transaction a query belong to:
+
+**Warning:** _SQLite does not support more than one transaction at the same time._
 
 ### Without CLS enabled
 ```js
@@ -136,7 +141,7 @@ return sequelize.transaction({
   });
 ```
 
-Note: The SET ISOLATION LEVEL queries are not logged in case of MSSQL as the specified isolationLevel is passed directly to tedious
+**Note:** _The SET ISOLATION LEVEL queries are not logged in case of MSSQL as the specified isolationLevel is passed directly to tedious_
 
 ## Unmanaged transaction (then-callback)
 Unmanaged transactions force you to manually rollback or commit the transaction. If you don't do that, the transaction will hang until it times out. To start an unmanaged transaction, call `sequelize.transaction()` without a callback (you can still pass an options object) and call `then` on the returned promise. Notice that `commit()` and `rollback()` returns a promise.

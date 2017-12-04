@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
     });
 
     it('SequelizeValidationErrorItem should have instance, key & validator properties when given to constructor', () => {
-      const inst  = { foo : 'bar' };
+      const inst  = { foo: 'bar' };
       const vargs = [4];
 
       const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', inst, 'klen', 'len', vargs);
@@ -156,10 +156,10 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
     it('SequelizeValidationErrorItem should map deprecated "type" values to new "origin" values', () => {
       const data  = {
-        'notNull Violation' : 'CORE',
-        'string violation'  : 'CORE',
-        'unique violation'  : 'DB',
-        'Validation error'  : 'FUNCTION'
+        'notNull Violation': 'CORE',
+        'string violation': 'CORE',
+        'unique violation': 'DB',
+        'Validation error': 'FUNCTION'
       };
 
       Object.keys(data).forEach(k => {

@@ -15,13 +15,13 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
     User.hasOne(Task);
     expect(Task.rawAttributes.UserId).not.to.be.empty;
 
-    User.hasOne(Task, {as : 'Shabda'});
+    User.hasOne(Task, {as: 'Shabda'});
     expect(Task.rawAttributes.ShabdaId).not.to.be.empty;
   });
 
   it('should not override custom methods with association mixin', () => {
     const methods = {
-      getTask : 'get',
+      getTask: 'get',
       setTask: 'set',
       createTask: 'create'
     };

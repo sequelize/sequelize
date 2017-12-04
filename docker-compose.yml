@@ -6,7 +6,6 @@ services:
     links:
      - mysql-57
      - postgres-95
-     - mssql
     volumes:
       - .:/sequelize
     environment:
@@ -16,15 +15,15 @@ services:
 
   # PostgreSQL
   postgres-95:
-    image: camptocamp/postgis:9.5
+    image: sushantdhiman/postgres:9.5
     environment:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
       POSTGRES_DB: sequelize_test
     volumes:
-      - /mnt/sequelize-ramdisk:/var/lib/postgresql/data
+      - /mnt/sequelize-postgres-ramdisk:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:8998:5432"
+      - "8998:5432"
     container_name: postgres-95
 
   # MySQL
@@ -36,9 +35,9 @@ services:
       MYSQL_USER: sequelize_test
       MYSQL_PASSWORD: sequelize_test
     volumes:
-      - /mnt/sequelize-ramdisk:/var/lib/mysql
+      - /mnt/sequelize-mysql-ramdisk:/var/lib/mysql
     ports:
-      - "127.0.0.1:8999:3306"
+      - "8999:3306"
     container_name: mysql-57
 
   # MSSQL
@@ -48,5 +47,6 @@ services:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: yourStrong(!)Password
     ports:
-      - "127.0.0.1:8997:1433"
+      - "8997:1433"
     container_name: mssql
+

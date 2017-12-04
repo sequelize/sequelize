@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('custom setter', () => {
       before(function() {
-        this.stubCreate = sinon.stub(current.getQueryInterface(), 'insert', instance => {
+        this.stubCreate = sinon.stub(current.getQueryInterface(), 'insert').callsFake(instance => {
           return Promise.resolve([instance, 1]);
         });
       });
@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {
         phoneNumber: {
           type: DataTypes.STRING,
-          set (val) {
+          set(val) {
             if (typeof val === 'object' && val !== null) {
               val = `00${val.country}${val.area}${val.local}`;
             }

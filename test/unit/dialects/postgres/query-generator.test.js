@@ -16,27 +16,27 @@ if (dialect.match(/^postgres/)) {
     const suites = {
       arithmeticQuery: [
         {
-          title:'Should use the plus operator',
+          title: 'Should use the plus operator',
           arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\'  RETURNING *'
         },
         {
-          title:'Should use the plus operator with where clause',
+          title: 'Should use the plus operator with where clause',
           arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' WHERE "bar" = \'biz\' RETURNING *'
         },
         {
-          title:'Should use the minus operator',
+          title: 'Should use the minus operator',
           arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\'  RETURNING *'
         },
         {
-          title:'Should use the minus operator with negative value',
+          title: 'Should use the minus operator with negative value',
           arguments: ['-', 'myTable', { foo: -1 }, {}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"- -1  RETURNING *'
         },
         {
-          title:'Should use the minus operator with where clause',
+          title: 'Should use the minus operator with where clause',
           arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}, {}],
           expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' WHERE "bar" = \'biz\' RETURNING *'
         }
@@ -351,7 +351,7 @@ if (dialect.match(/^postgres/)) {
             return {
               where: sequelize.and(
                 { archived: null},
-                sequelize.where(sequelize.fn('COALESCE', sequelize.col('place_type_codename'), sequelize.col('announcement_type_codename')), { in : ['Lost', 'Found'] })
+                sequelize.where(sequelize.fn('COALESCE', sequelize.col('place_type_codename'), sequelize.col('announcement_type_codename')), { in: ['Lost', 'Found'] })
               )
             };
           }],
@@ -922,7 +922,7 @@ if (dialect.match(/^postgres/)) {
         },
         {
           arguments: ['myTable', 'myTrigger', 'after_constraint', ['insert', 'update'],  'myFunction', [{name: 'bar', type: 'INTEGER'}], ['FOR EACH ROW']],
-          expectation:'CREATE CONSTRAINT TRIGGER myTrigger\n\tAFTER INSERT OR UPDATE\n\tON myTable\n\t\n\tFOR EACH ROW\n\tEXECUTE PROCEDURE myFunction(bar INTEGER);'
+          expectation: 'CREATE CONSTRAINT TRIGGER myTrigger\n\tAFTER INSERT OR UPDATE\n\tON myTable\n\t\n\tFOR EACH ROW\n\tEXECUTE PROCEDURE myFunction(bar INTEGER);'
         }
       ]
     };

@@ -246,10 +246,10 @@ describe('model', () => {
         it('should be able to find with just string', function() {
           return this.User.create({
             username: 'swen123',
-            emergency_contact: 'Unknown',
+            emergency_contact: 'Unknown'
           }).then(() => {
             return this.User.find({where: {
-              emergency_contact: 'Unknown',
+              emergency_contact: 'Unknown'
             }});
           }).then(user => {
             expect(user.username).to.equal('swen123');

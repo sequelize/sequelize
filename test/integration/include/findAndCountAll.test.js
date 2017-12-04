@@ -259,7 +259,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return Foo.bulkCreate([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}]);
       }).then(() => {
         // Make four instances of Bar, related to the first two instances of Foo
-        return Bar.bulkCreate([{'FooId': 1, m:'yes'}, {'FooId': 1, m:'yes'}, {'FooId': 1, m: 'no'}, {'FooId': 2, m: 'yes'}]);
+        return Bar.bulkCreate([{'FooId': 1, m: 'yes'}, {'FooId': 1, m: 'yes'}, {'FooId': 1, m: 'no'}, {'FooId': 2, m: 'yes'}]);
       }).then(() => {
         // Query for the first instance of Foo which have related Bars with m === 'yes'
         return Foo.findAndCountAll({
@@ -328,18 +328,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Task.findAndCountAll({
               limit: 1,
               offset: 0,
-              order: [[ 'id', 'DESC' ]],
+              order: [['id', 'DESC']],
               include: [
                 {
                   model: Project,
-                  where: { '$and': [ { m: 'A' } ] },
-                  include: [ {
+                  where: { '$and': [{ m: 'A' }] },
+                  include: [{
                     model: User,
-                    where: { '$and': [ { name: 'user-name-2' } ] }
+                    where: { '$and': [{ name: 'user-name-2' }] }
                   }
                   ]
                 },
-                { model : Tag }
+                { model: Tag }
               ]
             });
           });
@@ -381,8 +381,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           limit: 1,
           offset: 1,
           where: sequelize.or(
-            { first_name : { like: '%user-fname%' } },
-            { last_name : { like: '%user-lname%' } }
+            { first_name: { like: '%user-fname%' } },
+            { last_name: { like: '%user-lname%' } }
           ),
           include: [
             {

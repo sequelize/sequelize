@@ -17,8 +17,8 @@ Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and Microso
 ## Table of Contents
 - [Installation](#installation)
 - [Features](#features)
-- [Documentation](#documentation)
 - [Responsible disclosure](#responsible-disclosure)
+- [Documentation](#documentation)
 - [Resources](#resources)
 
 ## Installation
@@ -48,22 +48,30 @@ Sequelize follows [SEMVER](http://semver.org). Supports Node v4 and above to use
 - Migrations
 - CLI ([sequelize-cli](https://github.com/sequelize/cli))
 
-## Documentation
-
-- [Stable v4 documentation](http://docs.sequelizejs.com)
-- [Upgrading from v3 to v4](http://docs.sequelizejs.com/manual/tutorial/upgrade-to-v4.html)
-- [v3 documentation](https://sequelize.readthedocs.io/en/v3/)
-
 ## Responsible disclosure
 If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md)
 
+## Documentation
+- [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
+- [v4 Documentation](http://docs.sequelizejs.com)
+- [v3 Documentation](https://sequelize.readthedocs.io/en/v3/)
+- [v3 to v4 Upgrade Guide](http://docs.sequelizejs.com/manual/tutorial/upgrade-to-v4.html)
+
 ## Resources
 - [Changelog](https://github.com/sequelize/sequelize/releases)
-- [Getting Started](http://docs.sequelizejs.com/manual/installation/getting-started)
-- [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
-- [Express Example](https://github.com/sequelize/express-example)
-- [Documentation](http://docs.sequelizejs.com)
 - [Slack](http://sequelize-slack.herokuapp.com/)
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
+
+### Tools
 - [Add-ons & Plugins](https://github.com/sequelize/sequelize/wiki/Add-ons-&-Plugins)
 - [Sequelize & TypeScript](https://github.com/RobinBuschmann/sequelize-typescript)
+
+### Learning
+- [Getting Started](http://docs.sequelizejs.com/manual/installation/getting-started)
+- [Express Example](https://github.com/sequelize/express-example)
+
+
+### Translations
+- [English v4](http://docs.sequelizejs.com) (OFFICIAL)
+- [中文文档 v4](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)
+

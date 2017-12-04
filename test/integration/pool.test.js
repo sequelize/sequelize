@@ -27,9 +27,10 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
       }
     });
 
-    this.sinon.stub(this.testInstance.connectionManager, '_connect', () => new Sequelize.Promise(() => {}));
+    this.sinon.stub(this.testInstance.connectionManager, '_connect')
+      .returns(new Sequelize.Promise(() => {}));
 
     return expect(this.testInstance.authenticate())
-      .to.eventually.be.rejectedWith('TimeoutError: ResourceRequest timed out');
+      .to.eventually.be.rejectedWith('ResourceRequest timed out');
   });
 });
