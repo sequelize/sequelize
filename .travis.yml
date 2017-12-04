@@ -13,7 +13,7 @@ branches:
 
 cache:
   directories:
-    - node_modules
+    - $HOME/.npm
 
 env:
   global:
@@ -48,43 +48,40 @@ script:
 
 jobs:
   include:
-    - stage: tests
-      node_js: 4
+    - stage: test
+      node_js: '4'
       env: DIALECT=sqlite COVERAGE=true
-    - stage: tests
-      node_js: 4
+    - stage: test
+      node_js: '4'
       sudo: required
       env: MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
-    - stage: tests
-      node_js: 4
+    - stage: test
+      node_js: '4'
       sudo: required
       env: POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
-    - stage: tests
-      node_js: 4
+    - stage: test
+      node_js: '4'
       sudo: required
       env: POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
-    - stage: tests
-      node_js: 8
+    - stage: test
+      node_js: '8'
       env: DIALECT=sqlite
-    - stage: tests
-      node_js: 6
+    - stage: test
+      node_js: '6'
       env: DIALECT=sqlite
-    - stage: docs
-      node_js: 6
+    - stage: release
+      node_js: '8'
       script:
-        - 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then npm run docs; fi'
+        - npm run semantic-release
+      before_deploy:
+        - npm run docs
       deploy:
         provider: surge
         project: ./esdoc/
         domain: docs.sequelizejs.com
         skip_cleanup: true
-        on:
-          branch: master
-    - stage: release
-      node_js: 8
-      env: BUILD_LEADER_ID=8
-      script:
-        - npm install --no-save --no-package-lock semantic-release@8 @bubltechnology/customizable-commit-analyzer@1.0.2-0
-        - npm run lint
-      after_success:
-        - ./node_modules/.bin/semantic-release pre && npm publish && ./node_modules/.bin/semantic-release post
+
+stages:
+  - test
+  - name: release
+    if: branch = master AND type = push AND fork = false
