@@ -156,6 +156,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         return this.User.findById(1).then(user1 => {
           return user1.increment('aNumber', { by: 2 }).then(() => {
             expect(user1.aNumber).to.be.equal(2);
+            return user1.increment('bNumber', { by: 2, returning: false }).then(user3 => {
+              expect(user3.bNumber).to.be.equal(0);
+            });
           });
         });
       });
@@ -323,6 +326,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         return this.User.findById(1).then(user1 => {
           return user1.decrement('aNumber', { by: 2 }).then(() => {
             expect(user1.aNumber).to.be.equal(-2);
+            return user1.decrement('bNumber', { by: 2, returning: false }).then(user3 => {
+              expect(user3.bNumber).to.be.equal(0);
+            });
           });
         });
       });
