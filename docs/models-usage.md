@@ -315,7 +315,7 @@ To recap, the elements of the order/group array can be the following:
 * Object -
   * Raw will be added verbatim without quoting
   * Everything else is ignored, and if raw is not set, the query will fail
-* Sequelize.fn and Sequelize.col returns functions and quoted cools
+* Sequelize.fn and Sequelize.col returns functions and quoted column names
 
 ### Raw queries
 
