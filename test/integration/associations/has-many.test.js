@@ -26,6 +26,44 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     });
   });
 
+  describe('count', () => {
+    it('should not fail due to ambiguous field', function() {
+      const User = this.sequelize.define('User', { username: DataTypes.STRING }),
+        Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
+
+      User.hasMany(Task);
+      const subtasks = Task.hasMany(Task, { as: 'subtasks' });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({
+          username: 'John',
+          Tasks: [{
+            title: 'Get rich', active: true
+          }]
+        }, {
+          include: [Task]
+        });
+      }).then(user => {
+        return Promise.join(
+          user.get('Tasks')[0].createSubtask({ title: 'Make a startup', active: false }),
+          user.get('Tasks')[0].createSubtask({ title: 'Engage rock stars', active: true })
+        ).return(user);
+      }).then(user => {
+        return expect(user.countTasks({
+          attributes: [Task.primaryKeyField, 'title'],
+          include: [{
+            attributes: [],
+            association: subtasks,
+            where: {
+              active: true
+            }
+          }],
+          group: this.sequelize.col(Task.name.concat('.', Task.primaryKeyField))
+        })).to.eventually.equal(1);
+      });
+    });
+  });
+
   describe('get', () => {
     if (current.dialect.supports.groupedLimit) {
       describe('multiple', () => {

@@ -315,6 +315,38 @@ if (dialect.match(/^postgres/)) {
         });
       });
 
+      it('should be able to create/drop multiple enums multiple times with field name (#7812)', function() {
+        const DummyModel = this.sequelize.define('Dummy-pg', {
+          username: DataTypes.STRING,
+          theEnumOne: {
+            field: 'oh_my_this_enum_one',
+            type: DataTypes.ENUM,
+            values: [
+              'one',
+              'two',
+              'three'
+            ]
+          },
+          theEnumTwo: {
+            field: 'oh_my_this_enum_two',
+            type: DataTypes.ENUM,
+            values: [
+              'four',
+              'five',
+              'six'
+            ]
+          }
+        });
+
+        return DummyModel.sync({ force: true }).then(() => {
+          // now sync one more time:
+          return DummyModel.sync({ force: true }).then(() => {
+            // sync without dropping
+            return DummyModel.sync();
+          });
+        });
+      });
+
       it('should be able to add values to enum types', function() {
         let User = this.sequelize.define('UserEnums', {
           mood: DataTypes.ENUM('happy', 'sad', 'meh')
@@ -331,6 +363,161 @@ if (dialect.match(/^postgres/)) {
         }).then(enums => {
           expect(enums).to.have.length(1);
           expect(enums[0].enum_value).to.equal('{neutral,happy,sad,ecstatic,meh,joyful}');
+        });
+      });
+
+      describe('ARRAY(ENUM)', () => {
+        it('should be able to ignore enum types that already exist', function() {
+          const User = this.sequelize.define('UserEnums', {
+            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+              'access',
+              'write',
+              'check',
+              'delete'
+            ]))
+          });
+
+          return User.sync({ force: true }).then(() => User.sync());
+        });
+
+        it('should be able to create/drop enums multiple times', function() {
+          const User = this.sequelize.define('UserEnums', {
+            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+              'access',
+              'write',
+              'check',
+              'delete'
+            ]))
+          });
+
+          return User.sync({ force: true }).then(() => User.sync({ force: true }));
+        });
+
+        it('should be able to add values to enum types', function() {
+          let User = this.sequelize.define('UserEnums', {
+            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+              'access',
+              'write',
+              'check',
+              'delete'
+            ]))
+          });
+
+          return User.sync({ force: true }).then(() => {
+            User = this.sequelize.define('UserEnums', {
+              permissions: DataTypes.ARRAY(
+                DataTypes.ENUM('view', 'access', 'edit', 'write', 'check', 'delete')
+              )
+            });
+
+            return User.sync();
+          }).then(() => {
+            return this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
+          }).then(enums => {
+            expect(enums).to.have.length(1);
+            expect(enums[0].enum_value).to.equal('{view,access,edit,write,check,delete}');
+          });
+        });
+
+        it('should be able to insert new record', function() {
+          const User = this.sequelize.define('UserEnums', {
+            name: DataTypes.STRING,
+            type: DataTypes.ENUM('A', 'B', 'C'),
+            owners: DataTypes.ARRAY(DataTypes.STRING),
+            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+              'access',
+              'write',
+              'check',
+              'delete'
+            ]))
+          });
+
+          return User.sync({ force: true })
+            .then(() => {
+              return User.create({
+                name: 'file.exe',
+                type: 'C',
+                owners: ['userA', 'userB'],
+                permissions: ['access', 'write']
+              });
+            })
+            .then(user => {
+              expect(user.name).to.equal('file.exe');
+              expect(user.type).to.equal('C');
+              expect(user.owners).to.deep.equal(['userA', 'userB']);
+              expect(user.permissions).to.deep.equal(['access', 'write']);
+            });
+        });
+
+        it('should fail when trying to insert foreign element on ARRAY(ENUM)', function() {
+          const User = this.sequelize.define('UserEnums', {
+            name: DataTypes.STRING,
+            type: DataTypes.ENUM('A', 'B', 'C'),
+            owners: DataTypes.ARRAY(DataTypes.STRING),
+            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+              'access',
+              'write',
+              'check',
+              'delete'
+            ]))
+          });
+
+          return expect(User.sync({ force: true }).then(() => {
+            return User.create({
+              name: 'file.exe',
+              type: 'C',
+              owners: ['userA', 'userB'],
+              permissions: ['cosmic_ray_disk_access']
+            });
+          })).to.be.rejectedWith(/invalid input value for enum "enum_UserEnums_permissions": "cosmic_ray_disk_access"/);
+        });
+
+        it('should be able to find records', function() {
+          const User = this.sequelize.define('UserEnums', {
+            name: DataTypes.STRING,
+            type: DataTypes.ENUM('A', 'B', 'C'),
+            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+              'access',
+              'write',
+              'check',
+              'delete'
+            ]))
+          });
+
+          return User.sync({ force: true })
+            .then(() => {
+              return User.bulkCreate([{
+                name: 'file1.exe',
+                type: 'C',
+                permissions: ['access', 'write']
+              }, {
+                name: 'file2.exe',
+                type: 'A',
+                permissions: ['access', 'check']
+              }, {
+                name: 'file3.exe',
+                type: 'B',
+                permissions: ['access', 'write', 'delete']
+              }]);
+            })
+            .then(() => {
+              return User.findAll({
+                where: {
+                  type: {
+                    $in: ['A', 'C']
+                  },
+                  permissions: {
+                    $contains: ['write']
+                  }
+                }
+              });
+            })
+            .then(users => {
+              expect(users.length).to.equal(1);
+              expect(users[0].name).to.equal('file1.exe');
+              expect(users[0].type).to.equal('C');
+              expect(users[0].permissions).to.deep.equal(['access', 'write']);
+            });
         });
       });
     });
