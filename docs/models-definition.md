@@ -398,7 +398,7 @@ const ValidateMe = sequelize.define('foo', {
       is: ["^[a-z]+$",'i'],     // will only allow letters
       is: /^[a-z]+$/i,          // same as the previous example using real RegExp
       not: ["[a-z]",'i'],       // will not allow letters
-      isEmail: true,            // checks for poem format (foo@bar.com)
+      isEmail: true,            // checks for email format (foo@bar.com)
       isUrl: true,              // checks for url format (http://foo.com)
       isIP: true,               // checks for IPv4 (129.89.23.1) or IPv6 format
       isIPv4: true,             // checks for IPv4 (129.89.23.1)
