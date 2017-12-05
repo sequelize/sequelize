@@ -181,6 +181,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should be able to check default scope name', () => {
+      expect(Company._scopeNames).to.include('defaultScope');
+    });
+
+    it('should be able to check custom scope name', () => {
+      expect(Company.scope('users')._scopeNames).to.include('users');
+    });
+
+    it('should be able to check multiple custom scope names', () => {
+      expect(Company.scope('users', 'projects')._scopeNames).to.include.members(['users', 'projects']);
+    });
+
     it('should be able to merge two scoped includes', () => {
       expect(Company.scope('users', 'projects')._scope).to.deep.equal({
         include: [
