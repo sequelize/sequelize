@@ -1930,8 +1930,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(m.createdAt).to.be.ok;
           expect(m.created_at).to.not.exist;
           expect(m.secret_given).to.not.exist;
-          expect(m.get('secret_given')).not.to.be.defined;
-          expect(m.get('created_at')).not.to.be.defined;
+          expect(m.get('secret_given')).to.be.undefined;
+          expect(m.get('created_at')).to.be.undefined;
 
           // values look fine
           expect(m.id).to.be.eql(M2.id);
