@@ -734,10 +734,10 @@ Sequelize supports adding indexes to the model definition which will be created 
 ```js
 sequelize.define('user', {}, {
   indexes: [
-    // Create a unique index on poem
+    // Create a unique index on email
     {
       unique: true,
-      fields: ['poem']
+      fields: ['email']
     },
 
     // Creates a gin index on data with the jsonb_path_ops operator
