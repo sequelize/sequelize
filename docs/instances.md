@@ -300,7 +300,10 @@ First of all you can define a field and the value you want to add to it&period;
 ```js
 User.findById(1).then(user => {
   return user.increment('my-integer-field', {by: 2})
-}).then(/* ... */)
+}).then(user => {
+  // Postgres will return the updated user by default (unless disabled by setting { returning: false })
+  // In other dialects, you'll want to call user.reload() to get the updated instance...
+})
 ```
 
 Second&comma; you can define multiple fields and the value you want to add to them&period;
@@ -331,7 +334,10 @@ First of all you can define a field and the value you want to add to it&period;
 ```js
 User.findById(1).then(user => {
   return user.decrement('my-integer-field', {by: 2})
-}).then(/* ... */)
+}).then(user => {
+  // Postgres will return the updated user by default (unless disabled by setting { returning: false })
+  // In other dialects, you'll want to call user.reload() to get the updated instance...
+})
 ```
 
 Second&comma; you can define multiple fields and the value you want to add to them&period;
