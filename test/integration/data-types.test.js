@@ -478,8 +478,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Model = this.sequelize.define('user', {
       stamp: Sequelize.DATEONLY
     });
+
     const testDate = moment().format('YYYY-MM-DD');
     const newDate = new Date();
+    const dateOnly = moment(newDate).format('YYYY-MM-DD');
 
     return Model.sync({ force: true})
       .then(() => Model.create({ stamp: testDate }))
@@ -508,7 +510,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         return record.reload();
       }).then(record => {
         expect(typeof record.stamp).to.be.eql('string');
-        expect(new Date(record.stamp)).to.equalDate(newDate);
+        expect(record.stamp).to.equal(dateOnly);
       });
   });
 

@@ -122,7 +122,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
             // so we must create a record with the right value for always_false, then reference it in an update
             let now = dialect === 'sqlite' ? self.sequelize.fn('', self.sequelize.fn('datetime', 'now')) : self.sequelize.fn('NOW');
             if (dialect === 'mssql') {
-              now = self.sequelize.fn('', self.sequelize.fn('getdate'));
+              now = self.sequelize.fn('', self.sequelize.fn('getutcdate'));
             }
             user.set({
               d: now,
@@ -132,9 +132,12 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
             expect(user.get('d')).to.be.instanceof(self.sequelize.Utils.Fn);
             expect(user.get('b')).to.be.instanceof(self.sequelize.Utils.Col);
 
+            let beforeSave = Date.now();
+            beforeSave -= beforeSave % 1000; // round down to seconds precision
+
             return user.save().then(() => {
               return user.reload().then(() => {
-                expect(user.d).to.equalDate(new Date());
+                expect(user.d.getTime()).to.be.within(beforeSave, Date.now());
                 expect(user.b).to.equal(false);
               });
             });
