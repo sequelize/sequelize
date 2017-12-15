@@ -9,7 +9,7 @@ const chai = require('chai'),
 
 connectionStub.returns({on() {}});
 
-describe('[MSSQL] Connection Manager', () => {
+describe('[MSSQL Specific] Connection Manager', () => {
   let instance,
     config;
   beforeEach(() => {

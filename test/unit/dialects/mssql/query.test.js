@@ -12,7 +12,7 @@ const connectionStub = { beginTransaction: () => {}, lib: tedious };
 
 let sandbox, query;
 
-describe('[MSSQL] Query', () => {
+describe('[MSSQL Specific] Query', () => {
   describe('beginTransaction', () => {
     beforeEach(() => {
       sandbox = sinon.sandbox.create();
