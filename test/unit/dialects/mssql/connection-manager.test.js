@@ -3,9 +3,13 @@
 const chai = require('chai'),
   expect = chai.expect,
   Sequelize = require(__dirname + '/../../../../index'),
+  Support = require(__dirname + '/../../support'),
+  dialect = Support.getTestDialect(),
   tedious = require('tedious'),
   sinon = require('sinon'),
   connectionStub = sinon.stub(tedious, 'Connection');
+
+if (dialect !== 'mssql') { return; }
 
 connectionStub.returns({on() {}});
 

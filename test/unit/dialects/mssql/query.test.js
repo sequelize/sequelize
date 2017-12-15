@@ -2,13 +2,16 @@
 
 const path = require('path');
 const Query = require(path.resolve('./lib/dialects/mssql/query.js'));
-const Support = require(path.resolve('./test/support'));
+const Support = require(__dirname + '/../../support');
+const dialect = Support.getTestDialect();
 const sequelize = Support.sequelize;
 const sinon = require('sinon');
 const expect = require('chai').expect;
 const tedious = require('tedious');
 const tediousIsolationLevel = tedious.ISOLATION_LEVEL;
 const connectionStub = { beginTransaction: () => {}, lib: tedious };
+
+if (dialect !== 'mssql') { return; }
 
 let sandbox, query;
 
@@ -48,7 +51,7 @@ describe('[MSSQL Specific] Query', () => {
 
       const expected = 'select @one as a, @two as b, @one as c, @three as d, @one as e';
 
-      const result = Query.formatBindParameters(sql, values, 'mssql');
+      const result = Query.formatBindParameters(sql, values, dialect);
       expect(result[0]).to.be.a('string');
       expect(result[0]).to.equal(expected);
     });
@@ -59,7 +62,7 @@ describe('[MSSQL Specific] Query', () => {
 
       const expected = 'select @0 as a, @1 as b, @0 as c, @2 as d, @0 as e';
 
-      const result = Query.formatBindParameters(sql, values, 'mssql');
+      const result = Query.formatBindParameters(sql, values, dialect);
       expect(result[0]).to.be.a('string');
       expect(result[0]).to.equal(expected);
     });
