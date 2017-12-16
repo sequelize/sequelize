@@ -489,7 +489,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })).then(users => {
           expect(users).to.have.length(1);
           expect(users[0].get('username')).to.be.equal('W.I.L.D C.A.R.D');
-        })
+        });
       });
 
       describe('belongsTo', () => {
