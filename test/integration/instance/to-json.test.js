@@ -5,7 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types');
 
-describe.only(Support.getTestDialectTeaser('Instance'), () => {
+describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {
     beforeEach(function() {
       this.User = this.sequelize.define('User', {
