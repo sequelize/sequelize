@@ -423,6 +423,60 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        it('should be possible to query for nested fields with hyphens/dashes, #8718', function() {
+          return Promise.join(
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Homer',
+                  last: 'Simpson'
+                },
+                status_report: {
+                  'red-indicator': {
+                    'level$$level': true
+                  }
+                },
+                employment: 'Nuclear Safety Inspector'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: null
+              }
+            })
+          ).then(() => {
+            return this.Event.findAll({
+              where: {
+                data: {
+                  status_report: {
+                    'red-indicator': {
+                      'level$$level': true
+                    }
+                  }
+                }
+              }
+            }).then(events => {
+              expect(events.length).to.equal(1);
+              expect(events[0].get('data')).to.eql({
+                name: {
+                  first: 'Homer',
+                  last: 'Simpson'
+                },
+                status_report: {
+                  'red-indicator': {
+                    'level$$level': true
+                  }
+                },
+                employment: 'Nuclear Safety Inspector'
+              });
+            });
+          });
+        });
+
         it('should be possible to query multiple nested values', function() {
           return this.Event.create({
             data: {
