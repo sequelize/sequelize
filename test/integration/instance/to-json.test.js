@@ -12,7 +12,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         username: { type: DataTypes.STRING },
         age: DataTypes.INTEGER,
         level: { type: DataTypes.INTEGER },
-        bigLevel: { type: DataTypes.BIGINT },
         isUser: {
           type: DataTypes.BOOLEAN,
           defaultValue: false
@@ -76,7 +75,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'Adam',
           age: 22,
           level: -1,
-          bigLevel: '90071992547409911',
           isUser: false,
           isAdmin: true
         });
@@ -86,7 +84,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'Adam',
           age: 22,
           level: -1,
-          bigLevel: '90071992547409911',
           isUser: false,
           isAdmin: true
         });
@@ -114,7 +111,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'Adam',
           age: 22,
           level: -1,
-          bigLevel: '90071992547409911',
           isUser: false,
           isAdmin: true
         }).then(user => {
@@ -122,10 +118,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             id: user.get('id'),
             username: 'Adam',
             age: 22,
-            level: -1,
-            bigLevel: '90071992547409911',
             isUser: false,
-            isAdmin: true
+            isAdmin: true,
+            level: -1
           });
         });
       });
@@ -135,9 +130,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'test.user',
           age: 99,
           isAdmin: true,
-          isUser: false
+          isUser: false,
+          level: null
         }).then(user => {
-          expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null,"bigLevel":null}`);
+          expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`);
         });
       });
 
@@ -145,16 +141,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         return this.User.create({
           username: 'test.user',
           age: 99,
-          isAdmin: true
+          isAdmin: true,
+          level: null
         }).then(user => {
           expect(JSON.parse(JSON.stringify(user))).to.deep.equal({
-            id: user.get('id'),
-            username: 'test.user',
             age: 99,
+            id: user.get('id'),
             isAdmin: true,
             isUser: false,
-            bigLevel: null,
-            level: null
+            level: null,
+            username: 'test.user'
           });
         });
       });
@@ -166,7 +162,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'Adam',
           age: 22,
           level: -1,
-          bigLevel: '90071992547409911',
           isUser: false,
           isAdmin: true
         }).then(user => this.User.findById(user.get('id'))).then(user => {
@@ -175,7 +170,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             username: 'Adam',
             age: 22,
             level: -1,
-            bigLevel: '90071992547409911',
             isUser: false,
             isAdmin: true
           });
@@ -189,7 +183,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           isAdmin: true,
           isUser: false
         }).then(user => this.User.findById(user.get('id'))).then(user => {
-          expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"level":null,"bigLevel":null,"isUser":false,"isAdmin":true}`);
+          expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);
         });
       });
 
@@ -205,7 +199,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             age: 99,
             isAdmin: true,
             isUser: false,
-            bigLevel: null,
             level: null
           });
         });
