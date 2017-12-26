@@ -9,7 +9,17 @@ const chai = require('chai'),
   sinon = require('sinon'),
   connectionStub = sinon.stub(tedious, 'Connection');
 
-connectionStub.returns({on() {}});
+let endCb = null;
+
+connectionStub.returns({
+  on(name, cb) {
+    switch (name) {
+      case 'end':
+        endCb = cb;
+        break;
+    }
+  }
+});
 
 if (dialect === 'mssql') {
   describe('[MSSQL Specific] Connection Manager', () => {
@@ -28,6 +38,7 @@ if (dialect === 'mssql') {
           domain: 'TEST.COM'
         }
       };
+      endCb = null;
       instance = new Sequelize(config.database
         , config.username
         , config.password
@@ -39,6 +50,19 @@ if (dialect === 'mssql') {
         expect(config.dialectOptions.domain).to.equal('TEST.COM');
         instance.dialect.connectionManager._connect(config);
         expect(config.dialectOptions.domain).to.equal('TEST.COM');
+      });
+
+    it('connectionManager._connect() should reject if end was called and connect was not',
+      done => {
+        instance.dialect.connectionManager._connect(config)
+          .catch(err => {
+            expect(err.name).to.equal('SequelizeConnectionError');
+            done();
+          });
+
+        setTimeout(() => {
+          endCb();
+        }, 1000);
       });
   });
 }
