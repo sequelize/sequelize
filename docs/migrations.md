@@ -1,13 +1,13 @@
 # Migrations
 
-Just like you use Git / SVN to manage changes in your source code, you can use migrations to keep track of changes to database. With migrations you can transfer your existing database into another state and vice versa: Those state transitions are saved in migration files, which describe the way how to get to the new state and how to revert the changes in order to get back to the old state.
+Just like you use Git / SVN to manage changes in your source code, you can use migrations to keep track of changes to the database. With migrations you can transfer your existing database into another state and vice versa: Those state transitions are saved in migration files, which describe how to get to the new state and how to revert the changes in order to get back to the old state.
 
 You will need [Sequelize CLI][0]. The CLI ships support for migrations and project bootstrapping.
 
 ## The CLI
 
 ### Installing CLI
-Lets start with installing CLI, you can find instructions [here][0]. Most preferred way is installing locally like this
+Let's start with installing CLI, you can find instructions [here][0]. Most preferred way is installing locally like this
 
 ```bash
 $ npm install --save sequelize-cli
@@ -28,7 +28,7 @@ This will create following folders
 - `seeders`, contains all seed files
 
 #### Configuration
-Before continuing further we will need to tell CLI how to connect to database. To do that lets open default config file `config/config.json`. It looks something like this
+Before continuing further we will need to tell CLI how to connect to database. To do that let's open default config file `config/config.json`. It looks something like this
 
 ```json
 {
@@ -61,14 +61,14 @@ Now edit this file and set correct database credentials and dialect.
 **Note:** _If your database doesn't exists yet, you can just call `db:create` command. With proper access it will create that database for you._
 
 ### Creating first Model (and Migration)
-Once you have properly configured CLI config file you are ready to create you first migration. Its as simple as executing a simple command.
+Once you have properly configured CLI config file you are ready to create your first migration. It's as simple as executing a simple command.
 
 We will use `model:generate` command. This command requires two options
 
 - `name`, Name of the model
 - `attributes`, List of model attributes
 
-Lets create a model named `User`
+Let's create a model named `User`.
 
 ```bash
 $ node_modules/.bin/sequelize model:generate --name User --attributes firstName:string,lastName:string,email:string
@@ -79,19 +79,19 @@ This will do following
 - Create a model file `user` in `models` folder
 - Create a migration file with name like `XXXXXXXXXXXXXX-create-user.js` in `migrations` folder
 
-**Note:** _Sequelize will only use Model files, it's the table representation. On other hand migration file is a change in that model or more specifically that table, used by CLI. Treat migrations like a commit or a log for some change in database._
+**Note:** _Sequelize will only use Model files, it's the table representation. On the other hand, the migration file is a change in that model or more specifically that table, used by CLI. Treat migrations like a commit or a log for some change in database._
 
 ### Running Migrations
-Now till this step CLI haven't inserted anything into database. We have just created required model and migration files for our first model `User`. Now to actually create that table in database you need to run `db:migrate` command.
+Until this step, we haven't inserted anything into the database. We have just created required model and migration files for our first model `User`. Now to actually create that table in database you need to run `db:migrate` command.
 
 ```bash
 $ node_modules/.bin/sequelize db:migrate
 ```
 
-This command will execute these steps
+This command will execute these steps:
 
-- Will ensure a table called `SequelizeMeta` in database. This table is used to record which migration have ran on current database
-- Start looking for any migration files which haven't ran yet. This is possible by checking `SequelizeMeta` table. In this case it will run `XXXXXXXXXXXXXX-create-user.js` migration, which we created in last step.
+- Will ensure a table called `SequelizeMeta` in database. This table is used to record which migrations have run on the current database
+- Start looking for any migration files which haven't run yet. This is possible by checking `SequelizeMeta` table. In this case it will run `XXXXXXXXXXXXXX-create-user.js` migration, which we created in last step.
 - Creates a table called `Users` with all columns as specified in its migration file.
 
 ### Undoing Migrations
@@ -110,17 +110,17 @@ $ node_modules/.bin/sequelize db:migrate:undo:all --to XXXXXXXXXXXXXX-create-pos
 ```
 
 ### Creating First Seed
-Suppose we want to insert some data into few tables by default. If we follow up on previous example we can consider creating a demo user for `User` table.
+Suppose we want to insert some data into a few tables by default. If we follow up on previous example we can consider creating a demo user for `User` table.
 
 To manage all data migrations you can use seeders. Seed files are some change in data that can be used to populate database table with sample data or test data.
 
-Lets create a seed file which will add a demo user to our `User` table.
+Let's create a seed file which will add a demo user to our `User` table.
 
 ```bash
 $ node_modules/.bin/sequelize seed:generate --name demo-user
 ```
 
-This command will create a seed file in `seeders` folder. File name will look something like `XXXXXXXXXXXXXX-demo-user.js`, It follows same `up / down` semantics like migration files.
+This command will create a seed file in `seeders` folder. File name will look something like `XXXXXXXXXXXXXX-demo-user.js`. It follows the same `up / down` semantics as the migration files.
 
 Now we should edit this file to insert demo user to `User` table.
 
@@ -144,7 +144,7 @@ module.exports = {
 ```
 
 ### Running Seeds
-In last step you have create a seed file. Its still not committed to database. To do that we need to run a simple command.
+In last step you have create a seed file. It's still not committed to database. To do that we need to run a simple command.
 
 ```bash
 $ node_modules/.bin/sequelize db:seed:all
@@ -152,10 +152,10 @@ $ node_modules/.bin/sequelize db:seed:all
 
 This will execute that seed file and you will have a demo user inserted into `User` table.
 
-**Note:** _Seeders execution is not stored anywhere unlike migration which use `SequelizeMeta` table. If you wish to override this please read `Storage` section_
+**Note:** _Seeders execution is not stored anywhere unlike migrations, which use the `SequelizeMeta` table. If you wish to override this please read `Storage` section_
 
 ### Undoing Seeds
-Seeders if they are using any storage can be undo. There are two commands available for that
+Seeders can be undone if they are using any storage. There are two commands available for that:
 
 If you wish to undo most recent seed
 
@@ -186,7 +186,7 @@ module.exports = {
 }
 ```
 
-The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. Function `up` or `down` should return a `Promise`. Lets look at an example
+The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. Function `up` or `down` should return a `Promise`. Let's look at an example:
 
 ```js
 module.exports = {
@@ -207,20 +207,20 @@ module.exports = {
 ```
 
 ### The `.sequelizerc` File
-This is a special configuration file. It let you specify various options that you would usually pass as arguments to CLI. Some scenarios where you can use it.
+This is a special configuration file. It lets you specify various options that you would usually pass as arguments to CLI. Some scenarios where you can use it.
 
 - You want to override default path to `migrations`, `models`, `seeders` or `config` folder.
 - You want to rename `config.json` to something else like `database.json`
 
-And a whole lot more. Let see how you can use this file for custom configuration.
+And a whole lot more. Let's see how you can use this file for custom configuration.
 
-For starters lets create an empty file in root directory of your project.
+For starters, let's create an empty file in root directory of your project.
 
 ```bash
 $ touch .sequelizerc
 ```
 
-Now lets work with an example config.
+Now let's work with an example config.
 
 ```js
 const path = require('path');
@@ -374,7 +374,7 @@ module.exports = {
 };
 ```
 
-Our goal is to use environment variables for various database secrets and not accidentally checkout them to source control.
+Our goal is to use environment variables for various database secrets and not accidentally check them in to source control.
 
 ### Storage
 There are three types of storage that you can use: `sequelize`, `json`, and `none`.
