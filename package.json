@@ -1,8 +1,8 @@
 {
-  "name": "sequelize",
+  "name": "sequelize-next",
   "description": "Multi dialect ORM for Node.JS",
   "version": "0.0.0-development",
-  "author": "Sascha Depold <sascha@depold.com>",
+  "author": "fengmk2 <fengmk2@gmail.com>",
   "contributors": [
     {
       "name": "Sascha Depold",
@@ -30,10 +30,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/sequelize/sequelize.git"
+    "url": "https://github.com/eggjs/sequelize.git"
   },
   "bugs": {
-    "url": "https://github.com/sequelize/sequelize/issues"
+    "url": "https://github.com/eggjs/egg/issues"
   },
   "dependencies": {
     "bluebird": "^3.4.6",
@@ -79,7 +79,6 @@
     "pg-native": "^1.10.0",
     "pg-types": "^1.11.0",
     "rimraf": "^2.5.4",
-    "semantic-release": "^11.0.0",
     "sinon": "^4.1.2",
     "sinon-chai": "^2.14.0",
     "sqlite3": "^3.1.13",
@@ -140,22 +139,15 @@
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
-    "commitmsg": "validate-commit-msg",
-    "semantic-release": "semantic-release"
+    "commitmsg": "validate-commit-msg"
   },
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=6.0.0"
   },
   "license": "MIT",
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  },
-  "release": {
-    "verifyConditions": [
-      "@semantic-release/npm",
-      "@semantic-release/github"
-    ]
   }
 }
