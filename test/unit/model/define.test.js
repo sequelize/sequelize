@@ -26,6 +26,48 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.rawAttributes).not.to.have.property('updated_at');
     });
 
+    it('should create ContextModel success', () => {
+      const Model = current.define('UserGroup', {}, {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+      });
+
+      let index = 0;
+      class Context {
+        constructor() {
+          this.value = 'bar';
+          this.index = index++;
+        }
+      }
+
+      const ctx = new Context();
+      const ctx2 = new Context();
+      const ContextModel1 = Model.contextify(ctx);
+      const ContextModel2 = Model.contextify(ctx);
+      const ContextModel3 = Model.contextify(ctx2);
+      expect(ContextModel1 !== ContextModel2).to.equal(true);
+      expect(ContextModel1.ctx === ContextModel2.ctx).to.equal(true);
+      expect(ContextModel1.ctx !== ContextModel3.ctx).to.equal(true);
+
+      const model1 = ContextModel1.build();
+      expect(model1.ctx).to.be.an('object');
+      expect(model1.ctx.value).to.equal('bar');
+      expect(model1.ctx.index).to.equal(0);
+
+      const model2 = ContextModel2.build();
+      expect(model2.ctx).to.be.an('object');
+      const model22 = ContextModel2.build();
+      expect(model22.ctx).to.be.an('object');
+      const model3 = ContextModel3.build();
+      expect(model3.ctx).to.be.an('object');
+      expect(model3.ctx.value).to.equal('bar');
+      expect(model3.ctx.index).to.equal(1);
+
+      expect(model1.ctx === model2.ctx).to.equal(true);
+      expect(model2.ctx === model22.ctx).to.equal(true);
+      expect(model2.ctx !== model3.ctx).to.equal(true);
+    });
+
     it('should throw when id is added but not marked as PK', () => {
       expect(() => {
         current.define('foo', {
