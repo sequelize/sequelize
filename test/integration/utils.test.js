@@ -124,6 +124,20 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       expect(obj.foo).to.not.equal(clone.foo);
     });
 
+    it('should not clone class instance', () => {
+      class Context {
+        constructor() {
+          this.value = 'bar';
+        }
+      }
+      const ctx = new Context();
+      const obj = { ctx },
+        clone = Utils.cloneDeep(obj);
+
+      expect(obj.ctx).to.equal(clone.ctx);
+      expect(obj.ctx === clone.ctx).to.equal(true);
+    });
+
     it('should not call clone methods on plain objects', () => {
       expect(() => {
         Utils.cloneDeep({
