@@ -115,6 +115,61 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - Raw options for where, order and group like `where: { $raw: '..', order: [{ raw: '..' }], group: [{ raw: '..' }] }` have been removed to prevent SQL injection attacks.
 - `Sequelize.Utils` is not longer part of the public API, use it at your own risk
 - `Hooks` should return Promises now. Callbacks are deprecated.
+- `include` is always an array
+
+  Previous:
+  ```js
+  User.findAll({
+    include: {
+      model: Comment,
+      as: 'comments'
+    }
+  })
+  ```
+  
+  New:
+  ```js
+  User.findAll({
+    include: [{
+      model: Comment,
+      as: 'comments'
+    }]
+  })
+  ```
+
+- `where` clause inside `include` does not make this `include` and all its parents `required`. You can use following `beforeFind` global hook to keep previous behaviour:
+
+  ```js
+  function whereRequiredLikeInV3(modelDescriptor) {
+    if (!modelDescriptor.include) {
+      return false;
+    }
+
+    return modelDescriptor.include.some(relatedModelDescriptor => {
+      const childDescriptorRequired = whereRequiredLikeInV3(
+        relatedModelDescriptor,
+      );
+
+      if (
+        (relatedModelDescriptor.where || childDescriptorRequired) &&
+        typeof relatedModelDescriptor.required === 'undefined'
+      ) {
+        relatedModelDescriptor.required = true;
+      }
+
+      return relatedModelDescriptor.required;
+    });
+  }
+  
+  const sequelize = new Sequelize(..., {
+    ...,
+    define: {
+      hooks: {
+        beforeFind: whereRequiredLikeInV3,
+      },
+    },
+  });
+  ```
 
 ### New features
 - Initial version of `sequelize.sync({ alter: true })` has been added and uses `ALTER TABLE` commands to sync tables. [Migrations](http://docs.sequelizejs.com/manual/tutorial/migrations.html) are still preferred and should be used in production.
