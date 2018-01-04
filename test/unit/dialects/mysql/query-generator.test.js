@@ -75,7 +75,27 @@ if (dialect === 'mysql') {
           arguments: [{id: {type: 'INTEGER', after: 'Bar'}}],
           expectation: {id: 'INTEGER AFTER `Bar`'}
         },
-
+        // No Default Values allowed for certain types
+        {
+          title: 'No Default value for MySQL BLOB allowed',
+          arguments: [{id: {type: 'BLOB', defaultValue: []}}],
+          expectation: {id: 'BLOB'}
+        },
+        {
+          title: 'No Default value for MySQL TEXT allowed',
+          arguments: [{id: {type: 'TEXT', defaultValue: []}}],
+          expectation: {id: 'TEXT'}
+        },
+        {
+          title: 'No Default value for MySQL GEOMETRY allowed',
+          arguments: [{id: {type: 'GEOMETRY', defaultValue: []}}],
+          expectation: {id: 'GEOMETRY'}
+        },
+        {
+          title: 'No Default value for MySQL JSON allowed',
+          arguments: [{id: {type: 'JSON', defaultValue: []}}],
+          expectation: {id: 'JSON'}
+        },
         // New references style
         {
           arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }}}],
