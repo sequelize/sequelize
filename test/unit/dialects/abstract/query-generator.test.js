@@ -14,6 +14,9 @@ describe('QueryGenerator', () => {
 
       QG.whereItemQuery(Op.and, [{test: {[Op.between]: [2, 5]}}, {test: {[Op.ne]: 3}}, {test: {[Op.not]: 4}}])
         .should.be.equal('(test BETWEEN 2 AND 5 AND test != 3 AND test != 4)');
+
+      QG.whereItemQuery(Op.or, [{test: {[Op.is]: null}}, {testSame: {[Op.eq]: null}}])
+        .should.be.equal('(test IS NULL OR testSame IS NULL)');
     });
 
     it('should not parse any strings as aliases  operators', function() {
