@@ -63,6 +63,16 @@ if (current.dialect.name === 'mssql') {
         mssql: 'SELECT id, name FROM myTable AS myOtherName'
       });
 
+      // With tableHint - nolock
+      expectsql(modifiedGen.selectFromTableFragment({ tableHint: 'NOLOCK' }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+        mssql: 'SELECT id, name FROM myTable AS myOtherName WITH (NOLOCK)'
+      });
+
+      // With tableHint - NOWAIT
+      expectsql(modifiedGen.selectFromTableFragment({ tableHint: 'NOWAIT' }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+        mssql: 'SELECT id, name FROM myTable AS myOtherName WITH (NOWAIT)'
+      });
+
       // With limit
       expectsql(modifiedGen.selectFromTableFragment({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName'
