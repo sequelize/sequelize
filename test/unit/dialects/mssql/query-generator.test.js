@@ -4,6 +4,7 @@ const Support = require(__dirname + '/../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const Operators = require('../../../../lib/operators');
+const TableHints = require('../../../../lib/table-hints');
 const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator');
 const _ = require('lodash');
 
@@ -64,12 +65,12 @@ if (current.dialect.name === 'mssql') {
       });
 
       // With tableHint - nolock
-      expectsql(modifiedGen.selectFromTableFragment({ tableHint: 'NOLOCK' }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(modifiedGen.selectFromTableFragment({ tableHint: TableHints.NOLOCK }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName WITH (NOLOCK)'
       });
 
       // With tableHint - NOWAIT
-      expectsql(modifiedGen.selectFromTableFragment({ tableHint: 'NOWAIT' }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(modifiedGen.selectFromTableFragment({ tableHint: TableHints.NOWAIT }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName WITH (NOWAIT)'
       });
 

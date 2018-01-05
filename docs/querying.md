@@ -434,14 +434,16 @@ Subtask.findAll({
 
 ## Table Hint
 
-`tableHint` can be used to optionally pass a table hint when using mssql. The hint must be a string and should only be used when absolutely necessary. Only a single table hint is currently supported per query. 
+`tableHint` can be used to optionally pass a table hint when using mssql. The hint must be a value from `Sequelize.TableHints` and should only be used when absolutely necessary. Only a single table hint is currently supported per query. 
 
 Table hints override the default behavior of mssql query optimizer by specifing certain options. They only affect the table or view referenced in that clause.
 
 ```js
+const TableHints = Sequelize.TableHints;
+
 Project.findAll({
   // adding the table hint NOLOCK
-  tableHint: 'NOLOCK'
+  tableHint: TableHints.NOLOCK
   // this will generate the SQL 'WITH (NOLOCK)'
 })
 ```
