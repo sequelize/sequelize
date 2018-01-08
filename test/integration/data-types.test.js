@@ -87,8 +87,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return Sequelize.ABSTRACT.prototype.stringify.apply(this, arguments);
     });
 
-    current.refreshTypes();
-
     const User = current.define('user', {
       field: Type
     }, {
@@ -96,6 +94,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
 
     return current.sync({ force: true }).then(() => {
+
+      current.refreshTypes();
+
       return User.create({
         field: value
       });
