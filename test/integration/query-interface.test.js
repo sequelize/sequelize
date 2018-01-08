@@ -903,7 +903,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         } else if (dialect === 'sqlite') {
           expect(keys).to.have.length(8);
         } else if (dialect === 'mysql' || dialect === 'mssql') {
-          expect(keys).to.have.length(1);
+          expect(keys).to.have.length(12);
         } else {
           console.log('This test doesn\'t support ' + dialect);
         }
@@ -920,6 +920,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }
         return;
       });
+    });
+
+    it('should get a list of foreign key references details for the table', function() {
+      return this.queryInterface.getForeignKeyReferencesForTable('hosts', this.sequelize.options)
+        .then(references => {
+          expect(references).to.have.length(3);
+          const keys = [];
+          _.each(references, reference => {
+            expect(reference.tableName).to.eql('hosts');
+            expect(reference.referencedColumnName).to.eql('id');
+            expect(reference.referencedTableName).to.eql('users');
+            keys.push(reference.columnName);
+          });
+          expect(keys).to.have.same.members(['owner', 'operator', 'admin']);
+        });
     });
   });
 
