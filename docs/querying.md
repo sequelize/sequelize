@@ -168,6 +168,7 @@ const Op = Sequelize.Op
 [Op.any]: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
 
 [Op.col]: 'user.organization_id' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
+[Op.match]: Sequelize.fn('plainto_tsquery', 'english', 'query') // @@ plainto_tsquery('english', 'query') (PG only)
 ```
 
 #### Range Operators
