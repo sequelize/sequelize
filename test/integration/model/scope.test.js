@@ -25,6 +25,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           withName: {
             attributes: ['username']
+          },
+          highAccess: {
+            where: {
+              [Sequelize.Op.or]: [
+                { access_level: { [Sequelize.Op.gte]: 5 } },
+                { access_level: { [Sequelize.Op.eq]: 10 } }
+              ]
+            }
           }
         }
       });
@@ -46,6 +54,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(record.other_value).to.exist;
           expect(record.username).to.exist;
           expect(record.access_level).to.exist;
+        });
+    });
+
+    it('should work with Symbol operators', function() {
+      return this.ScopeMe.scope('highAccess').findOne()
+        .then(record => {
+          expect(record.username).to.equal('tobi');
         });
     });
   });
