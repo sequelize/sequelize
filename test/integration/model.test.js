@@ -1649,6 +1649,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
     });
+
+    it('should work if model is paranoid and only operator in where clause is a Symbol', function() {
+      const User = this.sequelize.define('User', {
+        username: Sequelize.STRING
+      }, {
+        paranoid: true
+      });
+
+      return User.sync({ force: true})
+        .then(() => User.create({ username: 'foo' }))
+        .then(() => User.create({ username: 'bar' }))
+        .then(() => {
+          return User.destroy({
+            where: {
+              [Sequelize.Op.or]: [
+                { username: 'bar' },
+                { username: 'baz' }
+              ]
+            }
+          });
+        })
+        .then(() => User.findAll())
+        .then(users => {
+          expect(users).to.have.length(1);
+          expect(users[0].get('username')).to.equal('foo');
+        });
+    });
   });
 
   describe('restore', () => {

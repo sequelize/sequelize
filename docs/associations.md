@@ -615,7 +615,7 @@ Project.create({ /* */ }).then(project => {
 project.setUsers([user1, user2]).then(() => {
   return project.hasUsers([user1]);
 }).then(result => {
-  // result would be false
+  // result would be true
   return project.hasUsers([user1, user2]);
 }).then(result => {
   // result would be true

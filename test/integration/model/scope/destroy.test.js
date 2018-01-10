@@ -89,6 +89,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(users[2].get('username')).to.equal('fred');
         });
       });
+
+      it('should work with empty where', function() {
+        return this.ScopeMe.scope('lowAccess').destroy().then(() => {
+          return this.ScopeMe.unscoped().findAll();
+        }).then(users => {
+          expect(users).to.have.length(1);
+          expect(users[0].get('username')).to.equal('tobi');
+        });
+      });
     });
   });
 });
