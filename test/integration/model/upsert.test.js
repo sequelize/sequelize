@@ -193,6 +193,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(this.sequelize.ValidationError);
       });
 
+      it('supports skipping validations', function() {
+        const User = this.sequelize.define('user', {
+          email: {
+            type: Sequelize.STRING,
+            validate: {
+              isEmail: true
+            }
+          }
+        });
+
+        const options = { validate: false };
+        const email = 'notanemail';
+
+        return User.sync({ force: true })
+          .then(() => User.upsert({ email }, options))
+          .then(created => {
+            expect(created).to.be.true;
+          });
+      });
+
       it('works with BLOBs', function() {
         return this.User.upsert({ id: 42, username: 'john', blob: new Buffer('kaj') }).bind(this).then(function(created) {
           if (dialect === 'sqlite') {
