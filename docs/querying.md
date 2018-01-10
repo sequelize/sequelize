@@ -464,7 +464,7 @@ Subtask.findAll({
   // Will order by age ascending assuming ascending is the default order when direction is omitted
   order: sequelize.col('age')
 
-  // Will order by age randomly based on the dialect (instead of fn('RAND') or fn('RANDOM'))
+  // Will order randomly based on the dialect (instead of fn('RAND') or fn('RANDOM'))
   order: sequelize.random()
 })
 ```
