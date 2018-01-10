@@ -92,6 +92,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(users[0].get('email')).to.equal('dan@sequelizejs.com');
         });
       });
+
+      it('should work with empty where', function() {
+        return this.ScopeMe.scope('lowAccess').update({
+          username: 'ruby'
+        }).then(() => {
+          return this.ScopeMe.unscoped().findAll({ where: { username: 'ruby' }});
+        }).then(users => {
+          expect(users).to.have.length(3);
+          users.forEach(user => {
+            expect(user.get('username')).to.equal('ruby');
+          });
+        });
+      });
     });
   });
 });
