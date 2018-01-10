@@ -326,7 +326,7 @@ The JSON data type in PostgreSQL stores the value as plain text, as opposed to b
 
 MSSQL does not have a JSON data type, however it does provide support for JSON stored as strings through certain functions since SQL Server 2016. Using these functions, you will be able to query the JSON stored in the string, but any returned values will need to be parsed seperately. 
 
-```
+```js
 // ISJSON - to test if a string contains valid JSON
 User.findAll({
   where: sequelize.where(sequelize.fn('ISJSON', sequelize.col('userDetails')), 1)
