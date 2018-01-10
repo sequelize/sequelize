@@ -314,6 +314,40 @@ const operatorsAliases = {
 const connection = new Sequelize(db, user, pass, { operatorsAliases });
 ```
 
+### JSON
+
+The JSON data type is supported by the PostgreSQL, SQLite and MySQL dialects only. 
+
+#### PostgreSQL
+
+The JSON data type in PostgreSQL stores the value as plain text, as opposed to binary representation. If you simply want to store and retrieve a JSON representation, using JSON will take less disk space and less time to build from its input representation. However, if you want to do any operations on the JSON value, you should prefer the JSONB data type described below.
+
+#### MSSQL
+
+MSSQL does not have a JSON data type, however it does provide support for JSON stored as strings through certain functions since SQL Server 2016. Using these functions, you will be able to query the JSON stored in the string, but any returned values will need to be parsed seperately. 
+
+```
+// ISJSON - to test if a string contains valid JSON
+User.findAll({
+  where: sequelize.where(sequelize.fn('ISJSON', sequelize.col('userDetails')), 1)
+})
+
+// JSON_VALUE - extract a scalar value from a JSON string
+User.findAll({
+  attributes: [[ sequelize.fn('JSON_VALUE', sequelize.col('userDetails'), '$.address.Line1'), 'address line 1']]
+})
+
+// JSON_VALUE - query a scalar value from a JSON string
+User.findAll({
+  where: sequelize.where(sequelize.fn('JSON_VALUE', sequelize.col('userDetails'), '$.address.Line1'), '14, Foo Street')
+})
+
+// JSON_QUERY - extract an object or array
+User.findAll({
+  attributes: [[ sequelize.fn('JSON_QUERY', sequelize.col('userDetails'), '$.address'), 'full address']]
+})
+```
+
 ### JSONB
 
 JSONB can be queried in three different ways.
