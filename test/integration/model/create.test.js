@@ -697,6 +697,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(user).to.be.ok;
           expect(user.created_time).to.be.ok;
           expect(user.updated_time).to.be.ok;
+          expect(user.created_time.getMilliseconds()).not.to.equal(0);
+          expect(user.updated_time.getMilliseconds()).not.to.equal(0);
         });
       });
     });
