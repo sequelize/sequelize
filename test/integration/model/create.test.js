@@ -1404,6 +1404,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
     });
+
+    it('should allow creates using bind parameters', function() {
+      const User = this.sequelize.define('UserUsingBindParams', {
+        'name': {
+          type: DataTypes.STRING
+        },
+        'children': {
+          type: DataTypes.INTEGER
+        },
+        'dob': {
+          type: DataTypes.DATE
+        }
+      }, {
+        bindParams: true
+      });
+
+      const date = new Date();
+      return this.sequelize.sync({force: true}).then(() => {
+        return User.create({ name: 'Test', children: 2, dob: date }, { bindParams: true }).then(user => {
+          return User.findById(user.id).then(user => {
+            expect(user.name).to.equal('Test');
+            expect(user.children).to.equal(2);
+            expect(user.dob).to.be.ok;
+          });
+        });
+      });
+    });
   });
 
   it('should return autoIncrement primary key (create)', function() {
