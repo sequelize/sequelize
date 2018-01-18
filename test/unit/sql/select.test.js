@@ -339,6 +339,41 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
         +') AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];'
       });
+
+      var includeWithWhere = Model._validateIncludedElements({
+              include: [{
+                attributes: ['title'],
+                association: User.Posts,
+                where:{
+                  title:{
+                    like: 'Test%'
+                  }
+                }
+              }],
+              model: User
+            }).include;
+
+      testsql({
+        table: User.getTableName(),
+        model: User,
+        include: includeWithWhere,
+        attributes: [
+          'id_user',
+          'email',
+          'first_name',
+          'last_name'
+        ],
+        order: [['[last_name]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
+        limit: 30,
+        offset: 10,
+        hasMultiAssociation: true, //must be set only for mssql dialect here
+        subQuery: true
+      }, {
+        default: 'SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM ('+
+                      'SELECT DISTINCT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] INNER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] AND [POSTS].[title] LIKE \'Test%\' ORDER BY [user].[id] ASC '+
+                      sql.addLimitAndOffset({ limit: 30, offset:10, order: [['`user`.`last_name`', 'ASC']]})+
+                    ') AS [user] INNER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].[last_name];'
+      });
     })();
 
     it('include (left outer join)', () => {
