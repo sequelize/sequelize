@@ -66,7 +66,7 @@
     "cz-conventional-changelog": "^2.0.0",
     "env-cmd": "^7.0.0",
     "esdoc": "^0.5.2",
-    "eslint": "^4.6.0",
+    "eslint": "^4.16.0",
     "eslint-plugin-mocha": "^4.11.0",
     "hints": "^1.1.0",
     "husky": "^0.14.2",
