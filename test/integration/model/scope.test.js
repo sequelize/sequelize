@@ -33,6 +33,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 { access_level: { [Sequelize.Op.eq]: 10 } }
               ]
             }
+          },
+          lessThanFour: {
+            where: {
+              [Sequelize.Op.and]: [
+                { access_level: { [Sequelize.Op.lt]: 4 } }
+              ]
+            }
           }
         }
       });
@@ -61,6 +68,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.ScopeMe.scope('highAccess').findOne()
         .then(record => {
           expect(record.username).to.equal('tobi');
+          return this.ScopeMe.scope('lessThanFour').findAll();
+        })
+        .then(records => {
+          expect(records).to.have.length(2);
+          expect(records[0].get('access_level')).to.equal(3);
+          expect(records[1].get('access_level')).to.equal(3);
         });
     });
   });
