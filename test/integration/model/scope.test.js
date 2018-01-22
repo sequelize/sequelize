@@ -40,6 +40,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 { access_level: { [Sequelize.Op.lt]: 4 } }
               ]
             }
+          },
+          issue8473: {
+            where: {
+              [Sequelize.Op.or]: {
+                access_level: 3,
+                other_value: 10
+              },
+              access_level: 5
+            }
           }
         }
       });
@@ -74,6 +83,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(records).to.have.length(2);
           expect(records[0].get('access_level')).to.equal(3);
           expect(records[1].get('access_level')).to.equal(3);
+          return this.ScopeMe.scope('issue8473').findAll();
+        })
+        .then(records => {
+          expect(records).to.have.length(1);
+          expect(records[0].get('access_level')).to.equal(5);
+          expect(records[0].get('other_value')).to.equal(10);
         });
     });
   });
