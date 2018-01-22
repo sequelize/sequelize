@@ -15,6 +15,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     this.clock = sinon.useFakeTimers();
   });
 
+  after(function() {
+    this.clock.restore();
+  });
+
+  beforeEach(function() {
+    this.clock.reset();
+  });
+
   beforeEach(function() {
     this.User = this.sequelize.define('user', {
       username: DataTypes.STRING,
@@ -48,10 +56,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     return this.sequelize.sync({ force: true });
-  });
-
-  after(function() {
-    this.clock.restore();
   });
 
   if (current.dialect.supports.upserts) {
@@ -154,7 +158,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created2).to.be.ok;
           }
 
-
           this.clock.tick(1000);
           // Update the first one
           return User.upsert({ a: 'a', b: 'b', username: 'doe' });
@@ -200,7 +203,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           } else {
             expect(created).to.be.ok;
           }
-
 
           this.clock.tick(1000);
           return this.User.upsert({ id: 42, username: 'doe', blob: new Buffer('andrea') });
@@ -250,7 +252,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).to.be.ok;
           }
 
-
           this.clock.tick(1000);
           return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'second' });
         }).then(function(created) {
@@ -273,7 +274,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           } else {
             expect(created).to.be.ok;
           }
-
 
           this.clock.tick(1000);
           return this.User.upsert({ id: 42, username: 'doe', foo: this.sequelize.fn('upper', 'mixedCase2') });
@@ -521,6 +521,79 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               });
             }).then(users => {
               expect(users).to.have.lengthOf(2);
+            });
+          });
+        });
+      }
+
+      if (current.dialect.supports.returnValues) {
+        describe('with returning option', () => {
+          it('works with upsert on id', function() {
+            return this.User.upsert({ id: 42, username: 'john' }, { returning: true }).spread((user, created) => {
+              expect(user.get('id')).to.equal(42);
+              expect(user.get('username')).to.equal('john');
+              expect(created).to.be.true;
+
+              return this.User.upsert({ id: 42, username: 'doe' }, { returning: true });
+            }).spread((user, created) => {
+              expect(user.get('id')).to.equal(42);
+              expect(user.get('username')).to.equal('doe');
+              expect(created).to.be.false;
+            });
+          });
+
+          it('works for table with custom primary key field', function() {
+            const User = this.sequelize.define('User', {
+              id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+                field: 'id_the_primary'
+              },
+              username: {
+                type: DataTypes.STRING
+              }
+            });
+
+            return User.sync({ force: true }).then(() => {
+              return User.upsert({ id: 42, username: 'john' }, { returning: true });
+            }).spread((user, created) => {
+              expect(user.get('id')).to.equal(42);
+              expect(user.get('username')).to.equal('john');
+              expect(created).to.be.true;
+
+              return User.upsert({ id: 42, username: 'doe' }, { returning: true });
+            }).spread((user, created) => {
+              expect(user.get('id')).to.equal(42);
+              expect(user.get('username')).to.equal('doe');
+              expect(created).to.be.false;
+            });
+          });
+
+          it('works for non incrementing primaryKey', function() {
+            const User = this.sequelize.define('User', {
+              id: {
+                type: DataTypes.STRING,
+                primaryKey: true,
+                field: 'id_the_primary'
+              },
+              username: {
+                type: DataTypes.STRING
+              }
+            });
+
+            return User.sync({ force: true }).then(() => {
+              return User.upsert({ id: 'surya', username: 'john' }, { returning: true });
+            }).spread((user, created) => {
+              expect(user.get('id')).to.equal('surya');
+              expect(user.get('username')).to.equal('john');
+              expect(created).to.be.true;
+
+              return User.upsert({ id: 'surya', username: 'doe' }, { returning: true });
+            }).spread((user, created) => {
+              expect(user.get('id')).to.equal('surya');
+              expect(user.get('username')).to.equal('doe');
+              expect(created).to.be.false;
             });
           });
         });
