@@ -417,6 +417,28 @@ if (dialect === 'mysql') {
           arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` NOT REGEXP '^[h|a|t]';",
           context: QueryGenerator
+        }, {
+          title: 'Empty having',
+          arguments: ['myTable', function() {
+            return {
+              having: {}
+            };
+          }],
+          expectation: 'SELECT * FROM `myTable`;',
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'Having in subquery',
+          arguments: ['myTable', function() {
+            return {
+              subQuery: true,
+              tableAs: 'test',
+              having: { creationYear: { [Operators.gt]: 2002 } }
+            };
+          }],
+          expectation: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `creationYear` > 2002) AS `test`;',
+          context: QueryGenerator,
+          needsSequelize: true
         }
       ],
 
