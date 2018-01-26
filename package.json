@@ -83,7 +83,7 @@
     "sinon": "^4.2.0",
     "sinon-chai": "^2.14.0",
     "sqlite3": "^3.1.13",
-    "tedious": "1.14.0",
+    "tedious": "2.2.4",
     "uuid-validate": "^0.0.2",
     "validate-commit-msg": "^2.12.2"
   },
