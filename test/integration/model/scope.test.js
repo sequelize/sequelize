@@ -91,5 +91,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(records[0].get('other_value')).to.equal(10);
         });
     });
+
+    it('should keep symbols after default assignment', function() {
+      return this.ScopeMe.scope('highAccess').findOne()
+        .then(record => {
+          expect(record.username).to.equal('tobi');
+          return this.ScopeMe.scope('lessThanFour').findAll({
+            where: {}
+          });
+        })
+        .then(records => {
+          expect(records).to.have.length(2);
+          expect(records[0].get('access_level')).to.equal(3);
+          expect(records[1].get('access_level')).to.equal(3);
+          return this.ScopeMe.scope('issue8473').findAll();
+        });
+    });
   });
 });
