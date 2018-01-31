@@ -12,7 +12,7 @@
 
 <hr />
 
-[![Connected Cars logo](asset/connected-cars.png)](https://connectedcars.dk/)
+[![Connected Cars logo](asset/connected-cars.png)](https://connectedcars.io/)
 
 <hr />
 
