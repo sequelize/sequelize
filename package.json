@@ -71,7 +71,7 @@
     "hints": "^1.1.0",
     "husky": "^0.14.2",
     "istanbul": "^0.4.5",
-    "lcov-result-merger": "^1.2.0",
+    "lcov-result-merger": "^2.0.0",
     "mocha": "^5.0.0",
     "mysql2": "^1.5.1",
     "pg": "^6.1.0",
