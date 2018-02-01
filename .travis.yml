@@ -43,7 +43,7 @@ before_script:
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
 
 script:
-  - "if [ "$INSTALL_MODULE" ]; then npm install ${INSTALL_MODULE}; fi"
+  - 'if [ "$INSTALL_MODULE" ]; then npm install ${INSTALL_MODULE}; fi'
   - npm run lint
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
 
