@@ -139,8 +139,8 @@ Sequelize.DATEONLY                    // DATE without time.
 Sequelize.BOOLEAN                     // TINYINT(1)
 
 Sequelize.ENUM('value 1', 'value 2')  // An ENUM with allowed values 'value 1' and 'value 2'
-Sequelize.ARRAY(Sequelize.TEXT)       // Defines an array. PostgreSQL only.
-Sequelize.ARRAY(Sequelize.ENUM)       // Defines an array of ENUM. PostgreSQL only.
+Sequelize.ARRAY(Sequelize.TEXT)       // Defines an array. PostgreSQL & MySQL only.
+Sequelize.ARRAY(Sequelize.ENUM)       // Defines an array of ENUM. PostgreSQL & MySQL only.
 
 Sequelize.JSON                        // JSON column. PostgreSQL, SQLite and MySQL only.
 Sequelize.JSONB                       // JSONB column. PostgreSQL only.
