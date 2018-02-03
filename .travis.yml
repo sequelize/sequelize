@@ -43,6 +43,7 @@ before_script:
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
 
 script:
+  - 'if [ "$INSTALL_MODULE" ]; then npm install ${INSTALL_MODULE}; fi'
   - npm run lint
   - "if [ $COVERAGE ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
 
@@ -66,6 +67,10 @@ jobs:
     - stage: test
       node_js: '8'
       env: DIALECT=sqlite
+    - stage: test
+      node_js: '4'
+      sudo: required
+      env: POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true INSTALL_MODULE="pg@6.x pg-native@1.x"
     - stage: test
       node_js: '6'
       env: DIALECT=sqlite
