@@ -202,8 +202,6 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 })
 ```
 
-**Note:** `pg@^7.0.0` is currently not supported.
-
 ### MSSQL
 
 The library for MSSQL is`tedious@^1.7.0` You'll just need to define the dialect:

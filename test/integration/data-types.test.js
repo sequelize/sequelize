@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     // Restore some sanity by resetting all parsers
     switch (dialect) {
       case 'postgres':
-        const types = require('pg-types');
+        const types = this.sequelize.connectionManager.lib.types;
 
         _.each(DataTypes, dataType => {
           if (dataType.types && dataType.types.postgres) {
