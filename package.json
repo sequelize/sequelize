@@ -46,7 +46,6 @@
     "lodash": "^4.17.1",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
-    "pg-types": "^1.13.0",
     "retry-as-promised": "^2.3.1",
     "semver": "^5.5.0",
     "terraformer-wkt-parser": "^1.1.2",
