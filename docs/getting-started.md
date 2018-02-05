@@ -9,7 +9,7 @@ Sequelize is available via NPM and Yarn.
 $ npm install --save sequelize
 
 # And one of the following:
-$ npm install --save pg@6 pg-hstore #pg@7 is currently not supported
+$ npm install --save pg pg-hstore
 $ npm install --save mysql2
 $ npm install --save sqlite3
 $ npm install --save tedious // MSSQL
