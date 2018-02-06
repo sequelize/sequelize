@@ -39,6 +39,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.options.indexes[1].unique).to.eql(true);
     });
 
+    it('should not set rawAttributes when indexes are defined via property', () => {
+      const User = current.define('User', {
+        username: { type: DataTypes.STRING, unique: true }
+      });
+
+      expect(User.rawAttributes.username.unique).to.be.undefined;
+    });
+
     it('should not set rawAttributes when indexes are defined via options', () => {
       const User = current.define('User', {
         username: DataTypes.STRING
