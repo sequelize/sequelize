@@ -549,6 +549,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         } else if (dialect === 'mssql') {
           expect(logSql.indexOf('@0')).to.be.above(-1);
           expect(logSql.indexOf('@1')).to.be.above(-1);
+        } else if (dialect === 'mysql') {
+          expect(logSql.match(/\?/g).length).to.equal(2);
         }
       });
     });
