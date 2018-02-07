@@ -71,9 +71,7 @@ sequelize.query('SELECT * FROM users WHERE name LIKE :search_name ',
 ```
 
 ## Bind Parameter
-Bind parameters are like replacements. Except replacements are escaped and inserted into the query by sequelize before the query is sent to the database, while bind parameters are sent to the database outside the SQL query text. A query can have either bind parameters or replacements.
-
-Only SQLite and PostgreSQL support bind parameters. Other dialects will insert them into the SQL query in the same way it is done for replacements. Bind parameters are referred to by either $1, $2, ... (numeric) or $key (alpha-numeric). This is independent of the dialect.
+Bind parameters are like replacements. Except replacements are escaped and inserted into the query by sequelize before the query is sent to the database, while bind parameters are sent to the database outside the SQL query text. A query can have either bind parameters or replacements. Bind parameters are referred to by either $1, $2, ... (numeric) or $key (alpha-numeric). This is independent of the dialect.
 
 * If an array is passed, `$1` is bound to the 1st element in the array (`bind[0]`)
 * If an object is passed, `$key` is bound to `object['key']`. Each key must begin with a non-numeric char. `$1` is not a valid key, even if `object['1']` exists.
