@@ -80,7 +80,7 @@ Note that if you are using Sequelize migrations you will need to add the `create
 
 ```js
 module.exports = {
-  up(queryInterface, Sequelize) {
+  up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('my-table', {
       id: {
         type: Sequelize.INTEGER,
@@ -91,9 +91,9 @@ module.exports = {
       // Timestamps
       createdAt: Sequelize.DATE,
       updatedAt: Sequelize.DATE,
-    })
+    });
   },
-  down(queryInterface, Sequelize) {
+  down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('my-table');
   },
 }
