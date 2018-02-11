@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     it('should enforce a unique constraint', function() {
       const Model = this.sequelize.define('model', {
-        uniqueName: { type: Sequelize.STRING, unique: true }
+        uniqueName: { type: Sequelize.STRING, unique: 'uniqueName' }
       });
       const records = [
         { uniqueName: 'unique name one' },
