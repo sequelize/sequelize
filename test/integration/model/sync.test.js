@@ -130,6 +130,85 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('indexes', () => {
+      describe('with alter:true', () => {
+        it('should not duplicate named indexes after multiple sync calls', function() {
+          const User = this.sequelize.define('testSync', {
+            email: {
+              type: Sequelize.STRING
+            },
+            phone: {
+              type: Sequelize.STRING
+            },
+            mobile: {
+              type: Sequelize.STRING
+            }
+          }, {
+            indexes: [
+              { name: 'another_index_email_mobile', fields: ['email', 'mobile'] },
+              { name: 'another_index_phone_mobile', fields: ['phone', 'mobile'], unique: true },
+              { name: 'another_index_email', fields: ['email'] },
+              { name: 'another_index_mobile', fields: ['mobile'] },
+            ]
+          });
+
+          return User.sync({ sync: true })
+            .then(() => User.sync({ alter: true }))
+            .then(() => User.sync({ alter: true }))
+            .then(() => User.sync({ alter: true }))
+            .then(() => this.sequelize.getQueryInterface().showIndex(User.getTableName()))
+            .then(results => {
+              if (dialect === 'sqlite') {
+                // SQLite doesn't treat primary key as index
+                expect(results).to.have.length(4);
+              } else {
+                expect(results).to.have.length(4 + 1);
+                expect(results.filter(r => r.primary)).to.have.length(1);
+              }
+
+              expect(results.filter(r => r.name === 'another_index_email_mobile')).to.have.length(1);
+              expect(results.filter(r => r.name === 'another_index_phone_mobile')).to.have.length(1);
+              expect(results.filter(r => r.name === 'another_index_email')).to.have.length(1);
+              expect(results.filter(r => r.name === 'another_index_mobile')).to.have.length(1);
+            });
+        });
+
+        it('should not duplicate unnamed indexes after multiple sync calls', function() {
+          const User = this.sequelize.define('testSync', {
+            email: {
+              type: Sequelize.STRING
+            },
+            phone: {
+              type: Sequelize.STRING
+            },
+            mobile: {
+              type: Sequelize.STRING
+            }
+          }, {
+            indexes: [
+              { fields: ['email', 'mobile'] },
+              { fields: ['phone', 'mobile'], unique: true },
+              { fields: ['email'] },
+              { fields: ['mobile'] },
+            ]
+          });
+
+          return User.sync({ sync: true })
+            .then(() => User.sync({ alter: true }))
+            .then(() => User.sync({ alter: true }))
+            .then(() => User.sync({ alter: true }))
+            .then(() => this.sequelize.getQueryInterface().showIndex(User.getTableName()))
+            .then(results => {
+              if (dialect === 'sqlite') {
+                // SQLite doesn't treat primary key as index
+                expect(results).to.have.length(4);
+              } else {
+                expect(results).to.have.length(4 + 1);
+                expect(results.filter(r => r.primary)).to.have.length(1);
+              }
+            });
+        });
+      });
+
       it('should create only one unique index for unique:true column', function() {
         const User = this.sequelize.define('testSync', {
           email: {
