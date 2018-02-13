@@ -6,17 +6,12 @@ const chai = require('chai'),
   Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
   tedious = require('tedious'),
-  sinon = require('sinon'),
-  connectionStub = sinon.stub(tedious, 'Connection');
-
-connectionStub.returns({on() {}});
+  sinon = require('sinon');
 
 if (dialect === 'mssql') {
   describe('[MSSQL Specific] Connection Manager', () => {
-    let instance,
-      config;
-    beforeEach(() => {
-      config = {
+    beforeEach(function() {
+      this.config = {
         dialect: 'mssql',
         database: 'none',
         username: 'none',
@@ -28,17 +23,49 @@ if (dialect === 'mssql') {
           domain: 'TEST.COM'
         }
       };
-      instance = new Sequelize(config.database
-        , config.username
-        , config.password
-        , config);
+      this.instance = new Sequelize(
+        this.config.database,
+        this.config.username,
+        this.config.password,
+        this.config
+      );
+
+      this.connectionStub = sinon.stub(tedious, 'Connection');
     });
 
-    it('connectionManager._connect() Does not delete `domain` from config.dialectOptions',
-      () => {
-        expect(config.dialectOptions.domain).to.equal('TEST.COM');
-        instance.dialect.connectionManager._connect(config);
-        expect(config.dialectOptions.domain).to.equal('TEST.COM');
+    afterEach(function() {
+      this.connectionStub.restore();
+    });
+
+    it('connectionManager._connect() does not delete `domain` from config.dialectOptions', function() {
+      this.connectionStub.returns({on(event, cb) {
+        if (event === 'connect') {
+          setTimeout(() => {
+            cb();
+          }, 500);
+        }
+      }});
+
+      expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
+      return this.instance.dialect.connectionManager._connect(this.config).then(() => {
+        expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
       });
+    });
+
+    it('connectionManager._connect() should reject if end was called and connect was not', function() {
+      this.connectionStub.returns({ on(event, cb) {
+        if (event === 'end') {
+          setTimeout(() => {
+            cb();
+          }, 500);
+        }
+      } });
+
+      return this.instance.dialect.connectionManager._connect(this.config)
+        .catch(err => {
+          expect(err.name).to.equal('SequelizeConnectionError');
+          expect(err.parent).to.equal('Connection was closed by remote server');
+        });
+    });
   });
 }
