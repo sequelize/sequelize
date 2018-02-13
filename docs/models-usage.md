@@ -89,6 +89,8 @@ User.create({ username: 'fnord', job: 'omnomnom' })
 
 ... the existing entry will not be changed. See the `job` of the second user, and the fact that created was false.
 
+**Warning:** It is not always possible to handle this case in SQLite, specifically if one transaction inserts and another tries to select before the first one has committed. In this case, an instance of `sequelize.TimeoutError` will be thrown instead. If a transaction is created, a savepoint will be created instead, and any unique constraint violation will be handled internally.
+
 ### `findAndCountAll` - Search for multiple elements in the database, returns both data and total count
 
 This is a convenience method that combines`findAll` and `count` (see below) this is useful when dealing with queries related to pagination where you want to retrieve data with a `limit` and `offset` but also need to know the total number of records that match the query:
