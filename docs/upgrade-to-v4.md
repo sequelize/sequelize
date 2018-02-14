@@ -117,7 +117,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - `Hooks` should return Promises now. Callbacks are deprecated.
 - `required` inside include does not propagate up the include chain.
 
-  To get v3 compatible results you'll need to either set `required` on the containing include or you can use a hook to get v3 compatible results.
+  To get v3 compatible results you'll need to either set `required` on the containing include.
 
   Previous:
   ```js
@@ -157,33 +157,33 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
   });
   ```
 
-  Optional hook to get v3 behavior
+  Optionally you can add a `beforeFind` hook to get v3 compatible behavior -
   ```js
-  function whereRequiredLikeInV3(modelDescriptor) {
+  function propogateRequired(modelDescriptor) {
     let include = modelDescriptor.include;
     if (!include) {
-      return null;
+      return false;
     }
     if (!Array.isArray(include)) {
       include = [include];
     }
 
-    return include.reduce((requiredDescriptor, relatedModelDescriptor) => {
-      const childDescriptorRequired = whereRequiredLikeInV3(relatedModelDescriptor);
-      if ((relatedModelDescriptor.where || childDescriptorRequired) && typeof relatedModelDescriptor.required === 'undefined') {
-        relatedModelDescriptor.required = true;
+    return include.reduce((isRequired, descriptor) => {
+      const hasRequiredChild = propogateRequired(descriptor);
+      if ((descriptor.where || hasRequiredChild) && descriptor.required === undefined) {
+        descriptor.required = true;
       }
-      return relatedModelDescriptor.required ? relatedModelDescriptor : requiredDescriptor;
-    }, null);
+      return descriptor.required || isRequired;
+    }, false);
   }
   
   const sequelize = new Sequelize(..., {
     ...,
     define: {
       hooks: {
-        beforeFind: whereRequiredLikeInV3,
-      },
-    },
+        beforeFind: propogateRequired
+      }
+    }
   });
   ```
 
