@@ -159,14 +159,11 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 
   Optionally you can add a `beforeFind` hook to get v3 compatible behavior -
   ```js
-  function propogateRequired(modelDescriptor) {
+  function propagateRequired(modelDescriptor) {
     let include = modelDescriptor.include;
-    if (!include) {
-      return false;
-    }
-    if (!Array.isArray(include)) {
-      include = [include];
-    }
+    
+    if (!include) return false;
+    if (!Array.isArray(include)) include = [include];
 
     return include.reduce((isRequired, descriptor) => {
       const hasRequiredChild = propogateRequired(descriptor);
@@ -181,7 +178,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
     ...,
     define: {
       hooks: {
-        beforeFind: propogateRequired
+        beforeFind: propagateRequired
       }
     }
   });
