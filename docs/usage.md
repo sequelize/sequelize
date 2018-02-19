@@ -13,7 +13,7 @@ Furthermore you can specify a non-default host/port:
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'mysql'
+  dialect: 'mysql',
   host: "my.server.tld",
   port: 9821,
 })
