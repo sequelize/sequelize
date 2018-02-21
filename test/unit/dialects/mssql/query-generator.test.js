@@ -127,7 +127,7 @@ if (current.dialect.name === 'mssql') {
 
     test('dropSchema', () => {
       expectsql(QueryGenerator.dropSchema('mySchema'), {
-        mssql: 'IF EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = \'mySchema\' ) BEGIN EXEC sp_executesql N\'DROP SCHEMA [mySchema] ;\' END;'
+        mssql: 'IF EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = \'mySchema\' ) BEGIN DECLARE @id INT, @ms_sql NVARCHAR(2000); DECLARE @cascade TABLE ( id INT NOT NULL IDENTITY PRIMARY KEY, ms_sql NVARCHAR(2000) NOT NULL ) INSERT INTO @cascade ( ms_sql ) SELECT CASE WHEN o.type IN (\'F\',\'PK\') THEN N\'ALTER TABLE [\'+ s.name + N\'].[\' + p.name + N\'] DROP CONSTRAINT [\' + o.name + N\']\' ELSE N\'DROP TABLE [\'+ s.name + N\'].[\' + o.name + N\']\' END FROM sys.objects o JOIN sys.schemas s on o.schema_id = s.schema_id LEFT OUTER JOIN sys.objects p on o.parent_object_id = p.object_id WHERE o.type IN (\'F\', \'PK\', \'U\') AND s.name =  \'mySchema\' ORDER BY o.type ASC SELECT @id = id, @ms_sql = ms_sql FROM @cascade WHILE @id IS NOT NULL BEGIN BEGIN TRY EXEC sp_executesql @ms_sql; END TRY BEGIN CATCH BREAK; THROW; END CATCH; DELETE FROM @cascade WHERE id = @id; SELECT @id = NULL, @ms_sql = NULL; SELECT @id = id, @ms_sql = ms_sql FROM @cascade; END EXEC sp_executesql N\'DROP SCHEMA [mySchema] ;\' END;'
       });
     });
 

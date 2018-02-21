@@ -2227,13 +2227,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.sequelize.showAllSchemas().then(schemas => {
         expect(schemas).to.be.instanceof(Array);
 
-        // FIXME: reenable when schema support is properly added
-        if (dialect !== 'mssql') {
-          // sqlite & MySQL doesn't actually create schemas unless Model.sync() is called
-          // Postgres supports schemas natively
-          expect(schemas).to.have.length(dialect === 'postgres' ? 2 : 1);
-        }
-
+        // sqlite & MySQL doesn't actually create schemas unless Model.sync() is called
+        // Postgres supports schemas natively
+        expect(schemas).to.have.length(dialect === 'postgres' || dialect === 'mssql' ? 2 : 1);
       });
     });
 
@@ -2338,7 +2334,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       };
 
-      if (dialect === 'postgres') {
+      if (dialect === 'postgres' || dialect === 'mssql') {
         return this.sequelize.queryInterface.dropAllSchemas().then(() => {
           return self.sequelize.queryInterface.createSchema('prefix').then(() => {
             return run.call(self);
