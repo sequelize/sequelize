@@ -125,6 +125,12 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
+    test('dropSchema', () => {
+      expectsql(QueryGenerator.dropSchema('mySchema'), {
+        mssql: 'IF EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = \'mySchema\' ) BEGIN EXEC sp_executesql N\'DROP SCHEMA [mySchema] ;\' END;'
+      });
+    });
+
     test('showSchemasQuery', () => {
       expectsql(QueryGenerator.showSchemasQuery(), {
         mssql: 'SELECT "name" as "schema_name" FROM sys.schemas as s WHERE "s"."name" NOT IN ( \'INFORMATION_SCHEMA\', \'dbo\', \'guest\', \'sys\', \'archive\' ) AND "s"."name" NOT LIKE \'db_%\''
