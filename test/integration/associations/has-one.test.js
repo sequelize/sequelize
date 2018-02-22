@@ -117,6 +117,44 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         });
       });
     });
+
+    it('supports schemas', function() {
+      const User = this.sequelize.define('User', { username: Support.Sequelize.STRING }).schema('admin'),
+        Group = this.sequelize.define('Group', { name: Support.Sequelize.STRING }).schema('admin'),
+        self = this;
+
+      Group.hasOne(User);
+
+      return self.sequelize.dropAllSchemas().then(() => {
+        return self.sequelize.createSchema('admin');
+      }).then(() => {
+        return Group.sync({force: true });
+      }).then(() => {
+        return User.sync({force: true });
+      }).then(() => {
+        return Promise.all([
+          User.create({ username: 'foo' }),
+          User.create({ username: 'foo' }),
+          Group.create({ name: 'bar' })
+        ]);
+      }).spread((fakeUser, user, group) => {
+        return group.setUser(user).then(() => {
+          return Group.all().then(groups => {
+            return groups[0].getUser().then(associatedUser => {
+              expect(associatedUser).not.to.be.null;
+              expect(associatedUser.id).to.equal(user.id);
+              expect(associatedUser.id).not.to.equal(fakeUser.id);
+            });
+          });
+        });
+      }).then(() => {
+        return self.sequelize.dropSchema('admin').then(() => {
+          return self.sequelize.showAllSchemas().then(schemas => {
+            expect(schemas).to.be.empty;
+          });
+        });
+      });
+    });
   });
 
   describe('setAssociation', () => {

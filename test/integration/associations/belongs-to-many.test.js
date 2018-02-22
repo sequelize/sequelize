@@ -216,6 +216,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(project.ProjectUsers).to.be.ok;
         expect(project.status).not.to.exist;
         expect(project.ProjectUsers.status).to.equal('active');
+        return self.sequelize.dropSchema('acme').then(() => {
+          return self.sequelize.showAllSchemas().then(schemas => {
+            expect(schemas).to.be.empty;
+          });
+        });
       });
     });
 

@@ -317,6 +317,125 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             });
           });
         });
+
+        it('supports schemas', function() {
+          const User = this.sequelize.define('User', {}).schema('work'),
+            Task = this.sequelize.define('Task', {
+              title: DataTypes.STRING
+            }).schema('work'),
+            SubTask = this.sequelize.define('SubTask', {
+              title: DataTypes.STRING
+            }).schema('work'),
+            self = this;
+
+          User.Tasks = User.hasMany(Task, {as: 'tasks'});
+          Task.SubTasks = Task.hasMany(SubTask, {as: 'subtasks'});
+
+          return self.sequelize.dropAllSchemas().then(() => {
+            return self.sequelize.createSchema('work');
+          }).then(() => {
+            return User.sync({force: true});
+          }).then(() => {
+            return Task.sync({force: true});
+          }).then(() => {
+            return SubTask.sync({force: true});
+          }).then(() => {
+            return Promise.join(
+              User.create({
+                id: 1,
+                tasks: [
+                  {title: 'b', subtasks: [
+                    {title: 'c'},
+                    {title: 'a'}
+                  ]},
+                  {title: 'd'},
+                  {title: 'c', subtasks: [
+                    {title: 'b'},
+                    {title: 'a'},
+                    {title: 'c'}
+                  ]},
+                  {title: 'a', subtasks: [
+                    {title: 'c'},
+                    {title: 'a'},
+                    {title: 'b'}
+                  ]}
+                ]
+              }, {
+                include: [{association: User.Tasks, include: [Task.SubTasks]}]
+              }),
+              User.create({
+                id: 2,
+                tasks: [
+                  {title: 'a', subtasks: [
+                    {title: 'b'},
+                    {title: 'a'},
+                    {title: 'c'}
+                  ]},
+                  {title: 'c', subtasks: [
+                    {title: 'a'}
+                  ]},
+                  {title: 'b', subtasks: [
+                    {title: 'a'},
+                    {title: 'b'}
+                  ]}
+                ]
+              }, {
+                include: [{association: User.Tasks, include: [Task.SubTasks]}]
+              })
+            );
+          }).then(() => {
+            return User.findAll({
+              include: [{
+                association: User.Tasks,
+                limit: 2,
+                order: [['title', 'ASC']],
+                separate: true,
+                as: 'tasks',
+                include: [
+                  {
+                    association: Task.SubTasks,
+                    order: [['title', 'DESC']],
+                    separate: true,
+                    as: 'subtasks'
+                  }
+                ]
+              }],
+              order: [
+                ['id', 'ASC']
+              ]
+            }).then(users => {
+              expect(users[0].tasks.length).to.equal(2);
+
+              expect(users[0].tasks[0].title).to.equal('a');
+              expect(users[0].tasks[0].subtasks.length).to.equal(3);
+              expect(users[0].tasks[0].subtasks[0].title).to.equal('c');
+              expect(users[0].tasks[0].subtasks[1].title).to.equal('b');
+              expect(users[0].tasks[0].subtasks[2].title).to.equal('a');
+
+              expect(users[0].tasks[1].title).to.equal('b');
+              expect(users[0].tasks[1].subtasks.length).to.equal(2);
+              expect(users[0].tasks[1].subtasks[0].title).to.equal('c');
+              expect(users[0].tasks[1].subtasks[1].title).to.equal('a');
+
+              expect(users[1].tasks.length).to.equal(2);
+              expect(users[1].tasks[0].title).to.equal('a');
+              expect(users[1].tasks[0].subtasks.length).to.equal(3);
+              expect(users[1].tasks[0].subtasks[0].title).to.equal('c');
+              expect(users[1].tasks[0].subtasks[1].title).to.equal('b');
+              expect(users[1].tasks[0].subtasks[2].title).to.equal('a');
+
+              expect(users[1].tasks[1].title).to.equal('b');
+              expect(users[1].tasks[1].subtasks.length).to.equal(2);
+              expect(users[1].tasks[1].subtasks[0].title).to.equal('b');
+              expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
+              return self.sequelize.dropSchema('work').then(() => {
+                return self.sequelize.showAllSchemas().then(schemas => {
+                  expect(schemas).to.be.empty;
+                });
+              });
+            });
+          });
+        });
       });
     }
   });

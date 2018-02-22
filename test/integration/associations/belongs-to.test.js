@@ -143,6 +143,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         });
       }).then(user => {
         expect(user).to.be.ok;
+        return self.sequelize.dropSchema('archive').then(() => {
+          return self.sequelize.showAllSchemas().then(schemas => {
+            expect(schemas).to.be.empty;
+          });
+        });
       });
     });
   });
