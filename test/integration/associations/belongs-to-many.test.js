@@ -218,7 +218,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(project.ProjectUsers.status).to.equal('active');
         return self.sequelize.dropSchema('acme').then(() => {
           return self.sequelize.showAllSchemas().then(schemas => {
-            expect(schemas).to.be.empty;
+            if (dialect === 'postgres' || dialect === 'mssql') {
+              expect(schemas).to.be.empty;
+            }
           });
         });
       });

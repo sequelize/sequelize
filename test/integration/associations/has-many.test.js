@@ -430,7 +430,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
               return self.sequelize.dropSchema('work').then(() => {
                 return self.sequelize.showAllSchemas().then(schemas => {
-                  expect(schemas).to.be.empty;
+                  if (dialect === 'postgres' || dialect === 'mssql') {
+                    expect(schemas).to.be.empty;
+                  }
                 });
               });
             });
