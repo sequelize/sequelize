@@ -783,7 +783,7 @@ return Product.create({
   }
 }, {
   include: [{
-    association: Product.User,
+    model: Product.User,
     include: [ User.Addresses ]
   }]
 });
