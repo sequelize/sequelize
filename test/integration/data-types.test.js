@@ -16,29 +16,7 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('DataTypes'), () => {
   afterEach(function() {
     // Restore some sanity by resetting all parsers
-    switch (dialect) {
-      case 'postgres':
-        const types = require('pg-types');
-
-        _.each(DataTypes, dataType => {
-          if (dataType.types && dataType.types.postgres) {
-            dataType.types.postgres.oids.forEach(oid => {
-              types.setTypeParser(oid, _.identity);
-            });
-          }
-        });
-
-        require('pg-types/lib/binaryParsers').init((oid, converter) => {
-          types.setTypeParser(oid, 'binary', converter);
-        });
-        require('pg-types/lib/textParsers').init((oid, converter) => {
-          types.setTypeParser(oid, 'text', converter);
-        });
-        break;
-      default:
-        this.sequelize.connectionManager._clearTypeParser();
-    }
-
+    this.sequelize.connectionManager._clearTypeParser();
     this.sequelize.connectionManager.refreshTypeParser(DataTypes[dialect]); // Reload custom parsers
   });
 

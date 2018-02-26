@@ -161,7 +161,7 @@ if (dialect === 'mysql') {
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;'
         },
         {
-          arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {uniqueKeys: [{fields: ['title', 'name']}]}],
+          arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}, {uniqueKeys: [{fields: ['title', 'name'], customIndex: true}]}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), UNIQUE `uniq_myTable_title_name` (`title`, `name`)) ENGINE=InnoDB;'
         },
         {
@@ -417,6 +417,28 @@ if (dialect === 'mysql') {
           arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` NOT REGEXP '^[h|a|t]';",
           context: QueryGenerator
+        }, {
+          title: 'Empty having',
+          arguments: ['myTable', function() {
+            return {
+              having: {}
+            };
+          }],
+          expectation: 'SELECT * FROM `myTable`;',
+          context: QueryGenerator,
+          needsSequelize: true
+        }, {
+          title: 'Having in subquery',
+          arguments: ['myTable', function() {
+            return {
+              subQuery: true,
+              tableAs: 'test',
+              having: { creationYear: { [Operators.gt]: 2002 } }
+            };
+          }],
+          expectation: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `creationYear` > 2002) AS `test`;',
+          context: QueryGenerator,
+          needsSequelize: true
         }
       ],
 

@@ -273,6 +273,23 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       return this.sequelize.query(this.insertQuery);
     });
 
+    it('executes a query if a placeholder value is an array', function() {
+      return this.sequelize.query(`INSERT INTO ${qq(this.User.tableName)} (username, email_address, ` +
+        `${qq('createdAt')}, ${qq('updatedAt')}) VALUES ?;`, {
+        replacements: [[
+          ['john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],
+          ['michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10']
+        ]]
+      })
+        .then(() => this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+          type: this.sequelize.QueryTypes.SELECT
+        }))
+        .then(rows => {
+          expect(rows).to.be.lengthOf(2);
+          expect(rows[0].username).to.be.equal('john');
+          expect(rows[1].username).to.be.equal('michael');
+        });
+    });
 
     describe('logging', () => {
       it('executes a query with global benchmarking option and default logger', () => {
@@ -549,6 +566,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         } else if (dialect === 'mssql') {
           expect(logSql.indexOf('@0')).to.be.above(-1);
           expect(logSql.indexOf('@1')).to.be.above(-1);
+        } else if (dialect === 'mysql') {
+          expect(logSql.match(/\?/g).length).to.equal(2);
         }
       });
     });

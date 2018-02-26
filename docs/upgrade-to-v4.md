@@ -115,59 +115,72 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - Raw options for where, order and group like `where: { $raw: '..', order: [{ raw: '..' }], group: [{ raw: '..' }] }` have been removed to prevent SQL injection attacks.
 - `Sequelize.Utils` is not longer part of the public API, use it at your own risk
 - `Hooks` should return Promises now. Callbacks are deprecated.
-- `include` is always an array
+- `required` inside include does not propagate up the include chain.
+
+  To get v3 compatible results you'll need to either set `required` on the containing include.
 
   Previous:
   ```js
-  User.findAll({
+  user.findOne({
     include: {
-      model: Comment,
-      as: 'comments'
+      model: project,
+      include: {
+        model: task,
+        required: true
+      }
     }
-  })
+  });
   ```
-  
+
   New:
   ```js
-  User.findAll({
-    include: [{
-      model: Comment,
-      as: 'comments'
-    }]
-  })
+  User.findOne({
+    include: {
+      model: Project,
+      required: true,
+      include: {
+        model: Task,
+        required: true
+      }
+    }
+  });
+
+  User.findOne({
+    include: {
+      model: Project,
+      required: true,
+      include: {
+        model: Task,
+        where: {type: 'important'} //where cause required to default to true
+      }
+    }
+  });
   ```
 
-- `where` clause inside `include` does not make this `include` and all its parents `required`. You can use following `beforeFind` global hook to keep previous behaviour:
-
+  Optionally you can add a `beforeFind` hook to get v3 compatible behavior -
   ```js
-  function whereRequiredLikeInV3(modelDescriptor) {
-    if (!modelDescriptor.include) {
-      return false;
-    }
+  function propagateRequired(modelDescriptor) {
+    let include = modelDescriptor.include;
+    
+    if (!include) return false;
+    if (!Array.isArray(include)) include = [include];
 
-    return modelDescriptor.include.some(relatedModelDescriptor => {
-      const childDescriptorRequired = whereRequiredLikeInV3(
-        relatedModelDescriptor,
-      );
-
-      if (
-        (relatedModelDescriptor.where || childDescriptorRequired) &&
-        typeof relatedModelDescriptor.required === 'undefined'
-      ) {
-        relatedModelDescriptor.required = true;
+    return include.reduce((isRequired, descriptor) => {
+      const hasRequiredChild = propogateRequired(descriptor);
+      if ((descriptor.where || hasRequiredChild) && descriptor.required === undefined) {
+        descriptor.required = true;
       }
-
-      return relatedModelDescriptor.required;
-    });
+      return descriptor.required || isRequired;
+    }, false);
   }
   
   const sequelize = new Sequelize(..., {
     ...,
     define: {
       hooks: {
-        beforeFind: whereRequiredLikeInV3,
-      },
-    },
+        beforeFind: propagateRequired
+      }
+    }
   });
   ```
 
