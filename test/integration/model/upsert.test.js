@@ -212,7 +212,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true })
           .then(() => User.upsert({ email }, options))
           .then(created => {
-            expect(created).to.be.true;
+            if (dialect === 'sqlite') {
+              expect(created).to.be.undefined;
+            } else {
+              expect(created).to.be.okay;
+            }
           });
       });
 
