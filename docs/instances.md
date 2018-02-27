@@ -161,7 +161,7 @@ Task.bulkCreate([
   {subject: 'programming', status: 'finished'}
 ]).then(() => {
   return Task.update(
-    { status: 'inactive' }, /* set attributes' value */,
+    { status: 'inactive' }, /* set attributes' value */
     { where: { subject: 'programming' }} /* where criteria */
   );
 }).spread((affectedCount, affectedRows) => {
