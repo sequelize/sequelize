@@ -380,8 +380,7 @@ if (current.dialect.supports.groupedLimit) {
           Task = this.sequelize.define('Task', {
             id: { type: DataTypes.INTEGER, primaryKey: true },
             title: DataTypes.STRING
-          }, {schema: 'archive'}),
-          self = this;
+          }, {schema: 'archive'});
 
         User.Tasks = User.hasMany(Task, {as: 'tasks'});
 
@@ -425,8 +424,8 @@ if (current.dialect.supports.groupedLimit) {
                 expect(result[1].tasks.length).to.equal(2);
                 expect(result[1].tasks[0].title).to.equal('a');
                 expect(result[1].tasks[1].title).to.equal('c');
-                return self.sequelize.dropSchema('archive').then(() => {
-                  return self.sequelize.showAllSchemas().then(schemas => {
+                return this.sequelize.dropSchema('archive').then(() => {
+                  return this.sequelize.showAllSchemas().then(schemas => {
                     if (dialect === 'postgres' || dialect === 'mssql') {
                       expect(schemas).to.be.empty;
                     }

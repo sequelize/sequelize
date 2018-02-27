@@ -325,14 +325,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             }).schema('work'),
             SubTask = this.sequelize.define('SubTask', {
               title: DataTypes.STRING
-            }).schema('work'),
-            self = this;
+            }).schema('work');
 
           User.Tasks = User.hasMany(Task, {as: 'tasks'});
           Task.SubTasks = Task.hasMany(SubTask, {as: 'subtasks'});
 
-          return self.sequelize.dropAllSchemas().then(() => {
-            return self.sequelize.createSchema('work');
+          return this.sequelize.dropAllSchemas().then(() => {
+            return this.sequelize.createSchema('work');
           }).then(() => {
             return User.sync({force: true});
           }).then(() => {
@@ -428,8 +427,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               expect(users[1].tasks[1].subtasks.length).to.equal(2);
               expect(users[1].tasks[1].subtasks[0].title).to.equal('b');
               expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
-              return self.sequelize.dropSchema('work').then(() => {
-                return self.sequelize.showAllSchemas().then(schemas => {
+              return this.sequelize.dropSchema('work').then(() => {
+                return this.sequelize.showAllSchemas().then(schemas => {
                   if (dialect === 'postgres' || dialect === 'mssql') {
                     expect(schemas).to.be.empty;
                   }

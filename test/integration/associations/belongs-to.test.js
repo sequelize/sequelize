@@ -122,13 +122,12 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
     it('supports schemas', function() {
       const User = this.sequelize.define('UserXYZ', { username: Sequelize.STRING, gender: Sequelize.STRING }).schema('archive'),
-        Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING }).schema('archive'),
-        self = this;
+        Task = this.sequelize.define('TaskXYZ', { title: Sequelize.STRING, status: Sequelize.STRING }).schema('archive');
 
       Task.belongsTo(User);
 
-      return self.sequelize.dropAllSchemas().then(() => {
-        return self.sequelize.createSchema('archive');
+      return this.sequelize.dropAllSchemas().then(() => {
+        return this.sequelize.createSchema('archive');
       }).then(() => {
         return User.sync({force: true });
       }).then(() => {
@@ -144,8 +143,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         });
       }).then(user => {
         expect(user).to.be.ok;
-        return self.sequelize.dropSchema('archive').then(() => {
-          return self.sequelize.showAllSchemas().then(schemas => {
+        return this.sequelize.dropSchema('archive').then(() => {
+          return this.sequelize.showAllSchemas().then(schemas => {
             if (dialect === 'postgres' || dialect === 'mssql') {
               expect(schemas).to.be.empty;
             }
