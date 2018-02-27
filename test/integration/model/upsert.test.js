@@ -207,10 +207,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         const options = { validate: false };
-        const email = 'notanemail';
 
         return User.sync({ force: true })
-          .then(() => User.upsert({ email }, options))
+          .then(() => User.upsert({ id: 1, email: 'notanemail' }, options))
           .then(created => {
             if (dialect === 'sqlite') {
               expect(created).to.be.undefined;
