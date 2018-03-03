@@ -235,12 +235,16 @@ Tasks.bulkCreate([
   [
     { record:
     ...
+    name: 'SequelizeRecordLinkedError',
+    message: 'Validation error',
     errors:
       { name: 'SequelizeValidationError',
         message: 'Validation error',
         errors: [Object] } },
     { record:
       ...
+      name: 'SequelizeRecordLinkedError',
+      message: 'Validation error',
       errors:
         { name: 'SequelizeValidationError',
         message: 'Validation error',
