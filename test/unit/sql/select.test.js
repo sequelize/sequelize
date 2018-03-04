@@ -377,7 +377,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         expectsql(sql.selectQuery('User', {
           attributes: ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT)]
         }), {
-          default: 'SELECT \'* FROM [User]; DELETE FROM [User];SELECT [id]\' FROM [User];'
+          default: 'SELECT \'* FROM [User]; DELETE FROM [User];SELECT [id]\' FROM [User];',
+          mssql: 'SELECT [* FROM User; DELETE FROM User;SELECT id] FROM [User];'
         });
       });
 
@@ -393,7 +394,8 @@ suite(Support.getTestDialectTeaser('SQL'), function() {
         expectsql(sql.selectQuery('User', {
           attributes: ['a\', * FROM User; DELETE FROM User;SELECT id']
         }), {
-          default: "SELECT [a\', * FROM User; DELETE FROM User;SELECT id] FROM [User];"
+          default: "SELECT [a\', * FROM User; DELETE FROM User;SELECT id] FROM [User];",
+          mssql: "SELECT [a, * FROM User; DELETE FROM User;SELECT id] FROM [User];"
         });
       });
 
