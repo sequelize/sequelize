@@ -272,6 +272,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }))});
     });
 
+    it('allows multiple column unique keys to be defined on the same field', function() {
+      const User = this.sequelize.define('UserWithUniqueUsername', {
+        username: { type: Sequelize.STRING, unique: 'user_and_email' },
+        email: { type: Sequelize.STRING, unique: ['user_and_email', 'email_and_a'] },
+        aCol: { type: Sequelize.STRING, unique: ['a_and_b', 'email_and_a'] },
+        bCol: { type: Sequelize.STRING, unique: 'a_and_b' }
+      });
+
+      return User.sync({ force: true, logging: _.after(2, _.once(sql => {
+        if (dialect === 'mssql') {
+          expect(sql).to.match(/CONSTRAINT\s*([`"\[]?user_and_email[`"\]]?)?\s*UNIQUE\s*\([`"\[]?username[`"\]]?, [`"\[]?email[`"\]]?\)/);
+          expect(sql).to.match(/CONSTRAINT\s*([`"\[]?email_and_a[`"\]]?)?\s*UNIQUE\s*\([`"\[]?email[`"\]]?, [`"\[]?aCol[`"\]]?\)/);
+          expect(sql).to.match(/CONSTRAINT\s*([`"\[]?a_and_b[`"\]]?)?\s*UNIQUE\s*\([`"\[]?aCol[`"\]]?, [`"\[]?bCol[`"\]]?\)/);
+        } else {
+          expect(sql).to.match(/UNIQUE\s*([`"]?user_and_email[`"]?)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/);
+          expect(sql).to.match(/UNIQUE\s*([`"]?email_and_a[`"]?)?\s*\([`"]?email[`"]?, [`"]?aCol[`"]?\)/);
+          expect(sql).to.match(/UNIQUE\s*([`"]?a_and_b[`"]?)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/);
+        }
+      }))});
+    });
+
     it('allows unique on column with field aliases', function() {
       const User = this.sequelize.define('UserWithUniqueFieldAlias', {
         userName: { type: Sequelize.STRING, unique: 'user_name_unique', field: 'user_name' }
