@@ -2198,8 +2198,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('schematic support', () => {
     beforeEach(function() {
-      const self = this;
-
       this.UserPublic = this.sequelize.define('UserPublic', {
         age: Sequelize.INTEGER
       });
@@ -2208,11 +2206,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         age: Sequelize.INTEGER
       });
 
-      return self.sequelize.dropAllSchemas().then(() => {
-        return self.sequelize.createSchema('schema_test').then(() => {
-          return self.sequelize.createSchema('special').then(() => {
-            return self.UserSpecial.schema('special').sync({force: true}).then(UserSpecialSync => {
-              self.UserSpecialSync = UserSpecialSync;
+      return this.sequelize.dropAllSchemas().then(() => {
+        return this.sequelize.createSchema('schema_test').then(() => {
+          return this.sequelize.createSchema('special').then(() => {
+            return this.UserSpecial.schema('special').sync({force: true}).then(UserSpecialSync => {
+              this.UserSpecialSync = UserSpecialSync;
             });
           });
         });

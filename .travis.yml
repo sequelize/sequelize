@@ -7,6 +7,7 @@ branches:
   only:
     - master
     - v3
+    - v5
     - /^greenkeeper/.*$/
   except:
     - /^v\d+\.\d+\.\d+$/
@@ -50,29 +51,22 @@ script:
 jobs:
   include:
     - stage: test
-      node_js: '4'
+      node_js: '6'
       env: DIALECT=sqlite COVERAGE=true
     - stage: test
-      node_js: '4'
+      node_js: '6'
       sudo: required
       env: MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
     - stage: test
-      node_js: '4'
+      node_js: '6'
       sudo: required
       env: POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
     - stage: test
-      node_js: '4'
+      node_js: '6'
       sudo: required
       env: POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
     - stage: test
       node_js: '8'
-      env: DIALECT=sqlite
-    - stage: test
-      node_js: '4'
-      sudo: required
-      env: POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true INSTALL_MODULE="pg@6.x pg-native@1.x"
-    - stage: test
-      node_js: '6'
       env: DIALECT=sqlite
     - stage: release
       node_js: '8'

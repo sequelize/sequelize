@@ -214,7 +214,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             if (dialect === 'sqlite') {
               expect(created).to.be.undefined;
             } else {
-              expect(created).to.be.okay;
+              expect(created).to.be.ok;
             }
           });
       });

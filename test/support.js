@@ -156,11 +156,18 @@ const Support = {
   },
 
   getAbstractQueryGenerator(sequelize) {
-    return Object.assign(
-      {},
-      AbstractQueryGenerator,
-      {options: sequelize.options, _dialect: sequelize.dialect, sequelize, quoteIdentifier(identifier) { return identifier; }}
-    );
+    class ModdedQueryGenerator extends AbstractQueryGenerator {
+      quoteIdentifier(x) {
+        return x;
+      }
+    }
+
+    const queryGenerator = new ModdedQueryGenerator({
+      sequelize,
+      _dialect: sequelize.dialect
+    });
+
+    return queryGenerator;
   },
 
   getTestDialect() {

@@ -1,0 +1,3 @@
+- Node 6 and up
+- Op.$raw removed (was deprecated) (removed)
+- `Model.attributes` (removed)
