@@ -83,11 +83,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
   describe('bulkCreate', () => {
     it('bulk create with onDuplicateKeyUpdate', () => {
-      // Skip mssql for now, it seems broken
-      if (Support.getTestDialect() === 'mssql') {
-        return;
-      }
-
       const User = Support.sequelize.define('user', {
         username: {
           type: DataTypes.STRING,
@@ -109,10 +104,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: true
       });
 
-      expectsql(sql.bulkInsertQuery(User.tableName, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['username', 'password', 'updatedAt'] }, User.rawAttributes),
+      expectsql(sql.bulkInsertQuery(User.tableName, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'] }, User.fieldRawAttributesMap),
         {
           default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
           postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
+          mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (N\'testuser\',N\'12345\');',
           mysql: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);'
         });
     });
