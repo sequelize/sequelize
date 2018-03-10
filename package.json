@@ -4,29 +4,11 @@
   "version": "0.0.0-development",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
-    {
-      "name": "Sascha Depold",
-      "email": "sascha@depold.com"
-    },
-    {
-      "name": "Jan Aagaard Meier",
-      "email": [
-        "janzeh@gmail.com",
-        "jmei@itu.dk"
-      ]
-    },
-    {
-      "name": "Daniel Durante",
-      "email": "me@danieldurante.com"
-    },
-    {
-      "name": "Mick Hansen",
-      "email": "mick.kasper.hansen@gmail.com"
-    },
-    {
-      "name": "Sushant Dhiman",
-      "email": "sushantdhiman@outlook.com"
-    }
+    "Sascha Depold <sascha@depold.com>",
+    "Jan Aagaard Meier <janzeh@gmail.com>",
+    "Daniel Durante <me@danieldurante.com>",
+    "Mick Hansen <mick.kasper.hansen@gmail.com>",
+    "Sushant Dhiman <sushantdhiman@outlook.com>"
   ],
   "repository": {
     "type": "git",
@@ -55,6 +37,8 @@
     "wkx": "^0.4.1"
   },
   "devDependencies": {
+    "@semantic-release/github": "^4.2.6",
+    "@semantic-release/npm": "^3.2.2",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "chai-datetime": "^1.5.0",
@@ -151,11 +135,5 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  },
-  "release": {
-    "verifyConditions": [
-      "@semantic-release/npm",
-      "@semantic-release/github"
-    ]
   }
 }
