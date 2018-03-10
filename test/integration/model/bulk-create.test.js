@@ -17,7 +17,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
-        secretValue: DataTypes.STRING,
+        secretValue: {
+          type: DataTypes.STRING,
+          field: 'secret_value'
+        },
         data: DataTypes.STRING,
         intVal: DataTypes.INTEGER,
         theDate: DataTypes.DATE,
