@@ -18,7 +18,6 @@ let locationId;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.searchPath) {
-
     describe('SEARCH PATH', () => {
       before(function() {
         this.Restaurant = current.define('restaurant', {
@@ -27,7 +26,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
         {tableName: 'restaurants'});
         this.Location = current.define('location', {
-          name: DataTypes.STRING
+          name: DataTypes.STRING,
+          type: DataTypes.ENUM('a', 'b')
         },
         {tableName: 'locations'});
         this.Employee = current.define('employee', {
@@ -51,7 +51,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-
       beforeEach('build restaurant tables', function() {
         const Restaurant = this.Restaurant;
         return current.createSchema('schema_one').then(() => {
@@ -68,6 +67,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       afterEach('drop schemas', () => {
         return current.dropSchema('schema_one').then(() => {
           return current.dropSchema('schema_two');
+        });
+      });
+
+      describe('enum case', () => {
+        it('able to refresh enum when searchPath is used', function () {
+          return this.Location.sync({ force: true });
         });
       });
 
@@ -292,7 +297,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-
         it('should be able to insert and retrieve associated data into the table in schema_two', function() {
           const Restaurant = this.Restaurant;
           const Location = this.Location;
@@ -378,7 +382,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(restaurant.foo).to.equal('one');
           });
         });
-
 
         it('should be able to insert and retrieve associated data into the table in schema_two', function() {
           const Restaurant = this.Restaurant;
