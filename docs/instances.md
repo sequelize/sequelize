@@ -167,7 +167,7 @@ Task.bulkCreate([
 }).spread((affectedCount, affectedRows) => {
   // .update returns two values in an array, therefore we use .spread
   // Notice that affectedRows will only be defined in dialects which support returning: true
-  
+
   // affectedCount will be 2
   return Task.findAll();
 }).then(tasks => {
@@ -235,12 +235,16 @@ Tasks.bulkCreate([
   [
     { record:
     ...
+    name: 'SequelizeBulkRecordError',
+    message: 'Validation error',
     errors:
       { name: 'SequelizeValidationError',
         message: 'Validation error',
         errors: [Object] } },
     { record:
       ...
+      name: 'SequelizeBulkRecordError',
+      message: 'Validation error',
       errors:
         { name: 'SequelizeValidationError',
         message: 'Validation error',
