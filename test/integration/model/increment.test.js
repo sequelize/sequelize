@@ -4,8 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
-  sinon = require('sinon'),
-  _ = require('lodash');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function() {
