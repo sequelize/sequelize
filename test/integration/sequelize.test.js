@@ -1018,6 +1018,27 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         .to.be.rejectedWith('Database "cyber_bird" does not match sync match parameter "/$phoenix/"');
     });
 
+    it('won\'t create duplicated unique indexes', function() {
+      this.sequelize.define('User', {
+        phone: {
+          type: Sequelize.STRING,
+          unique: true
+        }
+      });
+
+      return this.sequelize.sync({ alert: true }).then(() => {
+        return this.sequelize.sync({ alert: true });
+      }).then(() => {
+        return this.sequelize.getQueryInterface()
+          .showIndex(this.sequelize.models.User.getTableName(), {});
+      }).then(indexes => {
+        expect(indexes.filter(index => {
+          return index.fields.some(field => field.attribute === 'phone');
+        })).to.be.length(1);
+        return this.sequelize.dropAllSchemas();
+      });
+    });
+
     if (dialect !== 'sqlite') {
       it('fails with incorrect database credentials (1)', function() {
         this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
