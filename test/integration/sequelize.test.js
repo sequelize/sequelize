@@ -1026,8 +1026,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         }
       });
 
-      return this.sequelize.sync({ alert: true }).then(() => {
-        return this.sequelize.sync({ alert: true });
+      return this.sequelize.sync({ alter: true }).then(() => {
+        return this.sequelize.sync({ alter: true });
       }).then(() => {
         return this.sequelize.getQueryInterface()
           .showIndex(this.sequelize.models.User.getTableName(), {});
