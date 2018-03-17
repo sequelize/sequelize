@@ -58,7 +58,7 @@ Task
 
 ## Creating persistent instances
 
-Besides constructing objects&comma; that needs an explicit save call to get stored in the database&comma; there is also the possibility to do all those steps with one single command&period; It's called `create`.
+While an instance created with `.build()` requires an explicit `.save()` call to be stored in the database&comma; `.create()` omits that requirement altogether and automatically stores your instance's data once called.
 
 ```js
 Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).then(task => {
