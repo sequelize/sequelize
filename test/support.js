@@ -222,7 +222,7 @@ const Support = {
     if (_.isError(query)) {
       expect(query.message).to.equal(expectation.message);
     } else {
-      expect(query).to.equal(expectation);
+      expect(query.query || query).to.equal(expectation);
     }
   }
 };
