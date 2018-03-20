@@ -2227,13 +2227,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.sequelize.showAllSchemas().then(schemas => {
         expect(schemas).to.be.instanceof(Array);
 
-        // FIXME: reenable when schema support is properly added
-        if (dialect !== 'mssql') {
-          // sqlite & MySQL doesn't actually create schemas unless Model.sync() is called
-          // Postgres supports schemas natively
-          expect(schemas).to.have.length(dialect === 'postgres' ? 2 : 1);
-        }
-
+        // sqlite & MySQL doesn't actually create schemas unless Model.sync() is called
+        // Postgres supports schemas natively
+        expect(schemas).to.have.length(dialect === 'postgres' || dialect === 'mssql' ? 2 : 1);
       });
     });
 
@@ -2338,7 +2334,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       };
 
-      if (dialect === 'postgres') {
+      if (dialect === 'postgres' || dialect === 'mssql') {
         return this.sequelize.queryInterface.dropAllSchemas().then(() => {
           return self.sequelize.queryInterface.createSchema('prefix').then(() => {
             return run.call(self);
@@ -2845,222 +2841,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         validate: true,
         individualHooks: true
       })).to.be.rejectedWith(Promise.AggregateError);
-    });
-  });
-
-  describe('increment', () => {
-    beforeEach(function() {
-      this.User = this.sequelize.define('User', {
-        id: { type: DataTypes.INTEGER, primaryKey: true },
-        aNumber: { type: DataTypes.INTEGER },
-        bNumber: { type: DataTypes.INTEGER },
-        cNumber: { type: DataTypes.INTEGER, field: 'c_number'}
-      });
-
-      const self = this;
-      return this.User.sync({ force: true }).then(() => {
-        return self.User.bulkCreate([{
-          id: 1,
-          aNumber: 0,
-          bNumber: 0
-        }, {
-          id: 2,
-          aNumber: 0,
-          bNumber: 0
-        }, {
-          id: 3,
-          aNumber: 0,
-          bNumber: 0
-        }, {
-          id: 4,
-          aNumber: 0,
-          bNumber: 0,
-          cNumber: 0
-        }]);
-      });
-    });
-
-    it('supports where conditions', function() {
-      const self = this;
-      return this.User.findById(1).then(() => {
-        return self.User.increment(['aNumber'], { by: 2, where: { id: 1 } }).then(() => {
-          return self.User.findById(2).then(user3 => {
-            expect(user3.aNumber).to.be.equal(0);
-          });
-        });
-      });
-    });
-
-    it('uses correct column names for where conditions', function() {
-      const self = this;
-      return this.User.increment(['aNumber'], {by: 2, where: {cNumber: 0}}).then(() => {
-        return self.User.findById(4).then(user4 => {
-          expect(user4.aNumber).to.be.equal(2);
-        });
-      });
-    });
-
-    it('should still work right with other concurrent increments', function() {
-      const self = this;
-      return this.User.findAll().then(aUsers => {
-        return self.sequelize.Promise.all([
-          self.User.increment(['aNumber'], { by: 2, where: {} }),
-          self.User.increment(['aNumber'], { by: 2, where: {} }),
-          self.User.increment(['aNumber'], { by: 2, where: {} })
-        ]).then(() => {
-          return self.User.findAll().then(bUsers => {
-            for (let i = 0; i < bUsers.length; i++) {
-              expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 6);
-            }
-          });
-        });
-      });
-    });
-
-    it('with array', function() {
-      const self = this;
-      return this.User.findAll().then(aUsers => {
-        return self.User.increment(['aNumber'], { by: 2, where: {} }).then(() => {
-          return self.User.findAll().then(bUsers => {
-            for (let i = 0; i < bUsers.length; i++) {
-              expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 2);
-            }
-          });
-        });
-      });
-    });
-
-    it('with single field', function() {
-      const self = this;
-      return this.User.findAll().then(aUsers => {
-        return self.User.increment('aNumber', { by: 2, where: {} }).then(() => {
-          return self.User.findAll().then(bUsers => {
-            for (let i = 0; i < bUsers.length; i++) {
-              expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 2);
-            }
-          });
-        });
-      });
-    });
-
-    it('with single field and no value', function() {
-      const self = this;
-      return this.User.findAll().then(aUsers => {
-        return self.User.increment('aNumber', { where: {}}).then(() => {
-          return self.User.findAll().then(bUsers => {
-            for (let i = 0; i < bUsers.length; i++) {
-              expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 1);
-            }
-          });
-        });
-      });
-    });
-
-    it('with key value pair', function() {
-      const self = this;
-      return this.User.findAll().then(aUsers => {
-        return self.User.increment({ 'aNumber': 1, 'bNumber': 2 }, { where: { }}).then(() => {
-          return self.User.findAll().then(bUsers => {
-            for (let i = 0; i < bUsers.length; i++) {
-              expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 1);
-              expect(bUsers[i].bNumber).to.equal(aUsers[i].bNumber + 2);
-            }
-          });
-        });
-      });
-    });
-
-    it('should still work right with other concurrent updates', function() {
-      const self = this;
-      return this.User.findAll().then(aUsers => {
-        return self.User.update({ 'aNumber': 2 }, { where: {} }).then(() => {
-          return self.User.increment(['aNumber'], { by: 2, where: {} }).then(() => {
-            return self.User.findAll().then(bUsers => {
-              for (let i = 0; i < bUsers.length; i++) {
-                expect(bUsers[i].aNumber).to.equal(aUsers[i].aNumber + 4);
-              }
-            });
-          });
-        });
-      });
-    });
-
-    it('with timestamps set to true', function() {
-      const User = this.sequelize.define('IncrementUser', {
-        aNumber: DataTypes.INTEGER
-      }, { timestamps: true });
-      let oldDate;
-
-      return User.sync({ force: true }).bind(this).then(() => {
-        return User.create({aNumber: 1});
-      }).then(function(user) {
-        oldDate = user.updatedAt;
-
-        this.clock.tick(1000);
-        return User.increment('aNumber', {by: 1, where: {}});
-      }).then(() => {
-        return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
-      });
-    });
-
-    it('with timestamps set to true and options.silent set to true', function() {
-      const User = this.sequelize.define('IncrementUser', {
-        aNumber: DataTypes.INTEGER
-      }, { timestamps: true });
-      let oldDate;
-
-      return User.sync({ force: true }).bind(this).then(() => {
-        return User.create({aNumber: 1});
-      }).then(function(user) {
-        oldDate = user.updatedAt;
-        this.clock.tick(1000);
-        return User.increment('aNumber', {by: 1, silent: true, where: { }});
-      }).then(() => {
-        return expect(User.findById(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
-      });
-    });
-
-    it('should work with scopes', function() {
-      const User = this.sequelize.define('User', {
-        aNumber: DataTypes.INTEGER,
-        name: DataTypes.STRING
-      }, {
-        scopes: {
-          jeff: {
-            where: {
-              name: 'Jeff'
-            }
-          }
-        }
-      });
-
-      return User.sync({ force: true }).then(() => {
-        return User.bulkCreate([
-          {
-            aNumber: 1,
-            name: 'Jeff'
-          },
-          {
-            aNumber: 3,
-            name: 'Not Jeff'
-          }
-        ]);
-      }).then(() => {
-        return User.scope('jeff').increment('aNumber', {
-        });
-      }).then(() => {
-        return User.scope('jeff').findOne();
-      }).then(jeff => {
-        expect(jeff.aNumber).to.equal(2);
-      }).then(() => {
-        return User.findOne({
-          where: {
-            name: 'Not Jeff'
-          }
-        });
-      }).then(notJeff => {
-        expect(notJeff.aNumber).to.equal(3);
-      });
     });
   });
 });

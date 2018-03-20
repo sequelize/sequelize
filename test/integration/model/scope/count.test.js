@@ -45,6 +45,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   priority: 1
                 }
               }]
+            },
+            withIncludeFunction: () => {
+              return {
+                include: [{
+                  model: this.Child,
+                  where: {
+                    priority: 1
+                  }
+                }]
+              };
+            },
+            withIncludeFunctionAndStringAssociation: () => {
+              return {
+                include: [{
+                  association: 'Children',
+                  where: {
+                    priority: 1
+                  }
+                }]
+              };
             }
           }
         });
@@ -99,6 +119,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to use where on include', function() {
         return expect(this.ScopeMe.scope('withInclude').count()).to.eventually.equal(1);
+      });
+
+      it('should be able to use include with function scope', function() {
+        return expect(this.ScopeMe.scope('withIncludeFunction').count()).to.eventually.equal(1);
+      });
+
+      it('should be able to use include with function scope and string association', function() {
+        return expect(this.ScopeMe.scope('withIncludeFunctionAndStringAssociation').count()).to.eventually.equal(1);
       });
     });
   });

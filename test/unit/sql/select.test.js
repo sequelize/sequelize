@@ -437,6 +437,136 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'SELECT [name], [age], [data] FROM [User] AS [User] WHERE [User].[data] IN (0x313233);'
       });
     });
+
+    suite('attribute escaping', () => {
+      test('plain attributes (1)', () => {
+        expectsql(sql.selectQuery('User', {
+          attributes: ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT)]
+        }), {
+          default: 'SELECT \'* FROM [User]; DELETE FROM [User];SELECT [id]\' FROM [User];',
+          mssql: 'SELECT [* FROM User; DELETE FROM User;SELECT id] FROM [User];'
+        });
+      });
+
+      test('plain attributes (2)', () => {
+        expectsql(sql.selectQuery('User', {
+          attributes: ['* FROM User; DELETE FROM User;SELECT id']
+        }), {
+          default: 'SELECT [* FROM User; DELETE FROM User;SELECT id] FROM [User];'
+        });
+      });
+
+      test('plain attributes (3)', () => {
+        expectsql(sql.selectQuery('User', {
+          attributes: ['a\', * FROM User; DELETE FROM User;SELECT id']
+        }), {
+          default: "SELECT [a\', * FROM User; DELETE FROM User;SELECT id] FROM [User];",
+          mssql: 'SELECT [a, * FROM User; DELETE FROM User;SELECT id] FROM [User];'
+        });
+      });
+
+      test('plain attributes (4)', () => {
+        expectsql(sql.selectQuery('User', {
+          attributes: ['*, COUNT(*) FROM User; DELETE FROM User;SELECT id']
+        }), {
+          default: 'SELECT [*, COUNT(*) FROM User; DELETE FROM User;SELECT id] FROM [User];'
+        });
+      });
+
+      test('aliased attributes (1)', () => {
+        expectsql(sql.selectQuery('User', {
+          attributes: [
+            ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'myCol']
+          ]
+        }), {
+          default: 'SELECT [* FROM User; DELETE FROM User;SELECT id] AS [myCol] FROM [User];'
+        });
+      });
+
+      test('aliased attributes (2)', () => {
+        expectsql(sql.selectQuery('User', {
+          attributes: [
+            ['* FROM User; DELETE FROM User;SELECT id', 'myCol']
+          ]
+        }), {
+          default: 'SELECT [* FROM User; DELETE FROM User;SELECT id] AS [myCol] FROM [User];'
+        });
+      });
+
+      test('aliased attributes (3)', () => {
+        expectsql(sql.selectQuery('User', {
+          attributes: [
+            ['id', '* FROM User; DELETE FROM User;SELECT id']
+          ]
+        }), {
+          default: 'SELECT [id] AS [* FROM User; DELETE FROM User;SELECT id] FROM [User];'
+        });
+      });
+
+      test('attributes from includes', () => {
+        const User = Support.sequelize.define('User', {
+          name: DataTypes.STRING,
+          age: DataTypes.INTEGER
+        },
+        {
+          freezeTableName: true
+        });
+        const Post = Support.sequelize.define('Post', {
+          title: DataTypes.STRING
+        },
+        {
+          freezeTableName: true
+        });
+
+        User.Posts = User.hasMany(Post, {foreignKey: 'user_id'});
+
+        expectsql(sql.selectQuery('User', {
+          attributes: ['name', 'age'],
+          include: Model._validateIncludedElements({
+            include: [{
+              attributes: ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT)],
+              association: User.Posts
+            }],
+            model: User
+          }).include,
+          model: User
+        }, User), {
+          default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM User; DELETE FROM User;SELECT id] AS [Posts.* FROM User; DELETE FROM User;SELECT id] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
+        });
+
+        expectsql(sql.selectQuery('User', {
+          attributes: ['name', 'age'],
+          include: Model._validateIncludedElements({
+            include: [{
+              attributes: [
+                ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'data']
+              ],
+              association: User.Posts
+            }],
+            model: User
+          }).include,
+          model: User
+        }, User), {
+          default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM User; DELETE FROM User;SELECT id] AS [Posts.data] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
+        });
+
+        expectsql(sql.selectQuery('User', {
+          attributes: ['name', 'age'],
+          include: Model._validateIncludedElements({
+            include: [{
+              attributes: [
+                ['* FROM User; DELETE FROM User;SELECT id', 'data']
+              ],
+              association: User.Posts
+            }],
+            model: User
+          }).include,
+          model: User
+        }, User), {
+          default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM User; DELETE FROM User;SELECT id] AS [Posts.data] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
+        });
+      });
+    });
   });
 
   suite('queryIdentifiersFalse', () => {

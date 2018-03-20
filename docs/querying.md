@@ -418,7 +418,7 @@ Project.findAll({ offset: 5, limit: 5 })
 ```js
 Subtask.findAll({
   order: [
-    // Will escape username and validate DESC against a list of valid direction parameters
+    // Will escape title and validate DESC against a list of valid direction parameters
     ['title', 'DESC'],
 
     // Will order by max(age)

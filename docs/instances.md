@@ -58,7 +58,7 @@ Task
 
 ## Creating persistent instances
 
-Besides constructing objects&comma; that needs an explicit save call to get stored in the database&comma; there is also the possibility to do all those steps with one single command&period; It's called `create`.
+While an instance created with `.build()` requires an explicit `.save()` call to be stored in the database&comma; `.create()` omits that requirement altogether and automatically stores your instance's data once called.
 
 ```js
 Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).then(task => {
@@ -161,13 +161,13 @@ Task.bulkCreate([
   {subject: 'programming', status: 'finished'}
 ]).then(() => {
   return Task.update(
-    { status: 'inactive' }, /* set attributes' value */,
+    { status: 'inactive' }, /* set attributes' value */
     { where: { subject: 'programming' }} /* where criteria */
   );
 }).spread((affectedCount, affectedRows) => {
   // .update returns two values in an array, therefore we use .spread
   // Notice that affectedRows will only be defined in dialects which support returning: true
-  
+
   // affectedCount will be 2
   return Task.findAll();
 }).then(tasks => {
@@ -235,12 +235,16 @@ Tasks.bulkCreate([
   [
     { record:
     ...
+    name: 'SequelizeBulkRecordError',
+    message: 'Validation error',
     errors:
       { name: 'SequelizeValidationError',
         message: 'Validation error',
         errors: [Object] } },
     { record:
       ...
+      name: 'SequelizeBulkRecordError',
+      message: 'Validation error',
       errors:
         { name: 'SequelizeValidationError',
         message: 'Validation error',
