@@ -51,3 +51,8 @@ __DEV__: _Done, no deprecation_
 ## Changelog
 
 
+### 5.0.0-beta
+
+- `Model.attributes` now removed, use `Model.rawAttributes` [#5320](https://github.com/sequelize/sequelize/issues/5320)
+- `paranoid` mode will now treat any record with `deletedAt` as deleted [#8496](https://github.com/sequelize/sequelize/issues/8496)
+- Node 6 and up [#9015](https://github.com/sequelize/sequelize/issues/9015)
