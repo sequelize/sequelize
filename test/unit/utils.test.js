@@ -12,7 +12,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
   suite('merge', () => {
     test('does not clone sequelize models', () => {
       const User = Support.sequelize.define('user');
-      const merged = Utils.merge({}, { include: [{model : User }]});
+      const merged = Utils.merge({}, { include: [{model: User }]});
       const merged2 = Utils.merge({}, { user: User });
 
       expect(merged.include[0].model).to.equal(User);
@@ -38,6 +38,34 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
     test('return plain object', () => {
       chai.assert.deepEqual({}, Utils.toDefaultValue({}));
+    });
+  });
+
+  suite('defaults', () => {
+    test('defaults normal object', () => {
+      expect(Utils.defaults(
+        { a: 1, c: 3},
+        { b: 2 },
+        { c: 4, d: 4 }
+      )).to.eql({
+        a: 1,
+        b: 2,
+        c: 3,
+        d: 4
+      });
+    });
+
+    test('defaults symbol keys', () => {
+      expect(Utils.defaults(
+        { a: 1, [Symbol.for('c')]: 3},
+        { b: 2 },
+        { [Symbol.for('c')]: 4, [Symbol.for('d')]: 4 }
+      )).to.eql({
+        a: 1,
+        b: 2,
+        [Symbol.for('c')]: 3,
+        [Symbol.for('d')]: 4
+      });
     });
   });
 
@@ -245,25 +273,25 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     const logger = Utils.getLogger();
 
     test('deprecate', () => {
-      expect(logger.deprecate).to.be.function;
+      expect(logger.deprecate).to.be.a('function');
       logger.deprecate('test deprecation');
     });
 
     test('debug', () => {
-      expect(logger.debug).to.be.function;
+      expect(logger.debug).to.be.a('function');
       logger.debug('test debug');
     });
 
     test('warn', () => {
-      expect(logger.warn).to.be.function;
+      expect(logger.warn).to.be.a('function');
       logger.warn('test warning');
     });
 
     test('debugContext',  () => {
-      expect(logger.debugContext).to.be.function;
+      expect(logger.debugContext).to.be.a('function');
       const testLogger = logger.debugContext('test');
 
-      expect(testLogger).to.be.function;
+      expect(testLogger).to.be.a('function');
       expect(testLogger.namespace).to.be.eql('sequelize:test');
     });
   });

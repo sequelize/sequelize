@@ -8,13 +8,6 @@ const dialect = Support.getTestDialect();
 const Sequelize = Support.Sequelize;
 const current = Support.sequelize;
 const _ = require('lodash');
-let count = 0;
-const log = function() {
-  // sqlite fires a lot more querys than the other dbs. this is just a simple hack, since i'm lazy
-  if (dialect !== 'sqlite' || count === 0) {
-    count++;
-  }
-};
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function() {
@@ -138,6 +131,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             tableName: 'table'
           }).then(indexes => {
             expect(indexes.length).to.eq(1);
+            const index = indexes[0];
+            expect(index.name).to.eq('table_name_is_admin');
           });
         });
       });
@@ -229,17 +224,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('should correctly determine the primary key columns', function() {
       const self = this;
       const Country = self.sequelize.define('_Country', {
-        code:     {type: DataTypes.STRING, primaryKey: true },
-        name:     {type: DataTypes.STRING, allowNull: false}
+        code: {type: DataTypes.STRING, primaryKey: true },
+        name: {type: DataTypes.STRING, allowNull: false}
       }, { freezeTableName: true });
       const Alumni = self.sequelize.define('_Alumni', {
-        year:     {type: DataTypes.INTEGER, primaryKey: true },
-        num:      {type: DataTypes.INTEGER, primaryKey: true },
+        year: {type: DataTypes.INTEGER, primaryKey: true },
+        num: {type: DataTypes.INTEGER, primaryKey: true },
         username: {type: DataTypes.STRING, allowNull: false, unique: true },
-        dob:      {type: DataTypes.DATEONLY, allowNull: false },
-        dod:      {type: DataTypes.DATEONLY, allowNull: true },
-        city:     {type: DataTypes.STRING, allowNull: false},
-        ctrycod:  {type: DataTypes.STRING, allowNull: false,
+        dob: {type: DataTypes.DATEONLY, allowNull: false },
+        dod: {type: DataTypes.DATEONLY, allowNull: true },
+        city: {type: DataTypes.STRING, allowNull: false},
+        ctrycod: {type: DataTypes.STRING, allowNull: false,
           references: { model: Country, key: 'code'}}
       }, { freezeTableName: true });
 
@@ -449,148 +444,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
   });
 
-  describe('changeColumn', () => {
-    it('should support schemas', function() {
-      return this.sequelize.createSchema('archive').bind(this).then(function() {
-        return this.queryInterface.createTable({
-          tableName: 'users',
-          schema: 'archive'
-        }, {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-          },
-          currency: DataTypes.INTEGER
-        }).bind(this).then(function() {
-          return this.queryInterface.changeColumn({
-            tableName: 'users',
-            schema: 'archive'
-          }, 'currency', {
-            type: DataTypes.FLOAT
-          });
-        }).then(function() {
-          return this.queryInterface.describeTable({
-            tableName: 'users',
-            schema: 'archive'
-          });
-        }).then(table => {
-          if (dialect === 'postgres' || dialect === 'postgres-native') {
-            expect(table.currency.type).to.equal('DOUBLE PRECISION');
-          } else {
-            expect(table.currency.type).to.equal('FLOAT');
-          }
-        });
-      });
-    });
-
-    it('should change columns', function() {
-      return this.queryInterface.createTable({
-        tableName: 'users'
-      }, {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true
-        },
-        currency: DataTypes.INTEGER
-      }).bind(this).then(function() {
-        return this.queryInterface.changeColumn('users', 'currency', {
-          type: DataTypes.FLOAT,
-          allowNull: true
-        });
-      }).then(function() {
-        return this.queryInterface.describeTable({
-          tableName: 'users'
-        });
-      }).then(table => {
-        if (dialect === 'postgres' || dialect === 'postgres-native') {
-          expect(table.currency.type).to.equal('DOUBLE PRECISION');
-        } else {
-          expect(table.currency.type).to.equal('FLOAT');
-        }
-      });
-    });
-
-    // MSSQL doesn't support using a modified column in a check constraint.
-    // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
-    if (dialect !== 'mssql') {
-      it('should work with enums', function() {
-        return this.queryInterface.createTable({
-          tableName: 'users'
-        }, {
-          firstName: DataTypes.STRING
-        }).bind(this).then(function() {
-          return this.queryInterface.changeColumn('users', 'firstName', {
-            type: DataTypes.ENUM(['value1', 'value2', 'value3'])
-          });
-        });
-      });
-
-      it('should work with enums with schemas', function() {
-        return this.sequelize.createSchema('archive').bind(this).then(function() {
-          return this.queryInterface.createTable({
-            tableName: 'users',
-            schema: 'archive'
-          }, {
-            firstName: DataTypes.STRING
-          });
-        }).bind(this).then(function() {
-          return this.queryInterface.changeColumn({
-            tableName: 'users',
-            schema: 'archive'
-          }, 'firstName', {
-            type: DataTypes.ENUM(['value1', 'value2', 'value3'])
-          });
-        });
-      });
-    }
-  });
-
-  //SQlite navitely doesnt support ALTER Foreign key
-  if (dialect !== 'sqlite') {
-    describe('should support foreign keys', () => {
-      beforeEach(function() {
-        return this.queryInterface.createTable('users', {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-          },
-          level_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-          }
-        })
-          .bind(this).then(function() {
-            return this.queryInterface.createTable('level', {
-              id: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                autoIncrement: true
-              }
-            });
-          });
-      });
-
-      it('able to change column to foreign key', function() {
-        return this.queryInterface.changeColumn('users', 'level_id', {
-          type: DataTypes.INTEGER,
-          references: {
-            model: 'level',
-            key:   'id'
-          },
-          onUpdate: 'cascade',
-          onDelete: 'cascade'
-        }, {logging: log}).then(() => {
-          expect(count).to.be.equal(1);
-          count = 0;
-        });
-      });
-
-    });
-  }
-
   describe('addColumn', () => {
     beforeEach(function() {
       return this.sequelize.createSchema('archive').bind(this).then(function() {
@@ -616,7 +469,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: DataTypes.INTEGER,
           references: {
             model: 'level',
-            key:   'id'
+            key: 'id'
           },
           onUpdate: 'cascade',
           onDelete: 'set null'
@@ -667,181 +520,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
   });
 
-  describe('removeColumn', () => {
-    describe('(without a schema)', () => {
-      beforeEach(function() {
-        return this.queryInterface.createTable('users', {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
-          },
-          firstName: {
-            type: DataTypes.STRING,
-            defaultValue: 'Someone'
-          },
-          lastName: {
-            type: DataTypes.STRING
-          },
-          manager: {
-            type: DataTypes.INTEGER,
-            references: {
-              model: 'users',
-              key:   'id'
-            }
-          },
-          email: {
-            type: DataTypes.STRING,
-            unique: true
-          }
-        });
-      });
-
-      it('should be able to remove a column with a default value', function() {
-        return this.queryInterface.removeColumn('users', 'firstName').bind(this).then(function() {
-          return this.queryInterface.describeTable('users');
-        }).then(table => {
-          expect(table).to.not.have.property('firstName');
-        });
-      });
-
-      it('should be able to remove a column without default value', function() {
-        return this.queryInterface.removeColumn('users', 'lastName').bind(this).then(function() {
-          return this.queryInterface.describeTable('users');
-        }).then(table => {
-          expect(table).to.not.have.property('lastName');
-        });
-      });
-
-      it('should be able to remove a column with a foreign key constraint', function() {
-        return this.queryInterface.removeColumn('users', 'manager').bind(this).then(function() {
-          return this.queryInterface.describeTable('users');
-        }).then(table => {
-          expect(table).to.not.have.property('manager');
-        });
-      });
-
-      it('should be able to remove a column with primaryKey', function() {
-        return this.queryInterface.removeColumn('users', 'manager').bind(this).then(function() {
-          return this.queryInterface.describeTable('users');
-        }).then(function(table) {
-          expect(table).to.not.have.property('manager');
-          return this.queryInterface.removeColumn('users', 'id');
-        }).then(function() {
-          return this.queryInterface.describeTable('users');
-        }).then(table => {
-          expect(table).to.not.have.property('id');
-        });
-      });
-
-      // From MSSQL documentation on ALTER COLUMN:
-      //    The modified column cannot be any one of the following:
-      //      - Used in a CHECK or UNIQUE constraint.
-      // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql#arguments
-      if (dialect !== 'mssql') {
-        it('should be able to remove a column with unique contraint', function() {
-          return this.queryInterface.removeColumn('users', 'email').bind(this).then(function() {
-            return this.queryInterface.describeTable('users');
-          }).then(table => {
-            expect(table).to.not.have.property('email');
-          });
-        });
-      }
-    });
-
-    describe('(with a schema)', () => {
-      beforeEach(function() {
-        return this.sequelize.createSchema('archive').bind(this).then(function() {
-          return this.queryInterface.createTable({
-            tableName: 'users',
-            schema: 'archive'
-          }, {
-            id: {
-              type: DataTypes.INTEGER,
-              primaryKey: true,
-              autoIncrement: true
-            },
-            firstName: {
-              type: DataTypes.STRING,
-              defaultValue: 'Someone'
-            },
-            lastName: {
-              type: DataTypes.STRING
-            },
-            email: {
-              type: DataTypes.STRING,
-              unique: true
-            }
-          });
-        });
-      });
-
-      it('should be able to remove a column with a default value', function() {
-        return this.queryInterface.removeColumn({
-          tableName: 'users',
-          schema: 'archive'
-        }, 'firstName'
-        ).bind(this).then(function() {
-          return this.queryInterface.describeTable({
-            tableName: 'users',
-            schema: 'archive'
-          });
-        }).then(table => {
-          expect(table).to.not.have.property('firstName');
-        });
-      });
-
-      it('should be able to remove a column without default value', function() {
-        return this.queryInterface.removeColumn({
-          tableName: 'users',
-          schema: 'archive'
-        }, 'lastName'
-        ).bind(this).then(function() {
-          return this.queryInterface.describeTable({
-            tableName: 'users',
-            schema: 'archive'
-          });
-        }).then(table => {
-          expect(table).to.not.have.property('lastName');
-        });
-      });
-
-      it('should be able to remove a column with primaryKey', function() {
-        return this.queryInterface.removeColumn({
-          tableName: 'users',
-          schema: 'archive'
-        }, 'id').bind(this).then(function() {
-          return this.queryInterface.describeTable({
-            tableName: 'users',
-            schema: 'archive'
-          });
-        }).then(table => {
-          expect(table).to.not.have.property('id');
-        });
-      });
-
-      // From MSSQL documentation on ALTER COLUMN:
-      //    The modified column cannot be any one of the following:
-      //      - Used in a CHECK or UNIQUE constraint.
-      // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql#arguments
-      if (dialect !== 'mssql') {
-        it('should be able to remove a column with unique contraint', function() {
-          return this.queryInterface.removeColumn({
-            tableName: 'users',
-            schema: 'archive'
-          }, 'email').bind(this).then(function() {
-            return this.queryInterface.describeTable({
-              tableName: 'users',
-              schema: 'archive'
-            });
-          }).then(table => {
-            expect(table).to.not.have.property('email');
-          });
-        });
-      }
-    });
-  });
-
   describe('describeForeignKeys', () => {
     beforeEach(function() {
       return this.queryInterface.createTable('users', {
@@ -861,14 +539,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             type: DataTypes.INTEGER,
             references: {
               model: 'users',
-              key:   'id'
+              key: 'id'
             }
           },
           operator: {
             type: DataTypes.INTEGER,
             references: {
               model: 'users',
-              key:   'id'
+              key: 'id'
             },
             onUpdate: 'cascade'
           },
@@ -876,7 +554,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             type: DataTypes.INTEGER,
             references: {
               model: 'users',
-              key:   'id'
+              key: 'id'
             },
             onUpdate: 'cascade',
             onDelete: 'set null'
@@ -901,7 +579,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         } else if (dialect === 'sqlite') {
           expect(keys).to.have.length(8);
         } else if (dialect === 'mysql' || dialect === 'mssql') {
-          expect(keys).to.have.length(1);
+          expect(keys).to.have.length(12);
         } else {
           console.log('This test doesn\'t support ' + dialect);
         }
@@ -918,6 +596,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }
         return;
       });
+    });
+
+    it('should get a list of foreign key references details for the table', function() {
+      return this.queryInterface.getForeignKeyReferencesForTable('hosts', this.sequelize.options)
+        .then(references => {
+          expect(references).to.have.length(3);
+          const keys = [];
+          _.each(references, reference => {
+            expect(reference.tableName).to.eql('hosts');
+            expect(reference.referencedColumnName).to.eql('id');
+            expect(reference.referencedTableName).to.eql('users');
+            keys.push(reference.columnName);
+          });
+          expect(keys).to.have.same.members(['owner', 'operator', 'admin']);
+        });
     });
   });
 

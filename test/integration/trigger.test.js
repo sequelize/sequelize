@@ -26,14 +26,14 @@ if (current.dialect.supports.tmpTableTrigger) {
         User = this.sequelize.define('user', {
           username: {
             type: Sequelize.STRING,
-            field:'user_name'
+            field: 'user_name'
           }
         }, {
-          hasTrigger:true
+          hasTrigger: true
         });
 
         return User.sync({force: true}).bind(this).then(function() {
-          return this.sequelize.query(triggerQuery, {type:this.sequelize.QueryTypes.RAW});
+          return this.sequelize.query(triggerQuery, {type: this.sequelize.QueryTypes.RAW});
         });
       });
 

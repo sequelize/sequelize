@@ -137,6 +137,24 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           expect(mainComment.get('title')).to.equal('I am a future main comment');
         });
       });
+      it('should create included association with scope values', function() {
+        return this.sequelize.sync({force: true}).then(() => {
+          return this.Post.create({
+            mainComment: {
+              title: 'I am a main comment created with a post'
+            }
+          }, {
+            include: [{model: this.Comment, as: 'mainComment'}]
+          });
+        }).then(post => {
+          expect(post.mainComment.get('commentable')).to.equal('post');
+          expect(post.mainComment.get('isMain')).to.be.true;
+          return this.Post.scope('withMainComment').findById(post.id);
+        }).then(post => {
+          expect(post.mainComment.get('commentable')).to.equal('post');
+          expect(post.mainComment.get('isMain')).to.be.true;
+        });
+      });
     });
 
     describe('1:M', () => {
@@ -243,6 +261,30 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           });
         }).then(() => {
           expect(logs[0]).to.equal(logs[1]);
+        });
+      });
+      it('should created included association with scope values', function() {
+        return this.sequelize.sync({force: true}).then(() => {
+          return this.Post.create({
+            comments: [{
+              title: 'I am a comment created with a post'
+            }, {
+              title: 'I am a second comment created with a post'
+            }]
+          }, {
+            include: [{model: this.Comment, as: 'comments'}]
+          });
+        }).then(post => {
+          this.post = post;
+          return post.comments;
+        }).each(comment => {
+          expect(comment.get('commentable')).to.equal('post');
+        }).then(() => {
+          return this.Post.scope('withComments').findById(this.post.id);
+        }).then(post => {
+          return post.getComments();
+        }).each(comment => {
+          expect(comment.get('commentable')).to.equal('post');
         });
       });
     });

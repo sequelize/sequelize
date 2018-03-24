@@ -93,6 +93,22 @@ Post.findAll({
 });
 // SELECT * FROM post WHERE authorId = 12 AND status = 'active';
 
+Post.findAll({
+  where: {
+    [Op.or]: [{authorId: 12}, {authorId: 13}]
+  }
+});
+// SELECT * FROM post WHERE authorId = 12 OR authorId = 13;
+
+Post.findAll({
+  where: {
+    authorId: {
+      [Op.or]: [12, 13]
+    }
+  }
+});
+// SELECT * FROM post WHERE authorId = 12 OR authorId = 13;
+
 Post.destroy({
   where: {
     status: 'inactive'
@@ -253,7 +269,7 @@ const connection = new Sequelize(db, user, pass, { operatorsAliases: false });
 const connection2 = new Sequelize(db, user, pass, { operatorsAliases: { $and: Op.and } });
 ```
 
-Sequelize will warn you if your using the default aliases and not limiting them
+Sequelize will warn you if you're using the default aliases and not limiting them
 if you want to keep using all default aliases (excluding legacy ones) without the warning you can pass the following operatorsAliases option -
 
 ```js
@@ -296,6 +312,40 @@ const operatorsAliases = {
 };
 
 const connection = new Sequelize(db, user, pass, { operatorsAliases });
+```
+
+### JSON
+
+The JSON data type is supported by the PostgreSQL, SQLite and MySQL dialects only. 
+
+#### PostgreSQL
+
+The JSON data type in PostgreSQL stores the value as plain text, as opposed to binary representation. If you simply want to store and retrieve a JSON representation, using JSON will take less disk space and less time to build from its input representation. However, if you want to do any operations on the JSON value, you should prefer the JSONB data type described below.
+
+#### MSSQL
+
+MSSQL does not have a JSON data type, however it does provide support for JSON stored as strings through certain functions since SQL Server 2016. Using these functions, you will be able to query the JSON stored in the string, but any returned values will need to be parsed seperately. 
+
+```js
+// ISJSON - to test if a string contains valid JSON
+User.findAll({
+  where: sequelize.where(sequelize.fn('ISJSON', sequelize.col('userDetails')), 1)
+})
+
+// JSON_VALUE - extract a scalar value from a JSON string
+User.findAll({
+  attributes: [[ sequelize.fn('JSON_VALUE', sequelize.col('userDetails'), '$.address.Line1'), 'address line 1']]
+})
+
+// JSON_VALUE - query a scalar value from a JSON string
+User.findAll({
+  where: sequelize.where(sequelize.fn('JSON_VALUE', sequelize.col('userDetails'), '$.address.Line1'), '14, Foo Street')
+})
+
+// JSON_QUERY - extract an object or array
+User.findAll({
+  attributes: [[ sequelize.fn('JSON_QUERY', sequelize.col('userDetails'), '$.address'), 'full address']]
+})
 ```
 
 ### JSONB
@@ -368,7 +418,7 @@ Project.findAll({ offset: 5, limit: 5 })
 ```js
 Subtask.findAll({
   order: [
-    // Will escape username and validate DESC against a list of valid direction parameters
+    // Will escape title and validate DESC against a list of valid direction parameters
     ['title', 'DESC'],
 
     // Will order by max(age)
@@ -404,7 +454,7 @@ Subtask.findAll({
     // Will order by a nested associated model's created_at simple association objects.
     [{model: Task, as: 'Task'}, {model: Project, as: 'Project'}, 'createdAt', 'DESC']
   ]
-  
+
   // Will order by max age descending
   order: sequelize.literal('max(age) DESC')
 
@@ -413,5 +463,24 @@ Subtask.findAll({
 
   // Will order by age ascending assuming ascending is the default order when direction is omitted
   order: sequelize.col('age')
+
+  // Will order randomly based on the dialect (instead of fn('RAND') or fn('RANDOM'))
+  order: sequelize.random()
+})
+```
+
+## Table Hint
+
+`tableHint` can be used to optionally pass a table hint when using mssql. The hint must be a value from `Sequelize.TableHints` and should only be used when absolutely necessary. Only a single table hint is currently supported per query. 
+
+Table hints override the default behavior of mssql query optimizer by specifing certain options. They only affect the table or view referenced in that clause.
+
+```js
+const TableHints = Sequelize.TableHints;
+
+Project.findAll({
+  // adding the table hint NOLOCK
+  tableHint: TableHints.NOLOCK
+  // this will generate the SQL 'WITH (NOLOCK)'
 })
 ```

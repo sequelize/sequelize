@@ -95,8 +95,8 @@ This is a convenience method that combines`findAll` and `count` (see below) this
 
 The success handler will always receive an object with two properties:
 
-* `count` - an integer, total number records matching the where clause
-* `rows` - an array of objects, the records matching the where clause, within the limit and offset range
+* `count` - an integer, total number records matching the where clause and other filters due to associations
+* `rows` - an array of objects, the records matching the where clause and other filters due to associations, within the limit and offset range
 
 ```js
 Project
@@ -115,7 +115,7 @@ Project
   });
 ```
 
-`findAndCountAll` also supports includes. Only the includes that are marked as `required` will be added to the count part:
+It support includes. Only the includes that are marked as `required` will be added to the count part:
 
 Suppose you want to find all users who have a profile attached:
 ```js
@@ -292,20 +292,18 @@ Notice how in the two examples above, the string provided is inserted verbatim i
 ```js
 something.findOne({
   order: [
-    'name',
     // will return `name`
-    'username DESC',
-    // will return `username DESC` -- i.e. don't do it!
-    ['username', 'DESC'],
+    ['name'],
     // will return `username` DESC
-    sequelize.fn('max', sequelize.col('age')),
+    ['username', 'DESC'],
     // will return max(`age`)
-    [sequelize.fn('max', sequelize.col('age')), 'DESC'],
+    sequelize.fn('max', sequelize.col('age')),
     // will return max(`age`) DESC
-    [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
+    [sequelize.fn('max', sequelize.col('age')), 'DESC'],
     // will return otherfunction(`col1`, 12, 'lalala') DESC
-    [sequelize.fn('otherfunction', sequelize.fn('awesomefunction', sequelize.col('col'))), 'DESC']
+    [sequelize.fn('otherfunction', sequelize.col('col1'), 12, 'lalala'), 'DESC'],
     // will return otherfunction(awesomefunction(`col`)) DESC, This nesting is potentially infinite!
+    [sequelize.fn('otherfunction', sequelize.fn('awesomefunction', sequelize.col('col'))), 'DESC']
   ]
 })
 ```
@@ -317,7 +315,7 @@ To recap, the elements of the order/group array can be the following:
 * Object -
   * Raw will be added verbatim without quoting
   * Everything else is ignored, and if raw is not set, the query will fail
-* Sequelize.fn and Sequelize.col returns functions and quoted cools
+* Sequelize.fn and Sequelize.col returns functions and quoted column names
 
 ### Raw queries
 

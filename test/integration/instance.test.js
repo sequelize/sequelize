@@ -16,6 +16,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     this.clock = sinon.useFakeTimers();
   });
 
+  afterEach(function() {
+    this.clock.reset();
+  });
+
   after(function() {
     this.clock.restore();
   });
@@ -51,6 +55,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         defaultValue: false
       }
     });
+
     return this.User.sync({ force: true });
   });
 
@@ -151,6 +156,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         return this.User.findById(1).then(user1 => {
           return user1.increment('aNumber', { by: 2 }).then(() => {
             expect(user1.aNumber).to.be.equal(2);
+            return user1.increment('bNumber', { by: 2, returning: false }).then(user3 => {
+              expect(user3.bNumber).to.be.equal(0);
+            });
           });
         });
       });
@@ -249,18 +257,21 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = this.sequelize.define('IncrementUser', {
         aNumber: DataTypes.INTEGER
       }, { timestamps: true });
+
       let oldDate;
 
-      return User.sync({ force: true }).bind(this).then(() => {
-        return User.create({aNumber: 1});
-      }).then(function(user) {
-        oldDate = user.updatedAt;
+      return User.sync({ force: true })
+        .then(() => User.create({ aNumber: 1 }))
+        .then(user => {
+          oldDate = user.get('updatedAt');
 
-        this.clock.tick(1000);
-        return user.increment('aNumber', {by: 1});
-      }).then(() => {
-        return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
-      });
+          this.clock.tick(1000);
+          return user.increment('aNumber', { by: 1 });
+        })
+        .then(user => user.reload())
+        .then(user => {
+          return expect(user).to.have.property('updatedAt').afterTime(oldDate);
+        });
     });
 
     it('with timestamps set to true and options.silent set to true', function() {
@@ -315,6 +326,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         return this.User.findById(1).then(user1 => {
           return user1.decrement('aNumber', { by: 2 }).then(() => {
             expect(user1.aNumber).to.be.equal(-2);
+            return user1.decrement('bNumber', { by: 2, returning: false }).then(user3 => {
+              expect(user3.bNumber).to.be.equal(0);
+            });
           });
         });
       });
@@ -398,13 +412,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it('with negative value', function () {
+    it('with negative value', function() {
       const self = this;
       return this.User.findById(1).then(user1 => {
         return self.sequelize.Promise.all([
           user1.decrement('aNumber', { by: -2 }),
           user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
-          user1.decrement({ 'aNumber': -1, 'bNumber': -2 }),
+          user1.decrement({ 'aNumber': -1, 'bNumber': -2 })
         ]).then(() => {
           return self.User.findById(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(+5);
@@ -941,9 +955,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should work on a model with an attribute named length', function() {
       const Box = this.sequelize.define('box', {
-        length : DataTypes.INTEGER,
-        width : DataTypes.INTEGER,
-        height : DataTypes.INTEGER
+        length: DataTypes.INTEGER,
+        width: DataTypes.INTEGER,
+        height: DataTypes.INTEGER
       });
 
       return Box.sync({force: true}).then(() => {
@@ -1162,11 +1176,20 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('updates the timestamps', function() {
-      const now = new Date(),
-        user = this.User.build({ username: 'user' });
+      const now = new Date();
+      now.setMilliseconds(0);
 
+      const user = this.User.build({ username: 'user' });
       this.clock.tick(1000);
-      return expect(user.save()).to.eventually.have.property('updatedAt').afterTime(now);
+
+      return user.save().then(savedUser => {
+        expect(savedUser).have.property('updatedAt').afterTime(now);
+
+        this.clock.tick(1000);
+        return savedUser.save();
+      }).then(updatedUser => {
+        expect(updatedUser).have.property('updatedAt').afterTime(now);
+      });
     });
 
     it('does not update timestamps when passing silent=true', function() {
@@ -1212,15 +1235,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('when nothing changed', () => {
-
-      beforeEach(function() {
-        this.clock = sinon.useFakeTimers();
-      });
-
-      afterEach(function() {
-        this.clock.restore();
-      });
-
       it('does not update timestamps', function() {
         const self = this;
         return self.User.create({ username: 'John' }).then(() => {
@@ -1531,139 +1545,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                     });
                   });
                 });
-              });
-            });
-          });
-        });
-      });
-    });
-  });
-
-  describe('many to many relations', () => {
-    let udo;
-    beforeEach(function() {
-      const self = this;
-      this.User = this.sequelize.define('UserWithUsernameAndAgeAndIsAdmin', {
-        username: DataTypes.STRING,
-        age: DataTypes.INTEGER,
-        isAdmin: DataTypes.BOOLEAN
-      }, {timestamps: false});
-
-      this.Project = this.sequelize.define('NiceProject',
-        { title: DataTypes.STRING }, {timestamps: false});
-
-      this.Project.hasMany(this.User);
-      this.User.hasMany(this.Project);
-
-      return this.User.sync({ force: true }).then(() => {
-        return self.Project.sync({ force: true }).then(() => {
-          return self.User.create({ username: 'fnord', age: 1, isAdmin: true })
-            .then(user => {
-              udo = user;
-            });
-        });
-      });
-    });
-
-    it.skip('Should assign a property to the instance', function() {
-      // @thanpolas rethink this test, it doesn't make sense, a relation has
-      // to be created first in the beforeEach().
-      return this.User.findOne({id: udo.id})
-        .then(user => {
-          user.NiceProjectId = 1;
-          expect(user.NiceProjectId).to.equal(1);
-        });
-    });
-  });
-
-  describe('toJSON', () => {
-    beforeEach(function() {
-      const self = this;
-      this.User = this.sequelize.define('UserWithUsernameAndAgeAndIsAdmin', {
-        username: DataTypes.STRING,
-        age: DataTypes.INTEGER,
-        isAdmin: DataTypes.BOOLEAN
-      }, { timestamps: false });
-
-      this.Project = this.sequelize.define('NiceProject', { title: DataTypes.STRING }, { timestamps: false });
-
-      this.User.hasMany(this.Project, { as: 'Projects', foreignKey: 'lovelyUserId' });
-      this.Project.belongsTo(this.User, { as: 'LovelyUser', foreignKey: 'lovelyUserId' });
-
-      return this.User.sync({ force: true }).then(() => {
-        return self.Project.sync({ force: true });
-      });
-    });
-
-    it("dont return instance that isn't defined", function() {
-      const self = this;
-      return self.Project.create({ lovelyUserId: null })
-        .then(project => {
-          return self.Project.findOne({
-            where: {
-              id: project.id
-            },
-            include: [
-              { model: self.User, as: 'LovelyUser' }
-            ]
-          });
-        })
-        .then(project => {
-          const json = project.toJSON();
-          expect(json.LovelyUser).to.be.equal(null);
-        });
-    });
-
-    it("dont return instances that aren't defined", function() {
-      const self = this;
-      return self.User.create({ username: 'cuss' })
-        .then(user => {
-          return self.User.findOne({
-            where: {
-              id: user.id
-            },
-            include: [
-              { model: self.Project, as: 'Projects' }
-            ]
-          });
-        })
-        .then(user => {
-          expect(user.Projects).to.be.instanceof(Array);
-          expect(user.Projects).to.be.length(0);
-        });
-    });
-
-    it('returns an object containing all values', function() {
-      const user = this.User.build({ username: 'test.user', age: 99, isAdmin: true });
-      expect(user.toJSON()).to.deep.equal({ username: 'test.user', age: 99, isAdmin: true, id: null });
-    });
-
-    it('returns a response that can be stringified', function() {
-      const user = this.User.build({ username: 'test.user', age: 99, isAdmin: true });
-      expect(JSON.stringify(user)).to.deep.equal('{"id":null,"username":"test.user","age":99,"isAdmin":true}');
-    });
-
-    it('returns a response that can be stringified and then parsed', function() {
-      const user = this.User.build({ username: 'test.user', age: 99, isAdmin: true });
-      expect(JSON.parse(JSON.stringify(user))).to.deep.equal({ username: 'test.user', age: 99, isAdmin: true, id: null });
-    });
-
-    it('includes the eagerly loaded associations', function() {
-      const self = this;
-      return this.User.create({ username: 'fnord', age: 1, isAdmin: true }).then(user => {
-        return self.Project.create({ title: 'fnord' }).then(project => {
-          return user.setProjects([project]).then(() => {
-            return self.User.findAll({include: [{ model: self.Project, as: 'Projects' }]}).then(users => {
-              const _user = users[0];
-
-              expect(_user.Projects).to.exist;
-              expect(JSON.parse(JSON.stringify(_user)).Projects).to.exist;
-
-              return self.Project.findAll({include: [{ model: self.User, as: 'LovelyUser' }]}).then(projects => {
-                const _project = projects[0];
-
-                expect(_project.LovelyUser).to.exist;
-                expect(JSON.parse(JSON.stringify(_project)).LovelyUser).to.exist;
               });
             });
           });

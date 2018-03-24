@@ -5,7 +5,8 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
-  current = Support.sequelize;
+  current = Support.sequelize,
+  dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('HasOne'), () => {
   describe('Model.associations', () => {
@@ -113,6 +114,45 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
                 });
               });
             });
+          });
+        });
+      });
+    });
+
+    it('supports schemas', function() {
+      const User = this.sequelize.define('User', { username: Support.Sequelize.STRING }).schema('admin'),
+        Group = this.sequelize.define('Group', { name: Support.Sequelize.STRING }).schema('admin');
+
+      Group.hasOne(User);
+
+      return this.sequelize.dropAllSchemas().then(() => {
+        return this.sequelize.createSchema('admin');
+      }).then(() => {
+        return Group.sync({force: true });
+      }).then(() => {
+        return User.sync({force: true });
+      }).then(() => {
+        return Promise.all([
+          User.create({ username: 'foo' }),
+          User.create({ username: 'foo' }),
+          Group.create({ name: 'bar' })
+        ]);
+      }).spread((fakeUser, user, group) => {
+        return group.setUser(user).then(() => {
+          return Group.all().then(groups => {
+            return groups[0].getUser().then(associatedUser => {
+              expect(associatedUser).not.to.be.null;
+              expect(associatedUser.id).to.equal(user.id);
+              expect(associatedUser.id).not.to.equal(fakeUser.id);
+            });
+          });
+        });
+      }).then(() => {
+        return this.sequelize.dropSchema('admin').then(() => {
+          return this.sequelize.showAllSchemas().then(schemas => {
+            if (dialect === 'postgres' || dialect === 'mssql') {
+              expect(schemas).to.be.empty;
+            };
           });
         });
       });

@@ -38,7 +38,7 @@ const Foo = sequelize.define('foo', {
 
  // The unique property is simply a shorthand to create a unique constraint.
  someUnique: { type: Sequelize.STRING, unique: true },
- 
+
  // It's exactly the same as creating the index in the model's options.
  { someUnique: { type: Sequelize.STRING } },
  { indexes: [ { unique: true, fields: [ 'someUnique' ] } ] },
@@ -74,7 +74,7 @@ The comment option can also be used on a table, see [model configuration][0]
 
 ## Timestamps
 
-By default, Sequelize will add the attributes `createdAt` and `updatedAt` to your model so you will be able to know when the database entry went into the db and when it was updated last. 
+By default, Sequelize will add the attributes `createdAt` and `updatedAt` to your model so you will be able to know when the database entry went into the db and when it was updated last.
 
 Note that if you are using Sequelize migrations you will need to add the `createdAt` and `updatedAt` fields to your migration definition:
 
@@ -140,8 +140,9 @@ Sequelize.BOOLEAN                     // TINYINT(1)
 
 Sequelize.ENUM('value 1', 'value 2')  // An ENUM with allowed values 'value 1' and 'value 2'
 Sequelize.ARRAY(Sequelize.TEXT)       // Defines an array. PostgreSQL only.
+Sequelize.ARRAY(Sequelize.ENUM)       // Defines an array of ENUM. PostgreSQL only.
 
-Sequelize.JSON                        // JSON column. PostgreSQL only.
+Sequelize.JSON                        // JSON column. PostgreSQL, SQLite and MySQL only.
 Sequelize.JSONB                       // JSONB column. PostgreSQL only.
 
 Sequelize.BLOB                        // BLOB (bytea for PostgreSQL)
@@ -198,6 +199,14 @@ sequelize.define('model', {
 })
 ```
 
+### Array(ENUM)
+
+Its only supported with PostgreSQL.
+
+Array(Enum) type require special treatment. Whenever Sequelize will talk to database it has to typecast Array values with ENUM name.
+
+So this enum name must follow this pattern `enum_<table_name>_<col_name>`. If you are using `sync` then correct name will automatically be generated.
+
 ### Range types
 
 Since range types have extra information for their bound inclusion/exclusion it's not
@@ -246,7 +255,7 @@ range.inclusive // [false, true]
 Make sure you turn that into a serializable format before serialization since array
 extra properties will not be serialized.
 
-#### Special Cases
+**Special Cases**
 
 ```js
 // empty range:
@@ -389,7 +398,7 @@ const ValidateMe = sequelize.define('foo', {
       is: ["^[a-z]+$",'i'],     // will only allow letters
       is: /^[a-z]+$/i,          // same as the previous example using real RegExp
       not: ["[a-z]",'i'],       // will not allow letters
-      isEmail: true,            // checks for poem format (foo@bar.com)
+      isEmail: true,            // checks for email format (foo@bar.com)
       isUrl: true,              // checks for url format (http://foo.com)
       isIP: true,               // checks for IPv4 (129.89.23.1) or IPv6 format
       isIPv4: true,             // checks for IPv4 (129.89.23.1)
@@ -725,10 +734,10 @@ Sequelize supports adding indexes to the model definition which will be created 
 ```js
 sequelize.define('user', {}, {
   indexes: [
-    // Create a unique index on poem
+    // Create a unique index on email
     {
       unique: true,
-      fields: ['poem']
+      fields: ['email']
     },
 
     // Creates a gin index on data with the jsonb_path_ops operator

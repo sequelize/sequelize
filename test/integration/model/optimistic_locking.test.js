@@ -65,5 +65,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(account.version).to.eq(1);
       });
     });
+
+    it('decrement() also increments the version', () => {
+      return Account.create({number: 1}).then(account => {
+        expect(account.version).to.eq(0);
+        return account.decrement('number', { by: 1} );
+      }).then(account => {
+        return account.reload();
+      }).then(account => {
+        expect(account.version).to.eq(1);
+      });
+    });
   });
 });

@@ -53,6 +53,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
+    it('should not crash on an empty where array', function() {
+      return this.User.findAll({
+        where: []
+      });
+    });
+
     describe('special where conditions/smartWhere object', () => {
       beforeEach(function() {
         this.buf = new Buffer(16);
@@ -88,7 +94,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         }).then(users => {
           expect(users).to.have.length(1);
-          expect(users[0].binary).to.be.an.instanceof.string;
+          expect(users[0].binary.toString()).to.equal(this.buf.toString());
           expect(users[0].username).to.equal('boo2');
         });
       });
@@ -276,8 +282,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                         return _user.setBinary(_binary).then(() => {
                           return _user.getBinary().then(_binaryRetrieved => {
                             return user.getBinary().then(binaryRetrieved => {
-                              expect(binaryRetrieved.id).to.be.an.instanceof.string;
-                              expect(_binaryRetrieved.id).to.be.an.instanceof.string;
                               expect(binaryRetrieved.id).to.have.length(16);
                               expect(_binaryRetrieved.id).to.have.length(16);
                               expect(binaryRetrieved.id.toString()).to.be.equal(buf1.toString());
@@ -471,13 +475,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should not crash on an empty where array', function() {
-      return this.User.findAll({
-        where: []
-      });
-    });
-
     describe('eager loading', () => {
+      it('should not ignore where condition with empty includes, #8771', function() {
+        return this.User.bulkCreate([
+          { username: 'D.E.N.N.I.S', intVal: 6 },
+          { username: 'F.R.A.N.K', intVal: 5 },
+          { username: 'W.I.L.D C.A.R.D', intVal: 8 }
+        ]).then(() => this.User.findAll({
+          where: {
+            intVal: 8
+          },
+          include: []
+        })).then(users => {
+          expect(users).to.have.length(1);
+          expect(users[0].get('username')).to.be.equal('W.I.L.D C.A.R.D');
+        });
+      });
+
       describe('belongsTo', () => {
         beforeEach(function() {
           const self = this;
@@ -666,6 +680,125 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(workers[0].tasks).to.exist;
             expect(workers[0].tasks[0].title).to.equal('homework');
           });
+        });
+
+        // https://github.com/sequelize/sequelize/issues/8739
+        it('supports sorting on renamed sub-query attribute', function() {
+          const User = this.sequelize.define('user', {
+            name: {
+              type: Sequelize.STRING,
+              field: 'some_other_name'
+            }
+          });
+          const Project = this.sequelize.define('project', { title: Sequelize.STRING });
+          User.hasMany(Project);
+
+          return User.sync({ force: true })
+            .then(() => Project.sync({ force: true }))
+            .then(() => {
+              return User.bulkCreate([
+                { name: 'a' },
+                { name: 'b' },
+                { name: 'c' }
+              ]);
+            })
+            .then(() => {
+              return User.findAll({
+                order: ['name'],
+                limit: 2, // to force use of a sub-query
+                include: [Project]
+              });
+            })
+            .then(users => {
+              expect(users).to.have.lengthOf(2);
+              expect(users[0].name).to.equal('a');
+              expect(users[1].name).to.equal('b');
+            });
+        });
+
+        it('supports sorting DESC on renamed sub-query attribute', function() {
+          const User = this.sequelize.define('user', {
+            name: {
+              type: Sequelize.STRING,
+              field: 'some_other_name'
+            }
+          });
+          const Project = this.sequelize.define('project', { title: Sequelize.STRING });
+          User.hasMany(Project);
+
+          return User.sync({ force: true })
+            .then(() => Project.sync({ force: true }))
+            .then(() => {
+              return User.bulkCreate([
+                { name: 'a' },
+                { name: 'b' },
+                { name: 'c' }
+              ]);
+            })
+            .then(() => {
+              return User.findAll({
+                order: [['name', 'DESC']],
+                limit: 2,
+                include: [Project]
+              });
+            })
+            .then(users => {
+              expect(users).to.have.lengthOf(2);
+              expect(users[0].name).to.equal('c');
+              expect(users[1].name).to.equal('b');
+            });
+        });
+
+        it('supports sorting on multiple renamed sub-query attributes', function() {
+          const User = this.sequelize.define('user', {
+            name: {
+              type: Sequelize.STRING,
+              field: 'some_other_name'
+            },
+            age: {
+              type: Sequelize.INTEGER,
+              field: 'a_g_e'
+            }
+          });
+          const Project = this.sequelize.define('project', { title: Sequelize.STRING });
+          User.hasMany(Project);
+
+          return User.sync({ force: true })
+            .then(() => Project.sync({ force: true }))
+            .then(() => {
+              return User.bulkCreate([
+                { name: 'a', age: 1 },
+                { name: 'a', age: 2 },
+                { name: 'b', age: 3 }
+              ]);
+            })
+            .then(() => {
+              return User.findAll({
+                order: [['name', 'ASC'], ['age', 'DESC']],
+                limit: 2,
+                include: [Project]
+              });
+            })
+            .then(users => {
+              expect(users).to.have.lengthOf(2);
+              expect(users[0].name).to.equal('a');
+              expect(users[0].age).to.equal(2);
+              expect(users[1].name).to.equal('a');
+              expect(users[1].age).to.equal(1);
+            })
+            .then(() => {
+              return User.findAll({
+                order: [['name', 'DESC'], 'age'],
+                limit: 2,
+                include: [Project]
+              });
+            })
+            .then(users => {
+              expect(users).to.have.lengthOf(2);
+              expect(users[0].name).to.equal('b');
+              expect(users[1].name).to.equal('a');
+              expect(users[1].age).to.equal(1);
+            });
         });
       });
 
@@ -861,7 +994,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('properly handles attributes:[] cases', () => {
-
         beforeEach(function() {
           this.Animal = this.sequelize.define('Animal', {
             name: Sequelize.STRING,
@@ -899,9 +1031,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('N:M with ignoring include.attributes only', function() {
           return this.Kingdom.findAll({
-            include:[{
+            include: [{
               model: this.Animal,
-              where: { age: { $gte : 29 } },
+              where: { age: { $gte: 29 } },
               attributes: []
             }]
           }).then(kingdoms => {
@@ -915,9 +1047,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('N:M with ignoring through.attributes only', function() {
           return this.Kingdom.findAll({
-            include:[{
+            include: [{
               model: this.Animal,
-              where: { age: { $gte : 29 } },
+              where: { age: { $gte: 29 } },
               through: {
                 attributes: []
               }
@@ -933,9 +1065,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('N:M with ignoring include.attributes but having through.attributes', function() {
           return this.Kingdom.findAll({
-            include:[{
+            include: [{
               model: this.Animal,
-              where: { age: { $gte : 29 } },
+              where: { age: { $gte: 29 } },
               attributes: [],
               through: {
                 attributes: ['mutation']
@@ -949,7 +1081,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
         });
-
       });
     });
 

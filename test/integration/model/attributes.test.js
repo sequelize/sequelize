@@ -71,6 +71,66 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
         });
       });
+
+      it('allows for an attribute to be called "toString"', function () {
+        const Person = this.sequelize.define('person', {
+          name: Sequelize.STRING,
+          nick: Sequelize.STRING
+        }, {
+          timestamps: false
+        });
+
+        return this.sequelize.sync({force: true})
+          .then(() => Person.create({name: 'Jozef', nick: 'Joe'}))
+          .then(() => Person.findOne({
+            attributes: [
+              'nick',
+              ['name', 'toString']
+            ],
+            where: {
+              name: 'Jozef'
+            }
+          }))
+          .then(person => {
+            expect(person.dataValues['toString']).to.equal('Jozef');
+            expect(person.get('toString')).to.equal('Jozef');
+          });
+      });
+
+      it('allows for an attribute to be called "toString" with associations', function () {
+        const Person = this.sequelize.define('person', {
+          name: Sequelize.STRING,
+          nick: Sequelize.STRING
+        });
+
+        const Computer = this.sequelize.define('computer', {
+          hostname: Sequelize.STRING,
+        });
+
+        Person.hasMany(Computer);
+
+        return this.sequelize.sync({force: true})
+          .then(() => Person.create({name: 'Jozef', nick: 'Joe'}))
+          .then(person => person.createComputer({hostname: 'laptop'}))
+          .then(() => Person.findAll({
+            attributes: [
+              'nick',
+              ['name', 'toString']
+            ],
+            include: {
+              model: Computer
+            },
+            where: {
+              name: 'Jozef'
+            }
+          }))
+          .then(result => {
+            expect(result.length).to.equal(1);
+            expect(result[0].dataValues['toString']).to.equal('Jozef');
+            expect(result[0].get('toString')).to.equal('Jozef');
+            expect(result[0].get('computers')[0].hostname).to.equal('laptop');
+          });
+      });
     });
   });
 });

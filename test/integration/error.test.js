@@ -84,13 +84,99 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
     it('SequelizeValidationError should concatenate an error messages from given errors if no explicit message is defined', () => {
       const errorItems = [
-          new errors.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null),
-          new errors.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
+          new Sequelize.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null),
+          new Sequelize.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
         ],
         validationError = new Sequelize.ValidationError(null, errorItems);
 
       expect(validationError).to.have.property('name', 'SequelizeValidationError');
       expect(validationError.message).to.match(/notNull Violation: <field name> cannot be null,\nstring violation: <field name> cannot be an array or an object/);
+    });
+
+    it('SequelizeValidationErrorItem does not require instance & validator constructor parameters', () => {
+      const error = new Sequelize.ValidationErrorItem('error!', null, 'myfield');
+
+      expect(error).to.be.instanceOf(Sequelize.ValidationErrorItem);
+    });
+
+    it('SequelizeValidationErrorItem should have instance, key & validator properties when given to constructor', () => {
+      const inst  = { foo: 'bar' };
+      const vargs = [4];
+
+      const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', inst, 'klen', 'len', vargs);
+
+      expect(error).to.have.property('instance');
+      expect(error.instance).to.equal(inst);
+
+      expect(error).to.have.property('validatorKey',  'klen');
+      expect(error).to.have.property('validatorName', 'len');
+      expect(error).to.have.property('validatorArgs', vargs);
+    });
+
+    it('SequelizeValidationErrorItem.getValidatorKey() should return a string', () => {
+      const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', null, 'klen', 'len', [4]);
+
+      expect(error).to.have.property('getValidatorKey');
+      expect(error.getValidatorKey).to.be.a('function');
+
+      expect(error.getValidatorKey()).to.equal('function.klen');
+      expect(error.getValidatorKey(false)).to.equal('klen');
+      expect(error.getValidatorKey(0)).to.equal('klen');
+      expect(error.getValidatorKey(1, ':')).to.equal('function:klen');
+      expect(error.getValidatorKey(true, '-:-')).to.equal('function-:-klen');
+
+      const empty = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar');
+
+      expect(empty.getValidatorKey()).to.equal('');
+      expect(empty.getValidatorKey(false)).to.equal('');
+      expect(empty.getValidatorKey(0)).to.equal('');
+      expect(empty.getValidatorKey(1, ':')).to.equal('');
+      expect(empty.getValidatorKey(true, '-:-')).to.equal('');
+    });
+
+    it('SequelizeValidationErrorItem.getValidatorKey() should throw if namespace separator is invalid (only if NS is used & available)', () => {
+      const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', null, 'klen', 'len', [4]);
+
+      expect(() => error.getValidatorKey(false, {})).to.not.throw();
+      expect(() => error.getValidatorKey(false, [])).to.not.throw();
+      expect(() => error.getValidatorKey(false, null)).to.not.throw();
+      expect(() => error.getValidatorKey(false, '')).to.not.throw();
+      expect(() => error.getValidatorKey(false, false)).to.not.throw();
+      expect(() => error.getValidatorKey(false, true)).to.not.throw();
+      expect(() => error.getValidatorKey(false, undefined)).to.not.throw();
+      expect(() => error.getValidatorKey(true, undefined)).to.not.throw(); // undefined will trigger use of function parameter default
+
+      expect(() => error.getValidatorKey(true, {})).to.throw(Error);
+      expect(() => error.getValidatorKey(true, [])).to.throw(Error);
+      expect(() => error.getValidatorKey(true, null)).to.throw(Error);
+      expect(() => error.getValidatorKey(true, '')).to.throw(Error);
+      expect(() => error.getValidatorKey(true, false)).to.throw(Error);
+      expect(() => error.getValidatorKey(true, true)).to.throw(Error);
+    });
+
+    it('SequelizeValidationErrorItem should map deprecated "type" values to new "origin" values', () => {
+      const data  = {
+        'notNull Violation': 'CORE',
+        'string violation': 'CORE',
+        'unique violation': 'DB',
+        'Validation error': 'FUNCTION'
+      };
+
+      Object.keys(data).forEach(k => {
+        const error = new Sequelize.ValidationErrorItem('error!', k, 'foo', null);
+
+        expect(error).to.have.property('origin', data[k]);
+        expect(error).to.have.property('type', k);
+      });
+    });
+
+    it('SequelizeValidationErrorItem.Origins is valid', () => {
+      const ORIGINS = errors.ValidationErrorItem.Origins;
+
+      expect(ORIGINS).to.have.property('CORE', 'CORE');
+      expect(ORIGINS).to.have.property('DB', 'DB');
+      expect(ORIGINS).to.have.property('FUNCTION', 'FUNCTION');
+
     });
 
     it('SequelizeDatabaseError should keep original message', () => {

@@ -7,6 +7,7 @@ const chai = require('chai'),
   Sequelize = require(__dirname + '/../../../index'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   current = Support.sequelize,
+  dialect = Support.getTestDialect(),
   Promise = Sequelize.Promise,
   _ = require('lodash');
 
@@ -388,7 +389,7 @@ if (current.dialect.supports.groupedLimit) {
             return this.sequelize.sync({force: true}).then(() => {
               return Promise.join(
                 User.create({
-                  id:1,
+                  id: 1,
                   tasks: [
                     {id: 1, title: 'b'},
                     {id: 2, title: 'd'},
@@ -399,7 +400,7 @@ if (current.dialect.supports.groupedLimit) {
                   include: [User.Tasks]
                 }),
                 User.create({
-                  id:2,
+                  id: 2,
                   tasks: [
                     {id: 5, title: 'a'},
                     {id: 6, title: 'c'},
@@ -411,7 +412,7 @@ if (current.dialect.supports.groupedLimit) {
               );
             }).then(() => {
               return User.findAll({
-                include: [{ model: Task, limit: 2, as: 'tasks', order:[['id', 'ASC']] }],
+                include: [{ model: Task, limit: 2, as: 'tasks', order: [['id', 'ASC']] }],
                 order: [
                   ['id', 'ASC']
                 ]
@@ -423,6 +424,13 @@ if (current.dialect.supports.groupedLimit) {
                 expect(result[1].tasks.length).to.equal(2);
                 expect(result[1].tasks[0].title).to.equal('a');
                 expect(result[1].tasks[1].title).to.equal('c');
+                return this.sequelize.dropSchema('archive').then(() => {
+                  return this.sequelize.showAllSchemas().then(schemas => {
+                    if (dialect === 'postgres' || dialect === 'mssql') {
+                      expect(schemas).to.be.empty;
+                    }
+                  });
+                });
               });
             });
           });

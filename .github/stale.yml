@@ -2,7 +2,7 @@
 # Configuration for probot-stale - https://github.com/probot/stale
 
 # Number of days of inactivity before an issue becomes stale
-daysUntilStale: 100
+daysUntilStale: 90
 
 # Number of days of inactivity before a stale issue is closed
 daysUntilClose: 7
@@ -14,6 +14,9 @@ exemptLabels:
   - documentation
   - bug
   - discussion
+  - performance
+  - semver:major
+  - good first issue
 
 # Label to use when marking an issue as stale
 staleLabel: stale

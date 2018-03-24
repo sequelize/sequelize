@@ -152,7 +152,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
                 err.message.match(/connect ECONNREFUSED/) ||
                 err.message.match(/invalid port number/) ||
                 err.message.match(/should be >=? 0 and < 65536/) ||
-                err.message.match(/Login failed for user/)
+                err.message.match(/Login failed for user/) ||
+                err.message.match(/Port must be > 0 and < 65536/)
               ).to.be.ok;
             });
         });
@@ -273,6 +274,23 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       return this.sequelize.query(this.insertQuery);
     });
 
+    it('executes a query if a placeholder value is an array', function() {
+      return this.sequelize.query(`INSERT INTO ${qq(this.User.tableName)} (username, email_address, ` +
+        `${qq('createdAt')}, ${qq('updatedAt')}) VALUES ?;`, {
+        replacements: [[
+          ['john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],
+          ['michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10']
+        ]]
+      })
+        .then(() => this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+          type: this.sequelize.QueryTypes.SELECT
+        }))
+        .then(rows => {
+          expect(rows).to.be.lengthOf(2);
+          expect(rows[0].username).to.be.equal('john');
+          expect(rows[1].username).to.be.equal('michael');
+        });
+    });
 
     describe('logging', () => {
       it('executes a query with global benchmarking option and default logger', () => {
@@ -549,6 +567,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         } else if (dialect === 'mssql') {
           expect(logSql.indexOf('@0')).to.be.above(-1);
           expect(logSql.indexOf('@1')).to.be.above(-1);
+        } else if (dialect === 'mysql') {
+          expect(logSql.match(/\?/g).length).to.equal(2);
         }
       });
     });
@@ -668,7 +688,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds named parameters array handles escaped $$', function() {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
-      return this.sequelize.query('select $1'+typeCast+' as foo, \'$$ / $$1\' as bar', { raw: true, bind: [1 ], logging(s) { logSql = s; } }).then(result => {
+      return this.sequelize.query('select $1'+typeCast+' as foo, \'$$ / $$1\' as bar', { raw: true, bind: [1], logging(s) { logSql = s; } }).then(result => {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $1' }]);
         if (dialect === 'postgres' || dialect === 'sqlite') {
           expect(logSql.indexOf('$1')).to.be.above(-1);
@@ -685,7 +705,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
       it ('does not improperly escape arrays of strings bound to named parameters', function() {
-        return this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: [ '"string"' ] } }).then(result => {
+        return this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: ['"string"'] } }).then(result => {
           expect(result[0]).to.deep.equal([{ foo: '"string"' }]);
         });
       });
@@ -985,6 +1005,18 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       return User.sync().then(() => {
         expect(true).to.be.true;
       });
+    });
+
+    it('fails with incorrect match condition', function() {
+      const sequelize = new Sequelize('cyber_bird', 'user', 'pass', {
+        dialect: this.sequelize.options.dialect
+      });
+
+      sequelize.define('Project', {title: Sequelize.STRING});
+      sequelize.define('Task', {title: Sequelize.STRING});
+
+      return expect(sequelize.sync({force: true, match: /$phoenix/}))
+        .to.be.rejectedWith('Database "cyber_bird" does not match sync match parameter "/$phoenix/"');
     });
 
     if (dialect !== 'sqlite') {

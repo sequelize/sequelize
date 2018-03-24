@@ -22,27 +22,27 @@ if (dialect === 'sqlite') {
     const suites = {
       arithmeticQuery: [
         {
-          title:'Should use the plus operator',
+          title: 'Should use the plus operator',
           arguments: ['+', 'myTable', { foo: 'bar' }, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' '
         },
         {
-          title:'Should use the plus operator with where clause',
+          title: 'Should use the plus operator with where clause',
           arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\''
         },
         {
-          title:'Should use the minus operator',
+          title: 'Should use the minus operator',
           arguments: ['-', 'myTable', { foo: 'bar' }],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' '
         },
         {
-          title:'Should use the minus operator with negative value',
+          title: 'Should use the minus operator with negative value',
           arguments: ['-', 'myTable', { foo: -1 }],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1 '
         },
         {
-          title:'Should use the minus operator with where clause',
+          title: 'Should use the minus operator with where clause',
           arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\''
         }
@@ -142,7 +142,7 @@ if (dialect === 'sqlite') {
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', {id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)'}, {uniqueKeys: {uniqueConstraint: {fields: ['name', 'surname']}}}],
+          arguments: ['myTable', {id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)'}, {uniqueKeys: {uniqueConstraint: {fields: ['name', 'surname'], customIndex: true }}}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255), UNIQUE (`name`, `surname`));'
         }
       ],
@@ -527,7 +527,7 @@ if (dialect === 'sqlite') {
           title: 'Properly quotes column names',
           arguments: ['myTable', {commit: 'VARCHAR(255)', bar: 'VARCHAR(255)'}],
           expectation:
-            'CREATE TEMPORARY TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
             'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;' +
             'DROP TABLE `myTable`;' +
             'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
@@ -539,20 +539,26 @@ if (dialect === 'sqlite') {
 
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
+        beforeEach(function() {
+          this.queryGenerator = new QueryGenerator({
+            sequelize: this.sequelize,
+            _dialect: this.sequelize.dialect
+          });
+        });
+
         tests.forEach(test => {
           const title = test.title || 'SQLite correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            const context = test.context || {options: {}};
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
-            QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
-            QueryGenerator._dialect = this.sequelize.dialect;
-            QueryGenerator.sequelize = this.sequelize;
-            QueryGenerator.setOperatorsAliases(Operators.LegacyAliases);
-            const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
+
+            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
+            this.queryGenerator.options = Object.assign({}, this.queryGenerator.options, test.context && test.context.options || {});
+            this.queryGenerator.setOperatorsAliases(Operators.LegacyAliases);
+
+            const conditions = this.queryGenerator[suiteTitle].apply(this.queryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         });

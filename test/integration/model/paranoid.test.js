@@ -103,14 +103,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     if (current.dialect.supports.JSON) {
-      describe('JSONB', () => {
+      describe('JSON', () => {
         before(function() {
           this.Model = this.sequelize.define('Model', {
             name: {
               type: DataTypes.STRING
             },
             data: {
-              type: DataTypes.JSONB
+              type: DataTypes.JSON
             },
             deletedAt: {
               type: DataTypes.DATE,
@@ -128,7 +128,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Model.sync({ force: true });
         });
 
-        it('should soft delete with JSONB condition', function() {
+        it('should soft delete with JSON condition', function() {
           return this.Model.bulkCreate([{
             name: 'One',
             data: {

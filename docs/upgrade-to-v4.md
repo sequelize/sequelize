@@ -9,7 +9,33 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - Removed MariaDB dialect. This was just a thin wrapper around MySQL, so using `dialect: 'mysql'` instead should work with no further changes
 - Removed default `REPEATABLE_READ` transaction isolation. The isolation level now defaults to that of the database. Explicitly pass the required isolation level when initiating the transaction.
 - Removed support for `pool: false`. To use a single connection, set `pool.max` to 1.
+- Removed support for old connection pooling configuration keys. Instead of
+  ```js
+  pool: {
+    maxIdleTime: 30000,
+    minConnections: 20,
+    maxConnections: 30
+  }
+  ```
+
+  use
+
+  ```js
+  pool: {
+    idle: 30000,
+    min: 20,
+    max: 30
+  }
+  ```
+
 - (MySQL) BIGINT now gets converted to string when number is too big
+- (MySQL) `DECIMAL` and `NEWDECIMAL` types now returned as String unless
+  ```js
+  dialectOptions: {
+    decimalNumbers: true
+  }
+  ```
+  is specified.
 - Removed support for referencesKey, use a references object
   ```js
   references: {
@@ -89,6 +115,74 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 - Raw options for where, order and group like `where: { $raw: '..', order: [{ raw: '..' }], group: [{ raw: '..' }] }` have been removed to prevent SQL injection attacks.
 - `Sequelize.Utils` is not longer part of the public API, use it at your own risk
 - `Hooks` should return Promises now. Callbacks are deprecated.
+- `required` inside include does not propagate up the include chain.
+
+  To get v3 compatible results you'll need to either set `required` on the containing include.
+
+  Previous:
+  ```js
+  user.findOne({
+    include: {
+      model: project,
+      include: {
+        model: task,
+        required: true
+      }
+    }
+  });
+  ```
+
+  New:
+  ```js
+  User.findOne({
+    include: {
+      model: Project,
+      required: true,
+      include: {
+        model: Task,
+        required: true
+      }
+    }
+  });
+
+  User.findOne({
+    include: {
+      model: Project,
+      required: true,
+      include: {
+        model: Task,
+        where: {type: 'important'} //where cause required to default to true
+      }
+    }
+  });
+  ```
+
+  Optionally you can add a `beforeFind` hook to get v3 compatible behavior -
+  ```js
+  function propagateRequired(modelDescriptor) {
+    let include = modelDescriptor.include;
+    
+    if (!include) return false;
+    if (!Array.isArray(include)) include = [include];
+
+    return include.reduce((isRequired, descriptor) => {
+      const hasRequiredChild = propogateRequired(descriptor);
+      if ((descriptor.where || hasRequiredChild) && descriptor.required === undefined) {
+        descriptor.required = true;
+      }
+      return descriptor.required || isRequired;
+    }, false);
+  }
+  
+  const sequelize = new Sequelize(..., {
+    ...,
+    define: {
+      hooks: {
+        beforeFind: propagateRequired
+      }
+    }
+  });
+  ```
 
 ### New features
 - Initial version of `sequelize.sync({ alter: true })` has been added and uses `ALTER TABLE` commands to sync tables. [Migrations](http://docs.sequelizejs.com/manual/tutorial/migrations.html) are still preferred and should be used in production.
@@ -100,7 +194,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
   ```
   You can then define custom methods, class methods and getters/setter directly in the class.
   This also enables more usage patterns, for example with [decorators](https://www.npmjs.com/package/sequelize-decorators).
-- Added `DEBUG` support. You can now use `DEBUG=sequelize* node app.js` to enable logging for all sequlize operations. To filter logged queries, use `DEBUG=sequelize:sql:mssql sequelize:connection*` to log generated SQL queries, connection info etc.
+- Added `DEBUG` support. You can now use `DEBUG=sequelize* node app.js` to enable logging for all sequelize operations. To filter logged queries, use `DEBUG=sequelize:sql:mssql sequelize:connection*` to log generated SQL queries, connection info etc.
 - `JSON` datatype support has been added for `SQLite`
 - `UPSERT` is now supported on `MSSQL` using `MERGE` statement.
 - Transactions are now fully supported on `MSSQL`.

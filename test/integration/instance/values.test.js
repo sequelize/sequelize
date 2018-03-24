@@ -443,6 +443,11 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
             expect(user.changed('name')).to.be.false;
             expect(user.changed()).not.to.be.ok;
           });
+        }).then(() => {
+          return User.bulkCreate([{name: 'Jan Meier'}]).spread(user => {
+            expect(user.changed('name')).to.be.false;
+            expect(user.changed()).not.to.be.ok;
+          });
         });
       });
 

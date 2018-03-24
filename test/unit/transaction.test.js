@@ -23,9 +23,9 @@ describe('Transaction', function() {
   });
 
   beforeEach(() => {
-    this.stub.reset();
-    this.stubConnection.reset();
-    this.stubRelease.reset();
+    this.stub.resetHistory();
+    this.stubConnection.resetHistory();
+    this.stubRelease.resetHistory();
   });
 
   after(() => {

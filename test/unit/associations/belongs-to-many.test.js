@@ -541,16 +541,17 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       Service.belongsToMany(Service, {through: 'Supplements', as: 'supplements'});
       Service.belongsToMany(Service, {through: 'Supplements', as: {singular: 'supplemented', plural: 'supplemented'}});
 
-      expect(Service.prototype).to.have.property('getSupplements').which.is.a.function;
 
-      expect(Service.prototype).to.have.property('addSupplement').which.is.a.function;
-      expect(Service.prototype).to.have.property('addSupplements').which.is.a.function;
+      expect(Service.prototype).to.have.ownProperty('getSupplements').to.be.a('function');
 
-      expect(Service.prototype).to.have.property('getSupplemented').which.is.a.function;
-      expect(Service.prototype).not.to.have.property('getSupplementeds').which.is.a.function;
+      expect(Service.prototype).to.have.ownProperty('addSupplement').to.be.a('function');
+      expect(Service.prototype).to.have.ownProperty('addSupplements').to.be.a('function');
 
-      expect(Service.prototype).to.have.property('addSupplemented').which.is.a.function;
-      expect(Service.prototype).not.to.have.property('addSupplementeds').which.is.a.function;
+      expect(Service.prototype).to.have.ownProperty('getSupplemented').to.be.a('function');
+      expect(Service.prototype).not.to.have.ownProperty('getSupplementeds').to.be.a('function');
+
+      expect(Service.prototype).to.have.ownProperty('addSupplemented').to.be.a('function');
+      expect(Service.prototype).not.to.have.ownProperty('addSupplementeds').to.be.a('function');
     });
   });
 
