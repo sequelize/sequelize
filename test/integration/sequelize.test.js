@@ -152,7 +152,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
                 err.message.match(/connect ECONNREFUSED/) ||
                 err.message.match(/invalid port number/) ||
                 err.message.match(/should be >=? 0 and < 65536/) ||
-                err.message.match(/Login failed for user/)
+                err.message.match(/Login failed for user/) ||
+                err.message.match(/Port must be > 0 and < 65536/)
               ).to.be.ok;
             });
         });
