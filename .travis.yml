@@ -6,7 +6,6 @@ language: node_js
 branches:
   only:
     - master
-    - v3
     - v5
     - /^greenkeeper/.*$/
   except:

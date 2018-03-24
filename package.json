@@ -135,5 +135,15 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "release": {
+    "branch": "master",
+    "verifyConditions": [
+      "@semantic-release/npm",
+      "@semantic-release/github"
+    ]
+  },
+  "publishConfig": {
+    "tag": "next"
   }
 }

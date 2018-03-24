@@ -2,7 +2,6 @@
 
 Sequelize v5 is the next major release after v4
 
-
 ## Breaking Changes
 
 ### Support for Node 6 and up
@@ -48,5 +47,7 @@ With v5 if `deletedAt` is set, record will be considered as deleted. So `paranoi
 In v4 it used to compare current time with `deletedAt`. [#8496](https://github.com/sequelize/sequelize/issues/8496)
 
 __DEV__: _Done, no deprecation_
+
+## Changelog
 
 
