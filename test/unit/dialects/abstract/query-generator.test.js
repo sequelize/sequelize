@@ -6,15 +6,6 @@ const chai = require('chai'),
   getAbstractQueryGenerator = require(__dirname + '/../../support').getAbstractQueryGenerator;
 
 describe('QueryGenerator', () => {
-  describe('selectQuery', () => {
-    it('should generate correct query using array placeholder', function() {
-      const QG = getAbstractQueryGenerator(this.sequelize);
-
-      QG.selectQuery('foo', {where: {bar: {[Op.like]: {[Op.any]: ['a', 'b']}}}})
-        .should.be.equal('SELECT * FROM foo WHERE foo.bar LIKE ANY (\'a\', \'b\');');
-    });
-  });
-
   describe('whereItemQuery', () => {
     it('should generate correct query for Symbol operators', function() {
       const QG = getAbstractQueryGenerator(this.sequelize);

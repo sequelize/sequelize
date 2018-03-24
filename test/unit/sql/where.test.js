@@ -3,8 +3,6 @@
 const Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   util = require('util'),
-  chai = require('chai'),
-  expect = chai.expect,
   expectsql = Support.expectsql,
   current = Support.sequelize,
   sql = current.dialect.QueryGenerator;
@@ -403,16 +401,6 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         }
       }, {
         default: '[created_at] < [updated_at]'
-      });
-    });
-
-    suite('$raw', () => {
-      test('should fail on $raw', () => {
-        expect(() => {
-          sql.whereItemQuery('rank', {
-            $raw: 'AGHJZ'
-          });
-        }).to.throw(Error, 'The `$raw` where property is no longer supported.  Use `sequelize.literal` instead.');
       });
     });
 
