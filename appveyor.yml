@@ -43,3 +43,4 @@ after_test:
 branches:
   only:
     - master
+    - v4
