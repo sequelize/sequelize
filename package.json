@@ -153,9 +153,13 @@
     }
   },
   "release": {
+    "branch": "v4",
     "verifyConditions": [
       "@semantic-release/npm",
       "@semantic-release/github"
     ]
+  },
+  "publishConfig": {
+    "tag": "latest"
   }
 }
