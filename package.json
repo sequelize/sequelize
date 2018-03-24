@@ -51,7 +51,7 @@
     "env-cmd": "^7.x",
     "esdoc": "^0.5.2",
     "eslint": "^4.x",
-    "eslint-plugin-mocha": "^4.x",
+    "eslint-plugin-mocha": "^5.0.0",
     "hints": "^1.x",
     "husky": "^0.x",
     "istanbul": "^0.x",
