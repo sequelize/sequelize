@@ -104,6 +104,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should error correctly when defaults contain a unique key and a non-existent field', function() {
+      const User = this.sequelize.define('user', {
+        objectId: {
+          type: DataTypes.STRING,
+          unique: true
+        },
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        }
+      });
+
+      return User.sync({force: true}).then(() => {
+        return User.create({
+          username: 'gottlieb'
+        });
+      }).then(() => {
+        return expect(User.findOrCreate({
+          where: {
+            objectId: 'asdasdasd'
+          },
+          defaults: {
+            username: 'gottlieb',
+            foo: 'bar' // field that's not a defined attribute
+          }
+        })).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
+      });
+    });
+
     it('should error correctly when defaults contain a unique key and the where clause is complex', function() {
       const User = this.sequelize.define('user', {
         objectId: {
