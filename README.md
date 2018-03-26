@@ -18,9 +18,16 @@ Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and Microso
 
 We have started v5 beta release process. Hopefully this will cover full [v5 milestone](https://github.com/sequelize/sequelize/milestone/18). You can find upgrade guide and changelog [here](https://github.com/sequelize/sequelize/blob/master/docs/upgrade-to-v5.md)
 
+NPM
 ```bash
 npm install --save sequelize # will install v4
 npm install --save sequelize@next # will install v5-beta
+```
+
+YARN
+```bash
+yarn add sequelize # will install v4
+yarn add sequelize@next # will install v5-beta
 ```
 
 ## Table of Contents
