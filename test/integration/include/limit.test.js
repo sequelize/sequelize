@@ -31,6 +31,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      *                            |
      *                            |
      *                            |
+     *                            N
      *                        [Footnote]
      */
     beforeEach(function () {
@@ -360,7 +361,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     /*
-     * one-to-one
+     * one-to-many
      */
     it('supports required one-to-many association', function () {
       return this.sequelize.sync({ force: true })
@@ -391,20 +392,23 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Post.bulkCreate(build('alpha', 'bravo', 'charlie')),
-          this.Comment.bulkCreate(build('comment0', 'comment1'))
+          this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2'))
         ))
         .spread((posts, comments) => Promise.join(
           posts[0].addComment(comments[0]),
-          posts[2].addComment(comments[1])
+          posts[1].addComment(comments[1]),
+          posts[2].addComment(comments[2])
         ))
         .then(() => this.Post.findAll({
           include: [{
             model: this.Comment,
             required: true,
             where: {
-              name: {
-                [this.sequelize.Op.like]: 'comment%'
-              }
+              [Op.or]: [{
+                name: 'comment0'
+              }, {
+                name: 'comment2'
+              }]
             }
           }],
           order: ['name'],
@@ -414,6 +418,31 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         .then(result => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('charlie');
+        });
+    });
+
+    it('supports required one-to-many association with where clause (findOne)', function () {
+      return this.sequelize.sync({ force: true })
+        .then(() => Promise.join(
+          this.Post.bulkCreate(build('alpha', 'bravo', 'charlie')),
+          this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2'))
+        ))
+        .spread((posts, comments) => Promise.join(
+          posts[0].addComment(comments[0]),
+          posts[1].addComment(comments[1]),
+          posts[2].addComment(comments[2])
+        ))
+        .then(() => this.Post.findOne({
+          include: [{
+            model: this.Comment,
+            required: true,
+            where: {
+              name: 'comment2'
+            }
+          }]
+        }))
+        .then(post => {
+          expect(post.name).to.equal('charlie');
         });
     });
 
