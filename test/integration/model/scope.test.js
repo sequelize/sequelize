@@ -107,5 +107,37 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.ScopeMe.scope('issue8473').findAll();
         });
     });
+
+    it('should be applied before query options for attributes exclude', function() {
+      return this.ScopeMe.scope('lowAccess').findOne({
+        attributes: {
+          exclude: ['other_value']
+        }
+      })
+        .then(record => {
+          expect(record.other_value).to.not.exist;
+        });
+    });
+
+    it('should be applied before query options for attributes include', function() {
+      return this.ScopeMe.scope('lowAccess').findOne({
+        attributes: {
+          include: ['email']
+        }
+      })
+        .then(record => {
+          expect(record.email).to.not.exist;
+        });
+    });
+
+    it('should be applied before query options for attributes', function() {
+      return this.ScopeMe.scope('lowAccess').findOne({
+        attributes: ['email']
+      })
+        .then(record => {
+          expect(record.email).to.not.exist;
+          expect(record.other_value).to.not.exist;
+        });
+    });
   });
 });
