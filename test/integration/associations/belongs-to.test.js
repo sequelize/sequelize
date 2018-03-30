@@ -152,6 +152,44 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         });
       });
     });
+
+    it('supports schemas when defining custom foreign key attribute #9029', function() {
+      const self = this,
+        User = this.sequelize.define('UserXYZ', {
+          uid: {
+            type: Sequelize.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            allowNull: false
+          }
+        }).schema('archive')
+        , Task = this.sequelize.define('TaskXYZ', {
+          user_id: {
+            type: Sequelize.INTEGER,
+            references: { model: User, key: 'uid' }
+          }
+        }).schema('archive');
+
+      Task.belongsTo(User, { foreignKey: 'user_id'});
+
+      return self.sequelize.dropAllSchemas().then(() => {
+        return self.sequelize.createSchema('archive');
+      }).then(() => {
+        return User.sync({force: true });
+      }).then(() => {
+        return Task.sync({force: true });
+      }).then(() => {
+        return User.create({});
+      }).then(user => {
+        return Task.create({}).then(task => {
+          return task.setUserXYZ(user).then(() => {
+            return task.getUserXYZ();
+          });
+        });
+      }).then(user => {
+        expect(user).to.be.ok;
+      });
+    });
   });
 
   describe('setAssociation', () => {
