@@ -154,8 +154,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     });
 
     it('supports schemas when defining custom foreign key attribute #9029', function() {
-      const self = this,
-        User = this.sequelize.define('UserXYZ', {
+      const User = this.sequelize.define('UserXYZ', {
           uid: {
             type: Sequelize.INTEGER,
             primaryKey: true,
@@ -172,8 +171,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       Task.belongsTo(User, { foreignKey: 'user_id'});
 
-      return self.sequelize.dropAllSchemas().then(() => {
-        return self.sequelize.createSchema('archive');
+      return this.sequelize.dropAllSchemas().then(() => {
+        return this.sequelize.createSchema('archive');
       }).then(() => {
         return User.sync({force: true });
       }).then(() => {
