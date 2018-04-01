@@ -41,7 +41,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }).schema('bar');
       BarProject.belongsTo(BarUser, { foreignKey: 'user_id' });
       it('references right schema when adding foreign key #9029', () => {
-        console.log(BarProject.rawAttributes);
         expectsql(sql.createTableQuery(BarProject.getTableName(), sql.attributesToSQL(BarProject.rawAttributes), { }), {
           sqlite: 'CREATE TABLE IF NOT EXISTS `bar.projects` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `user_id` INTEGER REFERENCES `bar.users` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE);',
           postgres: 'CREATE TABLE IF NOT EXISTS "bar"."projects" ("id"   SERIAL , "user_id" INTEGER REFERENCES "bar"."users" ("id") ON DELETE NO ACTION ON UPDATE CASCADE, PRIMARY KEY ("id"));',
