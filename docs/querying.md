@@ -76,6 +76,7 @@ It's also possible to generate complex AND/OR conditions by nesting sets of `or`
 
 ### Basics
 ```js
+const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
 Post.findAll({
