@@ -26,6 +26,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.rawAttributes).not.to.have.property('updated_at');
     });
 
+    it('should convert all properties to snake_case when using underscored: true', () => {
+      const Model = current.define('User', {
+        adminUser: DataTypes.STRING,
+        notSnakeCase: {type: DataTypes.STRING, underscored: false}
+      }, { underscored: true});
+
+      expect(Model.rawAttributes).to.have.property('adminUser').that.has.property('field').that.is.equal('admin_user');
+      expect(Model.rawAttributes).to.have.property('notSnakeCase').that.has.property('field').that.is.equal('notSnakeCase');
+    });
+
     it('should throw when id is added but not marked as PK', () => {
       expect(() => {
         current.define('foo', {
