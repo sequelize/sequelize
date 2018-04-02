@@ -261,5 +261,26 @@ model.afterSave((instance, options) => {
   }
   // Save done outside a transaction, safe for callers to fetch the updated model
   // Notify
+
+## Locks
+
+Queries within a `transaction` can be performed with locks
+
+```
+return User.findAll({
+  limit: 1,
+  lock: true,
+  transaction: t1
+})
+```
+
+Queries within a transaction can skip locked rows
+
+```
+return User.findAll({
+  limit: 1,
+  lock: true,
+  skipLocked: true,
+  transaction: t2
 })
 ```
