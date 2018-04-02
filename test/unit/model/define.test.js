@@ -34,6 +34,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(Model.rawAttributes).to.have.property('adminUser').that.has.property('field').that.is.equal('admin_user');
       expect(Model.rawAttributes).to.have.property('notSnakeCase').that.has.property('field').that.is.equal('notSnakeCase');
+      expect(Model.rawAttributes).to.have.property('createdAt').that.has.property('field').that.is.equal('created_at');
     });
 
     it('should throw when id is added but not marked as PK', () => {
