@@ -530,8 +530,8 @@ const Bar = sequelize.define('bar', { /* bla */ }, {
   // timestamps are enabled
   paranoid: true,
 
-  // don't use camelcase for automatically added attributes but underscore style
-  // so updatedAt will be updated_at
+  // don't use camelcase for attributes including system added but underscore style
+  // so updatedAt will be updated_at, userId would be user_id
   underscored: true,
 
   // disable the modification of table names; By default, sequelize will automatically
