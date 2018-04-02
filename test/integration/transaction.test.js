@@ -561,6 +561,10 @@ if (current.dialect.supports.transactions) {
                     transaction: t2
                   }).then(secondResults => {
                     expect(secondResults[0].id).to.not.equal(firstUserId);
+                    return Promise.all([
+                      t1.commit(),
+                      t2.commit()
+                    ])
                   });
                 });
               });
