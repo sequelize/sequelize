@@ -134,54 +134,30 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
 
-    describe('After acquire connection hook', function() {
-      it('should run hooks', function () {
+    describe('After acquire connection hook', () => {
+      it('should run hooks', function() {
         const afterPoolAcquireHook = sinon.spy();
         this.sequelize.addHook('afterPoolAcquire', afterPoolAcquireHook);
         return this.User.find().then(function () {
           expect(afterPoolAcquireHook).to.have.been.calledOnce;
         });
       });
-  
-      it('should pass the connection to the hook', function() {
-        let isConnection = false;
-        this.sequelize.addHook('afterPoolAcquire', function(connection) {
-          expect(connection).to.haveOwnProperty('connection');
-          isConnection = true;
-          return Promise.resolve();
-        });
-        return this.User.find().then(function () {
-          expect(isConnection).to.be.true;
-        });
-      });
-  
+
       after(function () {
         this.sequelize.options.hooks = {};
       });
   
     });
   
-    describe('Before release connection hook', function() {
-      it('should run hooks', function () {
+    describe('Before release connection hook', () => {
+      it('should run hooks', function() {
         const beforPoolReleaseHook = sinon.spy();
         this.sequelize.addHook('beforePoolRelease', beforPoolReleaseHook);
         return this.User.find().then(function () {
           expect(beforPoolReleaseHook).to.have.been.calledOnce;
         });
       });
-  
-      it('should pass the connection to the hook', function() {
-        let isConnection = false;
-        this.sequelize.addHook('beforePoolRelease', function (connection) {
-          expect(connection).to.haveOwnProperty('connection');
-          isConnection = true;
-          return Promise.resolve();
-        });
-        return this.User.find().then(function() {
-          expect(isConnection).to.be.true;
-        });
-      });
-  
+
       after(function() {
         this.sequelize.options.hooks = {};
       });
