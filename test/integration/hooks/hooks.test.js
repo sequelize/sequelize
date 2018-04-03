@@ -138,7 +138,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should run hooks', function() {
         const afterPoolAcquireHook = sinon.spy();
         this.sequelize.addHook('afterPoolAcquire', afterPoolAcquireHook);
-        return this.User.find().then(function () {
+        return this.User.find().then(() => {
           expect(afterPoolAcquireHook).to.have.been.calledOnce;
         });
       });
@@ -146,14 +146,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       after(function () {
         this.sequelize.options.hooks = {};
       });
-  
     });
   
     describe('Before release connection hook', () => {
       it('should run hooks', function() {
         const beforPoolReleaseHook = sinon.spy();
         this.sequelize.addHook('beforePoolRelease', beforPoolReleaseHook);
-        return this.User.find().then(function () {
+        return this.User.find().then( () => {
           expect(beforPoolReleaseHook).to.have.been.calledOnce;
         });
       });
