@@ -42,9 +42,15 @@ In v4 it used to compare current time with `deletedAt`. [#8496](https://github.c
 ## Changelog
 
 
+### 5.0.0-beta.2
+
+- change(operators): Symbol operators now enabled by default, removed deprecation warning
+- fix(model): don't add LIMIT in findOne() queries on unique key [#9248](https://github.com/sequelize/sequelize/pull/9248)
+- fix(model): use schema when generating foreign keys [#9029](https://github.com/sequelize/sequelize/issues/9029)
+
 ### 5.0.0-beta.1
 
-- fix(postgres): reserved words support [#9236](https://github.com/sequelize/sequelize/pr/9236)
+- fix(postgres): reserved words support [#9236](https://github.com/sequelize/sequelize/pull/9236)
 - fix(findOrCreate): warn and handle unknown attributes in defaults
 - fix(query-generator): 1-to-many join in subQuery filter missing where clause [#9228](https://github.com/sequelize/sequelize/issues/9228)
 
