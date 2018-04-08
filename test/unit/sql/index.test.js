@@ -3,7 +3,8 @@
 const Support   = require(__dirname + '/../support'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
-  sql       = current.dialect.QueryGenerator;
+  sql       = current.dialect.QueryGenerator,
+  Op        = current.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -103,7 +104,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           fields: ['type'],
           where: {
             type: {
-              $or: [
+              [Op.or]: [
                 'group',
                 'private'
               ]
@@ -119,7 +120,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           fields: ['type'],
           where: {
             type: {
-              $ne: null
+              [Op.ne]: null
             }
           }
         }), {

@@ -5,7 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
-  Operators = require('../../../../lib/operators'),
+  Op = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
 if (dialect === 'mysql') {
@@ -320,7 +320,7 @@ if (dialect === 'mysql') {
             return {
               attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
               group: ['creationYear', 'title'],
-              having: { creationYear: { gt: 2002 } }
+              having: { creationYear: { [Op.gt]: 2002 } }
             };
           }],
           expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;',
@@ -332,7 +332,7 @@ if (dialect === 'mysql') {
             return {
               where: sequelize.and(
                 { archived: null},
-                sequelize.where(sequelize.fn('COALESCE', sequelize.col('place_type_codename'), sequelize.col('announcement_type_codename')), { in: ['Lost', 'Found'] })
+                sequelize.where(sequelize.fn('COALESCE', sequelize.col('place_type_codename'), sequelize.col('announcement_type_codename')), { [Op.in]: ['Lost', 'Found'] })
               )
             };
           }],
@@ -389,32 +389,32 @@ if (dialect === 'mysql') {
           context: QueryGenerator
         }, {
           title: 'use != if ne !== null',
-          arguments: ['myTable', {where: {field: {ne: 0}}}],
+          arguments: ['myTable', {where: {field: {[Op.ne]: 0}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 0;',
           context: QueryGenerator
         }, {
           title: 'use IS NOT if ne === null',
-          arguments: ['myTable', {where: {field: {ne: null}}}],
+          arguments: ['myTable', {where: {field: {[Op.ne]: null}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
           context: QueryGenerator
         }, {
           title: 'use IS NOT if not === BOOLEAN',
-          arguments: ['myTable', {where: {field: {not: true}}}],
+          arguments: ['myTable', {where: {field: {[Op.not]: true}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT true;',
           context: QueryGenerator
         }, {
           title: 'use != if not !== BOOLEAN',
-          arguments: ['myTable', {where: {field: {not: 3}}}],
+          arguments: ['myTable', {where: {field: {[Op.not]: 3}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
           context: QueryGenerator
         }, {
           title: 'Regular Expression in where clause',
-          arguments: ['myTable', {where: {field: {$regexp: '^[h|a|t]'}}}],
+          arguments: ['myTable', {where: {field: {[Op.regexp]: '^[h|a|t]'}}}],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` REGEXP '^[h|a|t]';",
           context: QueryGenerator
         }, {
           title: 'Regular Expression negation in where clause',
-          arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
+          arguments: ['myTable', {where: {field: {[Op.notRegexp]: '^[h|a|t]'}}}],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` NOT REGEXP '^[h|a|t]';",
           context: QueryGenerator
         }, {
@@ -433,7 +433,7 @@ if (dialect === 'mysql') {
             return {
               subQuery: true,
               tableAs: 'test',
-              having: { creationYear: { [Operators.gt]: 2002 } }
+              having: { creationYear: { [Op.gt]: 2002 } }
             };
           }],
           expectation: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `creationYear` > 2002) AS `test`;',
@@ -625,7 +625,6 @@ if (dialect === 'mysql') {
 
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             this.queryGenerator.options = Object.assign({}, this.queryGenerator.options, test.context && test.context.options || {});
-            this.queryGenerator.setOperatorsAliases(Operators.LegacyAliases);
 
             const conditions = this.queryGenerator[suiteTitle].apply(this.queryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);

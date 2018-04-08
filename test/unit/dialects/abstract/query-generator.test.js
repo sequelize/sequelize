@@ -19,7 +19,7 @@ describe('QueryGenerator', () => {
         .should.be.equal('(test IS NULL OR testSame IS NULL)');
     });
 
-    it('should not parse any strings as aliases  operators', function() {
+    it('should not parse any strings as aliases operators', function() {
       const QG = getAbstractQueryGenerator(this.sequelize);
       expect(() => QG.whereItemQuery('$or', [{test: 5}, {test: 3}]))
         .to.throw('Invalid value { test: 5 }');
@@ -86,7 +86,6 @@ describe('QueryGenerator', () => {
       expect(() => QG.whereItemQuery('test', {$in: [4]}))
         .to.throw('Invalid value { \'$in\': [ 4 ] }');
     });
-
   });
 });
 
