@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../../index'),
+  Op = Sequelize.Op,
   Promise = Sequelize.Promise,
   expect = chai.expect,
   Support = require(__dirname + '/../../support'),
@@ -57,7 +58,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return self.User.find({
                 where: {
                   name: {
-                    $regexp: '^Foo'
+                    [Op.regexp]: '^Foo'
                   }
                 }
               });
@@ -75,7 +76,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return self.User.find({
                 where: {
                   name: {
-                    $notRegexp: '^Foo'
+                    [Op.notRegexp]: '^Foo'
                   }
                 }
               });
@@ -94,7 +95,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 return self.User.find({
                   where: {
                     name: {
-                      $iRegexp: '^foo'
+                      [Op.iRegexp]: '^foo'
                     }
                   }
                 });
@@ -112,7 +113,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 return self.User.find({
                   where: {
                     name: {
-                      $notIRegexp: '^foo'
+                      [Op.notIRegexp]: '^foo'
                     }
                   }
                 });

@@ -3,6 +3,7 @@
 const chai = require('chai'),
   Sequelize = require('../../../../index'),
   expect = chai.expect,
+  Op = Sequelize.Op,
   Support = require(__dirname + '/../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -18,7 +19,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         defaultScope: {
           where: {
             access_level: {
-              gte: 5
+              [Op.gte]: 5
             }
           }
         },
@@ -26,16 +27,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           highValue: {
             where: {
               other_value: {
-                gte: 10
+                [Op.gte]: 10
               }
             }
           },
           andScope: {
             where: {
-              $and: [
+              [Op.and]: [
                 {
                   email: {
-                    like: '%@sequelizejs.com'
+                    [Op.like]: '%@sequelizejs.com'
                   }
                 },
                 { access_level: 3 }

@@ -5,7 +5,8 @@ const chai = require('chai'),
   Utils = require(__dirname + '/../../lib/utils'),
   Support = require(__dirname + '/support'),
   DataTypes = require(__dirname + '/../../lib/data-types'),
-  Sequelize = require('../../index');
+  Sequelize = require('../../index'),
+  Op = Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('removeCommentsFromFunctionString', () => {
@@ -265,9 +266,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               engines: 1
             }, type)), 'count-engines'],
             [Sequelize.fn('SUM', Sequelize.cast({
-              $or: {
+              [Op.or]: {
                 engines: {
-                  $gt: 1
+                  [Op.gt]: 1
                 },
                 wings: 4
               }
@@ -290,9 +291,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               engines: 1
             }), 'count-engines'],
             [Sequelize.fn('SUM', {
-              $or: {
+              [Op.or]: {
                 engines: {
-                  $gt: 1
+                  [Op.gt]: 1
                 },
                 wings: 4
               }

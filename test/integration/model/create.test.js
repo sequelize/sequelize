@@ -8,6 +8,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   dialect = Support.getTestDialect(),
+  Op = Sequelize.Op,
   _ = require('lodash'),
   assert = require('assert'),
   current = Support.sequelize;
@@ -150,7 +151,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => User.create({ username: 'gottlieb' }))
         .then(() => User.findOrCreate({
           where: {
-            $or: [{
+            [Op.or]: [{
               objectId: 'asdasdasd1'
             }, {
               objectId: 'asdasdasd2'
@@ -686,7 +687,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.findOne({
             where: {
               updatedAt: {
-                ne: null
+                [Op.ne]: null
               }
             }
           }).then(user => {

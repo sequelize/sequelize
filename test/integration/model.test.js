@@ -11,6 +11,7 @@ const chai = require('chai'),
   moment = require('moment'),
   Promise = require('bluebird'),
   current = Support.sequelize,
+  Op = Sequelize.Op,
   semver = require('semver');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -125,7 +126,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {aNumber: 10},
             {aNumber: 12}
           ]).then(() => {
-            return UserTable.findAll({where: {aNumber: { gte: 10 }}}).then(users => {
+            return UserTable.findAll({where: {aNumber: { [Op.gte]: 10 }}}).then(users => {
               expect(moment(user.createdAt).format('YYYY-MM-DD')).to.equal('2012-01-01');
               expect(moment(user.updatedAt).format('YYYY-MM-DD')).to.equal('2012-01-02');
               users.forEach(u => {
@@ -1884,7 +1885,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const self = this;
       return this.User.create({username: 'user1'}).then(() => {
         return self.User.create({username: 'foo'}).then(() => {
-          return self.User.count({where: {username: {$like: '%us%'}}}).then(count => {
+          return self.User.count({where: {username: {[Op.like]: '%us%'}}}).then(count => {
             expect(count).to.equal(1);
           });
         });
@@ -2693,7 +2694,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.sequelize.or({ username: 'leia' }, { username: 'luke' }),
           this.sequelize.and(
             { id: [1, 2, 3] },
-            this.sequelize.or({ deletedAt: null }, { deletedAt: { gt: new Date(0) } })
+            this.sequelize.or({ deletedAt: null }, { deletedAt: { [Op.gt]: new Date(0) } })
           )
         ]
       })

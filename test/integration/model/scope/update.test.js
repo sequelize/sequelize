@@ -4,6 +4,7 @@ const chai = require('chai'),
   _ = require('lodash'),
   Sequelize = require('../../../../index'),
   expect = chai.expect,
+  Op = Sequelize.Op,
   Support = require(__dirname + '/../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -19,7 +20,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           defaultScope: {
             where: {
               access_level: {
-                gte: 5
+                [Op.gte]: 5
               }
             }
           },
@@ -27,7 +28,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             lowAccess: {
               where: {
                 access_level: {
-                  lte: 5
+                  [Op.lte]: 5
                 }
               }
             }
@@ -56,7 +57,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to override default scope', function() {
-        return this.ScopeMe.update({ username: 'ruben' }, { where: { access_level: { lt: 5 }}}).bind(this).then(function() {
+        return this.ScopeMe.update({ username: 'ruben' }, { where: { access_level: { [Op.lt]: 5 }}}).bind(this).then(function() {
           return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' }});
         }).then(users => {
           expect(users).to.have.length(2);
@@ -77,7 +78,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to apply other scopes', function() {
         return this.ScopeMe.scope('lowAccess').update({ username: 'ruben' }, { where: {}}).bind(this).then(function() {
-          return this.ScopeMe.unscoped().findAll({ where: { username: { $ne: 'ruben' }}});
+          return this.ScopeMe.unscoped().findAll({ where: { username: { [Op.ne]: 'ruben' }}});
         }).then(users => {
           expect(users).to.have.length(1);
           expect(users[0].get('email')).to.equal('tobi@fakeemail.com');

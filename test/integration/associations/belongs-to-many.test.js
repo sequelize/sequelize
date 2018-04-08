@@ -9,6 +9,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   Promise = Sequelize.Promise,
   current = Support.sequelize,
+  Op = current.Op,
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
@@ -110,7 +111,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return john.getTasks({
           where: {
             title: {
-              not: ['Get rich']
+              [Op.not]: ['Get rich']
             }
           }
         });
@@ -130,7 +131,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return john.getTasks({
           where: {
             id: {
-              not: [self.tasks[0].get('id')]
+              [Op.not]: [self.tasks[0].get('id')]
             }
           }
         });
@@ -2039,7 +2040,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
               model: self.Task,
               where: {
                 title: {
-                  $ne: 'task'
+                  [Op.ne]: 'task'
                 }
               }
             }]

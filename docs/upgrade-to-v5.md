@@ -25,9 +25,6 @@ With v5
 - You can still use string operators by passing an operators map in `operatorsAliases`
 - Op.$raw is removed
 
-
-__DEV__: _Incomplete, deprecated_
-
 ### Model
 
 **Attributes**
@@ -38,7 +35,7 @@ __Note__: _Please dont confuse this with `options.attributes`, they are still va
 
 **Paranoid Mode**
 
-With v5 if `deletedAt` is set, record will be considered as deleted. So `paranoid` option will only use `deletedAt` as flag.
+With v5 if `deletedAt` is set, record will be considered as deleted. `paranoid` option will only use `deletedAt` as flag.
 
 In v4 it used to compare current time with `deletedAt`. [#8496](https://github.com/sequelize/sequelize/issues/8496)
 

@@ -4,6 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
   Support = require(__dirname + '/../support'),
+  Op = Support.Sequelize.Op,
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   Promise = require('bluebird');
 
@@ -332,10 +333,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               include: [
                 {
                   model: Project,
-                  where: { '$and': [{ m: 'A' }] },
+                  where: { [Op.and]: [{ m: 'A' }] },
                   include: [{
                     model: User,
-                    where: { '$and': [{ name: 'user-name-2' }] }
+                    where: { [Op.and]: [{ name: 'user-name-2' }] }
                   }
                   ]
                 },
@@ -381,15 +382,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           limit: 1,
           offset: 1,
           where: sequelize.or(
-            { first_name: { like: '%user-fname%' } },
-            { last_name: { like: '%user-lname%' } }
+            { first_name: { [Op.like]: '%user-fname%' } },
+            { last_name: { [Op.like]: '%user-lname%' } }
           ),
           include: [
             {
               model: Project,
               required: true,
               where: { name: {
-                $in: ['naam-satya', 'guru-satya']
+                [Op.in]: ['naam-satya', 'guru-satya']
               }}
             }
           ]

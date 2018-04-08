@@ -10,6 +10,7 @@ const chai = require('chai'),
   Promise = Sequelize.Promise,
   current = Support.sequelize,
   _ = require('lodash'),
+  Op = current.Op,
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('HasMany'), () => {
@@ -1036,7 +1037,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.article = article;
           return article.setLabels([label1, label2]);
         }).then(function() {
-          return this.article.getLabels({where: {until: {$gt: moment('2014-01-02').toDate()}}});
+          return this.article.getLabels({where: {until: {[Op.gt]: moment('2014-01-02').toDate()}}});
         }).then(labels => {
           expect(labels).to.be.instanceof(Array);
           expect(labels).to.have.length(1);
