@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../index'),
+  Op = Sequelize.Op,
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -1027,7 +1028,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                 {model: Tag, as: 'Category'},
                 {model: Price, where: {
                   value: {
-                    gt: 15
+                    [Op.gt]: 15
                   }
                 }}
               ]}
@@ -1124,7 +1125,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             {model: self.models.Company},
             {model: self.models.Tag},
             {model: self.models.Price, where: {
-              value: {gt: 5}
+              value: { [Op.gt]: 5}
             }}
           ],
           limit: 6,

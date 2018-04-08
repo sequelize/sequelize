@@ -5,7 +5,9 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   current = Support.sequelize,
+  Op = current.Op,
   Promise   = current.Promise;
+
 const SCHEMA_ONE = 'schema_one';
 const SCHEMA_TWO = 'schema_two';
 
@@ -101,7 +103,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       });
-      
+
       describe('Get associated data in public schema via include', () => {
         beforeEach(function() {
           return Promise.all([
@@ -290,7 +292,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(restaurant.bar).to.contain('one');
               });
               return self.RestaurantOne.findAll({
-                where: {bar: {$like: '%.1'}}
+                where: {bar: {[Op.like]: '%.1'}}
               });
             }).then(restaurantsOne => {
               expect(restaurantsOne).to.not.be.null;
@@ -318,7 +320,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(restaurant.bar).to.contain('two');
               });
               return self.RestaurantTwo.findAll({
-                where: {bar: {$like: '%.3'}}
+                where: {bar: {[Op.like]: '%.3'}}
               });
             }).then(restaurantsTwo => {
               expect(restaurantsTwo).to.not.be.null;

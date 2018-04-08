@@ -1,13 +1,14 @@
 'use strict';
 
-const Support   = require(__dirname + '/../support'),
+const Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   Sequelize = require(__dirname + '/../../../lib/sequelize'),
   util      = require('util'),
   _         = require('lodash'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
-  sql       = current.dialect.QueryGenerator;
+  sql       = current.dialect.QueryGenerator,
+  Op        = current.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -279,8 +280,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         include: [
           {
             association: User.Tasks, on: {
-              $or: [
-                { '$User.id_user$': { $col: 'Tasks.user_id' } },
+              [Op.or]: [
+                { '$User.id_user$': { [Op.col]: 'Tasks.user_id' } },
                 { '$Tasks.user_id$': 2 }
               ]
             }
@@ -296,7 +297,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         include: [
           {
             association: User.Tasks,
-            on: { 'user_id': { $col: 'User.alternative_id' } }
+            on: { 'user_id': { [Op.col]: 'User.alternative_id' } }
           }
         ]
       }, { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id]' }
@@ -314,8 +315,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
               {
                 association: Company.Owner,
                 on: {
-                  $or: [
-                    { '$Company.owner_id$': { $col: 'Company.Owner.id_user'} },
+                  [Op.or]: [
+                    { '$Company.owner_id$': { [Op.col]: 'Company.Owner.id_user'} },
                     { '$Company.Owner.id_user$': 2 }
                   ]
                 }

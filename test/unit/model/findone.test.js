@@ -4,6 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   current = Support.sequelize,
+  Op = current.Op,
   sinon = require('sinon'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   Promise = require('bluebird');
@@ -62,7 +63,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should add limit when using { $ gt on the primary key', function() {
       const Model = current.define('model');
 
-      return Model.findOne({ where: { id: { $gt: 42 }}}).bind(this).then(function() {
+      return Model.findOne({ where: { id: { [Op.gt]: 42 }}}).bind(this).then(function() {
         expect(this.stub.getCall(0).args[0]).to.be.an('object').to.have.property('limit');
       });
     });

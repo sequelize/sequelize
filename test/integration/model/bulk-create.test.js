@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../index'),
+  Op = Sequelize.Op,
   Promise = Sequelize.Promise,
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
@@ -88,7 +89,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.findAll({
             where: {
               updatedAt: {
-                ne: null
+                [Op.ne]: null
               }
             }
           }).then(users => {

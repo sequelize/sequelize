@@ -4,6 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../../support'),
   Sequelize = Support.Sequelize,
+  Op = Sequelize.Op,
   dialect = Support.getTestDialect(),
   DataTypes = require(__dirname + '/../../../../lib/data-types');
 
@@ -39,7 +40,7 @@ if (dialect === 'sqlite') {
         return user.save().then(() => {
           return this.User.create({ username: 'new user' }).then(() => {
             return this.User.findAll({
-              where: { createdAt: { $gt: new Date(2012, 1, 1) } }
+              where: { createdAt: { [Op.gt]: new Date(2012, 1, 1) } }
             }).then(users => {
               expect(users).to.have.length(1);
             });
