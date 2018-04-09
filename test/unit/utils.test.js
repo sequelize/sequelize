@@ -7,6 +7,7 @@ const DataTypes = require(__dirname + '/../../lib/data-types');
 const Utils = require(__dirname + '/../../lib/utils');
 const tedious = require('tedious');
 const tediousIsolationLevel = tedious.ISOLATION_LEVEL;
+const Op = Support.sequelize.Op;
 
 suite(Support.getTestDialectTeaser('Utils'), () => {
   suite('merge', () => {
@@ -147,7 +148,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     test('$or where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
-          $or: {
+          [Op.or]: {
             firstName: 'Paul',
             lastName: 'Atreides'
           }
@@ -163,7 +164,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
         }
       }))).to.eql({
         where: {
-          $or: {
+          [Op.or]: {
             first_name: 'Paul',
             last_name: 'Atreides'
           }
@@ -174,7 +175,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     test('$or[] where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
-          $or: [
+          [Op.or]: [
             {firstName: 'Paul'},
             {lastName: 'Atreides'}
           ]
@@ -190,7 +191,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
         }
       }))).to.eql({
         where: {
-          $or: [
+          [Op.or]: [
             {first_name: 'Paul'},
             {last_name: 'Atreides'}
           ]
@@ -201,7 +202,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     test('$and where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
-          $and: {
+          [Op.and]: {
             firstName: 'Paul',
             lastName: 'Atreides'
           }
@@ -217,7 +218,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
         }
       }))).to.eql({
         where: {
-          $and: {
+          [Op.and]: {
             first_name: 'Paul',
             last_name: 'Atreides'
           }
@@ -258,7 +259,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
 
     test('accepts condition object (auto casting)', () => {
       expectsql(run(sql.fn('SUM', sql.cast({
-        $or: {
+        [Op.or]: {
           foo: 'foo',
           bar: 'bar'
         }

@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../index'),
+  Op = Sequelize.Op,
   Promise = Sequelize.Promise,
   moment = require('moment'),
   expect = chai.expect,
@@ -281,7 +282,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.Event.findAll({
               where: {
                 json: {
-                  lastLogin: {$between: [before, after]}
+                  lastLogin: {[Op.between]: [before, after]}
                 }
               }
             }).then(events => {
@@ -324,7 +325,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.Event.findAll({
               where: {
                 json: {
-                  active: {$in: [true, false]}
+                  active: {[Op.in]: [true, false]}
                 }
               }
             }).then(events => {
@@ -364,7 +365,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               where: {
                 data: {
                   age: {
-                    $gt: 38
+                    [Op.gt]: 38
                   }
                 }
               }
@@ -515,7 +516,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     last: 'Simpson'
                   },
                   employment: {
-                    $ne: 'None'
+                    [Op.ne]: 'None'
                   }
                 }
               },

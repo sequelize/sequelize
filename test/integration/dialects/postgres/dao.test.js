@@ -4,6 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../../support'),
   Sequelize = Support.Sequelize,
+  Op = Sequelize.Op,
   Promise = Sequelize.Promise,
   dialect = Support.getTestDialect(),
   DataTypes = require(__dirname + '/../../../../lib/data-types'),
@@ -504,10 +505,10 @@ if (dialect.match(/^postgres/)) {
               return User.findAll({
                 where: {
                   type: {
-                    $in: ['A', 'C']
+                    [Op.in]: ['A', 'C']
                   },
                   permissions: {
-                    $contains: ['write']
+                    [Op.contains]: ['write']
                   }
                 }
               });

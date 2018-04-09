@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Operators = require('../../../../lib/operators'),
+  Op = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/postgres/query-generator'),
   Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
@@ -356,12 +356,12 @@ if (dialect.match(/^postgres/)) {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'Combination of sequelize.fn, sequelize.col and { in: ... }',
+          title: 'Combination of sequelize.fn, sequelize.col and { Op.in: ... }',
           arguments: ['myTable', function(sequelize) {
             return {
               where: sequelize.and(
                 { archived: null},
-                sequelize.where(sequelize.fn('COALESCE', sequelize.col('place_type_codename'), sequelize.col('announcement_type_codename')), { in: ['Lost', 'Found'] })
+                sequelize.where(sequelize.fn('COALESCE', sequelize.col('place_type_codename'), sequelize.col('announcement_type_codename')), { [Op.in]: ['Lost', 'Found'] })
               )
             };
           }],
@@ -403,7 +403,7 @@ if (dialect.match(/^postgres/)) {
             return {
               attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
               group: ['creationYear', 'title'],
-              having: { creationYear: { gt: 2002 } }
+              having: { creationYear: { [Op.gt]: 2002 } }
             };
           }],
           expectation: 'SELECT *, YEAR(\"createdAt\") AS \"creationYear\" FROM \"myTable\" GROUP BY \"creationYear\", \"title\" HAVING \"creationYear\" > 2002;',
@@ -432,7 +432,7 @@ if (dialect.match(/^postgres/)) {
           context: QueryGenerator
         }, {
           title: 'string in array should escape \' as \'\'',
-          arguments: ['myTable', {where: { aliases: {$contains: ['Queen\'s']} }}],
+          arguments: ['myTable', {where: { aliases: {[Op.contains]: ['Queen\'s']} }}],
           expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"aliases\" @> ARRAY['Queen''s'];"
         },
 
@@ -503,43 +503,43 @@ if (dialect.match(/^postgres/)) {
           expectation: "SELECT * FROM mySchema.myTable WHERE mySchema.myTable.name = 'foo'';DROP TABLE mySchema.myTable;';",
           context: {options: {quoteIdentifiers: false}}
         }, {
-          title: 'use != if ne !== null',
-          arguments: ['myTable', {where: {field: {ne: 0}}}],
+          title: 'use != if Op.ne !== null',
+          arguments: ['myTable', {where: {field: {[Op.ne]: 0}}}],
           expectation: 'SELECT * FROM myTable WHERE myTable.field != 0;',
           context: {options: {quoteIdentifiers: false}}
         }, {
-          title: 'use IS NOT if ne === null',
-          arguments: ['myTable', {where: {field: {ne: null}}}],
+          title: 'use IS NOT if Op.ne === null',
+          arguments: ['myTable', {where: {field: {[Op.ne]: null}}}],
           expectation: 'SELECT * FROM myTable WHERE myTable.field IS NOT NULL;',
           context: {options: {quoteIdentifiers: false}}
         }, {
-          title: 'use IS NOT if not === BOOLEAN',
-          arguments: ['myTable', {where: {field: {not: true}}}],
+          title: 'use IS NOT if Op.not === BOOLEAN',
+          arguments: ['myTable', {where: {field: {[Op.not]: true}}}],
           expectation: 'SELECT * FROM myTable WHERE myTable.field IS NOT true;',
           context: {options: {quoteIdentifiers: false}}
         }, {
-          title: 'use != if not !== BOOLEAN',
-          arguments: ['myTable', {where: {field: {not: 3}}}],
+          title: 'use != if Op.not !== BOOLEAN',
+          arguments: ['myTable', {where: {field: {[Op.not]: 3}}}],
           expectation: 'SELECT * FROM myTable WHERE myTable.field != 3;',
           context: {options: {quoteIdentifiers: false}}
         }, {
           title: 'Regular Expression in where clause',
-          arguments: ['myTable', {where: {field: {$regexp: '^[h|a|t]'}}}],
+          arguments: ['myTable', {where: {field: {[Op.regexp]: '^[h|a|t]'}}}],
           expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~ '^[h|a|t]';",
           context: QueryGenerator
         }, {
           title: 'Regular Expression negation in where clause',
-          arguments: ['myTable', {where: {field: {$notRegexp: '^[h|a|t]'}}}],
+          arguments: ['myTable', {where: {field: {[Op.notRegexp]: '^[h|a|t]'}}}],
           expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~ '^[h|a|t]';",
           context: QueryGenerator
         }, {
           title: 'Case-insensitive Regular Expression in where clause',
-          arguments: ['myTable', {where: {field: {$iRegexp: '^[h|a|t]'}}}],
+          arguments: ['myTable', {where: {field: {[Op.iRegexp]: '^[h|a|t]'}}}],
           expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" ~* '^[h|a|t]';",
           context: QueryGenerator
         }, {
           title: 'Case-insensitive Regular Expression negation in where clause',
-          arguments: ['myTable', {where: {field: {$notIRegexp: '^[h|a|t]'}}}],
+          arguments: ['myTable', {where: {field: {[Op.notIRegexp]: '^[h|a|t]'}}}],
           expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" !~* '^[h|a|t]';",
           context: QueryGenerator
         }
@@ -984,27 +984,25 @@ if (dialect.match(/^postgres/)) {
 
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
-        afterEach(function() {
-          this.sequelize.options.quoteIdentifiers = true;
-          QueryGenerator.options.quoteIdentifiers = true;
+        beforeEach(function() {
+          this.queryGenerator = new QueryGenerator({
+            sequelize: this.sequelize,
+            _dialect: this.sequelize.dialect
+          });
         });
 
         tests.forEach(test => {
           const title = test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            const context = test.context || {options: {}};
-
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
 
-            QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
-            QueryGenerator._dialect = this.sequelize.dialect;
-            QueryGenerator.sequelize = this.sequelize;
-            QueryGenerator.setOperatorsAliases(Operators.LegacyAliases);
-            const conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
+            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
+            this.queryGenerator.options = Object.assign({}, this.queryGenerator.options, test.context && test.context.options || {});
+
+            const conditions = this.queryGenerator[suiteTitle].apply(this.queryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         });

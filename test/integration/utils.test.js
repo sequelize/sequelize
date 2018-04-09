@@ -5,7 +5,8 @@ const chai = require('chai'),
   Utils = require(__dirname + '/../../lib/utils'),
   Support = require(__dirname + '/support'),
   DataTypes = require(__dirname + '/../../lib/data-types'),
-  Sequelize = require('../../index');
+  Sequelize = require('../../index'),
+  Op = Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('removeCommentsFromFunctionString', () => {
@@ -184,9 +185,11 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   if (Support.getTestDialect() === 'postgres') {
     describe('json', () => {
-      const queryGenerator = require('../../lib/dialects/postgres/query-generator.js');
+      beforeEach(function() {
+        this.queryGenerator = this.sequelize.getQueryInterface().QueryGenerator;
+      });
 
-      it('successfully parses a complex nested condition hash', () => {
+      it('successfully parses a complex nested condition hash', function() {
         const conditions = {
           metadata: {
             language: 'icelandic',
@@ -195,23 +198,23 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
           another_json_field: { x: 1 }
         };
         const expected = '("metadata"#>>\'{language}\') = \'icelandic\' AND ("metadata"#>>\'{pg_rating,dk}\') = \'G\' AND ("another_json_field"#>>\'{x}\') = \'1\'';
-        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))).to.deep.equal(expected);
+        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))).to.deep.equal(expected);
       });
 
-      it('successfully parses a string using dot notation', () => {
+      it('successfully parses a string using dot notation', function() {
         const path = 'metadata.pg_rating.dk';
-        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal('("metadata"#>>\'{pg_rating,dk}\')');
+        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal('("metadata"#>>\'{pg_rating,dk}\')');
       });
 
-      it('allows postgres json syntax', () => {
+      it('allows postgres json syntax', function() {
         const path = 'metadata->pg_rating->>dk';
-        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(path);
+        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(path);
       });
 
-      it('can take a value to compare against', () => {
+      it('can take a value to compare against', function() {
         const path = 'metadata.pg_rating.is';
         const value = 'U';
-        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal('("metadata"#>>\'{pg_rating,is}\') = \'U\'');
+        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal('("metadata"#>>\'{pg_rating,is}\') = \'U\'');
       });
     });
   }
@@ -263,9 +266,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               engines: 1
             }, type)), 'count-engines'],
             [Sequelize.fn('SUM', Sequelize.cast({
-              $or: {
+              [Op.or]: {
                 engines: {
-                  $gt: 1
+                  [Op.gt]: 1
                 },
                 wings: 4
               }
@@ -288,9 +291,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               engines: 1
             }), 'count-engines'],
             [Sequelize.fn('SUM', {
-              $or: {
+              [Op.or]: {
                 engines: {
-                  $gt: 1
+                  [Op.gt]: 1
                 },
                 wings: 4
               }

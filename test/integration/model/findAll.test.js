@@ -5,6 +5,7 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
+  Op = Sequelize.Op,
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   dialect = Support.getTestDialect(),
   config = require(__dirname + '/../../config/config'),
@@ -103,7 +104,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             username: {
-              like: '%2'
+              [Op.like]: '%2'
             }
           }
         }).then(users => {
@@ -118,7 +119,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             username: {
-              nlike: '%2'
+              [Op.notLike]: '%2'
             }
           }
         }).then(users => {
@@ -134,7 +135,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.User.findAll({
             where: {
               username: {
-                ilike: '%2'
+                [Op.iLike]: '%2'
               }
             }
           }).then(users => {
@@ -149,7 +150,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.User.findAll({
             where: {
               username: {
-                notilike: '%2'
+                [Op.notILike]: '%2'
               }
             }
           }).then(users => {
@@ -165,7 +166,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             theDate: {
-              '..': ['2013-01-02', '2013-01-11']
+              [Op.between]: ['2013-01-02', '2013-01-11']
             }
           }
         }).then(users => {
@@ -178,7 +179,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             intVal: {
-              '!..': [8, 10]
+              [Op.notBetween]: [8, 10]
             }
           }
         }).then(users => {
@@ -303,7 +304,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             theDate: {
-              between: ['2013-01-02', '2013-01-11']
+              [Op.between]: ['2013-01-02', '2013-01-11']
             }
           }
         }).then(users => {
@@ -316,7 +317,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             theDate: {
-              between: ['2013-01-02', '2013-01-11']
+              [Op.between]: ['2013-01-02', '2013-01-11']
             },
             intVal: 10
           }
@@ -330,7 +331,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             intVal: {
-              nbetween: [8, 10]
+              [Op.notBetween]: [8, 10]
             }
           }
         }).then(users => {
@@ -343,8 +344,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             theDate: {
-              between: ['2012-12-10', '2013-01-02'],
-              nbetween: ['2013-01-04', '2013-01-20']
+              [Op.between]: ['2012-12-10', '2013-01-02'],
+              [Op.notBetween]: ['2013-01-04', '2013-01-20']
             }
           }
         }).then(users => {
@@ -357,8 +358,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             theDate: {
-              between: [new Date('2012-12-10'), new Date('2013-01-02')],
-              nbetween: [new Date('2013-01-04'), new Date('2013-01-20')]
+              [Op.between]: [new Date('2012-12-10'), new Date('2013-01-02')],
+              [Op.notBetween]: [new Date('2013-01-04'), new Date('2013-01-20')]
             }
           }
         }).then(users => {
@@ -371,7 +372,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             theDate: {
-              gte: new Date('2013-01-09')
+              [Op.gte]: new Date('2013-01-09')
             }
           }
         }).then(users => {
@@ -384,7 +385,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.find({
           where: {
             intVal: {
-              gte: 6
+              [Op.gte]: 6
             }
           }
         }).then(user => {
@@ -397,7 +398,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.find({
           where: {
             intVal: {
-              gt: 5
+              [Op.gt]: 5
             }
           }
         }).then(user => {
@@ -410,7 +411,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.find({
           where: {
             intVal: {
-              lte: 5
+              [Op.lte]: 5
             }
           }
         }).then(user => {
@@ -423,7 +424,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.find({
           where: {
             intVal: {
-              lt: 6
+              [Op.lt]: 6
             }
           }
         }).then(user => {
@@ -436,8 +437,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             intVal: {
-              lt: 6,
-              gt: 4
+              [Op.lt]: 6,
+              [Op.gt]: 4
             }
           }
         }).then(users => {
@@ -450,7 +451,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.find({
           where: {
             intVal: {
-              ne: 10
+              [Op.ne]: 10
             }
           }
         }).then(user => {
@@ -463,7 +464,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findAll({
           where: {
             intVal: {
-              lte: 10
+              [Op.lte]: 10
             }
           }
         }).then(users => {
@@ -1033,7 +1034,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Kingdom.findAll({
             include: [{
               model: this.Animal,
-              where: { age: { $gte: 29 } },
+              where: { age: { [Op.gte]: 29 } },
               attributes: []
             }]
           }).then(kingdoms => {
@@ -1049,7 +1050,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Kingdom.findAll({
             include: [{
               model: this.Animal,
-              where: { age: { $gte: 29 } },
+              where: { age: { [Op.gte]: 29 } },
               through: {
                 attributes: []
               }
@@ -1067,7 +1068,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Kingdom.findAll({
             include: [{
               model: this.Animal,
-              where: { age: { $gte: 29 } },
+              where: { age: { [Op.gte]: 29 } },
               attributes: [],
               through: {
                 attributes: ['mutation']
@@ -1494,7 +1495,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('handles where clause {only}', function() {
-      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}}).then(info => {
+      return this.User.findAndCountAll({where: {id: {[Op.ne]: this.users[0].id}}}).then(info => {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
@@ -1502,7 +1503,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('handles where clause with ordering {only}', function() {
-      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}, order: [['id', 'ASC']]}).then(info => {
+      return this.User.findAndCountAll({where: {id: {[Op.ne]: this.users[0].id}}, order: [['id', 'ASC']]}).then(info => {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
@@ -1580,7 +1581,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('handles attributes', function() {
-      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}, attributes: ['data']}).then(info => {
+      return this.User.findAndCountAll({where: {id: {[Op.ne]: this.users[0].id}}, attributes: ['data']}).then(info => {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);

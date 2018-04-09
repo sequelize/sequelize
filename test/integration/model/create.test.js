@@ -8,6 +8,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   dialect = Support.getTestDialect(),
+  Op = Sequelize.Op,
   _ = require('lodash'),
   assert = require('assert'),
   current = Support.sequelize;
@@ -104,6 +105,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should error correctly when defaults contain a unique key and a non-existent field', function() {
+      const User = this.sequelize.define('user', {
+        objectId: {
+          type: DataTypes.STRING,
+          unique: true
+        },
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        }
+      });
+
+      return User.sync({force: true}).then(() => {
+        return User.create({
+          username: 'gottlieb'
+        });
+      }).then(() => {
+        return expect(User.findOrCreate({
+          where: {
+            objectId: 'asdasdasd'
+          },
+          defaults: {
+            username: 'gottlieb',
+            foo: 'bar', // field that's not a defined attribute
+            bar: 121
+          }
+        })).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
+      });
+    });
+
     it('should error correctly when defaults contain a unique key and the where clause is complex', function() {
       const User = this.sequelize.define('user', {
         objectId: {
@@ -120,7 +151,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => User.create({ username: 'gottlieb' }))
         .then(() => User.findOrCreate({
           where: {
-            $or: [{
+            [Op.or]: [{
               objectId: 'asdasdasd1'
             }, {
               objectId: 'asdasdasd2'
@@ -656,7 +687,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.findOne({
             where: {
               updatedAt: {
-                ne: null
+                [Op.ne]: null
               }
             }
           }).then(user => {

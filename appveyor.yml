@@ -4,7 +4,7 @@ platform:
   - x64
 
 services:
-  - mssql2016
+  - mssql2017
 
 shallow_clone: true
 
@@ -13,7 +13,7 @@ cache:
 
 environment:
   matrix:
-    - {NODE_VERSION: 4, DIALECT: mssql, COVERAGE: true}
+    - {NODE_VERSION: 6, DIALECT: mssql, COVERAGE: true}
 
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
@@ -43,3 +43,4 @@ after_test:
 branches:
   only:
     - master
+    - v5

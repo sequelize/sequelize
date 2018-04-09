@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../../index'),
+  Op = Sequelize.Op,
   expect = chai.expect,
   Promise = Sequelize.Promise,
   Support = require(__dirname + '/../../support');
@@ -22,7 +23,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           defaultScope: {
             where: {
               access_level: {
-                gte: 5
+                [Op.gte]: 5
               }
             }
           },
