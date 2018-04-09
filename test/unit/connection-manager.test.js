@@ -81,16 +81,18 @@ describe('connection manager', () => {
 
         const spy = sinon.spy();
 
-        this.sequelize.addHook('afterPoolAcquire', (connection) => {
+        this.sequelize.addHook('afterPoolAcquire', connection => {
           return new Promise(resolve => {
-            setTimeout(() => { spy(connection); resolve(); }, 50);
+            spy(connection); 
+            resolve();
           });
         });
 
         const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
 
-        return connectionManager.getConnection().then((connection) => {
+        return connectionManager.getConnection().then( connection => {
           expect(spy.callCount).to.equal(1);
+          expect(connection).to.equal(this.connection);
           expect(spy.firstCall.args[0]).to.equal(this.connection);
         });
 
@@ -99,21 +101,21 @@ describe('connection manager', () => {
 
     describe('Before release beforePoolRelease hook', () => {
       it('should run beforePoolRelease hook', function() {
-        const beforPoolReleaseHook = sinon.spy();
 
         // bypass retriving database version wich requires an actual connection.
         this.sequelize.options.databaseVersion = -1;
 
         const spy = sinon.spy();
 
-        this.sequelize.addHook('beforePoolRelease', (connection) => {
+        this.sequelize.addHook('beforePoolRelease', connection => {
           return new Promise(resolve => {
-            setTimeout(() => { spy(connection); resolve(); }, 50);
+            spy(connection); 
+            resolve(connection);
           });
         });
 
         const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
-        return connectionManager.releaseConnection(this.connection).then((connection) => {
+        return connectionManager.releaseConnection(this.connection).then(() => {
           expect(spy.callCount).to.equal(1);
           expect(spy.firstCall.args[0]).to.equal(this.connection);
         });
