@@ -72,5 +72,53 @@ describe('connection manager', () => {
         expect(spy.firstCall.args[1]).to.eql({});
       });
     });
+
+    describe('After acquire connection hook', () => {
+      it('should run afterPoolAcquire hook', function() {
+
+        // bypass retriving database version wich requires an actual connection.
+        this.sequelize.options.databaseVersion = -1;
+
+        const spy = sinon.spy();
+
+        this.sequelize.addHook('afterPoolAcquire', (connection) => {
+          return new Promise(resolve => {
+            setTimeout(() => { spy(connection); resolve(); }, 50);
+          });
+        });
+
+        const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
+
+        return connectionManager.getConnection().then((connection) => {
+          expect(spy.callCount).to.equal(1);
+          expect(spy.firstCall.args[0]).to.equal(this.connection);
+        });
+
+      });
+    });
+
+    describe('Before release beforePoolRelease hook', () => {
+      it('should run beforePoolRelease hook', function() {
+        const beforPoolReleaseHook = sinon.spy();
+
+        // bypass retriving database version wich requires an actual connection.
+        this.sequelize.options.databaseVersion = -1;
+
+        const spy = sinon.spy();
+
+        this.sequelize.addHook('beforePoolRelease', (connection) => {
+          return new Promise(resolve => {
+            setTimeout(() => { spy(connection); resolve(); }, 50);
+          });
+        });
+
+        const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
+        return connectionManager.releaseConnection(this.connection).then((connection) => {
+          expect(spy.callCount).to.equal(1);
+          expect(spy.firstCall.args[0]).to.equal(this.connection);
+        });
+
+      });
+    });
   });
 });
