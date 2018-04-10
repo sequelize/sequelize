@@ -76,7 +76,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       return this.User.find({where: {username: 'John'}}).then(john => {
         return john.getTasks();
       }).then(tasks => {
-        tasks[0].attributes.forEach(attr => {
+        Object.keys(tasks[0].rawAttributes).forEach(attr => {
           expect(tasks[0]).to.have.property(attr);
         });
       });
