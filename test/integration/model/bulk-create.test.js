@@ -421,7 +421,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     } else {
       it('should throw an error when the ignoreDuplicates option is passed', function() {
-        const self = this;
         const data = [
           { uniqueName: 'Peter', secretValue: '42' },
           { uniqueName: 'Paul', secretValue: '23' }
@@ -430,12 +429,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).then(() => {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
 
-          return self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).catch(err => {
-            if (dialect === 'mssql') {
-              expect(err.message).to.match(/mssql does not support the \'ignoreDuplicates\' option./);
-            } else {
-              expect(err.message).to.match(/postgres does not support the \'ignoreDuplicates\' option./);
-            }
+          return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).catch(err => {
+            expect(err.message).to.equal(`${dialect} does not support the ignoreDuplicates option.`);
           });
         });
       });
