@@ -552,6 +552,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
         });
+
+        it('works with bulkCreate', function() {
+          const User = this.sequelize.define('User', {
+            name: {
+              type: DataTypes.STRING,
+              primaryKey: true
+            },
+            address: DataTypes.STRING
+          });
+
+          return User.sync({ force: true }).then(() => {
+            return User.bulkCreate([
+              { name: 'user1', address: 'user1' },
+              { name: 'user2' }
+            ]).then(() => {
+              return User.bulkCreate([
+                { name: 'user1' },
+                { name: 'user2', address: 'user2' }
+              ], { updateOnConflict: true });
+            }).then(() => {
+              return User.findAll({
+                where: { address: null }
+              });
+            }).then(users => {
+              expect(users).to.have.lengthOf(1);
+              expect(users[0].name).to.equal('user1');
+            });
+          });
+        });
       }
 
       if (current.dialect.supports.returnValues) {
