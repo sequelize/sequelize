@@ -442,30 +442,53 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     if (current.dialect.supports.updateOnDuplicate) {
-      it('should support the updateOnDuplicate option', function() {
-        const self = this;
-        const data = [
-          { uniqueName: 'Peter', secretValue: '42' },
-          { uniqueName: 'Paul', secretValue: '23' }
-        ];
-
-        return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
-          const new_data = [
-            { uniqueName: 'Peter', secretValue: '43' },
-            { uniqueName: 'Paul', secretValue: '24' },
-            { uniqueName: 'Michael', secretValue: '26' }
+      describe('updateOnDuplicate', () => {
+        it('should support the updateOnDuplicate option', function() {
+          const data = [
+            { uniqueName: 'Peter', secretValue: '42' },
+            { uniqueName: 'Paul', secretValue: '23' }
           ];
-          return self.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
-            return self.User.findAll({order: ['id']}).then(users => {
-              expect(users.length).to.equal(3);
-              expect(users[0].uniqueName).to.equal('Peter');
-              expect(users[0].secretValue).to.equal('43');
-              expect(users[1].uniqueName).to.equal('Paul');
-              expect(users[1].secretValue).to.equal('24');
-              expect(users[2].uniqueName).to.equal('Michael');
-              expect(users[2].secretValue).to.equal('26');
+
+          return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
+            const new_data = [
+              { uniqueName: 'Peter', secretValue: '43' },
+              { uniqueName: 'Paul', secretValue: '24' },
+              { uniqueName: 'Michael', secretValue: '26' }
+            ];
+            return this.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
+              return this.User.findAll({order: ['id']}).then(users => {
+                expect(users.length).to.equal(3);
+                expect(users[0].uniqueName).to.equal('Peter');
+                expect(users[0].secretValue).to.equal('43');
+                expect(users[1].uniqueName).to.equal('Paul');
+                expect(users[1].secretValue).to.equal('24');
+                expect(users[2].uniqueName).to.equal('Michael');
+                expect(users[2].secretValue).to.equal('26');
+              });
             });
           });
+        });
+
+        it('should reject for non array updateOnDuplicate option', function() {
+          const data = [
+            { uniqueName: 'Peter', secretValue: '42' },
+            { uniqueName: 'Paul', secretValue: '23' }
+          ];
+
+          return expect(
+            this.User.bulkCreate(data, { updateOnDuplicate: true })
+          ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
+        });
+
+        it('should reject for empty array updateOnDuplicate option', function() {
+          const data = [
+            { uniqueName: 'Peter', secretValue: '42' },
+            { uniqueName: 'Paul', secretValue: '23' }
+          ];
+
+          return expect(
+            this.User.bulkCreate(data, { updateOnDuplicate: [] })
+          ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
         });
       });
     }
