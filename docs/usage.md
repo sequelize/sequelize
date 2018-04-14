@@ -54,6 +54,9 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
   // custom host; default: localhost
   host: 'my.server.tld',
+  // for postgres, you can also specify an absolute path to a directory
+  // containing a UNIX socket to connect over
+  host: '/sockets/psql_sockets'
  
   // custom port; default: dialect default
   port: 12345,
@@ -199,6 +202,19 @@ The library for PostgreSQL is`pg@^5.0.0 || ^6.0.0` You'll just need to define th
 const sequelize = new Sequelize('database', 'username', 'password', {
   // gimme postgres, please!
   dialect: 'postgres'
+})
+```
+
+To connect over a unix domain socket, specify the path to the socket directory
+in the `host` option.
+
+The socket path must start with `/`.
+
+```js
+const sequelize = new Sequelize('database', 'username', 'password', {
+  // gimme postgres, please!
+  dialect: 'postgres',
+  host: '/path/to/socket_directory'
 })
 ```
 
