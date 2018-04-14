@@ -7,6 +7,14 @@ const chai = require('chai'),
   current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('belongsTo'), () => {
+  it('throws when invalid model is passed', () => {
+    const User = current.define('User');
+
+    expect(() => {
+      User.belongsTo();
+    }).to.throw('User.belongsTo called with something that\'s not a subclass of Sequelize.Model');
+  });
+
   it('should not override custom methods with association mixin', () => {
     const methods = {
       getTask: 'get',

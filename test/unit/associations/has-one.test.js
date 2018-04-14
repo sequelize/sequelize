@@ -8,6 +8,14 @@ const chai = require('chai'),
   current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('hasOne'), () => {
+  it('throws when invalid model is passed', () => {
+    const User = current.define('User');
+
+    expect(() => {
+      User.hasOne();
+    }).to.throw('User.hasOne called with something that\'s not a subclass of Sequelize.Model');
+  });
+
   it('properly use the `as` key to generate foreign key name', () => {
     const User = current.define('User', { username: DataTypes.STRING }),
       Task = current.define('Task', { title: DataTypes.STRING });
