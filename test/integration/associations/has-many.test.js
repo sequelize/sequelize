@@ -1504,7 +1504,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       this.Task = this.sequelize.define('Task',
         { title: Sequelize.STRING, userEmail: Sequelize.STRING, taskStatus: Sequelize.STRING });
 
-      this.User.hasMany(this.Task, {foreignKey: 'userEmail', sourceKey: 'mail'});
+      this.User.hasMany(this.Task, {
+        foreignKey: 'userEmail',
+        sourceKey: 'email'
+      });
 
       return this.sequelize.sync({ force: true });
     });

@@ -452,13 +452,14 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('foreign key', () => {
-    it('should lowercase foreign keys when using underscored', function() {
+    it('should setup underscored field with foreign keys when using underscored', function() {
       const User = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: true }),
         Account = this.sequelize.define('Account', { name: Sequelize.STRING }, { underscored: true });
 
       User.belongsTo(Account);
 
-      expect(User.rawAttributes.account_id).to.exist;
+      expect(User.rawAttributes.AccountId).to.exist;
+      expect(User.rawAttributes.AccountId.field).to.equal('account_id');
     });
 
     it('should use model name when using camelcase', function() {
