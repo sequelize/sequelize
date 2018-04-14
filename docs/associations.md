@@ -22,13 +22,14 @@ Player.belongsTo(Team); // Will add a teamId attribute to Player to hold the pri
 
 By default the foreign key for a belongsTo relation will be generated from the target model name and the target primary key name.
 
-The default casing is `camelCase` however if the source model is configured with `underscored: true` the foreignKey will be `snake_case`.
+The default casing is `camelCase`. If the source model is configured with `underscored: true` the foreignKey will be created with field `snake_case`.
 
 ```js
 const User = this.sequelize.define('user', {/* attributes */})
 const Company  = this.sequelize.define('company', {/* attributes */});
 
-User.belongsTo(Company); // Will add companyId to user
+// will add companyId to user
+User.belongsTo(Company);
 
 const User = this.sequelize.define('user', {/* attributes */}, {underscored: true})
 const Company  = this.sequelize.define('company', {
@@ -38,7 +39,8 @@ const Company  = this.sequelize.define('company', {
   }
 });
 
-User.belongsTo(Company); // Will add company_uuid to user
+// will add companyUuid to user with field company_uuid
+User.belongsTo(Company);
 ```
 
 In cases where `as` has been defined it will be used in place of the target model name.
@@ -191,7 +193,7 @@ const Project = sequelize.define('project', {/* ... */})
 Project.hasMany(User, {as: 'Workers'})
 ```
 
-This will add the attribute `projectId` or `project_id` to User. Instances of Project will get the accessors `getWorkers` and `setWorkers`. 
+This will add the attribute `projectId` or `project_id` to User. Instances of Project will get the accessors `getWorkers` and `setWorkers`.
 
 Sometimes you may need to associate records on different columns, you may use `sourceKey` option:
 
