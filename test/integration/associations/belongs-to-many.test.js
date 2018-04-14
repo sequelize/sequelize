@@ -15,8 +15,6 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   describe('getAssociations', () => {
     beforeEach(function() {
-      const self = this;
-
       this.User = this.sequelize.define('User', { username: DataTypes.STRING });
       this.Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
 
@@ -25,13 +23,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         return Promise.all([
-          self.User.create({ username: 'John'}),
-          self.Task.create({ title: 'Get rich', active: true}),
-          self.Task.create({ title: 'Die trying', active: false})
+          this.User.create({ username: 'John'}),
+          this.Task.create({ title: 'Get rich', active: true}),
+          this.Task.create({ title: 'Die trying', active: false})
         ]);
       }).spread((john, task1, task2) => {
-        self.tasks = [task1, task2];
-        self.user = john;
+        this.tasks = [task1, task2];
+        this.user = john;
         return john.setTasks([task1, task2]);
       });
     });

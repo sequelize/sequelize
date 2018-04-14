@@ -10,7 +10,7 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('HasOne'), () => {
   describe('Model.associations', () => {
-    it('should store all assocations when associting to the same table multiple times', function() {
+    it('should store all associations when associating to the same table multiple times', function() {
       const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {});
 
@@ -18,7 +18,9 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       Group.hasOne(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' });
       Group.hasOne(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' });
 
-      expect(Object.keys(Group.associations)).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers']);
+      expect(
+        Object.keys(Group.associations)
+      ).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers']);
     });
   });
 
@@ -59,8 +61,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     });
   });
 
-
-  describe('getAssocation', () => {
+  describe('getAssociation', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
@@ -403,6 +404,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       Account.hasOne(User);
 
       expect(User.rawAttributes.AccountId).to.exist;
+      expect(User.rawAttributes.AccountId.field).to.equal('AccountId');
     });
 
     it('should support specifying the field of a foreign key', function() {
