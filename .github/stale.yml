@@ -18,8 +18,14 @@ exemptLabels:
   - semver:major
   - good first issue
 
+# Set to true to ignore issues in a milestone (defaults to false)
+exemptMilestones: true
+
 # Label to use when marking an issue as stale
 staleLabel: stale
+
+# Limit to only `issues` or `pulls`
+only: issues
 
 # Comment to post when marking an issue as stale. Set to `false` to disable
 markComment: >
