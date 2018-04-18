@@ -12,18 +12,18 @@ Sequelize v5 will only support Node 6 and up [#9015](https://github.com/sequeliz
 
 With v4 you started to get a deprecation warning `String based operators are now deprecated`. Also concept of operators was introduced. These operators are Symbols which prevent hash injection attacks.
 
+**With v5**
+
+- Operators are now enabled by default.
+- You can still use string operators by passing an operators map in `operatorsAliases`, but that will give you deprecation warning.
+- Op.$raw is removed
+
 Please check these threads to know more
 
 - (Issue) https://github.com/sequelize/sequelize/issues/7310
 - (Fix) https://github.com/sequelize/sequelize/pull/8240
 - (Explanation) https://github.com/sequelize/sequelize/issues/8417#issuecomment-334056048
 - (Official Docs) http://docs.sequelizejs.com/manual/tutorial/querying.html#operators-security
-
-With v5
-
-- Operators are now enabled by default.
-- You can still use string operators by passing an operators map in `operatorsAliases`
-- Op.$raw is removed
 
 ### Model
 
@@ -35,12 +35,34 @@ __Note__: _Please dont confuse this with `options.attributes`, they are still va
 
 **Paranoid Mode**
 
-With v5 if `deletedAt` is set, record will be considered as deleted. `paranoid` option will only use `deletedAt` as flag.
+With v5 if `deletedAt` is set, record will be considered as deleted. `paranoid` option will only use `deletedAt` as flag. [#8496](https://github.com/sequelize/sequelize/issues/8496)
 
-In v4 it used to compare current time with `deletedAt`. [#8496](https://github.com/sequelize/sequelize/issues/8496)
+**Model.bulkCreate**
+
+`updateOnDuplicate` option which used to accept boolean and array, now only accepts non-empty array of attributes. [#9288](https://github.com/sequelize/sequelize/issues/9288)
+
+
+**Underscored Mode**
+
+Implementation of `Model.options.underscored` is changed. You can find full specifications [here](https://github.com/sequelize/sequelize/issues/6423#issuecomment-379472035).
+
+Main outline
+
+1. Both `underscoredAll` and `underscored` options are merged into single `underscored` option
+2. All attributes are now generated with camelcase naming by default. With the `underscored` option set to `true`, the `field` option for attributes will be set as underscored version of attribute name.
+3. `underscored` will control all attributes including timestamps, version and foreign keys. It will not affect any attribute which already specifies the `field` option.
+
+[#9304](https://github.com/sequelize/sequelize/pull/9304)
+
 
 ## Changelog
 
+### 5.0.0-beta.3
+
+- change(model): new options.underscored implementation [#9304](https://github.com/sequelize/sequelize/pull/9304)
+- fix(mssql): duplicate order generated with limit offset [#9307](https://github.com/sequelize/sequelize/pull/9307)
+- fix(scope): do not assign scope on eagerly loaded associations [#9292](https://github.com/sequelize/sequelize/pull/9292)
+- change(bulkCreate): only support non-empty array as updateOnDuplicate
 
 ### 5.0.0-beta.2
 
