@@ -12,7 +12,7 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   describe('Model.associations', () => {
-    it('should store all assocations when associting to the same table multiple times', function() {
+    it('should store all associations when associating to the same table multiple times', function() {
       const User = this.sequelize.define('User', {}),
         Group = this.sequelize.define('Group', {});
 
@@ -20,7 +20,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Group.belongsTo(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers' });
       Group.belongsTo(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers' });
 
-      expect(Object.keys(Group.associations)).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers']);
+      expect(
+        Object.keys(Group.associations)
+      ).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers']);
     });
   });
 
@@ -62,7 +64,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('getAssociation', () => {
-
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
@@ -452,13 +453,14 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('foreign key', () => {
-    it('should lowercase foreign keys when using underscored', function() {
+    it('should setup underscored field with foreign keys when using underscored', function() {
       const User = this.sequelize.define('User', { username: Sequelize.STRING }, { underscored: true }),
         Account = this.sequelize.define('Account', { name: Sequelize.STRING }, { underscored: true });
 
       User.belongsTo(Account);
 
-      expect(User.rawAttributes.account_id).to.exist;
+      expect(User.rawAttributes.AccountId).to.exist;
+      expect(User.rawAttributes.AccountId.field).to.equal('account_id');
     });
 
     it('should use model name when using camelcase', function() {
@@ -468,6 +470,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       User.belongsTo(Account);
 
       expect(User.rawAttributes.AccountId).to.exist;
+      expect(User.rawAttributes.AccountId.field).to.equal('AccountId');
     });
 
     it('should support specifying the field of a foreign key', function() {
@@ -497,15 +500,114 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           return user.getAccount();
         });
       }).then(user => {
-        // the sql query should correctly look at task_id instead of taskId
         expect(user).to.not.be.null;
         return User.findOne({
           where: {username: 'foo'},
           include: [Account]
         });
-      }).then(task => {
-        expect(task.Account).to.exist;
+      }).then(user => {
+        // the sql query should correctly look at account_id instead of AccountId
+        expect(user.Account).to.exist;
       });
+    });
+
+    it('should set foreignKey on foreign table', function() {
+      const Mail = this.sequelize.define('mail', {}, { timestamps: false });
+      const Entry = this.sequelize.define('entry', {}, { timestamps: false });
+      const User = this.sequelize.define('user', {}, { timestamps: false });
+
+      Entry.belongsTo(User, {
+        as: 'owner',
+        foreignKey: {
+          name: 'ownerId',
+          allowNull: false
+        }
+      });
+      Entry.belongsTo(Mail, {
+        as: 'mail',
+        foreignKey: {
+          name: 'mailId',
+          allowNull: false
+        }
+      });
+      Mail.belongsToMany(User, {
+        as: 'recipients',
+        through: 'MailRecipients',
+        otherKey: {
+          name: 'recipientId',
+          allowNull: false
+        },
+        foreignKey: {
+          name: 'mailId',
+          allowNull: false
+        },
+        timestamps: false
+      });
+      Mail.hasMany(Entry, {
+        as: 'entries',
+        foreignKey: {
+          name: 'mailId',
+          allowNull: false
+        }
+      });
+      User.hasMany(Entry, {
+        as: 'entries',
+        foreignKey: {
+          name: 'ownerId',
+          allowNull: false
+        }
+      });
+
+      return this.sequelize.sync({ force: true })
+        .then(() => User.create({}))
+        .then(() => Mail.create({}))
+        .then(mail =>
+          Entry.create({ mailId: mail.id, ownerId: 1 })
+            .then(() => Entry.create({ mailId: mail.id, ownerId: 1 }))
+            // set recipients
+            .then(() => mail.setRecipients([1]))
+        )
+        .then(() => Entry.findAndCount({
+          offset: 0,
+          limit: 10,
+          order: [['id', 'DESC']],
+          include: [
+            {
+              association: Entry.associations.mail,
+              include: [
+                {
+                  association: Mail.associations.recipients,
+                  through: {
+                    where: {
+                      recipientId: 1
+                    }
+                  },
+                  required: true
+                }
+              ],
+              required: true
+            }
+          ]
+        })).then(result => {
+          expect(result.count).to.equal(2);
+          expect(result.rows[0].get({ plain: true })).to.deep.equal(
+            {
+              id: 2,
+              ownerId: 1,
+              mailId: 1,
+              mail: {
+                id: 1,
+                recipients: [{
+                  id: 1,
+                  MailRecipients: {
+                    mailId: 1,
+                    recipientId: 1
+                  }
+                }]
+              }
+            }
+          );
+        });
     });
   });
 
@@ -643,7 +745,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           });
         });
       });
-
     }
 
     // NOTE: mssql does not support changing an autoincrement primary key
@@ -677,17 +778,15 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         });
       });
     }
-
   });
 
-  describe('Association column', () => {
+  describe('association column', () => {
     it('has correct type and name for non-id primary keys with non-integer type', function() {
       const User = this.sequelize.define('UserPKBT', {
-          username: {
-            type: DataTypes.STRING
-          }
-        }),
-        self = this;
+        username: {
+          type: DataTypes.STRING
+        }
+      });
 
       const Group = this.sequelize.define('GroupPKBT', {
         name: {
@@ -698,14 +797,14 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       User.belongsTo(Group);
 
-      return self.sequelize.sync({ force: true }).then(() => {
+      return this.sequelize.sync({ force: true }).then(() => {
         expect(User.rawAttributes.GroupPKBTName.type).to.an.instanceof(DataTypes.STRING);
       });
     });
 
     it('should support a non-primary key as the association column on a target without a primary key', function() {
-      const User = this.sequelize.define('User', { username: DataTypes.STRING }),
-        Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+      const User = this.sequelize.define('User', { username: DataTypes.STRING });
+      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
       User.removeAttribute('id');
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
@@ -782,8 +881,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     });
   });
 
-  describe('Association options', () => {
-    it('can specify data type for autogenerated relational keys', function() {
+  describe('association options', () => {
+    it('can specify data type for auto-generated relational keys', function() {
       const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING }),
         dataTypes = [DataTypes.INTEGER, DataTypes.BIGINT, DataTypes.STRING],
         self = this,
@@ -877,98 +976,5 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       expect(Car.belongsTo.bind(Car, Person, {as: 'person'})).to
         .throw ('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change either foreignKey or as in your association definition');
     });
-  });
-});
-
-describe('Association', () => {
-  it('should set foreignKey on foreign table', function() {
-    const Mail = this.sequelize.define('mail', {}, { timestamps: false });
-    const Entry = this.sequelize.define('entry', {}, { timestamps: false });
-    const User = this.sequelize.define('user', {}, { timestamps: false });
-    Entry.belongsTo(User, { as: 'owner', foreignKey: { name: 'ownerId', allowNull: false } });
-    Entry.belongsTo(Mail, {
-      as: 'mail',
-      foreignKey: {
-        name: 'mailId',
-        allowNull: false
-      }
-    });
-    Mail.belongsToMany(User, {
-      as: 'recipients',
-      through: 'MailRecipients',
-      otherKey: {
-        name: 'recipientId',
-        allowNull: false
-      },
-      foreignKey: {
-        name: 'mailId',
-        allowNull: false
-      },
-      timestamps: false
-    });
-    Mail.hasMany(Entry, {
-      as: 'entries',
-      foreignKey: {
-        name: 'mailId',
-        allowNull: false
-      }
-    });
-    User.hasMany(Entry, {
-      as: 'entries',
-      foreignKey: {
-        name: 'ownerId',
-        allowNull: false
-      }
-    });
-    return this.sequelize.sync({ force: true })
-      .then(() => User.create({}))
-      .then(() => Mail.create({}))
-      .then(mail =>
-        Entry.create({ mailId: mail.id, ownerId: 1 })
-          .then(() => Entry.create({ mailId: mail.id, ownerId: 1 }))
-          // set recipients
-          .then(() => mail.setRecipients([1]))
-      )
-      .then(() => Entry.findAndCount({
-        offset: 0,
-        limit: 10,
-        order: [['id', 'DESC']],
-        include: [
-          {
-            association: Entry.associations.mail,
-            include: [
-              {
-                association: Mail.associations.recipients,
-                through: {
-                  where: {
-                    recipientId: 1
-                  }
-                },
-                required: true
-              }
-            ],
-            required: true
-          }
-        ]
-      })).then(result => {
-        expect(result.count).to.equal(2);
-        expect(result.rows[0].get({ plain: true })).to.deep.equal(
-          {
-            id: 2,
-            ownerId: 1,
-            mailId: 1,
-            mail: {
-              id: 1,
-              recipients: [{
-                id: 1,
-                MailRecipients: {
-                  mailId: 1,
-                  recipientId: 1
-                }
-              }]
-            }
-          }
-        );
-      });
   });
 });

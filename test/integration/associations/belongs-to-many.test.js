@@ -15,8 +15,6 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   describe('getAssociations', () => {
     beforeEach(function() {
-      const self = this;
-
       this.User = this.sequelize.define('User', { username: DataTypes.STRING });
       this.Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
 
@@ -25,13 +23,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         return Promise.all([
-          self.User.create({ username: 'John'}),
-          self.Task.create({ title: 'Get rich', active: true}),
-          self.Task.create({ title: 'Die trying', active: false})
+          this.User.create({ username: 'John'}),
+          this.Task.create({ title: 'Get rich', active: true}),
+          this.Task.create({ title: 'Die trying', active: false})
         ]);
       }).spread((john, task1, task2) => {
-        self.tasks = [task1, task2];
-        self.user = john;
+        this.tasks = [task1, task2];
+        this.user = john;
         return john.setTasks([task1, task2]);
       });
     });
@@ -1255,8 +1253,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       const attributes = this.sequelize.model('user_places').rawAttributes;
 
-      expect(attributes.place_id).to.be.ok;
-      expect(attributes.user_id).to.be.ok;
+      expect(attributes.PlaceId.field).to.equal('place_id');
+      expect(attributes.UserId.field).to.equal('user_id');
     });
 
     it('should infer otherKey from paired BTM relationship with a through string defined', function() {
@@ -2276,10 +2274,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       PersonChildren = this.sequelize.define('PersonChildren', {}, {underscored: true});
       Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren});
 
-      expect(Children.foreignKey).to.equal('person_id');
-      expect(Children.otherKey).to.equal('child_id');
+      expect(Children.foreignKey).to.equal('PersonId');
+      expect(Children.otherKey).to.equal('ChildId');
       expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
       expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
+      expect(PersonChildren.rawAttributes[Children.foreignKey].field).to.equal('person_id');
+      expect(PersonChildren.rawAttributes[Children.otherKey].field).to.equal('child_id');
     });
   });
 });

@@ -15,6 +15,14 @@ const Promise = current.Promise;
 const AssociationError = require(__dirname + '/../../../lib/errors').AssociationError;
 
 describe(Support.getTestDialectTeaser('belongsToMany'), () => {
+  it('throws when invalid model is passed', () => {
+    const User = current.define('User');
+
+    expect(() => {
+      User.belongsToMany();
+    }).to.throw('User.belongsToMany called with something that\'s not a subclass of Sequelize.Model');
+  });
+
   it('should not inherit scopes from parent to join table', () => {
     const A = current.define('a'),
       B = current.define('b', {}, {

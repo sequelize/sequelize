@@ -13,6 +13,14 @@ const chai = require('chai'),
   Promise   = current.Promise;
 
 describe(Support.getTestDialectTeaser('hasMany'), () => {
+  it('throws when invalid model is passed', () => {
+    const User = current.define('User');
+
+    expect(() => {
+      User.hasMany();
+    }).to.throw('User.hasMany called with something that\'s not a subclass of Sequelize.Model');
+  });
+
   describe('optimizations using bulk create, destroy and update', () => {
     const User =current.define('User', { username: DataTypes.STRING }),
       Task = current.define('Task', { title: DataTypes.STRING });
