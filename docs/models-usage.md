@@ -591,7 +591,11 @@ When an eager loaded model is filtered using `include.where` then `include.requi
 
 ### Top level where with eagerly loaded models
 
-To move the where conditions from an included model from the `ON` condition to the top level `WHERE` you can use the `'$nested.column$'` syntax:
+To move the where conditions from an included model from the `ON` condition to the top level `WHERE` you can use the `'$nested.column$'` syntax.
+
+**NOTE:** In the following example, the `where` property MUST come before the
+`include` property, otherwise the query will be malformed and Sequelize will throw
+a `SequelizeDatabaseError`.
 
 ```js
 User.findAll({
