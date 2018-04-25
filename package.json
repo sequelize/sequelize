@@ -69,7 +69,6 @@
     "eslint": "^4.16.0",
     "eslint-plugin-mocha": "^4.11.0",
     "hints": "^1.1.0",
-    "husky": "^0.14.2",
     "istanbul": "^0.4.5",
     "lcov-result-merger": "^2.0.0",
     "mocha": "^5.0.4",
