@@ -8,6 +8,7 @@ const chai = require('chai'),
   _ = require('lodash'),
   moment = require('moment'),
   current = Support.sequelize,
+  Op = current.Op,
   uuid = require('uuid'),
   DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect(),
@@ -438,6 +439,145 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           expect(m.interval[1]).to.be.eql(4);
         });
     });
+  }
+
+  if (current.dialect.supports.RANGE) {
+
+    it('should allow date ranges to be generated with default bounds inclusion #8176', function() {
+      const Model = this.sequelize.define('M', {
+        interval: {
+          type: Sequelize.RANGE(Sequelize.DATE),
+          allowNull: false,
+          unique: true
+        }
+      });
+      const testDate1 = new Date();
+      const testDate2 = new Date(testDate1.getTime() + 10000);
+      const testDateRange = [testDate1, testDate2];
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: testDateRange }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval[0]).to.be.eql(testDate1);
+          expect(m.interval[1]).to.be.eql(testDate2);
+          expect(m.interval.inclusive[0]).to.be.eql(true);
+          expect(m.interval.inclusive[1]).to.be.eql(false);
+        });
+    });
+
+    it('should allow date ranges to be generated using an array property to define bounds inclusion #8176', function() {
+      const Model = this.sequelize.define('M', {
+        interval: {
+          type: Sequelize.RANGE(Sequelize.DATE),
+          allowNull: false,
+          unique: true
+        }
+      });
+      const testDate1 = new Date();
+      const testDate2 = new Date(testDate1.getTime() + 10000);
+      const testDateRange = [testDate1, testDate2];
+      testDateRange.inclusive = [false, true];
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: testDateRange }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval[0]).to.be.eql(testDate1);
+          expect(m.interval[1]).to.be.eql(testDate2);
+          expect(m.interval.inclusive[0]).to.be.eql(false);
+          expect(m.interval.inclusive[1]).to.be.eql(true);
+        });
+    });
+
+    it('should allow date ranges to be generated using a boolean property to define bounds inclusion #8176', function() {
+      const Model = this.sequelize.define('M', {
+        interval: {
+          type: Sequelize.RANGE(Sequelize.DATE),
+          allowNull: false,
+          unique: true
+        }
+      });
+      const testDate1 = new Date();
+      const testDate2 = new Date(testDate1.getTime() + 10000);
+      const testDateRange = [testDate1, testDate2];
+      testDateRange.inclusive = true;
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: testDateRange }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval[0]).to.be.eql(testDate1);
+          expect(m.interval[1]).to.be.eql(testDate2);
+          expect(m.interval.inclusive[0]).to.be.eql(true);
+          expect(m.interval.inclusive[1]).to.be.eql(true);
+        });
+    });
+
+    it('should allow date ranges to be generated using a single range expression to define bounds inclusion #8176', function() {
+      const Model = this.sequelize.define('M', {
+        interval: {
+          type: Sequelize.RANGE(Sequelize.DATE),
+          allowNull: false,
+          unique: true
+        }
+      });
+      const testDate1 = new Date();
+      const testDate2 = new Date(testDate1.getTime() + 10000);
+      const testDateRange = [{ value: testDate1, inclusive: false }, { value: testDate2, inclusive: true }];
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: testDateRange }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval[0]).to.be.eql(testDate1);
+          expect(m.interval[1]).to.be.eql(testDate2);
+          expect(m.interval.inclusive[0]).to.be.eql(false);
+          expect(m.interval.inclusive[1]).to.be.eql(true);
+        });
+    });
+
+    it('should correctly return ranges when using predicates that define bounds inclusion #8176', function() {
+      const Model = this.sequelize.define('M', {
+        interval: {
+          type: Sequelize.RANGE(Sequelize.DATE),
+          allowNull: false,
+          unique: true
+        }
+      });
+      const testDate1 = new Date();
+      const testDate2 = new Date(testDate1.getTime() + 10000);
+      const testDateRange = [testDate1, testDate2];
+      
+      // Test both variations of defining range bounds inclusion
+      const dateRangePredicate1 = [testDate1, testDate1];
+      dateRangePredicate1.inclusive = true;
+      const dateRangePredicate2 = [{ value: testDate1, inclusive: true }, { value: testDate1, inclusive: true }];
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: testDateRange }))
+        .then(() => Model.findOne({
+          where: {
+            interval: { [Op.overlap]: dateRangePredicate1 }
+          }
+        }))
+        .then(m => {
+          expect(m).to.exist;
+        })
+        .then(() => Model.findOne({
+          where: {
+            interval: { [Op.overlap]: dateRangePredicate2 }
+          }
+        }))
+        .then(m => {
+          expect(m).to.exist;
+        });
+    });
+  
   }
 
   it('should allow spaces in ENUM', function() {
