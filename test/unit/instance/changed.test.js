@@ -170,5 +170,22 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(user.changed(attr), `${attr} is not changed`).to.equal(false);
       }
     });
+
+    describe('setDataValue', () => {
+      it('should return falsy for unchanged primitive', function() {
+        const user = this.User.build({
+          name: 'a',
+          meta: null
+        }, {
+          isNewRecord: false,
+          raw: true
+        });
+
+        user.setDataValue('name', 'a');
+        user.setDataValue('meta', null);
+        expect(user.changed('name')).to.equal(false);
+        expect(user.changed('meta')).to.equal(false);
+      });
+    });
   });
 });
