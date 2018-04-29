@@ -150,5 +150,17 @@ if (dialect === 'mysql') {
           return cm.releaseConnection(connection);
         });
     });
+
+    it('should acquire a valid connection when keepDefaultTimezone is true', () => {
+      const sequelize = Support.createSequelizeInstance({keepDefaultTimezone: true, pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}});
+      const cm = sequelize.connectionManager;
+      return sequelize
+        .sync()
+        .then(() => cm.getConnection())
+        .then(connection => {
+          expect(cm.validate(connection)).to.be.ok;
+          return cm.releaseConnection(connection);
+        });
+    });
   });
 }

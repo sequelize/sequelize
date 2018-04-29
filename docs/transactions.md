@@ -219,3 +219,47 @@ sequelize.transaction({
 The `transaction` option goes with most other options, which are usually the first argument of a method.
 For methods that take values, like `.create`, `.update()`, `.updateAttributes()` etc. `transaction` should be passed to the option in the second argument.
 If unsure, refer to the API documentation for the method you are using to be sure of the signature.
+
+## After commit hook
+
+A `transaction` object allows tracking if and when it is committed.
+
+An `afterCommit` hook can be added to both managed and unmanaged transaction objects:
+```js
+sequelize.transaction(t => {
+  t.afterCommit((transaction) => {
+    // Your logic
+  });
+});
+
+sequelize.transaction().then(t => {
+  t.afterCommit((transaction) => {
+    // Your logic
+  });
+
+  return t.commit();
+})
+```
+
+The function passed to `afterCommit` can optionally return a promise that will resolve before the promise chain
+that created the transaction resolves
+
+`afterCommit` hooks are _not_ raised if a transaction is rolled back
+
+`afterCommit` hooks do _not_ modify the return value of the transaction, unlike standard hooks
+
+You can use the `afterCommit` hook in conjunction with model hooks to know when a instance is saved and available outside
+of a transaction
+
+```js
+model.afterSave((instance, options) => {
+  if (options.transaction) {
+    // Save done within a transaction, wait until transaction is committed to
+    // notify listeners the instance has been saved
+    options.transaction.afterCommit(() => /* Notify */)
+    return;
+  }
+  // Save done outside a transaction, safe for callers to fetch the updated model
+  // Notify
+})
+```

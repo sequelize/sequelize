@@ -57,6 +57,12 @@ Main outline
 
 ## Changelog
 
+### 5.0.0-beta.4
+
+- change(model): setDataValue should not mark null to null as changed [#9347](https://github.com/sequelize/sequelize/pull/9347)
+- change(mysql/connection-manager): do not execute SET time_zone query if keepDefaultTimezone config is true [#9358](https://github.com/sequelize/sequelize/pull/9358)
+- feat(transactions): Add afterCommit hooks for transactions [#9287](https://github.com/sequelize/sequelize/pull/9287)
+
 ### 5.0.0-beta.3
 
 - change(model): new options.underscored implementation [#9304](https://github.com/sequelize/sequelize/pull/9304)
