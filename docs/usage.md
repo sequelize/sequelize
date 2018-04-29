@@ -118,7 +118,12 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
   // isolation level of each transaction
   // defaults to dialect default
-  isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ
+  isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ,
+
+  // Generate queries with bind parameters
+  // Currently only has an effect for non-bulk INSERTs
+  // - default: false
+  bindParams: true
 })
 ```
 

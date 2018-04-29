@@ -87,5 +87,13 @@ describe('QueryGenerator', () => {
         .to.throw('Invalid value { \'$in\': [ 4 ] }');
     });
   });
+
+  describe('format', () => {
+    it('should throw an error if passed SequelizeMethod', function() {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      const value = this.sequelize.fn('UPPER', 'test');
+      expect(() => QG.format(value)).to.throw(Error);
+    });
+  });
 });
 
