@@ -47,21 +47,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.changed('meta')).to.equal(false);
     });
 
-    it('should return falsy for unchanged primitive via setDataValue', function() {
-      const user = this.User.build({
-        name: 'a',
-        meta: null
-      }, {
-        isNewRecord: false,
-        raw: true
-      });
-
-      user.setDataValue('name', 'a');
-      user.setDataValue('meta', null);
-      expect(user.changed('name')).to.equal(false);
-      expect(user.changed('meta')).to.equal(false);
-    });
-
     it('should return true for multiple changed values', function() {
       const user = this.User.build({
         name: 'a',
@@ -184,6 +169,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       for (const attr in this.User.rawAttributes) {
         expect(user.changed(attr), `${attr} is not changed`).to.equal(false);
       }
+    });
+
+    describe('setDataValue', () => {
+      it('should return falsy for unchanged primitive', function() {
+        const user = this.User.build({
+          name: 'a',
+          meta: null
+        }, {
+          isNewRecord: false,
+          raw: true
+        });
+
+        user.setDataValue('name', 'a');
+        user.setDataValue('meta', null);
+        expect(user.changed('name')).to.equal(false);
+        expect(user.changed('meta')).to.equal(false);
+      });
     });
   });
 });
