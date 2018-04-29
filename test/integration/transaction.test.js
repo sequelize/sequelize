@@ -549,7 +549,6 @@ if (current.dialect.supports.transactions) {
               return User.findAll({
                 limit: 1,
                 lock: true,
-                skipLocked: true,
                 transaction: t1
               }).then(results => {
                 const firstUserId = results[0].id;
@@ -564,7 +563,7 @@ if (current.dialect.supports.transactions) {
                     return Promise.all([
                       t1.commit(),
                       t2.commit()
-                    ])
+                    ]);
                   });
                 });
               });
