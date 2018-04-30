@@ -398,7 +398,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
       });
     });
+  }
 
+  if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
     it('should parse BIGINT as string', function() {
       const Model = this.sequelize.define('model', {
         jewelPurity: Sequelize.BIGINT
