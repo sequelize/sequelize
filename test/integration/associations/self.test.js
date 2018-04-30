@@ -47,8 +47,6 @@ describe(Support.getTestDialectTeaser('Self'), () => {
   });
 
   it('can handle n:m associations', function() {
-    const self = this;
-
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
     Person.belongsToMany(Person, { as: 'Parents', through: 'Family', foreignKey: 'ChildId', otherKey: 'PersonId' });

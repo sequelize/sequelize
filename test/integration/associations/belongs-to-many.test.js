@@ -2193,8 +2193,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const User = this.sequelize.define('User', {
           name: Sequelize.STRING(100)
         }),
-        Follow = this.sequelize.define('Follow'),
-        self = this;
+        Follow = this.sequelize.define('Follow');
 
       User.belongsToMany(User, { through: Follow, as: 'User' });
       User.belongsToMany(User, { through: Follow, as: 'Fan' });
@@ -2208,7 +2207,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           ]);
         })
         .then(users => {
-          return Promise.all([
+          return this.sequelize.Promise.all([
             users[0].addFan(users[1]),
             users[1].addUser(users[2]),
             users[2].addFan(users[0])
@@ -2220,8 +2219,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const User = this.sequelize.define('User', {
           name: Sequelize.STRING(100)
         }),
-        UserFollowers = this.sequelize.define('UserFollower'),
-        self = this;
+        UserFollowers = this.sequelize.define('UserFollower');
 
       User.belongsToMany(User, {
         as: {
@@ -2242,13 +2240,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true })
         .then(() => {
-          return Promise.all([
+          return this.sequelize.Promise.all([
             User.create({ name: 'Jalrangi' }),
             User.create({ name: 'Sargrahi' })
           ]);
         })
         .then(users => {
-          return Promise.all([
+          return this.sequelize.Promise.all([
             users[0].addFollower(users[1]),
             users[1].addFollower(users[0]),
             users[0].addInvitee(users[1]),

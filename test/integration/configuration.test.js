@@ -7,7 +7,7 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   Sequelize = Support.Sequelize,
   fs = require('fs'),
-  path = require('path')
+  path = require('path');
 
 if (dialect === 'sqlite') {
   var sqlite3 = require('sqlite3'); // eslint-disable-line
