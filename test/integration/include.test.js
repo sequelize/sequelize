@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return this.sequelize.sync({force: true}).then(() => {
         return Company.create().then(() => {
-          return Company.find({
+          return Company.findOne({
             include: [{model: Person, as: 'CEO'}]
           }).then(company => {
             expect(company).to.be.ok;
@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       return this.sequelize.sync({force: true}).then(() => {
         return Company.create();
       }).then(() => {
-        return Company.find({
+        return Company.findOne({
           include: [CEO]
         });
       }).then(user => {
@@ -121,7 +121,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           return person.setEmployer(company);
         });
       }).then(() => {
-        return Person.find({
+        return Person.findOne({
           include: [Person.relation.Employer]
         }).then(person => {
           expect(person).to.be.ok;
@@ -287,7 +287,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           include: [Task, Group]
         });
       }).then(user => {
-        return Group.find({
+        return Group.findOne({
           where: {
             id: user.Group.id
           },
@@ -362,7 +362,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           include: [Worker, Task]
         });
       }).then(project => {
-        return Worker.find({
+        return Worker.findOne({
           where: {
             id: project.Workers[0].id
           },
@@ -662,7 +662,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         this.groups = groups;
         return groups[0].setOutsourcingCompanies(groups.slice(1));
       }).then(function() {
-        return Group.find({
+        return Group.findOne({
           where: {
             id: this.groups[0].id
           },

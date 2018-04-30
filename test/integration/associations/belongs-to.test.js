@@ -567,7 +567,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
             // set recipients
             .then(() => mail.setRecipients([1]))
         )
-        .then(() => Entry.findAndCount({
+        .then(() => Entry.findAndCountAll({
           offset: 0,
           limit: 10,
           order: [['id', 'DESC']],

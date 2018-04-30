@@ -1617,7 +1617,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
             return u.addProject(p);
           }).then(function() {
-            return this.UserProjects.find({ where: { UserId: this.u.id, ProjectId: this.p.id }});
+            return this.UserProjects.findOne({ where: { UserId: this.u.id, ProjectId: this.p.id }});
           }).then(up => {
             expect(up.status).to.equal('active');
           });
@@ -2201,14 +2201,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true })
         .then(() => {
-          return self.sequelize.Promise.all([
+          return Promise.all([
             User.create({ name: 'Khsama' }),
             User.create({ name: 'Vivek' }),
             User.create({ name: 'Satya' })
           ]);
         })
         .then(users => {
-          return self.sequelize.Promise.all([
+          return Promise.all([
             users[0].addFan(users[1]),
             users[1].addUser(users[2]),
             users[2].addFan(users[0])
@@ -2242,13 +2242,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true })
         .then(() => {
-          return self.sequelize.Promise.all([
+          return Promise.all([
             User.create({ name: 'Jalrangi' }),
             User.create({ name: 'Sargrahi' })
           ]);
         })
         .then(users => {
-          return self.sequelize.Promise.all([
+          return Promise.all([
             users[0].addFollower(users[1]),
             users[1].addFollower(users[0]),
             users[0].addInvitee(users[1]),

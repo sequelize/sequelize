@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     expect(rawAttributes).to.have.members(['createdAt', 'updatedAt', 'PersonId', 'ChildId']);
 
     return this.sequelize.sync({ force: true }).then(() => {
-      return self.sequelize.Promise.all([
+      return Promise.all([
         Person.create({ name: 'Mary' }),
         Person.create({ name: 'John' }),
         Person.create({ name: 'Chris' })

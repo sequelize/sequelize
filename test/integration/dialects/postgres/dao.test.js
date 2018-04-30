@@ -624,7 +624,7 @@ if (dialect.match(/^postgres/)) {
           expect(newUser.settings).to.deep.equal({ created: '"value"' });
 
           // Check to see if updating an hstore field works
-          return newUser.updateAttributes({ settings: { should: 'update', to: 'this', first: 'place' } }).then(oldUser => {
+          return newUser.update({ settings: { should: 'update', to: 'this', first: 'place' } }).then(oldUser => {
             // Postgres always returns keys in alphabetical order (ascending)
             expect(oldUser.settings).to.deep.equal({ first: 'place', should: 'update', to: 'this' });
           });
@@ -774,7 +774,7 @@ if (dialect.match(/^postgres/)) {
           expect(newUser.course_period.inclusive).to.deep.equal([true, false]); // inclusive, exclusive
 
           // Check to see if updating a range field works
-          return newUser.updateAttributes({ acceptable_marks: [0.8, 0.9] }).then(() => {
+          return newUser.update({ acceptable_marks: [0.8, 0.9] }).then(() => {
             expect(newUser.acceptable_marks.length).to.equal(2);
             expect(newUser.acceptable_marks[0]).to.equal(0.8); // lower bound
             expect(newUser.acceptable_marks[1]).to.equal(0.9); // upper bound

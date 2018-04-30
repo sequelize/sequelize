@@ -14,10 +14,6 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(Sequelize).to.have.property('Error');
       expect(Sequelize).to.have.property('ValidationError');
       expect(Sequelize).to.have.property('OptimisticLockError');
-      const sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
-      expect(sequelize).to.have.property('Error');
-      expect(sequelize).to.have.property('ValidationError');
-      expect(sequelize).to.have.property('OptimisticLockError');
     });
 
     it('Sequelize Errors instances should be instances of Error', () => {
@@ -29,10 +25,9 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       ]);
       const optimisticLockError = new Sequelize.OptimisticLockError();
 
-      const sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
-      const instError = new sequelize.Error();
-      const instValidationError = new sequelize.ValidationError();
-      const instOptimisticLockError = new sequelize.OptimisticLockError();
+      const instError = new Sequelize.Error();
+      const instValidationError = new Sequelize.ValidationError();
+      const instOptimisticLockError = new Sequelize.OptimisticLockError();
 
       expect(error).to.be.instanceOf(Sequelize.Error);
       expect(error).to.be.instanceOf(Error);

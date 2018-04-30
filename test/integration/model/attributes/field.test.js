@@ -291,7 +291,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         }).then(user => {
           expect(user.get('name')).to.equal('Foobar');
-          return user.updateAttributes({
+          return user.update({
             name: 'Barfoo'
           });
         }).then(() => {
@@ -536,16 +536,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.Comment.create({
           notes: 'Foobar'
         }).then(() => {
-          return self.Comment.find({
+          return self.Comment.findOne({
             limit: 1
           });
         }).then(comment => {
           expect(comment.get('notes')).to.equal('Foobar');
-          return comment.updateAttributes({
+          return comment.update({
             notes: 'Barfoo'
           });
         }).then(() => {
-          return self.Comment.find({
+          return self.Comment.findOne({
             limit: 1
           });
         }).then(comment => {

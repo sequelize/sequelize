@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Model4.belongsTo(Model2);
 
       return this.sequelize.sync({force: true}).bind(this).then(() => {
-        return Model.find({
+        return Model.findOne({
           include: [
             {model: Model2, include: [
               {model: Model4, where: {something: 2}}

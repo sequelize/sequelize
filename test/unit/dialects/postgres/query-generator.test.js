@@ -10,7 +10,7 @@ const chai = require('chai'),
   moment = require('moment'),
   current = Support.sequelize,
   _ = require('lodash'),
-  literal = Support.Sequelize.fn;
+  literal = Support.Sequelize.literal;
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', () => {

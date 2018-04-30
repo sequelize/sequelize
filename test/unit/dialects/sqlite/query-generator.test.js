@@ -9,7 +9,7 @@ const chai = require('chai'),
   moment = require('moment'),
   Op = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator'),
-  literal = Support.Sequelize.fn;
+  literal = Support.Sequelize.literal;
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] QueryGenerator', () => {

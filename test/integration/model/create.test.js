@@ -1331,7 +1331,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return Item.sync({ force: true }).then(() => {
           return Item.create({ state: 'available' }).then(_item => {
-            return Item.find({ where: { state: 'available' }}).then(item => {
+            return Item.findOne({ where: { state: 'available' }}).then(item => {
               expect(item.id).to.equal(_item.id);
             });
           });

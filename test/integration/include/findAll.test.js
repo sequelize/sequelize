@@ -1417,7 +1417,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           return parent;
         });
       }).then(parent => {
-        return Child1.find({
+        return Child1.findOne({
           include: [
             {
               model: Parent,

@@ -257,7 +257,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let count = 0;
 
         return this.User.bulkCreate([{username: 'jack'}, {username: 'jack'}]).then(() => {
-          return self.sequelize.Promise.map(permutations, perm => {
+          return Promise.map(permutations, perm => {
             return self.User.findById(perm, {
               logging(s) {
                 expect(s.indexOf(0)).not.to.equal(-1);

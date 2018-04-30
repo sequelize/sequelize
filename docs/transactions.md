@@ -217,7 +217,7 @@ sequelize.transaction({
 ## Usage with other sequelize methods
 
 The `transaction` option goes with most other options, which are usually the first argument of a method.
-For methods that take values, like `.create`, `.update()`, `.updateAttributes()` etc. `transaction` should be passed to the option in the second argument.
+For methods that take values, like `.create`, `.update()`, etc. `transaction` should be passed to the option in the second argument.
 If unsure, refer to the API documentation for the method you are using to be sure of the signature.
 
 ## After commit hook
