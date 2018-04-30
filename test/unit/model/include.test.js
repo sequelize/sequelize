@@ -4,7 +4,8 @@ const chai = require('chai'),
   expect = chai.expect,
   Support   = require(__dirname + '/../support'),
   Sequelize = require(__dirname + '/../../../index'),
-  current   = Support.sequelize;
+  current   = Support.sequelize,
+  Model = require('../../../lib/model');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('all', () => {
@@ -16,7 +17,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('can expand nested self-reference', () => {
       const options = { include: [{ all: true, nested: true }] };
 
-      current.Model._expandIncludeAll.call(Referral, options);
+      Model._expandIncludeAll.call(Referral, options);
 
       expect(options.include).to.deep.equal([
         { model: Referral }

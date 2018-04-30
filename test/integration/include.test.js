@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       return this.sequelize.sync({force: true}).then(() => {
         return User.create();
       }).then(() => {
-        return User.find({
+        return User.findOne({
           include: [{model: Company, as: 'Employer'}]
         }).then(user => {
           expect(user).to.be.ok;
@@ -141,7 +141,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return User.create().then(user => {
           return user.createTask();
         }).then(() => {
-          return User.find({
+          return User.findOne({
             include: [Tasks]
           });
         }).then(user => {
@@ -169,7 +169,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             })
           );
         }).then(() => {
-          return User.find({
+          return User.findOne({
             include: [
               {association: Tasks, where: {title: 'trivial'}}
             ]
@@ -194,7 +194,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           return user.createGroup();
         });
       }).then(() => {
-        return User.find({
+        return User.findOne({
           include: [Groups]
         }).then(user => {
           expect(user).to.be.ok;
@@ -255,7 +255,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           include: [User, Group]
         });
       }).then(task => {
-        return Task.find({
+        return Task.findOne({
           where: {
             id: task.id
           },
@@ -325,7 +325,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           include: [Task]
         });
       }).then(user => {
-        return User.find({
+        return User.findOne({
           where: {
             id: user.id
           },
@@ -422,7 +422,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           products[2].setTags([tags[0], tags[1], tags[2]])
         ]);
       }).then(() => {
-        return User.find({
+        return User.findOne({
           where: {
             id: 1
           },
@@ -527,7 +527,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           product1.setCategory(tags[1])
         ]);
       }).then(() => {
-        return User.find({
+        return User.findOne({
           where: {id: 1},
           include: [
             {model: GroupMember, as: 'Memberships', include: [
@@ -693,7 +693,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         this.user = user;
         return user.addGroup(group);
       }).then(function() {
-        return User.find({
+        return User.findOne({
           where: {
             id: this.user.id
           },

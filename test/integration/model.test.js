@@ -1508,7 +1508,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           })
           .then(() => { return User.findById(1); })
           .then(user => { return user.destroy(); })
-          .then(() => { return User.find({ where: 1, paranoid: false }); })
+          .then(() => { return User.findOne({ where: 1, paranoid: false }); })
           .then(user => {
             expect(user).to.exist;
             return User.findById(1);
@@ -1551,8 +1551,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(pet => { return pet.destroy(); })
         .then(() => {
           return [
-            User.find({ where: {id: user.id}, include: Pet }),
-            User.find({
+            User.findOne({ where: {id: user.id}, include: Pet }),
+            User.findOne({
               where: {id: user.id},
               include: [{ model: Pet, paranoid: false }]
             })
@@ -1580,13 +1580,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {username: 'Tony'}
         ]);
       }).then(() => {
-        return User.find({where: {username: 'Bob'}});
+        return User.findOne({where: {username: 'Bob'}});
       }).then(user => {
         return user.destroy({force: true});
       }).then(() => {
-        return expect(User.find({where: {username: 'Bob'}})).to.eventually.be.null;
+        return expect(User.findOne({where: {username: 'Bob'}})).to.eventually.be.null;
       }).then(() => {
-        return User.find({where: {username: 'Tobi'}});
+        return User.findOne({where: {username: 'Tobi'}});
       }).then(tobi => {
         return tobi.destroy();
       }).then(() => {
@@ -1710,7 +1710,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).then(() => {
         return ParanoidUser.restore({where: {secretValue: '42'}});
       }).then(() => {
-        return ParanoidUser.find({where: {secretValue: '42'}});
+        return ParanoidUser.findOne({where: {secretValue: '42'}});
       }).then(user => {
         expect(user).to.be.ok;
         expect(user.username).to.equal('Peter');

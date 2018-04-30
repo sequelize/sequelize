@@ -8,7 +8,8 @@ const chai = require('chai'),
   _ = require('lodash'),
   moment = require('moment'),
   Op = require('../../../../lib/operators'),
-  QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
+  QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator'),
+  literal = Support.Sequelize.fn;
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] QueryGenerator', () => {
@@ -173,7 +174,7 @@ if (dialect === 'sqlite') {
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
           context: QueryGenerator
         }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
+          arguments: ['foo', { attributes: [[literal('count(*)'), 'count']] }],
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator
         }, {

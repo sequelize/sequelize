@@ -6,7 +6,7 @@ const Support   = require(__dirname + '/../support'),
   expectsql = Support.expectsql,
   current = Support.sequelize,
   sql = current.dialect.QueryGenerator,
-  Op = current.Op;
+  Op = Support.Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -1099,7 +1099,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       default: 'SUM([hours]) > 0'
     });
 
-    testsql(current.where(current.fn('SUM', current.col('hours')), current.Op.gt, 0), {
+    testsql(current.where(current.fn('SUM', current.col('hours')), Support.Sequelize.Op.gt, 0), {
       default: 'SUM([hours]) > 0'
     });
   });

@@ -418,8 +418,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();
 
-      this.User.hook('beforeCreate', 'sasuke', sasukeHook);
-      this.User.hook('beforeCreate', 'naruto', narutoHook);
+      this.User.addHook('beforeCreate', 'sasuke', sasukeHook);
+      this.User.addHook('beforeCreate', 'naruto', narutoHook);
 
       return this.User.create({ username: 'makunouchi'}).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
@@ -436,8 +436,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();
 
-      this.User.hook('beforeCreate', sasukeHook);
-      this.User.hook('beforeCreate', narutoHook);
+      this.User.addHook('beforeCreate', sasukeHook);
+      this.User.addHook('beforeCreate', narutoHook);
 
       return this.User.create({ username: 'makunouchi'}).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
@@ -454,8 +454,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();
 
-      this.User.hook('beforeSave', sasukeHook);
-      this.User.hook('beforeSave', narutoHook);
+      this.User.addHook('beforeSave', sasukeHook);
+      this.User.addHook('beforeSave', narutoHook);
 
       return this.User.create({ username: 'makunouchi'}).then(user => {
         expect(sasukeHook).to.have.been.calledOnce;

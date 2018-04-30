@@ -1127,15 +1127,6 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    if (current.dialect.supports.NUMERIC) {
-      testsql('NUMERIC', DataTypes.NUMERIC, {
-        default: 'DECIMAL'
-      });
-
-      testsql('NUMERIC(15,5)', DataTypes.NUMERIC(15, 5), {
-        default: 'DECIMAL(15,5)'
-      });
-    }
 
     suite('DECIMAL', () => {
       testsql('DECIMAL', DataTypes.DECIMAL, {

@@ -7,7 +7,7 @@ const chai = require('chai'),
   Sequelize = Support.Sequelize,
   DataTypes = require(__dirname + '/../../../../lib/data-types'),
   current = Support.sequelize,
-  Promise = current.Promise,
+  Promise = require('bluebird'),
   _ = require('lodash');
 
 if (current.dialect.supports['UNION ALL']) {

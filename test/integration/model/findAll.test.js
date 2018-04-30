@@ -382,7 +382,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using greater than or equal to', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.gte]: 6
@@ -395,7 +395,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using greater than', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.gt]: 5
@@ -408,7 +408,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using lesser than or equal to', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.lte]: 5
@@ -421,7 +421,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using lesser than', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.lt]: 6
@@ -448,7 +448,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using not equal to logic', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.ne]: 10

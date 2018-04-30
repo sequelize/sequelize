@@ -951,7 +951,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('throws error when record not found by find', function() {
-        return expect(this.User.find({
+        return expect(this.User.findOne({
           where: {
             username: 'some-username-that-is-not-used-anywhere'
           },

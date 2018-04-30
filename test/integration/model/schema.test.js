@@ -5,8 +5,8 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   current = Support.sequelize,
-  Op = current.Op,
-  Promise   = current.Promise;
+  Op = Support.Sequelize.Op,
+  Promise = require('bluebird');
 
 const SCHEMA_ONE = 'schema_one';
 const SCHEMA_TWO = 'schema_two';

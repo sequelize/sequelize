@@ -4,7 +4,8 @@ const chai = require('chai'),
   expect = chai.expect,
   Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
-  current   = Support.sequelize;
+  current   = Support.sequelize,
+  Model = require('../../../lib/model');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   const Project = current.define('project'),
@@ -337,7 +338,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         limit: 9
       };
 
-      current.Model._injectScope.call({
+      Model._injectScope.call({
         _scope: scope
       }, options);
 
@@ -361,7 +362,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       const options = {};
 
-      current.Model._injectScope.call({
+      Model._injectScope.call({
         _scope: scope
       }, options);
 
@@ -378,7 +379,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [{ model: Project, where: { something: true }}]
       };
 
-      current.Model._injectScope.call({
+      Model._injectScope.call({
         _scope: scope
       }, options);
 
@@ -395,7 +396,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [{model: User, as: 'otherUser'}]
       };
 
-      current.Model._injectScope.call({
+      Model._injectScope.call({
         _scope: scope
       }, options);
 
@@ -417,7 +418,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]
       };
 
-      current.Model._injectScope.call({
+      Model._injectScope.call({
         _scope: scope
       }, options);
 
@@ -440,7 +441,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]
         };
 
-        current.Model._injectScope.call({
+        Model._injectScope.call({
           _scope: scope
         }, options);
 
@@ -463,7 +464,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]
         };
 
-        current.Model._injectScope.call({
+        Model._injectScope.call({
           _scope: scope
         }, options);
 

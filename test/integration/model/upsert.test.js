@@ -8,7 +8,8 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   dialect = Support.getTestDialect(),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  errors = require('../../../lib/errors');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function() {
@@ -102,7 +103,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).not.to.be.ok;
           }
 
-          return this.User.find({ where: { foo: 'baz', bar: 19 }});
+          return this.User.findOne({ where: { foo: 'baz', bar: 19 }});
         }).then(user => {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
@@ -168,13 +169,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).not.to.be.ok;
           }
 
-          return User.find({ where: { a: 'a', b: 'b' }});
+          return User.findOne({ where: { a: 'a', b: 'b' }});
         }).then(user1 => {
           expect(user1.createdAt).to.be.ok;
           expect(user1.username).to.equal('doe');
           expect(user1.updatedAt).to.be.afterTime(user1.createdAt);
 
-          return User.find({ where: { a: 'a', b: 'a' }});
+          return User.findOne({ where: { a: 'a', b: 'a' }});
         }).then(user2 => {
           // The second one should not be updated
           expect(user2.createdAt).to.be.ok;
@@ -193,7 +194,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        return expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(this.sequelize.ValidationError);
+        return expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(errors.ValidationError);
       });
 
       it('supports skipping validations', function() {

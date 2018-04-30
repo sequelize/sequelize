@@ -4,7 +4,7 @@ const Support   = require(__dirname + '/../support');
 const current   = Support.sequelize;
 const expectsql = Support.expectsql;
 const sql = current.dialect.QueryGenerator;
-const Op = current.Op;
+const Op = Support.Sequelize.Op;
 const expect = require('chai').expect;
 const sinon = require('sinon');
 

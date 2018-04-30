@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           {userId: user.get('id'), deletedAt: new Date()}
         ]);
       }).then(() => {
-        return User.find({
+        return User.findOne({
           include: [
             {model: Task, where: {deletedAt: null}, required: false}
           ]
@@ -122,7 +122,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           {userId: user.get('id'), searchString: 'two'}
         ]);
       }).then(() => {
-        return User.find({
+        return User.findOne({
           include: [
             {model: Task, where: {searchString: 'one'} }
           ]
@@ -255,7 +255,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return User.create({ username: 'bob' }).then(newUser => {
           return Task.create({ title: 'some task' }).then(newTask => {
             return newTask.setUser(newUser).then(() => {
-              return Task.find({
+              return Task.findOne({
                 where: { title: 'some task' },
                 include: [{ model: User }]
               })
@@ -370,7 +370,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Post.belongsTo(User, { foreignKey: 'owner_id', as: 'Owner', constraints: false });
 
       return this.sequelize.sync({force: true}).then(() => {
-        return User.find({
+        return User.findOne({
           where: { id: 2 },
           include: [
             { model: Post, as: 'UserPosts', where: {'private': true} }

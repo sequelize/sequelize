@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.User.create({
               name: 'Foobar'
             }).then(() => {
-              return self.User.find({
+              return self.User.findOne({
                 where: {
                   name: {
                     [Op.regexp]: '^Foo'
@@ -73,7 +73,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.User.create({
               name: 'Foobar'
             }).then(() => {
-              return self.User.find({
+              return self.User.findOne({
                 where: {
                   name: {
                     [Op.notRegexp]: '^Foo'
@@ -92,7 +92,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return this.User.create({
                 name: 'Foobar'
               }).then(() => {
-                return self.User.find({
+                return self.User.findOne({
                   where: {
                     name: {
                       [Op.iRegexp]: '^foo'
@@ -110,7 +110,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return this.User.create({
                 name: 'Foobar'
               }).then(() => {
-                return self.User.find({
+                return self.User.findOne({
                   where: {
                     name: {
                       [Op.notIRegexp]: '^foo'

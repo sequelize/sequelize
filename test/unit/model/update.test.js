@@ -5,7 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  Promise = current.Promise,
+  Promise = require('bluebird'),
   DataTypes = require('../../../lib/data-types'),
   _ = require('lodash');
 

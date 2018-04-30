@@ -487,7 +487,7 @@ if (current.dialect.supports.transactions) {
             return User.create({ username: 'jan'});
           }).then(() => {
             return self.sequelize.transaction().then(t1 => {
-              return User.find({
+              return User.findOne({
                 where: {
                   username: 'jan'
                 },
@@ -498,7 +498,7 @@ if (current.dialect.supports.transactions) {
                   isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
                 }).then(t2 => {
                   return Promise.join(
-                    User.find({
+                    User.findOne({
                       where: {
                         username: 'jan'
                       },
@@ -548,7 +548,7 @@ if (current.dialect.supports.transactions) {
 
                   if (current.dialect.supports.lockOuterJoinFailure) {
 
-                    return expect(User.find({
+                    return expect(User.findOne({
                       where: {
                         username: 'John'
                       },
@@ -559,7 +559,7 @@ if (current.dialect.supports.transactions) {
 
                   } else {
 
-                    return User.find({
+                    return User.findOne({
                       where: {
                         username: 'John'
                       },
@@ -592,7 +592,7 @@ if (current.dialect.supports.transactions) {
                 })
                 .then(() => {
                   return self.sequelize.transaction(t1 => {
-                    return User.find({
+                    return User.findOne({
                       where: {
                         username: 'John'
                       },
@@ -639,7 +639,7 @@ if (current.dialect.supports.transactions) {
               return User.create({ username: 'jan'});
             }).then(() => {
               return self.sequelize.transaction().then(t1 => {
-                return User.find({
+                return User.findOne({
                   where: {
                     username: 'jan'
                   },
@@ -648,7 +648,7 @@ if (current.dialect.supports.transactions) {
                 }).then(t1Jan => {
                   return self.sequelize.transaction().then(t2 => {
                     return Promise.join(
-                      User.find({
+                      User.findOne({
                         where: {
                           username: 'jan'
                         },
@@ -691,7 +691,7 @@ if (current.dialect.supports.transactions) {
             return User.create({ username: 'jan'});
           }).then(() => {
             return self.sequelize.transaction().then(t1 => {
-              return User.find({
+              return User.findOne({
                 where: {
                   username: 'jan'
                 },
@@ -702,7 +702,7 @@ if (current.dialect.supports.transactions) {
                   isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
                 }).then(t2 => {
                   return Promise.join(
-                    User.find({
+                    User.findOne({
                       where: {
                         username: 'jan'
                       },

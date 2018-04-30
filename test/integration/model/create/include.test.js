@@ -200,7 +200,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }, {
             include: [Task]
           }).then(savedUser => {
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
               include: [Task]
             }).then(persistedUser => {
@@ -231,7 +231,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }, {
             include: [Job]
           }).then(savedUser => {
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
               include: [Job]
             }).then(persistedUser => {
@@ -287,7 +287,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(savedUser.Tasks[0].createOptions.parentRecord).to.be.equal(savedUser);
             expect(savedUser.Tasks[1].createOptions.myOption).to.be.equal('option');
             expect(savedUser.Tasks[1].createOptions.parentRecord).to.be.equal(savedUser);
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
               include: [Task]
             }).then(persistedUser => {
@@ -421,7 +421,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }, {
             include: [Jobs]
           }).then(savedUser => {
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
               include: [Jobs]
             }).then(persistedUser => {

@@ -5,8 +5,9 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  Promise = current.Promise,
-  DataTypes = require('../../../lib/data-types');
+  Promise = require('bluebird'),
+  DataTypes = require('../../../lib/data-types'),
+  errors = require('../../../lib/errors');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.upserts) {
@@ -55,7 +56,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('skip validations for missing fields', function() {
         return expect(this.User.upsert({
           name: 'Grumpy Cat'
-        })).not.to.be.rejectedWith(current.ValidationError);
+        })).not.to.be.rejectedWith(errors.ValidationError);
       });
 
       it('creates new record with correct field names', function() {

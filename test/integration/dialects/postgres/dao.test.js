@@ -97,7 +97,7 @@ if (dialect.match(/^postgres/)) {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
           .then(() => {
-            return this.User.find({ where: sequelize.json("emergency_contact->>'name'", 'kate'), attributes: ['username', 'emergency_contact'] });
+            return this.User.findOne({ where: sequelize.json("emergency_contact->>'name'", 'kate'), attributes: ['username', 'emergency_contact'] });
           })
           .then(user => {
             expect(user.emergency_contact.name).to.equal('kate');
@@ -109,7 +109,7 @@ if (dialect.match(/^postgres/)) {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
           .then(() => {
-            return this.User.find({
+            return this.User.findOne({
               where: sequelize.json({ emergency_contact: { name: 'kate' } })
             });
           })
@@ -123,7 +123,7 @@ if (dialect.match(/^postgres/)) {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
           .then(() => {
-            return this.User.find({ where: sequelize.json('emergency_contact.name', 'joe') });
+            return this.User.findOne({ where: sequelize.json('emergency_contact.name', 'joe') });
           })
           .then(user => {
             expect(user.emergency_contact.name).to.equal('joe');
@@ -135,7 +135,7 @@ if (dialect.match(/^postgres/)) {
           this.User.create({ username: 'swen', emergencyContact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })])
           .then(() => {
-            return this.User.find({
+            return this.User.findOne({
               attributes: [[sequelize.json('emergencyContact.name'), 'contactName']],
               where: sequelize.json('emergencyContact.name', 'joe')
             });
@@ -153,10 +153,10 @@ if (dialect.match(/^postgres/)) {
             expect(user.isNewRecord).to.equal(false);
           })
           .then(() => {
-            return this.User.find({ where: { username: 'swen' } });
+            return this.User.findOne({ where: { username: 'swen' } });
           })
           .then(() => {
-            return this.User.find({ where: sequelize.json('emergency_contact.value', text) });
+            return this.User.findOne({ where: sequelize.json('emergency_contact.value', text) });
           })
           .then(user => {
             expect(user.username).to.equal('swen');
@@ -171,10 +171,10 @@ if (dialect.match(/^postgres/)) {
             expect(!user.isNewRecord).to.equal(true);
           })
           .then(() => {
-            return this.User.find({ where: { username: 'swen' } });
+            return this.User.findOne({ where: { username: 'swen' } });
           })
           .then(() => {
-            return this.User.find({ where: sequelize.json('emergency_contact.value', text) });
+            return this.User.findOne({ where: sequelize.json('emergency_contact.value', text) });
           })
           .then(user => {
             expect(user.username).to.equal('swen');
@@ -538,7 +538,7 @@ if (dialect.match(/^postgres/)) {
 
           return User.create({ aNumber: 2147483647 }).then(user => {
             expect(user.aNumber).to.equal(2147483647);
-            return User.find({ where: { aNumber: 2147483647 } }).then(_user => {
+            return User.findOne({ where: { aNumber: 2147483647 } }).then(_user => {
               expect(_user.aNumber).to.equal(2147483647);
             });
           });
@@ -549,7 +549,7 @@ if (dialect.match(/^postgres/)) {
 
           return User.create({ aNumber: -2147483647 }).then(user => {
             expect(user.aNumber).to.equal(-2147483647);
-            return User.find({ where: { aNumber: -2147483647 } }).then(_user => {
+            return User.findOne({ where: { aNumber: -2147483647 } }).then(_user => {
               expect(_user.aNumber).to.equal(-2147483647);
             });
           });
@@ -570,7 +570,7 @@ if (dialect.match(/^postgres/)) {
 
           return User.create({ aNumber: '9223372036854775807' }).then(user => {
             expect(user.aNumber).to.equal('9223372036854775807');
-            return User.find({ where: { aNumber: '9223372036854775807' } }).then(_user => {
+            return User.findOne({ where: { aNumber: '9223372036854775807' } }).then(_user => {
               expect(_user.aNumber).to.equal('9223372036854775807');
             });
           });
@@ -581,7 +581,7 @@ if (dialect.match(/^postgres/)) {
 
           return User.create({ aNumber: '-9223372036854775807' }).then(user => {
             expect(user.aNumber).to.equal('-9223372036854775807');
-            return User.find({ where: { aNumber: '-9223372036854775807' } }).then(_user => {
+            return User.findOne({ where: { aNumber: '-9223372036854775807' } }).then(_user => {
               expect(_user.aNumber).to.equal('-9223372036854775807');
             });
           });
@@ -693,7 +693,7 @@ if (dialect.match(/^postgres/)) {
 
         return this.User.create(data)
           .then(() => {
-            return this.User.find({ where: { username: 'user' } });
+            return this.User.findOne({ where: { username: 'user' } });
           })
           .then(user => {
             // Check that the hstore fields are the same when retrieving the user
@@ -707,7 +707,7 @@ if (dialect.match(/^postgres/)) {
         return this.User.create(data)
           .then(() => {
             // Check that the hstore fields are the same when retrieving the user
-            return this.User.find({ where: { username: 'user' } });
+            return this.User.findOne({ where: { username: 'user' } });
           }).then(user => {
             expect(user.phones).to.deep.equal(data.phones);
           });
@@ -749,7 +749,7 @@ if (dialect.match(/^postgres/)) {
               });
           })
           .then(() => {
-            return this.User.find({ where: { username: 'user1' }, include: [HstoreSubmodel] });
+            return this.User.findOne({ where: { username: 'user1' }, include: [HstoreSubmodel] });
           })
           .then(user => {
             expect(user.hasOwnProperty('hstoreSubmodels')).to.be.ok;
@@ -892,7 +892,7 @@ if (dialect.match(/^postgres/)) {
 
         return User.create(data)
           .then(() => {
-            return User.find({ where: { username: 'user' } });
+            return User.findOne({ where: { username: 'user' } });
           })
           .then(user => {
             // Check that the range fields are the same when retrieving the user
@@ -915,7 +915,7 @@ if (dialect.match(/^postgres/)) {
         return User.create(data)
           .then(() => {
             // Check that the range fields are the same when retrieving the user
-            return User.find({ where: { username: 'user' } });
+            return User.findOne({ where: { username: 'user' } });
           }).then(user => {
             expect(user.holidays).to.deep.equal(data.holidays);
           });
@@ -968,7 +968,7 @@ if (dialect.match(/^postgres/)) {
               });
           })
           .then(() => {
-            return this.User.find({ where: { username: 'user' }, include: [HolidayDate] });
+            return this.User.findOne({ where: { username: 'user' }, include: [HolidayDate] });
           })
           .then(user => {
             expect(user.hasOwnProperty('holidayDates')).to.be.ok;
@@ -1003,7 +1003,7 @@ if (dialect.match(/^postgres/)) {
       const point = { type: 'Point', coordinates: [39.807222, -76.984722] };
 
       return User.create({ username: 'user', email: ['foo@bar.com'], location: point }).then(user => {
-        return User.find({ where: { username: user.username } });
+        return User.findOne({ where: { username: user.username } });
       }).then(user => {
         expect(user.location).to.deep.eql(point);
       });
@@ -1032,7 +1032,7 @@ if (dialect.match(/^postgres/)) {
               expect(user.fullName).to.equal('John Smith');
 
               // We can query by non-quoted identifiers
-              return this.User.find({
+              return this.User.findOne({
                 where: { fullName: 'John Smith' }
               }).then(user2 => {
                 // We can map values back to non-quoted identifiers
