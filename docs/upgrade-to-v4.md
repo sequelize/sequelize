@@ -5,7 +5,7 @@ Sequelize V4 is a major release and it introduces new features and breaking chan
 ### Breaking Changes
 
 - Node version: To use new ES2015 features, we now require at least Node 4. From now on, we will support all current LTS versions of Node.
-- The counter cache plugin, and consequently the counterCache option for associations has been removed. The same behaviour can be achieved using `afterCreate` and `afterDelete` hooks.
+- The counter cache plugin, and consequently the counterCache option for associations has been removed. The same behaviour can be achieved using `afterCreate` and `afterDestroy` hooks.
 - Removed MariaDB dialect. This was just a thin wrapper around MySQL, so using `dialect: 'mysql'` instead should work with no further changes
 - Removed default `REPEATABLE_READ` transaction isolation. The isolation level now defaults to that of the database. Explicitly pass the required isolation level when initiating the transaction.
 - Removed support for `pool: false`. To use a single connection, set `pool.max` to 1.
