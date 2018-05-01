@@ -27,11 +27,9 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
       test(util.inspect(options, {depth: 2}), () => {
         return expectsql(
-          sql.deleteQuery(
+          sql.truncateTableQuery(
             options.table,
-            options.where,
-            options,
-            User
+            options
           ), {
             postgres: 'TRUNCATE "public"."test_users" CASCADE',
             mssql: 'TRUNCATE TABLE [public].[test_users]',
@@ -54,11 +52,9 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
       test(util.inspect(options, {depth: 2}), () => {
         return expectsql(
-          sql.deleteQuery(
+          sql.truncateTableQuery(
             options.table,
-            options.where,
-            options,
-            User
+            options
           ), {
             postgres: 'TRUNCATE "public"."test_users" RESTART IDENTITY CASCADE',
             mssql: 'TRUNCATE TABLE [public].[test_users]',
@@ -173,10 +169,10 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             options,
             User
           ), {
-            postgres: 'DELETE FROM "test_user" WHERE "test_user_id" IN (SELECT "test_user_id" FROM "test_user" WHERE "test_user_id" = 100 LIMIT 1)',
-            sqlite: 'DELETE FROM `test_user` WHERE rowid IN (SELECT rowid FROM `test_user` WHERE `test_user_id` = 100 LIMIT 1)',
-            mssql: 'DELETE TOP(1) FROM [test_user] WHERE [test_user_id] = 100; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
-            default: 'DELETE FROM [test_user] WHERE [test_user_id] = 100 LIMIT 1'
+            postgres: 'DELETE FROM "test_user" WHERE "test_user_id" = 100',
+            sqlite: 'DELETE FROM `test_user` WHERE `test_user_id` = 100',
+            mssql: 'DELETE FROM [test_user] WHERE [test_user_id] = 100; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
+            default: 'DELETE FROM [test_user] WHERE [test_user_id] = 100'
           }
         );
       });
