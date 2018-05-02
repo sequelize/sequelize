@@ -643,7 +643,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
   });
 
-  describe('Association column', () => {
+  describe('association column', () => {
     it('has correct type for non-id primary keys with non-integer type', function() {
       const User = this.sequelize.define('UserPKBT', {
         username: {
@@ -662,6 +662,89 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         expect(User.rawAttributes.GroupPKBTName.type).to.an.instanceof(Sequelize.STRING);
+      });
+    });
+
+    it('should support a non-primary key as the association column on a target without a primary key', function() {
+      const User = this.sequelize.define('User', { user_name: Sequelize.STRING });
+      const Task = this.sequelize.define('Task', { title: Sequelize.STRING, username: Sequelize.STRING });
+
+      User.removeAttribute('id');
+      User.hasOne(Task, { foreignKey: 'username', sourceKey: 'user_name' });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({ user_name: 'bob' }).then(newUser => {
+          return Task.create({ title: 'some task' }).then(newTask => {
+            return newUser.setTask(newTask).then(() => {
+              return User.findOne({ where: { user_name: 'bob' } }).then(foundUser => {
+                return foundUser.getTask().then(foundTask => {
+                  expect(foundTask.title).to.equal('some task');
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should support a non-primary unique key as the association column', function() {
+      const User = this.sequelize.define('User', {
+          username: {
+            type: Sequelize.STRING,
+            field: 'user_name',
+            unique: true
+          }
+        }),
+        Task = this.sequelize.define('Task', {
+          title: Sequelize.STRING,
+          username: Sequelize.STRING
+        });
+
+      User.hasOne(Task, { foreignKey: 'username', sourceKey: 'username'});
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({ username: 'bob' }).then(newUser => {
+          return Task.create({ title: 'some task' }).then(newTask => {
+            return newUser.setTask(newTask).then(() => {
+              return User.findOne({ where: { username: 'bob' } }).then(foundUser => {
+                return foundUser.getTask().then(foundTask => {
+                  expect(foundTask.title).to.equal('some task');
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    it('should support a non-primary key as the association column with a field option', function() {
+      const User = this.sequelize.define('User', {
+        username: {
+          type: Sequelize.STRING,
+          field: 'the_user_name_field'
+        }
+      });
+
+      const Task = this.sequelize.define('Task', {
+        title: Sequelize.STRING,
+        username: Sequelize.STRING
+      });
+
+      User.removeAttribute('id');
+      User.hasOne(Task, { foreignKey: 'username', sourceKey: 'username'});
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({ username: 'bob' }).then(newUser => {
+          return Task.create({ title: 'some task' }).then(newTask => {
+            return newUser.setTask(newTask).then(() => {
+              return User.findOne({ where: { username: 'bob' } }).then(foundUser => {
+                return foundUser.getTask().then(foundTask => {
+                  expect(foundTask.title).to.equal('some task');
+                });
+              });
+            });
+          });
+        });
       });
     });
   });
