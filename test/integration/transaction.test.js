@@ -528,6 +528,50 @@ if (current.dialect.supports.transactions) {
           });
         });
 
+        if (current.dialect.supports.skipLocked) {
+          it('supports for update with skip locked', function() {
+            const User = this.sequelize.define('user', {
+              username: Support.Sequelize.STRING,
+              awesome: Support.Sequelize.BOOLEAN
+            });
+
+            return this.sequelize.sync({ force: true }).then(() => {
+              return Promise.all([
+                User.create(
+                  { username: 'jan'}
+                ),
+                User.create(
+                  { username: 'joe'}
+                )
+              ]);
+            }).then(() => {
+              return this.sequelize.transaction().then(t1 => {
+                return User.findAll({
+                  limit: 1,
+                  lock: true,
+                  transaction: t1
+                }).then(results => {
+                  const firstUserId = results[0].id;
+                  return this.sequelize.transaction().then(t2 => {
+                    return User.findAll({
+                      limit: 1,
+                      lock: true,
+                      skipLocked: true,
+                      transaction: t2
+                    }).then(secondResults => {
+                      expect(secondResults[0].id).to.not.equal(firstUserId);
+                      return Promise.all([
+                        t1.commit(),
+                        t2.commit()
+                      ]);
+                    });
+                  });
+                });
+              });
+            });
+          });
+        }
+
         it('fail locking with outer joins', function() {
           const User = this.sequelize.define('User', { username: Support.Sequelize.STRING }),
             Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN }),
