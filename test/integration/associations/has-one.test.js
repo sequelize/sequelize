@@ -669,7 +669,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       const User = this.sequelize.define('User', { user_name: Sequelize.STRING });
       const Task = this.sequelize.define('Task', { title: Sequelize.STRING, username: Sequelize.STRING });
 
-      User.removeAttribute('id');
       User.hasOne(Task, { foreignKey: 'username', sourceKey: 'user_name' });
 
       return this.sequelize.sync({ force: true }).then(() => {
@@ -730,7 +729,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         username: Sequelize.STRING
       });
 
-      User.removeAttribute('id');
       User.hasOne(Task, { foreignKey: 'username', sourceKey: 'username'});
 
       return this.sequelize.sync({ force: true }).then(() => {
