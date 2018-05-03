@@ -665,9 +665,18 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       });
     });
 
-    it('should support a non-primary key as the association column on a target without a primary key', function() {
-      const User = this.sequelize.define('User', { user_name: Sequelize.STRING });
-      const Task = this.sequelize.define('Task', { title: Sequelize.STRING, username: Sequelize.STRING });
+    it('should support a non-primary key as the association column on a target with custom primary key', function() {
+      const User = this.sequelize.define('User', {
+        user_name: {
+          type: Sequelize.STRING,
+          primaryKey: true
+        }
+      });
+
+      const Task = this.sequelize.define('Task', {
+        title: Sequelize.STRING,
+        username: Sequelize.STRING
+      });
 
       User.hasOne(Task, { foreignKey: 'username', sourceKey: 'user_name' });
 
@@ -688,18 +697,18 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
     it('should support a non-primary unique key as the association column', function() {
       const User = this.sequelize.define('User', {
-          username: {
-            type: Sequelize.STRING,
-            field: 'user_name',
-            unique: true
-          }
-        }),
-        Task = this.sequelize.define('Task', {
-          title: Sequelize.STRING,
-          username: Sequelize.STRING
-        });
+        username: {
+          type: Sequelize.STRING,
+          unique: true
+        }
+      });
 
-      User.hasOne(Task, { foreignKey: 'username', sourceKey: 'username'});
+      const Task = this.sequelize.define('Task', {
+        title: Sequelize.STRING,
+        username: Sequelize.STRING
+      });
+
+      User.hasOne(Task, { foreignKey: 'username', sourceKey: 'username' });
 
       return this.sequelize.sync({ force: true }).then(() => {
         return User.create({ username: 'bob' }).then(newUser => {
@@ -716,10 +725,11 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       });
     });
 
-    it('should support a non-primary key as the association column with a field option', function() {
+    it('should support a non-primary unique key as the association column with a field option', function() {
       const User = this.sequelize.define('User', {
         username: {
           type: Sequelize.STRING,
+          unique: true,
           field: 'the_user_name_field'
         }
       });
@@ -729,7 +739,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         username: Sequelize.STRING
       });
 
-      User.hasOne(Task, { foreignKey: 'username', sourceKey: 'username'});
+      User.hasOne(Task, { foreignKey: 'username', sourceKey: 'username' });
 
       return this.sequelize.sync({ force: true }).then(() => {
         return User.create({ username: 'bob' }).then(newUser => {
