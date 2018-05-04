@@ -152,6 +152,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('properly handles already built records', function() {
+      const self = this,
+        data = [this.User.build({username: 'Mary', uniqueName: '11' }),
+          this.User.build({username: 'Linda', uniqueName: '12'}),
+          this.User.build({username: 'Susan', uniqueName: '13'})];
+
+      return this.User.bulkCreate(data).then(() => {
+        return self.User.findAll({where: {username: 'Mary'}}).then(users => {
+          expect(users.length).to.equal(1);
+          expect(users[0].username).to.equal('Mary');
+          expect(users[0].uniqueName).to.equal('11');
+        });
+      });
+    });
+
+    it('emits an error when a non-new record is included', function() {
+      const data = [this.User.build({username: 'Margaret', uniqueName: '14' }),
+        this.User.build({username: 'Lisa', uniqueName: '15'}, {isNewRecord: false}),
+        this.User.build({username: 'Sandra', uniqueName: '16'})];
+
+      return expect(
+        this.User.bulkCreate(data)
+      ).to.be.rejectedWith('records must not contain items already persisted to the DB (!isNewRecord).');
+    });
+
     it('inserts multiple values respecting the white list', function() {
       const self = this,
         data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
