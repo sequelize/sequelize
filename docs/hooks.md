@@ -113,7 +113,7 @@ const sequelize = new Sequelize(..., {
     define: {
         hooks: {
             beforeCreate: () => {
-                // Do stuff
+              // Do stuff
             }
         }
     }
@@ -145,7 +145,6 @@ sequelize.addHook('beforeCreate', () => {
 
 This hooks is always run before create, regardless of whether the model specifies its own `beforeCreate` hook:
 
-
 ```js
 const User = sequelize.define('user');
 const Project = sequelize.define('project', {}, {
@@ -161,7 +160,6 @@ Project.create() // Runs its own hook, followed by the global hook
 ```
 
 Local hooks are always run before global hooks.
-
 
 ### Instance hooks
 
