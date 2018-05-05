@@ -103,22 +103,31 @@ if (current.dialect.supports.groupedLimit) {
         });
       });
 
-      it('should work even if include does not specify foreign key attribute', function() {
+      it('should work even if include does not specify foreign key attribute with custom sourceKey', function() {
         const User = this.sequelize.define('User', {
-          name: DataTypes.STRING
+          name: DataTypes.STRING,
+          userExtraId: {
+            type: DataTypes.INTEGER,
+            unique: true
+          }
         });
         const Task = this.sequelize.define('Task', {
           title: DataTypes.STRING
         });
         const sqlSpy = sinon.spy();
 
-        User.Tasks = User.hasMany(Task, { as: 'tasks', foreignKey: 'userId' });
+        User.Tasks = User.hasMany(Task, {
+          as: 'tasks',
+          foreignKey: 'userId',
+          sourceKey: 'userExtraId'
+        });
 
         return this.sequelize
           .sync({force: true})
           .then(() => {
             return User.create({
               id: 1,
+              userExtraId: 222,
               tasks: [
                 {},
                 {},
