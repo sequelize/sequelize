@@ -919,7 +919,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return Street.create({ active: true }).then(street => {
           return Address.create({ active: true, streetId: street.id }).then(address => {
             return User.create({ username: 'John', addressId: address.id }).then(() => {
-              return User.find({
+              return User.findOne({
                 where: { username: 'John'},
                 include: [{
                   model: Address,
@@ -1417,7 +1417,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           return parent;
         });
       }).then(parent => {
-        return Child1.find({
+        return Child1.findOne({
           include: [
             {
               model: Parent,

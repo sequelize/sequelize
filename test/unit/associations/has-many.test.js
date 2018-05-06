@@ -10,7 +10,7 @@ const chai = require('chai'),
   HasMany   = require(__dirname + '/../../../lib/associations/has-many'),
   Op        = require(__dirname + '/../../../lib/operators'),
   current   = Support.sequelize,
-  Promise   = current.Promise;
+  Promise   = require('bluebird');
 
 describe(Support.getTestDialectTeaser('hasMany'), () => {
   it('throws when invalid model is passed', () => {

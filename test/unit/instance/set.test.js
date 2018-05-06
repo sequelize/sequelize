@@ -5,7 +5,7 @@ const chai = require('chai'),
   Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   current   = Support.sequelize,
-  Promise = current.Promise,
+  Promise = require('bluebird'),
   sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {

@@ -6,6 +6,7 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
   Op = require('../../../../lib/operators'),
+  literal = Support.Sequelize.literal,
   QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
 if (dialect === 'mysql') {
@@ -203,7 +204,7 @@ if (dialect === 'mysql') {
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
           context: QueryGenerator
         }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
+          arguments: ['foo', { attributes: [[literal('count(*)'), 'count']] }],
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator
         }, {

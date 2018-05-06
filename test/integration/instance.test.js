@@ -9,7 +9,8 @@ const chai = require('chai'),
   config = require(__dirname + '/../config/config'),
   sinon = require('sinon'),
   validateUUID = require('uuid-validate'),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  Promise = Sequelize.Promise;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   before(function() {
@@ -213,7 +214,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       return this.User.findById(1).then(user1 => {
         // Select the user again (simulating a concurrent query)
         return self.User.findById(1).then(user2 => {
-          return user2.updateAttributes({
+          return user2.update({
             aNumber: user2.aNumber + 1
           }).then(() => {
             return user1.increment(['aNumber'], { by: 2 }).then(() => {
@@ -229,7 +230,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should still work right with other concurrent increments', function() {
       const self = this;
       return this.User.findById(1).then(user1 => {
-        return self.sequelize.Promise.all([
+        return Promise.all([
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 })
@@ -372,7 +373,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       return this.User.findById(1).then(user1 => {
         // Select the user again (simulating a concurrent query)
         return self.User.findById(1).then(user2 => {
-          return user2.updateAttributes({
+          return user2.update({
             aNumber: user2.aNumber + 1
           }).then(() => {
             return user1.decrement(['aNumber'], { by: 2 }).then(() => {
@@ -388,7 +389,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should still work right with other concurrent increments', function() {
       const self = this;
       return this.User.findById(1).then(user1 => {
-        return self.sequelize.Promise.all([
+        return Promise.all([
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 })
@@ -415,7 +416,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('with negative value', function() {
       const self = this;
       return this.User.findById(1).then(user1 => {
-        return self.sequelize.Promise.all([
+        return Promise.all([
           user1.decrement('aNumber', { by: -2 }),
           user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
           user1.decrement({ 'aNumber': -1, 'bNumber': -2 })
@@ -490,7 +491,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should return a reference to the same DAO instead of creating a new one', function() {
       return this.User.create({ username: 'John Doe' }).then(originalUser => {
-        return originalUser.updateAttributes({ username: 'Doe John' }).then(() => {
+        return originalUser.update({ username: 'Doe John' }).then(() => {
           return originalUser.reload().then(updatedUser => {
             expect(originalUser === updatedUser).to.be.true;
           });
@@ -502,7 +503,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const self = this;
       return this.User.create({ username: 'John Doe' }).then(originalUser => {
         return self.User.findById(originalUser.id).then(updater => {
-          return updater.updateAttributes({ username: 'Doe John' }).then(() => {
+          return updater.update({ username: 'Doe John' }).then(() => {
             // We used a different reference when calling updateAttributes, so originalUser is now out of sync
             expect(originalUser.username).to.equal('John Doe');
             return originalUser.reload().then(updatedUser => {
@@ -545,7 +546,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         this.clock.tick(1000);
         return this.User.findById(originalUser.id);
       }).then(updater => {
-        return updater.updateAttributes({username: 'Doe John'});
+        return updater.update({username: 'Doe John'});
       }).then(function(updatedUser) {
         this.updatedUser = updatedUser;
         return this.originalUser.reload();
@@ -571,7 +572,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                   where: { id: book.id },
                   include: [Page]
                 }).then(leBook => {
-                  return page.updateAttributes({ content: 'something totally different' }).then(page => {
+                  return page.update({ content: 'something totally different' }).then(page => {
                     expect(leBook.Pages.length).to.equal(1);
                     expect(leBook.Pages[0].content).to.equal('om nom nom');
                     expect(page.content).to.equal('something totally different');
@@ -1165,7 +1166,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             expect(user).to.be.ok;
             expect(user.id).to.equal(0);
             expect(user.username).to.equal(username);
-            return user.updateAttributes({username: newUsername}).then(user => {
+            return user.update({username: newUsername}).then(user => {
               expect(user).to.be.ok;
               expect(user.id).to.equal(0);
               expect(user.username).to.equal(newUsername);
@@ -1389,7 +1390,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should fail a validation when updating', function() {
       return this.User.create({aNumber: 0}).then(user => {
-        return user.updateAttributes({validateTest: 'hello'}).catch(err => {
+        return user.update({validateTest: 'hello'}).catch(err => {
           expect(err).to.exist;
           expect(err).to.be.instanceof(Object);
           expect(err.get('validateTest')).to.exist;
@@ -1416,7 +1417,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
       return HistoryLog.sync().then(() => {
         return HistoryLog.create({ someText: 'Some random text', aNumber: 3, aRandomId: 5 }).then(log => {
-          return log.updateAttributes({ aNumber: 5 }).then(newLog => {
+          return log.update({ aNumber: 5 }).then(newLog => {
             expect(newLog.aNumber).to.equal(5);
           });
         });
@@ -1726,7 +1727,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const self = this;
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
         return self.ParanoidUser.findAll().then(users => {
-          return users[0].updateAttributes({username: 'newFnord'}).then(user => {
+          return users[0].update({username: 'newFnord'}).then(user => {
             expect(user.deletedAt).not.to.exist;
           });
         });

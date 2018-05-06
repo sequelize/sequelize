@@ -6,7 +6,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/support'),
   _ = require('lodash'),
   current = Support.sequelize,
-  Promise = current.Promise;
+  Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
@@ -94,8 +94,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           name: Support.Sequelize.STRING
         });
 
-        this.Model.hook('beforeSave', this.beforeSaveHook);
-        this.Model.hook('afterSave', this.afterSaveHook);
+        this.Model.addHook('beforeSave', this.beforeSaveHook);
+        this.Model.addHook('afterSave', this.afterSaveHook);
       });
 
       it('calls beforeSave/afterSave', () => {
@@ -366,10 +366,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
 
-    describe('.hook() method', () => {
+    describe('.addHook() method', () => {
       it('#delete', function() {
-        this.Model.hook('beforeDelete', this.beforeDelete);
-        this.Model.hook('afterDelete', this.afterDelete);
+        this.Model.addHook('beforeDelete', this.beforeDelete);
+        this.Model.addHook('afterDelete', this.afterDelete);
 
         return Promise.join(
           this.Model.runHooks('beforeDestroy'),
@@ -381,10 +381,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('promises', () => {
     it('can return a promise', function() {
-      const self = this;
-
       this.Model.beforeBulkCreate(() => {
-        return self.sequelize.Promise.resolve();
+        return Promise.resolve();
       });
 
       return expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;

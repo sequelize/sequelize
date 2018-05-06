@@ -81,7 +81,7 @@ if (dialect === 'sqlite') {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ]).then(() => {
-          return this.User.find({
+          return this.User.findOne({
             where: Sequelize.json('json_extract(emergency_contact, \'$.name\')', 'kate'),
             attributes: ['username', 'emergency_contact']
           });
@@ -95,7 +95,7 @@ if (dialect === 'sqlite') {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: ['kate', 'joe'] })
         ]).then(() => {
-          return this.User.find({
+          return this.User.findOne({
             where: Sequelize.json('json_type(emergency_contact)', 'array'),
             attributes: ['username', 'emergency_contact']
           });

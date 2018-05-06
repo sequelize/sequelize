@@ -14,7 +14,8 @@ const chai = require('chai'),
   Utils = require(__dirname + '/../../lib/utils'),
   sinon = require('sinon'),
   semver = require('semver'),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  literal = Sequelize.literal;
 
 
 const qq = function(str) {
@@ -1311,7 +1312,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               self = this;
 
             const count = function(transaction) {
-              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
+              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [[literal('count(*)'), 'cnt']] });
 
               return self.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then(result => {
                 return result.cnt;
@@ -1339,7 +1340,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               self = this;
 
             const count = function(transaction) {
-              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
+              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [[literal('count(*)'), 'cnt']] });
 
               return self.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then(result => {
                 return parseInt(result.cnt, 10);

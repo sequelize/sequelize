@@ -11,7 +11,8 @@ const chai = require('chai'),
   config = require(__dirname + '/../../config/config'),
   _ = require('lodash'),
   moment = require('moment'),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  Promise = Sequelize.Promise;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(function() {
@@ -382,7 +383,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using greater than or equal to', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.gte]: 6
@@ -395,7 +396,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using greater than', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.gt]: 5
@@ -408,7 +409,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using lesser than or equal to', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.lte]: 5
@@ -421,7 +422,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using lesser than', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.lt]: 6
@@ -448,7 +449,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using not equal to logic', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.ne]: 10
@@ -915,7 +916,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return self.sequelize.Promise.props({
+            return Promise.props({
               europe: self.Continent.create({ name: 'Europe' }),
               england: self.Country.create({ name: 'England' }),
               coal: self.Industry.create({ name: 'Coal' }),
@@ -924,7 +925,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               _.forEach(r, (item, itemName) => {
                 self[itemName] = item;
               });
-              return self.sequelize.Promise.all([
+              return Promise.all([
                 self.england.setContinent(self.europe),
                 self.england.addIndustry(self.coal),
                 self.bob.setCountry(self.england),
@@ -1102,7 +1103,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return self.sequelize.Promise.props({
+            return Promise.props({
               europe: self.Continent.create({ name: 'Europe' }),
               asia: self.Continent.create({ name: 'Asia' }),
               england: self.Country.create({ name: 'England' }),
@@ -1117,7 +1118,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 self[itemName] = item;
               });
 
-              return self.sequelize.Promise.all([
+              return Promise.all([
                 self.england.setContinent(self.europe),
                 self.france.setContinent(self.europe),
                 self.korea.setContinent(self.asia),
@@ -1269,7 +1270,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Industry.belongsToMany(self.Country, {through: self.IndustryCountry});
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return self.sequelize.Promise.props({
+            return Promise.props({
               england: self.Country.create({ name: 'England' }),
               france: self.Country.create({ name: 'France' }),
               korea: self.Country.create({ name: 'Korea' }),
@@ -1281,7 +1282,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 self[itemName] = item;
               });
 
-              return self.sequelize.Promise.all([
+              return Promise.all([
                 self.england.addIndustry(self.energy, { through: { numYears: 20 }}),
                 self.england.addIndustry(self.media, { through: { numYears: 40 }}),
                 self.france.addIndustry(self.media, { through: { numYears: 80 }}),

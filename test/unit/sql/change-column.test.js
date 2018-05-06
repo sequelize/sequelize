@@ -5,7 +5,7 @@ const Support   = require(__dirname + '/../support'),
   expectsql = Support.expectsql,
   sinon = require('sinon'),
   current   = Support.sequelize,
-  Promise = current.Promise;
+  Promise = require('bluebird');
 
 
 if (current.dialect.name !== 'sqlite') {

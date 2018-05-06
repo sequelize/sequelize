@@ -6,8 +6,9 @@ const chai = require('chai'),
   Sequelize = require(__dirname + '/../../../index'),
   Support = require(__dirname + '/../support'),
   current = Support.sequelize,
-  Op      = current.Op,
-  Promise = current.Promise,
+  Op      = Support.Sequelize.Op,
+  Promise = require('bluebird'),
+  errors = require('../../../lib/errors'),
   config = require(__dirname + '/../../config/config');
 
 
@@ -299,7 +300,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
 
         it('should allow dates as a string', () => {
-          return expect(User.find({
+          return expect(User.findOne({
             where: {
               date: '2000-12-16'
             }
@@ -382,13 +383,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('should throw when passing string', () => {
           return expect(User.create({
             age: 'jan'
-          })).to.be.rejectedWith(current.ValidationError);
+          })).to.be.rejectedWith(errors.ValidationError);
         });
 
         it('should throw when passing decimal', () => {
           return expect(User.create({
             age: 4.5
-          })).to.be.rejectedWith(current.ValidationError);
+          })).to.be.rejectedWith(errors.ValidationError);
         });
       });
 
@@ -396,13 +397,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('should throw when passing string', () => {
           return expect(User.update({
             age: 'jan'
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(errors.ValidationError);
         });
 
         it('should throw when passing decimal', () => {
           return expect(User.update({
             age: 4.5
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(errors.ValidationError);
         });
       });
 
@@ -470,13 +471,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('custom attribute validation function fails', () => {
           return expect(User.create({
             age: -1
-          })).to.be.rejectedWith(current.ValidationError);
+          })).to.be.rejectedWith(errors.ValidationError);
         });
 
         it('custom model validation function fails', () => {
           return expect(User.create({
             name: 'error'
-          })).to.be.rejectedWith(current.ValidationError);
+          })).to.be.rejectedWith(errors.ValidationError);
         });
       });
 
@@ -484,13 +485,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('custom attribute validation function fails', () => {
           return expect(User.update({
             age: -1
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(errors.ValidationError);
         });
 
         it('when custom model validation function fails', () => {
           return expect(User.update({
             name: 'error'
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(errors.ValidationError);
         });
       });
     });
@@ -543,7 +544,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('custom model validation function fails', () => {
           return expect(User.create({
             name: 'error'
-          })).to.be.rejectedWith(current.ValidationError);
+          })).to.be.rejectedWith(errors.ValidationError);
         });
       });
 
@@ -551,7 +552,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('when custom model validation function fails', () => {
           return expect(User.update({
             name: 'error'
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(errors.ValidationError);
         });
       });
     });

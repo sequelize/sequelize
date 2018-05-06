@@ -9,7 +9,8 @@ const chai = require('chai'),
   DataTypes = require(__dirname + '/../../../../lib/data-types'),
   moment = require('moment'),
   current = Support.sequelize,
-  _ = require('lodash');
+  _ = require('lodash'),
+  literal = Support.Sequelize.literal;
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
@@ -268,7 +269,7 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {where: 2}],
           expectation: 'SELECT * FROM \"myTable\" WHERE \"myTable\".\"id\" = 2;'
         }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
+          arguments: ['foo', { attributes: [[literal('count(*)'), 'count']] }],
           expectation: 'SELECT count(*) AS \"count\" FROM \"foo\";'
         }, {
           arguments: ['myTable', {order: ['id']}],
@@ -462,7 +463,7 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM myTable WHERE myTable.id = 2;',
           context: {options: {quoteIdentifiers: false}}
         }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
+          arguments: ['foo', { attributes: [[literal('count(*)'), 'count']] }],
           expectation: 'SELECT count(*) AS count FROM foo;',
           context: {options: {quoteIdentifiers: false}}
         }, {

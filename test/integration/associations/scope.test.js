@@ -230,7 +230,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           expect(question).to.be.instanceof(self.Question);
         }).then(() => {
           return Promise.join(
-            self.Post.find({
+            self.Post.findOne({
               include: [self.Comment]
             }),
             self.Image.findOne({

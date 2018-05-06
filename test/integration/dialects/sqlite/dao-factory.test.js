@@ -106,13 +106,13 @@ if (dialect === 'sqlite') {
           });
 
           it('finds normal lookups', function() {
-            return this.User.find({ where: { name: 'user' } }).then(user => {
+            return this.User.findOne({ where: { name: 'user' } }).then(user => {
               expect(user.name).to.equal('user');
             });
           });
 
           it.skip('should make aliased attributes available', function() {
-            return this.User.find({ where: { name: 'user' }, attributes: ['id', ['name', 'username']] }).then(user => {
+            return this.User.findOne({ where: { name: 'user' }, attributes: ['id', ['name', 'username']] }).then(user => {
               expect(user.username).to.equal('user');
             });
           });

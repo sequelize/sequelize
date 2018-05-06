@@ -257,7 +257,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let count = 0;
 
         return this.User.bulkCreate([{username: 'jack'}, {username: 'jack'}]).then(() => {
-          return self.sequelize.Promise.map(permutations, perm => {
+          return Promise.map(permutations, perm => {
             return self.User.findById(perm, {
               logging(s) {
                 expect(s.indexOf(0)).not.to.equal(-1);
@@ -951,7 +951,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('throws error when record not found by find', function() {
-        return expect(this.User.find({
+        return expect(this.User.findOne({
           where: {
             username: 'some-username-that-is-not-used-anywhere'
           },

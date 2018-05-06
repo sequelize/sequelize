@@ -79,7 +79,7 @@ describe('model', () => {
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(user => {
             expect(user.emergency_contact).to.eql(emergencyContact);
-            return this.User.find({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
+            return this.User.findOne({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
           })
           .then(user => {
             expect(user.emergency_contact).to.eql(emergencyContact);
@@ -92,7 +92,7 @@ describe('model', () => {
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(user => {
             expect(user.emergency_contact).to.eql(emergencyContact);
-            return this.User.find({
+            return this.User.findOne({
               where: { username: 'swen' },
               attributes: [[Sequelize.json('emergency_contact.phones[1]'), 'firstEmergencyNumber']]
             });
@@ -108,7 +108,7 @@ describe('model', () => {
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(user => {
             expect(user.emergency_contact).to.eql(emergencyContact);
-            return this.User.find({
+            return this.User.findOne({
               where: { username: 'swen' },
               attributes: [[Sequelize.json('emergency_contact.kate'), 'katesNumber']]
             });
@@ -124,14 +124,14 @@ describe('model', () => {
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
           .then(user => {
             expect(user.emergency_contact).to.eql(emergencyContact);
-            return this.User.find({
+            return this.User.findOne({
               where: { username: 'swen' },
               attributes: [[Sequelize.json('emergency_contact.kate.email'), 'katesEmail']]
             });
           }).then(user => {
             expect(user.getDataValue('katesEmail')).to.equal('kate@kate.com');
           }).then(() => {
-            return this.User.find({
+            return this.User.findOne({
               where: { username: 'swen' },
               attributes: [[Sequelize.json('emergency_contact.kate.phones[1]'), 'katesFirstPhone']]
             });
@@ -145,7 +145,7 @@ describe('model', () => {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ]).then(() => {
-          return this.User.find({
+          return this.User.findOne({
             where: Sequelize.json('emergency_contact.name', 'kate'),
             attributes: ['username', 'emergency_contact']
           });
@@ -159,7 +159,7 @@ describe('model', () => {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ]).then(() => {
-          return this.User.find({
+          return this.User.findOne({
             where: Sequelize.json({ emergency_contact: { name: 'kate' } })
           });
         }).then(user => {
@@ -172,7 +172,7 @@ describe('model', () => {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ]).then(() => {
-          return this.User.find({ where: Sequelize.json('emergency_contact.name', 'joe') });
+          return this.User.findOne({ where: Sequelize.json('emergency_contact.name', 'joe') });
         }).then(user => {
           expect(user.emergency_contact.name).to.equal('joe');
         });
@@ -183,7 +183,7 @@ describe('model', () => {
           this.User.create({ username: 'swen', emergencyContact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })
         ]).then(() => {
-          return this.User.find({
+          return this.User.findOne({
             attributes: [[Sequelize.json('emergencyContact.name'), 'contactName']],
             where: Sequelize.json('emergencyContact.name', 'joe')
           });
@@ -197,11 +197,11 @@ describe('model', () => {
           this.User.create({ username: 'swen', emergency_contact: ['kate', 'joe'] }),
           this.User.create({ username: 'anna', emergency_contact: [{ name: 'joe' }] })
         ]).then(() => {
-          return this.User.find({ where: Sequelize.json('emergency_contact.0', 'kate') });
+          return this.User.findOne({ where: Sequelize.json('emergency_contact.0', 'kate') });
         }).then(user => {
           expect(user.username).to.equal('swen');
         }).then(() => {
-          return this.User.find({ where: Sequelize.json('emergency_contact[0].name', 'joe') });
+          return this.User.findOne({ where: Sequelize.json('emergency_contact[0].name', 'joe') });
         }).then(user => {
           expect(user.username).to.equal('anna');
         });
@@ -216,9 +216,9 @@ describe('model', () => {
         }).then(user => {
           expect(user.isNewRecord).to.equal(false);
         }).then(() => {
-          return this.User.find({ where: { username: 'swen' } });
+          return this.User.findOne({ where: { username: 'swen' } });
         }).then(() => {
-          return this.User.find({ where: Sequelize.json('emergency_contact.value', text) });
+          return this.User.findOne({ where: Sequelize.json('emergency_contact.value', text) });
         }).then(user => {
           expect(user.username).to.equal('swen');
         });
@@ -233,9 +233,9 @@ describe('model', () => {
         }).then(user => {
           expect(!user.isNewRecord).to.equal(true);
         }).then(() => {
-          return this.User.find({ where: { username: 'swen' } });
+          return this.User.findOne({ where: { username: 'swen' } });
         }).then(() => {
-          return this.User.find({ where: Sequelize.json('emergency_contact.value', text) });
+          return this.User.findOne({ where: Sequelize.json('emergency_contact.value', text) });
         }).then(user => {
           expect(user.username).to.equal('swen');
         });
@@ -248,7 +248,7 @@ describe('model', () => {
             username: 'swen123',
             emergency_contact: 'Unknown'
           }).then(() => {
-            return this.User.find({where: {
+            return this.User.findOne({where: {
               emergency_contact: 'Unknown'
             }});
           }).then(user => {

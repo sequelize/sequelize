@@ -6,7 +6,7 @@ const chai = require('chai'),
   Support   = require(__dirname + '/../support'),
   DataTypes = require('../../../lib/data-types'),
   current   = Support.sequelize,
-  Promise = current.Promise;
+  Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('bulkCreate', () => {

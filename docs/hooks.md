@@ -65,8 +65,8 @@ const User = sequelize.define('user', {
   }
 });
 
-// Method 2 via the .hook() method (or its alias .addHook() method)
-User.hook('beforeValidate', (user, options) => {
+// Method 2 via the .addHook() method
+User.addHook('beforeValidate', (user, options) => {
   user.mood = 'happy';
 });
 

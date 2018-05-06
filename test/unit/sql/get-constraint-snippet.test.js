@@ -5,7 +5,7 @@ const current   = Support.sequelize;
 const expectsql = Support.expectsql;
 const sql = current.dialect.QueryGenerator;
 const expect = require('chai').expect;
-const Op = current.Op;
+const Op = Support.Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('getConstraintSnippet', () => {

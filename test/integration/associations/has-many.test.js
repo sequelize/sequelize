@@ -10,8 +10,9 @@ const chai = require('chai'),
   Promise = Sequelize.Promise,
   current = Support.sequelize,
   _ = require('lodash'),
-  Op = current.Op,
-  dialect = Support.getTestDialect();
+  Op = Sequelize.Op,
+  dialect = Support.getTestDialect(),
+  errors = require('../../../lib/errors');
 
 describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('Model.associations', () => {
@@ -996,18 +997,16 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     describe('getting assocations with options', () => {
       beforeEach(function() {
-        const self = this;
-
         this.User = this.sequelize.define('User', { username: DataTypes.STRING });
         this.Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
 
-        this.User.hasMany(self.Task);
+        this.User.hasMany(this.Task);
 
         return this.sequelize.sync({ force: true }).then(() => {
           return Promise.all([
-            self.User.create({ username: 'John'}),
-            self.Task.create({ title: 'Get rich', active: true}),
-            self.Task.create({ title: 'Die trying', active: false})
+            this.User.create({ username: 'John'}),
+            this.Task.create({ title: 'Get rich', active: true}),
+            this.Task.create({ title: 'Die trying', active: false})
           ]);
         }).spread((john, task1, task2) => {
           return john.setTasks([task1, task2]);
@@ -1045,7 +1044,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       it('gets all associated objects when no options are passed', function() {
-        return this.User.find({where: {username: 'John'}}).then(john => {
+        return this.User.findOne({where: {username: 'John'}}).then(john => {
           return john.getTasks();
         }).then(tasks => {
           expect(tasks).to.have.length(2);
@@ -1053,7 +1052,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       it('only get objects that fulfill the options', function() {
-        return this.User.find({ where: { username: 'John' } }).then(john => {
+        return this.User.findOne({ where: { username: 'John' } }).then(john => {
           return john.getTasks({ where: { active: true }, limit: 10, order: [['id', 'DESC']]});
         }).then(tasks => {
           expect(tasks).to.have.length(1);
@@ -1244,7 +1243,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       if (current.dialect.supports.constraints.restrict) {
         it('can restrict deletes', function() {
-          const self = this;
           const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
             User = this.sequelize.define('User', { username: DataTypes.STRING });
 
@@ -1260,7 +1258,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             this.task = task;
             return user.setTasks([task]);
           }).then(function() {
-            return this.user.destroy().catch (self.sequelize.ForeignKeyConstraintError, () => {
+            return this.user.destroy().catch (errors.ForeignKeyConstraintError, () => {
               // Should fail due to FK violation
               return Task.findAll();
             });
@@ -1270,7 +1268,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         });
 
         it('can restrict updates', function() {
-          const self = this;
           const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
             User = this.sequelize.define('User', { username: DataTypes.STRING });
 
@@ -1290,7 +1287,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
             const tableName = user.sequelize.getQueryInterface().QueryGenerator.addSchema(user.constructor);
             return user.sequelize.getQueryInterface().update(user, tableName, {id: 999}, {id: user.id})
-              .catch (self.sequelize.ForeignKeyConstraintError, () => {
+              .catch (errors.ForeignKeyConstraintError, () => {
               // Should fail due to FK violation
                 return Task.findAll();
               });
@@ -1536,7 +1533,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           {title: 'Inactive Task', userEmail: 'john@example.com', taskStatus: 'Inactive'}
         ])
       ).then(() =>
-        this.User.find({
+        this.User.findOne({
           include: [
             {
               model: this.Task,

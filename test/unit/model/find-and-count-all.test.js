@@ -9,7 +9,7 @@ const chai = require('chai'),
   Promise = require('bluebird').getNewLibraryCopy();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  describe('findAndCount', () => {
+  describe('findAndCountAll', () => {
     describe('should handle promise rejection', () => {
       before(function() {
         this.stub = sinon.stub();
@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('with errors in count and findAll both', function() {
-        return this.User.findAndCount({})
+        return this.User.findAndCountAll({})
           .then(() => {
             throw new Error();
           })

@@ -1209,7 +1209,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return this.User.create({ data: quote }).then(user => {
         expect(user.data).to.equal(quote);
-        return self.User.find({where: { id: user.id }}).then(user => {
+        return self.User.findOne({where: { id: user.id }}).then(user => {
           expect(user.data).to.equal(quote);
         });
       });
@@ -1221,7 +1221,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return this.User.create({ data: quote }).then(user => {
         expect(user.data).to.equal(quote);
-        return self.User.find({where: { id: user.id }}).then(user => {
+        return self.User.findOne({where: { id: user.id }}).then(user => {
           expect(user.data).to.equal(quote);
         });
       });
@@ -1233,7 +1233,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return this.User.create({ data: json }).then(user => {
         expect(user.data).to.equal(json);
-        return self.User.find({where: { id: user.id }}).then(user => {
+        return self.User.findOne({where: { id: user.id }}).then(user => {
           expect(user.data).to.equal(json);
         });
       });
@@ -1331,7 +1331,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return Item.sync({ force: true }).then(() => {
           return Item.create({ state: 'available' }).then(_item => {
-            return Item.find({ where: { state: 'available' }}).then(item => {
+            return Item.findOne({ where: { state: 'available' }}).then(item => {
               expect(item.id).to.equal(_item.id);
             });
           });

@@ -4,22 +4,23 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   current = Support.sequelize,
-  Op = current.Op,
+  Op = Support.Sequelize.Op,
   sinon = require('sinon'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
-  Promise = require('bluebird');
+  Promise = require('bluebird'),
+  Model = require('../../../lib/model');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method findOne', () => {
     before(function() {
-      this.oldFindAll = current.Model.findAll;
+      this.oldFindAll = Model.findAll;
     });
     after(function() {
-      current.Model.findAll = this.oldFindAll;
+      Model.findAll = this.oldFindAll;
     });
 
     beforeEach(function() {
-      this.stub = current.Model.findAll = sinon.stub().returns(Promise.resolve());
+      this.stub = Model.findAll = sinon.stub().returns(Promise.resolve());
     });
 
     describe('should not add limit when querying on a primary key', () => {

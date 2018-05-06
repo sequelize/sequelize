@@ -105,7 +105,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
             }
 
-            return Post.find({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
+            return Post.findOne({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
           }).then(post => {
             expect(post.get('someBoolean')).to.be.ok;
             expect(post.get().someBoolean).to.be.ok;
@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
             expect(user.virtualWithDefault).to.equal('cake');
             expect(user.storage).to.equal('something');
-            return user.updateAttributes({
+            return user.update({
               field1: 'something else'
             }, {
               fields: ['storage']

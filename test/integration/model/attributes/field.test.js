@@ -286,16 +286,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.create({
           name: 'Foobar'
         }).then(() => {
-          return self.User.find({
+          return self.User.findOne({
             limit: 1
           });
         }).then(user => {
           expect(user.get('name')).to.equal('Foobar');
-          return user.updateAttributes({
+          return user.update({
             name: 'Barfoo'
           });
         }).then(() => {
-          return self.User.find({
+          return self.User.findOne({
             limit: 1
           });
         }).then(user => {
@@ -379,7 +379,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             text: 'Comment'
           });
         }).then(() => {
-          return self.Task.find({
+          return self.Task.findOne({
             include: [
               {model: self.Comment},
               {model: self.User}
@@ -435,7 +435,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.create({
           name: 'Foobar'
         }).then(() => {
-          return self.User.find({
+          return self.User.findOne({
             where: {
               name: 'Foobar'
             }
@@ -451,7 +451,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.create({
           name: 'Foobar'
         }).then(() => {
-          return self.User.find({
+          return self.User.findOne({
             where: self.sequelize.or({
               name: 'Foobar'
             }, {
@@ -523,7 +523,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should find the value of an attribute with a custom field name', function() {
         return this.User.create({ name: 'test user' })
           .then(() => {
-            return this.User.find({ where: { name: 'test user' } });
+            return this.User.findOne({ where: { name: 'test user' } });
           })
           .then(user => {
             expect(user.name).to.equal('test user');
@@ -536,16 +536,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.Comment.create({
           notes: 'Foobar'
         }).then(() => {
-          return self.Comment.find({
+          return self.Comment.findOne({
             limit: 1
           });
         }).then(comment => {
           expect(comment.get('notes')).to.equal('Foobar');
-          return comment.updateAttributes({
+          return comment.update({
             notes: 'Barfoo'
           });
         }).then(() => {
-          return self.Comment.find({
+          return self.Comment.findOne({
             limit: 1
           });
         }).then(comment => {

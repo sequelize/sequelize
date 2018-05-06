@@ -561,7 +561,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return Item.sync({ force: true }).then(() => {
           return Item.bulkCreate([{state: 'in_cart', name: 'A'}, { state: 'available', name: 'B'}]).then(() => {
-            return Item.find({ where: { state: 'available' }}).then(item => {
+            return Item.findOne({ where: { state: 'available' }}).then(item => {
               expect(item.name).to.equal('B');
             });
           });

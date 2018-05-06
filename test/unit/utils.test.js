@@ -7,7 +7,7 @@ const DataTypes = require(__dirname + '/../../lib/data-types');
 const Utils = require(__dirname + '/../../lib/utils');
 const tedious = require('tedious');
 const tediousIsolationLevel = tedious.ISOLATION_LEVEL;
-const Op = Support.sequelize.Op;
+const Op = Support.Sequelize.Op;
 
 suite(Support.getTestDialectTeaser('Utils'), () => {
   suite('merge', () => {
