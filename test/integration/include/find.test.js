@@ -5,7 +5,8 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   Sequelize = require(__dirname + '/../../../index'),
   Promise = Sequelize.Promise,
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('find', () => {
@@ -309,7 +310,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               promise = promise.then(() => {
                 return model.create(values).then(instance => {
                   if (previousInstance) {
-                    return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(() => {
+                    return previousInstance['set'+ _.upperFirst(model.name)](instance).then(() => {
                       previousInstance = instance;
                     });
                   } else {

@@ -6,7 +6,8 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
-  Promise = Sequelize.Promise;
+  Promise = Sequelize.Promise,
+  _ = require('lodash');
 
 const sortById = function(a, b) {
   return a.id < b.id ? -1 : 1;
@@ -510,7 +511,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               promise = promise.then(() => {
                 return model.create({}).then(instance => {
                   if (previousInstance) {
-                    return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(() => {
+                    return previousInstance['set'+ _.upperFirst(model.name)](instance).then(() => {
                       previousInstance = instance;
                     });
                   } else {
@@ -609,7 +610,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               promise = promise.then(() => {
                 return model.create(values).then(instance => {
                   if (previousInstance) {
-                    return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(() => {
+                    return previousInstance['set'+ _.upperFirst(model.name)](instance).then(() => {
                       previousInstance = instance;
                     });
                   } else {
