@@ -49,7 +49,7 @@ const Foo = sequelize.define('foo', {
  // autoIncrement can be used to create auto_incrementing integer columns
  incrementMe: { type: Sequelize.INTEGER, autoIncrement: true },
 
- // You can specify a custom field name via the 'field' attribute:
+ // You can specify a custom column name via the 'field' attribute:
  fieldWithUnderscores: { type: Sequelize.STRING, field: 'field_with_underscores' },
 
  // It is possible to create foreign keys:
@@ -193,7 +193,7 @@ Usage in object notation:
 // for enums:
 sequelize.define('model', {
   states: {
-    type:   Sequelize.ENUM,
+    type: Sequelize.ENUM,
     values: ['active', 'pending', 'deleted']
   }
 })
@@ -269,7 +269,6 @@ Timeline.create({ range: [null, new Date(Date.UTC(2016, 0, 1))] });
 // Infinite range:
 // range = '[-infinity,"2016-01-01 00:00:00+00:00")'
 Timeline.create({ range: [-Infinity, new Date(Date.UTC(2016, 0, 1))] });
-
 ```
 
 ## Deferrable
@@ -334,7 +333,9 @@ Employee
 
 ### Defining as part of the model options
 
-Below is an example of defining the getters and setters in the model options. The `fullName` getter,  is an example of how you can define pseudo properties on your models - attributes which are not actually part of your database schema. In fact, pseudo properties can be defined in two ways: using model getters, or by using a column with the [`VIRTUAL` datatype](/variable/index.html#static-variable-DataTypes). Virtual datatypes can have validations, while getters for virtual attributes cannot.
+Below is an example of defining the getters and setters in the model options.
+
+The `fullName` getter, is an example of how you can define pseudo properties on your models - attributes which are not actually part of your database schema. In fact, pseudo properties can be defined in two ways: using model getters, or by using a column with the [`VIRTUAL` datatype](/variable/index.html#static-variable-DataTypes). Virtual datatypes can have validations, while getters for virtual attributes cannot.
 
 Note that the `this.firstname` and `this.lastname` references in the `fullName` getter function will trigger a call to the respective getter functions. If you do not want that then use the `getDataValue()` method to access the raw value (see below).
 
@@ -345,7 +346,7 @@ const Foo = sequelize.define('foo', {
 }, {
   getterMethods: {
     fullName() {
-      return this.firstname + ' ' + this.lastname
+      return this.firstname + ' ' + this.lastname;
     }
   },
 
@@ -355,7 +356,7 @@ const Foo = sequelize.define('foo', {
 
       this.setDataValue('firstname', names.slice(0, -1).join(' '));
       this.setDataValue('lastname', names.slice(-1).join(' '));
-    },
+    }
   }
 });
 ```

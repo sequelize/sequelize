@@ -1,7 +1,7 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
+const chai  = require('chai'),
+  expect    = chai.expect,
   _         = require('lodash'),
   Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -14,6 +14,15 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
     expect(() => {
       User.hasOne();
     }).to.throw('User.hasOne called with something that\'s not a subclass of Sequelize.Model');
+  });
+
+  it('warn on invalid options', () => {
+    const User = current.define('User', {});
+    const Task = current.define('Task', {});
+
+    expect(() => {
+      User.hasOne(Task, { sourceKey: 'wowow' });
+    }).to.throw('Unknown attribute "wowow" passed as sourceKey, define this attribute on model "User" first');
   });
 
   it('properly use the `as` key to generate foreign key name', () => {

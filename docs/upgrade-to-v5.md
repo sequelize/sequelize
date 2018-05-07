@@ -57,6 +57,21 @@ Main outline
 
 ## Changelog
 
+### 5.0.0-beta.5
+
+- fix: inject foreignKey when using separate:true [#9396](https://github.com/sequelize/sequelize/pull/9396)
+- fix(isSoftDeleted): just use deletedAt as flag
+- feat(hasOne): sourceKey support with key validation [#9382](https://github.com/sequelize/sequelize/pull/9382)
+- fix(query-generator/deleteQuery): remove auto limit [#9377](https://github.com/sequelize/sequelize/pull/9377)
+- feat(postgres): skip locked support [#9197](https://github.com/sequelize/sequelize/pull/9197)
+- fix(mssql): case sensitive operation fails because of uppercased system table references [#9337](https://github.com/sequelize/sequelize/pull/9337)
+
+### 5.0.0-beta.4
+
+- change(model): setDataValue should not mark null to null as changed [#9347](https://github.com/sequelize/sequelize/pull/9347)
+- change(mysql/connection-manager): do not execute SET time_zone query if keepDefaultTimezone config is true [#9358](https://github.com/sequelize/sequelize/pull/9358)
+- feat(transactions): Add afterCommit hooks for transactions [#9287](https://github.com/sequelize/sequelize/pull/9287)
+
 ### 5.0.0-beta.3
 
 - change(model): new options.underscored implementation [#9304](https://github.com/sequelize/sequelize/pull/9304)
