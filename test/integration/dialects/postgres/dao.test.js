@@ -764,21 +764,25 @@ if (dialect.match(/^postgres/)) {
           // Check to see if the default value for a range field works
 
           expect(newUser.acceptable_marks.length).to.equal(2);
-          expect(newUser.acceptable_marks[0]).to.equal('0.65'); // lower bound
-          expect(newUser.acceptable_marks[1]).to.equal('1'); // upper bound
-          expect(newUser.acceptable_marks.inclusive).to.deep.equal([true, false]); // inclusive, exclusive
-          expect(newUser.course_period[0] instanceof Date).to.be.ok; // lower bound
-          expect(newUser.course_period[1] instanceof Date).to.be.ok; // upper bound
-          expect(newUser.course_period[0]).to.equalTime(period[0]); // lower bound
-          expect(newUser.course_period[1]).to.equalTime(period[1]); // upper bound
-          expect(newUser.course_period.inclusive).to.deep.equal([true, false]); // inclusive, exclusive
+          expect(newUser.acceptable_marks[0].value).to.equal('0.65'); // lower bound
+          expect(newUser.acceptable_marks[1].value).to.equal('1'); // upper bound
+          expect(newUser.acceptable_marks[0].inclusive).to.deep.equal(true); // inclusive
+          expect(newUser.acceptable_marks[1].inclusive).to.deep.equal(false); // exclusive
+          expect(newUser.course_period[0].value instanceof Date).to.be.ok; // lower bound
+          expect(newUser.course_period[1].value instanceof Date).to.be.ok; // upper bound
+          expect(newUser.course_period[0].value).to.equalTime(period[0]); // lower bound
+          expect(newUser.course_period[1].value).to.equalTime(period[1]); // upper bound
+          expect(newUser.course_period[0].inclusive).to.deep.equal(true); // inclusive
+          expect(newUser.course_period[1].inclusive).to.deep.equal(false); // exclusive
 
           // Check to see if updating a range field works
-          return newUser.updateAttributes({ acceptable_marks: [0.8, 0.9] }).then(() => {
-            expect(newUser.acceptable_marks.length).to.equal(2);
-            expect(newUser.acceptable_marks[0]).to.equal(0.8); // lower bound
-            expect(newUser.acceptable_marks[1]).to.equal(0.9); // upper bound
-          });
+          return newUser.updateAttributes({ acceptable_marks: [0.8, 0.9] })
+            .then(() => newUser.reload()) // Ensure the acceptable_marks array is loaded with the complete range definition
+            .then(() => {
+              expect(newUser.acceptable_marks.length).to.equal(2);
+              expect(newUser.acceptable_marks[0].value).to.equal('0.8'); // lower bound
+              expect(newUser.acceptable_marks[1].value).to.equal('0.9'); // upper bound
+            });
         });
       });
 
@@ -797,15 +801,15 @@ if (dialect.match(/^postgres/)) {
           return User.findById(1).then(user => {
             expect(user.holidays.length).to.equal(2);
             expect(user.holidays[0].length).to.equal(2);
-            expect(user.holidays[0][0] instanceof Date).to.be.ok;
-            expect(user.holidays[0][1] instanceof Date).to.be.ok;
-            expect(user.holidays[0][0]).to.equalTime(holidays[0][0]);
-            expect(user.holidays[0][1]).to.equalTime(holidays[0][1]);
+            expect(user.holidays[0][0].value instanceof Date).to.be.ok;
+            expect(user.holidays[0][1].value instanceof Date).to.be.ok;
+            expect(user.holidays[0][0].value).to.equalTime(holidays[0][0]);
+            expect(user.holidays[0][1].value).to.equalTime(holidays[0][1]);
             expect(user.holidays[1].length).to.equal(2);
-            expect(user.holidays[1][0] instanceof Date).to.be.ok;
-            expect(user.holidays[1][1] instanceof Date).to.be.ok;
-            expect(user.holidays[1][0]).to.equalTime(holidays[1][0]);
-            expect(user.holidays[1][1]).to.equalTime(holidays[1][1]);
+            expect(user.holidays[1][0].value instanceof Date).to.be.ok;
+            expect(user.holidays[1][1].value instanceof Date).to.be.ok;
+            expect(user.holidays[1][0].value).to.equalTime(holidays[1][0]);
+            expect(user.holidays[1][1].value).to.equalTime(holidays[1][1]);
           });
         });
       });
@@ -820,11 +824,12 @@ if (dialect.match(/^postgres/)) {
           course_period: period
         }]).then(() => {
           return User.findById(1).then(user => {
-            expect(user.course_period[0] instanceof Date).to.be.ok;
-            expect(user.course_period[1] instanceof Date).to.be.ok;
-            expect(user.course_period[0]).to.equalTime(period[0]); // lower bound
-            expect(user.course_period[1]).to.equalTime(period[1]); // upper bound
-            expect(user.course_period.inclusive).to.deep.equal([true, false]); // inclusive, exclusive
+            expect(user.course_period[0].value instanceof Date).to.be.ok;
+            expect(user.course_period[1].value instanceof Date).to.be.ok;
+            expect(user.course_period[0].value).to.equalTime(period[0]);  // lower bound
+            expect(user.course_period[1].value).to.equalTime(period[1]);  // upper bound
+            expect(user.course_period[0].inclusive).to.deep.equal(true);  // inclusive
+            expect(user.course_period[1].inclusive).to.deep.equal(false); // exclusive
           });
         });
       });
@@ -836,25 +841,29 @@ if (dialect.match(/^postgres/)) {
         return User.create({ username: 'user', email: ['foo@bar.com'], course_period: period }).then(newUser => {
           // Check to see if the default value for a range field works
           expect(newUser.acceptable_marks.length).to.equal(2);
-          expect(newUser.acceptable_marks[0]).to.equal('0.65'); // lower bound
-          expect(newUser.acceptable_marks[1]).to.equal('1'); // upper bound
-          expect(newUser.acceptable_marks.inclusive).to.deep.equal([true, false]); // inclusive, exclusive
-          expect(newUser.course_period[0] instanceof Date).to.be.ok;
-          expect(newUser.course_period[1] instanceof Date).to.be.ok;
-          expect(newUser.course_period[0]).to.equalTime(period[0]); // lower bound
-          expect(newUser.course_period[1]).to.equalTime(period[1]); // upper bound
-          expect(newUser.course_period.inclusive).to.deep.equal([true, false]); // inclusive, exclusive
+          expect(newUser.acceptable_marks[0].value).to.equal('0.65'); // lower bound
+          expect(newUser.acceptable_marks[1].value).to.equal('1'); // upper bound
+          expect(newUser.acceptable_marks[0].inclusive).to.deep.equal(true); // inclusive
+          expect(newUser.acceptable_marks[1].inclusive).to.deep.equal(false); // exclusive
+          expect(newUser.course_period[0].value instanceof Date).to.be.ok;
+          expect(newUser.course_period[1].value instanceof Date).to.be.ok;
+          expect(newUser.course_period[0].value).to.equalTime(period[0]); // lower bound
+          expect(newUser.course_period[1].value).to.equalTime(period[1]); // upper bound
+          expect(newUser.course_period[0].inclusive).to.deep.equal(true);  // inclusive
+          expect(newUser.course_period[1].inclusive).to.deep.equal(false); // exclusive
+
 
           const period2 = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
 
           // Check to see if updating a range field works
           return User.update({ course_period: period2 }, { where: newUser.where() }).then(() => {
             return newUser.reload().then(() => {
-              expect(newUser.course_period[0] instanceof Date).to.be.ok;
-              expect(newUser.course_period[1] instanceof Date).to.be.ok;
-              expect(newUser.course_period[0]).to.equalTime(period2[0]); // lower bound
-              expect(newUser.course_period[1]).to.equalTime(period2[1]); // upper bound
-              expect(newUser.course_period.inclusive).to.deep.equal([true, false]); // inclusive, exclusive
+              expect(newUser.course_period[0].value instanceof Date).to.be.ok;
+              expect(newUser.course_period[1].value instanceof Date).to.be.ok;
+              expect(newUser.course_period[0].value).to.equalTime(period2[0]); // lower bound
+              expect(newUser.course_period[1].value).to.equalTime(period2[1]); // upper bound
+              expect(newUser.course_period[0].inclusive).to.deep.equal(true);  // inclusive
+              expect(newUser.course_period[1].inclusive).to.deep.equal(false); // exclusive  
             });
           });
         });
@@ -873,11 +882,12 @@ if (dialect.match(/^postgres/)) {
           return User.update({ course_period: period }, { where: oldUser.where(), returning: true })
             .spread((count, users) => {
               expect(count).to.equal(1);
-              expect(users[0].course_period[0] instanceof Date).to.be.ok;
-              expect(users[0].course_period[1] instanceof Date).to.be.ok;
-              expect(users[0].course_period[0]).to.equalTime(period[0]); // lower bound
-              expect(users[0].course_period[1]).to.equalTime(period[1]); // upper bound
-              expect(users[0].course_period.inclusive).to.deep.equal([true, false]); // inclusive, exclusive
+              expect(users[0].course_period[0].value instanceof Date).to.be.ok;
+              expect(users[0].course_period[1].value instanceof Date).to.be.ok;
+              expect(users[0].course_period[0].value).to.equalTime(period[0]); // lower bound
+              expect(users[0].course_period[1].value).to.equalTime(period[1]); // upper bound
+              expect(users[0].course_period[0].inclusive).to.deep.equal(true);  // inclusive
+              expect(users[0].course_period[1].inclusive).to.deep.equal(false); // exclusive  
             });
         });
       });
@@ -885,8 +895,7 @@ if (dialect.match(/^postgres/)) {
       it('should read range correctly', function() {
         const User = this.User;
 
-        const course_period = [new Date(2015, 1, 1), new Date(2015, 10, 30)];
-        course_period.inclusive = [false, false];
+        const course_period = [{ value: new Date(2015, 1, 1), inclusive: false }, { value: new Date(2015, 10, 30), inclusive: false }];
 
         const data = { username: 'user', email: ['foo@bar.com'], course_period };
 
@@ -903,13 +912,9 @@ if (dialect.match(/^postgres/)) {
       it('should read range array correctly', function() {
         const User = this.User;
         const holidays = [
-          [new Date(2015, 3, 1, 10), new Date(2015, 3, 15)],
-          [new Date(2015, 8, 1), new Date(2015, 9, 15)]
+          [{ value: new Date(2015, 3, 1, 10), inclusive: true}, { value: new Date(2015, 3, 15), inclusive: true }],
+          [{ value: new Date(2015, 8, 1), inclusive: true }, { value: new Date(2015, 9, 15), inclusive: true }]
         ];
-
-        holidays[0].inclusive = [true, true];
-        holidays[1].inclusive = [true, true];
-
         const data = { username: 'user', email: ['foo@bar.com'], holidays };
 
         return User.create(data)
@@ -938,12 +943,14 @@ if (dialect.match(/^postgres/)) {
             return User.findAll({ order: ['username'] });
           })
           .then(users => {
-            expect(users[0].course_period[0]).to.equalTime(periods[0][0]); // lower bound
-            expect(users[0].course_period[1]).to.equalTime(periods[0][1]); // upper bound
-            expect(users[0].course_period.inclusive).to.deep.equal([true, false]); // inclusive, exclusive
-            expect(users[1].course_period[0]).to.equalTime(periods[1][0]); // lower bound
-            expect(users[1].course_period[1]).to.equalTime(periods[1][1]); // upper bound
-            expect(users[1].course_period.inclusive).to.deep.equal([true, false]); // inclusive, exclusive
+            expect(users[0].course_period[0].value).to.equalTime(periods[0][0]); // lower bound
+            expect(users[0].course_period[1].value).to.equalTime(periods[0][1]); // upper bound
+            expect(users[0].course_period[0].inclusive).to.deep.equal(true); // inclusive
+            expect(users[0].course_period[1].inclusive).to.deep.equal(false); // exclusive
+            expect(users[1].course_period[0].value).to.equalTime(periods[1][0]); // lower bound
+            expect(users[1].course_period[1].value).to.equalTime(periods[1][1]); // upper bound
+            expect(users[1].course_period[0].inclusive).to.deep.equal(true); // inclusive
+            expect(users[1].course_period[1].inclusive).to.deep.equal(false); // exclusive
           });
       });
 
@@ -974,8 +981,8 @@ if (dialect.match(/^postgres/)) {
             expect(user.hasOwnProperty('holidayDates')).to.be.ok;
             expect(user.holidayDates.length).to.equal(1);
             expect(user.holidayDates[0].period.length).to.equal(2);
-            expect(user.holidayDates[0].period[0]).to.equalTime(period[0]);
-            expect(user.holidayDates[0].period[1]).to.equalTime(period[1]);
+            expect(user.holidayDates[0].period[0].value).to.equalTime(period[0]);
+            expect(user.holidayDates[0].period[1].value).to.equalTime(period[1]);
           });
       });
     });

@@ -220,13 +220,6 @@ When supplying ranges as values you can choose from the following APIs:
 Timeline.create({ range: [new Date(Date.UTC(2016, 0, 1)), new Date(Date.UTC(2016, 1, 1))] });
 
 // control inclusion
-const range = [new Date(Date.UTC(2016, 0, 1)), new Date(Date.UTC(2016, 1, 1))];
-range.inclusive = false; // '()'
-range.inclusive = [false, true]; // '(]'
-range.inclusive = true; // '[]'
-range.inclusive = [true, false]; // '[)'
-
-// or as a single expression
 const range = [
   { value: new Date(Date.UTC(2016, 0, 1)), inclusive: false },
   { value: new Date(Date.UTC(2016, 1, 1)), inclusive: true },
@@ -248,12 +241,10 @@ receive:
 
 ```js
 // stored value: ("2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00"]
-range // [Date, Date]
-range.inclusive // [false, true]
+range // [{ value: Date, inclusive: false }, { value: Date, inclusive: true }]
 ```
 
-Make sure you turn that into a serializable format before serialization since array
-extra properties will not be serialized.
+You will need to call reload after updating an instance with a range type or use `returning: true` option.
 
 **Special Cases**
 
