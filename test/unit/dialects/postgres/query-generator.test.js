@@ -137,8 +137,12 @@ if (dialect.match(/^postgres/)) {
 
       createTableQuery: [
         {
-          arguments: ['myTable', {int: 'INTEGER', bigint: 'BIGINT'}],
-          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"int\" INTEGER, \"bigint\" BIGINT);'
+          arguments: ['myTable', {int: 'INTEGER', bigint: 'BIGINT', smallint: 'SMALLINT' }],
+          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"int\" INTEGER, \"bigint\" BIGINT, \"smallint\" SMALLINT);'
+        },
+        {
+          arguments: ['myTable', {serial: 'INTEGER SERIAL', bigserial: 'BIGINT SERIAL', smallserial: 'SMALLINT SERIAL' }],
+          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"serial\"  SERIAL, \"bigserial\"  BIGSERIAL, \"smallserial\"  SMALLSERIAL);'
         },
         {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
