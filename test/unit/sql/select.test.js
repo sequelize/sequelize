@@ -47,6 +47,53 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       mssql: "SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = N'jon.snow@gmail.com' ORDER BY [email] DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;"
     });
 
+    const indexName = 'my_index';
+    const indexHintsUseExamples = [
+      'my_index',
+      [['use', indexName]],
+      [{ value: `USE INDEX(\`${indexName}\`)` }],
+    ];
+
+    indexHintsUseExamples.forEach(hint => {
+      testsql(
+        {
+          table: 'User',
+          attributes: ['email', ['first_name', 'firstName']],
+          where: {
+            email: 'jon.snow@gmail.com',
+          },
+          indexHint: hint,
+          order: [['email', 'DESC']],
+          limit: 10,
+        },
+        {
+          default:
+            "SELECT [email], [first_name] AS [firstName] FROM [User] USE INDEX(`my_index`) WHERE [User].[email] = 'jon.snow@gmail.com' ORDER BY [email] DESC LIMIT 10;",
+          mssql:
+            "SELECT [email], [first_name] AS [firstName] FROM [User] USE INDEX (my_index) WHERE [User].[email] = N'jon.snow@gmail.com' ORDER BY [email] DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;",
+        }
+      );
+    });
+
+    testsql(
+      {
+        table: 'User',
+        attributes: ['email', ['first_name', 'firstName']],
+        where: {
+          email: 'jon.snow@gmail.com',
+        },
+        indexHint: [['force', 'my_index']],
+        order: [['email', 'DESC']],
+        limit: 10,
+      },
+      {
+        default:
+          "SELECT [email], [first_name] AS [firstName] FROM [User] FORCE INDEX(`my_index`) WHERE [User].[email] = 'jon.snow@gmail.com' ORDER BY [email] DESC LIMIT 10;",
+        mssql:
+          "SELECT [email], [first_name] AS [firstName] FROM [User] FORCE INDEX (my_index) WHERE [User].[email] = N'jon.snow@gmail.com' ORDER BY [email] DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;",
+      }
+    );
+
     testsql({
       table: 'User',
       attributes: [
