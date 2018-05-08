@@ -1,6 +1,6 @@
 'use strict';
 
-const chai      = require('chai'),
+const chai  = require('chai'),
   sinon     = require('sinon'),
   expect    = chai.expect,
   errors    = require('../../lib/errors'),
@@ -9,7 +9,6 @@ const chai      = require('chai'),
 
 describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
   describe('API Surface', () => {
-
     it('Should have the Error constructors exposed', () => {
       expect(Sequelize).to.have.property('Error');
       expect(Sequelize).to.have.property('ValidationError');
@@ -348,16 +347,28 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         }
       }, { timestamps: false });
 
-      return this.sequelize.sync({ force: true }).bind(this).then(() => {
-        return User.create({ name: 'jan' });
-      }).then(() => {
-        return expect(User.create({ name: 'jan' })).to.be.rejected;
-      }).then(function(error) {
-        expect(error).to.be.instanceOf(this.sequelize.UniqueConstraintError);
-        expect(error).to.have.property('parent');
-        expect(error).to.have.property('original');
-        expect(error).to.have.property('sql');
-      });
+      return this.sequelize.sync({ force: true })
+        .then(() => {
+          return User.create({ name: 'jan' });
+        }).then(() => {
+          // Unique key
+          return expect(User.create({ name: 'jan' })).to.be.rejected;
+        }).then(error => {
+          expect(error).to.be.instanceOf(this.sequelize.UniqueConstraintError);
+          expect(error).to.have.property('parent');
+          expect(error).to.have.property('original');
+          expect(error).to.have.property('sql');
+
+          return User.create({ id: 2, name: 'jon' });
+        }).then(() => {
+          // Primary key
+          return expect(User.create({ id: 2, name: 'jon' })).to.be.rejected;
+        }).then(error => {
+          expect(error).to.be.instanceOf(this.sequelize.UniqueConstraintError);
+          expect(error).to.have.property('parent');
+          expect(error).to.have.property('original');
+          expect(error).to.have.property('sql');
+        });
     });
   });
 });
