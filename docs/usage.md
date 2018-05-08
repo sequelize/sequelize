@@ -299,7 +299,7 @@ will be thrown.
 sequelize
   .query(
     'SELECT * FROM projects WHERE status = ?',
-    { raw: true, replacements: ['active']
+    { raw: true, replacements: ['active'] }
   )
   .then(projects => {
     console.log(projects)
