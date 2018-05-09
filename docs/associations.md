@@ -428,7 +428,7 @@ const Project = sequelize.define('project', {/* ... */})
 Project.hasMany(User, {as: 'Workers'})
 ```
 
-This will add the attribute `projectId` to User. Depending on your setting for underscored the column in the table will either be called projectId or project_id. Instances of Project will get the accessors `getWorkers` and `setWorkers`.
+This will add the attribute `projectId` to User. Depending on your setting for underscored the column in the table will either be called `projectId` or `project_id`. Instances of Project will get the accessors `getWorkers` and `setWorkers`.
 
 Sometimes you may need to associate records on different columns, you may use `sourceKey` option:
 
@@ -559,8 +559,8 @@ Subscription.hasMany(Invoice)
 Without `as`, this adds `subscriptionId` as expected. However, if you were to say `Invoice.belongsTo(Subscription, { as: 'TheSubscription' })`, you will have both `subscriptionId` and `theSubscriptionId`, because sequelize is not smart enough to figure that the calls are two sides of the same relation. 'foreignKey' fixes this problem;
 
 ```js
-Invoice.belongsTo(Subscription, , { as: 'TheSubscription', foreignKey: 'subscription_id' })
-Subscription.hasMany(Invoice, { foreignKey: 'subscription_id' )
+Invoice.belongsTo(Subscription, { as: 'TheSubscription', foreignKey: 'subscription_id' })
+Subscription.hasMany(Invoice, { foreignKey: 'subscription_id' })
 ```
 
 ## Associating objects
