@@ -52,6 +52,25 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       table: 'User',
       attributes: [
         'email',
+        ['first_name', 'firstName']
+      ],
+      where: {
+        email: 'jon.snow@gmail.com'
+      },
+      indexHint: 'my_index',
+      order: [
+        ['email', 'DESC']
+      ],
+      limit: 10
+    }, {
+      default: "SELECT [email], [first_name] AS [firstName] FROM [User] USE INDEX (my_index) WHERE [User].[email] = 'jon.snow@gmail.com' ORDER BY [email] DESC LIMIT 10;",
+      mssql: "SELECT [email], [first_name] AS [firstName] FROM [User] USE INDEX (my_index) WHERE [User].[email] = N'jon.snow@gmail.com' ORDER BY [email] DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;"
+    });
+
+    testsql({
+      table: 'User',
+      attributes: [
+        'email',
         ['first_name', 'firstName'],
         ['last_name', 'lastName']
       ],
