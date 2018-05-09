@@ -37,7 +37,7 @@
     "dottie": "^1.0.0",
     "generic-pool": "2.4.2",
     "inflection": "^1.6.0",
-    "lodash": "4.12.0",
+    "lodash": "^4.17.10",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
     "retry-as-promised": "^2.0.0",
