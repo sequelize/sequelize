@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     const AB = current.model('AB');
 
     expect(AB.options.defaultScope).to.deep.equal({});
-    expect(AB.options.scopes).to.have.length(0);
+    expect(AB.options.scopes).to.deep.equal({});
   });
 
   it('should not inherit validations from parent to join table', () => {
