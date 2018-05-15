@@ -514,12 +514,14 @@ if (dialect === 'sqlite') {
           title: 'Properly quotes column names',
           arguments: ['myTable', 'foo', 'commit', {commit: 'VARCHAR(255)', bar: 'VARCHAR(255)'}],
           expectation:
+            'PRAGMA foreign_keys=off;' +
             'CREATE TEMPORARY TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
             'INSERT INTO `myTable_backup` SELECT `foo` AS `commit`, `bar` FROM `myTable`;' +
             'DROP TABLE `myTable`;' +
             'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
             'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;' +
-            'DROP TABLE `myTable_backup`;'
+            'DROP TABLE `myTable_backup`;' +
+            'PRAGMA foreign_keys=on;'
         }
       ],
       removeColumnQuery: [
