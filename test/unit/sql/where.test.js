@@ -1014,7 +1014,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         testsql('newline', {
           [Op.regexp]: '^new\nline$'
         }, {
-          mysql: "`newline` REGEXP '^new\nline$'",
+          mysql: "`newline` REGEXP '^new\\nline$'",
           postgres: '"newline" ~ \'^new\nline$\''
         });
       });
@@ -1032,7 +1032,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         testsql('newline', {
           [Op.notRegexp]: '^new\nline$'
         }, {
-          mysql: "`newline` NOT REGEXP '^new\nline$'",
+          mysql: "`newline` NOT REGEXP '^new\\nline$'",
           postgres: '"newline" !~ \'^new\nline$\''
         });
       });
