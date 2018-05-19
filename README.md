@@ -51,7 +51,7 @@ Sequelize follows [SEMVER](http://semver.org). Supports Node v4 and above to use
 - 1:1, 1:M & N:M Associations
 - Through models
 - Promises
-- Hooks/callbacks/lifecycle events
+- Hooks/lifecycle events
 - Prefetching/association including
 - Transactions
 - Migrations
@@ -61,24 +61,25 @@ Sequelize follows [SEMVER](http://semver.org). Supports Node v4 and above to use
 If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md)
 
 ## Documentation
-- [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 - [v4 Documentation](http://docs.sequelizejs.com)
 - [v3 Documentation](https://sequelize.readthedocs.io/en/v3/)
 - [v3 to v4 Upgrade Guide](http://docs.sequelizejs.com/manual/tutorial/upgrade-to-v4.html)
+- [v4 to v5(beta) Upgrade Guide](https://github.com/sequelize/sequelize/blob/master/docs/upgrade-to-v5.md)
 
 ## Resources
+- [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Slack](http://sequelize-slack.herokuapp.com/)
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
 
 ### Tools
-- [Add-ons & Plugins](https://github.com/sequelize/sequelize/wiki/Add-ons-&-Plugins)
 - [Sequelize & TypeScript](https://github.com/RobinBuschmann/sequelize-typescript)
+- [Sequelize & GraphQL](https://github.com/mickhansen/graphql-sequelize)
+- [Add-ons & Plugins](https://github.com/sequelize/sequelize/wiki/Add-ons-&-Plugins)
 
 ### Learning
 - [Getting Started](http://docs.sequelizejs.com/manual/installation/getting-started)
 - [Express Example](https://github.com/sequelize/express-example)
-
 
 ### Translations
 - [English v4](http://docs.sequelizejs.com) (OFFICIAL)
