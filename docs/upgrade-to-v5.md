@@ -54,8 +54,22 @@ Main outline
 
 [#9304](https://github.com/sequelize/sequelize/pull/9304)
 
+### Datatypes
+
+**Postgres Range**
+
+Now supports only one standard format `[{ value: 1, inclusive: true }, { value: 20, inclusive: false }]` [#9364](https://github.com/sequelize/sequelize/pull/9364)
 
 ## Changelog
+
+### 5.0.0-beta.6
+
+- fix(postgres/query-generator): syntax error with auto-increment SMALLINT [#9406](https://github.com/sequelize/sequelize/pull/9406)
+- fix(postgres/range): inclusive property lost in JSON format [#8471](https://github.com/sequelize/sequelize/issues/8471)
+- fix(postgres/range): range bound not applied [#8176](https://github.com/sequelize/sequelize/issues/8176)
+- fix(mssql): no unique constraint error thrown for PRIMARY case [#9415](https://github.com/sequelize/sequelize/pull/9415)
+- fix(query-generator): regexp operator escaping
+- docs: various improvements and hinting update
 
 ### 5.0.0-beta.5
 
