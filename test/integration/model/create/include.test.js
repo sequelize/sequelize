@@ -60,6 +60,39 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
+      it('should create data for BelongsTo relations with no nullable FK', function () {
+        const Product = this.sequelize.define('Product', {
+          title: Sequelize.STRING
+        });
+        const User = this.sequelize.define('User', {
+          first_name: Sequelize.STRING
+        });
+
+        Product.belongsTo(User, {
+          foreignKey: {
+            allowNull: false
+          }
+        });
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Product.create({
+            title: 'Chair',
+            User: {
+              first_name: 'Mick'
+            }
+          }, {
+            include: [{
+              model: User
+            }]
+          }).then(savedProduct => {
+            expect(savedProduct).to.exist;
+            expect(savedProduct.title).to.be.equal('Chair');
+            expect(savedProduct.User).to.exist;
+            expect(savedProduct.User.first_name).to.be.equal('Mick');
+          });
+        });
+      });
+
       it('should create data for BelongsTo relations with alias', function() {
         const Product = this.sequelize.define('Product', {
           title: Sequelize.STRING
