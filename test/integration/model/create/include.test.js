@@ -60,6 +60,61 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
+      it('should create data for BelongsTo relations with no nullable FK', function () {
+        const Product = this.sequelize.define('Product', {
+          title: Sequelize.STRING
+        }, {
+          hooks: {
+            afterCreate(product) {
+              product.isIncludeCreatedOnAfterCreate = !!(product.User && product.User.id);
+            }
+          }
+        });
+        const User = this.sequelize.define('User', {
+          first_name: Sequelize.STRING,
+          last_name: Sequelize.STRING
+        }, {
+          hooks: {
+            beforeCreate(user, options) {
+              user.createOptions = options;
+            }
+          }
+        });
+
+        Product.belongsTo(User, {
+          foreignKey: {
+            allowNull: false
+          }
+        });
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Product.create({
+            title: 'Chair',
+            User: {
+              first_name: 'Mick',
+              last_name: 'Broadstone'
+            }
+          }, {
+            include: [{
+              model: User,
+              myOption: 'option'
+            }]
+          }).then(savedProduct => {
+            expect(savedProduct.isIncludeCreatedOnAfterCreate).to.be.true;
+            expect(savedProduct.User.createOptions.myOption).to.be.equal('option');
+            expect(savedProduct.User.createOptions.parentRecord).to.be.equal(savedProduct);
+            return Product.findOne({
+              where: { id: savedProduct.id },
+              include: [User]
+            }).then(persistedProduct => {
+              expect(persistedProduct.User).to.be.ok;
+              expect(persistedProduct.User.first_name).to.be.equal('Mick');
+              expect(persistedProduct.User.last_name).to.be.equal('Broadstone');
+            });
+          });
+        });
+      });
+
       it('should create data for BelongsTo relations with alias', function() {
         const Product = this.sequelize.define('Product', {
           title: Sequelize.STRING
