@@ -23,7 +23,7 @@ Built instances will automatically get default values when they were defined&col
 // first define the model
 const Task = sequelize.define('task', {
   title: Sequelize.STRING,
-  rating: { type: Sequelize.STRING, defaultValue: 3 }
+  rating: { type: Sequelize.TINYINT, defaultValue: 3 }
 })
  
 // now instantiate an object
