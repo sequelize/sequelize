@@ -27,7 +27,6 @@ before_test:
   - ps: . .\appveyor-setup.ps1
 
 test_script:
-  - npm ls tedious
   - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
 
 after_test:
