@@ -8,9 +8,6 @@ services:
 
 shallow_clone: true
 
-cache:
-  - node_modules
-
 environment:
   matrix:
     - { NODE_VERSION: 6, DIALECT: mssql, COVERAGE: true }
