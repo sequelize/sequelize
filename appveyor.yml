@@ -13,7 +13,7 @@ cache:
 
 environment:
   matrix:
-    - {NODE_VERSION: 6, DIALECT: mssql, COVERAGE: true}
+    - { NODE_VERSION: 6, DIALECT: mssql, COVERAGE: true }
 
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
@@ -30,6 +30,7 @@ before_test:
   - ps: . .\appveyor-setup.ps1
 
 test_script:
+  - npm ls tedious
   - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
 
 after_test:
@@ -43,4 +44,4 @@ after_test:
 branches:
   only:
     - master
-    - v5
+    - /^greenkeeper/.*$/
