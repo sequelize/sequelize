@@ -5,7 +5,6 @@ const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const TableHints = require('../../../../lib/table-hints');
 const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator');
-const _ = require('lodash');
 
 if (current.dialect.name === 'mssql') {
   describe('[MSSQL Specific] QueryGenerator', () => {
@@ -50,7 +49,10 @@ if (current.dialect.name === 'mssql') {
     });
 
     it('selectFromTableFragment', function() {
-      const modifiedGen = _.cloneDeep(this.queryGenerator);
+      const modifiedGen = new QueryGenerator({
+        sequelize: this.sequelize,
+        _dialect: this.sequelize.dialect
+      });
       // Test newer versions first
       // Should be all the same since handling is done in addLimitAndOffset
       // for SQL Server 2012 and higher (>= v11.0.0)
