@@ -74,6 +74,7 @@ jobs:
         project: ./esdoc/
         domain: docs.sequelizejs.com
         skip_cleanup: true
+        on: v4
 
 stages:
   - test
