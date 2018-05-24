@@ -79,7 +79,7 @@ if (current.dialect.supports.transactions) {
           });
         });
       });
-      
+
       it('does not leak variables to the outer scope', function() {
         // This is a little tricky. We want to check the values in the outer scope, when the transaction has been successfully set up, but before it has been comitted.
         // We can't just call another function from inside that transaction, since that would transfer the context to that function - exactly what we are trying to prevent;
