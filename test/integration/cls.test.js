@@ -79,7 +79,7 @@ if (current.dialect.supports.transactions) {
           });
         });
       });
-
+      
       it('does not leak variables to the outer scope', function() {
         // This is a little tricky. We want to check the values in the outer scope, when the transaction has been successfully set up, but before it has been comitted.
         // We can't just call another function from inside that transaction, since that would transfer the context to that function - exactly what we are trying to prevent;
@@ -163,6 +163,18 @@ if (current.dialect.supports.transactions) {
 
     it('CLS namespace is stored in Sequelize._cls', function() {
       expect(Sequelize._cls).to.equal(this.ns);
+    });
+    
+    it('promises returned by sequelize.query are correctly patched', function(){
+        const self = this;
+        expect(self.ns.get('transaction')).to.be.undefined;
+        self.sequelize.transaction(t1 =>
+            self.sequelize.query("select 1", {type: Sequelize.QueryTypes.SELECT})
+            .then(() => {
+              expect(self.ns.get('transaction')).to.exist;
+              expect(self.ns.get('transaction')).to.equal(t1);
+            })
+        )
     });
   });
 }
