@@ -164,17 +164,17 @@ if (current.dialect.supports.transactions) {
     it('CLS namespace is stored in Sequelize._cls', function() {
       expect(Sequelize._cls).to.equal(this.ns);
     });
-    
-    it('promises returned by sequelize.query are correctly patched', function(){
-        const self = this;
-        expect(self.ns.get('transaction')).to.be.undefined;
-        self.sequelize.transaction(t1 =>
-            self.sequelize.query("select 1", {type: Sequelize.QueryTypes.SELECT})
-            .then(() => {
-              expect(self.ns.get('transaction')).to.exist;
-              expect(self.ns.get('transaction')).to.equal(t1);
-            })
-        )
+
+    it('promises returned by sequelize.query are correctly patched', function() {
+      const self = this;
+      expect(self.ns.get('transaction')).to.be.undefined;
+      return self.sequelize.transaction(t =>
+        self.sequelize.query('select 1', {type: Sequelize.QueryTypes.SELECT})
+          .then(() => {
+            expect(self.ns.get('transaction')).to.exist;
+            expect(self.ns.get('transaction')).to.equal(t);
+          })
+      );
     });
   });
 }
