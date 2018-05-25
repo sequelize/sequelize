@@ -55,7 +55,7 @@
     "hints": "^1.x",
     "husky": "^0.x",
     "istanbul": "^0.x",
-    "lcov-result-merger": "^2.x",
+    "lcov-result-merger": "^3.0.0",
     "mocha": "^5.x",
     "mysql2": "^1.x",
     "pg": "^7.x",
