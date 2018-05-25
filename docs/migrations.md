@@ -320,7 +320,7 @@ module.exports = {
     host: process.env.PROD_DB_HOSTNAME,
     dialect: 'mysql'
   }
-  };
+};
 ```
 
 ### Specifying Dialect Options
