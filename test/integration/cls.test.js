@@ -166,14 +166,9 @@ if (current.dialect.supports.transactions) {
     });
 
     it('promises returned by sequelize.query are correctly patched', function() {
-      const self = this;
-      expect(self.ns.get('transaction')).to.be.undefined;
-      return self.sequelize.transaction(t =>
-        self.sequelize.query('select 1', {type: Sequelize.QueryTypes.SELECT})
-          .then(() => {
-            expect(self.ns.get('transaction')).to.exist;
-            expect(self.ns.get('transaction')).to.equal(t);
-          })
+      return this.sequelize.transaction(t =>
+        this.sequelize.query('select 1', {type: Sequelize.QueryTypes.SELECT})
+          .then(() => expect(this.ns.get('transaction')).to.equal(t))
       );
     });
   });
