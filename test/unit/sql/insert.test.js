@@ -31,8 +31,40 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           postgres: 'INSERT INTO "users" ("user_name") VALUES (\'triggertest\') RETURNING *;',
           default: "INSERT INTO `users` (`user_name`) VALUES ('triggertest');"
         });
+
     });
 
+    it('with bind parameters', () => {
+      const User = Support.sequelize.define('user', {
+        username: {
+          type: DataTypes.STRING,
+          field: 'user'
+        },
+        name: {
+          type: DataTypes.STRING,
+          field: 'name'
+        }
+      }, {
+        timestamps: false
+      });
+
+      const values = {
+        user: 'bindtest',
+        name: Support.sequelize.fn('UPPER', 'bindtest')
+      };
+      const options = {
+        bindParams: true
+      };
+      expectsql(sql.insertQuery(User.tableName, values, User.rawAttributes, options),
+        {
+          query: {
+            mssql: 'INSERT INTO [users] ([user],[name]) VALUES ($1,UPPER(N\'bindtest\'));',
+            postgres: 'INSERT INTO "users" ("user","name") VALUES ($1,UPPER(\'bindtest\'));',
+            default: 'INSERT INTO `users` (`user`,`name`) VALUES ($1,UPPER(\'bindtest\'));',
+          },
+          bind: ['bindtest']
+        });
+    });
   });
 
   describe('dates', () => {
