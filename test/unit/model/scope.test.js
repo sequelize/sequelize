@@ -252,6 +252,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).not.to.throw();
     });
 
+    it('does not throw if default scope is not defined', () => {
+      const Model = current.define('model');
+
+      expect(() => {
+        Model.addScope('defaultScope', {});
+      }).not.to.throw();
+    });
+
     it('allows me to add a new scope', () => {
       expect(() => {
         Company.scope('newScope');
