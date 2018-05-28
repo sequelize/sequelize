@@ -940,7 +940,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    it('casts empty arrays correctly for postgresql insert', function() {
+    it('does not cast arrays for postgresql insert', function() {
       if (dialect !== 'postgres') {
         expect('').to.equal('');
         return void 0;
@@ -956,8 +956,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.create({myvals: [], mystr: []}, {
           logging(sql) {
             test = true;
-            expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
-            expect(sql.indexOf('ARRAY[]::VARCHAR(255)[]')).to.be.above(-1);
+            expect(sql).not.to.contain('ARRAY[]::INTEGER[]');
+            expect(sql).not.to.contain('ARRAY[]::VARCHAR(255)[]');
           }
         });
       }).then(() => {
@@ -984,8 +984,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return user.save({
             logging(sql) {
               test = true;
-              expect(sql.indexOf('ARRAY[]::INTEGER[]')).to.be.above(-1);
-              expect(sql.indexOf('ARRAY[]::VARCHAR(255)[]')).to.be.above(-1);
+              expect(sql).to.contain('ARRAY[]::INTEGER[]');
+              expect(sql).to.contain('ARRAY[]::VARCHAR(255)[]');
             }
           });
         });
@@ -1139,7 +1139,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             logging(sql) {
               expect(sql).to.exist;
               test = true;
-              expect(sql.toUpperCase().indexOf('INSERT')).to.be.above(-1);
+              expect(sql.toUpperCase()).to.contain('INSERT');
             }
           });
       }).then(() => {
