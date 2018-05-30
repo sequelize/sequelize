@@ -7,7 +7,7 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
   moment = require('moment'),
-  Operators = require('../../../../lib/operators'),
+  Op = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
 
 if (dialect === 'sqlite') {
@@ -294,7 +294,7 @@ if (dialect === 'sqlite') {
             return {
               attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
               group: ['creationYear', 'title'],
-              having: { creationYear: { gt: 2002 } }
+              having: { creationYear: { [Op.gt]: 2002 } }
             };
           }],
           expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;',
@@ -340,22 +340,22 @@ if (dialect === 'sqlite') {
           context: QueryGenerator
         }, {
           title: 'use != if ne !== null',
-          arguments: ['myTable', {where: {field: {ne: 0}}}],
+          arguments: ['myTable', {where: {field: {[Op.ne]: 0}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 0;',
           context: QueryGenerator
         }, {
           title: 'use IS NOT if ne === null',
-          arguments: ['myTable', {where: {field: {ne: null}}}],
+          arguments: ['myTable', {where: {field: {[Op.ne]: null}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
           context: QueryGenerator
         }, {
           title: 'use IS NOT if not === BOOLEAN',
-          arguments: ['myTable', {where: {field: {not: true}}}],
+          arguments: ['myTable', {where: {field: {[Op.not]: true}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT 1;',
           context: QueryGenerator
         }, {
           title: 'use != if not !== BOOLEAN',
-          arguments: ['myTable', {where: {field: {not: 3}}}],
+          arguments: ['myTable', {where: {field: {[Op.not]: 3}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
           context: QueryGenerator
         }
@@ -556,7 +556,6 @@ if (dialect === 'sqlite') {
 
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             this.queryGenerator.options = Object.assign({}, this.queryGenerator.options, test.context && test.context.options || {});
-            this.queryGenerator.setOperatorsAliases(Operators.LegacyAliases);
 
             const conditions = this.queryGenerator[suiteTitle].apply(this.queryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);

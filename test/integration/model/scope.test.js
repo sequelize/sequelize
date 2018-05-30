@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../index'),
+  Op = Sequelize.Op,
   expect = chai.expect,
   Support = require(__dirname + '/../support');
 
@@ -19,7 +20,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             attributes: ['other_value', 'access_level'],
             where: {
               access_level: {
-                lte: 5
+                [Op.lte]: 5
               }
             }
           },

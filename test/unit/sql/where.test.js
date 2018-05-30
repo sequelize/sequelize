@@ -5,7 +5,8 @@ const Support   = require(__dirname + '/../support'),
   util = require('util'),
   expectsql = Support.expectsql,
   current = Support.sequelize,
-  sql = current.dialect.QueryGenerator;
+  sql = current.dialect.QueryGenerator,
+  Op = current.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -45,21 +46,21 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql({
       name: 'a project',
-      $or: [
+      [Op.or]: [
         { id: [1, 2, 3] },
-        { id: { $gt: 10 } }
+        { id: { [Op.gt]: 10 } }
       ]
     }, {
-      default: "WHERE [name] = 'a project' AND ([id] IN (1, 2, 3) OR [id] > 10)",
-      mssql: "WHERE [name] = N'a project' AND ([id] IN (1, 2, 3) OR [id] > 10)"
+      default: "WHERE ([id] IN (1, 2, 3) OR [id] > 10) AND [name] = 'a project'",
+      mssql: "WHERE ([id] IN (1, 2, 3) OR [id] > 10) AND [name] = N'a project'"
     });
 
     testsql({
       name: 'a project',
       id: {
-        $or: [
+        [Op.or]: [
           [1, 2, 3],
-          { $gt: 10 }
+          { [Op.gt]: 10 }
         ]
       }
     }, {
@@ -83,7 +84,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      test(key+': '+util.inspect(value, {depth: 10})+(options && ', '+util.inspect(options) || ''), () => {
+      test(String(key)+': '+util.inspect(value, {depth: 10})+(options && ', '+util.inspect(options) || ''), () => {
         return expectsql(sql.whereItemQuery(key, value, options), expectation);
       });
     };
@@ -100,25 +101,25 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     suite('$in', () => {
       testsql('equipment', {
-        $in: [1, 3]
+        [Op.in]: [1, 3]
       }, {
         default: '[equipment] IN (1, 3)'
       });
 
       testsql('equipment', {
-        $in: []
+        [Op.in]: []
       }, {
         default: '[equipment] IN (NULL)'
       });
 
       testsql('muscles', {
-        in: [2, 4]
+        [Op.in]: [2, 4]
       }, {
         default: '[muscles] IN (2, 4)'
       });
 
       testsql('equipment', {
-        $in: current.literal(
+        [Op.in]: current.literal(
           '(select order_id from product_orders where product_id = 3)'
         )
       }, {
@@ -137,7 +138,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     suite('$not', () => {
       testsql('deleted', {
-        $not: true
+        [Op.not]: true
       }, {
         default: '[deleted] IS NOT true',
         mssql: '[deleted] IS NOT 1',
@@ -145,13 +146,13 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       testsql('deleted', {
-        $not: null
+        [Op.not]: null
       }, {
         default: '[deleted] IS NOT NULL'
       });
 
       testsql('muscles', {
-        $not: 3
+        [Op.not]: 3
       }, {
         default: '[muscles] != 3'
       });
@@ -159,19 +160,19 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     suite('$notIn', () => {
       testsql('equipment', {
-        $notIn: []
+        [Op.notIn]: []
       }, {
         default: ''
       });
 
       testsql('equipment', {
-        $notIn: [4, 19]
+        [Op.notIn]: [4, 19]
       }, {
         default: '[equipment] NOT IN (4, 19)'
       });
 
       testsql('equipment', {
-        $notIn: current.literal(
+        [Op.notIn]: current.literal(
           '(select order_id from product_orders where product_id = 3)'
         )
       }, {
@@ -181,7 +182,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     suite('$ne', () => {
       testsql('email', {
-        $ne: 'jack.bauer@gmail.com'
+        [Op.ne]: 'jack.bauer@gmail.com'
       }, {
         default: "[email] != 'jack.bauer@gmail.com'",
         mssql: "[email] != N'jack.bauer@gmail.com'"
@@ -191,22 +192,22 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     suite('$and/$or/$not', () => {
       suite('$or', () => {
         testsql('email', {
-          $or: ['maker@mhansen.io', 'janzeh@gmail.com']
+          [Op.or]: ['maker@mhansen.io', 'janzeh@gmail.com']
         }, {
           default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')',
           mssql: '([email] = N\'maker@mhansen.io\' OR [email] = N\'janzeh@gmail.com\')'
         });
 
         testsql('rank', {
-          $or: {
-            $lt: 100,
-            $eq: null
+          [Op.or]: {
+            [Op.lt]: 100,
+            [Op.eq]: null
           }
         }, {
           default: '([rank] < 100 OR [rank] IS NULL)'
         });
 
-        testsql('$or', [
+        testsql(Op.or, [
           {email: 'maker@mhansen.io'},
           {email: 'janzeh@gmail.com'}
         ], {
@@ -214,7 +215,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           mssql: '([email] = N\'maker@mhansen.io\' OR [email] = N\'janzeh@gmail.com\')'
         });
 
-        testsql('$or', {
+        testsql(Op.or, {
           email: 'maker@mhansen.io',
           name: 'Mick Hansen'
         }, {
@@ -222,16 +223,16 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           mssql: '([email] = N\'maker@mhansen.io\' OR [name] = N\'Mick Hansen\')'
         });
 
-        testsql('$or', {
+        testsql(Op.or, {
           equipment: [1, 3],
           muscles: {
-            $in: [2, 4]
+            [Op.in]: [2, 4]
           }
         }, {
           default: '([equipment] IN (1, 3) OR [muscles] IN (2, 4))'
         });
 
-        testsql('$or', [
+        testsql(Op.or, [
           {
             roleName: 'NEW'
           }, {
@@ -256,11 +257,11 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        testsql('$or', [], {
+        testsql(Op.or, [], {
           default: '0 = 1'
         });
 
-        testsql('$or', {}, {
+        testsql(Op.or, {}, {
           default: '0 = 1'
         });
 
@@ -272,8 +273,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       suite('$and', () => {
-        testsql('$and', {
-          $or: {
+        testsql(Op.and, {
+          [Op.or]: {
             group_id: 1,
             user_id: 2
           },
@@ -282,15 +283,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           default: '(([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
 
-        testsql('$and', [
+        testsql(Op.and, [
           {
             name: {
-              $like: '%hello'
+              [Op.like]: '%hello'
             }
           },
           {
             name: {
-              $like: 'hello%'
+              [Op.like]: 'hello%'
             }
           }
         ], {
@@ -299,18 +300,18 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('rank', {
-          $and: {
-            $ne: 15,
-            $between: [10, 20]
+          [Op.and]: {
+            [Op.ne]: 15,
+            [Op.between]: [10, 20]
           }
         }, {
           default: '([rank] != 15 AND [rank] BETWEEN 10 AND 20)'
         });
 
         testsql('name', {
-          $and: [
-            {like: '%someValue1%'},
-            {like: '%someValue2%'}
+          [Op.and]: [
+            {[Op.like]: '%someValue1%'},
+            {[Op.like]: '%someValue2%'}
           ]
         }, {
           default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')",
@@ -325,8 +326,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       suite('$not', () => {
-        testsql('$not', {
-          $or: {
+        testsql(Op.not, {
+          [Op.or]: {
             group_id: 1,
             user_id: 2
           },
@@ -335,11 +336,11 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           default: 'NOT (([group_id] = 1 OR [user_id] = 2) AND [shared] = 1)'
         });
 
-        testsql('$not', [], {
+        testsql(Op.not, [], {
           default: '0 = 1'
         });
 
-        testsql('$not', {}, {
+        testsql(Op.not, {}, {
           default: '0 = 1'
         });
       });
@@ -347,42 +348,42 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     suite('$col', () => {
       testsql('userId', {
-        $col: 'user.id'
+        [Op.col]: 'user.id'
       }, {
         default: '[userId] = [user].[id]'
       });
 
       testsql('userId', {
-        $eq: {
-          $col: 'user.id'
+        [Op.eq]: {
+          [Op.col]: 'user.id'
         }
       }, {
         default: '[userId] = [user].[id]'
       });
 
       testsql('userId', {
-        $gt: {
-          $col: 'user.id'
+        [Op.gt]: {
+          [Op.col]: 'user.id'
         }
       }, {
         default: '[userId] > [user].[id]'
       });
 
-      testsql('$or', [
-        {'ownerId': {$col: 'user.id'}},
-        {'ownerId': {$col: 'organization.id'}}
+      testsql(Op.or, [
+        {'ownerId': {[Op.col]: 'user.id'}},
+        {'ownerId': {[Op.col]: 'organization.id'}}
       ], {
         default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])'
       });
 
       testsql('$organization.id$', {
-        $col: 'user.organizationId'
+        [Op.col]: 'user.organizationId'
       }, {
         default: '[organization].[id] = [user].[organizationId]'
       });
 
       testsql('$offer.organization.id$', {
-        $col: 'offer.user.organizationId'
+        [Op.col]: 'offer.user.organizationId'
       }, {
         default: '[offer->organization].[id] = [offer->user].[organizationId]'
       });
@@ -390,14 +391,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     suite('$gt', () => {
       testsql('rank', {
-        $gt: 2
+        [Op.gt]: 2
       }, {
         default: '[rank] > 2'
       });
 
       testsql('created_at', {
-        $lt: {
-          $col: 'updated_at'
+        [Op.lt]: {
+          [Op.col]: 'updated_at'
         }
       }, {
         default: '[created_at] < [updated_at]'
@@ -406,7 +407,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     suite('$like', () => {
       testsql('username', {
-        $like: '%swagger'
+        [Op.like]: '%swagger'
       }, {
         default: "[username] LIKE '%swagger'",
         mssql: "[username] LIKE N'%swagger'"
@@ -415,15 +416,15 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     suite('$between', () => {
       testsql('date', {
-        $between: ['2013-01-01', '2013-01-11']
+        [Op.between]: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] BETWEEN '2013-01-01' AND '2013-01-11'",
         mssql: "[date] BETWEEN N'2013-01-01' AND N'2013-01-11'"
       });
 
       testsql('date', {
-        between: ['2012-12-10', '2013-01-02'],
-        nbetween: ['2013-01-04', '2013-01-20']
+        [Op.between]: ['2012-12-10', '2013-01-02'],
+        [Op.notBetween]: ['2013-01-04', '2013-01-20']
       }, {
         default: "([date] BETWEEN '2012-12-10' AND '2013-01-02' AND [date] NOT BETWEEN '2013-01-04' AND '2013-01-20')",
         mssql: "([date] BETWEEN N'2012-12-10' AND N'2013-01-02' AND [date] NOT BETWEEN N'2013-01-04' AND N'2013-01-20')"
@@ -432,7 +433,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     suite('$notBetween', () => {
       testsql('date', {
-        $notBetween: ['2013-01-01', '2013-01-11']
+        [Op.notBetween]: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] NOT BETWEEN '2013-01-01' AND '2013-01-11'",
         mssql: "[date] NOT BETWEEN N'2013-01-01' AND N'2013-01-11'"
@@ -443,19 +444,19 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       suite('ARRAY', () => {
         suite('$contains', () => {
           testsql('muscles', {
-            $contains: [2, 3]
+            [Op.contains]: [2, 3]
           }, {
             postgres: '"muscles" @> ARRAY[2,3]'
           });
 
           testsql('muscles', {
-            $contained: [6, 8]
+            [Op.contained]: [6, 8]
           }, {
             postgres: '"muscles" <@ ARRAY[6,8]'
           });
 
           testsql('muscles', {
-            $contains: [2, 5]
+            [Op.contains]: [2, 5]
           }, {
             field: {
               type: DataTypes.ARRAY(DataTypes.INTEGER)
@@ -467,33 +468,21 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         suite('$overlap', () => {
           testsql('muscles', {
-            $overlap: [3, 11]
+            [Op.overlap]: [3, 11]
           }, {
             postgres: '"muscles" && ARRAY[3,11]'
-          });
-
-          testsql('muscles', {
-            $overlap: [3, 1]
-          }, {
-            postgres: '"muscles" && ARRAY[3,1]'
-          });
-
-          testsql('muscles', {
-            '&&': [9, 182]
-          }, {
-            postgres: '"muscles" && ARRAY[9,182]'
           });
         });
 
         suite('$any', () => {
           testsql('userId', {
-            $any: [4, 5, 6]
+            [Op.any]: [4, 5, 6]
           }, {
             postgres: '"userId" = ANY (ARRAY[4,5,6])'
           });
 
           testsql('userId', {
-            $any: [2, 5]
+            [Op.any]: [2, 5]
           }, {
             field: {
               type: DataTypes.ARRAY(DataTypes.INTEGER)
@@ -504,16 +493,16 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
           suite('$values', () => {
             testsql('userId', {
-              $any: {
-                $values: [4, 5, 6]
+              [Op.any]: {
+                [Op.values]: [4, 5, 6]
               }
             }, {
               postgres: '"userId" = ANY (VALUES (4), (5), (6))'
             });
 
             testsql('userId', {
-              $any: {
-                $values: [2, 5]
+              [Op.any]: {
+                [Op.values]: [2, 5]
               }
             }, {
               field: {
@@ -527,13 +516,13 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         suite('$all', () => {
           testsql('userId', {
-            $all: [4, 5, 6]
+            [Op.all]: [4, 5, 6]
           }, {
             postgres: '"userId" = ALL (ARRAY[4,5,6])'
           });
 
           testsql('userId', {
-            $all: [2, 5]
+            [Op.all]: [2, 5]
           }, {
             field: {
               type: DataTypes.ARRAY(DataTypes.INTEGER)
@@ -544,16 +533,16 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
           suite('$values', () => {
             testsql('userId', {
-              $all: {
-                $values: [4, 5, 6]
+              [Op.all]: {
+                [Op.values]: [4, 5, 6]
               }
             }, {
               postgres: '"userId" = ALL (VALUES (4), (5), (6))'
             });
 
             testsql('userId', {
-              $all: {
-                $values: [2, 5]
+              [Op.all]: {
+                [Op.values]: [2, 5]
               }
             }, {
               field: {
@@ -567,64 +556,64 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         suite('$like', () => {
           testsql('userId', {
-            $like: {
-              $any: ['foo', 'bar', 'baz']
+            [Op.like]: {
+              [Op.any]: ['foo', 'bar', 'baz']
             }
           }, {
             postgres: "\"userId\" LIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
-            $iLike: {
-              $any: ['foo', 'bar', 'baz']
+            [Op.iLike]: {
+              [Op.any]: ['foo', 'bar', 'baz']
             }
           }, {
             postgres: "\"userId\" ILIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
-            $notLike: {
-              $any: ['foo', 'bar', 'baz']
+            [Op.notLike]: {
+              [Op.any]: ['foo', 'bar', 'baz']
             }
           }, {
             postgres: "\"userId\" NOT LIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
-            $notILike: {
-              $any: ['foo', 'bar', 'baz']
+            [Op.notILike]: {
+              [Op.any]: ['foo', 'bar', 'baz']
             }
           }, {
             postgres: "\"userId\" NOT ILIKE ANY (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
-            $like: {
-              $all: ['foo', 'bar', 'baz']
+            [Op.like]: {
+              [Op.all]: ['foo', 'bar', 'baz']
             }
           }, {
             postgres: "\"userId\" LIKE ALL (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
-            $iLike: {
-              $all: ['foo', 'bar', 'baz']
+            [Op.iLike]: {
+              [Op.all]: ['foo', 'bar', 'baz']
             }
           }, {
             postgres: "\"userId\" ILIKE ALL (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
-            $notLike: {
-              $all: ['foo', 'bar', 'baz']
+            [Op.notLike]: {
+              [Op.all]: ['foo', 'bar', 'baz']
             }
           }, {
             postgres: "\"userId\" NOT LIKE ALL (ARRAY['foo','bar','baz'])"
           });
 
           testsql('userId', {
-            $notILike: {
-              $all: ['foo', 'bar', 'baz']
+            [Op.notILike]: {
+              [Op.all]: ['foo', 'bar', 'baz']
             }
           }, {
             postgres: "\"userId\" NOT ILIKE ALL (ARRAY['foo','bar','baz'])"
@@ -637,7 +626,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       suite('RANGE', () => {
 
         testsql('range', {
-          $contains: new Date(Date.UTC(2000, 1, 1))
+          [Op.contains]: new Date(Date.UTC(2000, 1, 1))
         }, {
           field: {
             type: new DataTypes.postgres.RANGE(DataTypes.DATE)
@@ -648,7 +637,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('range', {
-          $contains: [new Date(Date.UTC(2000, 1, 1)), new Date(Date.UTC(2000, 2, 1))]
+          [Op.contains]: [new Date(Date.UTC(2000, 1, 1)), new Date(Date.UTC(2000, 2, 1))]
         }, {
           field: {
             type: new DataTypes.postgres.RANGE(DataTypes.DATE)
@@ -659,7 +648,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('range', {
-          $contained: [new Date(Date.UTC(2000, 1, 1)), new Date(Date.UTC(2000, 2, 1))]
+          [Op.contained]: [new Date(Date.UTC(2000, 1, 1)), new Date(Date.UTC(2000, 2, 1))]
         }, {
           field: {
             type: new DataTypes.postgres.RANGE(DataTypes.DATE)
@@ -670,7 +659,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('unboundedRange', {
-          $contains: [new Date(Date.UTC(2000, 1, 1)), null]
+          [Op.contains]: [new Date(Date.UTC(2000, 1, 1)), null]
         }, {
           field: {
             type: new DataTypes.postgres.RANGE(DataTypes.DATE)
@@ -681,7 +670,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('unboundedRange', {
-          $contains: [-Infinity, Infinity]
+          [Op.contains]: [-Infinity, Infinity]
         }, {
           field: {
             type: new DataTypes.postgres.RANGE(DataTypes.DATE)
@@ -692,7 +681,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('reservedSeats', {
-          $overlap: [1, 4]
+          [Op.overlap]: [1, 4]
         }, {
           field: {
             type: new DataTypes.postgres.RANGE()
@@ -703,7 +692,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('reservedSeats', {
-          $adjacent: [1, 4]
+          [Op.adjacent]: [1, 4]
         }, {
           field: {
             type: new DataTypes.postgres.RANGE()
@@ -714,7 +703,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('reservedSeats', {
-          $strictLeft: [1, 4]
+          [Op.strictLeft]: [1, 4]
         }, {
           field: {
             type: new DataTypes.postgres.RANGE()
@@ -725,7 +714,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('reservedSeats', {
-          $strictRight: [1, 4]
+          [Op.strictRight]: [1, 4]
         }, {
           field: {
             type: new DataTypes.postgres.RANGE()
@@ -736,7 +725,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('reservedSeats', {
-          $noExtendRight: [1, 4]
+          [Op.noExtendRight]: [1, 4]
         }, {
           field: {
             type: new DataTypes.postgres.RANGE()
@@ -747,7 +736,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('reservedSeats', {
-          $noExtendLeft: [1, 4]
+          [Op.noExtendLeft]: [1, 4]
         }, {
           field: {
             type: new DataTypes.postgres.RANGE()
@@ -795,7 +784,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         testsql('data', {
           nested: {
-            $in: [1, 2]
+            [Op.in]: [1, 2]
           }
         }, {
           field: {
@@ -809,7 +798,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         testsql('data', {
           nested: {
-            $between: [1, 2]
+            [Op.between]: [1, 2]
           }
         }, {
           field: {
@@ -825,7 +814,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           nested: {
             attribute: 'value',
             prop: {
-              $ne: 'None'
+              [Op.ne]: 'None'
             }
           }
         }, {
@@ -844,7 +833,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             last: 'Simpson'
           },
           employment: {
-            $ne: 'None'
+            [Op.ne]: 'None'
           }
         }, {
           field: {
@@ -899,7 +888,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql('data.nested.attribute', {
-          $in: [3, 7]
+          [Op.in]: [3, 7]
         }, {
           model: {
             rawAttributes: {
@@ -917,7 +906,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         testsql('data', {
           nested: {
             attribute: {
-              $gt: 2
+              [Op.gt]: 2
             }
           }
         }, {
@@ -933,7 +922,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         testsql('data', {
           nested: {
             'attribute::integer': {
-              $gt: 2
+              [Op.gt]: 2
             }
           }
         }, {
@@ -950,7 +939,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         testsql('data', {
           nested: {
             attribute: {
-              $gt: dt
+              [Op.gt]: dt
             }
           }
         }, {
@@ -998,7 +987,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     if (current.dialect.supports.JSONB) {
       suite('JSONB', () => {
         testsql('data', {
-          $contains: {
+          [Op.contains]: {
             company: 'Magnafone'
           }
         }, {
@@ -1014,7 +1003,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     if (current.dialect.supports.REGEXP) {
       suite('$regexp', () => {
         testsql('username', {
-          $regexp: '^sw.*r$'
+          [Op.regexp]: '^sw.*r$'
         }, {
           mysql: "`username` REGEXP '^sw.*r$'",
           postgres: '"username" ~ \'^sw.*r$\''
@@ -1023,16 +1012,16 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
       suite('$regexp', () => {
         testsql('newline', {
-          $regexp: '^new\nline$'
+          [Op.regexp]: '^new\nline$'
         }, {
-          mysql: "`newline` REGEXP '^new\nline$'",
+          mysql: "`newline` REGEXP '^new\\nline$'",
           postgres: '"newline" ~ \'^new\nline$\''
         });
       });
 
       suite('$notRegexp', () => {
         testsql('username', {
-          $notRegexp: '^sw.*r$'
+          [Op.notRegexp]: '^sw.*r$'
         }, {
           mysql: "`username` NOT REGEXP '^sw.*r$'",
           postgres: '"username" !~ \'^sw.*r$\''
@@ -1041,9 +1030,9 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
       suite('$notRegexp', () => {
         testsql('newline', {
-          $notRegexp: '^new\nline$'
+          [Op.notRegexp]: '^new\nline$'
         }, {
-          mysql: "`newline` NOT REGEXP '^new\nline$'",
+          mysql: "`newline` NOT REGEXP '^new\\nline$'",
           postgres: '"newline" !~ \'^new\nline$\''
         });
       });
@@ -1051,7 +1040,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       if (current.dialect.name === 'postgres') {
         suite('$iRegexp', () => {
           testsql('username', {
-            $iRegexp: '^sw.*r$'
+            [Op.iRegexp]: '^sw.*r$'
           }, {
             postgres: '"username" ~* \'^sw.*r$\''
           });
@@ -1059,7 +1048,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         suite('$iRegexp', () => {
           testsql('newline', {
-            $iRegexp: '^new\nline$'
+            [Op.iRegexp]: '^new\nline$'
           }, {
             postgres: '"newline" ~* \'^new\nline$\''
           });
@@ -1067,7 +1056,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         suite('$notIRegexp', () => {
           testsql('username', {
-            $notIRegexp: '^sw.*r$'
+            [Op.notIRegexp]: '^sw.*r$'
           }, {
             postgres: '"username" !~* \'^sw.*r$\''
           });
@@ -1075,7 +1064,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
         suite('$notIRegexp', () => {
           testsql('newline', {
-            $notIRegexp: '^new\nline$'
+            [Op.notIRegexp]: '^new\nline$'
           }, {
             postgres: '"newline" !~* \'^new\nline$\''
           });

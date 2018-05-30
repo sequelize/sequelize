@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../../index'),
+  Op = Sequelize.Op,
   expect = chai.expect,
   Support = require(__dirname + '/../../support');
 
@@ -20,7 +21,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           defaultScope: {
             where: {
               access_level: {
-                gte: 5
+                [Op.gte]: 5
               }
             },
             attributes: ['username', 'email', 'access_level']
@@ -29,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             lowAccess: {
               where: {
                 access_level: {
-                  lte: 5
+                  [Op.lte]: 5
                 }
               }
             },
@@ -58,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to override default scope', function() {
-        return this.ScopeMe.findAndCount({ where: { access_level: { gt: 5 }}})
+        return this.ScopeMe.findAndCount({ where: { access_level: { [Op.gt]: 5 }}})
           .then(result => {
             expect(result.count).to.equal(1);
             expect(result.rows.length).to.equal(1);

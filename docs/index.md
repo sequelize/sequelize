@@ -27,10 +27,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   },
 
   // SQLite only
-  storage: 'path/to/database.sqlite',
-
-  // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
-  operatorsAliases: false
+  storage: 'path/to/database.sqlite'
 });
 
 const User = sequelize.define('user', {

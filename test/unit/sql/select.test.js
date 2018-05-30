@@ -8,7 +8,8 @@ const Support   = require(__dirname + '/../support'),
   expect = chai.expect,
   expectsql = Support.expectsql,
   current   = Support.sequelize,
-  sql       = current.dialect.QueryGenerator;
+  sql       = current.dialect.QueryGenerator,
+  Op        = current.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -170,7 +171,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         ],
         where: {
           age: {
-            $gte: 21
+            [Op.gte]: 21
           }
         },
         groupedLimit: {

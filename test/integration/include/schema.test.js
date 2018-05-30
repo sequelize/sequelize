@@ -2,11 +2,13 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../index'),
+  Op = Sequelize.Op,
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   Promise = Sequelize.Promise,
-  dialect = Support.getTestDialect();
+  dialect = Support.getTestDialect(),
+  _ = require('lodash');
 
 const sortById = function(a, b) {
   return a.id < b.id ? -1 : 1;
@@ -381,7 +383,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           return Promise.each(singles, model => {
             return model.create({}).then(instance => {
               if (previousInstance) {
-                return previousInstance['set'+ Sequelize.Utils.uppercaseFirst(model.name)](instance).then(() => {
+                return previousInstance['set'+ _.upperFirst(model.name)](instance).then(() => {
                   previousInstance = instance;
                 });
               }
@@ -1027,7 +1029,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                 {model: Tag, as: 'Category'},
                 {model: Price, where: {
                   value: {
-                    gt: 15
+                    [Op.gt]: 15
                   }
                 }}
               ]}
@@ -1124,7 +1126,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             {model: self.models.Company},
             {model: self.models.Tag},
             {model: self.models.Price, where: {
-              value: {gt: 5}
+              value: { [Op.gt]: 5}
             }}
           ],
           limit: 6,

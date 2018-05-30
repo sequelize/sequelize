@@ -5,68 +5,10 @@ const chai = require('chai'),
   Utils = require(__dirname + '/../../lib/utils'),
   Support = require(__dirname + '/support'),
   DataTypes = require(__dirname + '/../../lib/data-types'),
-  Sequelize = require('../../index');
+  Sequelize = require('../../index'),
+  Op = Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
-  describe('removeCommentsFromFunctionString', () => {
-    it('removes line comments at the start of a line', () => {
-      const functionWithLineComments = function() {
-        // noot noot
-      };
-
-      const string = functionWithLineComments.toString(),
-        result = Utils.removeCommentsFromFunctionString(string);
-
-      expect(result).not.to.match(/.*noot.*/);
-    });
-
-    it('removes lines comments in the middle of a line', () => {
-      const functionWithLineComments = function() {
-        console.log(1); // noot noot
-      };
-
-      const string = functionWithLineComments.toString(),
-        result = Utils.removeCommentsFromFunctionString(string);
-
-      expect(result).not.to.match(/.*noot.*/);
-    });
-
-    it('removes range comments', () => {
-      const s = function() {
-        console.log(1); /*
-          noot noot
-        */
-        console.log(2); /*
-          foo
-        */
-      }.toString();
-
-      const result = Utils.removeCommentsFromFunctionString(s);
-
-      expect(result).not.to.match(/.*noot.*/);
-      expect(result).not.to.match(/.*foo.*/);
-      expect(result).to.match(/.*console.log\(2\).*/);
-    });
-  });
-
-  describe('argsArePrimaryKeys', () => {
-    it('doesn\'t detect primary keys if primareyKeys and values have different lengths', () => {
-      expect(Utils.argsArePrimaryKeys([1, 2, 3], [1])).to.be.false;
-    });
-
-    it('doesn\'t detect primary keys if primary keys are hashes or arrays', () => {
-      expect(Utils.argsArePrimaryKeys([[]], [1])).to.be.false;
-    });
-
-    it('detects primary keys if length is correct and data types are matching', () => {
-      expect(Utils.argsArePrimaryKeys([1, 2, 3], ['INTEGER', 'INTEGER', 'INTEGER'])).to.be.true;
-    });
-
-    it('detects primary keys if primary keys are dates and lengths are matching', () => {
-      expect(Utils.argsArePrimaryKeys([new Date()], ['foo'])).to.be.true;
-    });
-  });
-
   describe('underscore', () => {
     describe('underscoredIf', () => {
       it('is defined', () => {
@@ -265,9 +207,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               engines: 1
             }, type)), 'count-engines'],
             [Sequelize.fn('SUM', Sequelize.cast({
-              $or: {
+              [Op.or]: {
                 engines: {
-                  $gt: 1
+                  [Op.gt]: 1
                 },
                 wings: 4
               }
@@ -290,9 +232,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               engines: 1
             }), 'count-engines'],
             [Sequelize.fn('SUM', {
-              $or: {
+              [Op.or]: {
                 engines: {
-                  $gt: 1
+                  [Op.gt]: 1
                 },
                 wings: 4
               }

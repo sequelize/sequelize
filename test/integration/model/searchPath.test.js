@@ -4,6 +4,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require(__dirname + '/../support');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
+const Op = Support.Sequelize.Op;
 
 const SEARCH_PATH_ONE = 'schema_one,public';
 const SEARCH_PATH_TWO = 'schema_two,public';
@@ -225,7 +226,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return restaurauntModel.save({searchPath: SEARCH_PATH_TWO});
           }).then(() => {
             return Restaurant.findAll({
-              where: {bar: {$like: 'one%'}},
+              where: {bar: {[Op.like]: 'one%'}},
               searchPath: SEARCH_PATH_ONE
             });
           }).then(restaurantsOne => {
@@ -239,7 +240,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(count).to.not.be.null;
             expect(count).to.equal(2);
             return Restaurant.findAll({
-              where: {bar: {$like: 'two%'}},
+              where: {bar: {[Op.like]: 'two%'}},
               searchPath: SEARCH_PATH_TWO
             });
           }).then(restaurantsTwo => {

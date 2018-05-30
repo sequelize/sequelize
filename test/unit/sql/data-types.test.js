@@ -1296,32 +1296,10 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, 'A range must be an array with two elements');
         });
 
-        test('should throw an error if `value.inclusive` is invalid', () => {
-          const type = DataTypes.RANGE();
-
-          expect(() => {
-            type.validate({ inclusive: 'foobar' });
-          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid range');
-        });
-
-        test('should throw an error if `value.inclusive` is not an array with two elements', () => {
-          const type = DataTypes.RANGE();
-
-          expect(() => {
-            type.validate({ inclusive: [1] });
-          }).to.throw(Sequelize.ValidationError, 'A range must be an array with two elements');
-        });
-
         test('should return `true` if `value` is a range', () => {
           const type = DataTypes.RANGE();
 
           expect(type.validate([1, 2])).to.equal(true);
-        });
-
-        test('should return `true` if `value.inclusive` is a range', () => {
-          const type = DataTypes.RANGE();
-
-          expect(type.validate({ inclusive: [1, 2] })).to.equal(true);
         });
       });
     });

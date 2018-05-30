@@ -6,6 +6,7 @@ const chai = require('chai'),
   Sequelize = require(__dirname + '/../../../index'),
   Support = require(__dirname + '/../support'),
   current = Support.sequelize,
+  Op      = current.Op,
   Promise = current.Promise,
   config = require(__dirname + '/../../config/config');
 
@@ -355,8 +356,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           return expect(User.all({
             where: {
               name: {
-                $like: {
-                  $any: ['foo%', 'bar%']
+                [Op.like]: {
+                  [Op.any]: ['foo%', 'bar%']
                 }
               }
             }
@@ -367,7 +368,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           return expect(User.all({
             where: {
               uid: {
-                $like: '12345678%'
+                [Op.like]: '12345678%'
               }
             }
           })).not.to.be.rejected;
