@@ -569,40 +569,71 @@ if (dialect === 'mysql') {
       updateQuery: [
         {
           arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
-          expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55' WHERE `id` = 2"
+          expectation: {
+            query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
+            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), 2]
+          }
+
         }, {
           arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}, {id: 2}],
-          expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55' WHERE `id` = 2"
+          expectation: {
+            query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
+            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), 2]
+          }
         }, {
           arguments: ['myTable', {bar: 2}, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=2 WHERE `name` = 'foo'"
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
+            bind: [2, 'foo']
+          }
         }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `name`='foo\\';DROP TABLE myTable;' WHERE `name` = 'foo'"
+          expectation: {
+            query: 'UPDATE `myTable` SET `name`=$1 WHERE `name` = $2',
+            bind: ["foo';DROP TABLE myTable;", 'foo']
+          }
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=2,`nullValue`=NULL WHERE `name` = 'foo'"
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
+            bind: [2, null, 'foo']
+          }
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=2,`nullValue`=NULL WHERE `name` = 'foo'",
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
+            bind: [2, null, 'foo']
+          },
           context: {options: {omitNull: false}}
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=2 WHERE `name` = 'foo'",
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
+            bind: [2, 'foo']
+          },
           context: {options: {omitNull: true}}
         }, {
           arguments: ['myTable', {bar: false}, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=false WHERE `name` = 'foo'"
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
+            bind: [false, 'foo']
+          }
         }, {
           arguments: ['myTable', {bar: true}, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=true WHERE `name` = 'foo'"
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
+            bind: [true, 'foo']
+          }
         }, {
           arguments: ['myTable', function(sequelize) {
             return {
               bar: sequelize.fn('NOW')
             };
           }, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=NOW() WHERE `name` = 'foo'",
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=NOW() WHERE `name` = $1',
+            bind: ['foo']
+          },
           needsSequelize: true
         }, {
           arguments: ['myTable', function(sequelize) {
@@ -610,7 +641,10 @@ if (dialect === 'mysql') {
               bar: sequelize.col('foo')
             };
           }, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=`foo` WHERE `name` = 'foo'",
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=`foo` WHERE `name` = $1',
+            bind: ['foo']
+          },
           needsSequelize: true
         }
       ],

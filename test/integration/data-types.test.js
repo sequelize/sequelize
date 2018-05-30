@@ -175,9 +175,15 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     return testSuccess(Type, 'foobar');
   });
 
-  it('calls parse and stringify for STRING', () => {
+  it('calls parse and stringify/bindParam for STRING', () => {
     const Type = new Sequelize.STRING();
 
+    // mssql has a _bindParam function that checks if STRING was created with
+    // the boolean param (if so it outputs a Buffer bind param). This override
+    // isn't needed for other dialects
+    if (dialect === 'mssql') {
+      return testSuccess(Type, 'foobar',  { useBindParam: true });
+    }
     return testSuccess(Type, 'foobar');
   });
 
