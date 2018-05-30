@@ -190,15 +190,15 @@ if (dialect.match(/^postgres/)) {
         });
       });
 
-      it('should stringify hstore with insert', function() {
+      it('should NOT stringify hstore with insert', function() {
         return this.User.create({
           username: 'bob',
           email: ['myemail@email.com'],
           settings: { mailing: false, push: 'facebook', frequency: 3 }
         }, {
           logging(sql) {
-            const expected = '\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
-            expect(sql.indexOf(expected)).not.to.equal(-1);
+            const unexpected = '\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
+            expect(sql).not.to.include(unexpected);
           }
         });
       });
@@ -597,12 +597,13 @@ if (dialect.match(/^postgres/)) {
         return this.User.sync({ force: true });
       });
 
-      it('should use postgres "TIMESTAMP WITH TIME ZONE" instead of "DATETIME"', function() {
+      it('should use bind params instead of "TIMESTAMP WITH TIME ZONE"', function() {
         return this.User.create({
           dates: []
         }, {
           logging(sql) {
-            expect(sql.indexOf('TIMESTAMP WITH TIME ZONE')).to.be.greaterThan(0);
+            expect(sql).not.to.contain('TIMESTAMP WITH TIME ZONE');
+            expect(sql).not.to.contain('DATETIME');
           }
         });
       });
@@ -863,7 +864,7 @@ if (dialect.match(/^postgres/)) {
               expect(newUser.course_period[0].value).to.equalTime(period2[0]); // lower bound
               expect(newUser.course_period[1].value).to.equalTime(period2[1]); // upper bound
               expect(newUser.course_period[0].inclusive).to.deep.equal(true);  // inclusive
-              expect(newUser.course_period[1].inclusive).to.deep.equal(false); // exclusive  
+              expect(newUser.course_period[1].inclusive).to.deep.equal(false); // exclusive
             });
           });
         });
@@ -887,7 +888,7 @@ if (dialect.match(/^postgres/)) {
               expect(users[0].course_period[0].value).to.equalTime(period[0]); // lower bound
               expect(users[0].course_period[1].value).to.equalTime(period[1]); // upper bound
               expect(users[0].course_period[0].inclusive).to.deep.equal(true);  // inclusive
-              expect(users[0].course_period[1].inclusive).to.deep.equal(false); // exclusive  
+              expect(users[0].course_period[1].inclusive).to.deep.equal(false); // exclusive
             });
         });
       });
