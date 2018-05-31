@@ -27,6 +27,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           withName: {
             attributes: ['username']
           },
+          noEmail: {
+            attributes: {
+              exclude: ['email']
+            }
+          },
           highAccess: {
             where: {
               [Sequelize.Op.or]: [
@@ -120,8 +125,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
-    it('should be applied before query options for attributes include', function() {
+    it('should be applied before query options for attributes include via scope attributes', function() {
       return this.ScopeMe.scope('lowAccess').findOne({
+        attributes: {
+          include: ['email']
+        }
+      })
+        .then(record => {
+          expect(record.email).to.not.exist;
+        });
+    });
+
+    it('should be applied before query options for attributes include via scope exclude', function() {
+      return this.ScopeMe.scope('noEmail').findOne({
         attributes: {
           include: ['email']
         }
