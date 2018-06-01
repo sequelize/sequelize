@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "5.0.0-beta.6",
+  "version": "5.0.0-beta.7",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     "Sascha Depold <sascha@depold.com>",
@@ -55,7 +55,7 @@
     "hints": "^1.x",
     "husky": "^0.x",
     "istanbul": "^0.x",
-    "lcov-result-merger": "^2.x",
+    "lcov-result-merger": "^3.0.0",
     "mocha": "^5.x",
     "mysql2": "^1.x",
     "pg": "^7.x",
@@ -64,11 +64,11 @@
     "pg-types": "^1.x",
     "rimraf": "^2.x",
     "semantic-release": "^15.x",
-    "sinon": "^4.x",
-    "sinon-chai": "^2.x",
+    "sinon": "^5.0.10",
+    "sinon-chai": "^3.1.0",
     "sqlite3": "^4.x",
     "tedious": "^2.x",
-    "uuid-validate": "^0.0.2",
+    "uuid-validate": "^0.0.3",
     "validate-commit-msg": "^2.12.2"
   },
   "keywords": [

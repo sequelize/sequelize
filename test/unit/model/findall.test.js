@@ -52,8 +52,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     beforeEach(() => {
-      this.stub.reset();
-      this.warnOnInvalidOptionsStub.reset();
+      this.stub.resetHistory();
+      this.warnOnInvalidOptionsStub.resetHistory();
     });
 
     after(() => {

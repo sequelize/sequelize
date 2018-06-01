@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   });
 
-  const testSuccess = function(Type, value) {
+  const testSuccess = function(Type, value, options) {
     const parse = Type.constructor.parse = sinon.spy(value => {
       return value;
     });
@@ -65,6 +65,12 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const stringify = Type.constructor.prototype.stringify = sinon.spy(function() {
       return Sequelize.ABSTRACT.prototype.stringify.apply(this, arguments);
     });
+    let bindParam;
+    if (options && options.useBindParam) {
+      bindParam = Type.constructor.prototype.bindParam = sinon.spy(function() {
+        return Sequelize.ABSTRACT.prototype.bindParam.apply(this, arguments);
+      });
+    }
 
     const User = current.define('user', {
       field: Type
@@ -83,10 +89,17 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return User.findAll().get(0);
     }).then(() => {
       expect(parse).to.have.been.called;
-      expect(stringify).to.have.been.called;
+      if (options && options.useBindParam) {
+        expect(bindParam).to.have.been.called;
+      } else {
+        expect(stringify).to.have.been.called;
+      }
 
       delete Type.constructor.parse;
       delete Type.constructor.prototype.stringify;
+      if (options && options.useBindParam) {
+        delete Type.constructor.prototype.bindParam;
+      }
     });
   };
 
@@ -117,18 +130,18 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   }
 
   if (current.dialect.supports.HSTORE) {
-    it('calls parse and stringify for HSTORE', () => {
+    it('calls parse and bindParam for HSTORE', () => {
       const Type = new Sequelize.HSTORE();
 
-      return testSuccess(Type, { test: 42, nested: false });
+      return testSuccess(Type, { test: 42, nested: false }, { useBindParam: true });
     });
   }
 
   if (current.dialect.supports.RANGE) {
-    it('calls parse and stringify for RANGE', () => {
+    it('calls parse and bindParam for RANGE', () => {
       const Type = new Sequelize.RANGE(new Sequelize.INTEGER());
 
-      return testSuccess(Type, [1, 2]);
+      return testSuccess(Type, [1, 2], { useBindParam: true });
     });
   }
 
@@ -147,13 +160,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for TIME', () => {
     const Type = new Sequelize.TIME();
 
-    return testSuccess(Type, new Date());
+    return testSuccess(Type, moment(new Date()).format('HH:mm:ss'));
   });
 
   it('calls parse and stringify for BLOB', () => {
     const Type = new Sequelize.BLOB();
 
-    return testSuccess(Type, 'foobar');
+    return testSuccess(Type, 'foobar', { useBindParam: true });
   });
 
   it('calls parse and stringify for CHAR', () => {
@@ -208,27 +221,27 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }
   });
 
-  it('calls parse and stringify for DOUBLE', () => {
+  it('calls parse and bindParam for DOUBLE', () => {
     const Type = new Sequelize.DOUBLE();
 
-    return testSuccess(Type, 1.5);
+    return testSuccess(Type, 1.5, { useBindParam: true });
   });
 
-  it('calls parse and stringify for FLOAT', () => {
+  it('calls parse and bindParam for FLOAT', () => {
     const Type = new Sequelize.FLOAT();
 
     if (dialect === 'postgres') {
       // Postgres doesn't have float, maps to either decimal or double
       testFailure(Type);
     } else {
-      return testSuccess(Type, 1.5);
+      return testSuccess(Type, 1.5, { useBindParam: true });
     }
   });
 
-  it('calls parse and stringify for REAL', () => {
+  it('calls parse and bindParam for REAL', () => {
     const Type = new Sequelize.REAL();
 
-    return testSuccess(Type, 1.5);
+    return testSuccess(Type, 1.5, { useBindParam: true });
   });
 
   it('calls parse and stringify for UUID', () => {
@@ -254,10 +267,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   });
 
   if (current.dialect.supports.GEOMETRY) {
-    it('calls parse and stringify for GEOMETRY', () => {
+    it('calls parse and bindParam for GEOMETRY', () => {
       const Type = new Sequelize.GEOMETRY();
 
-      return testSuccess(Type, { type: 'Point', coordinates: [125.6, 10.1] });
+      return testSuccess(Type, { type: 'Point', coordinates: [125.6, 10.1] }, { useBindParam: true });
     });
 
     it('should parse an empty GEOMETRY field', () => {

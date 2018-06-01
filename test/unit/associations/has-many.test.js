@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         ]));
 
       return user.setTasks([task1, task2]).bind(this).then(function() {
-        this.update.reset();
+        this.update.resetHistory();
         return user.setTasks(null);
       }).then(function() {
         expect(this.findAll).to.have.been.calledTwice;

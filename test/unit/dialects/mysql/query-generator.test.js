@@ -445,47 +445,83 @@ if (dialect === 'mysql') {
       insertQuery: [
         {
           arguments: ['myTable', {name: 'foo'}],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($1);',
+            bind: ['foo']
+          }
         }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo\\';DROP TABLE myTable;');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($1);',
+            bind: ["foo';DROP TABLE myTable;"]
+          }
         }, {
           arguments: ['myTable', {name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55))}],
-          expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($1,$2);',
+            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))]
+          }
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1}],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
+            bind: ['foo', 1]
+          }
         }, {
           arguments: ['myTable', {data: new Buffer('Sequelize') }],
-          expectation: "INSERT INTO `myTable` (`data`) VALUES (X'53657175656c697a65');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`data`) VALUES ($1);',
+            bind: [new Buffer('Sequelize')]
+          }
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
+            bind: ['foo', 1, null]
+          }
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL);",
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
+            bind: ['foo', 1, null]
+          },
           context: {options: {omitNull: false}}
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
+            bind: ['foo', 1]
+          },
           context: {options: {omitNull: true}}
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: undefined}],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
+            bind: ['foo', 1]
+          },
           context: {options: {omitNull: true}}
         }, {
           arguments: ['myTable', {foo: false}],
-          expectation: 'INSERT INTO `myTable` (`foo`) VALUES (false);'
+          expectation: {
+            query: 'INSERT INTO `myTable` (`foo`) VALUES ($1);',
+            bind: [false]
+          }
         }, {
           arguments: ['myTable', {foo: true}],
-          expectation: 'INSERT INTO `myTable` (`foo`) VALUES (true);'
+          expectation: {
+            query: 'INSERT INTO `myTable` (`foo`) VALUES ($1);',
+            bind: [true]
+          }
         }, {
           arguments: ['myTable', function(sequelize) {
             return {
               foo: sequelize.fn('NOW')
             };
           }],
-          expectation: 'INSERT INTO `myTable` (`foo`) VALUES (NOW());',
+          expectation: {
+            query: 'INSERT INTO `myTable` (`foo`) VALUES (NOW());',
+            bind: []
+          },
           needsSequelize: true
         }
       ],
@@ -616,7 +652,8 @@ if (dialect === 'mysql') {
         });
 
         tests.forEach(test => {
-          const title = test.title || 'MySQL correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
+          const query = test.expectation.query || test.expectation;
+          const title = test.title || 'MySQL correctly returns ' + query + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);

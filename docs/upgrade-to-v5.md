@@ -60,7 +60,20 @@ Main outline
 
 Now supports only one standard format `[{ value: 1, inclusive: true }, { value: 20, inclusive: false }]` [#9364](https://github.com/sequelize/sequelize/pull/9364)
 
+### Others
+
+`ValidationErrorItem` now holds reference to original error in the `original` property, rather than the `__raw` property.
+
 ## Changelog
+
+### 5.0.0-beta.7
+
+- fix(data-types/blob): only return null for mysql binary null [#9441](https://github.com/sequelize/sequelize/pull/9441)
+- fix(errors): use standard .original rather than .__raw for actual error
+- fix(connection-manager): mssql datatype parsing [#9470](https://github.com/sequelize/sequelize/pull/9470)
+- fix(query/removeConstraint): support schemas
+- fix: use Buffer.from
+- fix(transactions): return patched promise from sequelize.query [#9473](https://github.com/sequelize/sequelize/pull/9473)
 
 ### 5.0.0-beta.6
 
