@@ -292,6 +292,39 @@ module.exports = {
 };
 ```
 
+
+### Using Babel
+Now you know how to use `.sequelizerc` file. Now let's see how to use this file to use babel with `sequelize-cli` setup. This will allow you to write migrations and seeders with ES6/ES7 syntax.
+
+First install `babel-register`
+
+```bash
+$ npm i --save-dev babel-register
+```
+Now let's create `.sequelizerc` file, it can include any configuration you may want to change for `sequelize-cli` but in addition to that we want it to register babel for our codebase. Something like this
+
+```bash
+$ touch .sequelizerc # Create rc file
+```
+
+Now include `babel-register` setup in this file
+
+```js
+require("babel-register");
+
+const path = require('path');
+
+module.exports = {
+  'config': path.resolve('config', 'config.json'),
+  'models-path': path.resolve('models'),
+  'seeders-path': path.resolve('seeders'),
+  'migrations-path': path.resolve('migrations')
+}
+```
+
+Now CLI will be able to run ES6/ES7 code from migrations/seeders etc. Please keep in mind this depends upon your configuration of `.babelrc`. Please read more about that at [babeljs.io](https://babeljs.io).
+
+
 ### Using Environment Variables
 With CLI you can directly access the environment variables inside the `config/config.js`. You can use `.sequelizerc` to tell CLI to use `config/config.js` for configuration. This is explained in last section.
 
