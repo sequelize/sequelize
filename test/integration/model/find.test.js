@@ -112,7 +112,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: {'specialkey': 'awesome'},
           logging(sql) {
             test = true;
-            expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = N?'awesome'/);
+            expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = (\$1|\?)/);
           }
         }).then(() => {
           expect(test).to.be.true;
@@ -259,8 +259,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.bulkCreate([{username: 'jack'}, {username: 'jack'}]).then(() => {
           return self.sequelize.Promise.map(permutations, perm => {
             return self.User.findById(perm, {
-              logging(s) {
-                expect(s.indexOf(0)).not.to.equal(-1);
+              logging(sql) {
+                expect(sql).to.match(/(\$1|\?)/);
                 count++;
               }
             }).then(user => {

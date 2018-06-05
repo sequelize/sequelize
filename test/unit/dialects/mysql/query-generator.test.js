@@ -180,56 +180,95 @@ if (dialect === 'mysql') {
       selectQuery: [
         {
           arguments: ['myTable'],
-          expectation: 'SELECT * FROM `myTable`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', {attributes: ['id', 'name']}],
-          expectation: 'SELECT `id`, `name` FROM `myTable`;',
+          expectation: {
+            query: 'SELECT `id`, `name` FROM `myTable`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', {where: {id: 2}}],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = $1;',
+            bind: [2]
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', {where: {name: 'foo'}}],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name` = 'foo';",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`name` = $1;',
+            bind: ['foo']
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', {where: {name: "foo';DROP TABLE myTable;"}}],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name` = 'foo\\';DROP TABLE myTable;';",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`name` = $1;',
+            bind: ["foo';DROP TABLE myTable;"]
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', {where: 2}],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = $1;',
+            bind: [2]
+          },
           context: QueryGenerator
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS `count` FROM `foo`;',
+          expectation: {
+            query: 'SELECT count(*) AS `count` FROM `foo`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: ['id']}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY `id`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` ORDER BY `id`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: ['id', 'DESC']}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY `id`, `DESC`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` ORDER BY `id`, `DESC`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: ['myTable.id']}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: [['myTable.id', 'DESC']]}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id` DESC;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id` DESC;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: [['id', 'DESC']]}, function(sequelize) {return sequelize.define('myTable', {});}],
-          expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
           arguments: ['myTable', {order: [['id', 'DESC'], ['name']]}, function(sequelize) {return sequelize.define('myTable', {});}],
-          expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC, `myTable`.`name`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC, `myTable`.`name`;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -239,7 +278,10 @@ if (dialect === 'mysql') {
               order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']]
             };
           }],
-          expectation: 'SELECT * FROM `myTable` ORDER BY f1(f2(`id`)) DESC;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` ORDER BY f1(f2(`id`)) DESC;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -252,7 +294,10 @@ if (dialect === 'mysql') {
               ]
             };
           }],
-          expectation: "SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, 'lalala', '2011-03-27 10:01:55') ASC;",
+          expectation: {
+            query: "SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, 'lalala', '2011-03-27 10:01:55') ASC;",
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -265,7 +310,10 @@ if (dialect === 'mysql') {
               )
             };
           }],
-          expectation: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) = 'jan' AND `myTable`.`type` = 1);",
+          expectation: {
+            query: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) = 'jan' AND `myTable`.`type` = $1);",
+            bind: [1]
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -278,17 +326,26 @@ if (dialect === 'mysql') {
               )
             };
           }],
-          expectation: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) LIKE '%t%' AND `myTable`.`type` = 1);",
+          expectation: {
+            query: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) LIKE '%t%' AND `myTable`.`type` = $1);",
+            bind: [1]
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
           title: 'single string argument should be quoted',
           arguments: ['myTable', {group: 'name'}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` GROUP BY `name`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { group: ['name'] }],
-          expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` GROUP BY `name`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'functions work for group by',
@@ -297,7 +354,10 @@ if (dialect === 'mysql') {
               group: [sequelize.fn('YEAR', sequelize.col('createdAt'))]
             };
           }],
-          expectation: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`);',
+          expectation: {
+            query: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`);',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -307,12 +367,18 @@ if (dialect === 'mysql') {
               group: [sequelize.fn('YEAR', sequelize.col('createdAt')), 'title']
             };
           }],
-          expectation: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`), `title`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`), `title`;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
           arguments: ['myTable', {group: 'name', order: [['id', 'DESC']]}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'HAVING clause works with where-like hash',
@@ -323,7 +389,10 @@ if (dialect === 'mysql') {
               having: { creationYear: { [Op.gt]: 2002 } }
             };
           }],
-          expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;',
+          expectation: {
+            query: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -336,86 +405,137 @@ if (dialect === 'mysql') {
               )
             };
           }],
-          expectation: "SELECT * FROM `myTable` WHERE (`myTable`.`archived` IS NULL AND COALESCE(`place_type_codename`, `announcement_type_codename`) IN ('Lost', 'Found'));",
+          expectation: {
+            query: "SELECT * FROM `myTable` WHERE (`myTable`.`archived` IS NULL AND COALESCE(`place_type_codename`, `announcement_type_codename`) IN ('Lost', 'Found'));",
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
           arguments: ['myTable', {limit: 10}],
-          expectation: 'SELECT * FROM `myTable` LIMIT 10;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` LIMIT 10;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', {limit: 10, offset: 2}],
-          expectation: 'SELECT * FROM `myTable` LIMIT 2, 10;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` LIMIT 2, 10;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'uses default limit if only offset is specified',
           arguments: ['myTable', {offset: 2}],
-          expectation: 'SELECT * FROM `myTable` LIMIT 2, 10000000000000;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` LIMIT 2, 10000000000000;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'uses limit 0',
           arguments: ['myTable', {limit: 0}],
-          expectation: 'SELECT * FROM `myTable` LIMIT 0;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` LIMIT 0;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'uses offset 0',
           arguments: ['myTable', {offset: 0}],
-          expectation: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'multiple where arguments',
           arguments: ['myTable', {where: {boat: 'canoe', weather: 'cold'}}],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`boat` = 'canoe' AND `myTable`.`weather` = 'cold';",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`boat` = $1 AND `myTable`.`weather` = $2;',
+            bind: ['canoe', 'cold']
+          },
           context: QueryGenerator
         }, {
           title: 'no where arguments (object)',
           arguments: ['myTable', {where: {}}],
-          expectation: 'SELECT * FROM `myTable`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'no where arguments (string)',
           arguments: ['myTable', {where: ['']}],
-          expectation: 'SELECT * FROM `myTable` WHERE 1=1;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE 1=1;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'no where arguments (null)',
           arguments: ['myTable', {where: null}],
-          expectation: 'SELECT * FROM `myTable`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'buffer as where argument',
-          arguments: ['myTable', {where: { field: new Buffer('Sequelize')}}],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` = X'53657175656c697a65';",
+          arguments: ['myTable', {where: { field: Buffer.from('Sequelize')}}],
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` = $1;',
+            bind: [Buffer.from('Sequelize')]
+          },
           context: QueryGenerator
         }, {
           title: 'use != if ne !== null',
           arguments: ['myTable', {where: {field: {[Op.ne]: 0}}}],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 0;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 0;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'use IS NOT if ne === null',
           arguments: ['myTable', {where: {field: {[Op.ne]: null}}}],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'use IS NOT if not === BOOLEAN',
           arguments: ['myTable', {where: {field: {[Op.not]: true}}}],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT true;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT true;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'use != if not !== BOOLEAN',
           arguments: ['myTable', {where: {field: {[Op.not]: 3}}}],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'Regular Expression in where clause',
           arguments: ['myTable', {where: {field: {[Op.regexp]: '^[h|a|t]'}}}],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` REGEXP '^[h|a|t]';",
+          expectation: {
+            query: "SELECT * FROM `myTable` WHERE `myTable`.`field` REGEXP '^[h|a|t]';",
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'Regular Expression negation in where clause',
           arguments: ['myTable', {where: {field: {[Op.notRegexp]: '^[h|a|t]'}}}],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` NOT REGEXP '^[h|a|t]';",
+          expectation: {
+            query: "SELECT * FROM `myTable` WHERE `myTable`.`field` NOT REGEXP '^[h|a|t]';",
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'Empty having',
@@ -424,7 +544,10 @@ if (dialect === 'mysql') {
               having: {}
             };
           }],
-          expectation: 'SELECT * FROM `myTable`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable`;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -436,7 +559,10 @@ if (dialect === 'mysql') {
               having: { creationYear: { [Op.gt]: 2002 } }
             };
           }],
-          expectation: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `creationYear` > 2002) AS `test`;',
+          expectation: {
+            query: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `creationYear` > 2002) AS `test`;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }
