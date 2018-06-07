@@ -838,50 +838,89 @@ if (dialect.match(/^postgres/)) {
       updateQuery: [
         {
           arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
-          expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.000 +00:00' WHERE \"id\" = 2"
+          expectation: {
+            query: 'UPDATE "myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3',
+            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2]
+          }
         }, {
           arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
-          expectation: "UPDATE \"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.000 +00:00' WHERE \"id\" = 2"
+          expectation: {
+            query: 'UPDATE "myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3',
+            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2]
+          }
         }, {
           arguments: ['myTable', {bar: 2}, {name: 'foo'}],
-          expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\" = 'foo'"
+          expectation: {
+            query: 'UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2',
+            bind: [2, 'foo']
+          }
         }, {
           arguments: ['myTable', {bar: 2}, {name: 'foo'}, { returning: true }],
-          expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\" = 'foo' RETURNING *"
+          expectation: {
+            query: 'UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2 RETURNING *',
+            bind: [2, 'foo']
+          }
         }, {
           arguments: ['myTable', {numbers: [1, 2, 3]}, {name: 'foo'}],
-          expectation: "UPDATE \"myTable\" SET \"numbers\"=ARRAY[1,2,3] WHERE \"name\" = 'foo'"
+          expectation: {
+            query: 'UPDATE "myTable" SET "numbers"=$1 WHERE "name" = $2',
+            bind: [[1, 2, 3], 'foo']
+          }
         }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
-          expectation: "UPDATE \"myTable\" SET \"name\"='foo'';DROP TABLE myTable;' WHERE \"name\" = 'foo'"
+          expectation: {
+            query: 'UPDATE "myTable" SET "name"=$1 WHERE "name" = $2',
+            bind: ["foo';DROP TABLE myTable;", 'foo']
+          }
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE \"myTable\" SET \"bar\"=2,\"nullValue\"=NULL WHERE \"name\" = 'foo'"
+          expectation: {
+            query: 'UPDATE "myTable" SET "bar"=$1,"nullValue"=$2 WHERE "name" = $3',
+            bind: [2, null, 'foo']
+          }
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE \"myTable\" SET \"bar\"=2,\"nullValue\"=NULL WHERE \"name\" = 'foo'",
+          expectation: {
+            query: 'UPDATE "myTable" SET "bar"=$1,"nullValue"=$2 WHERE "name" = $3',
+            bind: [2, null, 'foo']
+          },
           context: {options: {omitNull: false}}
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\" = 'foo'",
+          expectation: {
+            query: 'UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2',
+            bind: [2, 'foo']
+          },
           context: {options: {omitNull: true}}
         }, {
           arguments: ['myTable', {bar: 2, nullValue: undefined}, {name: 'foo'}],
-          expectation: "UPDATE \"myTable\" SET \"bar\"=2 WHERE \"name\" = 'foo'",
+          expectation: {
+            query: 'UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2',
+            bind: [2, 'foo']
+          },
           context: {options: {omitNull: true}}
         }, {
           arguments: [{tableName: 'myTable', schema: 'mySchema'}, {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
-          expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo',\"birthday\"='2011-03-27 10:01:55.000 +00:00' WHERE \"id\" = 2"
+          expectation: {
+            query: 'UPDATE "mySchema"."myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3',
+            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2]
+          }
         }, {
           arguments: [{tableName: 'myTable', schema: 'mySchema'}, {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
-          expectation: "UPDATE \"mySchema\".\"myTable\" SET \"name\"='foo'';DROP TABLE mySchema.myTable;' WHERE \"name\" = 'foo'"
+          expectation: {
+            query: 'UPDATE "mySchema"."myTable" SET "name"=$1 WHERE "name" = $2',
+            bind: ["foo';DROP TABLE mySchema.myTable;", 'foo']
+          }
         }, {
           arguments: ['myTable', function(sequelize) {
             return {
               bar: sequelize.fn('NOW')
             };
           }, {name: 'foo'}],
-          expectation: "UPDATE \"myTable\" SET \"bar\"=NOW() WHERE \"name\" = 'foo'",
+          expectation: {
+            query: 'UPDATE "myTable" SET "bar"=NOW() WHERE "name" = $1',
+            bind: ['foo']
+          },
           needsSequelize: true
         }, {
           arguments: ['myTable', function(sequelize) {
@@ -889,54 +928,90 @@ if (dialect.match(/^postgres/)) {
               bar: sequelize.col('foo')
             };
           }, {name: 'foo'}],
-          expectation: "UPDATE \"myTable\" SET \"bar\"=\"foo\" WHERE \"name\" = 'foo'",
+          expectation: {
+            query: 'UPDATE "myTable" SET "bar"="foo" WHERE "name" = $1',
+            bind: ['foo']
+          },
           needsSequelize: true
         },
 
         // Variants when quoteIdentifiers is false
         {
           arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
-          expectation: "UPDATE myTable SET name='foo',birthday='2011-03-27 10:01:55.000 +00:00' WHERE id = 2",
+          expectation: {
+            query: 'UPDATE myTable SET name=$1,birthday=$2 WHERE id = $3',
+            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2]
+          },
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
-          expectation: "UPDATE myTable SET name='foo',birthday='2011-03-27 10:01:55.000 +00:00' WHERE id = 2",
+          expectation: {
+            query: 'UPDATE myTable SET name=$1,birthday=$2 WHERE id = $3',
+            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2]
+          },
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {bar: 2}, {name: 'foo'}],
-          expectation: "UPDATE myTable SET bar=2 WHERE name = 'foo'",
+          expectation: {
+            query: 'UPDATE myTable SET bar=$1 WHERE name = $2',
+            bind: [2, 'foo']
+          },
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {numbers: [1, 2, 3]}, {name: 'foo'}],
-          expectation: "UPDATE myTable SET numbers=ARRAY[1,2,3] WHERE name = 'foo'",
+          expectation: {
+            query: 'UPDATE myTable SET numbers=$1 WHERE name = $2',
+            bind: [[1, 2, 3], 'foo']
+          },
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}, {name: 'foo'}],
-          expectation: "UPDATE myTable SET name='foo'';DROP TABLE myTable;' WHERE name = 'foo'",
+          expectation: {
+            query: 'UPDATE myTable SET name=$1 WHERE name = $2',
+            bind: ["foo';DROP TABLE myTable;", 'foo']
+          },
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE myTable SET bar=2,nullValue=NULL WHERE name = 'foo'",
+          expectation: {
+            query: 'UPDATE myTable SET bar=$1,nullValue=$2 WHERE name = $3',
+            bind: [2, null, 'foo']
+          },
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE myTable SET bar=2,nullValue=NULL WHERE name = 'foo'",
+          expectation: {
+            query: 'UPDATE myTable SET bar=$1,nullValue=$2 WHERE name = $3',
+            bind: [2, null, 'foo']
+          },
           context: {options: {omitNull: false, quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE myTable SET bar=2 WHERE name = 'foo'",
+          expectation: {
+            query: 'UPDATE myTable SET bar=$1 WHERE name = $2',
+            bind: [2, 'foo']
+          },
           context: {options: {omitNull: true, quoteIdentifiers: false}}
         }, {
           arguments: ['myTable', {bar: 2, nullValue: undefined}, {name: 'foo'}],
-          expectation: "UPDATE myTable SET bar=2 WHERE name = 'foo'",
+          expectation: {
+            query: 'UPDATE myTable SET bar=$1 WHERE name = $2',
+            bind: [2, 'foo']
+          },
           context: {options: {omitNull: true, quoteIdentifiers: false}}
         }, {
           arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
-          expectation: "UPDATE mySchema.myTable SET name='foo',birthday='2011-03-27 10:01:55.000 +00:00' WHERE id = 2",
+          expectation: {
+            query: 'UPDATE mySchema.myTable SET name=$1,birthday=$2 WHERE id = $3',
+            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2]
+          },
           context: {options: {quoteIdentifiers: false}}
         }, {
           arguments: [{schema: 'mySchema', tableName: 'myTable'}, {name: "foo';DROP TABLE mySchema.myTable;"}, {name: 'foo'}],
-          expectation: "UPDATE mySchema.myTable SET name='foo'';DROP TABLE mySchema.myTable;' WHERE name = 'foo'",
+          expectation: {
+            query: 'UPDATE mySchema.myTable SET name=$1 WHERE name = $2',
+            bind: ["foo';DROP TABLE mySchema.myTable;", 'foo']
+          },
           context: {options: {quoteIdentifiers: false}}
         }
       ],
