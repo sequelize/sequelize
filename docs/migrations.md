@@ -163,6 +163,12 @@ If you wish to undo most recent seed
 node_modules/.bin/sequelize db:seed:undo
 ```
 
+If you wish to undo a specific seed
+
+```bash
+node_modules/.bin/sequelize db:seed:undo --seed name-of-seed-as-in-data
+```
+
 If you wish to undo all seeds
 
 ```bash
