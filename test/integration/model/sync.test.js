@@ -48,6 +48,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(data => expect(data).to.have.ownProperty('age'));
     });
 
+    // MC
+    it('should alter a column using the correct column name (#9515)', function() {
+      const testSync = this.sequelize.define('testSync', {
+        name: Sequelize.STRING
+      });
+      return this.sequelize.sync()
+        .then(() => this.sequelize.define('testSync', {
+          name: Sequelize.STRING,
+          badgeNumber: { type: Sequelize.INTEGER, field: 'badge_number' }
+        }))
+        .then(() => this.sequelize.sync({alter: true}))
+        .then(() => testSync.describe())
+        .then(data => {
+          expect(data).to.have.ownProperty('badge_number');
+          expect(data).not.to.have.ownProperty('badgeNumber');
+        });
+    });
+
     it('should change a column if it exists in the model but is different in the database', function() {
       const testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
