@@ -18,7 +18,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should remove a column if it exists in the databases schema but not the model', function() {
       const User = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
-        age: Sequelize.INTEGER
+        age: Sequelize.INTEGER,
+        badgeNumber: { type: Sequelize.INTEGER, field: 'badge_number' }
       });
       return this.sequelize.sync()
         .then(() => {
@@ -30,6 +31,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => User.describe())
         .then(data => {
           expect(data).to.not.have.ownProperty('age');
+          expect(data).to.not.have.ownProperty('badge_number');
+          expect(data).to.not.have.ownProperty('badgeNumber');
           expect(data).to.have.ownProperty('name');
         });
     });
@@ -41,14 +44,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.sequelize.sync()
         .then(() => this.sequelize.define('testSync', {
           name: Sequelize.STRING,
-          age: Sequelize.INTEGER
+          age: Sequelize.INTEGER,
+          height: { type: Sequelize.INTEGER, field: 'height_cm' }
         }))
         .then(() => this.sequelize.sync({alter: true}))
         .then(() => testSync.describe())
-        .then(data => expect(data).to.have.ownProperty('age'));
+        .then(data => {
+          expect(data).to.have.ownProperty('age');
+          expect(data).to.have.ownProperty('height_cm');
+          expect(data).not.to.have.ownProperty('height');
+        });
     });
 
-    // MC
     it('should alter a column using the correct column name (#9515)', function() {
       const testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING
