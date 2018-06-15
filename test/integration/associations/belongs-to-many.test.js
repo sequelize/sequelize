@@ -734,6 +734,36 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(commentTags).to.have.length(2);
       });
     });
+
+    it('should catch EmptyResultError when rejectOnEmpty is set', function() {
+      const User = this.sequelize.define(
+        'User',
+        { username: DataTypes.STRING },
+        { rejectOnEmpty: true }
+      );
+      const Task = this.sequelize.define(
+        'Task',
+        { title: DataTypes.STRING }
+      );
+
+      User.belongsToMany(Task, { through: 'UserTasks' });
+      Task.belongsToMany(User, { through: 'UserTasks' });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.all([
+          User.create({ id: 12 }),
+          Task.create({ id: 50, title: 'get started' }),
+          Task.create({ id: 51, title: 'following up' })
+        ]);
+      }).spread((user, task1, task2) => {
+        return user.setTasks([task1, task2]).return(user);
+      }).then(user => {
+        return user.getTasks();
+      }).then(userTasks => {
+        expect(userTasks).to.be.an('array').that.has.a.lengthOf(2);
+        expect(userTasks[0]).to.be.an.instanceOf(Task);
+      });
+    });
   });
 
   describe('createAssociations', () => {
@@ -997,6 +1027,34 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       User.belongsToMany(Task, { through: 'UserTasks' });
       Task.belongsToMany(User, { through: 'UserTasks' });
       return this.sequelize.sync({ force: true });
+    });
+
+    it('should catch EmptyResultError when rejectOnEmpty is set', function() {
+      const User = this.sequelize.define(
+        'User',
+        { username: DataTypes.STRING },
+        { rejectOnEmpty: true }
+      );
+      const Task = this.sequelize.define(
+        'Task',
+        { title: DataTypes.STRING }
+      );
+
+      User.belongsToMany(Task, { through: 'UserTasks' });
+      Task.belongsToMany(User, { through: 'UserTasks' });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.all([
+          User.create({ id: 12 }),
+          Task.create({ id: 50, title: 'get started' })
+        ]);
+      }).spread((user, task) => {
+        return user.addTask(task).return(user);
+      }).then(user => {
+        return user.getTasks();
+      }).then(tasks => {
+        expect(tasks[0].title).to.equal('get started');
+      });
     });
   });
 
