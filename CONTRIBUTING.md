@@ -47,6 +47,8 @@ $ npm install
 
 ### 3. Database
 
+Database instances for testing can be started using Docker or you can use local instances of MySQL and PostgreSQL.
+
 #### 3.a Local instances
 
 For MySQL and PostgreSQL you'll need to create a DB called `sequelize_test`.
@@ -64,12 +66,23 @@ For Postgres, creating the database and (optionally) adding the test user this w
 $ psql
 
 # create database sequelize_test;
-# create user postgres with superuser;
+# create user postgres with superuser; -- optional; usually built-in
+```
+
+You may need to specify credentials using the environment variables `SEQ_PG_USER` and `SEQ_PG_PW` when running tests or set a password of 'postgres' for the postgres user on your local database to allow sequelize to connect via TCP to localhost. Refer to `test/config/config.js` for the default credentials and environment variables.
+
+For Postgres you may also need to install the `postgresql-postgis` package (an optional component of some Postgres distributions, e.g. Ubuntu). The package will be named something like: `postgresql-<pg_version_number>-postgis-<postgis_version_number>`, e.g. `postgresql-9.5-postgis-2.2`. You should be able to find the exact package name on a Debian/Ubuntu system by running the command: `apt-cache search -- -postgis`.
+
+Create the following extensions in the test database:
+```
+CREATE EXTENSION postgis;
+CREATE EXTENSION hstore;
+CREATE EXTENSION btree_gist;
 ```
 
 #### 3.b Docker
 
-Makes sure `docker` and `docker-compose` are installed.
+Make sure `docker` and `docker-compose` are installed.
 
 If running on macOS, install [Docker for Mac](https://docs.docker.com/docker-for-mac/).
 
@@ -78,6 +91,8 @@ Now launch the docker mysql and postgres servers with this command (you can add 
 ```sh
 $ docker-compose up postgres-95 mysql-57
 ```
+
+Sequelize uses the sushantdhiman/postgres:9.5 Docker image for PostgreSQL, which installs the extensions required by tests: https://github.com/sushantdhiman/sequelize-postgres/blob/master/00-extensions.sql
 
 ### 4. Running tests
 

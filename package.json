@@ -30,11 +30,10 @@
     "moment-timezone": "^0.5.14",
     "retry-as-promised": "^3.0.0",
     "semver": "^5.5.0",
-    "terraformer-wkt-parser": "^1.1.2",
     "toposort-class": "^1.0.1",
     "uuid": "^3.2.1",
     "validator": "^10.0.0",
-    "wkx": "^0.4.1"
+    "wkx": "^0.4.5"
   },
   "devDependencies": {
     "@semantic-release/github": "^4.x",
@@ -46,7 +45,7 @@
     "cheerio": "^1.0.0-rc.2",
     "commitizen": "^2.x",
     "continuation-local-storage": "^3.x",
-    "cross-env": "^5.x",
+    "cross-env": "^5.2.0",
     "cz-conventional-changelog": "^2.x",
     "env-cmd": "^8.0.0",
     "esdoc": "^0.5.2",
