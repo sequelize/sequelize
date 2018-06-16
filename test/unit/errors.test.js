@@ -6,7 +6,7 @@ const expect = require('chai').expect;
 describe('errors', () => {
   it('should maintain stack trace with message', () => {
     const errorsWithMessage = [
-      'BaseError', 'ValidationError', 'UnknownConstraintError', 'InstanceError', 
+      'BaseError', 'ValidationError', 'InstanceError', 
       'EmptyResultError', 'EagerLoadingError', 'AssociationError', 'QueryError'
     ];
 

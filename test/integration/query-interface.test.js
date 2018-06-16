@@ -770,11 +770,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
-    describe('error handling', () => {
+    describe('unknown constraint', () => {
       it('should throw non existent constraints as UnknownConstraintError', function() {
-        return expect(this.queryInterface.removeConstraint('users', 'unknown__contraint__name', {
-          type: 'unique'
-        })).to.eventually.be.rejectedWith(Sequelize.UnknownConstraintError);
+        const promise = this.queryInterface
+          .removeConstraint('users', 'unknown__constraint__name', {
+            type: 'unique'
+          })
+          .catch(e => {
+            expect(e.table).to.equal('users');
+            expect(e.constraint).to.equal('unknown__constraint__name');
+
+            throw e;
+          });
+
+        return expect(promise).to.eventually.be.rejectedWith(Sequelize.UnknownConstraintError);
       });
     });
   });
