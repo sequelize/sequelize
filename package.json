@@ -46,7 +46,7 @@
     "cheerio": "^1.0.0-rc.2",
     "commitizen": "^2.x",
     "continuation-local-storage": "^3.x",
-    "cross-env": "^5.x",
+    "cross-env": "^5.2.0",
     "cz-conventional-changelog": "^2.x",
     "env-cmd": "^8.0.0",
     "esdoc": "^0.5.2",
