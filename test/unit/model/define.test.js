@@ -41,6 +41,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }).to.throw("A column called 'id' was added to the attributes of 'bars' but not marked with 'primaryKey: true'");
     });
+
     it('should defend against null or undefined "unique" attributes', () => {
       expect(() => {
         current.define('baz', {
@@ -57,6 +58,45 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
       }).not.to.throw();
+    });
+
+    it('should throw for unknown data type', () => {
+      expect(() => {
+        current.define('bar', {
+          name: {
+            type: DataTypes.MY_UNKNOWN_TYPE
+          }
+        });
+      }).to.throw('Unrecognized datatype for attribute "bar.name"');
+    });
+
+    it('should throw for notNull validator without allowNull', () => {
+      expect(() => {
+        current.define('user', {
+          name: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            validate: {
+              notNull: {
+                msg: 'Please enter the name'
+              }
+            }
+          }
+        });
+      }).to.throw('Invalid definition for "user.name", "notNull" validator is only allowed with "allowNull:false"');
+
+      expect(() => {
+        current.define('part', {
+          name: {
+            type: DataTypes.STRING,
+            validate: {
+              notNull: {
+                msg: 'Please enter the part name'
+              }
+            }
+          }
+        });
+      }).to.throw('Invalid definition for "part.name", "notNull" validator is only allowed with "allowNull:false"');
     });
   });
 });
