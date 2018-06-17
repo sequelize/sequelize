@@ -12,18 +12,13 @@ Sequelize v5 will only support Node 6 and up [#9015](https://github.com/sequeliz
 
 With v4 you started to get a deprecation warning `String based operators are now deprecated`. Also concept of operators was introduced. These operators are Symbols which prevent hash injection attacks.
 
+http://docs.sequelizejs.com/manual/tutorial/querying.html#operators-security
+
 **With v5**
 
 - Operators are now enabled by default.
 - You can still use string operators by passing an operators map in `operatorsAliases`, but that will give you deprecation warning.
 - Op.$raw is removed
-
-Please check these threads to know more
-
-- (Issue) https://github.com/sequelize/sequelize/issues/7310
-- (Fix) https://github.com/sequelize/sequelize/pull/8240
-- (Explanation) https://github.com/sequelize/sequelize/issues/8417#issuecomment-334056048
-- (Official Docs) http://docs.sequelizejs.com/manual/tutorial/querying.html#operators-security
 
 ### Model
 
@@ -62,9 +57,28 @@ Now supports only one standard format `[{ value: 1, inclusive: true }, { value: 
 
 ### Others
 
+Sequelize now use parameterized queries for all INSERT / UPDATE operations (except UPSERT). They provide better protection against SQL Injection attack.
+
 `ValidationErrorItem` now holds reference to original error in the `original` property, rather than the `__raw` property.
 
+[retry-as-promised](https://github.com/mickhansen/retry-as-promised) has been updated to `3.0.0`, which use [any-promise](https://github.com/kevinbeaty/any-promise). This module repeat all `sequelize.query` operations. You can configure `any-promise` to use `bluebird` for better performance on Node 4 or 6
+
+
+### Removed
+
+- package: terraformer-wkt-parser [#9545](https://github.com/sequelize/sequelize/pull/9545)
+
+
 ## Changelog
+
+### 5.0.0-beta.8
+
+- feat(query-generator): Generate INSERT / UPDATE using bind parameters [#9431](https://github.com/sequelize/sequelize/pull/9431) [#9492](https://github.com/sequelize/sequelize/pull/9492)
+- performance: remove terraformer-wkt-parser dependency [#9545](https://github.com/sequelize/sequelize/pull/9545)
+- fix(constructor): set username, password, database via options in addition to connection string[#9517](https://github.com/sequelize/sequelize/pull/9517)
+- fix(associations/belongs-to-many): catch EmptyResultError in set/add helpers [#9535](https://github.com/sequelize/sequelize/pull/9535)
+- fix: sync with alter:true doesn't use field name [#9529](https://github.com/sequelize/sequelize/pull/9529)
+- fix(UnknownConstraintError): improper handling of error options [#9547](https://github.com/sequelize/sequelize/pull/9547)
 
 ### 5.0.0-beta.7
 

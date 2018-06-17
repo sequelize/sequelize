@@ -252,7 +252,7 @@ By default Sequelize will use Symbol operators. Using Sequelize without any alia
 
 Some frameworks automatically parse user input into js objects and if you fail to sanitize your input it might be possible to inject an Object with string operators to Sequelize.
 
-For better security it is highly advised to use `Sequelize.Op` and not depend on any string alias at all. You can limit alias your application will need by setting `operatorsAliases` option, remember to sanitize user input especially when you are directly passing them to Sequelize methods.
+For better security it is highly advised to use symbol operators from `Sequelize.Op` like `Op.and` / `Op.or` in your code and not depend on any string based operators like `$and` / `$or` at all. You can limit alias your application will need by setting `operatorsAliases` option, remember to sanitize user input especially when you are directly passing them to Sequelize methods.
 
 ```js
 const Op = Sequelize.Op;
