@@ -150,6 +150,10 @@ Sequelize.BLOB('tiny')                // TINYBLOB (bytea for PostgreSQL. Other o
 
 Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite, CHAR(36) BINARY for MySQL (use defaultValue: Sequelize.UUIDV1 or Sequelize.UUIDV4 to make sequelize generate the ids automatically)
 
+Sequelize.CIDR                        // CIDR datatype for PostgreSQL
+Sequelize.INET                        // INET datatype for PostgreSQL
+Sequelize.MACADDR                     // MACADDR datatype for PostgreSQL
+
 Sequelize.RANGE(Sequelize.INTEGER)    // Defines int4range range. PostgreSQL only.
 Sequelize.RANGE(Sequelize.BIGINT)     // Defined int8range range. PostgreSQL only.
 Sequelize.RANGE(Sequelize.DATE)       // Defines tstzrange range. PostgreSQL only.
