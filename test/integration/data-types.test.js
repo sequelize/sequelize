@@ -266,7 +266,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.CIDR();
 
     if (['postgres'].indexOf(dialect) !== -1) {
-      return testSuccess(Type, uuid.v4());
+      return testSuccess(Type, '10.1.2.3/32');
     } else {
       testFailure(Type);
     }
