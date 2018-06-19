@@ -1063,13 +1063,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         self.sequelize.define('UserBadDataType', {
           activity_date: Sequelize.DATe
         });
-      }).to.throw(Error, 'Unrecognized data type for field activity_date');
+      }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
 
       expect(() => {
         self.sequelize.define('UserBadDataType', {
           activity_date: {type: Sequelize.DATe}
         });
-      }).to.throw(Error, 'Unrecognized data type for field activity_date');
+      }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
     });
 
     it('sets a 64 bit int in bigint', function() {
