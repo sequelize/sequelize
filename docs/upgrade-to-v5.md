@@ -26,7 +26,7 @@ http://docs.sequelizejs.com/manual/tutorial/querying.html#operators-security
 
 `Model.attributes` now removed, use `Model.rawAttributes`. [#5320](https://github.com/sequelize/sequelize/issues/5320)
 
-__Note__: _Please dont confuse this with `options.attributes`, they are still valid_
+__Note__: _Please don't confuse this with `options.attributes`, they are still valid_
 
 **Paranoid Mode**
 

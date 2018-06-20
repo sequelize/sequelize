@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it("dont return instance that isn't defined", function() {
+    it("doesn't return instance that isn't defined", function() {
       const self = this;
       return self.Project.create({ lovelyUserId: null })
         .then(project => {
@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
     });
 
-    it("dont return instances that aren't defined", function() {
+    it("doesn't return instances that aren't defined", function() {
       const self = this;
       return self.User.create({ username: 'cuss' })
         .then(user => {
