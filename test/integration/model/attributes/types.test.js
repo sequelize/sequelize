@@ -116,7 +116,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.User.create({
             field1: 'something'
           }).then(user => {
-            // We already verified that the virtual is not added to the table definition, so if this succeeds, were good
+            // We already verified that the virtual is not added to the table definition,
+            // so if this succeeds, were good
 
             expect(user.virtualWithDefault).to.equal('cake');
             expect(user.storage).to.equal('something');
@@ -132,15 +133,44 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be ignored in bulkCreate and and bulkUpdate', function() {
-          const self = this;
           return this.User.bulkCreate([{
             field1: 'something'
           }], {
             logging: this.sqlAssert
           }).then(() => {
-            return self.User.findAll();
+            return this.User.findAll();
           }).then(users => {
             expect(users[0].storage).to.equal('something');
+          });
+        });
+
+        it('should be able to exclude with attributes', function() {
+          return this.User.bulkCreate([{
+            field1: 'something'
+          }], {
+            logging: this.sqlAssert
+          }).then(() => {
+            return this.User.findAll({
+              logging: this.sqlAssert
+            });
+          }).then(users => {
+            const user = users[0].get();
+
+            expect(user.storage).to.equal('something');
+            expect(user).to.include.all.keys(['field1', 'field2']);
+
+            return this.User.findAll({
+              attributes: {
+                exclude: ['field1']
+              },
+              logging: this.sqlAssert
+            });
+          }).then(users => {
+            const user = users[0].get();
+
+            expect(user.storage).to.equal('something');
+            expect(user).not.to.include.all.keys(['field1']);
+            expect(user).to.include.all.keys(['field2']);
           });
         });
       });
