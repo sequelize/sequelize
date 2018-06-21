@@ -460,25 +460,7 @@ See [the validator.js project][3] for more details on the built in validation me
 
 ### Validators and `allowNull`
 
-If a particular field of a model is set to allow null (with `allowNull: true`) and that value has been set to `null` , its validators do not run.
-
-This means you can, for instance, have a string field which validates its length to be at least 5 characters, but which also allows `null`.
-
-You can customize `allowNull` error message by setting `notNull` validator, like this
-
-```js
-const User = sequelize.define('user', {
-  name: {
-    type: Sequelize.STRING,
-    allowNull: false,
-    validate: {
-      notNull: {
-        msg: 'Please enter your name'
-      }
-    }
-  }
-});
-```
+If a particular field of a model is set to allow null (with `allowNull: true`) and that value has been set to `null` , its validators do not run. This means you can, for instance, have a string field which validates its length to be at least 5 characters, but which also allows`null`.
 
 ### Model validations
 
