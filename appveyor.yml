@@ -24,7 +24,7 @@ install:
 build: off
 
 before_test:
-  - ps: . .\appveyor-setup.ps1
+  - ps: . .\scripts\appveyor-setup.ps1
 
 test_script:
   - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
