@@ -21,7 +21,8 @@ if (dialect === 'mssql') {
         pool: {},
         dialectOptions: {
           domain: 'TEST.COM'
-        }
+        },
+        encrypt: false
       };
       this.instance = new Sequelize(
         this.config.database,
@@ -52,8 +53,9 @@ if (dialect === 'mssql') {
       });
     });
 
-    it('connectionManager._connect() should reject if end was called and connect was not', function() {
+    it('connectionManager._connect() should reject if end was called and connect was not', function(done) {
       this.connectionStub.returns({ on(event, cb) {
+        console.log('event: ', event)
         if (event === 'end') {
           setTimeout(() => {
             cb();
