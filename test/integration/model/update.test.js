@@ -35,15 +35,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }));
     });
 
-    it.only('should not check for notNull Violation for undefined values', function () {
-      var ownerId = 2
-        , accountRowId;
+    it('should not check for notNull Violation for undefined values', function () {
+      const ownerId = 2;
+      let accountRowId;
       return this.Account.create({
-        ownerId: ownerId,
+        ownerId,
         name: Math.random().toString()
-      }).then((account) => {
+      }).then(account => {
         accountRowId = account.get('id');
-        var accountVal = {
+        const accountVal = {
           name: Math.random().toString(),
           ownerId: undefined
         };
@@ -52,9 +52,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             id: accountRowId
           }
         });
-      }).then((rows) => {
+      }).then(() => {
         return this.Account.findById(accountRowId);
-      }).then(function(account) {
+      }).then((account) => {
         expect(account.ownerId).to.be.equal(ownerId);
       });
     });
