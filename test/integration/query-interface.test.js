@@ -150,7 +150,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         username: DataTypes.STRING,
         city: {
           type: DataTypes.STRING,
-          defaultValue: null
+          defaultValue: null,
+          comment: 'Users City'
         },
         isAdmin: DataTypes.BOOLEAN,
         enumVals: DataTypes.ENUM('hello', 'world')
@@ -216,6 +217,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             expect(enumVals.special).to.have.length(2);
           } else if (dialect === 'mysql') {
             expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
+          }
+
+          if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
+            expect(city.comment).to.equal('Users City');
+            expect(username.comment).to.equal(null);
           }
         });
       });
