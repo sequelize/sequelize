@@ -7,6 +7,7 @@ const current = Support.sequelize;
 const sinon = require('sinon');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const Utils = require('../../../lib/utils.js');
+const sequelizeErrors = require('../../../lib/errors');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('warnOnInvalidOptions', () => {
@@ -20,8 +21,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('Warns the user if they use a model attribute without a where clause', () => {
       const User = current.define('User', {firstName: 'string'});
-      User.warnOnInvalidOptions({firstName : 12, order: []}, ['firstName']);
-      const expectedError = 'Model attributes (firstName) passed into finder method options, but the options.where object is empty. Did you forget to use options.where?';
+      User.warnOnInvalidOptions({firstName: 12, order: []}, ['firstName']);
+      const expectedError = 'Model attributes (firstName) passed into finder method options of model User, but the options.where object is empty. Did you forget to use options.where?';
       expect(this.loggerSpy.calledWith(expectedError)).to.equal(true);
     });
 
@@ -44,15 +45,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }, { timestamps: false });
 
     before(() => {
-      this.stub = sinon.stub(current.getQueryInterface(), 'select', () => {
+      this.stub = sinon.stub(current.getQueryInterface(), 'select').callsFake(() => {
         return Model.build({});
       });
       this.warnOnInvalidOptionsStub = sinon.stub(Model, 'warnOnInvalidOptions');
     });
 
     beforeEach(() => {
-      this.stub.reset();
-      this.warnOnInvalidOptionsStub.reset();
+      this.stub.resetHistory();
+      this.warnOnInvalidOptionsStub.resetHistory();
     });
 
     after(() => {
@@ -64,6 +65,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('calls warnOnInvalidOptions', () => {
         Model.findAll();
         expect(this.warnOnInvalidOptionsStub.calledOnce).to.equal(true);
+      });
+
+      it('Throws an error when the attributes option is formatted incorrectly', () => {
+        const errorFunction = Model.findAll.bind(Model, {attributes: 'name'});
+        expect(errorFunction).to.throw(sequelizeErrors.QueryError);
       });
     });
 

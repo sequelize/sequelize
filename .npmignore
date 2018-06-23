@@ -1,6 +1,8 @@
 docs
+esdoc
 examples
 test
+scripts
 README.md
 .watchr.js
 changelog.md
@@ -16,4 +18,5 @@ mkdocs.yml
 .dockerignore
 .editorconfig
 .travis.yml
+package-lock.json
 

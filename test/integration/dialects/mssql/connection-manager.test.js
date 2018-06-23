@@ -1,13 +1,12 @@
 'use strict';
 
-/* jshint -W030 */
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
 const dialect = Support.getTestDialect();
 
 if (dialect.match(/^mssql/)) {
-  describe('[MSSQL Specific] Query Queue', function () {
+  describe('[MSSQL Specific] Query Queue', () => {
     it('should work with handleDisconnects', () => {
       const sequelize = Support.createSequelizeInstance({ pool: { min: 1, max: 1, idle: 5000 } });
       const cm = sequelize.connectionManager;
@@ -57,9 +56,33 @@ if (dialect.match(/^mssql/)) {
         });
     });
 
+    it('should not throw when non pooled connection is unexpectedly closed', () => {
+      const sequelize = Support.createSequelizeInstance({ pool: { min: 1, max: 1, idle: 5000 } });
+      const cm = sequelize.connectionManager;
+
+      let conn;
+
+      return sequelize
+        .sync()
+        .then(() => cm.getConnection())
+        .then(connection => {
+          conn = connection;
+
+          // remove from pool
+          return cm.pool.destroy(connection);
+        })
+        .then(() => {
+          // unexpected disconnect
+          const unwrapConn = conn.unwrap();
+          unwrapConn.emit('error', {
+            code: 'ESOCKET'
+          });
+        });
+    });
+
     describe('Errors', () => {
       it('ECONNREFUSED', () => {
-        const sequelize = Support.createSequelizeInstance({ port: 34237 });
+        const sequelize = Support.createSequelizeInstance({ host: '127.0.0.1', port: 34237 });
         return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(sequelize.ConnectionRefusedError);
       });
 

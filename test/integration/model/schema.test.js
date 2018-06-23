@@ -1,37 +1,167 @@
 'use strict';
 
-/* jshint -W030 */
-/* jshint -W110 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , current = Support.sequelize
-  , Promise   = current.Promise;
-var SCHEMA_ONE = 'schema_one';
-var SCHEMA_TWO = 'schema_two';
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  current = Support.sequelize,
+  Op = current.Op,
+  Promise   = current.Promise;
 
-var locationId;
+const SCHEMA_ONE = 'schema_one';
+const SCHEMA_TWO = 'schema_two';
 
-describe(Support.getTestDialectTeaser('Model'), function() {
+let locationId;
+
+describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.schemas) {
 
-    describe('schemas', function() {
+    describe('global schema', () => {
+      before(function() {
+        current.options.schema = null;
+        this.RestaurantOne = current.define('restaurant', {
+          foo: DataTypes.STRING,
+          bar: DataTypes.STRING
+        });
+        this.LocationOne = current.define('location', {
+          name: DataTypes.STRING
+        });
+        this.RestaurantOne.belongsTo(this.LocationOne,
+          {
+            foreignKey: 'location_id',
+            constraints: false
+          });
+        current.options.schema = SCHEMA_TWO;
+        this.RestaurantTwo = current.define('restaurant', {
+          foo: DataTypes.STRING,
+          bar: DataTypes.STRING
+        });
+        this.LocationTwo = current.define('location', {
+          name: DataTypes.STRING
+        });
+        this.RestaurantTwo.belongsTo(this.LocationTwo,
+          {
+            foreignKey: 'location_id',
+            constraints: false
+          });
+        current.options.schema = null;
+      });
+
+      beforeEach('build restaurant tables', function() {
+        return current.createSchema(SCHEMA_TWO)
+          .then(() => {
+            return Promise.all([
+              this.RestaurantOne.sync({force: true}),
+              this.RestaurantTwo.sync({force: true})
+            ]);
+          });
+      });
+
+      afterEach('drop schemas', () => {
+        return current.dropSchema(SCHEMA_TWO);
+      });
+
+      describe('Add data via model.create, retrieve via model.findOne', () => {
+        it('should be able to sync model without schema option', function() {
+          expect(this.RestaurantOne._schema).to.be.null;
+          expect(this.RestaurantTwo._schema).to.equal(SCHEMA_TWO);
+        });
+
+        it('should be able to insert data into default table using create', function() {
+          return this.RestaurantOne.create({
+            foo: 'one'
+          }).then(() => {
+            return this.RestaurantOne.findOne({
+              where: {foo: 'one'}
+            });
+          }).then(obj => {
+            expect(obj).to.not.be.null;
+            expect(obj.foo).to.equal('one');
+            return this.RestaurantTwo.findOne({
+              where: {foo: 'one'}
+            });
+          }).then(obj => {
+            expect(obj).to.be.null;
+          });
+        });
+
+        it('should be able to insert data into schema table using create', function() {
+          return this.RestaurantTwo.create({
+            foo: 'two'
+          }).then(() => {
+            return this.RestaurantTwo.findOne({
+              where: {foo: 'two'}
+            });
+          }).then(obj => {
+            expect(obj).to.not.be.null;
+            expect(obj.foo).to.equal('two');
+            return this.RestaurantOne.findOne({
+              where: {foo: 'two'}
+            });
+          }).then(obj => {
+            expect(obj).to.be.null;
+          });
+        });
+      });
+
+      describe('Get associated data in public schema via include', () => {
+        beforeEach(function() {
+          return Promise.all([
+            this.LocationOne.sync({force: true}),
+            this.LocationTwo.sync({force: true})
+          ]).then(() => {
+            return this.LocationTwo.create({name: 'HQ'});
+          }).then(() => {
+            return this.LocationTwo.findOne({where: {name: 'HQ'}});
+          }).then(obj => {
+            expect(obj).to.not.be.null;
+            expect(obj.name).to.equal('HQ');
+            locationId = obj.id;
+            return this.LocationOne.findOne({where: {name: 'HQ'}});
+          }).then(obj => {
+            expect(obj).to.be.null;
+          });
+        });
+
+        it('should be able to insert and retrieve associated data into the table in schema_two', function() {
+          return this.RestaurantTwo.create({
+            foo: 'two',
+            location_id: locationId
+          }).then(() => {
+            return this.RestaurantTwo.findOne({
+              where: {foo: 'two'}, include: [{
+                model: this.LocationTwo, as: 'location'
+              }]
+            });
+          }).then(obj => {
+            expect(obj).to.not.be.null;
+            expect(obj.foo).to.equal('two');
+            expect(obj.location).to.not.be.null;
+            expect(obj.location.name).to.equal('HQ');
+            return this.RestaurantOne.findOne({where: {foo: 'two'}});
+          }).then(obj => {
+            expect(obj).to.be.null;
+          });
+        });
+      });
+    });
+
+    describe('schemas', () => {
       before(function() {
         this.Restaurant = current.define('restaurant', {
-            foo: DataTypes.STRING,
-            bar: DataTypes.STRING
-          },
-          {tableName: "restaurants"});
+          foo: DataTypes.STRING,
+          bar: DataTypes.STRING
+        },
+        {tableName: 'restaurants'});
         this.Location = current.define('location', {
-            name: DataTypes.STRING
-          },
-          {tableName: "locations"});
+          name: DataTypes.STRING
+        },
+        {tableName: 'locations'});
         this.Employee = current.define('employee', {
-            first_name: DataTypes.STRING,
-            last_name: DataTypes.STRING
-          },
-          {tableName: "employees"});
+          first_name: DataTypes.STRING,
+          last_name: DataTypes.STRING
+        },
+        {tableName: 'employees'});
         this.EmployeeOne = this.Employee.schema(SCHEMA_ONE);
         this.Restaurant.belongsTo(this.Location,
           {
@@ -53,11 +183,11 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
 
       beforeEach('build restaurant tables', function() {
-        var self = this;
+        const self = this;
         return Promise.all([
           current.createSchema('schema_one'),
           current.createSchema('schema_two')
-        ]).then(function() {
+        ]).then(() => {
           return Promise.all([
             self.RestaurantOne.sync({force: true}),
             self.RestaurantTwo.sync({force: true})
@@ -65,179 +195,179 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
       });
 
-      afterEach('drop schemas', function() {
+      afterEach('drop schemas', () => {
         return Promise.all([
           current.dropSchema('schema_one'),
           current.dropSchema('schema_two')
         ]);
       });
 
-      describe('Add data via model.create, retrieve via model.findOne', function() {
+      describe('Add data via model.create, retrieve via model.findOne', () => {
         it('should be able to insert data into the table in schema_one using create', function() {
-          var self = this;
-          var restaurantId;
+          const self = this;
+          let restaurantId;
 
           return self.RestaurantOne.create({
             foo: 'one',
             location_id: locationId
-          }).then(function() {
+          }).then(() => {
             return self.RestaurantOne.findOne({
               where: {foo: 'one'}
             });
-          }).then(function(obj) {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('one');
             restaurantId = obj.id;
             return self.RestaurantOne.findById(restaurantId);
-          }).then(function(obj) {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('one');
-            return self.RestaurantTwo.findOne({where: {foo: 'one'}}).then(function(RestaurantObj) {
+            return self.RestaurantTwo.findOne({where: {foo: 'one'}}).then(RestaurantObj => {
               expect(RestaurantObj).to.be.null;
             });
           });
         });
 
         it('should be able to insert data into the table in schema_two using create', function() {
-          var self = this;
-          var restaurantId;
+          const self = this;
+          let restaurantId;
 
           return self.RestaurantTwo.create({
             foo: 'two',
             location_id: locationId
-          }).then(function() {
+          }).then(() => {
             return self.RestaurantTwo.findOne({
               where: {foo: 'two'}
             });
-          }).then(function(obj) {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('two');
             restaurantId = obj.id;
             return self.RestaurantTwo.findById(restaurantId);
-          }).then(function(obj) {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('two');
-            return self.RestaurantOne.findOne({where: {foo: 'two'}}).then(function(RestaurantObj) {
+            return self.RestaurantOne.findOne({where: {foo: 'two'}}).then(RestaurantObj => {
               expect(RestaurantObj).to.be.null;
             });
           });
         });
       });
 
-      describe('Persist and retrieve data', function() {
+      describe('Persist and retrieve data', () => {
         it('should be able to insert data into both schemas using instance.save and retrieve/count it', function() {
-          var self = this;
+          const self = this;
 
           //building and saving in random order to make sure calling
           // .schema doesn't impact model prototype
-          var restaurauntModel = self.RestaurantOne.build({bar: 'one.1'});
+          let restaurauntModel = self.RestaurantOne.build({bar: 'one.1'});
 
           return restaurauntModel.save()
-            .then(function() {
+            .then(() => {
               restaurauntModel = self.RestaurantTwo.build({bar: 'two.1'});
               return restaurauntModel.save();
-            }).then(function() {
+            }).then(() => {
               restaurauntModel = self.RestaurantOne.build({bar: 'one.2'});
               return restaurauntModel.save();
-            }).then(function() {
+            }).then(() => {
               restaurauntModel = self.RestaurantTwo.build({bar: 'two.2'});
               return restaurauntModel.save();
-            }).then(function() {
+            }).then(() => {
               restaurauntModel = self.RestaurantTwo.build({bar: 'two.3'});
               return restaurauntModel.save();
-            }).then(function() {
+            }).then(() => {
               return self.RestaurantOne.findAll();
-            }).then(function(restaurantsOne) {
+            }).then(restaurantsOne => {
               expect(restaurantsOne).to.not.be.null;
               expect(restaurantsOne.length).to.equal(2);
-              restaurantsOne.forEach(function(restaurant) {
+              restaurantsOne.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('one');
               });
               return self.RestaurantOne.findAndCountAll();
-            }).then(function(restaurantsOne) {
+            }).then(restaurantsOne => {
               expect(restaurantsOne).to.not.be.null;
               expect(restaurantsOne.rows.length).to.equal(2);
               expect(restaurantsOne.count).to.equal(2);
-              restaurantsOne.rows.forEach(function(restaurant) {
+              restaurantsOne.rows.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('one');
               });
               return self.RestaurantOne.findAll({
-                where: {bar: {$like: '%.1'}}
+                where: {bar: {[Op.like]: '%.1'}}
               });
-            }).then(function(restaurantsOne) {
+            }).then(restaurantsOne => {
               expect(restaurantsOne).to.not.be.null;
               expect(restaurantsOne.length).to.equal(1);
-              restaurantsOne.forEach(function(restaurant) {
+              restaurantsOne.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('one');
               });
               return self.RestaurantOne.count();
-            }).then(function(count) {
+            }).then(count => {
               expect(count).to.not.be.null;
               expect(count).to.equal(2);
               return self.RestaurantTwo.findAll();
-            }).then(function(restaurantsTwo) {
+            }).then(restaurantsTwo => {
               expect(restaurantsTwo).to.not.be.null;
               expect(restaurantsTwo.length).to.equal(3);
-              restaurantsTwo.forEach(function(restaurant) {
+              restaurantsTwo.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('two');
               });
               return self.RestaurantTwo.findAndCountAll();
-            }).then(function(restaurantsTwo) {
+            }).then(restaurantsTwo => {
               expect(restaurantsTwo).to.not.be.null;
               expect(restaurantsTwo.rows.length).to.equal(3);
               expect(restaurantsTwo.count).to.equal(3);
-              restaurantsTwo.rows.forEach(function(restaurant) {
+              restaurantsTwo.rows.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('two');
               });
               return self.RestaurantTwo.findAll({
-                where: {bar: {$like: '%.3'}}
+                where: {bar: {[Op.like]: '%.3'}}
               });
-            }).then(function(restaurantsTwo) {
+            }).then(restaurantsTwo => {
               expect(restaurantsTwo).to.not.be.null;
               expect(restaurantsTwo.length).to.equal(1);
-              restaurantsTwo.forEach(function(restaurant) {
+              restaurantsTwo.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('two');
               });
               return self.RestaurantTwo.count();
-            }).then(function(count) {
+            }).then(count => {
               expect(count).to.not.be.null;
               expect(count).to.equal(3);
             });
         });
       });
 
-      describe('Get associated data in public schema via include', function() {
+      describe('Get associated data in public schema via include', () => {
         beforeEach(function() {
-          var Location = this.Location;
+          const Location = this.Location;
 
           return Location.sync({force: true})
-            .then(function() {
-              return Location.create({name: 'HQ'}).then(function() {
-                return Location.findOne({where: {name: 'HQ'}}).then(function(obj) {
+            .then(() => {
+              return Location.create({name: 'HQ'}).then(() => {
+                return Location.findOne({where: {name: 'HQ'}}).then(obj => {
                   expect(obj).to.not.be.null;
                   expect(obj.name).to.equal('HQ');
                   locationId = obj.id;
                 });
               });
             })
-            .catch(function(err) {
+            .catch(err => {
               expect(err).to.be.null;
             });
         });
 
         it('should be able to insert and retrieve associated data into the table in schema_one', function() {
-          var self = this;
+          const self = this;
 
           return self.RestaurantOne.create({
             foo: 'one',
             location_id: locationId
-          }).then(function() {
+          }).then(() => {
             return self.RestaurantOne.findOne({
               where: {foo: 'one'}, include: [{
                 model: self.Location, as: 'location'
               }]
             });
-          }).then(function(obj) {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('one');
             expect(obj.location).to.not.be.null;
@@ -247,9 +377,9 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       });
 
 
-      describe('Get schema specific associated data via include', function() {
+      describe('Get schema specific associated data via include', () => {
         beforeEach(function() {
-          var Employee = this.Employee;
+          const Employee = this.Employee;
           return Promise.all([
             Employee.schema(SCHEMA_ONE).sync({force: true}),
             Employee.schema(SCHEMA_TWO).sync({force: true})
@@ -257,16 +387,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         });
 
         it('should be able to insert and retrieve associated data into the table in schema_one', function() {
-          var self = this;
-          var restaurantId;
+          const self = this;
+          let restaurantId;
 
           return self.RestaurantOne.create({
             foo: 'one'
-          }).then(function() {
+          }).then(() => {
             return self.RestaurantOne.findOne({
               where: {foo: 'one'}
             });
-          }).then(function(obj) {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('one');
             restaurantId = obj.id;
@@ -275,19 +405,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               last_name: 'one',
               restaurant_id: restaurantId
             });
-          }).then(function() {
+          }).then(() => {
             return self.RestaurantOne.findOne({
               where: {foo: 'one'}, include: [{
                 model: self.EmployeeOne, as: 'employees'
               }]
             });
-          }).then(function(obj) {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.employees).to.not.be.null;
             expect(obj.employees.length).to.equal(1);
             expect(obj.employees[0].last_name).to.equal('one');
-            return obj.getEmployees({schema:SCHEMA_ONE});
-          }).then(function(employees) {
+            return obj.getEmployees({schema: SCHEMA_ONE});
+          }).then(employees => {
             expect(employees.length).to.equal(1);
             expect(employees[0].last_name).to.equal('one');
             return self.EmployeeOne.findOne({
@@ -295,12 +425,12 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                 model: self.RestaurantOne, as: 'restaurant'
               }]
             });
-          }).then(function(obj) {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.restaurant).to.not.be.null;
             expect(obj.restaurant.foo).to.equal('one');
-            return obj.getRestaurant({schema:SCHEMA_ONE});
-          }).then(function(restaurant) {
+            return obj.getRestaurant({schema: SCHEMA_ONE});
+          }).then(restaurant => {
             expect(restaurant).to.not.be.null;
             expect(restaurant.foo).to.equal('one');
           });
@@ -308,16 +438,16 @@ describe(Support.getTestDialectTeaser('Model'), function() {
 
 
         it('should be able to insert and retrieve associated data into the table in schema_two', function() {
-          var self = this;
-          var restaurantId;
+          const self = this;
+          let restaurantId;
 
           return self.RestaurantTwo.create({
             foo: 'two'
-          }).then(function() {
+          }).then(() => {
             return self.RestaurantTwo.findOne({
               where: {foo: 'two'}
             });
-          }).then(function(obj) {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('two');
             restaurantId = obj.id;
@@ -326,19 +456,19 @@ describe(Support.getTestDialectTeaser('Model'), function() {
               last_name: 'two',
               restaurant_id: restaurantId
             });
-          }).then(function() {
+          }).then(() => {
             return self.RestaurantTwo.findOne({
               where: {foo: 'two'}, include: [{
                 model: self.Employee.schema(SCHEMA_TWO), as: 'employees'
               }]
             });
-          }).then(function(obj) {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.employees).to.not.be.null;
             expect(obj.employees.length).to.equal(1);
             expect(obj.employees[0].last_name).to.equal('two');
-            return obj.getEmployees({schema:SCHEMA_TWO});
-          }).then(function(employees) {
+            return obj.getEmployees({schema: SCHEMA_TWO});
+          }).then(employees => {
             expect(employees.length).to.equal(1);
             expect(employees[0].last_name).to.equal('two');
             return self.Employee.schema(SCHEMA_TWO).findOne({
@@ -346,44 +476,44 @@ describe(Support.getTestDialectTeaser('Model'), function() {
                 model: self.RestaurantTwo, as: 'restaurant'
               }]
             });
-          }).then(function(obj) {
+          }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.restaurant).to.not.be.null;
             expect(obj.restaurant.foo).to.equal('two');
-            return obj.getRestaurant({schema:SCHEMA_TWO});
-          }).then(function(restaurant) {
+            return obj.getRestaurant({schema: SCHEMA_TWO});
+          }).then(restaurant => {
             expect(restaurant).to.not.be.null;
             expect(restaurant.foo).to.equal('two');
           });
         });
       });
 
-      describe('concurency tests', function() {
+      describe('concurency tests', () => {
         it('should build and persist instances to 2 schemas concurrently in any order', function() {
-          var Restaurant = this.Restaurant;
+          const Restaurant = this.Restaurant;
 
-          var restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({bar: 'one.1'});
-          var restaurauntModelSchema2 = Restaurant.schema(SCHEMA_TWO).build({bar: 'two.1'});
+          let restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({bar: 'one.1'});
+          const restaurauntModelSchema2 = Restaurant.schema(SCHEMA_TWO).build({bar: 'two.1'});
 
           return restaurauntModelSchema1.save()
-            .then(function() {
+            .then(() => {
               restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({bar: 'one.2'});
               return restaurauntModelSchema2.save();
-            }).then(function() {
+            }).then(() => {
               return restaurauntModelSchema1.save();
-            }).then(function() {
+            }).then(() => {
               return Restaurant.schema(SCHEMA_ONE).findAll();
-            }).then(function(restaurantsOne) {
+            }).then(restaurantsOne => {
               expect(restaurantsOne).to.not.be.null;
               expect(restaurantsOne.length).to.equal(2);
-              restaurantsOne.forEach(function(restaurant) {
+              restaurantsOne.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('one');
               });
               return Restaurant.schema(SCHEMA_TWO).findAll();
-            }).then(function(restaurantsTwo) {
+            }).then(restaurantsTwo => {
               expect(restaurantsTwo).to.not.be.null;
               expect(restaurantsTwo.length).to.equal(1);
-              restaurantsTwo.forEach(function(restaurant) {
+              restaurantsTwo.forEach(restaurant => {
                 expect(restaurant.bar).to.contain('two');
               });
             });

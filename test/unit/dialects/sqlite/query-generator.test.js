@@ -1,17 +1,17 @@
 'use strict';
 
-/* jshint -W110 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../../support')
-  , DataTypes = require(__dirname + '/../../../../lib/data-types')
-  , dialect = Support.getTestDialect()
-  , _ = require('lodash')
-  , moment = require('moment')
-  , QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../../support'),
+  DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  dialect = Support.getTestDialect(),
+  _ = require('lodash'),
+  moment = require('moment'),
+  Op = require('../../../../lib/operators'),
+  QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
 
 if (dialect === 'sqlite') {
-  describe('[SQLITE Specific] QueryGenerator', function() {
+  describe('[SQLITE Specific] QueryGenerator', () => {
     beforeEach(function() {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING
@@ -19,7 +19,34 @@ if (dialect === 'sqlite') {
       return this.User.sync({ force: true });
     });
 
-    var suites = {
+    const suites = {
+      arithmeticQuery: [
+        {
+          title: 'Should use the plus operator',
+          arguments: ['+', 'myTable', { foo: 'bar' }, {}],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' '
+        },
+        {
+          title: 'Should use the plus operator with where clause',
+          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\''
+        },
+        {
+          title: 'Should use the minus operator',
+          arguments: ['-', 'myTable', { foo: 'bar' }],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' '
+        },
+        {
+          title: 'Should use the minus operator with negative value',
+          arguments: ['-', 'myTable', { foo: -1 }],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1 '
+        },
+        {
+          title: 'Should use the minus operator with where clause',
+          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\''
+        }
+      ],
       attributesToSQL: [
         {
           arguments: [{id: 'INTEGER'}],
@@ -78,7 +105,7 @@ if (dialect === 'sqlite') {
         {
           arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
           expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
-        },
+        }
       ],
 
       createTableQuery: [
@@ -113,6 +140,10 @@ if (dialect === 'sqlite') {
         {
           arguments: ['myTable', {id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));'
+        },
+        {
+          arguments: ['myTable', {id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)'}, {uniqueKeys: {uniqueConstraint: {fields: ['name', 'surname'], customIndex: true }}}],
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255), UNIQUE (`name`, `surname`));'
         }
       ],
 
@@ -146,16 +177,20 @@ if (dialect === 'sqlite') {
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {order: 'id DESC'}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY id DESC;',
-          context: QueryGenerator
-        }, {
           arguments: ['myTable', {order: ['id']}],
           expectation: 'SELECT * FROM `myTable` ORDER BY `id`;',
           context: QueryGenerator
         }, {
+          arguments: ['myTable', {order: ['id', 'DESC']}],
+          expectation: 'SELECT * FROM `myTable` ORDER BY `id`, `DESC`;',
+          context: QueryGenerator
+        }, {
           arguments: ['myTable', {order: ['myTable.id']}],
           expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id`;',
+          context: QueryGenerator
+        }, {
+          arguments: ['myTable', {order: [['myTable.id', 'DESC']]}],
+          expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id` DESC;',
           context: QueryGenerator
         }, {
           arguments: ['myTable', {order: [['id', 'DESC']]}, function(sequelize) {return sequelize.define('myTable', {});}],
@@ -163,10 +198,10 @@ if (dialect === 'sqlite') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'raw arguments are neither quoted nor escaped',
-          arguments: ['myTable', {order: [[{raw: 'f1(f2(id))'}, 'DESC']]}],
-          expectation: 'SELECT * FROM `myTable` ORDER BY f1(f2(id)) DESC;',
-          context: QueryGenerator
+          arguments: ['myTable', {order: [['id', 'DESC'], ['name']]}, function(sequelize) {return sequelize.define('myTable', {});}],
+          expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC, `myTable`.`name`;',
+          context: QueryGenerator,
+          needsSequelize: true
         }, {
           title: 'sequelize.where with .fn as attribute and default comparator',
           arguments: ['myTable', function(sequelize) {
@@ -217,9 +252,9 @@ if (dialect === 'sqlite') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          title: 'single string argument is not quoted',
+          title: 'single string argument should be quoted',
           arguments: ['myTable', {group: 'name'}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name;',
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
           context: QueryGenerator
         }, {
           arguments: ['myTable', {group: ['name']}],
@@ -250,28 +285,16 @@ if (dialect === 'sqlite') {
           expectation: 'SELECT * FROM `myTable` GROUP BY `name`, `title`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {group: 'name', order: 'id DESC'}],
-          expectation: 'SELECT * FROM `myTable` GROUP BY name ORDER BY id DESC;',
+          arguments: ['myTable', {group: 'name', order: [['id', 'DESC']]}],
+          expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator
-        }, {
-          title: 'HAVING clause works with string replacements',
-          arguments: ['myTable', function(sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: ['creationYear > ?', 2002]
-            };
-          }],
-          expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING creationYear > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true
         }, {
           title: 'HAVING clause works with where-like hash',
           arguments: ['myTable', function(sequelize) {
             return {
               attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
               group: ['creationYear', 'title'],
-              having: { creationYear: { gt: 2002 } }
+              having: { creationYear: { [Op.gt]: 2002 } }
             };
           }],
           expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;',
@@ -317,22 +340,22 @@ if (dialect === 'sqlite') {
           context: QueryGenerator
         }, {
           title: 'use != if ne !== null',
-          arguments: ['myTable', {where: {field: {ne: 0}}}],
+          arguments: ['myTable', {where: {field: {[Op.ne]: 0}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 0;',
           context: QueryGenerator
         }, {
           title: 'use IS NOT if ne === null',
-          arguments: ['myTable', {where: {field: {ne: null}}}],
+          arguments: ['myTable', {where: {field: {[Op.ne]: null}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
           context: QueryGenerator
         }, {
           title: 'use IS NOT if not === BOOLEAN',
-          arguments: ['myTable', {where: {field: {not: true}}}],
+          arguments: ['myTable', {where: {field: {[Op.not]: true}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT 1;',
           context: QueryGenerator
         }, {
           title: 'use != if not !== BOOLEAN',
-          arguments: ['myTable', {where: {field: {not: 3}}}],
+          arguments: ['myTable', {where: {field: {[Op.not]: 3}}}],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
           context: QueryGenerator
         }
@@ -341,42 +364,78 @@ if (dialect === 'sqlite') {
       insertQuery: [
         {
           arguments: ['myTable', { name: 'foo' }],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($1);',
+            bind: ['foo']
+          }
         }, {
           arguments: ['myTable', { name: "'bar'" }],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('''bar''');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($1);',
+            bind: ["'bar'"]
+          }
         }, {
           arguments: ['myTable', {data: new Buffer('Sequelize') }],
-          expectation: "INSERT INTO `myTable` (`data`) VALUES (X'53657175656c697a65');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`data`) VALUES ($1);',
+            bind: [new Buffer('Sequelize')]
+          }
         }, {
           arguments: ['myTable', { name: 'bar', value: null }],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2);',
+            bind: ['bar', null]
+          }
         }, {
           arguments: ['myTable', { name: 'bar', value: undefined }],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2);',
+            bind: ['bar', undefined]
+          }
         }, {
           arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}],
-          expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55.000 +00:00');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($1,$2);',
+            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()]
+          }
         }, {
           arguments: ['myTable', { name: 'foo', value: true }],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',1);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2);',
+            bind: ['foo', true]
+          }
         }, {
           arguments: ['myTable', { name: 'foo', value: false }],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',0);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2);',
+            bind: ['foo', false]
+          }
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
+            bind: ['foo', 1, null]
+          }
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL);",
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
+            bind: ['foo', 1, null]
+          },
           context: {options: {omitNull: false}}
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
+            bind: ['foo', 1]
+          },
           context: {options: {omitNull: true}}
         }, {
           arguments: ['myTable', {name: 'foo', foo: 1, nullValue: undefined}],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1);",
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
+            bind: ['foo', 1]
+          },
           context: {options: {omitNull: true}}
         }, {
           arguments: ['myTable', function(sequelize) {
@@ -384,7 +443,10 @@ if (dialect === 'sqlite') {
               foo: sequelize.fn('NOW')
             };
           }],
-          expectation: 'INSERT INTO `myTable` (`foo`) VALUES (NOW());',
+          expectation: {
+            query: 'INSERT INTO `myTable` (`foo`) VALUES (NOW());',
+            bind: []
+          },
           needsSequelize: true
         }
       ],
@@ -435,38 +497,71 @@ if (dialect === 'sqlite') {
       updateQuery: [
         {
           arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
-          expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55.000 +00:00' WHERE `id` = 2"
+          expectation: {
+            query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
+            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2]
+          }
         }, {
           arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
-          expectation: "UPDATE `myTable` SET `name`='foo',`birthday`='2011-03-27 10:01:55.000 +00:00' WHERE `id` = 2"
+          expectation: {
+            query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
+            bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2]
+          }
         }, {
           arguments: ['myTable', { name: 'foo' }, { id: 2 }],
-          expectation: "UPDATE `myTable` SET `name`='foo' WHERE `id` = 2"
+          expectation: {
+            query: 'UPDATE `myTable` SET `name`=$1 WHERE `id` = $2',
+            bind: ['foo', 2]
+          }
         }, {
           arguments: ['myTable', { name: "'bar'" }, { id: 2 }],
-          expectation: "UPDATE `myTable` SET `name`='''bar''' WHERE `id` = 2"
+          expectation: {
+            query: 'UPDATE `myTable` SET `name`=$1 WHERE `id` = $2',
+            bind: ["'bar'", 2]
+          }
         }, {
           arguments: ['myTable', { name: 'bar', value: null }, { id: 2 }],
-          expectation: "UPDATE `myTable` SET `name`='bar',`value`=NULL WHERE `id` = 2"
+          expectation: {
+            query: 'UPDATE `myTable` SET `name`=$1,`value`=$2 WHERE `id` = $3',
+            bind: ['bar', null, 2]
+          }
         }, {
           arguments: ['myTable', { name: 'bar', value: undefined }, { id: 2 }],
-          expectation: "UPDATE `myTable` SET `name`='bar',`value`=NULL WHERE `id` = 2"
+          expectation: {
+            query: 'UPDATE `myTable` SET `name`=$1,`value`=$2 WHERE `id` = $3',
+            bind: ['bar', undefined, 2]
+          }
         }, {
           arguments: ['myTable', { flag: true }, { id: 2 }],
-          expectation: 'UPDATE `myTable` SET `flag`=1 WHERE `id` = 2'
+          expectation: {
+            query: 'UPDATE `myTable` SET `flag`=$1 WHERE `id` = $2',
+            bind: [true, 2]
+          }
         }, {
           arguments: ['myTable', { flag: false }, { id: 2 }],
-          expectation: 'UPDATE `myTable` SET `flag`=0 WHERE `id` = 2'
+          expectation: {
+            query: 'UPDATE `myTable` SET `flag`=$1 WHERE `id` = $2',
+            bind: [false, 2]
+          }
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=2,`nullValue`=NULL WHERE `name` = 'foo'"
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
+            bind: [2, null, 'foo']
+          }
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=2,`nullValue`=NULL WHERE `name` = 'foo'",
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
+            bind: [2, null, 'foo']
+          },
           context: {options: {omitNull: false}}
         }, {
           arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=2 WHERE `name` = 'foo'",
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
+            bind: [2, 'foo']
+          },
           context: {options: {omitNull: true}}
         }, {
           arguments: ['myTable', function(sequelize) {
@@ -474,7 +569,10 @@ if (dialect === 'sqlite') {
               bar: sequelize.fn('NOW')
             };
           }, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=NOW() WHERE `name` = 'foo'",
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=NOW() WHERE `name` = $1',
+            bind: ['foo']
+          },
           needsSequelize: true
         }, {
           arguments: ['myTable', function(sequelize) {
@@ -482,26 +580,63 @@ if (dialect === 'sqlite') {
               bar: sequelize.col('foo')
             };
           }, {name: 'foo'}],
-          expectation: "UPDATE `myTable` SET `bar`=`foo` WHERE `name` = 'foo'",
+          expectation: {
+            query: 'UPDATE `myTable` SET `bar`=`foo` WHERE `name` = $1',
+            bind: ['foo']
+          },
           needsSequelize: true
+        }
+      ],
+      renameColumnQuery: [
+        {
+          title: 'Properly quotes column names',
+          arguments: ['myTable', 'foo', 'commit', {commit: 'VARCHAR(255)', bar: 'VARCHAR(255)'}],
+          expectation:
+            'CREATE TEMPORARY TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable_backup` SELECT `foo` AS `commit`, `bar` FROM `myTable`;' +
+            'DROP TABLE `myTable`;' +
+            'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;' +
+            'DROP TABLE `myTable_backup`;'
+        }
+      ],
+      removeColumnQuery: [
+        {
+          title: 'Properly quotes column names',
+          arguments: ['myTable', {commit: 'VARCHAR(255)', bar: 'VARCHAR(255)'}],
+          expectation:
+            'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;' +
+            'DROP TABLE `myTable`;' +
+            'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
+            'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;' +
+            'DROP TABLE `myTable_backup`;'
         }
       ]
     };
 
-    _.each(suites, function(tests, suiteTitle) {
-      describe(suiteTitle, function() {
-        tests.forEach(function(test) {
-          var title = test.title || 'SQLite correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
+    _.each(suites, (tests, suiteTitle) => {
+      describe(suiteTitle, () => {
+        beforeEach(function() {
+          this.queryGenerator = new QueryGenerator({
+            sequelize: this.sequelize,
+            _dialect: this.sequelize.dialect
+          });
+        });
+
+        tests.forEach(test => {
+          const query = test.expectation.query || test.expectation;
+          const title = test.title || 'SQLite correctly returns ' + query + ' for ' + JSON.stringify(test.arguments);
           it(title, function() {
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            var context = test.context || {options: {}};
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
               if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
             }
-            QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
-            QueryGenerator._dialect = this.sequelize.dialect;
-            var conditions = QueryGenerator[suiteTitle].apply(QueryGenerator, test.arguments);
+
+            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
+            this.queryGenerator.options = Object.assign({}, this.queryGenerator.options, test.context && test.context.options || {});
+
+            const conditions = this.queryGenerator[suiteTitle].apply(this.queryGenerator, test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         });

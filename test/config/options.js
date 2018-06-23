@@ -1,8 +1,8 @@
 'use strict';
 
-var path = require('path');
+const path = require('path');
 
 module.exports = {
-  configFile:     path.resolve('config', 'database.json'),
+  configFile: path.resolve('config', 'database.json'),
   migrationsPath: path.resolve('db', 'migrate')
 };
