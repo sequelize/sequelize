@@ -32,7 +32,7 @@
     "semver": "^5.5.0",
     "toposort-class": "^1.0.1",
     "uuid": "^3.2.1",
-    "validator": "^10.0.0",
+    "validator": "^10.4.0",
     "wkx": "^0.4.5"
   },
   "devDependencies": {
@@ -82,8 +82,7 @@
   ],
   "main": "index",
   "options": {
-    "env_cmd": "./test/config/.docker.env",
-    "mocha": "--globals setImmediate,clearImmediate --ui tdd --exit --check-leaks --colors -t 30000 --reporter spec"
+    "env_cmd": "./test/config/.docker.env"
   },
   "scripts": {
     "lint": "eslint lib test --quiet",
@@ -93,14 +92,14 @@
     "test-docker-integration": "env-cmd $npm_package_options_env_cmd npm run test-integration",
     "docs": "esdoc && cp docs/ROUTER esdoc/ROUTER",
     "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",
-    "test-unit": "mocha $npm_package_options_mocha \"test/unit/**/*.js\"",
+    "test-unit": "mocha --require scripts/mocha-bootload --globals setImmediate,clearImmediate --ui tdd --exit --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
     "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",
     "test-unit-postgres": "cross-env DIALECT=postgres npm run test-unit",
     "test-unit-postgres-native": "cross-env DIALECT=postgres-native npm run test-unit",
     "test-unit-sqlite": "cross-env DIALECT=sqlite npm run test-unit",
     "test-unit-mssql": "cross-env DIALECT=mssql npm run test-unit",
     "test-unit-all": "npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite",
-    "test-integration": "mocha $npm_package_options_mocha \"test/integration/**/*.test.js\"",
+    "test-integration": "mocha --require scripts/mocha-bootload --globals setImmediate,clearImmediate --ui tdd --exit --check-leaks --colors -t 30000 --reporter spec \"test/integration/**/*.test.js\"",
     "test-integration-mysql": "cross-env DIALECT=mysql npm run test-integration",
     "test-integration-postgres": "cross-env DIALECT=postgres npm run test-integration",
     "test-integration-postgres-native": "cross-env DIALECT=postgres-native npm run test-integration",
@@ -116,8 +115,8 @@
     "test-mssql": "cross-env DIALECT=mssql npm test",
     "test-all": "npm run test-mysql && npm run test-sqlite && npm run test-postgres && npm run test-postgres-native && npm run test-mssql",
     "cover": "rimraf coverage && npm run teaser && npm run cover-integration && npm run cover-unit && npm run merge-coverage",
-    "cover-integration": "cross-env COVERAGE=true ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -t 30000 --exit --ui tdd \"test/integration/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
-    "cover-unit": "cross-env COVERAGE=true ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -t 30000 --exit --ui tdd \"test/unit/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",
+    "cover-integration": "cross-env COVERAGE=true ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --require scripts/mocha-bootload --report lcovonly -- -t 30000 --exit --ui tdd \"test/integration/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
+    "cover-unit": "cross-env COVERAGE=true ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --require scripts/mocha-bootload --report lcovonly -- -t 30000 --exit --ui tdd \"test/unit/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",
     "merge-coverage": "lcov-result-merger \"coverage/*.info\" \"coverage/lcov.info\"",
     "sscce": "env-cmd $npm_package_options_env_cmd node sscce.js",
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",

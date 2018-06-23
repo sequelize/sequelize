@@ -150,6 +150,10 @@ Sequelize.BLOB('tiny')                // TINYBLOB (bytea for PostgreSQL. Other o
 
 Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite, CHAR(36) BINARY for MySQL (use defaultValue: Sequelize.UUIDV1 or Sequelize.UUIDV4 to make sequelize generate the ids automatically)
 
+Sequelize.CIDR                        // CIDR datatype for PostgreSQL
+Sequelize.INET                        // INET datatype for PostgreSQL
+Sequelize.MACADDR                     // MACADDR datatype for PostgreSQL
+
 Sequelize.RANGE(Sequelize.INTEGER)    // Defines int4range range. PostgreSQL only.
 Sequelize.RANGE(Sequelize.BIGINT)     // Defined int8range range. PostgreSQL only.
 Sequelize.RANGE(Sequelize.DATE)       // Defines tstzrange range. PostgreSQL only.
@@ -460,7 +464,25 @@ See [the validator.js project][3] for more details on the built in validation me
 
 ### Validators and `allowNull`
 
-If a particular field of a model is set to allow null (with `allowNull: true`) and that value has been set to `null` , its validators do not run. This means you can, for instance, have a string field which validates its length to be at least 5 characters, but which also allows`null`.
+If a particular field of a model is set to allow null (with `allowNull: true`) and that value has been set to `null` , its validators do not run.
+
+This means you can, for instance, have a string field which validates its length to be at least 5 characters, but which also allows `null`.
+
+You can customize `allowNull` error message by setting `notNull` validator, like this
+
+```js
+const User = sequelize.define('user', {
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    validate: {
+      notNull: {
+        msg: 'Please enter your name'
+      }
+    }
+  }
+});
+```
 
 ### Model validations
 
