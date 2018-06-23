@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }).then(() => {
         return this.Account.findById(accountRowId);
-      }).then((account) => {
+      }).then(account => {
         expect(account.ownerId).to.be.equal(ownerId);
       });
     });
