@@ -35,6 +35,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }));
     });
 
+    it('should not check for notNull Violation for undefined values', function () {
+      var ownerId = 2
+        , accountRowId;
+      return Account.create({
+        ownerId: ownerId,
+        name: Math.random().toString()
+      }).then(function (account) {
+        accountRowId = account.get('id');
+        var accountVal = {
+          name: Math.random().toString(),
+          ownerId: undefined
+        };
+        return Account.update(accountVal, {
+          where: {
+            id: accountRowId
+          }
+        });
+      }).then(function(rows) {
+        return Account.findById(accountRowId);
+      }).then(function(account) {
+        expect(account.ownerId).to.be.equal(ownerId);
+      });
+    });
 
     if (_.get(current.dialect.supports, 'returnValues.returning')) {
       it('should return the updated record', function() {
