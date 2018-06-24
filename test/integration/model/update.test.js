@@ -41,11 +41,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ownerId,
         name: Math.random().toString()
       }).then(account => {
-        const accountVal = {
+        return this.Account.update({
           name: Math.random().toString(),
           ownerId: undefined
-        };
-        return this.Account.update(accountVal, {
+        }, {
           where: {
             id: account.get('id')
           }
