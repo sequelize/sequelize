@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }));
     });
 
-    it('should not check for notNull Violation for undefined values', function () {
+    it('should not check for notNull Violation for undefined values', function() {
       const ownerId = 2;
       let accountRowId;
       return this.Account.create({
@@ -56,6 +56,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.Account.findById(accountRowId);
       }).then(account => {
         expect(account.ownerId).to.be.equal(ownerId);
+      });
+    });
+
+    it('should ignore undefined values', function() {
+      const ownerId = 2;
+      const name = Math.random().toString();
+      let accountRowId;
+      return this.Account.create({
+        ownerId,
+        name
+      }).then(account => {
+        accountRowId = account.get('id');
+        const accountVal = {
+          name: undefined
+        };
+        return this.Account.update(accountVal, {
+          where: {
+            id: accountRowId
+          }
+        });
+      }).then(() => {
+        return this.Account.findById(accountRowId);
+      }).then(account => {
+        expect(account.name).to.be.equal(name);
       });
     });
 
