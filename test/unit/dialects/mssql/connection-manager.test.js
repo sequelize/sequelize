@@ -55,7 +55,6 @@ if (dialect === 'mssql') {
 
     it('connectionManager._connect() should reject if end was called and connect was not', function() {
       this.connectionStub.returns({ on(event, cb) {
-        console.log('event: ', event)
         if (event === 'end') {
           setTimeout(() => {
             cb();
