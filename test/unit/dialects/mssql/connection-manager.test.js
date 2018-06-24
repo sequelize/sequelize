@@ -22,7 +22,7 @@ if (dialect === 'mssql') {
         dialectOptions: {
           domain: 'TEST.COM'
         },
-        encrypt: false
+        encrypt: true
       };
       this.instance = new Sequelize(
         this.config.database,
