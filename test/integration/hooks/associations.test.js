@@ -671,6 +671,82 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
 
+    describe('association created hook', () => {
+      describe('hasMany and belongsTo', () => {
+        beforeEach(function() {
+          this.Projects = this.sequelize.define('Project', { title: DataTypes.STRING });
+          this.Tasks = this.sequelize.define('Task', { title: DataTypes.STRING });
+        });
+
+        describe('should trigger on both models', () => {
+          it('with no errors', function() {
+            let beforeAssociationCreated = sinon.spy(),
+             afterAssociationCreated = sinon.spy();
+
+            this.Projects.beforeAssociationCreated(beforeAssociationCreated);
+            this.Projects.afterAssociationCreated(afterAssociationCreated);
+
+            this.Projects.hasMany(this.Tasks, {hooks: true});
+
+            expect(beforeAssociationCreated).to.have.been.called;
+            expect(afterAssociationCreated).to.have.been.called;
+            expect(beforeAssociationCreated).calledOnceWith(this.Projects, this.Tasks);
+            expect(afterAssociationCreated).calledOnceWith(this.Projects, this.Tasks);
+
+            beforeAssociationCreated = sinon.spy();
+            afterAssociationCreated = sinon.spy();
+
+            this.Tasks.afterAssociationCreated(afterAssociationCreated);
+            this.Tasks.beforeAssociationCreated(beforeAssociationCreated);
+
+            this.Tasks.belongsTo(this.Projects, {hooks: true});
+
+            expect(beforeAssociationCreated).to.have.been.called;
+            expect(afterAssociationCreated).to.have.been.called;
+            expect(beforeAssociationCreated).calledOnceWith(this.Tasks, this.Projects);
+            expect(afterAssociationCreated).calledOnceWith(this.Tasks, this.Projects);
+
+          });
+        })
+      });
+      describe('belongsToMany', () => {
+        beforeEach(function() {
+          this.Projects = this.sequelize.define('Project', { title: DataTypes.STRING });
+          this.Tasks = this.sequelize.define('Task', { title: DataTypes.STRING });
+        });
+
+        describe('should trigger on both models', () => {
+          it('with no errors', function() {
+            let beforeAssociationCreated = sinon.spy(),
+              afterAssociationCreated = sinon.spy();
+
+            this.Projects.beforeAssociationCreated(beforeAssociationCreated);
+            this.Projects.afterAssociationCreated(afterAssociationCreated);
+
+            this.Projects.belongsToMany(this.Tasks, {through: 'projects_and_tasks', hooks: true});
+
+            expect(beforeAssociationCreated).to.have.been.called;
+            expect(afterAssociationCreated).to.have.been.called;
+            expect(beforeAssociationCreated).calledOnceWith(this.Projects, this.Tasks);
+            expect(afterAssociationCreated).calledOnceWith(this.Projects, this.Tasks);
+
+            beforeAssociationCreated = sinon.spy();
+            afterAssociationCreated = sinon.spy();
+
+            this.Tasks.beforeAssociationCreated(beforeAssociationCreated);
+            this.Tasks.afterAssociationCreated(afterAssociationCreated);
+
+            this.Tasks.belongsToMany(this.Projects, {through: 'projects_and_tasks', hooks: true});
+
+            expect(beforeAssociationCreated).to.have.been.called;
+            expect(afterAssociationCreated).to.have.been.called;
+            expect(beforeAssociationCreated).calledOnceWith(this.Tasks, this.Projects);
+            expect(afterAssociationCreated).calledOnceWith(this.Tasks, this.Projects);
+          });
+        })
+      });
+    });
+
     // NOTE: Reenable when FK constraints create table query is fixed when using hooks
     if (dialect !== 'mssql') {
       describe('multiple 1:M', () => {
