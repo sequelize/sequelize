@@ -681,7 +681,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         describe('should trigger on both models', () => {
           it('with no errors', function() {
             let beforeAssociationCreated = sinon.spy(),
-             afterAssociationCreated = sinon.spy();
+              afterAssociationCreated = sinon.spy();
 
             this.Projects.beforeAssociationCreated(beforeAssociationCreated);
             this.Projects.afterAssociationCreated(afterAssociationCreated);
@@ -707,7 +707,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             expect(afterAssociationCreated).calledOnceWith(this.Tasks, this.Projects);
 
           });
-        })
+        });
       });
       describe('belongsToMany', () => {
         beforeEach(function() {
@@ -743,7 +743,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             expect(beforeAssociationCreated).calledOnceWith(this.Tasks, this.Projects);
             expect(afterAssociationCreated).calledOnceWith(this.Tasks, this.Projects);
           });
-        })
+        });
       });
     });
 
