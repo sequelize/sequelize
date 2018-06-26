@@ -37,7 +37,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       }
     });
 
-    test('type and method', () => {
+    test('type and using', () => {
       expectsql(sql.addIndexQuery('User', ['fieldC'], {
         type: 'FULLTEXT',
         concurrently: true
@@ -51,7 +51,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.addIndexQuery('User', ['fieldB', {attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
         name: 'a_b_uniq',
         unique: true,
-        method: 'BTREE',
+        using: 'BTREE',
         parser: 'foo'
       }), {
         sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
