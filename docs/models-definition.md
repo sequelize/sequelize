@@ -66,6 +66,13 @@ const Foo = sequelize.define('foo', {
      // This declares when to check the foreign key constraint. PostgreSQL only.
      deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
    }
+ },
+
+ // It is possible to add coments on columns for MySQL, PostgreSQL and MSSQL only
+ commentMe: {
+   type: Sequelize.INTEGER,
+
+   comment: 'This is a column name that has a comment'
  }
 })
 ```

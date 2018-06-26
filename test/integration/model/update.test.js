@@ -35,6 +35,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }));
     });
 
+    it('should ignore undefined values without throwing not null validation', function() {
+      const ownerId = 2;
+      return this.Account.create({
+        ownerId,
+        name: Math.random().toString()
+      }).then(account => {
+        return this.Account.update({
+          name: Math.random().toString(),
+          ownerId: undefined
+        }, {
+          where: {
+            id: account.get('id')
+          }
+        });
+      }).then(() => {
+        return this.Account.findOne();
+      }).then(account => {
+        expect(account.ownerId).to.be.equal(ownerId);
+      });
+    });
 
     if (_.get(current.dialect.supports, 'returnValues.returning')) {
       it('should return the updated record', function() {
