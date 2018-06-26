@@ -374,6 +374,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
+    it('ignores undefined attributes', function() {
+      return this.User.sync({force: true}).bind(this).then(() => {
+        return this.User.create({ username: 'user' }).then(user => {
+          return user.update({ username: undefined }).then(user => {
+            expect(user.username).to.equal('user');
+          });
+        });
+      });
+    });
+
     it('doesn\'t update primary keys or timestamps', function() {
       const User = this.sequelize.define('User' + config.rand(), {
         name: DataTypes.STRING,
