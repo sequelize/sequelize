@@ -84,6 +84,10 @@ if (dialect.match(/^postgres/)) {
           arguments: [{id: {type: 'INTEGER', unique: true}}],
           expectation: {id: 'INTEGER UNIQUE'}
         },
+        {
+          arguments: [{id: {type: 'INTEGER', unique: true, comment: 'This is my comment'}}],
+          expectation: {id: 'INTEGER UNIQUE COMMENT This is my comment'}
+        },
 
         // New references style
         {
@@ -143,6 +147,10 @@ if (dialect.match(/^postgres/)) {
         {
           arguments: ['myTable', {serial: 'INTEGER SERIAL', bigserial: 'BIGINT SERIAL', smallserial: 'SMALLINT SERIAL' }],
           expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"serial\"  SERIAL, \"bigserial\"  BIGSERIAL, \"smallserial\"  SMALLSERIAL);'
+        },
+        {
+          arguments: ['myTable', {int: 'INTEGER COMMENT Test', foo: 'INTEGER COMMENT Foo Comment'}],
+          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"int\" INTEGER , \"foo\" INTEGER ); COMMENT ON COLUMN \"myTable\".\"int\" IS \'Test\'; COMMENT ON COLUMN \"myTable\".\"foo\" IS \'Foo Comment\';'
         },
         {
           arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
