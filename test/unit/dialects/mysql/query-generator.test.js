@@ -68,6 +68,11 @@ if (dialect === 'mysql') {
           expectation: {id: 'INTEGER DEFAULT 0'}
         },
         {
+          title: 'Add column level comment',
+          arguments: [{id: {type: 'INTEGER', comment: 'Test'}}],
+          expectation: {id: 'INTEGER COMMENT \'Test\''}
+        },
+        {
           arguments: [{id: {type: 'INTEGER', unique: true}}],
           expectation: {id: 'INTEGER UNIQUE'}
         },

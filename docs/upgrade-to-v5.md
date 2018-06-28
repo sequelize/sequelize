@@ -26,7 +26,7 @@ http://docs.sequelizejs.com/manual/tutorial/querying.html#operators-security
 
 `Model.attributes` now removed, use `Model.rawAttributes`. [#5320](https://github.com/sequelize/sequelize/issues/5320)
 
-__Note__: _Please dont confuse this with `options.attributes`, they are still valid_
+__Note__: _Please don't confuse this with `options.attributes`, they are still valid_
 
 **Paranoid Mode**
 
@@ -55,6 +55,10 @@ Main outline
 
 Now supports only one standard format `[{ value: 1, inclusive: true }, { value: 20, inclusive: false }]` [#9364](https://github.com/sequelize/sequelize/pull/9364)
 
+**Network types**
+
+Added support for `CIDR`, `INET` and `MACADDR` for Postgres
+
 ### Others
 
 Sequelize now use parameterized queries for all INSERT / UPDATE operations (except UPSERT). They provide better protection against SQL Injection attack.
@@ -70,6 +74,14 @@ Sequelize now use parameterized queries for all INSERT / UPDATE operations (exce
 
 
 ## Changelog
+
+### 5.0.0-beta.9
+
+- fix(model): ignore undefined values in update payload [#9587](https://github.com/sequelize/sequelize/pull/9587)
+- fix(mssql): set encrypt as default false for dialect options [#9588](https://github.com/sequelize/sequelize/pull/9588)
+- fix(model): ignore VIRTUAL/getters with attributes.exclude [#9568](https://github.com/sequelize/sequelize/pull/9568)
+- feat(data-types): CIDR, INET, MACADDR support for Postgres [#9567](https://github.com/sequelize/sequelize/pull/9567)
+- fix: customize allowNull message with notNull validator [#9549](https://github.com/sequelize/sequelize/pull/9549)
 
 ### 5.0.0-beta.8
 

@@ -1570,8 +1570,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(Object.keys(this.UserTasks2.primaryKeys)).to.deep.equal(['userTasksId']);
 
       _.each([this.UserTasks, this.UserTasks2], model => {
-        fk = Object.keys(model.options.uniqueKeys)[0];
-        expect(model.options.uniqueKeys[fk].fields.sort()).to.deep.equal(['TaskId', 'UserId']);
+        fk = Object.keys(model.uniqueKeys)[0];
+        expect(model.uniqueKeys[fk].fields.sort()).to.deep.equal(['TaskId', 'UserId']);
       });
     });
 

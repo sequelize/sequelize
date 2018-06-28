@@ -2,6 +2,7 @@ docs
 esdoc
 examples
 test
+scripts
 README.md
 .watchr.js
 changelog.md
