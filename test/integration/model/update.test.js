@@ -35,6 +35,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }));
     });
 
+    it('changed should be false after reload', function() {
+      return this.Account.create({ ownerId: 2, name: 'foo' })
+        .then(account => {
+          account.name = 'bar';
+          expect(account.changed()[0]).to.equal('name');
+          return account.reload();
+        })
+        .then(account => {
+          expect(account.changed()).to.equal(false);
+        });
+    });
+
 
     if (_.get(current.dialect.supports, 'returnValues.returning')) {
       it('should return the updated record', function() {
