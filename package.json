@@ -1,7 +1,7 @@
 {
   "name": "sequelize-fulltext-search",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "4.22.5-beta.1",
+  "version": "4.22.6",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -26,6 +26,10 @@
     {
       "name": "Sushant Dhiman",
       "email": "sushantdhiman@outlook.com"
+    },
+    {
+      "name": "Ron Yang",
+      "email": "yrong1997@gmail.com"
     }
   ],
   "repository": {
