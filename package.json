@@ -1,5 +1,5 @@
 {
-  "name": "sequelize-fulltext-search",
+  "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
   "version": "4.22.6",
   "author": "Sascha Depold <sascha@depold.com>",
@@ -138,7 +138,8 @@
     "sscce": "docker-compose run sequelize /bin/sh -c \"node sscce.js\"",
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
-    "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce"
+    "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
+    "commitmsg": "validate-commit-msg"
   },
   "engines": {
     "node": ">=4.0.0"
