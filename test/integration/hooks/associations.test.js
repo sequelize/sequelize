@@ -690,8 +690,15 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
             expect(beforeAssociate).to.have.been.called;
             expect(afterAssociate).to.have.been.called;
-            expect(beforeAssociate).calledOnceWith(this.Projects, this.Tasks);
-            expect(afterAssociate).calledOnceWith(this.Tasks);
+
+            let beforeAssociateArgs = beforeAssociate.getCall(0).args;
+            expect(beforeAssociateArgs.length).to.equal(1);
+            expect(beforeAssociateArgs[0].sequelize.constructor.name).to.equal('Sequelize');
+
+            let afterAssociateArgs = afterAssociate.getCall(0).args;
+            expect(afterAssociateArgs.length).to.equal(2);
+            expect(afterAssociateArgs[0].constructor.name).to.equal('HasMany');
+            expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
 
             beforeAssociate = sinon.spy();
             afterAssociate = sinon.spy();
@@ -703,9 +710,15 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
             expect(beforeAssociate).to.have.been.called;
             expect(afterAssociate).to.have.been.called;
-            expect(beforeAssociate).calledOnceWith(this.Tasks, this.Projects);
-            expect(afterAssociate).calledOnceWith(this.Projects);
 
+            beforeAssociateArgs = beforeAssociate.getCall(0).args;
+            expect(beforeAssociateArgs.length).to.equal(1);
+            expect(beforeAssociateArgs[0].sequelize.constructor.name).to.equal('Sequelize');
+
+            afterAssociateArgs = afterAssociate.getCall(0).args;
+            expect(afterAssociateArgs.length).to.equal(2);
+            expect(afterAssociateArgs[0].constructor.name).to.equal('BelongsTo');
+            expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
           });
         });
       });
@@ -727,8 +740,15 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
             expect(beforeAssociate).to.have.been.called;
             expect(afterAssociate).to.have.been.called;
-            expect(beforeAssociate).calledOnceWith(this.Projects, this.Tasks);
-            expect(afterAssociate).calledOnceWith(this.Tasks);
+
+            let beforeAssociateArgs = beforeAssociate.getCall(0).args;
+            expect(beforeAssociateArgs.length).to.equal(1);
+            expect(beforeAssociateArgs[0].sequelize.constructor.name).to.equal('Sequelize');
+
+            let afterAssociateArgs = afterAssociate.getCall(0).args;
+            expect(afterAssociateArgs.length).to.equal(2);
+            expect(afterAssociateArgs[0].constructor.name).to.equal('BelongsToMany');
+            expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
 
             beforeAssociate = sinon.spy();
             afterAssociate = sinon.spy();
@@ -740,8 +760,15 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
             expect(beforeAssociate).to.have.been.called;
             expect(afterAssociate).to.have.been.called;
-            expect(beforeAssociate).calledOnceWith(this.Tasks, this.Projects);
-            expect(afterAssociate).calledOnceWith(this.Projects);
+
+            beforeAssociateArgs = beforeAssociate.getCall(0).args;
+            expect(beforeAssociateArgs.length).to.equal(1);
+            expect(beforeAssociateArgs[0].sequelize.constructor.name).to.equal('Sequelize');
+
+            afterAssociateArgs = afterAssociate.getCall(0).args;
+            expect(afterAssociateArgs.length).to.equal(2);
+            expect(afterAssociateArgs[0].constructor.name).to.equal('BelongsToMany');
+            expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
           });
         });
       });
