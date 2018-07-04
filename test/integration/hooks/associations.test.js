@@ -680,31 +680,31 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('should trigger on both models', () => {
           it('with no errors', function() {
-            let beforeAssociationCreated = sinon.spy(),
-              afterAssociationCreated = sinon.spy();
+            let beforeAssociate = sinon.spy(),
+              afterAssociate = sinon.spy();
 
-            this.Projects.beforeAssociationCreated(beforeAssociationCreated);
-            this.Projects.afterAssociationCreated(afterAssociationCreated);
+            this.Projects.beforeAssociate(beforeAssociate);
+            this.Projects.afterAssociate(afterAssociate);
 
             this.Projects.hasMany(this.Tasks, {hooks: true});
 
-            expect(beforeAssociationCreated).to.have.been.called;
-            expect(afterAssociationCreated).to.have.been.called;
-            expect(beforeAssociationCreated).calledOnceWith(this.Projects, this.Tasks);
-            expect(afterAssociationCreated).calledOnceWith(this.Projects, this.Tasks);
+            expect(beforeAssociate).to.have.been.called;
+            expect(afterAssociate).to.have.been.called;
+            expect(beforeAssociate).calledOnceWith(this.Projects, this.Tasks);
+            expect(afterAssociate).calledOnceWith(this.Tasks);
 
-            beforeAssociationCreated = sinon.spy();
-            afterAssociationCreated = sinon.spy();
+            beforeAssociate = sinon.spy();
+            afterAssociate = sinon.spy();
 
-            this.Tasks.afterAssociationCreated(afterAssociationCreated);
-            this.Tasks.beforeAssociationCreated(beforeAssociationCreated);
+            this.Tasks.afterAssociate(afterAssociate);
+            this.Tasks.beforeAssociate(beforeAssociate);
 
             this.Tasks.belongsTo(this.Projects, {hooks: true});
 
-            expect(beforeAssociationCreated).to.have.been.called;
-            expect(afterAssociationCreated).to.have.been.called;
-            expect(beforeAssociationCreated).calledOnceWith(this.Tasks, this.Projects);
-            expect(afterAssociationCreated).calledOnceWith(this.Tasks, this.Projects);
+            expect(beforeAssociate).to.have.been.called;
+            expect(afterAssociate).to.have.been.called;
+            expect(beforeAssociate).calledOnceWith(this.Tasks, this.Projects);
+            expect(afterAssociate).calledOnceWith(this.Projects);
 
           });
         });
@@ -717,31 +717,31 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         describe('should trigger on both models', () => {
           it('with no errors', function() {
-            let beforeAssociationCreated = sinon.spy(),
-              afterAssociationCreated = sinon.spy();
+            let beforeAssociate = sinon.spy(),
+              afterAssociate = sinon.spy();
 
-            this.Projects.beforeAssociationCreated(beforeAssociationCreated);
-            this.Projects.afterAssociationCreated(afterAssociationCreated);
+            this.Projects.beforeAssociate(beforeAssociate);
+            this.Projects.afterAssociate(afterAssociate);
 
             this.Projects.belongsToMany(this.Tasks, {through: 'projects_and_tasks', hooks: true});
 
-            expect(beforeAssociationCreated).to.have.been.called;
-            expect(afterAssociationCreated).to.have.been.called;
-            expect(beforeAssociationCreated).calledOnceWith(this.Projects, this.Tasks);
-            expect(afterAssociationCreated).calledOnceWith(this.Projects, this.Tasks);
+            expect(beforeAssociate).to.have.been.called;
+            expect(afterAssociate).to.have.been.called;
+            expect(beforeAssociate).calledOnceWith(this.Projects, this.Tasks);
+            expect(afterAssociate).calledOnceWith(this.Tasks);
 
-            beforeAssociationCreated = sinon.spy();
-            afterAssociationCreated = sinon.spy();
+            beforeAssociate = sinon.spy();
+            afterAssociate = sinon.spy();
 
-            this.Tasks.beforeAssociationCreated(beforeAssociationCreated);
-            this.Tasks.afterAssociationCreated(afterAssociationCreated);
+            this.Tasks.beforeAssociate(beforeAssociate);
+            this.Tasks.afterAssociate(afterAssociate);
 
             this.Tasks.belongsToMany(this.Projects, {through: 'projects_and_tasks', hooks: true});
 
-            expect(beforeAssociationCreated).to.have.been.called;
-            expect(afterAssociationCreated).to.have.been.called;
-            expect(beforeAssociationCreated).calledOnceWith(this.Tasks, this.Projects);
-            expect(afterAssociationCreated).calledOnceWith(this.Tasks, this.Projects);
+            expect(beforeAssociate).to.have.been.called;
+            expect(afterAssociate).to.have.been.called;
+            expect(beforeAssociate).calledOnceWith(this.Tasks, this.Projects);
+            expect(afterAssociate).calledOnceWith(this.Projects);
           });
         });
       });
