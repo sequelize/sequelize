@@ -594,4 +594,49 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onDelete).to.equal('RESTRICT');
     });
   });
+  describe('association hooks', () => {
+    beforeEach(function() {
+      this.Projects = this.sequelize.define('Project', { title: DataTypes.STRING });
+      this.Tasks = this.sequelize.define('Task', { title: DataTypes.STRING });
+    });
+    describe('beforeBelongsToManyAssociate', () => {
+      it('should trigger', function() {
+        const beforeAssociate = sinon.spy();
+        this.Projects.beforeBelongsToManyAssociate(beforeAssociate);
+        this.Projects.belongsToMany(this.Tasks, {through: 'projects_and_tasks', hooks: true});
+
+        const beforeAssociateArgs = beforeAssociate.getCall(0).args;
+
+        expect(beforeAssociate).to.have.been.called;
+        expect(beforeAssociateArgs.length).to.equal(2);
+        expect(beforeAssociateArgs[0]).to.equal(this.Tasks);
+        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+      });
+      it('should not trigger association hooks', function() {
+        const beforeAssociate = sinon.spy();
+        this.Projects.beforeBelongsToManyAssociate(beforeAssociate);
+        this.Projects.belongsToMany(this.Tasks, {through: 'projects_and_tasks', hooks: false});
+        expect(beforeAssociate).to.not.have.been.called;
+      });
+    });
+    describe('afterBelongsToManyAssociate', () => {
+      it('should trigger', function() {
+        const afterAssociate = sinon.spy();
+        this.Projects.afterBelongsToManyAssociate(afterAssociate);
+        this.Projects.belongsToMany(this.Tasks, {through: 'projects_and_tasks', hooks: true});
+
+        const afterAssociateArgs = afterAssociate.getCall(0).args;
+
+        expect(afterAssociate).to.have.been.called;
+        expect(afterAssociateArgs.length).to.equal(1);
+        expect(afterAssociateArgs[0].constructor.name).to.equal('BelongsToMany');
+      });
+      it('should not trigger association hooks', function() {
+        const afterAssociate = sinon.spy();
+        this.Projects.afterBelongsToManyAssociate(afterAssociate);
+        this.Projects.belongsToMany(this.Tasks, {through: 'projects_and_tasks', hooks: false});
+        expect(afterAssociate).to.not.have.been.called;
+      });
+    });
+  });
 });

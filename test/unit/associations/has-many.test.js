@@ -198,4 +198,49 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       });
     });
   });
+  describe('association hooks', () => {
+    beforeEach(function() {
+      this.Projects = this.sequelize.define('Project', { title: DataTypes.STRING });
+      this.Tasks = this.sequelize.define('Task', { title: DataTypes.STRING });
+    });
+    describe('beforeHasManyAssociate', () => {
+      it('should trigger', function() {
+        const beforeAssociate = sinon.spy();
+        this.Projects.beforeHasManyAssociate(beforeAssociate);
+        this.Projects.hasMany(this.Tasks, {hooks: true});
+
+        const beforeAssociateArgs = beforeAssociate.getCall(0).args;
+
+        expect(beforeAssociate).to.have.been.called;
+        expect(beforeAssociateArgs.length).to.equal(2);
+        expect(beforeAssociateArgs[0]).to.equal(this.Tasks);
+        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+      });
+      it('should not trigger association hooks', function() {
+        const beforeAssociate = sinon.spy();
+        this.Projects.beforeHasManyAssociate(beforeAssociate);
+        this.Projects.hasMany(this.Tasks, {hooks: false});
+        expect(beforeAssociate).to.not.have.been.called;
+      });
+    });
+    describe('afterHasManyAssociate', () => {
+      it('should trigger', function() {
+        const afterAssociate = sinon.spy();
+        this.Projects.afterHasManyAssociate(afterAssociate);
+        this.Projects.hasMany(this.Tasks, {hooks: true});
+
+        const afterAssociateArgs = afterAssociate.getCall(0).args;
+
+        expect(afterAssociate).to.have.been.called;
+        expect(afterAssociateArgs.length).to.equal(1);
+        expect(afterAssociateArgs[0].constructor.name).to.equal('HasMany');
+      });
+      it('should not trigger association hooks', function() {
+        const afterAssociate = sinon.spy();
+        this.Projects.afterHasManyAssociate(afterAssociate);
+        this.Projects.hasMany(this.Tasks, {hooks: false});
+        expect(afterAssociate).to.not.have.been.called;
+      });
+    });
+  });
 });
