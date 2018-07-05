@@ -1658,7 +1658,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('throws custom error with initialized', () => {
-
       const Model = current.define('Test', {
         username: Sequelize.STRING(100)
       }, {
@@ -1676,7 +1675,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('throws custom error with instance', () => {
-
       const Model = current.define('Test', {
         username: Sequelize.STRING(100)
       }, {
@@ -1692,7 +1690,5 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           })).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
         });
     });
-
   });
-
 });
