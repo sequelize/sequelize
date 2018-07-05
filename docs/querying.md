@@ -232,7 +232,9 @@ const Op = Sequelize.Op;
 ```
 
 #### Operators Aliases
-Sequelize allows setting specific strings as aliases for operators -
+
+Sequelize allows setting specific strings as aliases for operators. With v5 this will give you deprecation warning.
+
 ```js
 const Op = Sequelize.Op;
 const operatorsAliases = {
@@ -244,20 +246,13 @@ const connection = new Sequelize(db, user, pass, { operatorsAliases })
 $gt: 6 // same as using Op.gt (> 6)
 ```
 
-
 #### Operators security
-Using Sequelize without any aliases improves security.
+
+By default Sequelize will use Symbol operators. Using Sequelize without any aliases improves security. Not having any string aliases will make it extremely unlikely that operators could be injected but you should always properly validate and sanitize user input.
+
 Some frameworks automatically parse user input into js objects and if you fail to sanitize your input it might be possible to inject an Object with string operators to Sequelize.
 
-Not having any string aliases will make it extremely unlikely that operators could be injected but you should always properly validate and sanitize user input.
-
-For backward compatibility reasons Sequelize sets the following aliases by default -
-$eq, $ne, $gte, $gt, $lte, $lt, $not, $in, $notIn, $is, $like, $notLike, $iLike, $notILike, $regexp, $notRegexp, $iRegexp, $notIRegexp, $between, $notBetween, $overlap, $contains, $contained, $adjacent, $strictLeft, $strictRight, $noExtendRight, $noExtendLeft, $and, $or, $any, $all, $values, $col
-
-Currently the following legacy aliases are also set but are planned to be fully removed in the near future -
-ne, not, in, notIn, gte, gt, lte, lt, like, ilike, $ilike, nlike, $notlike, notilike, .., between, !.., notbetween, nbetween, overlap, &&, @>, <@
-
-For better security it is highly advised to use `Sequelize.Op` and not depend on any string alias at all. You can limit alias your application will need by setting `operatorsAliases` option, remember to sanitize user input especially when you are directly passing them to Sequelize methods.
+For better security it is highly advised to use symbol operators from `Sequelize.Op` like `Op.and` / `Op.or` in your code and not depend on any string based operators like `$and` / `$or` at all. You can limit alias your application will need by setting `operatorsAliases` option, remember to sanitize user input especially when you are directly passing them to Sequelize methods.
 
 ```js
 const Op = Sequelize.Op;
@@ -316,7 +311,7 @@ const connection = new Sequelize(db, user, pass, { operatorsAliases });
 
 ### JSON
 
-The JSON data type is supported by the PostgreSQL, SQLite and MySQL dialects only. 
+The JSON data type is supported by the PostgreSQL, SQLite and MySQL dialects only.
 
 #### PostgreSQL
 
@@ -324,7 +319,7 @@ The JSON data type in PostgreSQL stores the value as plain text, as opposed to b
 
 #### MSSQL
 
-MSSQL does not have a JSON data type, however it does provide support for JSON stored as strings through certain functions since SQL Server 2016. Using these functions, you will be able to query the JSON stored in the string, but any returned values will need to be parsed seperately. 
+MSSQL does not have a JSON data type, however it does provide support for JSON stored as strings through certain functions since SQL Server 2016. Using these functions, you will be able to query the JSON stored in the string, but any returned values will need to be parsed seperately.
 
 ```js
 // ISJSON - to test if a string contains valid JSON
@@ -471,7 +466,7 @@ Subtask.findAll({
 
 ## Table Hint
 
-`tableHint` can be used to optionally pass a table hint when using mssql. The hint must be a value from `Sequelize.TableHints` and should only be used when absolutely necessary. Only a single table hint is currently supported per query. 
+`tableHint` can be used to optionally pass a table hint when using mssql. The hint must be a value from `Sequelize.TableHints` and should only be used when absolutely necessary. Only a single table hint is currently supported per query.
 
 Table hints override the default behavior of mssql query optimizer by specifing certain options. They only affect the table or view referenced in that clause.
 

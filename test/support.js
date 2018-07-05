@@ -213,7 +213,8 @@ const Support = {
     return url;
   },
 
-  expectsql(query, expectations) {
+  expectsql(query, assertions) {
+    const expectations = assertions.query || assertions;
     let expectation = expectations[Support.sequelize.dialect.name];
 
     if (!expectation) {
@@ -229,7 +230,12 @@ const Support = {
     if (_.isError(query)) {
       expect(query.message).to.equal(expectation.message);
     } else {
-      expect(query).to.equal(expectation);
+      expect(query.query || query).to.equal(expectation);
+    }
+
+    if (assertions.bind) {
+      const bind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind['default'] || assertions.bind;
+      expect(query.bind).to.deep.equal(bind);
     }
   }
 };

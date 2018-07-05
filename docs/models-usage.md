@@ -344,7 +344,7 @@ Project.count({ where: {'id': {[Op.gt]: 25}} }).then(c => {
 
 ### `max` - Get the greatest value of a specific attribute within a specific table
 
-And here is a method for getting the max value of an attribute:f
+And here is a method for getting the max value of an attribute
 
 ```js
 /*

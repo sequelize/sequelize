@@ -3,6 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('./support'),
+  dialect = Support.getTestDialect(),
   Sequelize = Support.Sequelize,
   current = Support.sequelize,
   DataTypes = Sequelize.DataTypes;
@@ -26,19 +27,17 @@ describe('model', () => {
           });
       });
 
-      it('should stringify json with insert', function() {
+      it('should use a placeholder for json with insert', function() {
         return this.User.create({
           username: 'bob',
           emergency_contact: { name: 'joe', phones: [1337, 42] }
         }, {
           fields: ['id', 'username', 'document', 'emergency_contact'],
           logging: sql => {
-            const expected = '\'{"name":"joe","phones":[1337,42]}\'';
-            const expectedEscaped = '\'{\\"name\\":\\"joe\\",\\"phones\\":[1337,42]}\'';
-            if (sql.indexOf(expected) === -1) {
-              expect(sql.indexOf(expectedEscaped)).not.to.equal(-1);
+            if (dialect.match(/^mysql/)) {
+              expect(sql).to.include('?');
             } else {
-              expect(sql.indexOf(expected)).not.to.equal(-1);
+              expect(sql).to.include('$1');
             }
           }
         });

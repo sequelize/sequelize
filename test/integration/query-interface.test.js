@@ -150,7 +150,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         username: DataTypes.STRING,
         city: {
           type: DataTypes.STRING,
-          defaultValue: null
+          defaultValue: null,
+          comment: 'Users City'
         },
         isAdmin: DataTypes.BOOLEAN,
         enumVals: DataTypes.ENUM('hello', 'world')
@@ -217,6 +218,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           } else if (dialect === 'mysql') {
             expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
           }
+
+          if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
+            expect(city.comment).to.equal('Users City');
+            expect(username.comment).to.equal(null);
+          }
         });
       });
     });
@@ -254,74 +260,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               expect(metalumni.city.primaryKey).to.eql(false);
             });
           });
-        });
-      });
-    });
-  });
-
-  // FIXME: These tests should make assertions against the created table using describeTable
-  describe('createTable', () => {
-    it('should create a auto increment primary key', function() {
-      return this.queryInterface.createTable('TableWithPK', {
-        table_id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true
-        }
-      }).bind(this).then(function() {
-        return this.queryInterface.insert(null, 'TableWithPK', {}, {raw: true, returning: true, plain: true}).then(results => {
-          const response = _.head(results);
-          expect(response.table_id || typeof response !== 'object' && response).to.be.ok;
-        });
-      });
-    });
-
-    it('should work with enums (1)', function() {
-      return this.queryInterface.createTable('SomeTable', {
-        someEnum: DataTypes.ENUM('value1', 'value2', 'value3')
-      });
-    });
-
-    it('should work with enums (2)', function() {
-      return this.queryInterface.createTable('SomeTable', {
-        someEnum: {
-          type: DataTypes.ENUM,
-          values: ['value1', 'value2', 'value3']
-        }
-      });
-    });
-
-    it('should work with enums (3)', function() {
-      return this.queryInterface.createTable('SomeTable', {
-        someEnum: {
-          type: DataTypes.ENUM,
-          values: ['value1', 'value2', 'value3'],
-          field: 'otherName'
-        }
-      });
-    });
-
-    it('should work with enums (4)', function() {
-      return this.queryInterface.createSchema('archive').bind(this).then(function() {
-        return this.queryInterface.createTable('SomeTable', {
-          someEnum: {
-            type: DataTypes.ENUM,
-            values: ['value1', 'value2', 'value3'],
-            field: 'otherName'
-          }
-        }, { schema: 'archive' });
-      });
-    });
-
-    it('should work with schemas', function() {
-      const self = this;
-      return self.sequelize.createSchema('hero').then(() => {
-        return self.queryInterface.createTable('User', {
-          name: {
-            type: DataTypes.STRING
-          }
-        }, {
-          schema: 'hero'
         });
       });
     });
@@ -770,11 +708,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
-    describe('error handling', () => {
+    describe('unknown constraint', () => {
       it('should throw non existent constraints as UnknownConstraintError', function() {
-        return expect(this.queryInterface.removeConstraint('users', 'unknown__contraint__name', {
-          type: 'unique'
-        })).to.eventually.be.rejectedWith(Sequelize.UnknownConstraintError);
+        const promise = this.queryInterface
+          .removeConstraint('users', 'unknown__constraint__name', {
+            type: 'unique'
+          })
+          .catch(e => {
+            expect(e.table).to.equal('users');
+            expect(e.constraint).to.equal('unknown__constraint__name');
+
+            throw e;
+          });
+
+        return expect(promise).to.eventually.be.rejectedWith(Sequelize.UnknownConstraintError);
       });
     });
   });

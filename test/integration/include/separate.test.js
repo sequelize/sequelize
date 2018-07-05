@@ -103,6 +103,65 @@ if (current.dialect.supports.groupedLimit) {
         });
       });
 
+      it('should work even if include does not specify foreign key attribute with custom sourceKey', function() {
+        const User = this.sequelize.define('User', {
+          name: DataTypes.STRING,
+          userExtraId: {
+            type: DataTypes.INTEGER,
+            unique: true
+          }
+        });
+        const Task = this.sequelize.define('Task', {
+          title: DataTypes.STRING
+        });
+        const sqlSpy = sinon.spy();
+
+        User.Tasks = User.hasMany(Task, {
+          as: 'tasks',
+          foreignKey: 'userId',
+          sourceKey: 'userExtraId'
+        });
+
+        return this.sequelize
+          .sync({force: true})
+          .then(() => {
+            return User.create({
+              id: 1,
+              userExtraId: 222,
+              tasks: [
+                {},
+                {},
+                {}
+              ]
+            }, {
+              include: [User.Tasks]
+            });
+          })
+          .then(() => {
+            return User.findAll({
+              attributes: ['name'],
+              include: [
+                {
+                  attributes: [
+                    'title'
+                  ],
+                  association: User.Tasks,
+                  separate: true
+                }
+              ],
+              order: [
+                ['id', 'ASC']
+              ],
+              logging: sqlSpy
+            });
+          })
+          .then(users => {
+            expect(users[0].get('tasks')).to.be.ok;
+            expect(users[0].get('tasks').length).to.equal(3);
+            expect(sqlSpy).to.have.been.calledTwice;
+          });
+      });
+
       it('should not break a nested include with null values', function() {
         const User = this.sequelize.define('User', {}),
           Team = this.sequelize.define('Team', {}),

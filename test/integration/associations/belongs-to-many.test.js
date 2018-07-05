@@ -15,8 +15,6 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   describe('getAssociations', () => {
     beforeEach(function() {
-      const self = this;
-
       this.User = this.sequelize.define('User', { username: DataTypes.STRING });
       this.Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
 
@@ -25,13 +23,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         return Promise.all([
-          self.User.create({ username: 'John'}),
-          self.Task.create({ title: 'Get rich', active: true}),
-          self.Task.create({ title: 'Die trying', active: false})
+          this.User.create({ username: 'John'}),
+          this.Task.create({ title: 'Get rich', active: true}),
+          this.Task.create({ title: 'Die trying', active: false})
         ]);
       }).spread((john, task1, task2) => {
-        self.tasks = [task1, task2];
-        self.user = john;
+        this.tasks = [task1, task2];
+        this.user = john;
         return john.setTasks([task1, task2]);
       });
     });
@@ -736,6 +734,36 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(commentTags).to.have.length(2);
       });
     });
+
+    it('should catch EmptyResultError when rejectOnEmpty is set', function() {
+      const User = this.sequelize.define(
+        'User',
+        { username: DataTypes.STRING },
+        { rejectOnEmpty: true }
+      );
+      const Task = this.sequelize.define(
+        'Task',
+        { title: DataTypes.STRING }
+      );
+
+      User.belongsToMany(Task, { through: 'UserTasks' });
+      Task.belongsToMany(User, { through: 'UserTasks' });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.all([
+          User.create({ id: 12 }),
+          Task.create({ id: 50, title: 'get started' }),
+          Task.create({ id: 51, title: 'following up' })
+        ]);
+      }).spread((user, task1, task2) => {
+        return user.setTasks([task1, task2]).return(user);
+      }).then(user => {
+        return user.getTasks();
+      }).then(userTasks => {
+        expect(userTasks).to.be.an('array').that.has.a.lengthOf(2);
+        expect(userTasks[0]).to.be.an.instanceOf(Task);
+      });
+    });
   });
 
   describe('createAssociations', () => {
@@ -1000,6 +1028,34 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Task.belongsToMany(User, { through: 'UserTasks' });
       return this.sequelize.sync({ force: true });
     });
+
+    it('should catch EmptyResultError when rejectOnEmpty is set', function() {
+      const User = this.sequelize.define(
+        'User',
+        { username: DataTypes.STRING },
+        { rejectOnEmpty: true }
+      );
+      const Task = this.sequelize.define(
+        'Task',
+        { title: DataTypes.STRING }
+      );
+
+      User.belongsToMany(Task, { through: 'UserTasks' });
+      Task.belongsToMany(User, { through: 'UserTasks' });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.all([
+          User.create({ id: 12 }),
+          Task.create({ id: 50, title: 'get started' })
+        ]);
+      }).spread((user, task) => {
+        return user.addTask(task).return(user);
+      }).then(user => {
+        return user.getTasks();
+      }).then(tasks => {
+        expect(tasks[0].title).to.equal('get started');
+      });
+    });
   });
 
   describe('addMultipleAssociations', () => {
@@ -1255,8 +1311,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       const attributes = this.sequelize.model('user_places').rawAttributes;
 
-      expect(attributes.place_id).to.be.ok;
-      expect(attributes.user_id).to.be.ok;
+      expect(attributes.PlaceId.field).to.equal('place_id');
+      expect(attributes.UserId.field).to.equal('user_id');
     });
 
     it('should infer otherKey from paired BTM relationship with a through string defined', function() {
@@ -1340,7 +1396,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }).return (user);
       }).then(user => {
         expect(spy).to.have.been.calledTwice;
-        spy.reset();
+        spy.resetHistory();
         return Promise.join(
           user,
           user.getProjects({
@@ -1379,14 +1435,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return user.addProject(project, { logging: spy }).return (user);
       }).then(user => {
         expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for INSERT
-        spy.reset();
+        spy.resetHistory();
         return user.getProjects({
           logging: spy
         });
       }).then(projects => {
         const project = projects[0];
         expect(spy.calledOnce).to.be.ok;
-        spy.reset();
+        spy.resetHistory();
 
         expect(project).to.be.ok;
         return self.user.removeProject(project, {
@@ -1514,8 +1570,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(Object.keys(this.UserTasks2.primaryKeys)).to.deep.equal(['userTasksId']);
 
       _.each([this.UserTasks, this.UserTasks2], model => {
-        fk = Object.keys(model.options.uniqueKeys)[0];
-        expect(model.options.uniqueKeys[fk].fields.sort()).to.deep.equal(['TaskId', 'UserId']);
+        fk = Object.keys(model.uniqueKeys)[0];
+        expect(model.uniqueKeys[fk].fields.sort()).to.deep.equal(['TaskId', 'UserId']);
       });
     });
 
@@ -2276,10 +2332,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       PersonChildren = this.sequelize.define('PersonChildren', {}, {underscored: true});
       Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren});
 
-      expect(Children.foreignKey).to.equal('person_id');
-      expect(Children.otherKey).to.equal('child_id');
+      expect(Children.foreignKey).to.equal('PersonId');
+      expect(Children.otherKey).to.equal('ChildId');
       expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
       expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
+      expect(PersonChildren.rawAttributes[Children.foreignKey].field).to.equal('person_id');
+      expect(PersonChildren.rawAttributes[Children.otherKey].field).to.equal('child_id');
     });
   });
 });

@@ -8,6 +8,7 @@ const chai = require('chai'),
   _ = require('lodash'),
   moment = require('moment'),
   current = Support.sequelize,
+  Op = current.Op,
   uuid = require('uuid'),
   DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect(),
@@ -56,7 +57,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   });
 
-  const testSuccess = function(Type, value) {
+  const testSuccess = function(Type, value, options) {
     const parse = Type.constructor.parse = sinon.spy(value => {
       return value;
     });
@@ -64,6 +65,12 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const stringify = Type.constructor.prototype.stringify = sinon.spy(function() {
       return Sequelize.ABSTRACT.prototype.stringify.apply(this, arguments);
     });
+    let bindParam;
+    if (options && options.useBindParam) {
+      bindParam = Type.constructor.prototype.bindParam = sinon.spy(function() {
+        return Sequelize.ABSTRACT.prototype.bindParam.apply(this, arguments);
+      });
+    }
 
     const User = current.define('user', {
       field: Type
@@ -82,10 +89,17 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return User.findAll().get(0);
     }).then(() => {
       expect(parse).to.have.been.called;
-      expect(stringify).to.have.been.called;
+      if (options && options.useBindParam) {
+        expect(bindParam).to.have.been.called;
+      } else {
+        expect(stringify).to.have.been.called;
+      }
 
       delete Type.constructor.parse;
       delete Type.constructor.prototype.stringify;
+      if (options && options.useBindParam) {
+        delete Type.constructor.prototype.bindParam;
+      }
     });
   };
 
@@ -116,18 +130,18 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   }
 
   if (current.dialect.supports.HSTORE) {
-    it('calls parse and stringify for HSTORE', () => {
+    it('calls parse and bindParam for HSTORE', () => {
       const Type = new Sequelize.HSTORE();
 
-      return testSuccess(Type, { test: 42, nested: false });
+      return testSuccess(Type, { test: 42, nested: false }, { useBindParam: true });
     });
   }
 
   if (current.dialect.supports.RANGE) {
-    it('calls parse and stringify for RANGE', () => {
+    it('calls parse and bindParam for RANGE', () => {
       const Type = new Sequelize.RANGE(new Sequelize.INTEGER());
 
-      return testSuccess(Type, [1, 2]);
+      return testSuccess(Type, [1, 2], { useBindParam: true });
     });
   }
 
@@ -146,13 +160,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for TIME', () => {
     const Type = new Sequelize.TIME();
 
-    return testSuccess(Type, new Date());
+    return testSuccess(Type, moment(new Date()).format('HH:mm:ss'));
   });
 
   it('calls parse and stringify for BLOB', () => {
     const Type = new Sequelize.BLOB();
 
-    return testSuccess(Type, 'foobar');
+    return testSuccess(Type, 'foobar', { useBindParam: true });
   });
 
   it('calls parse and stringify for CHAR', () => {
@@ -161,9 +175,15 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     return testSuccess(Type, 'foobar');
   });
 
-  it('calls parse and stringify for STRING', () => {
+  it('calls parse and stringify/bindParam for STRING', () => {
     const Type = new Sequelize.STRING();
 
+    // mssql has a _bindParam function that checks if STRING was created with
+    // the boolean param (if so it outputs a Buffer bind param). This override
+    // isn't needed for other dialects
+    if (dialect === 'mssql') {
+      return testSuccess(Type, 'foobar',  { useBindParam: true });
+    }
     return testSuccess(Type, 'foobar');
   });
 
@@ -207,27 +227,27 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }
   });
 
-  it('calls parse and stringify for DOUBLE', () => {
+  it('calls parse and bindParam for DOUBLE', () => {
     const Type = new Sequelize.DOUBLE();
 
-    return testSuccess(Type, 1.5);
+    return testSuccess(Type, 1.5, { useBindParam: true });
   });
 
-  it('calls parse and stringify for FLOAT', () => {
+  it('calls parse and bindParam for FLOAT', () => {
     const Type = new Sequelize.FLOAT();
 
     if (dialect === 'postgres') {
       // Postgres doesn't have float, maps to either decimal or double
       testFailure(Type);
     } else {
-      return testSuccess(Type, 1.5);
+      return testSuccess(Type, 1.5, { useBindParam: true });
     }
   });
 
-  it('calls parse and stringify for REAL', () => {
+  it('calls parse and bindParam for REAL', () => {
     const Type = new Sequelize.REAL();
 
-    return testSuccess(Type, 1.5);
+    return testSuccess(Type, 1.5, { useBindParam: true });
   });
 
   it('calls parse and stringify for UUID', () => {
@@ -238,6 +258,36 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return testSuccess(Type, uuid.v4());
     } else {
       // No native uuid type
+      testFailure(Type);
+    }
+  });
+
+  it('calls parse and stringify for CIDR', () => {
+    const Type = new Sequelize.CIDR();
+
+    if (['postgres'].indexOf(dialect) !== -1) {
+      return testSuccess(Type, '10.1.2.3/32');
+    } else {
+      testFailure(Type);
+    }
+  });
+
+  it('calls parse and stringify for INET', () => {
+    const Type = new Sequelize.INET();
+
+    if (['postgres'].indexOf(dialect) !== -1) {
+      return testSuccess(Type, '127.0.0.1');
+    } else {
+      testFailure(Type);
+    }
+  });
+
+  it('calls parse and stringify for MACADDR', () => {
+    const Type = new Sequelize.MACADDR();
+
+    if (['postgres'].indexOf(dialect) !== -1) {
+      return testSuccess(Type, '01:23:45:67:89:ab');
+    } else {
       testFailure(Type);
     }
   });
@@ -253,10 +303,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   });
 
   if (current.dialect.supports.GEOMETRY) {
-    it('calls parse and stringify for GEOMETRY', () => {
+    it('calls parse and bindParam for GEOMETRY', () => {
       const Type = new Sequelize.GEOMETRY();
 
-      return testSuccess(Type, { type: 'Point', coordinates: [125.6, 10.1] });
+      return testSuccess(Type, { type: 'Point', coordinates: [125.6, 10.1] }, { useBindParam: true });
     });
 
     it('should parse an empty GEOMETRY field', () => {
@@ -398,7 +448,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
       });
     });
+  }
 
+  if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
     it('should parse BIGINT as string', function() {
       const Model = this.sequelize.define('model', {
         jewelPurity: Sequelize.BIGINT
@@ -434,8 +486,108 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         .then(() => Model.create({ interval: [1, 4] }) )
         .then(() => Model.findAll() )
         .spread(m => {
-          expect(m.interval[0]).to.be.eql(1);
-          expect(m.interval[1]).to.be.eql(4);
+          expect(m.interval[0].value).to.be.eql(1);
+          expect(m.interval[1].value).to.be.eql(4);
+        });
+    });
+  }
+
+  if (current.dialect.supports.RANGE) {
+
+    it('should allow date ranges to be generated with default bounds inclusion #8176', function() {
+      const Model = this.sequelize.define('M', {
+        interval: {
+          type: Sequelize.RANGE(Sequelize.DATE),
+          allowNull: false,
+          unique: true
+        }
+      });
+      const testDate1 = new Date();
+      const testDate2 = new Date(testDate1.getTime() + 10000);
+      const testDateRange = [testDate1, testDate2];
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: testDateRange }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval[0].value).to.be.eql(testDate1);
+          expect(m.interval[1].value).to.be.eql(testDate2);
+          expect(m.interval[0].inclusive).to.be.eql(true);
+          expect(m.interval[1].inclusive).to.be.eql(false);
+        });
+    });
+
+    it('should allow date ranges to be generated using a single range expression to define bounds inclusion #8176', function() {
+      const Model = this.sequelize.define('M', {
+        interval: {
+          type: Sequelize.RANGE(Sequelize.DATE),
+          allowNull: false,
+          unique: true
+        }
+      });
+      const testDate1 = new Date();
+      const testDate2 = new Date(testDate1.getTime() + 10000);
+      const testDateRange = [{ value: testDate1, inclusive: false }, { value: testDate2, inclusive: true }];
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: testDateRange }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval[0].value).to.be.eql(testDate1);
+          expect(m.interval[1].value).to.be.eql(testDate2);
+          expect(m.interval[0].inclusive).to.be.eql(false);
+          expect(m.interval[1].inclusive).to.be.eql(true);
+        });
+    });
+
+    it('should allow date ranges to be generated using a composite range expression #8176', function() {
+      const Model = this.sequelize.define('M', {
+        interval: {
+          type: Sequelize.RANGE(Sequelize.DATE),
+          allowNull: false,
+          unique: true
+        }
+      });
+      const testDate1 = new Date();
+      const testDate2 = new Date(testDate1.getTime() + 10000);
+      const testDateRange = [testDate1, { value: testDate2, inclusive: true }];
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: testDateRange }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval[0].value).to.be.eql(testDate1);
+          expect(m.interval[1].value).to.be.eql(testDate2);
+          expect(m.interval[0].inclusive).to.be.eql(true);
+          expect(m.interval[1].inclusive).to.be.eql(true);
+        });
+    });
+
+    it('should correctly return ranges when using predicates that define bounds inclusion #8176', function() {
+      const Model = this.sequelize.define('M', {
+        interval: {
+          type: Sequelize.RANGE(Sequelize.DATE),
+          allowNull: false,
+          unique: true
+        }
+      });
+      const testDate1 = new Date();
+      const testDate2 = new Date(testDate1.getTime() + 10000);
+      const testDateRange = [testDate1, testDate2];
+      const dateRangePredicate = [{ value: testDate1, inclusive: true }, { value: testDate1, inclusive: true }];
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: testDateRange }))
+        .then(() => Model.findOne({
+          where: {
+            interval: { [Op.overlap]: dateRangePredicate }
+          }
+        }))
+        .then(m => {
+          expect(m).to.exist;
         });
     });
   }

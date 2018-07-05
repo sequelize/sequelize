@@ -113,7 +113,7 @@ const sequelize = new Sequelize(..., {
     define: {
         hooks: {
             beforeCreate: () => {
-                // Do stuff
+              // Do stuff
             }
         }
     }
@@ -145,7 +145,6 @@ sequelize.addHook('beforeCreate', () => {
 
 This hooks is always run before create, regardless of whether the model specifies its own `beforeCreate` hook:
 
-
 ```js
 const User = sequelize.define('user');
 const Project = sequelize.define('project', {}, {
@@ -161,7 +160,6 @@ Project.create() // Runs its own hook, followed by the global hook
 ```
 
 Local hooks are always run before global hooks.
-
 
 ### Instance hooks
 
@@ -252,15 +250,15 @@ Model.beforeBulkDestroy(({where, individualHooks}) => {
 Model.destroy({ where: {username: 'Tom'}} /*where argument*/)
 ```
 
-If you use `Model.bulkCreate(...)` with the `updatesOnDuplicate` option, changes made in the hook to fields that aren't given in the `updatesOnDuplicate` array will not be persisted to the database. However it is possible to change the updatesOnDuplicate option inside the hook if this is what you want.
+If you use `Model.bulkCreate(...)` with the `updateOnDuplicate` option, changes made in the hook to fields that aren't given in the `updateOnDuplicate` array will not be persisted to the database. However it is possible to change the updateOnDuplicate option inside the hook if this is what you want.
 
 ```js
-// Bulk updating existing users with updatesOnDuplicate option
+// Bulk updating existing users with updateOnDuplicate option
 Users.bulkCreate([
   { id: 1, isMember: true },
   { id: 2, isMember: false }
 ], {
-  updatesOnDuplicate: ['isMember']
+  updateOnDuplicate: ['isMember']
 });
 
 User.beforeBulkCreate((users, options) => {
@@ -270,9 +268,9 @@ User.beforeBulkCreate((users, options) => {
     }
   }
 
-  // Add memberSince to updatesOnDuplicate otherwise the memberSince date wont be
+  // Add memberSince to updateOnDuplicate otherwise the memberSince date wont be
   // saved to the database
-  options.updatesOnDuplicate.push('memberSince');
+  options.updateOnDuplicate.push('memberSince');
 });
 ```
 

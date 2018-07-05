@@ -49,7 +49,7 @@ const Foo = sequelize.define('foo', {
  // autoIncrement can be used to create auto_incrementing integer columns
  incrementMe: { type: Sequelize.INTEGER, autoIncrement: true },
 
- // You can specify a custom field name via the 'field' attribute:
+ // You can specify a custom column name via the 'field' attribute:
  fieldWithUnderscores: { type: Sequelize.STRING, field: 'field_with_underscores' },
 
  // It is possible to create foreign keys:
@@ -66,6 +66,13 @@ const Foo = sequelize.define('foo', {
      // This declares when to check the foreign key constraint. PostgreSQL only.
      deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
    }
+ },
+
+ // It is possible to add coments on columns for MySQL, PostgreSQL and MSSQL only
+ commentMe: {
+   type: Sequelize.INTEGER,
+
+   comment: 'This is a column name that has a comment'
  }
 })
 ```
@@ -150,6 +157,10 @@ Sequelize.BLOB('tiny')                // TINYBLOB (bytea for PostgreSQL. Other o
 
 Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite, CHAR(36) BINARY for MySQL (use defaultValue: Sequelize.UUIDV1 or Sequelize.UUIDV4 to make sequelize generate the ids automatically)
 
+Sequelize.CIDR                        // CIDR datatype for PostgreSQL
+Sequelize.INET                        // INET datatype for PostgreSQL
+Sequelize.MACADDR                     // MACADDR datatype for PostgreSQL
+
 Sequelize.RANGE(Sequelize.INTEGER)    // Defines int4range range. PostgreSQL only.
 Sequelize.RANGE(Sequelize.BIGINT)     // Defined int8range range. PostgreSQL only.
 Sequelize.RANGE(Sequelize.DATE)       // Defines tstzrange range. PostgreSQL only.
@@ -193,7 +204,7 @@ Usage in object notation:
 // for enums:
 sequelize.define('model', {
   states: {
-    type:   Sequelize.ENUM,
+    type: Sequelize.ENUM,
     values: ['active', 'pending', 'deleted']
   }
 })
@@ -220,13 +231,6 @@ When supplying ranges as values you can choose from the following APIs:
 Timeline.create({ range: [new Date(Date.UTC(2016, 0, 1)), new Date(Date.UTC(2016, 1, 1))] });
 
 // control inclusion
-const range = [new Date(Date.UTC(2016, 0, 1)), new Date(Date.UTC(2016, 1, 1))];
-range.inclusive = false; // '()'
-range.inclusive = [false, true]; // '(]'
-range.inclusive = true; // '[]'
-range.inclusive = [true, false]; // '[)'
-
-// or as a single expression
 const range = [
   { value: new Date(Date.UTC(2016, 0, 1)), inclusive: false },
   { value: new Date(Date.UTC(2016, 1, 1)), inclusive: true },
@@ -248,12 +252,10 @@ receive:
 
 ```js
 // stored value: ("2016-01-01 00:00:00+00:00", "2016-02-01 00:00:00+00:00"]
-range // [Date, Date]
-range.inclusive // [false, true]
+range // [{ value: Date, inclusive: false }, { value: Date, inclusive: true }]
 ```
 
-Make sure you turn that into a serializable format before serialization since array
-extra properties will not be serialized.
+You will need to call reload after updating an instance with a range type or use `returning: true` option.
 
 **Special Cases**
 
@@ -269,7 +271,6 @@ Timeline.create({ range: [null, new Date(Date.UTC(2016, 0, 1))] });
 // Infinite range:
 // range = '[-infinity,"2016-01-01 00:00:00+00:00")'
 Timeline.create({ range: [-Infinity, new Date(Date.UTC(2016, 0, 1))] });
-
 ```
 
 ## Deferrable
@@ -334,7 +335,9 @@ Employee
 
 ### Defining as part of the model options
 
-Below is an example of defining the getters and setters in the model options. The `fullName` getter,  is an example of how you can define pseudo properties on your models - attributes which are not actually part of your database schema. In fact, pseudo properties can be defined in two ways: using model getters, or by using a column with the [`VIRTUAL` datatype](/variable/index.html#static-variable-DataTypes). Virtual datatypes can have validations, while getters for virtual attributes cannot.
+Below is an example of defining the getters and setters in the model options.
+
+The `fullName` getter, is an example of how you can define pseudo properties on your models - attributes which are not actually part of your database schema. In fact, pseudo properties can be defined in two ways: using model getters, or by using a column with the [`VIRTUAL` datatype](/variable/index.html#static-variable-DataTypes). Virtual datatypes can have validations, while getters for virtual attributes cannot.
 
 Note that the `this.firstname` and `this.lastname` references in the `fullName` getter function will trigger a call to the respective getter functions. If you do not want that then use the `getDataValue()` method to access the raw value (see below).
 
@@ -345,7 +348,7 @@ const Foo = sequelize.define('foo', {
 }, {
   getterMethods: {
     fullName() {
-      return this.firstname + ' ' + this.lastname
+      return this.firstname + ' ' + this.lastname;
     }
   },
 
@@ -355,7 +358,7 @@ const Foo = sequelize.define('foo', {
 
       this.setDataValue('firstname', names.slice(0, -1).join(' '));
       this.setDataValue('lastname', names.slice(-1).join(' '));
-    },
+    }
   }
 });
 ```
@@ -468,7 +471,25 @@ See [the validator.js project][3] for more details on the built in validation me
 
 ### Validators and `allowNull`
 
-If a particular field of a model is set to allow null (with `allowNull: true`) and that value has been set to `null` , its validators do not run. This means you can, for instance, have a string field which validates its length to be at least 5 characters, but which also allows`null`.
+If a particular field of a model is set to allow null (with `allowNull: true`) and that value has been set to `null` , its validators do not run.
+
+This means you can, for instance, have a string field which validates its length to be at least 5 characters, but which also allows `null`.
+
+You can customize `allowNull` error message by setting `notNull` validator, like this
+
+```js
+const User = sequelize.define('user', {
+  name: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    validate: {
+      notNull: {
+        msg: 'Please enter your name'
+      }
+    }
+  }
+});
+```
 
 ### Model validations
 
@@ -530,8 +551,8 @@ const Bar = sequelize.define('bar', { /* bla */ }, {
   // timestamps are enabled
   paranoid: true,
 
-  // don't use camelcase for automatically added attributes but underscore style
-  // so updatedAt will be updated_at
+  // Will automatically set field option for all attributes to snake cased name.
+  // Does not override attribute with field option already defined
   underscored: true,
 
   // disable the modification of table names; By default, sequelize will automatically

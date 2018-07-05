@@ -86,6 +86,20 @@ describe('QueryGenerator', () => {
       expect(() => QG.whereItemQuery('test', {$in: [4]}))
         .to.throw('Invalid value { \'$in\': [ 4 ] }');
     });
+
+    it('should correctly parse sequelize.where with .fn as logic', function() {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      QG.handleSequelizeMethod(this.sequelize.where(this.sequelize.col('foo'), 'LIKE', this.sequelize.col('bar')))
+        .should.be.equal('foo LIKE bar');
+    });
+  });
+
+  describe('format', () => {
+    it('should throw an error if passed SequelizeMethod', function() {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      const value = this.sequelize.fn('UPPER', 'test');
+      expect(() => QG.format(value)).to.throw(Error);
+    });
   });
 });
 

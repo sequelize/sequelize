@@ -5,9 +5,8 @@ const chai    = require('chai'),
   Support = require(__dirname + '/../../support'),
   DataTypes = require(__dirname + '/../../../../lib/data-types'),
   dialect = Support.getTestDialect(),
-  range   = require('../../../../lib/dialects/postgres/range'),
-  _       = require('lodash');
-
+  range   = require('../../../../lib/dialects/postgres/range');
+  
 if (dialect.match(/^postgres/)) {
   // Don't try to load pg until we know we're running on postgres.
   const pg = require('pg');
@@ -48,25 +47,6 @@ if (dialect.match(/^postgres/)) {
         expect(range.stringify([{ inclusive: true, value: 0 }, { inclusive: true, value: 1 }])).to.equal('[0,1]');
         expect(range.stringify([{ inclusive: false, value: 0 }, 1])).to.equal('(0,1)');
         expect(range.stringify([0, { inclusive: true, value: 1 }])).to.equal('[0,1]');
-      });
-
-      it('should handle inclusive property of input array properly', () => {
-        const testRange = [1, 2];
-
-        testRange.inclusive = [true, false];
-        expect(range.stringify(testRange)).to.equal('[1,2)');
-
-        testRange.inclusive = [false, true];
-        expect(range.stringify(testRange)).to.equal('(1,2]');
-
-        testRange.inclusive = [true, true];
-        expect(range.stringify(testRange)).to.equal('[1,2]');
-
-        testRange.inclusive = true;
-        expect(range.stringify(testRange)).to.equal('[1,2]');
-
-        testRange.inclusive = false;
-        expect(range.stringify(testRange)).to.equal('(1,2)');
       });
 
       it('should handle date values', () => {
@@ -183,21 +163,21 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle empty range string correctly', () => {
-        expect(range.parse('empty')).to.deep.equal(_.extend([], { inclusive: [] }));
+        expect(range.parse('empty')).to.deep.equal([]);
       });
 
       it('should handle empty bounds correctly', () => {
-        expect(range.parse('(1,)', DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([1, null], { inclusive: [false, false] }));
-        expect(range.parse('(,1)', DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([null, 1], { inclusive: [false, false] }));
-        expect(range.parse('(,)', DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([null, null], { inclusive: [false, false] }));
+        expect(range.parse('(1,)', DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: null, inclusive: false }]);
+        expect(range.parse('(,1)', DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: null, inclusive: false }, { value: 1, inclusive: false }]);
+        expect(range.parse('(,)', DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: null, inclusive: false }, { value: null, inclusive: false }]);
       });
 
       it('should handle infinity/-infinity bounds correctly', () => {
-        expect(range.parse('(infinity,1)', DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([Infinity, 1], { inclusive: [false, false] }));
-        expect(range.parse('(1,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([1, Infinity], { inclusive: [false, false] }));
-        expect(range.parse('(-infinity,1)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([-Infinity, 1], { inclusive: [false, false] }));
-        expect(range.parse('(1,-infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([1, -Infinity], { inclusive: [false, false] }));
-        expect(range.parse('(-infinity,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([-Infinity, Infinity], { inclusive: [false, false] }));
+        expect(range.parse('(infinity,1)', DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: Infinity, inclusive: false }, { value: 1, inclusive: false }]);
+        expect(range.parse('(1,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: Infinity, inclusive: false }]);
+        expect(range.parse('(-infinity,1)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: -Infinity, inclusive: false }, { value: 1, inclusive: false }]);
+        expect(range.parse('(1,-infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: -Infinity, inclusive: false }]);
+        expect(range.parse('(-infinity,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: -Infinity, inclusive: false }, { value: Infinity, inclusive: false }]);
       });
 
       it('should return raw value if not range is returned', () => {
@@ -207,15 +187,13 @@ if (dialect.match(/^postgres/)) {
       it('should handle native postgres timestamp format', () => {
         const tsOid = DataTypes.postgres.DATE.types.postgres.oids[0],
           parser = pg.types.getTypeParser(tsOid);
-        expect(range.parse('(2016-01-01 08:00:00-04,)', parser)[0].toISOString()).to.equal('2016-01-01T12:00:00.000Z');
+        expect(range.parse('(2016-01-01 08:00:00-04,)', parser)[0].value.toISOString()).to.equal('2016-01-01T12:00:00.000Z');
       });
 
     });
     describe('stringify and parse', () => {
       it('should stringify then parse back the same structure', () => {
-        const testRange = [5, 10];
-        testRange.inclusive = [true, true];
-
+        const testRange = [{ value: 5, inclusive: true }, { value: 10, inclusive: true }];
         const Range = new DataTypes.postgres.RANGE(DataTypes.INTEGER);
 
         let stringified = Range.stringify(testRange, {});
