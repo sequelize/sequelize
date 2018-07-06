@@ -1455,6 +1455,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       });
+
+      it('should ignore undefined in where parameters', function() {
+        return this.User.findAll({where: {username: undefined}}).then(users => {
+          expect(users.length).to.equal(2);
+        });
+      });
     });
   });
 

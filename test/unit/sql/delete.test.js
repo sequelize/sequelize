@@ -1,7 +1,9 @@
 'use strict';
 
 const Support   = require(__dirname + '/../support'),
+  QueryTypes = require('../../../lib/query-types'),
   util = require('util'),
+  _ = require('lodash'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
   Sequelize = Support.Sequelize,
@@ -22,7 +24,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         where: {},
         truncate: true,
         cascade: true,
-        limit: 10
+        limit: 10,
+        type: QueryTypes.BULKDELETE
       };
 
       test(util.inspect(options, {depth: 2}), () => {
@@ -47,7 +50,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         truncate: true,
         cascade: true,
         restartIdentity: true,
-        limit: 10
+        limit: 10,
+        type: QueryTypes.BULKDELETE
       };
 
       test(util.inspect(options, {depth: 2}), () => {
@@ -69,7 +73,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       const options = {
         table: User.getTableName(),
         where: {name: 'foo' },
-        limit: null
+        limit: null,
+        type: QueryTypes.BULKDELETE
       };
 
       test(util.inspect(options, {depth: 2}), () => {
@@ -93,7 +98,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       const options = {
         table: User.getTableName(),
         where: {name: "foo';DROP TABLE mySchema.myTable;"},
-        limit: 10
+        limit: 10,
+        type: QueryTypes.BULKDELETE
       };
 
       test(util.inspect(options, {depth: 2}), () => {
@@ -117,7 +123,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       const options = {
         table: User.getTableName(),
         where: {name: "foo';DROP TABLE mySchema.myTable;"},
-        limit: 10
+        limit: 10,
+        type: QueryTypes.BULKDELETE
       };
 
       test(util.inspect(options, {depth: 2}), () => {
@@ -158,7 +165,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
       const options = {
         table: 'test_user',
-        where: { 'test_user_id': 100 }
+        where: { 'test_user_id': 100 },
+        type: QueryTypes.BULKDELETE
       };
 
       test(util.inspect(options, {depth: 2}), () => {
@@ -175,6 +183,28 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
             default: 'DELETE FROM [test_user] WHERE [test_user_id] = 100'
           }
         );
+      });
+    });
+
+    suite('delete with undefined parameter in where', () => {
+      const options = {
+        table: User.getTableName(),
+        type: QueryTypes.BULKDELETE,
+        where: {name: undefined },
+        limit: null
+      };
+
+      test(util.inspect(options, {depth: 2}), () => {
+        const sqlOrError = _.attempt(
+          sql.deleteQuery.bind(sql),
+          options.table,
+          options.where,
+          options,
+          User
+        );
+        return expectsql(sqlOrError, {
+          default: new Error('WHERE parameter "name" of BULKDELETE query has value of undefined')
+        });
       });
     });
   });
