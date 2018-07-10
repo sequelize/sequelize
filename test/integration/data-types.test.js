@@ -639,7 +639,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         return record.reload();
       }).then(record => {
         expect(typeof record.stamp).to.be.eql('string');
-        expect(new Date(record.stamp)).to.equalDate(newDate);
+        const recordDate = new Date(record.stamp);
+        expect(recordDate.getUTCFullYear()).to.equal(newDate.getUTCFullYear());
+        expect(recordDate.getUTCDate()).to.equal(newDate.getUTCDate());
+        expect(recordDate.getUTCMonth()).to.equal(newDate.getUTCMonth());
       });
   });
 
