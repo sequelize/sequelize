@@ -1211,7 +1211,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         this.sequelize.define('omnomnom', {
           bla: { type: DataTypes.ARRAY }
         });
-      }).to.throw(Error, 'A value for ARRAY have not been defined.');
+      }).to.throw(Error, 'A value for ARRAY has not been defined.');
     });
   });
 
