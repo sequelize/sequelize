@@ -15,7 +15,7 @@ services:
 
   # PostgreSQL
   postgres-95:
-    image: sushantdhiman/postgres:9.5
+    image: sushantdhiman/postgres:9.5-alpine
     environment:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
