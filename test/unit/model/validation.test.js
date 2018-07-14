@@ -382,13 +382,37 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('should throw when passing string', () => {
           return expect(User.create({
             age: 'jan'
-          })).to.be.rejectedWith(current.ValidationError);
+          })).to.be.rejectedWith(current.ValidationError)
+            .which.eventually.have.property('errors')
+            .that.is.an('array')
+            .with.lengthOf(1)
+            .and.with.property(0)
+            .that.is.an.instanceOf(current.ValidationErrorItem)
+            .and.include({
+              type: 'Validation error',
+              path: 'age',
+              value: 'jan',
+              instance: null,
+              validatorKey: 'INTEGER validator'
+            });
         });
 
         it('should throw when passing decimal', () => {
           return expect(User.create({
             age: 4.5
-          })).to.be.rejectedWith(current.ValidationError);
+          })).to.be.rejectedWith(current.ValidationError)
+            .which.eventually.have.property('errors')
+            .that.is.an('array')
+            .with.lengthOf(1)
+            .and.with.property(0)
+            .that.is.an.instanceOf(current.ValidationErrorItem)
+            .and.include({
+              type: 'Validation error',
+              path: 'age',
+              value: 4.5,
+              instance: null,
+              validatorKey: 'INTEGER validator'
+            });
         });
       });
 
@@ -396,13 +420,37 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('should throw when passing string', () => {
           return expect(User.update({
             age: 'jan'
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(current.ValidationError)
+            .which.eventually.have.property('errors')
+            .that.is.an('array')
+            .with.lengthOf(1)
+            .and.with.property(0)
+            .that.is.an.instanceOf(current.ValidationErrorItem)
+            .and.include({
+              type: 'Validation error',
+              path: 'age',
+              value: 'jan',
+              instance: null,
+              validatorKey: 'INTEGER validator'
+            });
         });
 
         it('should throw when passing decimal', () => {
           return expect(User.update({
             age: 4.5
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          }, { where: {}})).to.be.rejectedWith(current.ValidationError)
+            .which.eventually.have.property('errors')
+            .that.is.an('array')
+            .with.lengthOf(1)
+            .and.with.property(0)
+            .that.is.an.instanceOf(current.ValidationErrorItem)
+            .and.include({
+              type: 'Validation error',
+              path: 'age',
+              value: 4.5,
+              instance: null,
+              validatorKey: 'INTEGER validator'
+            });
         });
       });
 
