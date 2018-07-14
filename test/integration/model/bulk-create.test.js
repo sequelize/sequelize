@@ -395,7 +395,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    if (current.dialect.supports.ignoreDuplicates) {
+    if (current.dialect.supports.inserts.ignoreDuplicates) {
       it('should support the ignoreDuplicates option', function() {
         const self = this;
         const data = [
@@ -436,8 +436,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (current.dialect.supports.updateOnDuplicate) {
-      describe('updateOnDuplicate', () => {
+    if (current.dialect.supports.inserts.updateOnDuplicate) {
+      describe.only('updateOnDuplicate', () => {
         it('should support the updateOnDuplicate option', function() {
           const data = [
             { uniqueName: 'Peter', secretValue: '42' },
