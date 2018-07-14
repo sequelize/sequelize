@@ -1206,6 +1206,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('define', () => {
+    it('raises an error if no values are defined', function() {
+      expect(() => {
+        this.sequelize.define('omnomnom', {
+          bla: { type: DataTypes.ARRAY }
+        });
+      }).to.throw(Error, 'ARRAY is missing type definition for its values.');
+    });
+  });
+
+  describe('define', () => {
     [
       { type: DataTypes.ENUM, values: ['scheduled', 'active', 'finished']},
       DataTypes.ENUM('scheduled', 'active', 'finished')
