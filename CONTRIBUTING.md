@@ -92,7 +92,7 @@ Now launch the docker mysql and postgres servers with this command (you can add 
 $ docker-compose up postgres-95 mysql-57
 ```
 
-Sequelize uses the sushantdhiman/postgres:9.5 Docker image for PostgreSQL, which installs the extensions required by tests: https://github.com/sushantdhiman/sequelize-postgres/blob/master/00-extensions.sql
+Sequelize uses the `sushantdhiman/postgres:9.5-alpine` Docker image for PostgreSQL, which installs the extensions required by tests: https://github.com/sushantdhiman/sequelize-postgres/blob/master/9.5-alpine/
 
 ### 4. Running tests
 
