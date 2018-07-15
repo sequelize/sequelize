@@ -437,7 +437,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     if (current.dialect.supports.inserts.updateOnDuplicate) {
-      describe.only('updateOnDuplicate', () => {
+      describe('updateOnDuplicate', () => {
         it('should support the updateOnDuplicate option', function() {
           const data = [
             { uniqueName: 'Peter', secretValue: '42' },
