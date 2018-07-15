@@ -11,7 +11,7 @@ const chai = require('chai'),
   config = require(__dirname + '/../config/config'),
   moment = require('moment'),
   Transaction = require(__dirname + '/../../lib/transaction'),
-  Utils = require(__dirname + '/../../lib/utils'),
+  logger = require(__dirname + '/../../lib/utils/logger'),
   sinon = require('sinon'),
   semver = require('semver'),
   current = Support.sequelize;
@@ -30,7 +30,7 @@ const qq = function(str) {
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('constructor', () => {
     afterEach(() => {
-      Utils.deprecate.restore && Utils.deprecate.restore();
+      logger.deprecate.restore && logger.deprecate.restore();
     });
 
     if (dialect !== 'sqlite') {

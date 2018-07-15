@@ -14,7 +14,7 @@ describe(Support.getTestDialectTeaser('Replication'), function() {
   let readSpy, writeSpy;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
 
     this.sequelize = Support.getSequelizeInstance(null, null, null, {
       replication: {
