@@ -6,7 +6,7 @@ const Support = require(__dirname + '/../support');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const dialect = Support.getTestDialect();
 
-describe.only(Support.getTestDialectTeaser('QueryInterface'), () => {
+describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function() {
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
