@@ -88,42 +88,6 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  describe('validateParameter', () => {
-    describe('method signature', () => {
-      it('throws an error if the value is not defined', () => {
-        expect(() => {
-          Utils.validateParameter();
-        }).to.throw('No value has been passed.');
-      });
-
-      it('does not throw an error if the value is not defined and the parameter is optional', () => {
-        expect(() => {
-          Utils.validateParameter(undefined, Object, { optional: true });
-        }).to.not.throw();
-      });
-
-      it('throws an error if the expectation is not defined', () => {
-        expect(() => {
-          Utils.validateParameter(1);
-        }).to.throw('No expectation has been passed.');
-      });
-    });
-
-    describe('expectation', () => {
-      it('uses the instanceof method if the expectation is a class', () => {
-        expect(Utils.validateParameter(new Number(1), Number)).to.be.true;
-      });
-    });
-
-    describe('failing expectations', () => {
-      it('throws an error if the expectation does not match', () => {
-        expect(() => {
-          Utils.validateParameter(1, String);
-        }).to.throw(/The parameter.*is no.*/);
-      });
-    });
-  });
-
   if (Support.getTestDialect() === 'postgres') {
     describe('json', () => {
       beforeEach(function() {
