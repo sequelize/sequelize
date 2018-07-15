@@ -2099,5 +2099,39 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
       });
     });
+
+    it('should return a correct json value with nested include', function() {
+      const Product = this.sequelize.define('product', {
+        name: {
+          type: Sequelize.JSONB
+        }
+      });
+      const Order = this.sequelize.define('order');
+      Order.belongsTo(Product);
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Product.create({
+          name: {
+            en: 'dog',
+            de: 'Hund',
+            fr: 'chien'
+          }
+        }).then(product => {
+          return Order.create({ productId: product.id });
+        }).then(() => {
+          return Order.findAll({
+            attributes: ['id'],
+            include: [{
+              model: Product,
+              attributes: [
+                [this.sequelize.json('name.fr'), 'name']
+              ]
+            }]
+          })
+        }).then(orders => {
+          expect(orders[0].product.name).to.equal('chien');
+        });
+      });
+    });
   });
 });
