@@ -11,7 +11,7 @@ const chai = require('chai'),
   config = require(__dirname + '/../config/config'),
   moment = require('moment'),
   Transaction = require(__dirname + '/../../lib/transaction'),
-  Utils = require(__dirname + '/../../lib/utils'),
+  logger = require(__dirname + '/../../lib/utils/logger'),
   sinon = require('sinon'),
   semver = require('semver'),
   current = Support.sequelize;
@@ -30,7 +30,7 @@ const qq = function(str) {
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('constructor', () => {
     afterEach(() => {
-      Utils.deprecate.restore && Utils.deprecate.restore();
+      logger.deprecate.restore && logger.deprecate.restore();
     });
 
     if (dialect !== 'sqlite') {
@@ -1202,6 +1202,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       expect(Project).to.exist;
+    });
+  });
+
+  describe('define', () => {
+    it('raises an error if no values are defined', function() {
+      expect(() => {
+        this.sequelize.define('omnomnom', {
+          bla: { type: DataTypes.ARRAY }
+        });
+      }).to.throw(Error, 'ARRAY is missing type definition for its values.');
     });
   });
 

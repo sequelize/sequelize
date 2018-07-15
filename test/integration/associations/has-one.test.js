@@ -668,8 +668,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     it('should support a non-primary key as the association column on a target with custom primary key', function() {
       const User = this.sequelize.define('User', {
         user_name: {
-          type: Sequelize.STRING,
-          primaryKey: true
+          unique: true,
+          type: Sequelize.STRING
         }
       });
 

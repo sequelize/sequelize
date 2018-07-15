@@ -1455,6 +1455,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       });
+
+      it('should ignore undefined in where parameters', function() {
+        return this.User.findAll({where: {username: undefined}}).then(users => {
+          expect(users.length).to.equal(2);
+        });
+      });
     });
   });
 
@@ -1658,7 +1664,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('throws custom error with initialized', () => {
-
       const Model = current.define('Test', {
         username: Sequelize.STRING(100)
       }, {
@@ -1676,7 +1681,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('throws custom error with instance', () => {
-
       const Model = current.define('Test', {
         username: Sequelize.STRING(100)
       }, {
@@ -1692,7 +1696,5 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           })).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
         });
     });
-
   });
-
 });

@@ -936,6 +936,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('throws an error if where has a key with undefined value', function() {
+      const self = this,
+        data = [{ username: 'Peter', secretValue: '42' },
+          { username: 'Paul', secretValue: '42' },
+          { username: 'Bob', secretValue: '43' }];
+
+      return this.User.bulkCreate(data).then(() => {
+        return self.User.update({username: 'Bill'}, {where: {secretValue: '42', username: undefined}}).then(() => {
+          throw new Error('Update should throw an error if where has a key with undefined value');
+        }, err => {
+          expect(err).to.be.an.instanceof(Error);
+          expect(err.message).to.equal('WHERE parameter "username" of BULKUPDATE query has value of undefined');
+        });
+      });
+    });
+
     it('updates only values that match the allowed fields', function() {
       const self = this,
         data = [{ username: 'Peter', secretValue: '42' }];
@@ -1297,6 +1313,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.findAll();
       }).then(users => {
         expect(users).to.have.length(0);
+      });
+    });
+
+    it('throws an error if where has a key with undefined value', function() {
+      const User = this.sequelize.define('User', { username: DataTypes.STRING });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.destroy({where: {username: undefined}});
+      }).then(() => {
+        throw new Error('Destroy should throw an error if where has a key with undefined value');
+      }, err => {
+        expect(err).to.be.an.instanceof(Error);
+        expect(err.message).to.equal('WHERE parameter "username" of BULKDELETE query has value of undefined');
       });
     });
 

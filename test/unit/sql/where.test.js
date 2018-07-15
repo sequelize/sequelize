@@ -1,8 +1,10 @@
 'use strict';
 
-const Support   = require(__dirname + '/../support'),
+const Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
+  QueryTypes = require(__dirname + '/../../../lib/query-types'),
   util = require('util'),
+  _ = require('lodash'),
   expectsql = Support.expectsql,
   current = Support.sequelize,
   sql = current.dialect.QueryGenerator,
@@ -19,7 +21,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       }
 
       test(util.inspect(params, {depth: 10})+(options && ', '+util.inspect(options) || ''), () => {
-        return expectsql(sql.whereQuery(params, options), expectation);
+        const sqlOrError = _.attempt(sql.whereQuery.bind(sql), params, options);
+        return expectsql(sqlOrError, expectation);
       });
     };
 
@@ -29,8 +32,23 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     testsql([], {
       default: ''
     });
+    testsql({id: undefined}, {
+      default: ''
+    });
     testsql({id: 1}, {
       default: 'WHERE [id] = 1'
+    });
+    testsql({id: 1, user: undefined}, {
+      default: 'WHERE [id] = 1'
+    });
+    testsql({id: 1, user: undefined}, {type: QueryTypes.SELECT}, {
+      default: 'WHERE [id] = 1'
+    });
+    testsql({id: 1, user: undefined}, {type: QueryTypes.BULKDELETE}, {
+      default: new Error('WHERE parameter "user" of BULKDELETE query has value of undefined')
+    });
+    testsql({id: 1, user: undefined}, {type: QueryTypes.BULKUPDATE}, {
+      default: new Error('WHERE parameter "user" of BULKUPDATE query has value of undefined')
     });
     testsql({id: 1}, {prefix: 'User'}, {
       default: 'WHERE [User].[id] = 1'
