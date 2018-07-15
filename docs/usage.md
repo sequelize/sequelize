@@ -97,7 +97,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   //   sequelize.define(name, attributes, { timestamps: false })
   // so defining the timestamps for each model will be not necessary
   define: {
-    underscored: false
+    underscored: false,
     freezeTableName: false,
     charset: 'utf8',
     dialectOptions: {
