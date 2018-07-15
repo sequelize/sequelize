@@ -2127,7 +2127,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 [this.sequelize.json('name.fr'), 'name']
               ]
             }]
-          })
+          });
         }).then(orders => {
           expect(orders[0].product.name).to.equal('chien');
         });
