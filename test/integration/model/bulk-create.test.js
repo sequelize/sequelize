@@ -114,6 +114,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should not map instance dataValues to fields with individualHooks: true', function() {
+      const User = this.sequelize.define('user', {
+        name: Sequelize.STRING,
+        type: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          field: 'user_type'
+        },
+        createdAt: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          field: 'created_at'
+        },
+        updatedAt: {
+          type: Sequelize.DATE,
+          field: 'modified_at'
+        }
+      });
+
+      return User.sync({force: true}).then(() => {
+        return User.bulkCreate([
+          { name: 'James', type: 'A' },
+          { name: 'Alan', type: 'Z' }
+        ], {individualHooks: true});
+      });
+    });
+
     it('should not insert NULL for unused fields', function() {
       const Beer = this.sequelize.define('Beer', {
         style: Sequelize.STRING,
