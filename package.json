@@ -36,7 +36,7 @@
     "wkx": "^0.4.5"
   },
   "devDependencies": {
-    "@semantic-release/github": "^4.x",
+    "@semantic-release/github": "^5.0.0",
     "@semantic-release/npm": "^4.0.0",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
