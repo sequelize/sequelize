@@ -206,19 +206,24 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
     describe('beforeHasManyAssociate', () => {
       it('should trigger', function() {
         const beforeAssociate = sinon.spy();
-        this.Projects.beforeHasManyAssociate(beforeAssociate);
+        this.Projects.beforeAssociate(beforeAssociate);
         this.Projects.hasMany(this.Tasks, {hooks: true});
 
         const beforeAssociateArgs = beforeAssociate.getCall(0).args;
 
         expect(beforeAssociate).to.have.been.called;
         expect(beforeAssociateArgs.length).to.equal(2);
-        expect(beforeAssociateArgs[0]).to.equal(this.Tasks);
+
+        const firstArg = beforeAssociateArgs[0];
+        expect(Object.keys(firstArg).join()).to.equal('source,target,type');
+        expect(firstArg.source).to.equal(this.Projects);
+        expect(firstArg.target).to.equal(this.Tasks);
+        expect(firstArg.type.name).to.equal('HasMany');
         expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', function() {
         const beforeAssociate = sinon.spy();
-        this.Projects.beforeHasManyAssociate(beforeAssociate);
+        this.Projects.beforeAssociate(beforeAssociate);
         this.Projects.hasMany(this.Tasks, {hooks: false});
         expect(beforeAssociate).to.not.have.been.called;
       });
@@ -226,18 +231,26 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
     describe('afterHasManyAssociate', () => {
       it('should trigger', function() {
         const afterAssociate = sinon.spy();
-        this.Projects.afterHasManyAssociate(afterAssociate);
+        this.Projects.afterAssociate(afterAssociate);
         this.Projects.hasMany(this.Tasks, {hooks: true});
 
         const afterAssociateArgs = afterAssociate.getCall(0).args;
 
         expect(afterAssociate).to.have.been.called;
-        expect(afterAssociateArgs.length).to.equal(1);
-        expect(afterAssociateArgs[0].constructor.name).to.equal('HasMany');
+
+        const firstArg = afterAssociateArgs[0];
+
+        expect(Object.keys(firstArg).join()).to.equal('source,target,type,association');
+        expect(firstArg.source).to.equal(this.Projects);
+        expect(firstArg.target).to.equal(this.Tasks);
+        expect(firstArg.type.name).to.equal('HasMany');
+        expect(firstArg.association.constructor.name).to.equal('HasMany');
+
+        expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', function() {
         const afterAssociate = sinon.spy();
-        this.Projects.afterHasManyAssociate(afterAssociate);
+        this.Projects.afterAssociate(afterAssociate);
         this.Projects.hasMany(this.Tasks, {hooks: false});
         expect(afterAssociate).to.not.have.been.called;
       });
