@@ -262,6 +262,36 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }
   });
 
+  it('calls parse and stringify for CIDR', () => {
+    const Type = new Sequelize.CIDR();
+
+    if (['postgres'].indexOf(dialect) !== -1) {
+      return testSuccess(Type, '10.1.2.3/32');
+    } else {
+      testFailure(Type);
+    }
+  });
+
+  it('calls parse and stringify for INET', () => {
+    const Type = new Sequelize.INET();
+
+    if (['postgres'].indexOf(dialect) !== -1) {
+      return testSuccess(Type, '127.0.0.1');
+    } else {
+      testFailure(Type);
+    }
+  });
+
+  it('calls parse and stringify for MACADDR', () => {
+    const Type = new Sequelize.MACADDR();
+
+    if (['postgres'].indexOf(dialect) !== -1) {
+      return testSuccess(Type, '01:23:45:67:89:ab');
+    } else {
+      testFailure(Type);
+    }
+  });
+
   it('calls parse and stringify for ENUM', () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
@@ -609,7 +639,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         return record.reload();
       }).then(record => {
         expect(typeof record.stamp).to.be.eql('string');
-        expect(new Date(record.stamp)).to.equalDate(newDate);
+        const recordDate = new Date(record.stamp);
+        expect(recordDate.getUTCFullYear()).to.equal(newDate.getUTCFullYear());
+        expect(recordDate.getUTCDate()).to.equal(newDate.getUTCDate());
+        expect(recordDate.getUTCMonth()).to.equal(newDate.getUTCMonth());
       });
   });
 

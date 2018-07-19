@@ -66,6 +66,13 @@ const Foo = sequelize.define('foo', {
      // This declares when to check the foreign key constraint. PostgreSQL only.
      deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
    }
+ },
+
+ // It is possible to add coments on columns for MySQL, PostgreSQL and MSSQL only
+ commentMe: {
+   type: Sequelize.INTEGER,
+
+   comment: 'This is a column name that has a comment'
  }
 })
 ```
@@ -149,6 +156,10 @@ Sequelize.BLOB                        // BLOB (bytea for PostgreSQL)
 Sequelize.BLOB('tiny')                // TINYBLOB (bytea for PostgreSQL. Other options are medium and long)
 
 Sequelize.UUID                        // UUID datatype for PostgreSQL and SQLite, CHAR(36) BINARY for MySQL (use defaultValue: Sequelize.UUIDV1 or Sequelize.UUIDV4 to make sequelize generate the ids automatically)
+
+Sequelize.CIDR                        // CIDR datatype for PostgreSQL
+Sequelize.INET                        // INET datatype for PostgreSQL
+Sequelize.MACADDR                     // MACADDR datatype for PostgreSQL
 
 Sequelize.RANGE(Sequelize.INTEGER)    // Defines int4range range. PostgreSQL only.
 Sequelize.RANGE(Sequelize.BIGINT)     // Defined int8range range. PostgreSQL only.

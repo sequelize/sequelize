@@ -976,6 +976,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
       });
 
+      it('override model options', () => {
+        const Model = current.define('Test', {
+          username: Sequelize.STRING(100)
+        }, {
+          rejectOnEmpty: true
+        });
+
+        return Model.sync({ force: true })
+          .then(() => {
+            return expect(Model.findOne({
+              rejectOnEmpty: false,
+              where: {
+                username: 'some-username-that-is-not-used-anywhere'
+              }
+            })).to.eventually.be.deep.equal(null);
+          });
+      });
+
       it('resolve null when disabled', () => {
         const Model = current.define('Test', {
           username: Sequelize.STRING(100)

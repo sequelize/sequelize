@@ -11,7 +11,7 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
   if (dialect === 'sqlite') return;
 
   beforeEach(() => {
-    this.sinon = sinon.sandbox.create();
+    this.sinon = sinon.createSandbox();
   });
 
   afterEach(() => {
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
     return expect(this.testInstance.authenticate())
       .to.eventually.be.rejectedWith('ResourceRequest timed out');
   });
-  
+
   it('should not result in unhandled promise rejection when unable to acquire connection', () => {
     this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
       dialect,

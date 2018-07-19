@@ -370,7 +370,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('Works when two separate uniqueKeys are passed', function() {
+      it('works when two separate uniqueKeys are passed', function() {
         const User = this.sequelize.define('User', {
           username: {
             type: Sequelize.STRING,

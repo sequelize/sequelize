@@ -229,7 +229,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should emit an error for scopes that dont exist', () => {
+    it("should emit an error for scopes that don't exist", () => {
       expect(() => {
         Company.scope('doesntexist');
       }).to.throw('Invalid scope doesntexist called.');

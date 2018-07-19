@@ -9,22 +9,22 @@ const chai      = require('chai'),
   _ = require('lodash');
 
 if (dialect.match(/^postgres/)) {
-  const constraintName = 'overlap_period';
-  beforeEach(function() {
-    const self = this;
-    this.Booking = self.sequelize.define('Booking', {
-      roomNo: DataTypes.INTEGER,
-      period: DataTypes.RANGE(DataTypes.DATE)
-    });
-    return self.Booking
-      .sync({ force: true })
-      .then(() => {
-        return self.sequelize.query('ALTER TABLE "' + self.Booking.tableName + '" ADD CONSTRAINT ' + constraintName +
-                                    ' EXCLUDE USING gist ("roomNo" WITH =, period WITH &&)');
-      });
-  });
-
   describe('[POSTGRES Specific] ExclusionConstraintError', () => {
+    const constraintName = 'overlap_period';
+    beforeEach(function() {
+      const self = this;
+      this.Booking = self.sequelize.define('Booking', {
+        roomNo: DataTypes.INTEGER,
+        period: DataTypes.RANGE(DataTypes.DATE)
+      });
+      return self.Booking
+        .sync({ force: true })
+        .then(() => {
+          return self.sequelize.query(
+            `ALTER TABLE "${self.Booking.tableName}" ADD CONSTRAINT ${constraintName} EXCLUDE USING gist ("roomNo" WITH =, period WITH &&)`
+          );
+        });
+    });
 
     it('should contain error specific properties', () => {
       const errDetails = {
