@@ -7,6 +7,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   Promise = Sequelize.Promise,
+  current = Support.sequelize,
   _ = require('lodash');
 
 const sortById = function(a, b) {
@@ -2100,38 +2101,74 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    it('should return a correct json value with nested include', function() {
-      const Product = this.sequelize.define('product', {
-        name: {
-          type: Sequelize.JSONB
-        }
-      });
-      const Order = this.sequelize.define('order');
-      Order.belongsTo(Product);
-
-      return this.sequelize.sync({ force: true }).then(() => {
-        return Product.create({
-          name: {
-            en: 'dog',
-            de: 'Hund',
-            fr: 'chien'
-          }
-        }).then(product => {
-          return Order.create({ productId: product.id });
-        }).then(() => {
-          return Order.findAll({
-            attributes: ['id'],
-            include: [{
-              model: Product,
-              attributes: [
-                [this.sequelize.json('name.fr'), 'name']
-              ]
-            }]
+    describe('json value with nested include', () => {
+      if (current.dialect.supports.JSON) {
+        it('should return a correct json value with type JSON', function() {
+          const Product = this.sequelize.define('product', {
+            name: {
+              type: Sequelize.JSON
+            }
           });
-        }).then(orders => {
-          expect(orders[0].product.name).to.equal('chien');
+          const Order = this.sequelize.define('order');
+          Order.belongsTo(Product);
+    
+          return this.sequelize.sync({ force: true }).then(() => {
+            return Product.create({
+              name: {
+                en: 'dog',
+              }
+            }).then(product => {
+              return Order.create({ productId: product.id });
+            }).then(() => {
+              return Order.findAll({
+                attributes: ['id'],
+                include: [{
+                  model: Product,
+                  attributes: [
+                    [this.sequelize.json('name.en'), 'name']
+                  ]
+                }]
+              });
+            }).then(orders => {
+              expect(orders[0].product.name).to.equal('dog');
+            });
+          });
         });
-      });
-    });
+      }
+
+      if (current.dialect.supports.JSONB) {
+        it('should return a correct json value with type JSONB', function() {
+          const Product = this.sequelize.define('product', {
+            name: {
+              type: Sequelize.JSONB
+            }
+          });
+          const Order = this.sequelize.define('order');
+          Order.belongsTo(Product);
+    
+          return this.sequelize.sync({ force: true }).then(() => {
+            return Product.create({
+              name: {
+                en: 'dog',
+              }
+            }).then(product => {
+              return Order.create({ productId: product.id });
+            }).then(() => {
+              return Order.findAll({
+                attributes: ['id'],
+                include: [{
+                  model: Product,
+                  attributes: [
+                    [this.sequelize.json('name.en'), 'name']
+                  ]
+                }]
+              });
+            }).then(orders => {
+              expect(orders[0].product.name).to.equal('dog');
+            });
+          });
+        });
+      }
+    })
   });
 });
