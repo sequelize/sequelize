@@ -61,17 +61,15 @@ Added support for `CIDR`, `INET` and `MACADDR` for Postgres
 
 ### Others
 
-Sequelize now use parameterized queries for all INSERT / UPDATE operations (except UPSERT). They provide better protection against SQL Injection attack.
-
-`ValidationErrorItem` now holds reference to original error in the `original` property, rather than the `__raw` property.
-
-[retry-as-promised](https://github.com/mickhansen/retry-as-promised) has been updated to `3.0.0`, which use [any-promise](https://github.com/kevinbeaty/any-promise). This module repeat all `sequelize.query` operations. You can configure `any-promise` to use `bluebird` for better performance on Node 4 or 6
+- Sequelize now use parameterized queries for all INSERT / UPDATE operations (except UPSERT). They provide better protection against SQL Injection attack.
+- `ValidationErrorItem` now holds reference to original error in the `original` property, rather than the `__raw` property.
+- [retry-as-promised](https://github.com/mickhansen/retry-as-promised) has been updated to `3.0.0`, which use [any-promise](https://github.com/kevinbeaty/any-promise). This module repeat all `sequelize.query` operations. You can configure `any-promise` to use `bluebird` for better performance on Node 4 or 6
 
 
-### Removed
+### Packages
 
-- package: terraformer-wkt-parser [#9545](https://github.com/sequelize/sequelize/pull/9545)
-
+- removed: terraformer-wkt-parser [#9545](https://github.com/sequelize/sequelize/pull/9545)
+- mysql2: use `1.5.2` or above to support prepared statements
 
 ## Changelog
 
