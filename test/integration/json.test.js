@@ -242,7 +242,7 @@ describe('model', () => {
           expect(user.username).to.equal('swen');
         });
       });
-      
+
       // JSONB Supports this, but not JSON in postgres/mysql
       if (current.dialect.name === 'sqlite') {
         it('should be able to find with just string', function() {
