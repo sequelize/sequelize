@@ -50,6 +50,7 @@
     "env-cmd": "^8.0.0",
     "esdoc": "^0.5.2",
     "eslint": "^5.0.0",
+    "eslint-plugin-jsdoc": "^3.7.1",
     "eslint-plugin-mocha": "^5.0.0",
     "hints": "^1.x",
     "husky": "^0.x",
