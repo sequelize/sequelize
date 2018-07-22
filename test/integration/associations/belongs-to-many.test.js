@@ -1056,6 +1056,27 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(tasks[0].title).to.equal('get started');
       });
     });
+
+    it('should returns array of intermediate table', function() {
+      const User = this.sequelize.define('User');
+      const Task = this.sequelize.define('Task');
+      const UserTask = this.sequelize.define('UserTask');
+
+      User.belongsToMany(Task, { through: UserTask });
+      Task.belongsToMany(User, { through: UserTask });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.all([
+          User.create(),
+          Task.create()
+        ]).spread((user, task) => {
+          return user.addTask(task);
+        }).then(userTasks => {
+          expect(userTasks).to.be.an('array').that.has.a.lengthOf(1);
+          expect(userTasks[0]).to.be.an.instanceOf(UserTask);
+        });
+      });
+    });
   });
 
   describe('addMultipleAssociations', () => {
