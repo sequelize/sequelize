@@ -294,6 +294,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw('The scope defaultScope already exists. Pass { override: true } as options to silence this error');
     });
 
+    it('should not warn if default scope is not defined', () => {
+      const Model = current.define('model');
+    
+      expect(() => {
+        Model.addScope('defaultScope', {});
+      }).not.to.throw();
+    });
+
     it('allows me to override a default scope', () => {
       Company.addScope('defaultScope', {
         include: [Project]
