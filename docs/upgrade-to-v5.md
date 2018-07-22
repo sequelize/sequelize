@@ -64,6 +64,7 @@ Added support for `CIDR`, `INET` and `MACADDR` for Postgres
 - Sequelize now use parameterized queries for all INSERT / UPDATE operations (except UPSERT). They provide better protection against SQL Injection attack.
 - `ValidationErrorItem` now holds reference to original error in the `original` property, rather than the `__raw` property.
 - [retry-as-promised](https://github.com/mickhansen/retry-as-promised) has been updated to `3.0.0`, which use [any-promise](https://github.com/kevinbeaty/any-promise). This module repeat all `sequelize.query` operations. You can configure `any-promise` to use `bluebird` for better performance on Node 4 or 6
+- Sequelize will ignore all `undefined` keys in `where` options, In past versions `undefined` was converted to `null`. For `BULKUPDATE / BULKDELETE` query types passing undefined keys in where options will throw an error.
 
 
 ### Packages
@@ -72,6 +73,23 @@ Added support for `CIDR`, `INET` and `MACADDR` for Postgres
 - mysql2: use `1.5.2` or above to support prepared statements
 
 ## Changelog
+
+### 5.0.0-beta.10
+
+- fix(belongsToMany): association.add returns array of array of through records [#9700](https://github.com/sequelize/sequelize/pull/9700)
+- feat: association hooks [#9590](https://github.com/sequelize/sequelize/pull/9590)
+- fix(bulkCreate): dont map dataValue to fields for individualHooks:true[#9672](https://github.com/sequelize/sequelize/pull/9672)
+- feat(postgres): drop enum support [#9641](https://github.com/sequelize/sequelize/pull/9641)
+- feat(validation): improve validation for type[#9660](https://github.com/sequelize/sequelize/pull/9660)
+- feat: allow querying sqlite_master table [#9645](https://github.com/sequelize/sequelize/pull/9645)
+- fix(hasOne.sourceKey): setup sourceKeyAttribute for joins [#9658](https://github.com/sequelize/sequelize/pull/9658)
+- fix: throw when type of array values is not defined [#9649](https://github.com/sequelize/sequelize/pull/9649)
+- fix(query-generator): ignore undefined keys in query [#9548](https://github.com/sequelize/sequelize/pull/9548)
+- fix(model): unable to override rejectOnEmpty [#9632](https://github.com/sequelize/sequelize/pull/9632)
+- fix(reload): instance.changed() remains unaffected [#9615](https://github.com/sequelize/sequelize/pull/9615)
+- feat(model): column level comments [#9573](https://github.com/sequelize/sequelize/pull/9573)
+- docs: cleanup / correct jsdoc references [#9702](https://github.com/sequelize/sequelize/pull/9702)
+
 
 ### 5.0.0-beta.9
 
