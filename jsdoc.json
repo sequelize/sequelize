@@ -1,0 +1,31 @@
+{
+  "plugins": [
+    "plugins/markdown"
+  ],
+  "markdown": {
+    "parser": "gfm"
+  },
+  "tags": {
+    "allowUnknownTags": false
+  },
+  "source": {
+    "include": [
+      "lib/",
+      "docs/index.md"
+    ],
+    "excludePattern": "(node_modules)"
+  },
+  "opts": {
+    "template": "node_modules/docdash",
+    "encoding": "utf8",
+    "destination": "newdocs/",
+    "recurse": true,
+    "tutorials": "docs/"
+  },
+  "templates": {
+    "outputSourcePath": false,
+    "outputSourceFiles": false,
+    "includeDate": false,
+    "sort": false
+  }
+}
