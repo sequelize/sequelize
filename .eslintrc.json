@@ -3,6 +3,22 @@
     "mocha/no-exclusive-tests": "error",
     "mocha/no-skipped-tests": "warn",
 
+    // "jsdoc/check-param-names": "error",
+    // "jsdoc/check-tag-names": "error",
+    // "jsdoc/check-types": "error",
+    // "jsdoc/newline-after-description": "error",
+    // "jsdoc/no-undefined-types": "error",
+    // "jsdoc/require-description-complete-sentence": "off",
+    // "jsdoc/require-example": "off",
+    // "jsdoc/require-hyphen-before-param-description": "off",
+    // "jsdoc/require-param": "error",
+    // "jsdoc/require-param-description": "error",
+    // "jsdoc/require-param-name": "error",
+    // "jsdoc/require-param-type": "error",
+    // "jsdoc/require-returns-description": "off",
+    // "jsdoc/require-returns-type": "error",
+    // "jsdoc/valid-types": "off",
+
     "array-bracket-spacing": "error",
     "comma-spacing": "error",
     "key-spacing": "error",
@@ -90,11 +106,25 @@
     "sourceType": "script"
   },
   "plugins": [
-    "mocha"
+    "mocha",
+    "jsdoc"
   ],
   "env": {
     "node": true,
     "mocha": true,
     "es6": true
+  },
+  "globals": {
+    "Association": true,
+    "HasMany": true,
+    "BelongsTo": true,
+    "HasOne": true,
+    "BelongsToMany": true,
+    "DataTypes": true,
+    "Sequelize": true,
+    "Transaction": true,
+    "Model": true,
+    "QueryInterface": true,
+    "QueryType": true
   }
 }
