@@ -17,6 +17,9 @@ describe('model', () => {
           emergency_contact: DataTypes.JSON,
           emergencyContact: DataTypes.JSON
         });
+        this.Order = this.sequelize.define('Order');
+        this.Order.belongsTo(this.User);
+
         return this.sequelize.sync({ force: true });
       });
 
@@ -255,6 +258,65 @@ describe('model', () => {
           });
         });
       }
+
+      it('should be able retrieve json value with nested include', function() {
+        return this.User.create({
+          emergency_contact: {
+            name: 'kate'
+          }
+        }).then(user => {
+          return this.Order.create({ UserId: user.id });
+        }).then(() => {
+          return this.Order.findAll({
+            attributes: ['id'],
+            include: [{
+              model: this.User,
+              attributes: [
+                [this.sequelize.json('emergency_contact.name'), 'katesName']
+              ]
+            }]
+          });
+        }).then(orders => {
+          expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
+        });
+      });
+    });
+  }
+
+  if (current.dialect.supports.JSONB) {
+    describe('jsonb', () => {
+      beforeEach(function() {
+        this.User = this.sequelize.define('User', {
+          username: DataTypes.STRING,
+          emergency_contact: DataTypes.JSONB,
+        });
+        this.Order = this.sequelize.define('Order');
+        this.Order.belongsTo(this.User);
+
+        return this.sequelize.sync({ force: true });
+      });
+      
+      it('should be able retrieve json value with nested include', function() {
+        return this.User.create({
+          emergency_contact: {
+            name: 'kate'
+          }
+        }).then(user => {
+          return this.Order.create({ UserId: user.id });
+        }).then(() => {
+          return this.Order.findAll({
+            attributes: ['id'],
+            include: [{
+              model: this.User,
+              attributes: [
+                [this.sequelize.json('emergency_contact.name'), 'katesName']
+              ]
+            }]
+          });
+        }).then(orders => {
+          expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
+        });
+      });
     });
   }
 });
