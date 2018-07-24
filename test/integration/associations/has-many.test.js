@@ -903,7 +903,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         return this.sequelize.sync({ force: true }).then(() => {
           return Article.create({ title: 'foo' });
         }).then(article => {
-          return article.createLabel({ text: 'bar' }).return (article);
+          return article.createLabel({ text: 'bar' }).return(article);
         }).then(article => {
           return Label.findAll({ where: { ArticleId: article.id }});
         }).then(labels => {
@@ -916,7 +916,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         const Article = this.sequelize.define('Article', {
             'title': DataTypes.STRING
-
           }),
           Label = this.sequelize.define('Label', {
             'text': DataTypes.STRING
@@ -984,6 +983,107 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return article.createLabel({
             text: 'yolo'
           }, {
+            fields: ['text']
+          }).return (article);
+        }).then(article => {
+          return article.getLabels();
+        }).then(labels => {
+          expect(labels.length).to.be.ok;
+        });
+      });
+    });
+
+    describe('createMultipleAssociations', () => {
+      it('creates new associated objects', function() {
+        const Article = this.sequelize.define('Article', { 'title': DataTypes.STRING }),
+          Label = this.sequelize.define('Label', { 'text': DataTypes.STRING });
+
+        Article.hasMany(Label);
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Article.create({ title: 'foo' });
+        }).then(article => {
+          return article.createLabels([{ text: 'bar' }, { text: 'baz' }]).return(article);
+        }).then(article => {
+          return Label.findAll({ where: { ArticleId: article.id }});
+        }).then(labels => {
+          expect(labels.length).to.equal(2);
+        });
+      });
+
+      it('creates the object with the association directly', function() {
+        const spy = sinon.spy();
+
+        const Article = this.sequelize.define('Article', {
+            'title': DataTypes.STRING
+          }),
+          Label = this.sequelize.define('Label', {
+            'text': DataTypes.STRING
+          });
+
+        Article.hasMany(Label);
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Article.create({ title: 'foo' });
+        }).bind({}).then(function(article) {
+          this.article = article;
+          return article.createLabels([{ text: 'bar' }, { text: 'baz' }], {logging: spy});
+        }).then(function(labels) {
+          expect(spy.calledOnce).to.be.true;
+          labels.map(label => expect(label.ArticleId).to.equal(this.article.id));
+        });
+      });
+
+      if (current.dialect.supports.transactions) {
+        it('supports transactions', function() {
+          return Support.prepareTransactionTest(this.sequelize).bind({}).then(function(sequelize) {
+            this.sequelize = sequelize;
+            this.Article = sequelize.define('Article', { 'title': DataTypes.STRING });
+            this.Label = sequelize.define('Label', { 'text': DataTypes.STRING });
+
+            this.Article.hasMany(this.Label);
+
+            return sequelize.sync({ force: true});
+          }).then(function() {
+            return this.Article.create({ title: 'foo' });
+          }).then(function(article) {
+            this.article = article;
+            return this.sequelize.transaction();
+          }).then(function(t) {
+            this.t = t;
+            return this.article.createLabels([{ text: 'bar' }, { text: 'baz' }], { transaction: this.t });
+          }).then(function() {
+            return this.Label.findAll();
+          }).then(function(labels) {
+            expect(labels.length).to.equal(0);
+            return this.Label.findAll({ where: { ArticleId: this.article.id }});
+          }).then(function(labels) {
+            expect(labels.length).to.equal(0);
+            return this.Label.findAll({ where: { ArticleId: this.article.id }, transaction: this.t });
+          }).then(function(labels) {
+            expect(labels.length).to.equal(2);
+            return this.t.rollback();
+          });
+        });
+      }
+
+      it('supports passing the field option', function() {
+        const Article = this.sequelize.define('Article', {
+            'title': DataTypes.STRING
+          }),
+          Label = this.sequelize.define('Label', {
+            'text': DataTypes.STRING
+          });
+
+        Article.hasMany(Label);
+
+        return this.sequelize.sync({force: true}).then(() => {
+          return Article.create();
+        }).then(article => {
+          return article.createLabels([
+            { text: 'yolo' },
+            { text: 'blah' },
+          ], {
             fields: ['text']
           }).return (article);
         }).then(article => {
