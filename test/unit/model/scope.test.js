@@ -2,6 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
+  Sequelize = require(__dirname + '/../../../index'),
+  Op = Sequelize.Op,
   Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   current   = Support.sequelize;
@@ -27,6 +29,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       where: {
         something: false
       }
+    },
+    sequelize_where: {
+      where: Sequelize.where()
     },
     users: {
       include: [
@@ -135,10 +140,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to merge scopes', () => {
-      expect(Company.scope('somethingTrue', 'somethingFalse')._scope).to.deep.equal({
+      expect(Company.scope('somethingTrue', 'somethingFalse', 'sequelize_where')._scope).to.deep.equal({
         where: {
           something: false,
-          somethingElse: 42
+          somethingElse: 42,
+          [Op.and]: Sequelize.where()
         },
         limit: 5
       });
