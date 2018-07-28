@@ -2099,37 +2099,5 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
       });
     });
-
-    it('should not throw error with sequelize.where in scope', function() {
-      const User = this.sequelize.define('User', {
-        firstName: DataTypes.STRING,
-        lastName: DataTypes.STRING,
-      }, {
-        scopes: {
-          search: phrase => ({
-            where: Sequelize.where(
-              Sequelize.fn(
-                'CONCAT',
-                Sequelize.col('firstName'),
-                Sequelize.col('lastName')
-              ), 'LIKE', `%${phrase}%`
-            )
-          })
-        }
-      });
-
-      return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({
-          firstName: 'hoge',
-          lastName: 'piyo',
-        }).then(() => {
-          return User.scope([{
-            method: ['search', 'hoge']
-          }]).findAll();
-        }).then(users => {
-          expect(users.length).to.eql(1);
-        });
-      });
-    });
   });
 });
