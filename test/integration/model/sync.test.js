@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           age: Sequelize.INTEGER,
           height: { type: Sequelize.INTEGER, field: 'height_cm' }
         }))
-        .then(() => this.sequelize.sync({alter: true}))
+        .then(() => this.sequelize.sync())
         .then(() => testSync.describe())
         .then(data => {
           expect(data).to.have.ownProperty('age');
