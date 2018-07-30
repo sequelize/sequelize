@@ -6,14 +6,6 @@ const Support = require(__dirname + '/../support');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const dialect = Support.getTestDialect();
 
-let count = 0;
-function log() {
-  // sqlite fires a lot more querys than the other dbs. this is just a simple hack, since i'm lazy
-  if (dialect !== 'sqlite' || count === 0) {
-    count++;
-  }
-};
-
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function() {
     this.sequelize.options.quoteIdenifiers = true;
@@ -135,33 +127,40 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               type: DataTypes.INTEGER,
               allowNull: false
             }
-          })
-            .bind(this).then(function() {
-              return this.queryInterface.createTable('level', {
-                id: {
-                  type: DataTypes.INTEGER,
-                  primaryKey: true,
-                  autoIncrement: true
-                }
-              });
+          }).bind(this).then(function() {
+            return this.queryInterface.createTable('level', {
+              id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true
+              }
             });
-        });
-
-        it('able to change column to foreign key', function() {
-          return this.queryInterface.changeColumn('users', 'level_id', {
-            type: DataTypes.INTEGER,
-            references: {
-              model: 'level',
-              key: 'id'
-            },
-            onUpdate: 'cascade',
-            onDelete: 'cascade'
-          }, {logging: log}).then(() => {
-            expect(count).to.be.equal(1);
-            count = 0;
           });
         });
 
+        it('able to change column to foreign key', function() {
+          return this.queryInterface.getForeignKeyReferencesForTable('users'
+          ).bind(this).then( foreignKeys => {
+            expect(foreignKeys).to.be.an('array');
+            expect(foreignKeys).to.be.empty;
+            return this.queryInterface.changeColumn('users', 'level_id', {
+              type: DataTypes.INTEGER,
+              references: {
+                model: 'level',
+                key: 'id'
+              },
+              onUpdate: 'cascade',
+              onDelete: 'cascade'
+            });
+          }).bind(this).then(() => {
+            return this.queryInterface.getForeignKeyReferencesForTable('users');
+          }).then(newForeignKeys => {
+            expect(newForeignKeys).to.be.an('array');
+            expect(newForeignKeys).to.have.lengthOf(1);
+            expect(newForeignKeys[0].columnName).to.be.equal('level_id');
+          });
+
+        });
       });
     }
   });
