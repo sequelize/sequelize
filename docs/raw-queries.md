@@ -25,9 +25,14 @@ A second option is the model. If you pass a model the returned data will be inst
 
 ```js
 // Callee is the model definition. This allows you to easily map a query to a predefined model
-sequelize.query('SELECT * FROM projects', { model: Projects }).then(projects => {
-  // Each record will now be a instance of Project
-})
+sequelize
+  .query('SELECT * FROM projects', {
+    model: Projects,
+    mapToModel: true // pass true here if you have any mapped fields
+  })
+  .then(projects => {
+    // Each record will now be an instance of Project
+  })
 ```
 
 ## Replacements
