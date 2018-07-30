@@ -159,8 +159,55 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             expect(newForeignKeys).to.have.lengthOf(1);
             expect(newForeignKeys[0].columnName).to.be.equal('level_id');
           });
-
         });
+
+        it('able to change column property without affecting other properties', function() {
+          let firstTable, firstForeignKeys;
+          // 1. look for users table information
+          // 2. change column level_id on users to have a Foreign Key
+          // 3. look for users table Foreign Keys information
+          // 4. change column level_id AGAIN to allow null values
+          // 5. look for new foreign keys information
+          // 6. look for new table structure information
+          // 7. compare foreign keys and tables(before and after the changes)
+          return this.queryInterface.describeTable({
+            tableName: 'users'
+          }).bind(this).then( describedTable => {
+            firstTable = describedTable;
+            return this.queryInterface.changeColumn('users', 'level_id', {
+              type: DataTypes.INTEGER,
+              references: {
+                model: 'level',
+                key: 'id'
+              },
+              onUpdate: 'cascade',
+              onDelete: 'cascade'
+            });
+          }).bind(this).then( () => {
+            return this.queryInterface.getForeignKeyReferencesForTable('users');
+          }).bind(this).then( keys => {
+            firstForeignKeys = keys;
+            return this.queryInterface.changeColumn('users', 'level_id', {
+              type: DataTypes.INTEGER,
+              allowNull: true
+            });
+          }).bind(this).then( () => {
+            return this.queryInterface.getForeignKeyReferencesForTable('users');
+          }).bind(this).then( newForeignKeys => {
+            expect(firstForeignKeys.length).to.be.equal(newForeignKeys.length);
+            expect(firstForeignKeys[0].columnName).to.be.equal('level_id');
+            expect(firstForeignKeys[0].columnName).to.be.equal(newForeignKeys[0].columnName);
+            
+            return this.queryInterface.describeTable({
+              tableName: 'users'
+            });
+          }).then( describedTable => {
+            expect(describedTable.level_id).to.have.property('allowNull');
+            expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
+            expect(describedTable.level_id.allowNull).to.be.equal(true);
+          });
+        });
+        
       });
     }
   });
