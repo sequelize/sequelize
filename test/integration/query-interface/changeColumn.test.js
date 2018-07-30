@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('changeColumn', () => {
     it('should support schemas', function() {
-      return this.sequelize.createSchema('archive').bind(this).then(function() {
+      return this.sequelize.createSchema('archive').then(() => {
         return this.queryInterface.createTable({
           tableName: 'users',
           schema: 'archive'
@@ -29,14 +29,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             autoIncrement: true
           },
           currency: DataTypes.INTEGER
-        }).bind(this).then(function() {
+        }).then(() => {
           return this.queryInterface.changeColumn({
             tableName: 'users',
             schema: 'archive'
           }, 'currency', {
             type: DataTypes.FLOAT
           });
-        }).then(function() {
+        }).then(() => {
           return this.queryInterface.describeTable({
             tableName: 'users',
             schema: 'archive'
@@ -61,12 +61,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           autoIncrement: true
         },
         currency: DataTypes.INTEGER
-      }).bind(this).then(function() {
+      }).then(() => {
         return this.queryInterface.changeColumn('users', 'currency', {
           type: DataTypes.FLOAT,
           allowNull: true
         });
-      }).then(function() {
+      }).then(() => {
         return this.queryInterface.describeTable({
           tableName: 'users'
         });
@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           tableName: 'users'
         }, {
           firstName: DataTypes.STRING
-        }).bind(this).then(function() {
+        }).then(() => {
           return this.queryInterface.changeColumn('users', 'firstName', {
             type: DataTypes.ENUM(['value1', 'value2', 'value3'])
           });
@@ -95,14 +95,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       it('should work with enums with schemas', function() {
-        return this.sequelize.createSchema('archive').bind(this).then(function() {
+        return this.sequelize.createSchema('archive').then(() => {
           return this.queryInterface.createTable({
             tableName: 'users',
             schema: 'archive'
           }, {
             firstName: DataTypes.STRING
           });
-        }).bind(this).then(function() {
+        }).then(() => {
           return this.queryInterface.changeColumn({
             tableName: 'users',
             schema: 'archive'
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               type: DataTypes.INTEGER,
               allowNull: false
             }
-          }).bind(this).then(function() {
+          }).then(() => {
             return this.queryInterface.createTable('level', {
               id: {
                 type: DataTypes.INTEGER,
@@ -139,8 +139,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         it('able to change column to foreign key', function() {
-          return this.queryInterface.getForeignKeyReferencesForTable('users'
-          ).bind(this).then( foreignKeys => {
+          return this.queryInterface.getForeignKeyReferencesForTable('users').then( foreignKeys => {
             expect(foreignKeys).to.be.an('array');
             expect(foreignKeys).to.be.empty;
             return this.queryInterface.changeColumn('users', 'level_id', {
@@ -152,7 +151,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               onUpdate: 'cascade',
               onDelete: 'cascade'
             });
-          }).bind(this).then(() => {
+          }).then(() => {
             return this.queryInterface.getForeignKeyReferencesForTable('users');
           }).then(newForeignKeys => {
             expect(newForeignKeys).to.be.an('array');
@@ -172,7 +171,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           // 7. compare foreign keys and tables(before and after the changes)
           return this.queryInterface.describeTable({
             tableName: 'users'
-          }).bind(this).then( describedTable => {
+          }).then( describedTable => {
             firstTable = describedTable;
             return this.queryInterface.changeColumn('users', 'level_id', {
               type: DataTypes.INTEGER,
@@ -183,17 +182,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               onUpdate: 'cascade',
               onDelete: 'cascade'
             });
-          }).bind(this).then( () => {
+          }).then( () => {
             return this.queryInterface.getForeignKeyReferencesForTable('users');
-          }).bind(this).then( keys => {
+          }).then( keys => {
             firstForeignKeys = keys;
             return this.queryInterface.changeColumn('users', 'level_id', {
               type: DataTypes.INTEGER,
               allowNull: true
             });
-          }).bind(this).then( () => {
+          }).then( () => {
             return this.queryInterface.getForeignKeyReferencesForTable('users');
-          }).bind(this).then( newForeignKeys => {
+          }).then( newForeignKeys => {
             expect(firstForeignKeys.length).to.be.equal(newForeignKeys.length);
             expect(firstForeignKeys[0].columnName).to.be.equal('level_id');
             expect(firstForeignKeys[0].columnName).to.be.equal(newForeignKeys[0].columnName);
