@@ -6,14 +6,6 @@ const Support = require(__dirname + '/../support');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
 const dialect = Support.getTestDialect();
 
-let count = 0;
-function log() {
-  // sqlite fires a lot more querys than the other dbs. this is just a simple hack, since i'm lazy
-  if (dialect !== 'sqlite' || count === 0) {
-    count++;
-  }
-};
-
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function() {
     this.sequelize.options.quoteIdenifiers = true;
@@ -26,7 +18,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('changeColumn', () => {
     it('should support schemas', function() {
-      return this.sequelize.createSchema('archive').bind(this).then(function() {
+      return this.sequelize.createSchema('archive').then(() => {
         return this.queryInterface.createTable({
           tableName: 'users',
           schema: 'archive'
@@ -37,14 +29,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             autoIncrement: true
           },
           currency: DataTypes.INTEGER
-        }).bind(this).then(function() {
+        }).then(() => {
           return this.queryInterface.changeColumn({
             tableName: 'users',
             schema: 'archive'
           }, 'currency', {
             type: DataTypes.FLOAT
           });
-        }).then(function() {
+        }).then(() => {
           return this.queryInterface.describeTable({
             tableName: 'users',
             schema: 'archive'
@@ -69,12 +61,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           autoIncrement: true
         },
         currency: DataTypes.INTEGER
-      }).bind(this).then(function() {
+      }).then(() => {
         return this.queryInterface.changeColumn('users', 'currency', {
           type: DataTypes.FLOAT,
           allowNull: true
         });
-      }).then(function() {
+      }).then(() => {
         return this.queryInterface.describeTable({
           tableName: 'users'
         });
@@ -95,7 +87,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           tableName: 'users'
         }, {
           firstName: DataTypes.STRING
-        }).bind(this).then(function() {
+        }).then(() => {
           return this.queryInterface.changeColumn('users', 'firstName', {
             type: DataTypes.ENUM(['value1', 'value2', 'value3'])
           });
@@ -103,14 +95,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       it('should work with enums with schemas', function() {
-        return this.sequelize.createSchema('archive').bind(this).then(function() {
+        return this.sequelize.createSchema('archive').then(() => {
           return this.queryInterface.createTable({
             tableName: 'users',
             schema: 'archive'
           }, {
             firstName: DataTypes.STRING
           });
-        }).bind(this).then(function() {
+        }).then(() => {
           return this.queryInterface.changeColumn({
             tableName: 'users',
             schema: 'archive'
@@ -135,33 +127,86 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               type: DataTypes.INTEGER,
               allowNull: false
             }
-          })
-            .bind(this).then(function() {
-              return this.queryInterface.createTable('level', {
-                id: {
-                  type: DataTypes.INTEGER,
-                  primaryKey: true,
-                  autoIncrement: true
-                }
-              });
+          }).then(() => {
+            return this.queryInterface.createTable('level', {
+              id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true
+              }
             });
-        });
-
-        it('able to change column to foreign key', function() {
-          return this.queryInterface.changeColumn('users', 'level_id', {
-            type: DataTypes.INTEGER,
-            references: {
-              model: 'level',
-              key: 'id'
-            },
-            onUpdate: 'cascade',
-            onDelete: 'cascade'
-          }, {logging: log}).then(() => {
-            expect(count).to.be.equal(1);
-            count = 0;
           });
         });
 
+        it('able to change column to foreign key', function() {
+          return this.queryInterface.getForeignKeyReferencesForTable('users').then( foreignKeys => {
+            expect(foreignKeys).to.be.an('array');
+            expect(foreignKeys).to.be.empty;
+            return this.queryInterface.changeColumn('users', 'level_id', {
+              type: DataTypes.INTEGER,
+              references: {
+                model: 'level',
+                key: 'id'
+              },
+              onUpdate: 'cascade',
+              onDelete: 'cascade'
+            });
+          }).then(() => {
+            return this.queryInterface.getForeignKeyReferencesForTable('users');
+          }).then(newForeignKeys => {
+            expect(newForeignKeys).to.be.an('array');
+            expect(newForeignKeys).to.have.lengthOf(1);
+            expect(newForeignKeys[0].columnName).to.be.equal('level_id');
+          });
+        });
+
+        it('able to change column property without affecting other properties', function() {
+          let firstTable, firstForeignKeys;
+          // 1. look for users table information
+          // 2. change column level_id on users to have a Foreign Key
+          // 3. look for users table Foreign Keys information
+          // 4. change column level_id AGAIN to allow null values
+          // 5. look for new foreign keys information
+          // 6. look for new table structure information
+          // 7. compare foreign keys and tables(before and after the changes)
+          return this.queryInterface.describeTable({
+            tableName: 'users'
+          }).then( describedTable => {
+            firstTable = describedTable;
+            return this.queryInterface.changeColumn('users', 'level_id', {
+              type: DataTypes.INTEGER,
+              references: {
+                model: 'level',
+                key: 'id'
+              },
+              onUpdate: 'cascade',
+              onDelete: 'cascade'
+            });
+          }).then( () => {
+            return this.queryInterface.getForeignKeyReferencesForTable('users');
+          }).then( keys => {
+            firstForeignKeys = keys;
+            return this.queryInterface.changeColumn('users', 'level_id', {
+              type: DataTypes.INTEGER,
+              allowNull: true
+            });
+          }).then( () => {
+            return this.queryInterface.getForeignKeyReferencesForTable('users');
+          }).then( newForeignKeys => {
+            expect(firstForeignKeys.length).to.be.equal(newForeignKeys.length);
+            expect(firstForeignKeys[0].columnName).to.be.equal('level_id');
+            expect(firstForeignKeys[0].columnName).to.be.equal(newForeignKeys[0].columnName);
+            
+            return this.queryInterface.describeTable({
+              tableName: 'users'
+            });
+          }).then( describedTable => {
+            expect(describedTable.level_id).to.have.property('allowNull');
+            expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
+            expect(describedTable.level_id.allowNull).to.be.equal(true);
+          });
+        });
+        
       });
     }
   });
