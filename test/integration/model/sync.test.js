@@ -56,6 +56,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
+    it('should default to add a column if it does not exist in the database (#9731)', function() {
+      const testSync = this.sequelize.define('testSync', {
+        name: Sequelize.STRING
+      });
+      return this.sequelize.sync()
+        .then(() => this.sequelize.define('testSync', {
+          name: Sequelize.STRING,
+          age: Sequelize.INTEGER,
+          height: { type: Sequelize.INTEGER, field: 'height_cm' }
+        }))
+        .then(() => this.sequelize.sync())
+        .then(() => testSync.describe())
+        .then(data => {
+          expect(data).to.have.ownProperty('age');
+          expect(data).to.have.ownProperty('height_cm');
+          expect(data).not.to.have.ownProperty('height');
+        });
+    });
+
     it('should alter a column using the correct column name (#9515)', function() {
       const testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING
