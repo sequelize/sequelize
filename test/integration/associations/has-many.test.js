@@ -1452,6 +1452,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         })
         .then(() => {
           return User.findAndCountAll({
+            attributes: ['userId'],
             include: [
               { model: Task, separate: true, include: [{ model: Job, separate: true }]}
             ],
@@ -1460,7 +1461,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         })
         .then(({ count, rows }) => {
           expect(count.length).to.equal(1);
-          expect(rows[0].username).to.equal('John Doe');
           expect(rows[0].tasks[0].title).to.equal('Task #1');
           expect(rows[0].tasks[0].jobs.length).to.equal(2);
           expect(rows[0].tasks[0].jobs[0].title).to.equal('Job #1');
