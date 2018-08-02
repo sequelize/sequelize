@@ -1464,11 +1464,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(rows[0].tasks[0].title).to.equal('Task #1');
           expect(rows[0].tasks[0].jobs.length).to.equal(2);
           expect(rows[0].tasks[0].jobs[0].title).to.equal('Job #1');
-        })
-        // if we get here, this will fail (as it should)
-        .catch(ex => {
-          console.log(ex);
-          expect(ex).to.be.undefined;
         });
     });
   });
