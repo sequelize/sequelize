@@ -303,6 +303,52 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       });
+
+      describe('scope with options', () => {
+        it('should return correct object included foreign_key', function() {
+          const Child = this.sequelize.define('Child', {
+            secret: Sequelize.STRING
+          }, {
+            scopes: {
+              public: {
+                attributes: {
+                  exclude: ['secret']
+                }
+              }
+            }
+          });
+          const Parent = this.sequelize.define('Parent');
+          Child.belongsTo(Parent);
+
+          return this.sequelize.sync({ force: true })
+            .then(() => Child.create({ secret: 'super secret' }))
+            .then(() => Child.scope('public').findOne())
+            .then(user => {
+              expect(user.dataValues).to.have.property('ParentId');
+            });
+        });
+
+        it('should return correct object included foreign_key with defaultScope', function() {
+          const Child = this.sequelize.define('Child', {
+            secret: Sequelize.STRING
+          }, {
+            defaultScope: {
+              attributes: {
+                exclude: ['secret']
+              }
+            }
+          });
+          const Parent = this.sequelize.define('Parent');
+          Child.belongsTo(Parent);
+
+          return this.sequelize.sync({ force: true })
+            .then(() => Child.create({ secret: 'super secret' }))
+            .then(() => Child.findOne())
+            .then(user => {
+              expect(user.dataValues).to.have.property('ParentId');
+            });
+        });
+      });
     });
   });
 });
