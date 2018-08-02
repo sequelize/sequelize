@@ -1422,6 +1422,48 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       expect(User.hasMany.bind(User, User, { as: 'user' })).to
         .throw ('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change either foreignKey or as in your association definition');
     });
+
+    it('should ignore group from ancestor on deep separated query', function() {
+      const User = this.sequelize.define('user', {
+        userId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+        username: Sequelize.STRING
+      });
+      const Task = this.sequelize.define('task', {
+        taskId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+        title: Sequelize.STRING
+      });
+      const Job = this.sequelize.define('job', {
+        jobId: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+        title: Sequelize.STRING
+      });
+
+      Task.hasMany(Job, { foreignKey: 'taskId' });
+      User.hasMany(Task, { foreignKey: 'userId' });
+
+      return this.sequelize.sync({ force: true })
+        .then(() => {
+          return User.create({
+            username: 'John Doe',
+            tasks: [
+              { title: 'Task #1', jobs: [{ title: 'Job #1' }, { title: 'Job #2' }] },
+              { title: 'Task #2', jobs: [{ title: 'Job #3' }, { title: 'Job #4' }] }
+            ]
+          }, { include: [{ model: Task, include: [Job] }] });
+        })
+        .then(() => {
+          return User.findAndCountAll({
+            attributes: ['userId'],
+            include: [
+              { model: Task, separate: true, include: [{ model: Job, separate: true }]}
+            ],
+            group: [['userId']],
+          });
+        })
+        .then(({ count, rows }) => {
+          expect(count.length).to.equal(1);
+          expect(rows[0].tasks[0].jobs.length).to.equal(2);
+        });
+    });
   });
 
   describe('sourceKey', () => {
