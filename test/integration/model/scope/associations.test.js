@@ -325,6 +325,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             .then(() => Child.scope('public').findOne())
             .then(user => {
               expect(user.dataValues).to.have.property('ParentId');
+              expect(user.dataValues).not.to.have.property('secret');
             });
         });
 
@@ -346,6 +347,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             .then(() => Child.findOne())
             .then(user => {
               expect(user.dataValues).to.have.property('ParentId');
+              expect(user.dataValues).not.to.have.property('secret');
             });
         });
       });

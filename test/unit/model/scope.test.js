@@ -100,13 +100,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      it('should be able to exclude in defaultScope #4735', () => {
-        expect(User._scope.attributes).to.deep.equal([
-          'id',
-          'name',
-          'createdAt',
-          'updatedAt'
-        ]);
+      it('should not expand attributes', () => {
+        expect(User._scope.attributes).to.deep.equal({ exclude: ['password'] });
       });
 
       it('should be able to exclude in a scope #4925', () => {
@@ -127,7 +122,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should apply default scope', () => {
       expect(Company._scope).to.deep.equal({
-        include: [{ model: Project }],
+        include: [Project],
         where: { active: true }
       });
     });
