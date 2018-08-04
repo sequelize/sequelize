@@ -104,13 +104,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(User._scope.attributes).to.deep.equal({ exclude: ['password'] });
       });
 
-      it('should be able to exclude in a scope #4925', () => {
-        expect(User.scope('aScope')._scope.attributes).to.deep.equal([
-          'id',
-          'name',
-          'createdAt',
-          'updatedAt'
-        ]);
+      it('should not expand attributes', () => {
+        expect(User.scope('aScope')._scope.attributes).to.deep.equal({ exclude: ['password'] });
       });
     });
 
@@ -198,7 +193,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Company.scope('users', 'projects')._scope).to.deep.equal({
         include: [
           { model: User },
-          { model: Project }
+          Project
         ]
       });
     });
@@ -209,7 +204,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should be able to combine default with another scope', () => {
       expect(Company.scope(['defaultScope', {method: ['actualValue', 11]}])._scope).to.deep.equal({
-        include: [{ model: Project }],
+        include: [Project],
         where: {
           active: true,
           other_value: 11
@@ -225,7 +220,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should override the default scope', () => {
       expect(Company.scope(['defaultScope', {method: ['complexFunction', 'qux']}])._scope).to.deep.equal({
-        include: [{ model: Project }],
+        include: [Project],
         where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))']
       });
     });
@@ -239,7 +234,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should concatenate scope groups', () => {
       expect(Company.scope('groupByCompanyId', 'groupByProjectId')._scope).to.deep.equal({
         group: ['company.id', 'project.id'],
-        include: [{ model: Project }]
+        include: [Project]
       });
     });
   });
