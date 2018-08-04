@@ -262,7 +262,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(Company.scope('newScope')._scope).to.deep.equal({
         where: { this: 'that' },
-        include: [{ model: Project }]
+        include: [Project]
       });
     });
 
@@ -304,11 +304,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }, { override: true });
 
       expect(Company._scope).to.deep.equal({
-        include: [{ model: Project }]
+        include: [Project]
       });
     });
 
-    it('works with exclude and include attributes', () => {
+    it('should not work with exclude and include attributes', () => {
       Company.addScope('newIncludeScope', {
         attributes: {
           include: ['foobar'],
@@ -317,10 +317,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       expect(Company.scope('newIncludeScope')._scope).to.deep.equal({
-        attributes: ['id', 'updatedAt', 'foobar']
+        attributes: {
+          include: ['foobar'],
+          exclude: ['createdAt']
+        }
       });
     });
-
   });
 
   describe('_injectScope', () => {
