@@ -2876,21 +2876,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         username: {
           type: Sequelize.STRING,
           allowNull: false,
-          field: "data",
-          get: function() {
-            const val = this.getDataValue("username");
+          field: 'data',
+          get: () => {
+            const val = this.getDataValue('username');
             return val.substring(0, val.length - 1);
           },
-          set: function(val) {
-            if(val.indexOf('!') > -1) {
-              throw new Error("val should not include a '!'");
+          set: val => {
+            if (val.indexOf('!') > -1) {
+              throw new Error('val should not include a "!"');
             }
-            this.setDataValue("username", val + "!");
+            this.setDataValue('username', val + '!');
           }
         }
       });
 
-      const data = [{ username: "jon" }];
+      const data = [{ username: 'jon' }];
       return user.bulkCreate(data).then(() => {
         return user.findAll().then(users1 => {
           expect(users1[0].username).to.equal('jon');
