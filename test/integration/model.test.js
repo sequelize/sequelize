@@ -828,10 +828,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const User = this.sequelize.define('Users', {
         username: {
           type: Sequelize.VIRTUAL,
-          get: () => {
+          get() {
             return this.getDataValue('usrnm');
           },
-          set: val => {
+          set(val) {
             this.setDataValue('usrnm', val);
           }
         },
