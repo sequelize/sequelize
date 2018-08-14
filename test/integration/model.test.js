@@ -2877,11 +2877,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           type: Sequelize.STRING,
           allowNull: false,
           field: 'data',
-          get: () => {
+          get() {
             const val = this.getDataValue('username');
             return val.substring(0, val.length - 1);
           },
-          set: val => {
+          set(val) {
             if (val.indexOf('!') > -1) {
               throw new Error('val should not include a "!"');
             }
