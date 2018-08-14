@@ -828,11 +828,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const User = this.sequelize.define('Users', {
         username: {
           type: Sequelize.VIRTUAL,
-          get: function() {
-            return this.getDataValue("usrnm");
+          get: () => {
+            return this.getDataValue('usrnm');
           },
-          set: function(val) {
-            this.setDataValue("usrnm", val);
+          set: (val) => {
+            this.setDataValue('usrnm', val);
           }
         },
         usrnm: {
@@ -842,12 +842,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: "jon" }).then((r) => {
-          r.username = "peter";
-          return r.update({ username: "paul" }).then(() => {
-            expect(r.username, "Updates local copy").eq("paul");
+        return User.create({ username: 'jon' }).then(r => {
+          r.username = 'peter';
+          return r.update({ username: 'paul' }).then(() => {
+            expect(r.username, 'Updates local copy').eq('paul');
             return r.reload().then(() => {
-              expect(r.username, "Updates DB copy").eq("paul");
+              expect(r.username, 'Updates DB copy').eq('paul');
             });
           });
         });
