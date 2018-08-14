@@ -831,7 +831,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           get: () => {
             return this.getDataValue('usrnm');
           },
-          set: (val) => {
+          set: val => {
             this.setDataValue('usrnm', val);
           }
         },
