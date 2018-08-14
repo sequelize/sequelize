@@ -824,6 +824,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('update', () => {
+    it('saves a virtual field if the field was already modified', function() {
+      const User = this.sequelize.define('Users', {
+        username: {
+          type: Sequelize.VIRTUAL,
+          get: function() {
+            return this.getDataValue("usrnm");
+          },
+          set: function(val) {
+            this.setDataValue("usrnm", val);
+          }
+        },
+        usrnm: {
+          type: Sequelize.STRING,
+          allowNull: false
+        }
+      });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({ username: "jon" }).then((r) => {
+          r.username = "peter";
+          return r.update({ username: "paul" }).then(() => {
+            expect(r.username, "Updates local copy").eq("paul");
+            return r.reload().then(() => {
+              expect(r.username, "Updates DB copy").eq("paul");
+            });
+          });
+        });
+      });
+    });
+
     it('throws an error if no where clause is given', function() {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
