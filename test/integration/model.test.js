@@ -2848,13 +2848,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     return this.sequelize.sync({force: true});
   });
 
-  describe('bulkCreate errors', () => {
-    it('should return array of errors if validate and individualHooks are true', function() {
+  describe('bulkCreate', () => {
+    it('errors - should return array of errors if validate and individualHooks are true', function() {
       const data = [{ username: null },
         { username: null },
         { username: null }];
 
-      const user = this.sequelize.define('Users', {
+      const user = this.sequelize.define('User', {
         username: {
           type: Sequelize.STRING,
           allowNull: false,
@@ -2865,10 +2865,41 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      return expect(user.bulkCreate(data, {
-        validate: true,
-        individualHooks: true
-      })).to.be.rejectedWith(Promise.AggregateError);
+      return this.sequelize.sync({force: true}).then(() => {
+        expect(user.bulkCreate(data, {
+          validate: true,
+          individualHooks: true
+        })).to.be.rejectedWith(Promise.AggregateError);
+      });
+    });
+
+    it('should not use setter when renaming fields in dataValues', function() {
+      const user = this.sequelize.define('User', {
+        username: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          field: 'data',
+          get() {
+            const val = this.getDataValue('username');
+            return val.substring(0, val.length - 1);
+          },
+          set(val) {
+            if (val.indexOf('!') > -1) {
+              throw new Error('val should not include a "!"');
+            }
+            this.setDataValue('username', val + '!');
+          }
+        }
+      });
+
+      const data = [{ username: 'jon' }];
+      return this.sequelize.sync({force: true}).then(() => {
+        return user.bulkCreate(data).then(() => {
+          return user.findAll().then(users1 => {
+            expect(users1[0].username).to.equal('jon');
+          });
+        });
+      });
     });
   });
 });
