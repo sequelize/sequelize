@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@semantic-release/github": "^5.0.0",
-    "@semantic-release/npm": "^4.0.0",
+    "@semantic-release/npm": "^5.0.2",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
     "chai-datetime": "^1.x",
