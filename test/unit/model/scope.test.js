@@ -84,6 +84,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('attribute exclude / include', () => {
       const User = current.define('user', {
         password: DataTypes.STRING,
+        value: DataTypes.INTEGER,
         name: DataTypes.STRING
       }, {
         defaultScope: {
@@ -94,7 +95,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         scopes: {
           aScope: {
             attributes: {
-              exclude: ['password']
+              exclude: ['value']
             }
           }
         }
@@ -105,7 +106,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should not expand attributes', () => {
-        expect(User.scope('aScope')._scope.attributes).to.deep.equal({ exclude: ['password'] });
+        expect(User.scope('aScope')._scope.attributes).to.deep.equal({ exclude: ['value'] });
+      });
+
+      it('should unite attributes with array', () => {
+        expect(User.scope('aScope', 'defaultScope')._scope.attributes).to.deep.equal({ exclude: ['value', 'password'] });
       });
     });
 
