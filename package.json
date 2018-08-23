@@ -47,7 +47,7 @@
     "continuation-local-storage": "^3.x",
     "cross-env": "^5.2.0",
     "cz-conventional-changelog": "^2.x",
-    "docdash": "^0.4.0",
+    "docdash": "^1.0.0",
     "env-cmd": "^8.0.0",
     "esdoc": "^0.5.2",
     "eslint": "^5.0.0",
