@@ -127,7 +127,7 @@ Sequelize.BIGINT(11)                  // BIGINT(11)
 
 Sequelize.FLOAT                       // FLOAT
 Sequelize.FLOAT(11)                   // FLOAT(11)
-Sequelize.FLOAT(11, 12)               // FLOAT(11,12)
+Sequelize.FLOAT(11, 10)               // FLOAT(11,10)
 
 Sequelize.REAL                        // REAL        PostgreSQL only.
 Sequelize.REAL(11)                    // REAL(11)    PostgreSQL only.
@@ -135,7 +135,7 @@ Sequelize.REAL(11, 12)                // REAL(11,12) PostgreSQL only.
 
 Sequelize.DOUBLE                      // DOUBLE
 Sequelize.DOUBLE(11)                  // DOUBLE(11)
-Sequelize.DOUBLE(11, 12)              // DOUBLE(11,12)
+Sequelize.DOUBLE(11, 10)              // DOUBLE(11,10)
 
 Sequelize.DECIMAL                     // DECIMAL
 Sequelize.DECIMAL(10, 2)              // DECIMAL(10,2)
