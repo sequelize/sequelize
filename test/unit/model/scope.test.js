@@ -198,7 +198,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Company.scope('users', 'projects')._scope).to.deep.equal({
         include: [
           { model: User },
-          Project
+          { model: Project }
         ]
       });
     });
@@ -209,7 +209,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should be able to combine default with another scope', () => {
       expect(Company.scope(['defaultScope', {method: ['actualValue', 11]}])._scope).to.deep.equal({
-        include: [Project],
+        include: [{ model: Project }],
         where: {
           active: true,
           other_value: 11
@@ -225,7 +225,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should override the default scope', () => {
       expect(Company.scope(['defaultScope', {method: ['complexFunction', 'qux']}])._scope).to.deep.equal({
-        include: [Project],
+        include: [{ model: Project }],
         where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))']
       });
     });
@@ -239,7 +239,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should concatenate scope groups', () => {
       expect(Company.scope('groupByCompanyId', 'groupByProjectId')._scope).to.deep.equal({
         group: ['company.id', 'project.id'],
-        include: [Project]
+        include: [{ model: Project }]
       });
     });
   });
@@ -262,12 +262,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         where: {
           this: 'that'
         },
-        include: [Project]
+        include: [{ model: Project }]
       });
 
       expect(Company.scope('newScope')._scope).to.deep.equal({
         where: { this: 'that' },
-        include: [Project]
+        include: [{ model: Project }]
       });
     });
 
@@ -305,11 +305,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('allows me to override a default scope', () => {
       Company.addScope('defaultScope', {
-        include: [Project]
+        include: [{ model: Project }]
       }, { override: true });
 
       expect(Company._scope).to.deep.equal({
-        include: [Project]
+        include: [{ model: Project }]
       });
     });
 

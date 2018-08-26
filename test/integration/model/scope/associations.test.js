@@ -302,6 +302,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(user.company.projects).to.have.length(1);
           });
         });
+
+        describe('with different format', () => {
+          it('should not throw error', function() {
+            const Child = this.sequelize.define('Child');
+            const Parent = this.sequelize.define('Parent', {}, {
+              defaultScope: {
+                include: [{ model: Child }]
+              },
+              scopes: {
+                children: {
+                  include: [Child]
+                }
+              }
+            });
+            Parent.addScope('alsoChildren', {
+              include: [{ model: Child }]
+            });
+
+            Child.belongsTo(Parent);
+            Parent.hasOne(Child);
+
+            return this.sequelize.sync({ force: true }).then(() => {
+              return Promise.all([Child.create(), Parent.create()]);
+            }).then(([child, parent]) => {
+              return parent.setChild(child);
+            }).then(() => {
+              return Parent.scope('children', 'alsoChildren').findOne();
+            });
+          });
+        });
       });
 
       describe('scope with options', () => {
@@ -319,6 +349,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
           const Parent = this.sequelize.define('Parent');
           Child.belongsTo(Parent);
+          Parent.hasOne(Child);
 
           return this.sequelize.sync({ force: true })
             .then(() => Child.create({ secret: 'super secret' }))
