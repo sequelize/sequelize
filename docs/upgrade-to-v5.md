@@ -74,6 +74,19 @@ Added support for `CIDR`, `INET` and `MACADDR` for Postgres
 
 ## Changelog
 
+### 5.0.0-beta.11
+
+- fix(count): duplicate mapping of fields break scopes [#9788](https://github.com/sequelize/sequelize/pull/9788)
+- fix(model): bulkCreate should populate dataValues directly [#9797](https://github.com/sequelize/sequelize/pull/9797)
+- fix(mysql): improve unique key violation handling [#9724](https://github.com/sequelize/sequelize/pull/9724)
+- fix(separate): don't propagate group to separated queries [#9754](https://github.com/sequelize/sequelize/pull/9754)
+- fix(scope): incorrect query generated when sequelize.fn used with scopes [#9730](https://github.com/sequelize/sequelize/pull/9730)
+- fix(json): access included data with attributes [#9662](https://github.com/sequelize/sequelize/pull/9662)
+- (fix): pass offset in UNION'ed queries [#9577](https://github.com/sequelize/sequelize/pull/9577)
+- fix(destroy): attributes updated in a beforeDestroy hook are now persisted on soft delete [#9319](https://github.com/sequelize/sequelize/pull/9319)
+- fix(addScope): only throw when defaultScope is defined [#9703](https://github.com/sequelize/sequelize/pull/9703)
+
+
 ### 5.0.0-beta.10
 
 - fix(belongsToMany): association.add returns array of array of through records [#9700](https://github.com/sequelize/sequelize/pull/9700)
