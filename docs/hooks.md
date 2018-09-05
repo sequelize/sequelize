@@ -212,6 +212,8 @@ afterBulkDestroy(options)
 
 If you want to emit hooks for each individual record, along with the bulk hooks you can pass `individualHooks: true` to the call.
 
+**WARNING**: if you use individual hooks, *all instances that are updated or destroyed will get loaded into memory* before your hooks are called.  The number of instances Sequelize can handle with individual hooks is limited by available memory.
+
 ```js
 Model.destroy({ where: {accessLevel: 0}, individualHooks: true});
 // Will select all records that are about to be deleted and emit before- + after- Destroy on each instance
