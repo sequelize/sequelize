@@ -47,8 +47,8 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
     this.sinon.stub(this.testInstance.connectionManager, '_connect')
       .returns(new Sequelize.Promise(() => {}));
 
-    return expect(this.testInstance.transaction()
-      .then(() => this.testInstance.transaction()))
-      .to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
+    return expect(this.testInstance.transaction(() => {
+      return this.testInstance.transaction(() => {});
+    })).to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
   });
 });
