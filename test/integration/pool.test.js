@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
     this.sinon.restore();
   });
 
-  it('should reject when unable to acquire connection in given time', () => {
+  it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection in given time', () => {
     this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
       dialect,
       databaseVersion: '1.2.3',
@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
       .returns(new Sequelize.Promise(() => {}));
 
     return expect(this.testInstance.authenticate())
-      .to.eventually.be.rejectedWith('ResourceRequest timed out');
+      .to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
   });
 
   it('should not result in unhandled promise rejection when unable to acquire connection', () => {
@@ -47,8 +47,8 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
     this.sinon.stub(this.testInstance.connectionManager, '_connect')
       .returns(new Sequelize.Promise(() => {}));
 
-    return expect(this.testInstance.transaction()
-      .then(() => this.testInstance.transaction()))
-      .to.eventually.be.rejectedWith('ResourceRequest timed out');
+    return expect(this.testInstance.transaction(() => {
+      return this.testInstance.transaction(() => {});
+    })).to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
   });
 });
