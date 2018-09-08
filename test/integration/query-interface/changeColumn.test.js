@@ -82,7 +82,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     // MSSQL doesn't support using a modified column in a check constraint.
     // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
     if (dialect !== 'mssql') {
-      it('should work with enums', function() {
+      it('should work with enums (case 1)', function() {
         return this.queryInterface.createTable({
           tableName: 'users'
         }, {
@@ -90,6 +90,19 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }).then(() => {
           return this.queryInterface.changeColumn('users', 'firstName', {
             type: DataTypes.ENUM(['value1', 'value2', 'value3'])
+          });
+        });
+      });
+
+      it('should work with enums (case 2)', function() {
+        return this.queryInterface.createTable({
+          tableName: 'users'
+        }, {
+          firstName: DataTypes.STRING
+        }).then(() => {
+          return this.queryInterface.changeColumn('users', 'firstName', {
+            type: DataTypes.ENUM,
+            values: ['value1', 'value2', 'value3']
           });
         });
       });
