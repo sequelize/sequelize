@@ -113,7 +113,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    //SQlite navitely doesnt support ALTER Foreign key
+    //SQlite natively doesn't support ALTER Foreign key
     if (dialect !== 'sqlite') {
       describe('should support foreign keys', () => {
         beforeEach(function() {
