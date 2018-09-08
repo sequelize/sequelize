@@ -71,6 +71,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
+    it('should work with enums (5)', function () {
+      return this.queryInterface.createTable('SomeTable', {
+        someEnum: {
+          type: DataTypes.ENUM(['COMMENT']),
+          comment: 'special enum col'
+        }
+      });
+    });
+
     it('should work with schemas', function () {
       const self = this;
       return self.sequelize.createSchema('hero').then(() => {
