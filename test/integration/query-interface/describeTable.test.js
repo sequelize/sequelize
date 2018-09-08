@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               assertVal = 'CHARACTER VARYING(255)';
               break;
             case 'mssql':
-              assertVal = 'NVARCHAR';
+              assertVal = 'NVARCHAR(255)';
               break;
           }
           expect(username.type).to.equal(assertVal);
