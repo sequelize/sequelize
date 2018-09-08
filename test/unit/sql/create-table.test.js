@@ -15,6 +15,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       schema: 'foo',
       timestamps: false
     });
+
     describe('with enums', () => {
       it('references enum in the right schema #3171', () => {
         expectsql(sql.createTableQuery(FooUser.getTableName(), sql.attributesToSQL(FooUser.rawAttributes), { }), {
@@ -25,10 +26,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
     });
+
     describe('with references', () => {
       const BarUser = current.define('user', {
         timestamps: false
       }).schema('bar');
+
       const BarProject = current.define('project', {
         user_id: {
           type: DataTypes.INTEGER,
@@ -39,7 +42,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         timestamps: false
       }).schema('bar');
+
       BarProject.belongsTo(BarUser, { foreignKey: 'user_id' });
+      
       it('references right schema when adding foreign key #9029', () => {
         expectsql(sql.createTableQuery(BarProject.getTableName(), sql.attributesToSQL(BarProject.rawAttributes), { }), {
           sqlite: 'CREATE TABLE IF NOT EXISTS `bar.projects` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `user_id` INTEGER REFERENCES `bar.users` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE);',
@@ -49,6 +54,33 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
     });
+
+    describe('with references on primary key', () => {
+      const File = current.define('file', {}, { timestamps: false });
+      const Image = current.define('image', {
+        id: {
+          primaryKey: true,
+          autoIncrement: true,
+          type: DataTypes.INTEGER,
+          references: {
+            model: File,
+            key: 'id'
+          }
+        }
+      }, {
+        timestamps: false
+      });
+      
+      it('references on primary key #9461', () => {
+        expectsql(sql.createTableQuery(Image.getTableName(), sql.attributesToSQL(Image.rawAttributes), { }), {
+          sqlite: 'CREATE TABLE IF NOT EXISTS `images` (`id` INTEGER PRIMARY KEY AUTOINCREMENT REFERENCES `files` (`id`));',
+          postgres: 'CREATE TABLE IF NOT EXISTS "images" ("id"  SERIAL  REFERENCES "files" ("id"), PRIMARY KEY ("id"));',
+          mysql: 'CREATE TABLE IF NOT EXISTS `images` (`id` INTEGER auto_increment , PRIMARY KEY (`id`), FOREIGN KEY (`id`) REFERENCES `files` (`id`)) ENGINE=InnoDB;',
+          mssql: 'IF OBJECT_ID(\'[images]\', \'U\') IS NULL CREATE TABLE [images] ([id] INTEGER IDENTITY(1,1) , PRIMARY KEY ([id]), FOREIGN KEY ([id]) REFERENCES [files] ([id]));'
+        });
+      });
+    });
+
     if (current.dialect.name === 'postgres') {
       describe('IF NOT EXISTS version check', () => {
         const modifiedSQL = _.clone(sql);
