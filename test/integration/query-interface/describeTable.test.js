@@ -1,0 +1,144 @@
+'use strict';
+
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const dialect = Support.getTestDialect();
+
+describe(Support.getTestDialectTeaser('QueryInterface'), () => {
+  beforeEach(function () {
+    this.sequelize.options.quoteIdenifiers = true;
+    this.queryInterface = this.sequelize.getQueryInterface();
+  });
+
+  afterEach(function () {
+    return this.sequelize.dropAllSchemas();
+  });
+
+  describe('describeTable', () => {
+    it('reads the metadata of the table', function() {
+      const self = this;
+      const Users = self.sequelize.define('_Users', {
+        username: DataTypes.STRING,
+        city: {
+          type: DataTypes.STRING,
+          defaultValue: null,
+          comment: 'Users City'
+        },
+        isAdmin: DataTypes.BOOLEAN,
+        enumVals: DataTypes.ENUM('hello', 'world')
+      }, { freezeTableName: true });
+
+      return Users.sync({ force: true }).then(() => {
+        return self.queryInterface.describeTable('_Users').then(metadata => {
+          const id = metadata.id;
+          const username = metadata.username;
+          const city = metadata.city;
+          const isAdmin = metadata.isAdmin;
+          const enumVals = metadata.enumVals;
+
+          expect(id.primaryKey).to.be.true;
+
+          if (['mysql', 'mssql'].includes(dialect)) {
+            expect(id.autoIncrement).to.be.true;
+          }
+
+          let assertVal = 'VARCHAR(255)';
+          switch (dialect) {
+            case 'postgres':
+              assertVal = 'CHARACTER VARYING(255)';
+              break;
+            case 'mssql':
+              assertVal = 'NVARCHAR';
+              break;
+          }
+          expect(username.type).to.equal(assertVal);
+          expect(username.allowNull).to.be.true;
+
+          switch (dialect) {
+            case 'sqlite':
+              expect(username.defaultValue).to.be.undefined;
+              break;
+            default:
+              expect(username.defaultValue).to.be.null;
+          }
+
+          switch (dialect) {
+            case 'sqlite':
+              expect(city.defaultValue).to.be.null;
+              break;
+          }
+
+          assertVal = 'TINYINT(1)';
+          switch (dialect) {
+            case 'postgres':
+              assertVal = 'BOOLEAN';
+              break;
+            case 'mssql':
+              assertVal = 'BIT';
+              break;
+          }
+          expect(isAdmin.type).to.equal(assertVal);
+          expect(isAdmin.allowNull).to.be.true;
+          switch (dialect) {
+            case 'sqlite':
+              expect(isAdmin.defaultValue).to.be.undefined;
+              break;
+            default:
+              expect(isAdmin.defaultValue).to.be.null;
+          }
+
+          if (dialect.match(/^postgres/)) {
+            expect(enumVals.special).to.be.instanceof(Array);
+            expect(enumVals.special).to.have.length(2);
+          } else if (dialect === 'mysql') {
+            expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
+          }
+
+          if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
+            expect(city.comment).to.equal('Users City');
+            expect(username.comment).to.equal(null);
+          }
+        });
+      });
+    });
+
+    it('should correctly determine the primary key columns', function() {
+      const self = this;
+      const Country = self.sequelize.define('_Country', {
+        code: {type: DataTypes.STRING, primaryKey: true },
+        name: {type: DataTypes.STRING, allowNull: false}
+      }, { freezeTableName: true });
+      const Alumni = self.sequelize.define('_Alumni', {
+        year: {type: DataTypes.INTEGER, primaryKey: true },
+        num: {type: DataTypes.INTEGER, primaryKey: true },
+        username: {type: DataTypes.STRING, allowNull: false, unique: true },
+        dob: {type: DataTypes.DATEONLY, allowNull: false },
+        dod: {type: DataTypes.DATEONLY, allowNull: true },
+        city: {type: DataTypes.STRING, allowNull: false},
+        ctrycod: {type: DataTypes.STRING, allowNull: false,
+          references: { model: Country, key: 'code'}}
+      }, { freezeTableName: true });
+
+      return Country.sync({ force: true }).then(() => {
+        return self.queryInterface.describeTable('_Country').then(metacountry => {
+          expect(metacountry.code.primaryKey).to.eql(true);
+          expect(metacountry.name.primaryKey).to.eql(false);
+
+          return Alumni.sync({ force: true }).then(() => {
+            return self.queryInterface.describeTable('_Alumni').then(metalumni => {
+              expect(metalumni.year.primaryKey).to.eql(true);
+              expect(metalumni.num.primaryKey).to.eql(true);
+              expect(metalumni.username.primaryKey).to.eql(false);
+              expect(metalumni.dob.primaryKey).to.eql(false);
+              expect(metalumni.dod.primaryKey).to.eql(false);
+              expect(metalumni.ctrycod.primaryKey).to.eql(false);
+              expect(metalumni.city.primaryKey).to.eql(false);
+            });
+          });
+        });
+      });
+    });
+  });
+});
