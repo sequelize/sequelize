@@ -59,6 +59,10 @@ Now supports only one standard format `[{ value: 1, inclusive: true }, { value: 
 
 Added support for `CIDR`, `INET` and `MACADDR` for Postgres
 
+### Query Interface
+
+- `changeColumn` no longer generates constraint with `_idx` suffix. Now Sequelize does not specify any name for constraints thus defaulting to database engine naming. This aligns behavior of `sync`, `createTable` and `changeColumn`.
+
 ### Others
 
 - Sequelize now use parameterized queries for all INSERT / UPDATE operations (except UPSERT). They provide better protection against SQL Injection attack.
@@ -73,6 +77,18 @@ Added support for `CIDR`, `INET` and `MACADDR` for Postgres
 - mysql2: use `1.5.2` or above to support prepared statements
 
 ## Changelog
+
+### 5.0.0-beta.12
+
+- fix(changeColumn): normalize attribute [#9897](https://github.com/sequelize/sequelize/pull/9897)
+- feat(describeTable): support string length for mssql [#9896](https://github.com/sequelize/sequelize/pull/9896)
+- feat(describeTable): support autoIncrement for mysql [#9894](https://github.com/sequelize/sequelize/pull/9894)
+- fix(sqlite): unable to reference foreignKey on primaryKey [#9893](https://github.com/sequelize/sequelize/pull/9893)
+- fix(postgres): enum with string COMMENT breaks query [#9891](https://github.com/sequelize/sequelize/pull/9891)
+- fix(changeColumn): use engine defaults for foreign/unique key naming [#9890](https://github.com/sequelize/sequelize/pull/9890)
+- fix(transaction): fixed unhandled rejection when connection acquire timeout [#9879](https://github.com/sequelize/sequelize/pull/9879)
+- fix(sqlite): close connection properly and cleanup files [#9851](https://github.com/sequelize/sequelize/pull/9851)
+- fix(model): incorrect error message for findCreateFind [#9849](https://github.com/sequelize/sequelize/pull/9849)
 
 ### 5.0.0-beta.11
 
