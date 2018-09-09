@@ -558,8 +558,20 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', {name: 'foo'}],
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo');"
         }, {
+          arguments: ['myTable', {name: 'foo'}, {}, { ignoreDuplicates: true }],
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES ($1) ON CONFLICT DO NOTHING;',
+            bind: ['foo']
+          }
+        }, {
           arguments: ['myTable', {name: 'foo'}, {}, { returning: true }],
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') RETURNING *;"
+        }, {
+          arguments: ['myTable', {name: 'foo'}, {}, { ignoreDuplicates: true, returning: true }],
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES ($1) ON CONFLICT DO NOTHING RETURNING *;',
+            bind: ['foo']
+          }
         }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}],
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;');"
@@ -666,8 +678,14 @@ if (dialect.match(/^postgres/)) {
           arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}]],
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'),('bar');"
         }, {
+          arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], { ignoreDuplicates: true }],
+          expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'),('bar') ON CONFLICT DO NOTHING;"
+        }, {
           arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], { returning: true }],
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'),('bar') RETURNING *;"
+        }, {
+          arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], { ignoreDuplicates: true, returning: true }],
+          expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'),('bar') ON CONFLICT DO NOTHING RETURNING *;"
         }, {
           arguments: ['myTable', [{name: "foo';DROP TABLE myTable;"}, {name: 'bar'}]],
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;'),('bar');"

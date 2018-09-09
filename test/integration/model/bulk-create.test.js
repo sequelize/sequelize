@@ -394,7 +394,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    if (current.dialect.supports.ignoreDuplicates) {
+    if (current.dialect.supports.inserts.ignoreDuplicates ||
+        current.dialect.supports.inserts.onConflictDoNothing) {
       it('should support the ignoreDuplicates option', function() {
         const self = this;
         const data = [
