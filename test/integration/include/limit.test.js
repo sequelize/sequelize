@@ -9,7 +9,6 @@ const chai = require('chai'),
   Op = Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Include'), () => {
-
   describe('LIMIT', () => {
     /*
      * shortcut for building simple {name: 'foo'} seed data
@@ -27,12 +26,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      *                            |
      *                            N
      *            [Comment]N---1[Post]N---N[Tag]N---1[Color]
-     *                            1
-     *                            |
-     *                            |
-     *                            |
-     *                            N
-     *                        [Footnote]
+     *                1           1
+     *                |           |
+     *                |           |
+     *                |           |
+     *                N           N
+     *             [Media]     [Footnote]
+     *                N
+     *                |
+     *                |
+     *                |
+     *                1
+     *             [File]  
      */
     beforeEach(function () {
       this.Project = this.sequelize.define('Project', {
@@ -86,6 +91,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         }
       }, {timestamps: false});
 
+      this.Media = this.sequelize.define('Media', {
+        name: {
+          type: DataTypes.STRING,
+          primaryKey: true
+        }
+      }, {timestamps: false});
+
+      this.File = this.sequelize.define('File', {
+        name: {
+          type: DataTypes.STRING,
+          primaryKey: true
+        }
+      });
+
       this.Tag = this.sequelize.define('Tag', {
         name: {
           type: DataTypes.STRING,
@@ -109,6 +128,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       this.Post.hasMany(this.Comment);
       this.Comment.belongsTo(this.Post);
+
+      this.Comment.hasMany(this.Media);
+      this.Media.belongsTo(this.Comment);
+
+      this.File.hasMany(this.Media);
+      this.Media.belongsTo(this.File);
 
       this.Post.belongsToMany(this.Tag, {through: 'post_tag'});
       this.Tag.belongsToMany(this.Post, {through: 'post_tag'});
@@ -476,6 +501,60 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         .then(result => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('David');
+        });
+    });
+
+    it('supports 3 levels of required one-to-many associations', function () {
+      return this.sequelize.sync({ force: true })
+        .then(() => Promise.join(
+          this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte', 'David')),
+          this.Post.bulkCreate(build('alpha', 'charlie', 'delta')),
+          this.Comment.bulkCreate(build('commentA', 'commentB')),
+          this.Media.bulkCreate(build('mediaA', 'mediaB', 'mediaC', 'mediaD')),
+          this.File.bulkCreate(build('FileA', 'FileB'))
+        ))
+        .spread((users, posts, comments, medias, files) => Promise.join(
+          users[0].addPost(posts[0]),
+          users[2].addPost(posts[1]),
+          users[3].addPost(posts[2]),
+
+          posts[0].addComment([comments[0]]),
+          posts[2].addComment([comments[1]]),
+
+          comments[0].addMedia([medias[0], medias[1]]),
+          comments[1].addMedia([medias[2], medias[3]]),
+
+          files[0].addMedia([medias[0], medias[1]]),
+          files[1].addMedia([medias[2], medias[3]])
+        ))
+        .then(() => this.User.findOne({
+          include: [{
+            model: this.Post,
+            required: true,
+            include: [{
+              model: this.Comment,
+              required: true,
+              include: [{
+                model: this.Media,
+                required: true,
+                include: [{
+                  model: this.File,
+                  required: true
+                }]
+              }]
+            }]
+          }],
+          limit: 1,
+          offset: 1
+        }))
+        .then(result => {
+          expect(result.name).to.equal('David');
+          expect(result.Posts[0].name).to.equal('delta');
+          expect(result.Posts[0].Comments[0].name).to.equal('commentB');
+          expect(result.Posts[0].Comments[0].Media[0].name).to.equal('mediaC');
+          expect(result.Posts[0].Comments[0].Media[1].name).to.equal('mediaD');
+          expect(result.Posts[0].Comments[0].Media[0].File.name).to.equal('FileB');
+          expect(result.Posts[0].Comments[0].Media[1].File.name).to.equal('FileB');
         });
     });
 
