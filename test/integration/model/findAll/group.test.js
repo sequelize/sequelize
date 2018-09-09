@@ -44,7 +44,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [
               { model: Comment, attributes: [] }
             ],
-            group: ['Post.id']
+            group: ['Post.id'],
+            order: [
+              ['id']
+            ]
           });
         }).then(posts => {
           expect(parseInt(posts[0].get('comment_count'))).to.be.equal(3);
@@ -85,7 +88,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [
               { model: Post, attributes: [] }
             ],
-            group: ['PostId']
+            group: ['PostId'],
+            order: [
+              ['PostId']
+            ]
           });
         }).then(posts => {
           expect(posts[0].get().hasOwnProperty('id')).to.equal(false);

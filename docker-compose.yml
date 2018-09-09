@@ -6,6 +6,7 @@ services:
     links:
      - mysql-57
      - postgres-95
+     - postgres-10
     volumes:
       - .:/sequelize
     environment:
@@ -21,10 +22,22 @@ services:
       POSTGRES_PASSWORD: sequelize_test
       POSTGRES_DB: sequelize_test
     volumes:
-      - /mnt/sequelize-postgres-ramdisk:/var/lib/postgresql/data
+      - /mnt/sequelize-postgres-95-ramdisk:/var/lib/postgresql/data
     ports:
-      - "8998:5432"
+      - "8990:5432"
     container_name: postgres-95
+
+  postgres-10:
+    image: sushantdhiman/postgres:10
+    environment:
+      POSTGRES_USER: sequelize_test
+      POSTGRES_PASSWORD: sequelize_test
+      POSTGRES_DB: sequelize_test
+    volumes:
+      - /mnt/sequelize-postgres-10-ramdisk:/var/lib/postgresql/data
+    ports:
+      - "8991:5432"
+    container_name: postgres-10
 
   # MySQL
   mysql-57:
@@ -35,9 +48,9 @@ services:
       MYSQL_USER: sequelize_test
       MYSQL_PASSWORD: sequelize_test
     volumes:
-      - /mnt/sequelize-mysql-ramdisk:/var/lib/mysql
+      - /mnt/sequelize-mysql-57-ramdisk:/var/lib/mysql
     ports:
-      - "8999:3306"
+      - "8980:3306"
     container_name: mysql-57
 
   # MSSQL
@@ -47,6 +60,6 @@ services:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: yourStrong(!)Password
     ports:
-      - "8997:1433"
+      - "8970:1433"
     container_name: mssql
 
