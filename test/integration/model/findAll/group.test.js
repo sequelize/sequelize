@@ -7,7 +7,7 @@ const chai = require('chai'),
   DataTypes = require(__dirname + '/../../../../lib/data-types'),
   current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe.only(Support.getTestDialectTeaser('Model'), () => {
   describe('findAll', () => {
     describe('group', () => {
       it('should correctly group with attributes, #3009', () => {
@@ -44,7 +44,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [
               { model: Comment, attributes: [] }
             ],
-            group: ['Post.id']
+            group: ['Post.id'],
+            order: [
+              ['id']
+            ]
           });
         }).then(posts => {
           expect(parseInt(posts[0].get('comment_count'))).to.be.equal(3);
@@ -85,7 +88,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [
               { model: Post, attributes: [] }
             ],
-            group: ['PostId']
+            group: ['PostId'],
+            order: [
+              ['PostId']
+            ]
           });
         }).then(posts => {
           expect(posts[0].get().hasOwnProperty('id')).to.equal(false);
