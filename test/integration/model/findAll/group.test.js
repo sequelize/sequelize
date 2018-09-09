@@ -7,7 +7,7 @@ const chai = require('chai'),
   DataTypes = require(__dirname + '/../../../../lib/data-types'),
   current = Support.sequelize;
 
-describe.only(Support.getTestDialectTeaser('Model'), () => {
+describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAll', () => {
     describe('group', () => {
       it('should correctly group with attributes, #3009', () => {
