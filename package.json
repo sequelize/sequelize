@@ -36,15 +36,15 @@
     "wkx": "^0.4.5"
   },
   "devDependencies": {
+    "@commitlint/cli": "^7.1.2",
+    "@commitlint/config-angular": "^7.1.2",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
     "chai-datetime": "^1.x",
     "chai-spies": "^1.x",
     "cheerio": "^1.0.0-rc.2",
-    "commitizen": "^2.x",
     "continuation-local-storage": "^3.x",
     "cross-env": "^5.2.0",
-    "cz-conventional-changelog": "^2.x",
     "docdash": "^1.0.0",
     "env-cmd": "^8.0.0",
     "esdoc": "^0.5.2",
@@ -52,7 +52,7 @@
     "eslint-plugin-jsdoc": "^3.7.1",
     "eslint-plugin-mocha": "^5.0.0",
     "hints": "^1.x",
-    "husky": "^0.x",
+    "husky": "^0.14.3",
     "istanbul": "^0.x",
     "jsdoc": "^3.5.5",
     "lcov-result-merger": "^3.0.0",
@@ -67,8 +67,7 @@
     "sinon-chai": "^3.2.0",
     "sqlite3": "^4.0.2",
     "tedious": "^2.x",
-    "uuid-validate": "^0.0.3",
-    "validate-commit-msg": "^2.12.2"
+    "uuid-validate": "^0.0.3"
   },
   "keywords": [
     "mysql",
@@ -83,6 +82,11 @@
   "main": "index",
   "options": {
     "env_cmd": "./test/config/.docker.env"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-angular"
+    ]
   },
   "scripts": {
     "lint": "eslint lib test --quiet",
@@ -123,15 +127,10 @@
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
-    "commitmsg": "validate-commit-msg"
+    "commitmsg": "commitlint -E GIT_PARAMS"
   },
   "engines": {
     "node": ">=6.0.0"
   },
-  "license": "MIT",
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  }
+  "license": "MIT"
 }
