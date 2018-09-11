@@ -36,8 +36,6 @@
     "wkx": "^0.4.5"
   },
   "devDependencies": {
-    "@semantic-release/github": "^5.0.0",
-    "@semantic-release/npm": "^5.0.2",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
     "chai-datetime": "^1.x",
@@ -65,7 +63,6 @@
     "pg-native": "^3.0.0",
     "pg-types": "^1.x",
     "rimraf": "^2.x",
-    "semantic-release": "^15.8.0",
     "sinon": "^6.0.0",
     "sinon-chai": "^3.2.0",
     "sqlite3": "^4.0.2",
@@ -126,8 +123,7 @@
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
-    "commitmsg": "validate-commit-msg",
-    "semantic-release": "semantic-release"
+    "commitmsg": "validate-commit-msg"
   },
   "engines": {
     "node": ">=6.0.0"
@@ -137,15 +133,5 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  },
-  "release": {
-    "branch": "master",
-    "verifyConditions": [
-      "@semantic-release/npm",
-      "@semantic-release/github"
-    ]
-  },
-  "publishConfig": {
-    "tag": "next"
   }
 }
