@@ -20,7 +20,7 @@
   "dependencies": {
     "bluebird": "^3.5.0",
     "cls-bluebird": "^2.1.0",
-    "debug": "^3.1.0",
+    "debug": "^4.0.0",
     "depd": "^1.1.0",
     "dottie": "^2.0.0",
     "generic-pool": "^3.4.0",
