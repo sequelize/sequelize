@@ -4,7 +4,7 @@ The sequelize documentation is written in a combination of markdown (articles an
 
 All documentation is located in the `docs` folder.
 
-The documentation is rendered using [esdoc](http://esdoc.org) and continously deployed to [Surge](http://surge.sh). esdoc generates static HTML from the code comments. 
+The documentation is rendered using [esdoc](http://esdoc.org) and continuously deployed to [Surge](http://surge.sh). ESdoc generates static HTML from the code comments. 
 
 All pages in the documentation are defined in the `manual` section of `.esdoc.json`. Each page is given as a separate line:
 
