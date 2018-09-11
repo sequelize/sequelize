@@ -1,4 +1,4 @@
-sudo: false
+sudo: true
 dist: trusty
 
 language: node_js
@@ -10,24 +10,18 @@ branches:
   except:
     - /^v\d+\.\d+\.\d+$/
 
-cache:
-  directories:
-    - $HOME/.npm
+cache: yarn
+
+install:
+  - npm install -g yarn
+  - yarn
 
 env:
   global:
-    # mysql info
-    - SEQ_MYSQL_DB=sequelize_test
-    - SEQ_MYSQL_USER=sequelize_test
-    - SEQ_MYSQL_PW=sequelize_test
-    - SEQ_MYSQL_HOST=127.0.0.1
-    - SEQ_MYSQL_PORT=8980
-    # postgres info
-    - SEQ_PG_DB=sequelize_test
-    - SEQ_PG_USER=sequelize_test
-    - SEQ_PG_PW=sequelize_test
-    - SEQ_PG_HOST=127.0.0.1
-    - SEQ_PG_PORT=8990
+    - SEQ_DB=sequelize_test
+    - SEQ_USER=sequelize_test
+    - SEQ_PW=sequelize_test
+    - SEQ_HOST=127.0.0.1
 
 before_script:
   # mount ramdisk
@@ -53,7 +47,7 @@ jobs:
     - stage: test
       node_js: '6'
       sudo: required
-      env: MYSQL_VER=mysql-57 DIALECT=mysql COVERAGE=true
+      env: MYSQL_VER=mysql-57 SEQ_MYSQL_PORT=8980 DIALECT=mysql COVERAGE=true
     - stage: test
       node_js: '6'
       sudo: required
@@ -61,11 +55,11 @@ jobs:
     - stage: test
       node_js: '6'
       sudo: required
-      env: POSTGRES_VER=postgres-95 DIALECT=postgres COVERAGE=true
+      env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres COVERAGE=true
     - stage: test
       node_js: '6'
       sudo: required
-      env: POSTGRES_VER=postgres-95 DIALECT=postgres-native COVERAGE=true
+      env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres-native COVERAGE=true
     - stage: test
       node_js: '8'
       env: DIALECT=sqlite
