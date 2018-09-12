@@ -2235,6 +2235,65 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(ut2).to.have.length(1);
       });
     });
+
+    it('throw error with unique identifier very long', function() {
+      this.UserTasksLong = this.sequelize.define('table_user_task_with_very_long_name', {
+        id_user_very_long_field: {
+          type: DataTypes.INTEGER(1)
+        },
+        id_task_very_long_field: {
+          type: DataTypes.INTEGER(1)
+        }
+      },
+      { tableName: 'table_user_task_with_very_long_name' }
+      );
+      this.User.belongsToMany(this.Task, {
+        as: 'MyTasks',
+        through: this.UserTasksLong,
+        foreignKey: 'id_user_very_long_field'
+      });
+      this.Task.belongsToMany(this.User, {
+        as: 'MyUsers',
+        through: this.UserTasksLong,
+        foreignKey: 'id_task_very_long_field'
+      });
+
+      return this.sequelize.sync({ force: true }).bind({}).catch(err => {
+        expect(err).to.be.a('error');
+        expect(err.message).to.equal('Identifier name \'table_user_task_with_very_long_name_id_task_very_long_field_id_user_very_long_field_unique\' is too long');
+      });
+    });
+
+    it('create custom unique identifier', function() {
+      this.UserTasksLong = this.sequelize.define('table_user_task_with_very_long_name', {
+        id_user_very_long_field: {
+          type: DataTypes.INTEGER(1)
+        },
+        id_task_very_long_field: {
+          type: DataTypes.INTEGER(1)
+        }
+      },
+      { tableName: 'table_user_task_with_very_long_name' }
+      );
+      this.User.belongsToMany(this.Task, {
+        as: 'MyTasks',
+        through: this.UserTasksLong,
+        foreignKey: 'id_user_very_long_field'
+      });
+      this.Task.belongsToMany(this.User, {
+        as: 'MyUsers',
+        through: this.UserTasksLong,
+        foreignKey: 'id_task_very_long_field',
+        uniqueKey: 'custom_user_group_unique'
+      });
+
+      return this.sequelize.sync({ force: true }).bind({}).then(() => {
+        expect(this.Task.associations.MyUsers.through.model.rawAttributes.id_user_very_long_field.unique).to.have.lengthOf(24);
+        expect(this.Task.associations.MyUsers.through.model.rawAttributes.id_task_very_long_field.unique).to.have.lengthOf(24);
+        expect(this.Task.associations.MyUsers.through.model.rawAttributes.id_user_very_long_field.unique).to.equal('custom_user_group_unique');
+        expect(this.Task.associations.MyUsers.through.model.rawAttributes.id_task_very_long_field.unique).to.equal('custom_user_group_unique');
+      });
+    });
   });
 
   describe('Association options', () => {
