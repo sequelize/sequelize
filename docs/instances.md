@@ -128,6 +128,23 @@ If the `paranoid` options is true, the object will not be deleted, instead the `
 task.destroy({ force: true })
 ```
 
+After an object is soft deleted in `paranoid` mode, you will not be able to create a new instance with the same primary key
+until you have force-deleted the old instance.
+
+## Restoring soft-deleted instances
+
+If you have soft-deleted an instance of a model with `paranoid: true`, and would like to undo the deletion, use the `restore` method:
+
+```js
+Task.create({ title: 'a task' }).then(task => {
+  // now you see me...
+  return task.destroy();
+}).then(() => {
+  // now i'm gone, but wait...
+  return task.restore();
+})
+```
+
 ## Working in bulk (creating, updating and destroying multiple rows at once)
 
 In addition to updating a single instance, you can also create, update, and delete multiple instances at once. The functions you are looking for are called
