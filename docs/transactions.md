@@ -176,7 +176,6 @@ The following options (with their default values) are available:
 
 ```js
 {
-  autocommit: true,
   isolationLevel: 'REPEATABLE_READ',
   deferrable: 'NOT DEFERRABLE' // implicit default of postgres
 }
