@@ -2259,7 +2259,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         uniqueKey: 'custom_user_group_unique'
       });
 
-      return this.sequelize.sync({ force: true }).bind({}).then(function() {
+      return this.sequelize.sync({ force: true }).bind({}).then(() => {
         expect(this.Task.associations.MyUsers.through.model.rawAttributes.id_user_very_long_field.unique).to.equal('custom_user_group_unique');
         expect(this.Task.associations.MyUsers.through.model.rawAttributes.id_task_very_long_field.unique).to.equal('custom_user_group_unique');
       });
