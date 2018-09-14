@@ -522,6 +522,13 @@ User.findAll({
   }]
 });
 ```
+Is possible rewrite the unique constraint name using **uniqueKey** option.
+
+```js
+Project.belongsToMany(User, { through: UserProjects, uniqueKey: 'my_custom_unique' })
+```
+
+**Note:** _This option prevent error when the unique constraint name is too long._
 
 ## Naming strategy
 
