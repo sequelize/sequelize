@@ -47,10 +47,8 @@
     "chai-as-promised": "^7.x",
     "chai-datetime": "^1.x",
     "chai-spies": "^1.x",
-    "cheerio": "^1.0.0-rc.2",
     "continuation-local-storage": "^3.x",
     "cross-env": "^5.2.0",
-    "docdash": "^1.0.0",
     "env-cmd": "^8.0.0",
     "esdoc": "^1.1.0",
     "esdoc-inject-style-plugin": "^1.0.0",
@@ -61,7 +59,6 @@
     "hints": "^1.x",
     "husky": "^0.14.3",
     "istanbul": "^0.x",
-    "jsdoc": "^3.5.5",
     "lcov-result-merger": "^3.0.0",
     "mocha": "^5.x",
     "mysql2": "^1.x",
@@ -72,8 +69,7 @@
     "sinon": "^6.3.3",
     "sinon-chai": "^3.2.0",
     "sqlite3": "^4.0.2",
-    "tedious": "^2.x",
-    "uuid-validate": "^0.0.3"
+    "tedious": "^2.x"
   },
   "keywords": [
     "mysql",
@@ -100,7 +96,6 @@
     "test-docker-unit": "npm run test-unit",
     "test-docker-integration": "env-cmd $npm_package_options_env_cmd npm run test-integration",
     "docs": "esdoc && cp docs/ROUTER esdoc/ROUTER",
-    "generate-jsdocs": "node_modules/.bin/jsdoc -c jsdoc.json",
     "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",
     "test-unit": "mocha --require scripts/mocha-bootload --globals setImmediate,clearImmediate --ui tdd --exit --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
     "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",
