@@ -528,8 +528,6 @@ Is possible rewrite the unique constraint name using **uniqueKey** option.
 Project.belongsToMany(User, { through: UserProjects, uniqueKey: 'my_custom_unique' })
 ```
 
-**Note:** _This option prevent error when the unique constraint name is too long._
-
 ## Naming strategy
 
 By default sequelize will use the model name (the name passed to `sequelize.define`) to figure out the name of the model when used in associations. For example, a model named `user` will add the functions `get/set/add User` to instances of the associated model, and a property named `.user` in eager loading, while a model named `User` will add the same functions, but a property named `.User` (notice the upper case U) in eager loading.
