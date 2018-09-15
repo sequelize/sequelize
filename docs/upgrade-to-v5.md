@@ -1,4 +1,4 @@
-# Upgrade to v5
+# Upgrade to v5-beta
 
 Sequelize v5 is the next major release after v4
 

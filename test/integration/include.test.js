@@ -379,7 +379,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    it('should support a simple nested hasMany <-> hasMany include', function() {
+    it('should support a simple nested hasMany to hasMany include', function() {
       const User = this.sequelize.define('User', {}),
         Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
