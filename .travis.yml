@@ -15,6 +15,7 @@ cache: yarn
 install:
   - npm install -g yarn
   - yarn
+  - "if [ "$DIALECT" = "postgres-native" ]; then yarn add pg-native; fi"
 
 env:
   global:
@@ -22,6 +23,7 @@ env:
     - SEQ_USER=sequelize_test
     - SEQ_PW=sequelize_test
     - SEQ_HOST=127.0.0.1
+    - COVERAGE=true
 
 before_script:
   # mount ramdisk
@@ -43,26 +45,26 @@ jobs:
   include:
     - stage: test
       node_js: '6'
-      env: DIALECT=sqlite COVERAGE=true
+      env: DIALECT=sqlite
     - stage: test
       node_js: '6'
       sudo: required
-      env: MYSQL_VER=mysql-57 SEQ_MYSQL_PORT=8980 DIALECT=mysql COVERAGE=true
+      env: MYSQL_VER=mysql-57 SEQ_MYSQL_PORT=8980 DIALECT=mysql
     - stage: test
       node_js: '6'
       sudo: required
-      env: POSTGRES_VER=postgres-10 SEQ_PG_PORT=8991 DIALECT=postgres COVERAGE=true
+      env: POSTGRES_VER=postgres-10 SEQ_PG_PORT=8991 DIALECT=postgres
     - stage: test
       node_js: '6'
       sudo: required
-      env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres COVERAGE=true
+      env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres
     - stage: test
       node_js: '6'
       sudo: required
-      env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres-native COVERAGE=true
+      env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres-native
     - stage: test
       node_js: '8'
-      env: DIALECT=sqlite
+      env: DIALECT=sqlite COVERAGE=false
     # - stage: release
     #   node_js: '8'
     #   script:

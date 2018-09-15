@@ -67,7 +67,6 @@
     "mysql2": "^1.x",
     "pg": "^7.x",
     "pg-hstore": "^2.x",
-    "pg-native": "^3.0.0",
     "pg-types": "^1.x",
     "rimraf": "^2.x",
     "sinon": "^6.3.3",
