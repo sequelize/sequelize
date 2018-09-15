@@ -15,7 +15,8 @@ cache: yarn
 install:
   - npm install -g yarn
   - yarn
-  - "if [ "$DIALECT" = "postgres-native" ]; then yarn add pg-native; fi"
+  - |-
+    if [ "$DIALECT" = "postgres-native" ]; then yarn add pg-native; fi
 
 env:
   global:
@@ -39,7 +40,8 @@ before_script:
 
 script:
   - npm run lint
-  - "if [ "$COVERAGE" = true ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi"
+  - |-
+    if [ "$COVERAGE" = true ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi
 
 jobs:
   include:
