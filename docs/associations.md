@@ -522,6 +522,11 @@ User.findAll({
   }]
 });
 ```
+Belongs-To-Many creates a unique key when primary key is not present on through model. This unique key name can be overridden using **uniqueKey** option.
+
+```js
+Project.belongsToMany(User, { through: UserProjects, uniqueKey: 'my_custom_unique' })
+```
 
 ## Naming strategy
 
