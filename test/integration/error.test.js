@@ -12,10 +12,6 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(Sequelize).to.have.property('Error');
       expect(Sequelize).to.have.property('ValidationError');
       expect(Sequelize).to.have.property('OptimisticLockError');
-      const sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
-      expect(sequelize).to.have.property('Error');
-      expect(sequelize).to.have.property('ValidationError');
-      expect(sequelize).to.have.property('OptimisticLockError');
     });
 
     it('Sequelize Errors instances should be instances of Error', () => {
@@ -26,11 +22,6 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         new Sequelize.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
       ]);
       const optimisticLockError = new Sequelize.OptimisticLockError();
-
-      const sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
-      const instError = new sequelize.Error();
-      const instValidationError = new sequelize.ValidationError();
-      const instOptimisticLockError = new sequelize.OptimisticLockError();
 
       expect(error).to.be.instanceOf(Sequelize.Error);
       expect(error).to.be.instanceOf(Error);
@@ -44,13 +35,6 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(optimisticLockError).to.be.instanceOf(Sequelize.OptimisticLockError);
       expect(optimisticLockError).to.be.instanceOf(Error);
       expect(optimisticLockError).to.have.property('name', 'SequelizeOptimisticLockError');
-
-      expect(instError).to.be.instanceOf(Sequelize.Error);
-      expect(instError).to.be.instanceOf(Error);
-      expect(instValidationError).to.be.instanceOf(Sequelize.ValidationError);
-      expect(instValidationError).to.be.instanceOf(Error);
-      expect(instOptimisticLockError).to.be.instanceOf(Sequelize.OptimisticLockError);
-      expect(instOptimisticLockError).to.be.instanceOf(Error);
     });
 
     it('SequelizeValidationError should find errors by path', () => {

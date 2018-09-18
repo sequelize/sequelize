@@ -353,7 +353,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return Sequelize.Promise.all([
           User.create({user_id: 1, email: 'tobi@tobi.me'}),
           User.create({user_id: 1, email: 'tobi@tobi.me'})]);
-      }).catch (self.sequelize.UniqueConstraintError, err => {
+      }).catch (Sequelize.UniqueConstraintError, err => {
         expect(err.message).to.equal('User and email must be unique');
       });
     });

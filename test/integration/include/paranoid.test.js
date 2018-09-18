@@ -105,7 +105,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
     X.hasMany(Y);
 
-    return this.sequelize.sync({ force: true}).then(() => {
+    return this.sequelize.sync({ force: true}).bind(this).then(() => {
       return Sequelize.Promise.all([
         X.create(),
         Y.create()

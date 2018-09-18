@@ -411,26 +411,25 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('supports promises with custom validation methods', function() {
-    const self = this,
-      User = this.sequelize.define('User' + config.rand(), {
-        name: {
-          type: Sequelize.STRING,
-          validate: {
-            customFn(val) {
-              return User.findAll()
-                .then(() => {
-                  if (val === 'error') {
-                    throw new Error('Invalid username');
-                  }
-                });
-            }
+    const User = this.sequelize.define('User' + config.rand(), {
+      name: {
+        type: Sequelize.STRING,
+        validate: {
+          customFn(val) {
+            return User.findAll()
+              .then(() => {
+                if (val === 'error') {
+                  throw new Error('Invalid username');
+                }
+              });
           }
         }
-      });
+      }
+    });
 
     return User.sync().then(() => {
       return expect(User.build({ name: 'error' }).validate()).to.be.rejected.then(error => {
-        expect(error).to.be.instanceof(self.sequelize.ValidationError);
+        expect(error).to.be.instanceof(Sequelize.ValidationError);
         expect(error.get('name')[0].message).to.equal('Invalid username');
 
         return expect(User.build({ name: 'no error' }).validate()).not.to.be.rejected;
