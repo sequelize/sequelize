@@ -100,7 +100,7 @@ if (dialect === 'sqlite') {
           });
         });
 
-        describe('.find', () => {
+        describe('.findOne', () => {
           beforeEach(function() {
             return this.User.create({name: 'user', bio: 'footbar'});
           });
@@ -111,8 +111,11 @@ if (dialect === 'sqlite') {
             });
           });
 
-          it('should make aliased attributes available', function() {
-            return this.User.findOne({ where: { name: 'user' }, attributes: ['id', ['name', 'username']] }).then(user => {
+          it.skip('should make aliased attributes available', function() {
+            return this.User.findOne({
+              where: { name: 'user' },
+              attributes: ['id', ['name', 'username']]
+            }).then(user => {
               expect(user.username).to.equal('user');
             });
           });
