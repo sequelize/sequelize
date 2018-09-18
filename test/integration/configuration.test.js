@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  config = require(__dirname + '/../config/config'),
-  Support = require(__dirname + '/support'),
+  config = require('../config/config'),
+  Support = require('./support'),
   dialect = Support.getTestDialect(),
   Sequelize = Support.Sequelize,
   fs = require('fs'),
@@ -19,9 +19,9 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       const seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect});
       if (dialect === 'sqlite') {
         // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
-        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file');
+        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file');
       } else {
-        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith([seq.HostNotReachableError, seq.InvalidConnectionError]);
+        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith([Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]);
       }
     });
 
@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         return expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
       } else {
-        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(seq.ConnectionRefusedError, 'connect ECONNREFUSED');
+        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
       }
     });
 

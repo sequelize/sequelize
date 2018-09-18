@@ -5,7 +5,7 @@ const chai = require('chai'),
   Sequelize = require('../../../../index'),
   expect = chai.expect,
   Op = Sequelize.Op,
-  Support = require(__dirname + '/../../support');
+  Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {

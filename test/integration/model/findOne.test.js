@@ -5,10 +5,10 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
+  Support = require('../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  config = require(__dirname + '/../../config/config'),
+  DataTypes = require('../../../lib/data-types'),
+  config = require('../../config/config'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     return this.User.sync({ force: true });
   });
 
-  describe('find', () => {
+  describe('findOne', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
         return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
@@ -120,14 +120,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('doesn\'t throw an error when entering in a non integer value for a specified primary field', function() {
-        return this.UserPrimary.findById('a string').then(user => {
+        return this.UserPrimary.findByPk('a string').then(user => {
           expect(user.specialkey).to.equal('a string');
         });
       });
 
       it('returns a single dao', function() {
         const self = this;
-        return this.User.findById(this.user.id).then(user => {
+        return this.User.findByPk(this.user.id).then(user => {
           expect(Array.isArray(user)).to.not.be.ok;
           expect(user.id).to.equal(self.user.id);
           expect(user.id).to.equal(1);
@@ -136,7 +136,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('returns a single dao given a string id', function() {
         const self = this;
-        return this.User.findById(this.user.id + '').then(user => {
+        return this.User.findByPk(this.user.id + '').then(user => {
           expect(Array.isArray(user)).to.not.be.ok;
           expect(user.id).to.equal(self.user.id);
           expect(user.id).to.equal(1);
@@ -220,7 +220,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             name: 'John'
           }).then(u => {
             expect(u.id).not.to.exist;
-            return UserPrimary.findById('an identifier').then(u2 => {
+            return UserPrimary.findByPk('an identifier').then(u2 => {
               expect(u2.identifier).to.equal('an identifier');
               expect(u2.name).to.equal('John');
             });
@@ -240,7 +240,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             id: 'a string based id',
             name: 'Johnno'
           }).then(() => {
-            return UserPrimary.findById('a string based id').then(u2 => {
+            return UserPrimary.findByPk('a string based id').then(u2 => {
               expect(u2.id).to.equal('a string based id');
               expect(u2.name).to.equal('Johnno');
             });
@@ -257,8 +257,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let count = 0;
 
         return this.User.bulkCreate([{username: 'jack'}, {username: 'jack'}]).then(() => {
-          return self.sequelize.Promise.map(permutations, perm => {
-            return self.User.findById(perm, {
+          return Sequelize.Promise.map(permutations, perm => {
+            return self.User.findByPk(perm, {
               logging(s) {
                 expect(s.indexOf(0)).not.to.equal(-1);
                 count++;
@@ -280,7 +280,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return User.sync({ force: true }).then(() => {
           return User.create({Login: 'foo'}).then(() => {
-            return User.findById(1).then(user => {
+            return User.findByPk(1).then(user => {
               expect(user).to.exist;
               expect(user.ID).to.equal(1);
             });
@@ -944,14 +944,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
-      it('throws error when record not found by findById', function() {
-        return expect(this.User.findById(4732322332323333232344334354234, {
+      it('throws error when record not found by findByPk', function() {
+        return expect(this.User.findByPk(4732322332323333232344334354234, {
           rejectOnEmpty: true
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
       it('throws error when record not found by find', function() {
-        return expect(this.User.find({
+        return expect(this.User.findOne({
           where: {
             username: 'some-username-that-is-not-used-anywhere'
           },

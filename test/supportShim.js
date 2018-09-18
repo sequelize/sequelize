@@ -1,6 +1,6 @@
 'use strict';
 
-const QueryInterface = require(__dirname + '/../lib/query-interface'),
+const QueryInterface = require('../lib/query-interface'),
   hintsModule = require('hints'),
   _ = require('lodash'),
   util = require('util');
@@ -262,7 +262,7 @@ module.exports = function(Sequelize) {
    *
    * @returns {boolean} - true if this method called from within the tests
    */
-  const pathRegStr = _.escapeRegExp(__dirname + '/'),
+  const pathRegStr = _.escapeRegExp(''),
     regExp = new RegExp('^\\s+at\\s+(' + pathRegStr + '|.+ \\(' + pathRegStr + ')');
 
   function calledFromTests() {

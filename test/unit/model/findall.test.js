@@ -2,10 +2,10 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const Support = require(__dirname + '/../support');
+const Support = require('../support');
 const current = Support.sequelize;
 const sinon = require('sinon');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
+const DataTypes = require('../../../lib/data-types');
 const logger = require('../../../lib/utils/logger');
 const sequelizeErrors = require('../../../lib/errors');
 

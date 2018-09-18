@@ -3,10 +3,10 @@
 const chai = require('chai'),
   expect = chai.expect,
   Sequelize = require('../../index'),
-  Support = require(__dirname + '/support'),
-  DataTypes = require(__dirname + '/../../lib/data-types'),
+  Support = require('./support'),
+  DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect(),
-  config = require(__dirname + '/../config/config'),
+  config = require('../config/config'),
   sinon = require('sinon'),
   isUUID = require('validator').isUUID,
   current = Support.sequelize;
@@ -67,7 +67,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         self = this;
 
       return this.User.create({ username: bio }).then(u1 => {
-        return self.User.findById(u1.id).then(u2 => {
+        return self.User.findByPk(u1.id).then(u2 => {
           expect(u2.username).to.equal(bio);
         });
       });
@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const self = this;
       return this.User.create({ username: 'user' }).then(() => {
         return self.User.create({ username: 'user' }).then(user => {
-          return self.User.findById(user.id).then(user => {
+          return self.User.findByPk(user.id).then(user => {
             expect(user.isNewRecord).to.not.be.ok;
           });
         });
@@ -153,7 +153,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.returnValues.returning) {
       it('supports returning', function() {
-        return this.User.findById(1).then(user1 => {
+        return this.User.findByPk(1).then(user1 => {
           return user1.increment('aNumber', { by: 2 }).then(() => {
             expect(user1.aNumber).to.be.equal(2);
             return user1.increment('bNumber', { by: 2, returning: false }).then(user3 => {
@@ -166,9 +166,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('supports where conditions', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findByPk(1).then(user1 => {
         return user1.increment(['aNumber'], { by: 2, where: { bNumber: 1 } }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findByPk(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(0);
           });
         });
@@ -177,9 +177,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with array', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findByPk(1).then(user1 => {
         return user1.increment(['aNumber'], { by: 2 }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findByPk(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(2);
           });
         });
@@ -188,9 +188,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with single field', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findByPk(1).then(user1 => {
         return user1.increment('aNumber', { by: 2 }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findByPk(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(2);
           });
         });
@@ -199,9 +199,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with single field and no value', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findByPk(1).then(user1 => {
         return user1.increment('aNumber').then(() => {
-          return self.User.findById(1).then(user2 => {
+          return self.User.findByPk(1).then(user2 => {
             expect(user2.aNumber).to.be.equal(1);
           });
         });
@@ -210,14 +210,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should still work right with other concurrent updates', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findByPk(1).then(user1 => {
         // Select the user again (simulating a concurrent query)
-        return self.User.findById(1).then(user2 => {
-          return user2.updateAttributes({
+        return self.User.findByPk(1).then(user2 => {
+          return user2.update({
             aNumber: user2.aNumber + 1
           }).then(() => {
             return user1.increment(['aNumber'], { by: 2 }).then(() => {
-              return self.User.findById(1).then(user5 => {
+              return self.User.findByPk(1).then(user5 => {
                 expect(user5.aNumber).to.be.equal(3);
               });
             });
@@ -227,14 +227,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should still work right with other concurrent increments', function() {
-      const self = this;
-      return this.User.findById(1).then(user1 => {
-        return self.sequelize.Promise.all([
+      return this.User.findByPk(1).then(user1 => {
+        return Sequelize.Promise.all([
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 })
         ]).then(() => {
-          return self.User.findById(1).then(user2 => {
+          return this.User.findByPk(1).then(user2 => {
             expect(user2.aNumber).to.equal(6);
           });
         });
@@ -242,10 +241,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('with key value pair', function() {
-      const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findByPk(1).then(user1 => {
         return user1.increment({ 'aNumber': 1, 'bNumber': 2 }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return this.User.findByPk(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(1);
             expect(user3.bNumber).to.be.equal(2);
           });
@@ -287,7 +285,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         this.clock.tick(1000);
         return user.increment('aNumber', {by: 1, silent: true});
       }).then(() => {
-        return expect(User.findById(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+        return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
       });
     });
   });
@@ -323,7 +321,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.returnValues.returning) {
       it('supports returning', function() {
-        return this.User.findById(1).then(user1 => {
+        return this.User.findByPk(1).then(user1 => {
           return user1.decrement('aNumber', { by: 2 }).then(() => {
             expect(user1.aNumber).to.be.equal(-2);
             return user1.decrement('bNumber', { by: 2, returning: false }).then(user3 => {
@@ -336,9 +334,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with array', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findByPk(1).then(user1 => {
         return user1.decrement(['aNumber'], { by: 2 }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findByPk(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(-2);
           });
         });
@@ -347,9 +345,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with single field', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findByPk(1).then(user1 => {
         return user1.decrement('aNumber', { by: 2 }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findByPk(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(-2);
           });
         });
@@ -358,9 +356,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with single field and no value', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findByPk(1).then(user1 => {
         return user1.decrement('aNumber').then(() => {
-          return self.User.findById(1).then(user2 => {
+          return self.User.findByPk(1).then(user2 => {
             expect(user2.aNumber).to.be.equal(-1);
           });
         });
@@ -369,14 +367,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should still work right with other concurrent updates', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findByPk(1).then(user1 => {
         // Select the user again (simulating a concurrent query)
-        return self.User.findById(1).then(user2 => {
-          return user2.updateAttributes({
+        return self.User.findByPk(1).then(user2 => {
+          return user2.update({
             aNumber: user2.aNumber + 1
           }).then(() => {
             return user1.decrement(['aNumber'], { by: 2 }).then(() => {
-              return self.User.findById(1).then(user5 => {
+              return self.User.findByPk(1).then(user5 => {
                 expect(user5.aNumber).to.be.equal(-1);
               });
             });
@@ -387,13 +385,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should still work right with other concurrent increments', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
-        return self.sequelize.Promise.all([
+      return this.User.findByPk(1).then(user1 => {
+        return Sequelize.Promise.all([
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 })
         ]).then(() => {
-          return self.User.findById(1).then(user2 => {
+          return self.User.findByPk(1).then(user2 => {
             expect(user2.aNumber).to.equal(-6);
           });
         });
@@ -402,9 +400,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with key value pair', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findByPk(1).then(user1 => {
         return user1.decrement({ 'aNumber': 1, 'bNumber': 2}).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findByPk(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(-1);
             expect(user3.bNumber).to.be.equal(-2);
           });
@@ -414,13 +412,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with negative value', function() {
       const self = this;
-      return this.User.findById(1).then(user1 => {
-        return self.sequelize.Promise.all([
+      return this.User.findByPk(1).then(user1 => {
+        return Sequelize.Promise.all([
           user1.decrement('aNumber', { by: -2 }),
           user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
           user1.decrement({ 'aNumber': -1, 'bNumber': -2 })
         ]).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findByPk(1).then(user3 => {
             expect(user3.aNumber).to.be.equal(+5);
             expect(user3.bNumber).to.be.equal(+4);
           });
@@ -441,7 +439,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         this.clock.tick(1000);
         return user.decrement('aNumber', {by: 1});
       }).then(() => {
-        return expect(User.findById(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
+        return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
       });
     });
 
@@ -458,7 +456,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         this.clock.tick(1000);
         return user.decrement('aNumber', {by: 1, silent: true});
       }).then(() => {
-        return expect(User.findById(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+        return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
       });
     });
   });
@@ -490,7 +488,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should return a reference to the same DAO instead of creating a new one', function() {
       return this.User.create({ username: 'John Doe' }).then(originalUser => {
-        return originalUser.updateAttributes({ username: 'Doe John' }).then(() => {
+        return originalUser.update({ username: 'Doe John' }).then(() => {
           return originalUser.reload().then(updatedUser => {
             expect(originalUser === updatedUser).to.be.true;
           });
@@ -501,9 +499,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should update the values on all references to the DAO', function() {
       const self = this;
       return this.User.create({ username: 'John Doe' }).then(originalUser => {
-        return self.User.findById(originalUser.id).then(updater => {
-          return updater.updateAttributes({ username: 'Doe John' }).then(() => {
-            // We used a different reference when calling updateAttributes, so originalUser is now out of sync
+        return self.User.findByPk(originalUser.id).then(updater => {
+          return updater.update({ username: 'Doe John' }).then(() => {
+            // We used a different reference when calling update, so originalUser is now out of sync
             expect(originalUser.username).to.equal('John Doe');
             return originalUser.reload().then(updatedUser => {
               expect(originalUser.username).to.equal('Doe John');
@@ -543,9 +541,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
         // Wait for a second, so updatedAt will actually be different
         this.clock.tick(1000);
-        return this.User.findById(originalUser.id);
+        return this.User.findByPk(originalUser.id);
       }).then(updater => {
-        return updater.updateAttributes({username: 'Doe John'});
+        return updater.update({username: 'Doe John'});
       }).then(function(updatedUser) {
         this.updatedUser = updatedUser;
         return this.originalUser.reload();
@@ -571,7 +569,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                   where: { id: book.id },
                   include: [Page]
                 }).then(leBook => {
-                  return page.updateAttributes({ content: 'something totally different' }).then(page => {
+                  return page.update({ content: 'something totally different' }).then(page => {
                     expect(leBook.Pages.length).to.equal(1);
                     expect(leBook.Pages[0].content).to.equal('om nom nom');
                     expect(page.content).to.equal('something totally different');
@@ -943,7 +941,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
         return user.save({fields: ['username']}).then(() => {
           // re-select user
-          return self.User.findById(user.id).then(user2 => {
+          return self.User.findByPk(user.id).then(user2 => {
             // name should have changed
             expect(user2.username).to.equal('fizz');
             // bio should be unchanged
@@ -1161,11 +1159,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           expect(user).to.be.ok;
           expect(user.id).to.equal(0);
           expect(user.username).to.equal(username);
-          return User2.findById(0).then(user => {
+          return User2.findByPk(0).then(user => {
             expect(user).to.be.ok;
             expect(user.id).to.equal(0);
             expect(user.username).to.equal(username);
-            return user.updateAttributes({username: newUsername}).then(user => {
+            return user.update({username: newUsername}).then(user => {
               expect(user).to.be.ok;
               expect(user.id).to.equal(0);
               expect(user.username).to.equal(newUsername);
@@ -1276,7 +1274,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         user.bNumber = self.sequelize.col('aNumber');
         user.username = self.sequelize.fn('upper', 'sequelize');
         return user.save().then(() => {
-          return self.User.findById(user.id).then(user2 => {
+          return self.User.findByPk(user.id).then(user2 => {
             expect(user2.username).to.equal('SEQUELIZE');
             expect(user2.bNumber).to.equal(42);
           });
@@ -1389,7 +1387,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should fail a validation when updating', function() {
       return this.User.create({aNumber: 0}).then(user => {
-        return user.updateAttributes({validateTest: 'hello'}).catch(err => {
+        return user.update({validateTest: 'hello'}).catch(err => {
           expect(err).to.exist;
           expect(err).to.be.instanceof(Object);
           expect(err.get('validateTest')).to.exist;
@@ -1416,7 +1414,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
       return HistoryLog.sync().then(() => {
         return HistoryLog.create({ someText: 'Some random text', aNumber: 3, aRandomId: 5 }).then(log => {
-          return log.updateAttributes({ aNumber: 5 }).then(newLog => {
+          return log.update({ aNumber: 5 }).then(newLog => {
             expect(newLog.aNumber).to.equal(5);
           });
         });
@@ -1722,11 +1720,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it('keeps the deletedAt-attribute with value null, when running updateAttributes', function() {
+    it('keeps the deletedAt-attribute with value null, when running update', function() {
       const self = this;
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
         return self.ParanoidUser.findAll().then(users => {
-          return users[0].updateAttributes({username: 'newFnord'}).then(user => {
+          return users[0].update({username: 'newFnord'}).then(user => {
             expect(user.deletedAt).not.to.exist;
           });
         });
@@ -1760,7 +1758,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
   });
 
-  describe('find', () => {
+  describe('findOne', () => {
     it('can reuse query option objects', function() {
       const self = this;
       return this.User.create({ username: 'fnord' }).then(() => {

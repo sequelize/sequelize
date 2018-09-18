@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  UniqueConstraintError = require(__dirname + '/../../../lib/errors').UniqueConstraintError,
+  Support = require('../support'),
+  UniqueConstraintError = require('../../../lib/errors').UniqueConstraintError,
   current = Support.sequelize,
   sinon = require('sinon'),
   Promise = require('bluebird');

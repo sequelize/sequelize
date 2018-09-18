@@ -65,13 +65,13 @@ const User = sequelize.define('user', {
   }
 });
 
-// Method 2 via the .hook() method (or its alias .addHook() method)
-User.hook('beforeValidate', (user, options) => {
+// Method 2 via the .addHook() method
+User.addHook('beforeValidate', (user, options) => {
   user.mood = 'happy';
 });
 
 User.addHook('afterValidate', 'someCustomName', (user, options) => {
-  return sequelize.Promise.reject(new Error("I'm afraid I can't let you do that!"));
+  return Promise.reject(new Error("I'm afraid I can't let you do that!"));
 });
 
 // Method 3 via the direct method
@@ -316,7 +316,7 @@ Note that many model operations in Sequelize allow you to specify a transaction 
 ```js
 // Here we use the promise-style of async hooks rather than
 // the callback.
-User.hook('afterCreate', (user, options) => {
+User.addHook('afterCreate', (user, options) => {
   // 'transaction' will be available in options.transaction
 
   // This operation will be part of the same transaction as the

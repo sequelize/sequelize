@@ -1,7 +1,7 @@
 'use strict';
 
-const Support = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
+const Support = require('../support');
+const DataTypes = require('../../../lib/data-types');
 const chai = require('chai');
 const expect = chai.expect;
 
@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('prevents stale instances from being saved', () => {
       return expect(Account.create({number: 1}).then(accountA => {
-        return Account.findById(accountA.id).then(accountB => {
+        return Account.findByPk(accountA.id).then(accountB => {
           accountA.number += 1;
           return accountA.save().then(() => { return accountB; });
         });

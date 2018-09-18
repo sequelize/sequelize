@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
   Op = Sequelize.Op;
@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         }).then(function(comment) {
           expect(comment.get('commentable')).to.equal('post');
           expect(comment.get('isMain')).to.be.false;
-          return this.Post.scope('withMainComment').findById(this.post.get('id'));
+          return this.Post.scope('withMainComment').findByPk(this.post.get('id'));
         }).then(post => {
           expect(post.mainComment).to.be.null;
           return post.createMainComment({
@@ -128,7 +128,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           this.mainComment = mainComment;
           expect(mainComment.get('commentable')).to.equal('post');
           expect(mainComment.get('isMain')).to.be.true;
-          return this.Post.scope('withMainComment').findById(this.post.id);
+          return this.Post.scope('withMainComment').findByPk(this.post.id);
         }).then(function(post) {
           expect(post.mainComment.get('id')).to.equal(this.mainComment.get('id'));
           return post.getMainComment();
@@ -160,7 +160,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         }).then(post => {
           expect(post.mainComment.get('commentable')).to.equal('post');
           expect(post.mainComment.get('isMain')).to.be.true;
-          return this.Post.scope('withMainComment').findById(post.id);
+          return this.Post.scope('withMainComment').findByPk(post.id);
         }).then(post => {
           expect(post.mainComment.get('commentable')).to.equal('post');
           expect(post.mainComment.get('isMain')).to.be.true;
@@ -230,7 +230,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           expect(question).to.be.instanceof(self.Question);
         }).then(() => {
           return Promise.join(
-            self.Post.find({
+            self.Post.findOne({
               include: [self.Comment]
             }),
             self.Image.findOne({
@@ -291,7 +291,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         }).each(comment => {
           expect(comment.get('commentable')).to.equal('post');
         }).then(() => {
-          return this.Post.scope('withComments').findById(this.post.id);
+          return this.Post.scope('withComments').findByPk(this.post.id);
         }).then(post => {
           return post.getComments();
         }).each(comment => {
@@ -319,7 +319,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           this.post = post;
           return post.addComments([commentA, commentB, commentC]);
         }).then(() => {
-          return this.Post.findById(this.post.id, {
+          return this.Post.findByPk(this.post.id, {
             include: [{
               model: this.Comment,
               as: 'coloredComments'

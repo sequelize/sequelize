@@ -3,8 +3,8 @@
 const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
   current = Support.sequelize,
@@ -162,8 +162,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
             autoIncrement: true,
             allowNull: false
           }
-        }).schema('archive')
-        , Task = this.sequelize.define('TaskXYZ', {
+        }).schema('archive'),
+        Task = this.sequelize.define('TaskXYZ', {
           user_id: {
             type: Sequelize.INTEGER,
             references: { model: User, key: 'uid' }
@@ -567,7 +567,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
             // set recipients
             .then(() => mail.setRecipients([1]))
         )
-        .then(() => Entry.findAndCount({
+        .then(() => Entry.findAndCountAll({
           offset: 0,
           limit: 10,
           order: [['id', 'DESC']],

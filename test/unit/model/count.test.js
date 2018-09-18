@@ -2,19 +2,20 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
+  Support = require('../support'),
+  Sequelize = Support.Sequelize,
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  DataTypes = require('../../../lib/data-types'),
   Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method count', () => {
     before(() => {
-      this.oldFindAll = current.Model.findAll;
-      this.oldAggregate = current.Model.aggregate;
+      this.oldFindAll = Sequelize.Model.findAll;
+      this.oldAggregate = Sequelize.Model.aggregate;
 
-      current.Model.findAll = sinon.stub().returns(Promise.resolve());
+      Sequelize.Model.findAll = sinon.stub().returns(Promise.resolve());
 
       this.User = current.define('User', {
         username: DataTypes.STRING,
@@ -29,40 +30,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     after(() => {
-      current.Model.findAll = this.oldFindAll;
-      current.Model.aggregate = this.oldAggregate;
+      Sequelize.Model.findAll = this.oldFindAll;
+      Sequelize.Model.aggregate = this.oldAggregate;
     });
 
     beforeEach(() => {
-      this.stub = current.Model.aggregate = sinon.stub().returns(Promise.resolve());
+      this.stub = Sequelize.Model.aggregate = sinon.stub().returns(Promise.resolve());
     });
 
-    describe('should pass the same options to model.aggregate as findAndCount', () => {
+    describe('should pass the same options to model.aggregate as findAndCountAll', () => {
       it('with includes', () => {
         const queryObject = {
           include: [this.Project]
         };
         return this.User.count(queryObject)
-          .then(() => this.User.findAndCount(queryObject))
+          .then(() => this.User.findAndCountAll(queryObject))
           .then(() => {
             const count = this.stub.getCall(0).args;
-            const findAndCount = this.stub.getCall(1).args;
-            expect(count).to.eql(findAndCount);
+            const findAndCountAll = this.stub.getCall(1).args;
+            expect(count).to.eql(findAndCountAll);
           });
       });
 
-      it('attributes should be stripped in case of findAndCount', () => {
+      it('attributes should be stripped in case of findAndCountAll', () => {
         const queryObject = {
           attributes: ['username']
         };
         return this.User.count(queryObject)
-          .then(() => this.User.findAndCount(queryObject))
+          .then(() => this.User.findAndCountAll(queryObject))
           .then(() => {
             const count = this.stub.getCall(0).args;
-            const findAndCount = this.stub.getCall(1).args;
-            expect(count).not.to.eql(findAndCount);
+            const findAndCountAll = this.stub.getCall(1).args;
+            expect(count).not.to.eql(findAndCountAll);
             count[2].attributes = undefined;
-            expect(count).to.eql(findAndCount);
+            expect(count).to.eql(findAndCountAll);
           });
       });
     });

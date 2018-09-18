@@ -3,7 +3,7 @@
 const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
+  Support = require('../support'),
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {

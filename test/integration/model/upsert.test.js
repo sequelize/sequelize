@@ -5,8 +5,8 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   dialect = Support.getTestDialect(),
   current = Support.sequelize;
 
@@ -77,7 +77,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).not.to.be.ok;
           }
 
-          return this.User.findById(42);
+          return this.User.findByPk(42);
         }).then(user => {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
@@ -102,7 +102,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).not.to.be.ok;
           }
 
-          return this.User.find({ where: { foo: 'baz', bar: 19 }});
+          return this.User.findOne({ where: { foo: 'baz', bar: 19 }});
         }).then(user => {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
@@ -168,13 +168,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).not.to.be.ok;
           }
 
-          return User.find({ where: { a: 'a', b: 'b' }});
+          return User.findOne({ where: { a: 'a', b: 'b' }});
         }).then(user1 => {
           expect(user1.createdAt).to.be.ok;
           expect(user1.username).to.equal('doe');
           expect(user1.updatedAt).to.be.afterTime(user1.createdAt);
 
-          return User.find({ where: { a: 'a', b: 'a' }});
+          return User.findOne({ where: { a: 'a', b: 'a' }});
         }).then(user2 => {
           // The second one should not be updated
           expect(user2.createdAt).to.be.ok;
@@ -193,7 +193,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        return expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(this.sequelize.ValidationError);
+        return expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(Sequelize.ValidationError);
       });
 
       it('supports skipping validations', function() {
@@ -236,7 +236,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).not.to.be.ok;
           }
 
-          return this.User.findById(42);
+          return this.User.findByPk(42);
         }).then(user => {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
@@ -261,7 +261,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).not.to.be.ok;
           }
 
-          return this.User.findById(42);
+          return this.User.findByPk(42);
         }).then(user => {
           expect(user.baz).to.equal('oof');
         });
@@ -306,7 +306,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           } else {
             expect(created).not.to.be.ok;
           }
-          return this.User.findById(42);
+          return this.User.findByPk(42);
         }).then(user => {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
@@ -319,14 +319,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let originalUpdatedAt;
         const clock = sinon.useFakeTimers();
         return this.User.create({ id: 42, username: 'john'}).bind(this).then(function() {
-          return this.User.findById(42);
+          return this.User.findByPk(42);
         }).then(function(user) {
           originalCreatedAt = user.createdAt;
           originalUpdatedAt = user.updatedAt;
           clock.tick(5000);
           return this.User.upsert({ id: 42, username: 'doe'});
         }).then(function() {
-          return this.User.findById(42);
+          return this.User.findByPk(42);
         }).then(user => {
           expect(user.updatedAt).to.be.gt(originalUpdatedAt);
           expect(user.createdAt).to.deep.equal(originalCreatedAt);
@@ -336,7 +336,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('does not update using default values', function() {
         return this.User.create({ id: 42, username: 'john', baz: 'new baz value'}).bind(this).then(function() {
-          return this.User.findById(42);
+          return this.User.findByPk(42);
         }).then(function(user) {
           // 'username' should be 'john' since it was set
           expect(user.username).to.equal('john');
@@ -344,7 +344,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(user.baz).to.equal('new baz value');
           return this.User.upsert({ id: 42, username: 'doe'});
         }).then(function() {
-          return this.User.findById(42);
+          return this.User.findByPk(42);
         }).then(user => {
           // 'username' was updated
           expect(user.username).to.equal('doe');
@@ -355,7 +355,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('does not update when setting current values', function() {
         return this.User.create({ id: 42, username: 'john' }).bind(this).then(function() {
-          return this.User.findById(42);
+          return this.User.findByPk(42);
         }).then(function(user) {
           return this.User.upsert({ id: user.id, username: user.username });
         }).then(created => {

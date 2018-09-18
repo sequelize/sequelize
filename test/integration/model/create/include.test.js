@@ -3,8 +3,8 @@
 const chai = require('chai'),
   Sequelize = require('../../../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types');
+  Support = require('../../support'),
+  DataTypes = require('../../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('create', () => {
@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should create data for BelongsTo relations with no nullable FK', function () {
+      it('should create data for BelongsTo relations with no nullable FK', function() {
         const Product = this.sequelize.define('Product', {
           title: Sequelize.STRING
         });
@@ -170,7 +170,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(savedProduct.Tags[0].createOptions.parentRecord).to.be.equal(savedProduct);
             expect(savedProduct.Tags[1].createOptions.myOption).to.be.equal('option');
             expect(savedProduct.Tags[1].createOptions.parentRecord).to.be.equal(savedProduct);
-            return Product.find({
+            return Product.findOne({
               where: { id: savedProduct.id },
               include: [Tag]
             }).then(persistedProduct => {
@@ -202,7 +202,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }, {
             include: [Categories]
           }).then(savedProduct => {
-            return Product.find({
+            return Product.findOne({
               where: { id: savedProduct.id },
               include: [Categories]
             }).then(persistedProduct => {
@@ -233,7 +233,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }, {
             include: [Task]
           }).then(savedUser => {
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
               include: [Task]
             }).then(persistedUser => {
@@ -264,7 +264,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }, {
             include: [Job]
           }).then(savedUser => {
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
               include: [Job]
             }).then(persistedUser => {
@@ -320,7 +320,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(savedUser.Tasks[0].createOptions.parentRecord).to.be.equal(savedUser);
             expect(savedUser.Tasks[1].createOptions.myOption).to.be.equal('option');
             expect(savedUser.Tasks[1].createOptions.parentRecord).to.be.equal(savedUser);
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
               include: [Task]
             }).then(persistedUser => {
@@ -454,7 +454,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }, {
             include: [Jobs]
           }).then(savedUser => {
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
               include: [Jobs]
             }).then(persistedUser => {

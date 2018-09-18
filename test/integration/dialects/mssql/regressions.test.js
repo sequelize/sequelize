@@ -2,14 +2,14 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   Sequelize = Support.Sequelize,
   Op = Sequelize.Op,
   dialect = Support.getTestDialect();
 
 if (dialect.match(/^mssql/)) {
   describe('[MSSQL Specific] Regressions', () => {
-    it('does not duplicate columns in ORDER BY statement, #9008', function () {
+    it('does not duplicate columns in ORDER BY statement, #9008', function() {
       const LoginLog = this.sequelize.define('LoginLog', {
         ID: {
           field: 'id',

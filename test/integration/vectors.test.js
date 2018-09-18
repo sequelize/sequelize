@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Sequelize = require('../../index'),
-  Support = require(__dirname + '/support');
+  Support = require('./support');
 
 chai.should();
 

@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  Support = require('../../support'),
+  DataTypes = require('../../../../lib/data-types'),
   dialect = Support.getTestDialect(),
-  dbFile = __dirname + '/test.sqlite',
+  dbFile = 'test.sqlite',
   storages = [dbFile];
 
 if (dialect === 'sqlite') {
@@ -106,13 +106,13 @@ if (dialect === 'sqlite') {
           });
 
           it('finds normal lookups', function() {
-            return this.User.find({ where: { name: 'user' } }).then(user => {
+            return this.User.findOne({ where: { name: 'user' } }).then(user => {
               expect(user.name).to.equal('user');
             });
           });
 
-          it.skip('should make aliased attributes available', function() {
-            return this.User.find({ where: { name: 'user' }, attributes: ['id', ['name', 'username']] }).then(user => {
+          it('should make aliased attributes available', function() {
+            return this.User.findOne({ where: { name: 'user' }, attributes: ['id', ['name', 'username']] }).then(user => {
               expect(user.username).to.equal('user');
             });
           });

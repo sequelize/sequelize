@@ -4,9 +4,9 @@ const chai = require('chai');
 const fs = require('fs');
 const path = require('path');
 const expect = chai.expect;
-const Support = require(__dirname + '/../../support');
+const Support = require('../../support');
 const dialect = Support.getTestDialect();
-const DataTypes = require(__dirname + '/../../../../lib/data-types');
+const DataTypes = require('../../../../lib/data-types');
 
 const fileName = Math.random() + '_test.sqlite';
 

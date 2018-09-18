@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   dialect = Support.getTestDialect(),
   hstore = require('../../../../lib/dialects/postgres/hstore');
 

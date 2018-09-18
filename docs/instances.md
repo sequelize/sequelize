@@ -319,7 +319,7 @@ In order to increment values of an instance without running into concurrency iss
 First of all you can define a field and the value you want to add to it&period;
 
 ```js
-User.findById(1).then(user => {
+User.findByPk(1).then(user => {
   return user.increment('my-integer-field', {by: 2})
 }).then(user => {
   // Postgres will return the updated user by default (unless disabled by setting { returning: false })
@@ -330,7 +330,7 @@ User.findById(1).then(user => {
 Second&comma; you can define multiple fields and the value you want to add to them&period;
 
 ```js
-User.findById(1).then(user => {
+User.findByPk(1).then(user => {
   return user.increment([ 'my-integer-field', 'my-very-other-field' ], {by: 2})
 }).then(/* ... */)
 ```
@@ -338,7 +338,7 @@ User.findById(1).then(user => {
 Third&comma; you can define an object containing fields and its increment values&period;
 
 ```js
-User.findById(1).then(user => {
+User.findByPk(1).then(user => {
   return user.increment({
     'my-integer-field':    2,
     'my-very-other-field': 3
@@ -353,7 +353,7 @@ In order to decrement values of an instance without running into concurrency iss
 First of all you can define a field and the value you want to add to it&period;
 
 ```js
-User.findById(1).then(user => {
+User.findByPk(1).then(user => {
   return user.decrement('my-integer-field', {by: 2})
 }).then(user => {
   // Postgres will return the updated user by default (unless disabled by setting { returning: false })
@@ -364,7 +364,7 @@ User.findById(1).then(user => {
 Second&comma; you can define multiple fields and the value you want to add to them&period;
 
 ```js
-User.findById(1).then(user => {
+User.findByPk(1).then(user => {
   return user.decrement([ 'my-integer-field', 'my-very-other-field' ], {by: 2})
 }).then(/* ... */)
 ```
@@ -372,7 +372,7 @@ User.findById(1).then(user => {
 Third&comma; you can define an object containing fields and its decrement values&period;
 
 ```js
-User.findById(1).then(user => {
+User.findByPk(1).then(user => {
   return user.decrement({
     'my-integer-field':    2,
     'my-very-other-field': 3

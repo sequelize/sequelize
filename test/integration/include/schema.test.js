@@ -4,8 +4,8 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   Op = Sequelize.Op,
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   Promise = Sequelize.Promise,
   dialect = Support.getTestDialect(),
   _ = require('lodash');
@@ -1271,7 +1271,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         return self.sequelize.createSchema('hero');
       }).then(() => {
         return self.sequelize.sync({force: true}).then(() => {
-          return UserModel.find({
+          return UserModel.findOne({
             where: {
               Id: 1
             },

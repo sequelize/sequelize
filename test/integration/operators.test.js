@@ -5,8 +5,8 @@ const chai = require('chai'),
   Op = Sequelize.Op,
   Promise = Sequelize.Promise,
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Operators'), () => {
@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
           return this.User.create({
             name: 'Foobar'
           }).then(() => {
-            return this.User.find({
+            return this.User.findOne({
               where: {
                 name: {
                   [Op.regexp]: '^Foo'
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
           return this.User.create({
             name: 'Foobar'
           }).then(() => {
-            return this.User.find({
+            return this.User.findOne({
               where: {
                 name: {
                   [Op.notRegexp]: '^Foo'
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
           return this.User.create({
             name: 'Foobar'
           }).then(() => {
-            return self.User.find({
+            return self.User.findOne({
               where: {
                 name: {
                   [Op.iRegexp]: '^foo'
@@ -134,7 +134,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
           return this.User.create({
             name: 'Foobar'
           }).then(() => {
-            return self.User.find({
+            return self.User.findOne({
               where: {
                 name: {
                   [Op.notIRegexp]: '^foo'

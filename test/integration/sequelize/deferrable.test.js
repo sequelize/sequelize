@@ -3,9 +3,9 @@
 const _ = require('lodash'),
   chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  Sequelize = require(__dirname + '/../../../index'),
-  config = require(__dirname + '/../../config/config')
+  Support = require('../support'),
+  Sequelize = require('../../../index'),
+  config = require('../../config/config')
   ;
 
 if (!Support.sequelize.dialect.supports.deferrableConstraints) {

@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const Support = require(__dirname + '/../support');
+const Support = require('../support');
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {

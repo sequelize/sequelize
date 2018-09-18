@@ -3,12 +3,12 @@
 const chai = require('chai'),
   Sequelize = require('../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/support'),
+  Support = require('./support'),
   sinon = require('sinon'),
   _ = require('lodash'),
   moment = require('moment'),
   current = Support.sequelize,
-  Op = current.Op,
+  Op = Sequelize.Op,
   uuid = require('uuid'),
   DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect(),
@@ -399,7 +399,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           real: -Infinity
         });
       }).then(() => {
-        return Model.find({ where: { id: 1 } });
+        return Model.findOne({ where: { id: 1 } });
       }).then(user => {
         expect(user.get('float')).to.be.NaN;
         expect(user.get('double')).to.eq(Infinity);
@@ -430,7 +430,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return Model.sync({ force: true }).then(() => {
         return Model.create(sampleData);
       }).then(() => {
-        return Model.findById(1);
+        return Model.findByPk(1);
       }).then(user => {
         /**
          * MYSQL default precision is 10 and scale is 0
@@ -464,7 +464,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return Model.sync({ force: true }).then(() => {
         return Model.create(sampleData);
       }).then(() => {
-        return Model.findById(1);
+        return Model.findByPk(1);
       }).then(user => {
         expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
         expect(user.get('jewelPurity')).to.be.string;
@@ -618,7 +618,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
-        return Model.findById(record.id);
+        return Model.findByPk(record.id);
       }).then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
@@ -658,7 +658,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
-        return Model.findById(record.id);
+        return Model.findByPk(record.id);
       }).then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
@@ -695,7 +695,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }).then(byte => {
       expect(byte.byteToBool).to.be.ok;
 
-      return BoolModel.findById(byte.id);
+      return BoolModel.findByPk(byte.id);
     }).then(bool => {
       expect(bool.byteToBool).to.be.true;
     });

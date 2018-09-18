@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {
@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           level: -1,
           isUser: false,
           isAdmin: true
-        }).then(user => this.User.findById(user.get('id'))).then(user => {
+        }).then(user => this.User.findByPk(user.get('id'))).then(user => {
           expect(user.toJSON()).to.deep.equal({
             id: user.get('id'),
             username: 'Adam',
@@ -182,7 +182,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           age: 99,
           isAdmin: true,
           isUser: false
-        }).then(user => this.User.findById(user.get('id'))).then(user => {
+        }).then(user => this.User.findByPk(user.get('id'))).then(user => {
           expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);
         });
       });
@@ -192,7 +192,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'test.user',
           age: 99,
           isAdmin: true
-        }).then(user => this.User.findById(user.get('id'))).then(user => {
+        }).then(user => this.User.findByPk(user.get('id'))).then(user => {
           expect(JSON.parse(JSON.stringify(user))).to.deep.equal({
             id: user.get('id'),
             username: 'test.user',

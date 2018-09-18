@@ -1,6 +1,6 @@
 'use strict';
 
-const Support   = require(__dirname + '/../support'),
+const Support   = require('../support'),
   util = require('util'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,

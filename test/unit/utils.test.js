@@ -2,11 +2,11 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const Support = require(__dirname + '/support');
-const DataTypes = require(__dirname + '/../../lib/data-types');
-const Utils = require(__dirname + '/../../lib/utils');
-const logger = require(__dirname + '/../../lib/utils/logger').getLogger();
-const Op = Support.sequelize.Op;
+const Support = require('./support');
+const DataTypes = require('../../lib/data-types');
+const Utils = require('../../lib/utils');
+const logger = require('../../lib/utils/logger').getLogger();
+const Op = Support.Sequelize.Op;
 
 suite(Support.getTestDialectTeaser('Utils'), () => {
   suite('merge', () => {

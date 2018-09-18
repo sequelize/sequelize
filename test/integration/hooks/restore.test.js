@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {

@@ -3,8 +3,8 @@
 const chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   Promise = Sequelize.Promise,
   Op = Sequelize.Op;
 
@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      *                            N
      *                        [Footnote]
      */
-    beforeEach(function () {
+    beforeEach(function() {
       this.Project = this.sequelize.define('Project', {
         name: {
           type: DataTypes.STRING,
@@ -126,7 +126,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     /*
      * many-to-many
      */
-    it('supports many-to-many association with where clause', function () {
+    it('supports many-to-many association with where clause', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
@@ -154,7 +154,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports 2 levels of required many-to-many associations', function () {
+    it('supports 2 levels of required many-to-many associations', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
@@ -186,7 +186,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports 2 levels of required many-to-many associations with where clause', function () {
+    it('supports 2 levels of required many-to-many associations with where clause', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
@@ -221,7 +221,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports 2 levels of required many-to-many associations with through.where clause', function () {
+    it('supports 2 levels of required many-to-many associations with through.where clause', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
@@ -259,7 +259,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports 3 levels of required many-to-many associations with where clause', function () {
+    it('supports 3 levels of required many-to-many associations with where clause', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Task.bulkCreate(build('alpha', 'bravo', 'charlie')),
@@ -302,7 +302,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports required many-to-many association', function () {
+    it('supports required many-to-many association', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
@@ -327,7 +327,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports 2 required many-to-many association', function () {
+    it('supports 2 required many-to-many association', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie', 'delta')),
@@ -363,7 +363,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     /*
      * one-to-many
      */
-    it('supports required one-to-many association', function () {
+    it('supports required one-to-many association', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Post.bulkCreate(build('alpha', 'bravo', 'charlie')),
@@ -388,7 +388,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports required one-to-many association with where clause', function () {
+    it('supports required one-to-many association with where clause', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Post.bulkCreate(build('alpha', 'bravo', 'charlie')),
@@ -421,7 +421,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports required one-to-many association with where clause (findOne)', function () {
+    it('supports required one-to-many association with where clause (findOne)', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Post.bulkCreate(build('alpha', 'bravo', 'charlie')),
@@ -446,7 +446,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports 2 levels of required one-to-many associations', function () {
+    it('supports 2 levels of required one-to-many associations', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte', 'David')),
@@ -482,7 +482,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     /*
      * mixed many-to-many, one-to-many and many-to-one
      */
-    it('supports required one-to-many association with nested required many-to-many association', function () {
+    it('supports required one-to-many association with nested required many-to-many association', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte', 'David')),
@@ -516,7 +516,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports required many-to-many association with nested required one-to-many association', function () {
+    it('supports required many-to-many association with nested required one-to-many association', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie', 'delta')),
@@ -551,7 +551,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports required many-to-one association with nested many-to-many association with where clause', function () {
+    it('supports required many-to-one association with nested many-to-many association with where clause', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
 
@@ -588,7 +588,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports required many-to-one association with nested many-to-many association with through.where clause', function () {
+    it('supports required many-to-one association with nested many-to-many association with through.where clause', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
 
@@ -628,7 +628,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports required many-to-one association with multiple nested associations with where clause', function () {
+    it('supports required many-to-one association with multiple nested associations with where clause', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
 
@@ -680,7 +680,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
     });
 
-    it('supports required many-to-one association with nested one-to-many association with where clause', function () {
+    it('supports required many-to-one association with nested one-to-many association with where clause', function() {
       return this.sequelize.sync({ force: true })
         .then(() => Promise.join(
 

@@ -1,14 +1,14 @@
 'use strict';
 
-const Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  QueryTypes = require(__dirname + '/../../../lib/query-types'),
+const Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
+  QueryTypes = require('../../../lib/query-types'),
   util = require('util'),
   _ = require('lodash'),
   expectsql = Support.expectsql,
   current = Support.sequelize,
   sql = current.dialect.QueryGenerator,
-  Op = current.Op;
+  Op = Support.Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -1117,7 +1117,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       default: 'SUM([hours]) > 0'
     });
 
-    testsql(current.where(current.fn('SUM', current.col('hours')), current.Op.gt, 0), {
+    testsql(current.where(current.fn('SUM', current.col('hours')), Op.gt, 0), {
       default: 'SUM([hours]) > 0'
     });
   });

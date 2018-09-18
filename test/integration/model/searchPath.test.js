@@ -2,8 +2,8 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const Support = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
+const Support = require('../support');
+const DataTypes = require('../../../lib/data-types');
 const Op = Support.Sequelize.Op;
 
 const SEARCH_PATH_ONE = 'schema_one,public';
@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('enum case', () => {
-        it('able to refresh enum when searchPath is used', function () {
+        it('able to refresh enum when searchPath is used', function() {
           return this.Location.sync({ force: true });
         });
       });
@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(obj).to.not.be.null;
               expect(obj.foo).to.equal('one');
               restaurantId = obj.id;
-              return Restaurant.findById(restaurantId, {searchPath: SEARCH_PATH_ONE});
+              return Restaurant.findByPk(restaurantId, {searchPath: SEARCH_PATH_ONE});
             }).then(obj => {
               expect(obj).to.not.be.null;
               expect(obj.foo).to.equal('one');
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(obj).to.not.be.null;
               expect(obj.foo).to.equal('two');
               restaurantId = obj.id;
-              return Restaurant.findById(restaurantId, {searchPath: SEARCH_PATH_TWO});
+              return Restaurant.findByPk(restaurantId, {searchPath: SEARCH_PATH_TWO});
             }).then(obj => {
               expect(obj).to.not.be.null;
               expect(obj.foo).to.equal('two');

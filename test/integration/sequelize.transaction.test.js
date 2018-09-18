@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/support'),
-  Promise = require(__dirname + '/../../lib/promise'),
-  Transaction = require(__dirname + '/../../lib/transaction'),
+  Support = require('./support'),
+  Promise = require('../../lib/promise'),
+  Transaction = require('../../lib/transaction'),
   sinon = require('sinon'),
   current = Support.sequelize;
 

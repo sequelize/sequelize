@@ -2,11 +2,12 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  Sequelize = require('../../../index'),
+  Promise = Sequelize.Promise,
+  DataTypes = require('../../../lib/data-types'),
   sinon = require('sinon'),
-  dialect = Support.getTestDialect(),
-  Promise = require('bluebird');
+  dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
@@ -75,7 +76,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           return this.Projects.create({title: 'New Project'}).then(project => {
             return self.Tasks.create({title: 'New Task'}).then(task => {
               return project.setTask(task).then(() => {
-                return project.updateAttributes({id: 2}).then(() => {
+                return project.update({id: 2}).then(() => {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
                 });
@@ -219,7 +220,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           return this.Projects.create({title: 'New Project'}).then(project => {
             return self.Tasks.create({title: 'New Task'}).then(task => {
               return project.setTask(task).then(() => {
-                return project.updateAttributes({id: 2}).then(() => {
+                return project.update({id: 2}).then(() => {
                   expect(beforeHook).to.have.been.calledOnce;
                   expect(afterHook).to.have.been.calledOnce;
                 });
@@ -740,7 +741,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 return Promise.resolve();
               });
 
-              return this.sequelize.Promise.all([
+              return Sequelize.Promise.all([
                 this.Projects.create({title: 'New Project'}),
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
               ]).bind(this).spread((project, minitask) => {
@@ -796,7 +797,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 return Promise.resolve();
               });
 
-              return this.sequelize.Promise.all([
+              return Sequelize.Promise.all([
                 this.Projects.create({title: 'New Project'}),
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
               ]).bind(this).spread((project, minitask) => {
@@ -882,12 +883,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 return Promise.resolve();
               });
 
-              return this.sequelize.Promise.all([
+              return Sequelize.Promise.all([
                 this.Projects.create({title: 'New Project'}),
                 this.Tasks.create({title: 'New Task'}),
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
-              ]).bind(this).spread(function(project, task, minitask) {
-                return this.sequelize.Promise.all([
+              ]).spread((project, task, minitask) => {
+                return Sequelize.Promise.all([
                   task.addMiniTask(minitask),
                   project.addTask(task)
                 ]).return(project);
@@ -937,12 +938,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 afterMiniTask = true;
               });
 
-              return this.sequelize.Promise.all([
+              return Sequelize.Promise.all([
                 this.Projects.create({title: 'New Project'}),
                 this.Tasks.create({title: 'New Task'}),
                 this.MiniTasks.create({mini_title: 'New MiniTask'})
-              ]).bind(this).spread(function(project, task, minitask) {
-                return this.sequelize.Promise.all([
+              ]).spread((project, task, minitask) => {
+                return Sequelize.Promise.all([
                   task.addMiniTask(minitask),
                   project.addTask(task)
                 ]).return(project);

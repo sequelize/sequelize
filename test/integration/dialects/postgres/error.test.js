@@ -2,8 +2,8 @@
 
 const chai      = require('chai'),
   expect    = chai.expect,
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
-  Support   = require(__dirname + '/../../support'),
+  DataTypes = require('../../../../lib/data-types'),
+  Support   = require('../../support'),
   Sequelize = Support.Sequelize,
   dialect   = Support.getTestDialect(),
   _ = require('lodash');

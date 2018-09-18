@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Utils = require(__dirname + '/../../lib/utils'),
-  Support = require(__dirname + '/support'),
-  DataTypes = require(__dirname + '/../../lib/data-types'),
+  Utils = require('../../lib/utils'),
+  Support = require('./support'),
+  DataTypes = require('../../lib/data-types'),
   Sequelize = require('../../index'),
   Op = Sequelize.Op;
 

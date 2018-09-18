@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require(__dirname + '/../../../index'),
+  Sequelize = require('../../../index'),
   Op = Sequelize.Op,
-  Support   = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support   = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -302,7 +302,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not warn if default scope is not defined', () => {
       const Model = current.define('model');
-    
+
       expect(() => {
         Model.addScope('defaultScope', {});
       }).not.to.throw();
@@ -351,7 +351,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         limit: 9
       };
 
-      current.Model._injectScope.call({
+      Sequelize.Model._injectScope.call({
         _scope: scope
       }, options);
 
@@ -375,7 +375,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       const options = {};
 
-      current.Model._injectScope.call({
+      Sequelize.Model._injectScope.call({
         _scope: scope
       }, options);
 
@@ -392,7 +392,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [{ model: Project, where: { something: true }}]
       };
 
-      current.Model._injectScope.call({
+      Sequelize.Model._injectScope.call({
         _scope: scope
       }, options);
 
@@ -409,7 +409,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [{model: User, as: 'otherUser'}]
       };
 
-      current.Model._injectScope.call({
+      Sequelize.Model._injectScope.call({
         _scope: scope
       }, options);
 
@@ -431,7 +431,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]
       };
 
-      current.Model._injectScope.call({
+      Sequelize.Model._injectScope.call({
         _scope: scope
       }, options);
 
@@ -454,7 +454,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]
         };
 
-        current.Model._injectScope.call({
+        Sequelize.Model._injectScope.call({
           _scope: scope
         }, options);
 
@@ -477,7 +477,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]
         };
 
-        current.Model._injectScope.call({
+        Sequelize.Model._injectScope.call({
           _scope: scope
         }, options);
 

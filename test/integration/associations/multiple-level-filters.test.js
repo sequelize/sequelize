@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
   it('can filter through belongsTo', function() {
@@ -201,11 +201,11 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
         }, {
           title: 'empire'
         }]).then(() => {
-          return User.findById(1).then(user => {
-            return Project.findById(1).then(project => {
+          return User.findByPk(1).then(user => {
+            return Project.findByPk(1).then(project => {
               return user.setProjects([project]).then(() => {
-                return User.findById(2).then(user => {
-                  return Project.findById(2).then(project => {
+                return User.findByPk(2).then(user => {
+                  return Project.findByPk(2).then(project => {
                     return user.setProjects([project]).then(() => {
                       return User.findAll({
                         include: [

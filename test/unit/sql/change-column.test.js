@@ -1,12 +1,12 @@
 'use strict';
 
-const Support   = require(__dirname + '/../support'),
+const sinon = require('sinon'),
+  Sequelize = require('../../../index'),
+  Promise = Sequelize.Promise,
+  Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
   expectsql = Support.expectsql,
-  sinon = require('sinon'),
-  current   = Support.sequelize,
-  Promise = current.Promise;
-
+  current = Support.sequelize;
 
 if (current.dialect.name !== 'sqlite') {
   describe(Support.getTestDialectTeaser('SQL'), () => {

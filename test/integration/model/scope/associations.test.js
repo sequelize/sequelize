@@ -5,7 +5,7 @@ const chai = require('chai'),
   Op = Sequelize.Op,
   expect = chai.expect,
   Promise = Sequelize.Promise,
-  Support = require(__dirname + '/../../support');
+  Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
@@ -162,7 +162,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         describe('it should be able to unscope', () => {
           it('hasMany', function() {
-            return this.Company.findById(1).then(company => {
+            return this.Company.findByPk(1).then(company => {
               return company.getUsers({ scope: false});
             }).then(users => {
               expect(users).to.have.length(4);
@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               active: false,
               userId: 1
             }).bind(this).then(function() {
-              return this.ScopeMe.findById(1);
+              return this.ScopeMe.findByPk(1);
             }).then(user => {
               return user.getProfile({ scope: false });
             }).then(profile => {
@@ -183,7 +183,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('belongsTo', function() {
-            return this.ScopeMe.unscoped().find({ where: { username: 'bob' }}).then(user => {
+            return this.ScopeMe.unscoped().findOne({ where: { username: 'bob' }}).then(user => {
               return user.getCompany({ scope: false });
             }).then(company => {
               expect(company).to.be.ok;
@@ -201,7 +201,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         describe('it should apply default scope', () => {
           it('hasMany', function() {
-            return this.Company.findById(1).then(company => {
+            return this.Company.findByPk(1).then(company => {
               return company.getUsers();
             }).then(users => {
               expect(users).to.have.length(2);
@@ -213,7 +213,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               active: false,
               userId: 1
             }).bind(this).then(function() {
-              return this.ScopeMe.findById(1);
+              return this.ScopeMe.findByPk(1);
             }).then(user => {
               return user.getProfile();
             }).then(profile => {
@@ -222,7 +222,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('belongsTo', function() {
-            return this.ScopeMe.unscoped().find({ where: { username: 'bob' }}).then(user => {
+            return this.ScopeMe.unscoped().findOne({ where: { username: 'bob' }}).then(user => {
               return user.getCompany();
             }).then(company => {
               expect(company).not.to.be.ok;
@@ -241,7 +241,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         describe('it should be able to apply another scope', () => {
           it('hasMany', function() {
-            return this.Company.findById(1).then(company => {
+            return this.Company.findByPk(1).then(company => {
               return company.getUsers({ scope: 'isTony'});
             }).then(users => {
               expect(users).to.have.length(1);
@@ -254,7 +254,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               active: true,
               userId: 1
             }).bind(this).then(function() {
-              return this.ScopeMe.findById(1);
+              return this.ScopeMe.findByPk(1);
             }).then(user => {
               return user.getProfile({ scope: 'notActive' });
             }).then(profile => {
@@ -263,7 +263,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('belongsTo', function() {
-            return this.ScopeMe.unscoped().find({ where: { username: 'bob' }}).then(user => {
+            return this.ScopeMe.unscoped().findOne({ where: { username: 'bob' }}).then(user => {
               return user.getCompany({ scope: 'notActive' });
             }).then(company => {
               expect(company).to.be.ok;
@@ -285,7 +285,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('scope with includes', () => {
         beforeEach(function() {
           return Promise.all([
-            this.Company.findById(1),
+            this.Company.findByPk(1),
             this.Project.create({ id: 1, active: true}),
             this.Project.create({ id: 2, active: false})
           ]).spread((c, p1, p2) => {
