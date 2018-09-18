@@ -1,4 +1,4 @@
-# Upgrade to V4
+# Upgrade to v4
 
 Sequelize v4 is the current release and it introduces some breaking changes. Majority of sequelize codebase has been refactored to use ES2015 features. The following guide lists some of the changes to upgrade from v3 to v4.
 

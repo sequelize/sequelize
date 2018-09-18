@@ -8,7 +8,7 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   config = require(__dirname + '/../config/config'),
   sinon = require('sinon'),
-  validateUUID = require('uuid-validate'),
+  isUUID = require('validator').isUUID,
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -743,8 +743,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('should store a valid uuid in uuidv1 and uuidv4 that conforms to the UUID v1 and v4 specifications', function() {
         const user = this.User.build({ username: 'a user'});
-        expect(validateUUID(user.uuidv1, 1)).to.be.true;
-        expect(validateUUID(user.uuidv4, 4)).to.be.true;
+        expect(isUUID(user.uuidv1)).to.be.true;
+        expect(isUUID(user.uuidv4, 4)).to.be.true;
       });
 
       it('should store a valid uuid if the field is a primary key named id', function() {
