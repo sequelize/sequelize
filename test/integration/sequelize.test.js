@@ -202,6 +202,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
   });
 
+  describe('getDatabaseName', () => {
+    it('returns the database name', function() {
+      expect(this.sequelize.getDatabaseName()).to.equal(this.sequelize.config.database);
+    });
+  });
+
   describe('isDefined', () => {
     it('returns false if the dao wasn\'t defined before', function() {
       expect(this.sequelize.isDefined('Project')).to.be.false;
