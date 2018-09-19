@@ -44,6 +44,17 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql({
       limit: 10,
+      model: {primaryKeyField: 'id', name: 'tableRef'},
+      include: [],
+      order: ['id'] // for MSSQL
+    }, {
+      default: ' LIMIT 10',
+      mssql: ' OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
+    });
+
+
+    testsql({
+      limit: 10,
       offset: 20,
       order: [
         ['email', 'DESC'] // for MSSQL
