@@ -318,5 +318,81 @@ describe('model', () => {
         });
       });
     });
+
+    describe('order by jsonb column', () => {
+      beforeEach(function() {
+        this.Stuff = this.sequelize.define('stuff', {
+          id: {
+            autoIncrement: true,
+            primaryKey: true,
+            type: Sequelize.BIGINT
+          }
+        });
+
+        this.Translation = this.sequelize.define('translation', {
+          stuffid: {
+            type: Sequelize.BIGINT,
+            primaryKey: true
+          },
+          lang: {
+            type: Sequelize.TEXT,
+            primaryKey: true
+          },
+          tr: {
+            allowNull: false,
+            type: Sequelize.JSONB
+          }
+        });
+
+        this.Stuff.hasMany(this.Translation, {
+          foreignKey: 'stuffid',
+          sourceKey: 'id'
+        });
+
+        this.Translation.belongsTo(this.Stuff, {
+          foreignKey: 'stuffid',
+          targetKey: 'id'
+        });
+
+        return this.sequelize.sync({force: true});
+      });
+
+      it('should be able order by jsonb column for included models', function() {
+        return this.Stuff.bulkCreate(Array(2).fill({}), {returning: true})
+          .then(stuffs => {
+            return this.Translation.bulkCreate([{
+              stuffid: stuffs[0].id,
+              lang: 'en',
+              tr: {
+                title: 'ZZZ'
+              }
+            }, {
+              stuffid: stuffs[1].id,
+              lang: 'en',
+              tr: {
+                title: 'AAA'
+              }
+            }]);
+          }).then(() => {
+            return this.Stuff.findAll({
+              include: [{
+                model: this.Translation
+              }],
+              limit: 100,
+              offset: 0,
+              order: [
+                [this.Translation, Sequelize.json('tr.title'), 'ASC']
+              ]
+            });
+          }).then(stuffs => {
+            expect(stuffs[0].translations[0].tr).deep.equal({
+              title: 'AAA'
+            });
+            expect(stuffs[1].translations[0].tr).deep.equal({
+              title: 'ZZZ'
+            });
+          });
+      });
+    });
   }
 });
