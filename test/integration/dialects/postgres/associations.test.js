@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   dialect = Support.getTestDialect(),
-  config = require(__dirname + '/../../../config/config'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types');
+  config = require('../../../config/config'),
+  DataTypes = require('../../../../lib/data-types');
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] associations', () => {

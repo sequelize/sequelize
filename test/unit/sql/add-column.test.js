@@ -1,6 +1,6 @@
 'use strict';
 
-const Support   = require(__dirname + '/../support'),
+const Support   = require('../support'),
   DataTypes = require('../../../lib/data-types'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,

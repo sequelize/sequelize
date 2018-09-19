@@ -9,7 +9,7 @@ In this document we'll explore what finder methods can do:
 ### `find` - Search for one specific element in the database
 ```js
 // search for known ids
-Project.findById(123).then(project => {
+Project.findByPk(123).then(project => {
   // project will be an instance of Project and stores the content of the table entry
   // with id 123. if such an entry is not defined you will get null
 })

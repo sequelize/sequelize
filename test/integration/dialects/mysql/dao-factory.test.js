@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
-  config = require(__dirname + '/../../../config/config');
+  DataTypes = require('../../../../lib/data-types'),
+  config = require('../../../config/config');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] DAOFactory', () => {

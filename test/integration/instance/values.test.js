@@ -3,9 +3,9 @@
 const chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
+  Support = require('../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('DAO'), () => {
   describe('Values', () => {
@@ -129,8 +129,8 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
               b: self.sequelize.col('always_false')
             });
 
-            expect(user.get('d')).to.be.instanceof(self.sequelize.Utils.Fn);
-            expect(user.get('b')).to.be.instanceof(self.sequelize.Utils.Col);
+            expect(user.get('d')).to.be.instanceof(Sequelize.Utils.Fn);
+            expect(user.get('b')).to.be.instanceof(Sequelize.Utils.Col);
 
             return user.save().then(() => {
               return user.reload().then(() => {

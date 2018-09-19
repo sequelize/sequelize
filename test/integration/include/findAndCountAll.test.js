@@ -3,9 +3,9 @@
 const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
-  Support = require(__dirname + '/../support'),
+  Support = require('../support'),
   Op = Support.Sequelize.Op,
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  DataTypes = require('../../../lib/data-types'),
   Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Include'), () => {

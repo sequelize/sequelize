@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     return this.sequelize.sync({ force: true });
   });
 
-  describe('#updateAttributes', () => {
+  describe('#update', () => {
     describe('on success', () => {
       it('should run hooks', function() {
         const beforeHook = sinon.spy(),
@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterSave(afterSave);
 
         return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
-          return user.updateAttributes({username: 'Chong'}).then(user => {
+          return user.update({username: 'Chong'}).then(user => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
             expect(beforeSave).to.have.been.calledTwice;
@@ -62,7 +62,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterSave(afterSave);
 
         return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
-          return expect(user.updateAttributes({username: 'Chong'})).to.be.rejected.then(() => {
+          return expect(user.update({username: 'Chong'})).to.be.rejected.then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(beforeSave).to.have.been.calledOnce;
             expect(afterHook).not.to.have.been.called;
@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterSave(afterSave);
 
         return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
-          return expect(user.updateAttributes({username: 'Chong'})).to.be.rejected.then(() => {
+          return expect(user.update({username: 'Chong'})).to.be.rejected.then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
             expect(beforeSave).to.have.been.calledTwice;
@@ -104,7 +104,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.create({username: 'fireninja', mood: 'invalid'}).then(user => {
-          return user.updateAttributes({username: 'hero'});
+          return user.update({username: 'hero'});
         }).then(user => {
           expect(user.username).to.equal('hero');
           expect(user.mood).to.equal('happy');
@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.create({username: 'fireninja', mood: 'nuetral'}).then(user => {
-          return user.updateAttributes({username: 'spider'});
+          return user.update({username: 'spider'});
         }).then(user => {
           expect(user.username).to.equal('spider');
           expect(user.mood).to.equal('sad');
@@ -134,7 +134,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.create({username: 'fireninja', mood: 'nuetral'}).then(user => {
-          return user.updateAttributes({username: 'spider', mood: 'sad'});
+          return user.update({username: 'spider', mood: 'sad'});
         }).then(user => {
           expect(user.username).to.equal('spider');
           expect(user.mood).to.equal('happy');
@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.create({username: 'akira'}).then(user => {
-          return user.updateAttributes({username: 'spider', mood: 'sad'});
+          return user.update({username: 'spider', mood: 'sad'});
         }).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('spider');

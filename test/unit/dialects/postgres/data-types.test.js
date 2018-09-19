@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   dialect = Support.getTestDialect(),
-  BaseTypes = require(__dirname + '/../../../../lib/data-types'),
-  DataTypes = require(__dirname + '/../../../../lib/dialects/postgres/data-types')(BaseTypes),
+  BaseTypes = require('../../../../lib/data-types'),
+  DataTypes = require('../../../../lib/dialects/postgres/data-types')(BaseTypes),
   QueryGenerator = require('../../../../lib/dialects/postgres/query-generator');
 
 if (dialect.match(/^postgres/)) {

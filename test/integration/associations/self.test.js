@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  Sequelize = require(__dirname + '/../../../index'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
+  Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
   _ = require('lodash');
 
@@ -47,8 +47,6 @@ describe(Support.getTestDialectTeaser('Self'), () => {
   });
 
   it('can handle n:m associations', function() {
-    const self = this;
-
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
     Person.belongsToMany(Person, { as: 'Parents', through: 'Family', foreignKey: 'ChildId', otherKey: 'PersonId' });
@@ -64,7 +62,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     expect(rawAttributes).to.have.members(['createdAt', 'updatedAt', 'PersonId', 'ChildId']);
 
     return this.sequelize.sync({ force: true }).then(() => {
-      return self.sequelize.Promise.all([
+      return Promise.all([
         Person.create({ name: 'Mary' }),
         Person.create({ name: 'John' }),
         Person.create({ name: 'Chris' })

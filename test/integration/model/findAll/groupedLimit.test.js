@@ -3,11 +3,11 @@
 const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   Sequelize = Support.Sequelize,
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  Promise = Sequelize.Promise,
+  DataTypes = require('../../../../lib/data-types'),
   current = Support.sequelize,
-  Promise = current.Promise,
   _ = require('lodash');
 
 if (current.dialect.supports['UNION ALL']) {

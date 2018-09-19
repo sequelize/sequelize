@@ -3,15 +3,15 @@
 const chai = require('chai'),
   expect = chai.expect,
   assert = chai.assert,
-  Support = require(__dirname + '/support'),
-  DataTypes = require(__dirname + '/../../lib/data-types'),
+  Support = require('./support'),
+  DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
-  Sequelize = require(__dirname + '/../../index'),
-  config = require(__dirname + '/../config/config'),
+  Sequelize = require('../../index'),
+  config = require('../config/config'),
   moment = require('moment'),
-  Transaction = require(__dirname + '/../../lib/transaction'),
-  logger = require(__dirname + '/../../lib/utils/logger'),
+  Transaction = require('../../lib/transaction'),
+  logger = require('../../lib/utils/logger'),
   sinon = require('sinon'),
   semver = require('semver'),
   current = Support.sequelize;
@@ -1185,12 +1185,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
   describe('import', () => {
     it('imports a dao definition from a file absolute path', function() {
-      const Project = this.sequelize.import(__dirname + '/assets/project');
+      const Project = this.sequelize.import('assets/project');
       expect(Project).to.exist;
     });
 
     it('imports a dao definition with a default export', function() {
-      const Project = this.sequelize.import(__dirname + '/assets/es6project');
+      const Project = this.sequelize.import('assets/es6project');
       expect(Project).to.exist;
     });
 
@@ -1393,7 +1393,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             return self.sequelizeWithTransaction.transaction().then(t1 => {
               return User.create({ username: 'foo' }, { transaction: t1 }).then(user => {
                 return self.sequelizeWithTransaction.transaction({ transaction: t1 }).then(t2 => {
-                  return user.updateAttributes({ username: 'bar' }, { transaction: t2 }).then(() => {
+                  return user.update({ username: 'bar' }, { transaction: t2 }).then(() => {
                     return t2.commit().then(() => {
                       return user.reload({ transaction: t1 }).then(newUser => {
                         expect(newUser.username).to.equal('bar');
@@ -1478,7 +1478,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             return self.sequelizeWithTransaction.transaction().then(t1 => {
               return User.create({ username: 'foo' }, { transaction: t1 }).then(user => {
                 return self.sequelizeWithTransaction.transaction({ transaction: t1 }).then(t2 => {
-                  return user.updateAttributes({ username: 'bar' }, { transaction: t2 }).then(() => {
+                  return user.update({ username: 'bar' }, { transaction: t2 }).then(() => {
                     return t2.rollback().then(() => {
                       return user.reload({ transaction: t1 }).then(newUser => {
                         expect(newUser.username).to.equal('foo');
@@ -1500,7 +1500,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             return self.sequelizeWithTransaction.transaction().then(t1 => {
               return User.create({ username: 'foo' }, { transaction: t1 }).then(user => {
                 return self.sequelizeWithTransaction.transaction({ transaction: t1 }).then(t2 => {
-                  return user.updateAttributes({ username: 'bar' }, { transaction: t2 }).then(() => {
+                  return user.update({ username: 'bar' }, { transaction: t2 }).then(() => {
                     return t1.rollback().then(() => {
                       return User.findAll().then(users => {
                         expect(users.length).to.equal(0);
@@ -1553,7 +1553,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           }).then(destroyedUser => {
             expect(destroyedUser.deletedAt).to.exist;
             expect(Number(destroyedUser.deletedAt)).not.to.equal(epoch);
-            return User.findById(destroyedUser.id, { paranoid: false });
+            return User.findByPk(destroyedUser.id, { paranoid: false });
           }).then(fetchedDestroyedUser => {
             expect(fetchedDestroyedUser.deletedAt).to.exist;
             expect(Number(fetchedDestroyedUser.deletedAt)).not.to.equal(epoch);

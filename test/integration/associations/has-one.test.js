@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
+  Support = require('../support'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
   current = Support.sequelize,

@@ -4,12 +4,12 @@ const chai = require('chai'),
   Sequelize = require('../../../../index'),
   Op = Sequelize.Op,
   expect = chai.expect,
-  Support = require(__dirname + '/../../support');
+  Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
 
-    describe('findAndCount', () => {
+    describe('findAndCountAll', () => {
 
       beforeEach(function() {
         this.ScopeMe = this.sequelize.define('ScopeMe', {
@@ -52,14 +52,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should apply defaultScope', function() {
-        return this.ScopeMe.findAndCount().then(result => {
+        return this.ScopeMe.findAndCountAll().then(result => {
           expect(result.count).to.equal(2);
           expect(result.rows.length).to.equal(2);
         });
       });
 
       it('should be able to override default scope', function() {
-        return this.ScopeMe.findAndCount({ where: { access_level: { [Op.gt]: 5 }}})
+        return this.ScopeMe.findAndCountAll({ where: { access_level: { [Op.gt]: 5 }}})
           .then(result => {
             expect(result.count).to.equal(1);
             expect(result.rows.length).to.equal(1);
@@ -67,7 +67,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to unscope', function() {
-        return this.ScopeMe.unscoped().findAndCount({ limit: 1 })
+        return this.ScopeMe.unscoped().findAndCountAll({ limit: 1 })
           .then(result => {
             expect(result.count).to.equal(4);
             expect(result.rows.length).to.equal(1);
@@ -75,7 +75,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to apply other scopes', function() {
-        return this.ScopeMe.scope('lowAccess').findAndCount()
+        return this.ScopeMe.scope('lowAccess').findAndCountAll()
           .then(result => {
             expect(result.count).to.equal(3);
           });
@@ -83,13 +83,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to merge scopes with where', function() {
         return this.ScopeMe.scope('lowAccess')
-          .findAndCount({ where: { username: 'dan'}}).then(result => {
+          .findAndCountAll({ where: { username: 'dan'}}).then(result => {
             expect(result.count).to.equal(1);
           });
       });
 
       it('should ignore the order option if it is found within the scope', function() {
-        return this.ScopeMe.scope('withOrder').findAndCount()
+        return this.ScopeMe.scope('withOrder').findAndCountAll()
           .then(result => {
             expect(result.count).to.equal(4);
           });

@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require(__dirname + '/../support'),
+  Support   = require('../support'),
   current   = Support.sequelize,
   _ = require('lodash'),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('removeAttribute', () => {

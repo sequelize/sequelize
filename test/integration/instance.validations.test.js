@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require(__dirname + '/../../index'),
-  Support = require(__dirname + '/support'),
-  config = require(__dirname + '/../config/config');
+  Sequelize = require('../../index'),
+  Support = require('./support'),
+  config = require('../config/config');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('#update', () => {
@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           return User
             .update({ username: 'toni' }, { where: {id: user.id }})
             .then(() => {
-              return User.findById(1).then(user => {
+              return User.findByPk(1).then(user => {
                 expect(user.username).to.equal('toni');
               });
             });
@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       return Model.sync({ force: true }).then(() => {
         return Model.create({name: 'World'}).then(model => {
-          return model.updateAttributes({name: ''}).catch(err => {
+          return model.update({name: ''}).catch(err => {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.get('name')[0].message).to.equal('Validation notEmpty on name failed');
           });
@@ -411,26 +411,25 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('supports promises with custom validation methods', function() {
-    const self = this,
-      User = this.sequelize.define('User' + config.rand(), {
-        name: {
-          type: Sequelize.STRING,
-          validate: {
-            customFn(val) {
-              return User.findAll()
-                .then(() => {
-                  if (val === 'error') {
-                    throw new Error('Invalid username');
-                  }
-                });
-            }
+    const User = this.sequelize.define('User' + config.rand(), {
+      name: {
+        type: Sequelize.STRING,
+        validate: {
+          customFn(val) {
+            return User.findAll()
+              .then(() => {
+                if (val === 'error') {
+                  throw new Error('Invalid username');
+                }
+              });
           }
         }
-      });
+      }
+    });
 
     return User.sync().then(() => {
       return expect(User.build({ name: 'error' }).validate()).to.be.rejected.then(error => {
-        expect(error).to.be.instanceof(self.sequelize.ValidationError);
+        expect(error).to.be.instanceof(Sequelize.ValidationError);
         expect(error.get('name')[0].message).to.equal('Invalid username');
 
         return expect(User.build({ name: 'no error' }).validate()).not.to.be.rejected;

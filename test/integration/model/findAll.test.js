@@ -4,11 +4,11 @@ const chai = require('chai'),
   sinon = require('sinon'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
+  Support = require('../support'),
   Op = Sequelize.Op,
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  DataTypes = require('../../../lib/data-types'),
   dialect = Support.getTestDialect(),
-  config = require(__dirname + '/../../config/config'),
+  config = require('../../config/config'),
   _ = require('lodash'),
   moment = require('moment'),
   current = Support.sequelize;
@@ -225,11 +225,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 {isActive: true},
                 {isActive: false}
               ]).then(() => {
-                return User.findById(1).then(user => {
-                  return Passports.findById(1).then(passport => {
+                return User.findByPk(1).then(user => {
+                  return Passports.findByPk(1).then(passport => {
                     return user.setPassports([passport]).then(() => {
-                      return User.findById(2).then(_user => {
-                        return Passports.findById(2).then(_passport => {
+                      return User.findByPk(2).then(_user => {
+                        return Passports.findByPk(2).then(_passport => {
                           return _user.setPassports([_passport]).then(() => {
                             return _user.getPassports({where: {isActive: false}}).then(theFalsePassport => {
                               return user.getPassports({where: {isActive: true}}).then(theTruePassport => {
@@ -275,11 +275,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {id: buf1},
               {id: buf2}
             ]).then(() => {
-              return User.findById(1).then(user => {
-                return Binary.findById(buf1).then(binary => {
+              return User.findByPk(1).then(user => {
+                return Binary.findByPk(buf1).then(binary => {
                   return user.setBinary(binary).then(() => {
-                    return User.findById(2).then(_user => {
-                      return Binary.findById(buf2).then(_binary => {
+                    return User.findByPk(2).then(_user => {
+                      return Binary.findByPk(buf2).then(_binary => {
                         return _user.setBinary(_binary).then(() => {
                           return _user.getBinary().then(_binaryRetrieved => {
                             return user.getBinary().then(binaryRetrieved => {
@@ -382,7 +382,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using greater than or equal to', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.gte]: 6
@@ -395,7 +395,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using greater than', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.gt]: 5
@@ -408,7 +408,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using lesser than or equal to', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.lte]: 5
@@ -421,7 +421,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using lesser than', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.lt]: 6
@@ -448,7 +448,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to find a row using not equal to logic', function() {
-        return this.User.find({
+        return this.User.findOne({
           where: {
             intVal: {
               [Op.ne]: 10
@@ -915,7 +915,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return self.sequelize.Promise.props({
+            return Sequelize.Promise.props({
               europe: self.Continent.create({ name: 'Europe' }),
               england: self.Country.create({ name: 'England' }),
               coal: self.Industry.create({ name: 'Coal' }),
@@ -924,7 +924,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               _.forEach(r, (item, itemName) => {
                 self[itemName] = item;
               });
-              return self.sequelize.Promise.all([
+              return Sequelize.Promise.all([
                 self.england.setContinent(self.europe),
                 self.england.addIndustry(self.coal),
                 self.bob.setCountry(self.england),
@@ -1102,7 +1102,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return self.sequelize.Promise.props({
+            return Sequelize.Promise.props({
               europe: self.Continent.create({ name: 'Europe' }),
               asia: self.Continent.create({ name: 'Asia' }),
               england: self.Country.create({ name: 'England' }),
@@ -1117,7 +1117,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 self[itemName] = item;
               });
 
-              return self.sequelize.Promise.all([
+              return Sequelize.Promise.all([
                 self.england.setContinent(self.europe),
                 self.france.setContinent(self.europe),
                 self.korea.setContinent(self.asia),
@@ -1138,7 +1138,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts simply', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Asia'], ['DESC', 'Europe']], params => {
+          return Sequelize.Promise.map([['ASC', 'Asia'], ['DESC', 'Europe']], params => {
             return self.Continent.findAll({
               order: [['name', params[0]]]
             }).then(continents => {
@@ -1151,7 +1151,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts by 1st degree association', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']], params => {
+          return Sequelize.Promise.map([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']], params => {
             return self.Continent.findAll({
               include: [self.Country],
               order: [[self.Country, 'name', params[0]]]
@@ -1168,7 +1168,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Asia', 'Europe', 'England']], params => {
+          return Sequelize.Promise.map([['ASC', 'Asia', 'Europe', 'England']], params => {
             return self.Continent.findAll({
               include: [{
                 model: self.Country,
@@ -1197,7 +1197,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts by 2nd degree association', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']], params => {
+          return Sequelize.Promise.map([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']], params => {
             return self.Continent.findAll({
               include: [{ model: self.Country, include: [self.Person] }],
               order: [[self.Country, self.Person, 'lastName', params[0]]]
@@ -1217,7 +1217,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts by 2nd degree association with alias', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
+          return Sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
             return self.Continent.findAll({
               include: [{ model: self.Country, include: [self.Person, {model: self.Person, as: 'residents' }] }],
               order: [[self.Country, {model: self.Person, as: 'residents' }, 'lastName', params[0]]]
@@ -1237,7 +1237,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts by 2nd degree association with alias while using limit', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
+          return Sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
             return self.Continent.findAll({
               include: [{ model: self.Country, include: [self.Person, {model: self.Person, as: 'residents' }] }],
               order: [[{ model: self.Country }, {model: self.Person, as: 'residents' }, 'lastName', params[0]]],
@@ -1269,7 +1269,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Industry.belongsToMany(self.Country, {through: self.IndustryCountry});
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return self.sequelize.Promise.props({
+            return Sequelize.Promise.props({
               england: self.Country.create({ name: 'England' }),
               france: self.Country.create({ name: 'France' }),
               korea: self.Country.create({ name: 'Korea' }),
@@ -1281,7 +1281,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 self[itemName] = item;
               });
 
-              return self.sequelize.Promise.all([
+              return Sequelize.Promise.all([
                 self.england.addIndustry(self.energy, { through: { numYears: 20 }}),
                 self.england.addIndustry(self.media, { through: { numYears: 40 }}),
                 self.france.addIndustry(self.media, { through: { numYears: 80 }}),
@@ -1293,7 +1293,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts by 1st degree association', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
+          return Sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
             return self.Country.findAll({
               include: [self.Industry],
               order: [[self.Industry, 'name', params[0]]]
@@ -1310,7 +1310,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts by 1st degree association while using limit', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
+          return Sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
             return self.Country.findAll({
               include: [self.Industry],
               order: [
@@ -1330,7 +1330,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts by through table attribute', function() {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']], params => {
+          return Sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']], params => {
             return self.Country.findAll({
               include: [self.Industry],
               order: [[self.Industry, self.IndustryCountry, 'numYears', params[0]]]

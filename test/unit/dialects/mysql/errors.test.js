@@ -2,7 +2,8 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const Support = require(__dirname + '/../../support');
+const Support = require('../../support');
+const Sequelize = Support.Sequelize;
 const dialect = Support.getTestDialect();
 const queryProto = Support.sequelize.dialect.Query.prototype;
 
@@ -15,7 +16,7 @@ if (dialect === 'mysql') {
 
       const parsedErr = queryProto.formatError(fakeErr);
 
-      expect(parsedErr).to.be.instanceOf(Support.sequelize.ForeignKeyConstraintError);
+      expect(parsedErr).to.be.instanceOf(Sequelize.ForeignKeyConstraintError);
       expect(parsedErr.parent).to.equal(fakeErr);
       expect(parsedErr.reltype).to.equal('parent');
       expect(parsedErr.table).to.equal('people');
@@ -31,7 +32,7 @@ if (dialect === 'mysql') {
 
       const parsedErr = queryProto.formatError(fakeErr);
 
-      expect(parsedErr).to.be.instanceOf(Support.sequelize.ForeignKeyConstraintError);
+      expect(parsedErr).to.be.instanceOf(Sequelize.ForeignKeyConstraintError);
       expect(parsedErr.parent).to.equal(fakeErr);
       expect(parsedErr.reltype).to.equal('parent');
       expect(parsedErr.table).to.equal('people');

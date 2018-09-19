@@ -3,9 +3,9 @@
 const util = require('util');
 const chai = require('chai');
 const expect = chai.expect;
-const Support   = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
-const Model = require(__dirname + '/../../../lib/model');
+const Support   = require('../support');
+const DataTypes = require('../../../lib/data-types');
+const Model = require('../../../lib/model');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.QueryGenerator;

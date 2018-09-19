@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   Sequelize = Support.Sequelize,
   sinon = require('sinon'),
   Promise = require('bluebird');
@@ -110,8 +110,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       B.belongsToMany(A, {through: 'a_b'});
       A.belongsToMany(B, {through: 'a_b'});
 
-      return this.sequelize.sync({force: true}).bind(this).then(function() {
-        return this.sequelize.Promise.all([
+      return this.sequelize.sync({force: true}).then(() => {
+        return Sequelize.Promise.all([
           A.create({name: 'a'}),
           B.create({name: 'b'})
         ]).spread((a, b) => {

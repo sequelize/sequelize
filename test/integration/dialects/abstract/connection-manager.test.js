@@ -2,13 +2,13 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   sinon = require('sinon'),
-  Config = require(__dirname + '/../../../config/config'),
-  ConnectionManager = require(__dirname + '/../../../../lib/dialects/abstract/connection-manager'),
+  Config = require('../../../config/config'),
+  ConnectionManager = require('../../../../lib/dialects/abstract/connection-manager'),
   Pooling = require('generic-pool'),
   _ = require('lodash'),
-  Promise = require(__dirname + '/../../../../lib/promise');
+  Promise = require('../../../../lib/promise');
 
 const baseConf = Config[Support.getTestDialect()];
 const poolEntry = {

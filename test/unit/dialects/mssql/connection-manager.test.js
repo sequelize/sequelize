@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require(__dirname + '/../../../../index'),
-  Support = require(__dirname + '/../../support'),
+  Sequelize = require('../../../../index'),
+  Support = require('../../support'),
   dialect = Support.getTestDialect(),
   tedious = require('tedious'),
   sinon = require('sinon');

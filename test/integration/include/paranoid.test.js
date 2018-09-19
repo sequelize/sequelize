@@ -3,8 +3,9 @@
 const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+  Support = require('../support'),
+  Sequelize = require('../../../index'),
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
@@ -50,7 +51,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
       });
 
     return S.sync({ force: true }).then(() => {
-      return Test.findById(1);
+      return Test.findByPk(1);
     });
   });
 
@@ -66,7 +67,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
         ]
       };
 
-    return A.find(options).then(() => {
+    return A.findOne(options).then(() => {
       expect(options.include[0].required).to.be.equal(false);
     });
   });
@@ -83,7 +84,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
         ]
       };
 
-    return A.find(options).then(() => {
+    return A.findOne(options).then(() => {
       expect(options.include[0].required).to.be.equal(true);
     });
   });
@@ -104,8 +105,8 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
     X.hasMany(Y);
 
-    return this.sequelize.sync({ force: true}).bind(this).then(function() {
-      return this.sequelize.Promise.all([
+    return this.sequelize.sync({ force: true}).bind(this).then(() => {
+      return Sequelize.Promise.all([
         X.create(),
         Y.create()
       ]);

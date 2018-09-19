@@ -4,7 +4,7 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
   expect = chai.expect,
-  Support = require(__dirname + '/../support');
+  Support = require('../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('attributes', () => {
@@ -54,14 +54,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return student.addCourse(course, { through: {score: 98, test_value: 1000}});
           }).then(() => {
             expect(self.callCount).to.equal(1);
-            return self.Score.find({ where: { StudentId: 1, CourseId: 100 } }).then(score => {
+            return self.Score.findOne({ where: { StudentId: 1, CourseId: 100 } }).then(score => {
               expect(score.test_value).to.equal(1001);
             });
           })
             .then(() => {
               return Promise.join(
                 self.Student.build({no: 1}).getCourses({where: {no: 100}}),
-                self.Score.find({ where: { StudentId: 1, CourseId: 100 } })
+                self.Score.findOne({ where: { StudentId: 1, CourseId: 100 } })
               );
             })
             .spread((courses, score) => {
@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('allows for an attribute to be called "toString"', function () {
+      it('allows for an attribute to be called "toString"', function() {
         const Person = this.sequelize.define('person', {
           name: Sequelize.STRING,
           nick: Sequelize.STRING
@@ -97,14 +97,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
       });
 
-      it('allows for an attribute to be called "toString" with associations', function () {
+      it('allows for an attribute to be called "toString" with associations', function() {
         const Person = this.sequelize.define('person', {
           name: Sequelize.STRING,
           nick: Sequelize.STRING
         });
 
         const Computer = this.sequelize.define('computer', {
-          hostname: Sequelize.STRING,
+          hostname: Sequelize.STRING
         });
 
         Person.hasMany(Computer);

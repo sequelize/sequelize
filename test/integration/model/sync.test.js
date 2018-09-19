@@ -3,7 +3,7 @@
 const chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
+  Support = require('../support'),
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -172,7 +172,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               { name: 'another_index_email_mobile', fields: ['email', 'mobile'] },
               { name: 'another_index_phone_mobile', fields: ['phone', 'mobile'], unique: true },
               { name: 'another_index_email', fields: ['email'] },
-              { name: 'another_index_mobile', fields: ['mobile'] },
+              { name: 'another_index_mobile', fields: ['mobile'] }
             ]
           });
 
@@ -213,7 +213,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               { fields: ['email', 'mobile'] },
               { fields: ['phone', 'mobile'], unique: true },
               { fields: ['email'] },
-              { fields: ['mobile'] },
+              { fields: ['mobile'] }
             ]
           });
 

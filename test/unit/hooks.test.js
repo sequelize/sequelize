@@ -3,10 +3,11 @@
 const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
-  Support = require(__dirname + '/support'),
+  Sequelize = require('../../index'),
+  Promise = Sequelize.Promise,
+  Support = require('./support'),
   _ = require('lodash'),
-  current = Support.sequelize,
-  Promise = current.Promise;
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
@@ -94,8 +95,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           name: Support.Sequelize.STRING
         });
 
-        this.Model.hook('beforeSave', this.beforeSaveHook);
-        this.Model.hook('afterSave', this.afterSaveHook);
+        this.Model.addHook('beforeSave', this.beforeSaveHook);
+        this.Model.addHook('afterSave', this.afterSaveHook);
       });
 
       it('calls beforeSave/afterSave', () => {
@@ -343,48 +344,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
   });
 
-  describe('aliases', () => {
-    beforeEach(function() {
-      this.beforeDelete = sinon.spy();
-      this.afterDelete = sinon.spy();
-    });
-
-    afterEach(function() {
-      expect(this.beforeDelete).to.have.been.calledOnce;
-      expect(this.afterDelete).to.have.been.calledOnce;
-    });
-
-    describe('direct method', () => {
-      it('#delete', function() {
-        this.Model.beforeDelete(this.beforeDelete);
-        this.Model.afterDelete(this.afterDelete);
-
-        return Promise.join(
-          this.Model.runHooks('beforeDestroy'),
-          this.Model.runHooks('afterDestroy')
-        );
-      });
-    });
-
-    describe('.hook() method', () => {
-      it('#delete', function() {
-        this.Model.hook('beforeDelete', this.beforeDelete);
-        this.Model.hook('afterDelete', this.afterDelete);
-
-        return Promise.join(
-          this.Model.runHooks('beforeDestroy'),
-          this.Model.runHooks('afterDestroy')
-        );
-      });
-    });
-  });
-
   describe('promises', () => {
     it('can return a promise', function() {
-      const self = this;
-
       this.Model.beforeBulkCreate(() => {
-        return self.sequelize.Promise.resolve();
+        return Sequelize.Promise.resolve();
       });
 
       return expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;

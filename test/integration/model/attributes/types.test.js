@@ -4,7 +4,7 @@ const chai = require('chai'),
   Sequelize = require('../../../../index'),
   Promise = Sequelize.Promise,
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -105,14 +105,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
             }
 
-            return Post.find({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
+            return Post.findOne({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
           }).then(post => {
             expect(post.get('someBoolean')).to.be.ok;
             expect(post.get().someBoolean).to.be.ok;
           });
         });
 
-        it('should be ignored in create and updateAttributes', function() {
+        it('should be ignored in create and update', function() {
           return this.User.create({
             field1: 'something'
           }).then(user => {
@@ -121,7 +121,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
             expect(user.virtualWithDefault).to.equal('cake');
             expect(user.storage).to.equal('something');
-            return user.updateAttributes({
+            return user.update({
               field1: 'something else'
             }, {
               fields: ['storage']

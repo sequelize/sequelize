@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require(__dirname + '/../../../../lib/data-types');
+  DataTypes = require('../../../../lib/data-types');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] sqlite_master raw queries', () => {

@@ -4,7 +4,7 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   Op = Sequelize.Op,
   expect = chai.expect,
-  Support = require(__dirname + '/../support');
+  Support = require('../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
@@ -29,22 +29,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           highAccess: {
             where: {
-              [Sequelize.Op.or]: [
-                { access_level: { [Sequelize.Op.gte]: 5 } },
-                { access_level: { [Sequelize.Op.eq]: 10 } }
+              [Op.or]: [
+                { access_level: { [Op.gte]: 5 } },
+                { access_level: { [Op.eq]: 10 } }
               ]
             }
           },
           lessThanFour: {
             where: {
-              [Sequelize.Op.and]: [
-                { access_level: { [Sequelize.Op.lt]: 4 } }
+              [Op.and]: [
+                { access_level: { [Op.lt]: 4 } }
               ]
             }
           },
           issue8473: {
             where: {
-              [Sequelize.Op.or]: {
+              [Op.or]: {
                 access_level: 3,
                 other_value: 10
               },

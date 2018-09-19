@@ -1,6 +1,6 @@
 'use strict';
 
-const Support = require(__dirname + '/../support');
+const Support = require('../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.QueryGenerator;

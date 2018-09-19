@@ -3,8 +3,8 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const expect = chai.expect;
-const Support = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
+const Support = require('../support');
+const DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           //attributes were replaced by hooks ?
           expect(uSaved.mood).to.equal('sad');
           expect(uSaved.username).to.equal('Samorost 3');
-          return self.User.findById(uSaved.id);
+          return self.User.findByPk(uSaved.id);
         }).then(uFetched => {
           expect(uFetched.mood).to.equal('sad');
           expect(uFetched.username).to.equal('Samorost 3');
@@ -92,7 +92,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           expect(uFetchedSaved.mood).to.equal('neutral');
           expect(uFetchedSaved.username).to.equal('New Game is Needed');
 
-          return self.User.findById(uFetchedSaved.id);
+          return self.User.findByPk(uFetchedSaved.id);
         }).then(uFetched => {
           expect(uFetched.mood).to.equal('neutral');
           expect(uFetched.username).to.equal('New Game is Needed');

@@ -6,8 +6,8 @@ const chai = require('chai'),
   Promise = Sequelize.Promise,
   moment = require('moment'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             where: {
               'data.name.first': 'Rick'
             }
-          })).then(() => this.Event.findById(2)).then(event => {
+          })).then(() => this.Event.findByPk(2)).then(event => {
             expect(event.get('data')).to.eql({
               name: {
                 first: 'Rick',
@@ -162,7 +162,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 }
               }
             }
-          })).then(() => this.Event.findById(2)).then(event => {
+          })).then(() => this.Event.findByPk(2)).then(event => {
             expect(event.get('data')).to.eql({
               name: {
                 first: 'Rick',

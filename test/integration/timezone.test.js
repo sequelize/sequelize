@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/support'),
+  Support = require('./support'),
   dialect = Support.getTestDialect(),
-  Sequelize = require(__dirname + '/../../index'),
+  Sequelize = require('../../index'),
   Promise = Sequelize.Promise;
 
 if (dialect !== 'sqlite') {
@@ -47,7 +47,7 @@ if (dialect !== 'sqlite') {
           return NormalUser.create({});
         }).then(function(normalUser) {
           this.normalUser = normalUser;
-          return TimezonedUser.findById(normalUser.id);
+          return TimezonedUser.findByPk(normalUser.id);
         }).then(function(timezonedUser) {
           // Expect 7 hours difference, in milliseconds.
           // This difference is expected since two instances, configured for each their timezone is trying to read the same timestamp
@@ -64,8 +64,8 @@ if (dialect !== 'sqlite') {
           return TimezonedUser.create({});
         }).then(timezonedUser => {
           return Promise.all([
-            NormalUser.findById(timezonedUser.id),
-            TimezonedUser.findById(timezonedUser.id)
+            NormalUser.findByPk(timezonedUser.id),
+            TimezonedUser.findByPk(timezonedUser.id)
           ]);
         }).spread((normalUser, timezonedUser) => {
           // Expect 5 hours difference, in milliseconds, +/- 1 hour for DST

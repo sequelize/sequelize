@@ -4,8 +4,8 @@ const chai = require('chai'),
   Sequelize = require('../../../../index'),
   Op = Sequelize.Op,
   expect = chai.expect,
-  Promise = require(__dirname + '/../../../../lib/promise'),
-  Support = require(__dirname + '/../../support');
+  Promise = require('../../../../lib/promise'),
+  Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
@@ -73,9 +73,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
             withAliasedField: {
               where: {
-                aliasValue: { [Sequelize.Op.ne]: 1 }
+                aliasValue: { [Op.ne]: 1 }
               }
-            },
+            }
           }
         });
         this.Child.belongsTo(this.ScopeMe);

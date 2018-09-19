@@ -1,6 +1,6 @@
 'use strict';
 
-const Support   = require(__dirname + '/../support'),
+const Support   = require('../support'),
   QueryTypes = require('../../../lib/query-types'),
   util = require('util'),
   _ = require('lodash'),

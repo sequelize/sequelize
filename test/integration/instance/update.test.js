@@ -4,9 +4,9 @@ const chai = require('chai'),
   sinon = require('sinon'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  config = require(__dirname + '/../../config/config'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
+  config = require('../../config/config'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {

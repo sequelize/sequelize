@@ -2,11 +2,11 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   current = Support.sequelize,
-  Op = current.Op,
-  Promise   = current.Promise;
+  Op = Support.Sequelize.Op,
+  Promise = Support.Sequelize.Promise;
 
 const SCHEMA_ONE = 'schema_one';
 const SCHEMA_TWO = 'schema_two';
@@ -218,7 +218,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('one');
             restaurantId = obj.id;
-            return self.RestaurantOne.findById(restaurantId);
+            return self.RestaurantOne.findByPk(restaurantId);
           }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('one');
@@ -243,7 +243,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('two');
             restaurantId = obj.id;
-            return self.RestaurantTwo.findById(restaurantId);
+            return self.RestaurantTwo.findByPk(restaurantId);
           }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('two');

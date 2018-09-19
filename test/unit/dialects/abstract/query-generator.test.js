@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Op = require('../../../../lib/operators'),
-  getAbstractQueryGenerator = require(__dirname + '/../../support').getAbstractQueryGenerator;
+  getAbstractQueryGenerator = require('../../support').getAbstractQueryGenerator;
 
 describe('QueryGenerator', () => {
   describe('whereItemQuery', () => {

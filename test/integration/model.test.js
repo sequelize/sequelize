@@ -3,8 +3,8 @@
 const chai = require('chai'),
   Sequelize = require('../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/support'),
-  DataTypes = require(__dirname + '/../../lib/data-types'),
+  Support = require('./support'),
+  DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect(),
   sinon = require('sinon'),
   _ = require('lodash'),
@@ -311,18 +311,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('allows us to customize the error message for unique constraint', function() {
+      const User = this.sequelize.define('UserWithUniqueUsername', {
+        username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
+        email: { type: Sequelize.STRING, unique: 'user_and_email' }
+      });
 
-      const self = this,
-        User = this.sequelize.define('UserWithUniqueUsername', {
-          username: { type: Sequelize.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' }},
-          email: { type: Sequelize.STRING, unique: 'user_and_email' }
-        });
-
-      return User.sync({ force: true }).bind(this).then(() => {
-        return self.sequelize.Promise.all([
+      return User.sync({ force: true }).then(() => {
+        return Sequelize.Promise.all([
           User.create({username: 'tobi', email: 'tobi@tobi.me'}),
           User.create({username: 'tobi', email: 'tobi@tobi.me'})]);
-      }).catch (self.sequelize.UniqueConstraintError, err => {
+      }).catch (Sequelize.UniqueConstraintError, err => {
         expect(err.message).to.equal('User and email must be unique');
       });
     });
@@ -346,16 +344,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }]
       });
 
-      return User.sync({ force: true }).bind(this).then(() => {
+      return User.sync({ force: true }).then(() => {
         // Redefine the model to use the index in database and override error message
         User = self.sequelize.define('UserWithUniqueUsername', {
           user_id: { type: Sequelize.INTEGER, unique: { name: 'user_and_email_index', msg: 'User and email must be unique' }},
           email: { type: Sequelize.STRING, unique: 'user_and_email_index'}
         });
-        return self.sequelize.Promise.all([
+        return Sequelize.Promise.all([
           User.create({user_id: 1, email: 'tobi@tobi.me'}),
           User.create({user_id: 1, email: 'tobi@tobi.me'})]);
-      }).catch (self.sequelize.UniqueConstraintError, err => {
+      }).catch (Sequelize.UniqueConstraintError, err => {
         expect(err.message).to.equal('User and email must be unique');
       });
     });
@@ -721,7 +719,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => {
           return User.findOne({
             where: {
-              [Sequelize.Op.or]: [
+              [Op.or]: [
                 { username: 'bar' },
                 { username: 'baz' }
               ]
@@ -734,7 +732,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
   });
 
-  describe('findOrInitialize', () => {
+  describe('findOrBuild', () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
@@ -744,14 +742,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.sync({ force: true }).then(() => {
             return sequelize.transaction().then(t => {
               return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                return User.findOrInitialize({
+                return User.findOrBuild({
                   where: {username: 'foo'}
                 }).spread(user1 => {
-                  return User.findOrInitialize({
+                  return User.findOrBuild({
                     where: {username: 'foo'},
                     transaction: t
                   }).spread(user2 => {
-                    return User.findOrInitialize({
+                    return User.findOrBuild({
                       where: {username: 'foo'},
                       defaults: { foo: 'asd' },
                       transaction: t
@@ -775,7 +773,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const self = this;
 
         return this.User.create({ username: 'Username' }).then(user => {
-          return self.User.findOrInitialize({
+          return self.User.findOrBuild({
             where: { username: user.username }
           }).spread((_user, initialized) => {
             expect(_user.id).to.equal(user.id);
@@ -789,7 +787,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const self = this;
 
         return this.User.create({ username: 'Username', data: 'data' }).then(user => {
-          return self.User.findOrInitialize({ where: {
+          return self.User.findOrBuild({ where: {
             username: user.username,
             data: user.data
           }}).spread((_user, initialized) => {
@@ -809,7 +807,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             data: 'ThisIsData'
           };
 
-        return this.User.findOrInitialize({
+        return this.User.findOrBuild({
           where: data,
           defaults: default_values
         }).spread((user, initialized) => {
@@ -872,7 +870,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       let test = false;
       return User.sync({ force: true }).then(() => {
         return User.create({username: 'Peter', secretValue: '42'}).then(user => {
-          return user.updateAttributes({ secretValue: '43' }, {
+          return user.update({ secretValue: '43' }, {
             fields: ['secretValue'], logging(sql) {
               test = true;
               if (dialect === 'mssql') {
@@ -899,7 +897,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return User.sync({ force: true }).then(() => {
         return User.create({ name: 'meg', bio: 'none' }).then(u => {
           expect(u).to.exist;
-          return u.updateAttributes({name: 'brian'}, {
+          return u.update({name: 'brian'}, {
             logging(sql) {
               test = true;
               expect(sql).to.exist;
@@ -1100,7 +1098,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return self.User.create({ username: 'Peter' }).then(user => {
         return self.User.update({ data: 'test' }, { where: { id: user.id }, individualHooks: true }).then(() => {
-          return self.User.findById(user.id).then(userUpdated => {
+          return self.User.findByPk(user.id).then(userUpdated => {
             expect(userUpdated.intVal).to.be.equal(1);
           });
         });
@@ -1474,7 +1472,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { username: 'Tobi', secretValue: '42' },
           { username: 'Max', secretValue: '42' }
         ]).then(() => {
-          return User.findById(1).then(user => {
+          return User.findByPk(1).then(user => {
             return user.destroy().then(() => {
               return user.reload({ paranoid: false }).then(() => {
                 const deletedAt = user.deletedAt;
@@ -1503,9 +1501,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {username: 'Tobi'},
             {username: 'Max'}
           ]).then(() => {
-            return User.findById(1).then(user => {
+            return User.findByPk(1).then(user => {
               return user.destroy().then(() => {
-                return User.findById(1).then(user => {
+                return User.findByPk(1).then(user => {
                   expect(user).to.be.null;
                   return User.count().then(cnt => {
                     expect(cnt).to.equal(2);
@@ -1535,12 +1533,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {username: 'Max'}
             ]);
           })
-          .then(() => { return User.findById(1); })
+          .then(() => { return User.findByPk(1); })
           .then(user => { return user.destroy(); })
-          .then(() => { return User.find({ where: 1, paranoid: false }); })
+          .then(() => { return User.findOne({ where: 1, paranoid: false }); })
           .then(user => {
             expect(user).to.exist;
-            return User.findById(1);
+            return User.findByPk(1);
           })
           .then(user => {
             expect(user).to.be.null;
@@ -1576,12 +1574,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             { name: 'Fifi', UserId: user.id }
           ]);
         })
-        .then(() => { return Pet.findById(1); })
+        .then(() => { return Pet.findByPk(1); })
         .then(pet => { return pet.destroy(); })
         .then(() => {
           return [
-            User.find({ where: {id: user.id}, include: Pet }),
-            User.find({
+            User.findOne({ where: {id: user.id}, include: Pet }),
+            User.findOne({
               where: {id: user.id},
               include: [{ model: Pet, paranoid: false }]
             })
@@ -1609,13 +1607,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {username: 'Tony'}
         ]);
       }).then(() => {
-        return User.find({where: {username: 'Bob'}});
+        return User.findOne({where: {username: 'Bob'}});
       }).then(user => {
         return user.destroy({force: true});
       }).then(() => {
-        return expect(User.find({where: {username: 'Bob'}})).to.eventually.be.null;
+        return expect(User.findOne({where: {username: 'Bob'}})).to.eventually.be.null;
       }).then(() => {
-        return User.find({where: {username: 'Tobi'}});
+        return User.findOne({where: {username: 'Tobi'}});
       }).then(tobi => {
         return tobi.destroy();
       }).then(() => {
@@ -1693,7 +1691,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => {
           return User.destroy({
             where: {
-              [Sequelize.Op.or]: [
+              [Op.or]: [
                 { username: 'bar' },
                 { username: 'baz' }
               ]
@@ -1739,7 +1737,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).then(() => {
         return ParanoidUser.restore({where: {secretValue: '42'}});
       }).then(() => {
-        return ParanoidUser.find({where: {secretValue: '42'}});
+        return ParanoidUser.findOne({where: {secretValue: '42'}});
       }).then(user => {
         expect(user).to.be.ok;
         expect(user.username).to.equal('Peter');
@@ -2409,7 +2407,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               }
             }
           }).then(UserSpecial => {
-            return UserSpecial.updateAttributes({age: 5}, {
+            return UserSpecial.update({age: 5}, {
               logging(user) {
                 logged++;
                 if (dialect === 'postgres') {
@@ -2575,7 +2573,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.BlobUser.create({
           data: new Buffer('Sequelize')
         }).then(user => {
-          return self.BlobUser.findById(user.id).then(user => {
+          return self.BlobUser.findByPk(user.id).then(user => {
             expect(user.data).to.be.an.instanceOf(Buffer);
             expect(user.data.toString()).to.have.string('Sequelize');
           });
@@ -2587,7 +2585,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.BlobUser.create({
           // create a null column
         }).then(user => {
-          return self.BlobUser.findById(user.id).then(user => {
+          return self.BlobUser.findByPk(user.id).then(user => {
             expect(user.data).to.be.null;
           });
         });
@@ -2614,7 +2612,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.BlobUser.create({
             data: 'Sequelize'
           }).then(user => {
-            return self.BlobUser.findById(user.id).then(user => {
+            return self.BlobUser.findByPk(user.id).then(user => {
               expect(user.data).to.be.an.instanceOf(Buffer);
               expect(user.data.toString()).to.have.string('Sequelize');
             });
@@ -2737,7 +2735,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
     it('supports multiple async transactions', function() {
       this.timeout(90000);
-      const self = this;
       return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
         const User = sequelize.define('User', { username: Sequelize.STRING });
         const testAsync = function() {
@@ -2775,7 +2772,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           for (let i = 0; i < 1000; i++) {
             tasks.push(testAsync.bind(this));
           }
-          return self.sequelize.Promise.resolve(tasks).map(entry => {
+          return Sequelize.Promise.resolve(tasks).map(entry => {
             return entry();
           }, {
             // Needs to be one less than ??? else the non transaction query won't ever get a connection
