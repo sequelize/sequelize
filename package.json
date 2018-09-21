@@ -60,6 +60,7 @@
     "husky": "^0.14.3",
     "istanbul": "^0.x",
     "lcov-result-merger": "^3.0.0",
+    "lint-staged": "^7.3.0",
     "mocha": "^5.x",
     "mysql2": "^1.x",
     "pg": "^7.x",
@@ -88,6 +89,9 @@
     "extends": [
       "@commitlint/config-angular"
     ]
+  },
+  "lint-staged": {
+    "*.js": "eslint"
   },
   "scripts": {
     "lint": "eslint lib test --quiet",
@@ -127,6 +131,7 @@
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
-    "commitmsg": "commitlint -E GIT_PARAMS"
+    "commitmsg": "commitlint -E GIT_PARAMS",
+    "precommit": "lint-staged"
   }
 }
