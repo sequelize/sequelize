@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             expect(indexes[2].fields[0].attribute).to.equal('name');
             break;
 
-          default:assss
+          default:
             throw new Error(`Not implemented fpr ${dialect}`);
         }
       });

@@ -91,7 +91,7 @@
     ]
   },
   "lint-staged": {
-    "*.js": "eslint --fix"
+    "*.js": "eslint"
   },
   "scripts": {
     "lint": "eslint lib test --quiet",
