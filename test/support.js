@@ -21,11 +21,11 @@ chai.should();
 
 // Make sure errors get thrown when testing
 process.on('uncaughtException', e => {
-  console.error('An unhandled exception occured:');
+  console.error('An unhandled exception occurred:');
   throw e;
 });
 Sequelize.Promise.onPossiblyUnhandledRejection(e => {
-  console.error('An unhandled rejection occured:');
+  console.error('An unhandled rejection occurred:');
   throw e;
 });
 Sequelize.Promise.longStackTraces();
