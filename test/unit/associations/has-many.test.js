@@ -124,6 +124,16 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         expect(user[method]()).to.be.a('function');
       });
     });
+
+    it('should not override attributes', () => {
+      const Project = current.define('Project', {hasTasks: DataTypes.BOOLEAN});
+
+      Project.hasMany(Task);
+
+      const company = Project.build();
+
+      expect(company.hasTasks).not.to.be.a('function');
+    });
   });
 
   describe('get', () => {
