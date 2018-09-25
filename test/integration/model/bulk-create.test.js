@@ -581,7 +581,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return Maya.bulkCreate([M2]);
         }).spread(m => {
 
-        // only attributes are returned, no fields are mixed
+          // only attributes are returned, no fields are mixed
           expect(m.createdAt).to.be.ok;
           expect(m.created_at).to.not.exist;
           expect(m.secret_given).to.not.exist;
