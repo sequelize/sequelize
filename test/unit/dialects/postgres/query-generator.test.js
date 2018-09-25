@@ -559,19 +559,13 @@ if (dialect.match(/^postgres/)) {
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo');"
         }, {
           arguments: ['myTable', {name: 'foo'}, {}, { ignoreDuplicates: true }],
-          expectation: {
-            query: 'INSERT INTO "myTable" ("name") VALUES ($1) ON CONFLICT DO NOTHING;',
-            bind: ['foo']
-          }
+          expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') ON CONFLICT DO NOTHING;"
         }, {
           arguments: ['myTable', {name: 'foo'}, {}, { returning: true }],
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') RETURNING *;"
         }, {
           arguments: ['myTable', {name: 'foo'}, {}, { ignoreDuplicates: true, returning: true }],
-          expectation: {
-            query: 'INSERT INTO "myTable" ("name") VALUES ($1) ON CONFLICT DO NOTHING RETURNING *;',
-            bind: ['foo']
-          }
+          expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo') ON CONFLICT DO NOTHING RETURNING *;"
         }, {
           arguments: ['myTable', {name: "foo';DROP TABLE myTable;"}],
           expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;');"
