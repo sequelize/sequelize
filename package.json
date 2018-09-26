@@ -57,7 +57,7 @@
     "eslint-plugin-jsdoc": "^3.7.1",
     "eslint-plugin-mocha": "^5.0.0",
     "hints": "^1.x",
-    "husky": "^0.14.3",
+    "husky": "^1.0.0",
     "istanbul": "^0.x",
     "lcov-result-merger": "^3.0.0",
     "lint-staged": "^7.3.0",
