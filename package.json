@@ -57,7 +57,7 @@
     "eslint-plugin-jsdoc": "^3.7.1",
     "eslint-plugin-mocha": "^5.0.0",
     "hints": "^1.x",
-    "husky": "^0.14.3",
+    "husky": "^1.0.0",
     "istanbul": "^0.x",
     "lcov-result-merger": "^3.0.0",
     "lint-staged": "^7.3.0",
@@ -93,6 +93,12 @@
   "lint-staged": {
     "*.js": "eslint"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
   "scripts": {
     "lint": "eslint lib test --quiet",
     "test": "npm run teaser && npm run test-unit && npm run test-integration",
@@ -100,7 +106,7 @@
     "test-docker-unit": "npm run test-unit",
     "test-docker-integration": "env-cmd $npm_package_options_env_cmd npm run test-integration",
     "docs": "esdoc && cp docs/ROUTER esdoc/ROUTER",
-    "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",
+    "teaser": "node scripts/teaser",
     "test-unit": "mocha --require scripts/mocha-bootload --globals setImmediate,clearImmediate --ui tdd --exit --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
     "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",
     "test-unit-postgres": "cross-env DIALECT=postgres npm run test-unit",
@@ -131,7 +137,6 @@
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
-    "commitmsg": "commitlint -E GIT_PARAMS",
-    "precommit": "lint-staged"
+    "sscce-mssql": "cross-env DIALECT=mssql npm run sscce"
   }
 }
