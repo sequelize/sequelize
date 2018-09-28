@@ -10,7 +10,6 @@ const Sequelize = Support.Sequelize;
 function assertSameConnection(newConnection, oldConnection) {
   switch (dialect) {
     case 'postgres':
-    case 'postges-native':
       expect(oldConnection.processID).to.be.equal(newConnection.processID).and.to.be.ok;
       break;
 
@@ -30,7 +29,6 @@ function assertSameConnection(newConnection, oldConnection) {
 function assertNewConnection(newConnection, oldConnection) {
   switch (dialect) {
     case 'postgres':
-    case 'postges-native':
       expect(oldConnection.processID).to.not.be.equal(newConnection.processID);
       break;
 
@@ -58,7 +56,7 @@ function unwrapAndAttachMSSQLUniqueId(connection) {
 }
 
 describe(Support.getTestDialectTeaser('Pooling'), function() {
-  if (dialect === 'sqlite') return;
+  if (dialect === 'sqlite' || process.env.DIALECT === 'postgres-native') return;
 
   beforeEach(() => {
     this.sinon = sinon.createSandbox();
