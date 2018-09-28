@@ -33,20 +33,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       logger.deprecate.restore && logger.deprecate.restore();
     });
 
-    if (dialect !== 'sqlite') {
-      it.skip('should work with min connections', () => {
-        const ConnectionManager = current.dialect.connectionManager,
-          connectionSpy = ConnectionManager.connect = chai.spy(ConnectionManager.connect);
-
-        Support.createSequelizeInstance({
-          pool: {
-            min: 2
-          }
-        });
-        expect(connectionSpy).to.have.been.called.twice;
-      });
-    }
-
     it('should pass the global options correctly', () => {
       const sequelize = Support.createSequelizeInstance({ logging: false, define: { underscored: true } }),
         DAO = sequelize.define('dao', {name: DataTypes.STRING});
