@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
         })
         .then(() => {
           // Get next available connection
-          return Sequelize.Promise.delay(20).then(() => cm.getConnection());
+          return Sequelize.Promise.delay(30).then(() => cm.getConnection());
         })
         .then(connection => {
           assertNewConnection(connection, conn);
