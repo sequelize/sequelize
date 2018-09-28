@@ -206,7 +206,8 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
         pool: {
           min: 1,
           max: 1,
-          idle: 10
+          idle: 1,
+          evict: 10
         }
       });
 
@@ -228,7 +229,7 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
         })
         .then(() => {
           // Get next available connection
-          return Sequelize.Promise.delay(11).then(() => cm.getConnection());
+          return Sequelize.Promise.delay(20).then(() => cm.getConnection());
         })
         .then(connection => {
           assertNewConnection(connection, conn);
