@@ -200,7 +200,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(options.include[0]).to.have.property('attributes').which.deep.equals(['baz']);
       });
 
-      it('merges where with the where from a scoped model', function() {//
+      it('merges where with the where from a scoped model', function() {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [{ where: { active: false }, model: this.Project.scope('that') }]
