@@ -13,9 +13,7 @@ const chai = require('chai'),
   Transaction = require('../../lib/transaction'),
   logger = require('../../lib/utils/logger'),
   sinon = require('sinon'),
-  semver = require('semver'),
   current = Support.sequelize;
-
 
 const qq = function(str) {
   if (dialect === 'postgres' || dialect === 'mssql') {
@@ -286,33 +284,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
         });
       });
-
-      // We can only test MySQL warnings when using MySQL.
-      if (dialect === 'mysql') {
-        it('logs warnings when there are warnings', function() {
-
-          // Due to strict MySQL 5.7 all cases below will throw errors rather than warnings
-          if (semver.gte(current.options.databaseVersion, '5.6.0')) {
-            return;
-          }
-
-          const logger = sinon.spy();
-          const sequelize = Support.createSequelizeInstance({
-            logging: logger,
-            benchmark: false,
-            showWarnings: true
-          });
-          const insertWarningQuery = 'INSERT INTO ' + qq(this.User.tableName) + ' (username, email_address, ' +
-            qq('createdAt') + ', ' + qq('updatedAt') +
-            ") VALUES ('john', 'john@gmail.com', 'HORSE', '2012-01-01 10:10:10')";
-
-          return sequelize.query(insertWarningQuery)
-            .then(() => {
-              expect(logger.callCount).to.equal(3);
-              expect(logger.args[2][0]).to.be.match(/^MySQL Warnings \(default\):.*?'createdAt'/m);
-            });
-        });
-      }
 
       it('executes a query with global benchmarking option and custom logger', () => {
         const logger = sinon.spy();

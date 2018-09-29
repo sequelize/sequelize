@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Warning'), () => {
         const Model = sequelize.define('model', {
           name: Sequelize.DataTypes.STRING(1, true)
         });
-          
+
         return sequelize.sync({ force: true }).then(() => {
           return sequelize.authenticate();
         }).then(() => {
@@ -40,4 +40,4 @@ describe(Support.getTestDialectTeaser('Warning'), () => {
       });
     });
   }
-}); 
+});
