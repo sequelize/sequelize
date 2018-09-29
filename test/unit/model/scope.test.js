@@ -348,7 +348,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         limit: 9
       };
 
-      Sequelize.Model._injectScope(options)
+      Sequelize.Model._injectScope(options);
 
       expect(options).to.deep.equal({
         where: {
@@ -370,7 +370,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       const options = {};
 
-      Sequelize.Model._injectScope(options)
+      Sequelize.Model._injectScope(options);
 
       expect(options.include).to.have.length(1);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
@@ -385,7 +385,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [{ model: Project, where: { something: true }}]
       };
 
-      Sequelize.Model._injectScope(options)
+      Sequelize.Model._injectScope(options);
 
       expect(options.include).to.have.length(1);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
@@ -400,7 +400,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [{model: User, as: 'otherUser'}]
       };
 
-      Sequelize.Model._injectScope(options)
+      Sequelize.Model._injectScope(options);
 
       expect(options.include).to.have.length(2);
       expect(options.include[0]).to.deep.equal({model: User, as: 'someUser'});
@@ -420,7 +420,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]
       };
 
-      Sequelize.Model._injectScope(options)
+      Sequelize.Model._injectScope(options);
 
       expect(options.include).to.have.length(2);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: false }});
