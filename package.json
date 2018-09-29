@@ -74,6 +74,7 @@
   },
   "keywords": [
     "mysql",
+    "mariadb",
     "sqlite",
     "postgresql",
     "postgres",
