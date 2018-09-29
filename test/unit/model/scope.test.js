@@ -332,7 +332,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('_injectScope', () => {
     it('should be able to merge scope and where', () => {
-      const scope = {
+      Sequelize.Model._scope = {
         where: {
           something: true,
           somethingElse: 42
@@ -348,9 +348,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         limit: 9
       };
 
-      Sequelize.Model._injectScope.call({
-        _scope: scope
-      }, options);
+      Sequelize.Model._injectScope(options)
 
       expect(options).to.deep.equal({
         where: {
@@ -363,7 +361,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to overwrite multiple scopes with the same include', () => {
-      const scope = {
+      Sequelize.Model._scope = {
         include: [
           { model: Project, where: { something: false }},
           { model: Project, where: { something: true }}
@@ -372,16 +370,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       const options = {};
 
-      Sequelize.Model._injectScope.call({
-        _scope: scope
-      }, options);
+      Sequelize.Model._injectScope(options)
 
       expect(options.include).to.have.length(1);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
     });
 
     it('should be able to override scoped include', () => {
-      const scope = {
+      Sequelize.Model._scope = {
         include: [{ model: Project, where: { something: false }}]
       };
 
@@ -389,16 +385,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [{ model: Project, where: { something: true }}]
       };
 
-      Sequelize.Model._injectScope.call({
-        _scope: scope
-      }, options);
+      Sequelize.Model._injectScope(options)
 
       expect(options.include).to.have.length(1);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
     });
 
     it('should be able to merge aliased includes with the same model', () => {
-      const scope = {
+      Sequelize.Model._scope = {
         include: [{model: User, as: 'someUser'}]
       };
 
@@ -406,17 +400,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [{model: User, as: 'otherUser'}]
       };
 
-      Sequelize.Model._injectScope.call({
-        _scope: scope
-      }, options);
+      Sequelize.Model._injectScope(options)
 
       expect(options.include).to.have.length(2);
-      expect(options.include[0]).to.deep.equal({model: User, as: 'otherUser'});
-      expect(options.include[1]).to.deep.equal({model: User, as: 'someUser'});
+      expect(options.include[0]).to.deep.equal({model: User, as: 'someUser'});
+      expect(options.include[1]).to.deep.equal({model: User, as: 'otherUser'});
     });
 
     it('should be able to merge scoped include with include in find', () => {
-      const scope = {
+      Sequelize.Model._scope = {
         include: [
           { model: Project, where: { something: false }}
         ]
@@ -428,18 +420,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]
       };
 
-      Sequelize.Model._injectScope.call({
-        _scope: scope
-      }, options);
+      Sequelize.Model._injectScope(options)
 
       expect(options.include).to.have.length(2);
-      expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
-      expect(options.include[1]).to.deep.equal({ model: Project, where: { something: false }});
+      expect(options.include[0]).to.deep.equal({ model: Project, where: { something: false }});
+      expect(options.include[1]).to.deep.equal({ model: User, where: { something: true }});
     });
 
     describe('include all', () => {
       it('scope with all', () => {
-        const scope = {
+        Sequelize.Model._scope = {
           include: [
             { all: true }
           ]
@@ -451,36 +441,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]
         };
 
-        Sequelize.Model._injectScope.call({
-          _scope: scope
-        }, options);
-
-        expect(options.include).to.have.length(2);
-        expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
-        expect(options.include[1]).to.deep.equal({ all: true });
-      });
-
-
-      it('options with all', () => {
-        const scope = {
-          include: [
-            { model: User, where: { something: true }}
-          ]
-        };
-
-        const options = {
-          include: [
-            { all: true }
-          ]
-        };
-
-        Sequelize.Model._injectScope.call({
-          _scope: scope
-        }, options);
+        Sequelize.Model._injectScope(options);
 
         expect(options.include).to.have.length(2);
         expect(options.include[0]).to.deep.equal({ all: true });
         expect(options.include[1]).to.deep.equal({ model: User, where: { something: true }});
+      });
+
+
+      it('options with all', () => {
+        Sequelize.Model._scope = {
+          include: [
+            { model: User, where: { something: true }}
+          ]
+        };
+
+        const options = {
+          include: [
+            { all: true }
+          ]
+        };
+
+        Sequelize.Model._injectScope(options);
+
+        expect(options.include).to.have.length(2);
+        expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
+        expect(options.include[1]).to.deep.equal({ all: true });
       });
     });
   });

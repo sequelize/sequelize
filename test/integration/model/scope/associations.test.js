@@ -332,6 +332,44 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
         });
+
+        describe('with find options', () => {
+          it('should merge includes correctly', function() {
+            const Child = this.sequelize.define('Child', { name: Sequelize.STRING });
+            const Parent = this.sequelize.define('Parent', { name: Sequelize.STRING });
+            Parent.addScope('testScope1', {
+              include: [{
+                model: Child,
+                where: {
+                  name: 'child2'
+                }
+              }]
+            });
+            Parent.hasMany(Child);
+
+            return this.sequelize.sync({ force: true })
+              .then(() => {
+                return Promise.all([
+                  Parent.create({ name: 'parent1' }).then(parent => parent.createChild({ name: 'child1' })),
+                  Parent.create({ name: 'parent2' }).then(parent => parent.createChild({ name: 'child2' }))
+                ]);
+              })
+              .then(() => {
+                return Parent.scope('testScope1').findOne({
+                  include: [{
+                    model: Child,
+                    attributes: { exclude: ['name'] }
+                  }]
+                });
+              })
+              .then(parent => {
+                expect(parent.get('id')).to.equal(2);
+                expect(parent.Children).to.have.length(1);
+                expect(parent.Children[0].get('id')).to.equal(2);
+                expect(parent.Children[0].dataValues).not.to.have.property('name');
+              });
+          });
+        });
       });
 
       describe('scope with options', () => {
