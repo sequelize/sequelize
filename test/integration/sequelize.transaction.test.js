@@ -85,7 +85,7 @@ if (current.dialect.supports.transactions) {
               return t.commit();
             });
           }).then(function() {
-            return this.User.all();
+            return this.User.findAll();
           }).then(users => {
             expect(users.length).to.equal(1);
             expect(users[0].name).to.equal('foo');

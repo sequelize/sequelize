@@ -353,7 +353,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       describe('findAll', () => {
         it('should allow $in', () => {
-          return expect(User.all({
+          return expect(User.findAll({
             where: {
               name: {
                 [Op.like]: {
@@ -365,7 +365,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
 
         it('should allow $like for uuid', () => {
-          return expect(User.all({
+          return expect(User.findAll({
             where: {
               uid: {
                 [Op.like]: '12345678%'
