@@ -150,11 +150,6 @@ Project.findAll().then(projects => {
   // projects will be an array of all Project instances
 })
 
-// also possible:
-Project.all().then(projects => {
-  // projects will be an array of all Project instances
-})
-
 // search for specific attributes - hash usage
 Project.findAll({ where: { name: 'A Project' } }).then(projects => {
   // projects will be an array of Project instances with the specified name
