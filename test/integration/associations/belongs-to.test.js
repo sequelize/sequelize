@@ -412,11 +412,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         return Task.create({ title: 'task' }).then(task => {
-          return task.createUser({ username: 'bob' }).then(() => {
-            return task.getUser().then(user => {
-              expect(user).not.to.be.null;
-              expect(user.username).to.equal('bob');
-            });
+          return task.createUser({ username: 'bob' }).then(user => {
+            expect(user).not.to.be.null;
+            expect(user.username).to.equal('bob');
           });
         });
       });
