@@ -55,12 +55,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           this.t = t;
           return article.setLabels([label], { transaction: t });
         }).then(function() {
-          return this.Article.all({ transaction: this.t });
+          return this.Article.findAll({ transaction: this.t });
         }).then(articles => {
           return articles[0].getLabels();
         }).then(function(labels) {
           expect(labels).to.have.length(0);
-          return this.Article.all({ transaction: this.t });
+          return this.Article.findAll({ transaction: this.t });
         }).then(function(articles) {
           return articles[0].getLabels({ transaction: this.t });
         }).then(function(labels) {

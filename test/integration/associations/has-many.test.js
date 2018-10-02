@@ -488,13 +488,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             t = _t;
             return article.setLabels([label], { transaction: t });
           }).then(() => {
-            return Article.all({ transaction: t });
+            return Article.findAll({ transaction: t });
           }).then(articles => {
             return articles[0].hasLabel(label).then(hasLabel => {
               expect(hasLabel).to.be.false;
             });
           }).then(() => {
-            return Article.all({ transaction: t });
+            return Article.findAll({ transaction: t });
           }).then(articles => {
             return articles[0].hasLabel(label, { transaction: t }).then(hasLabel => {
               expect(hasLabel).to.be.true;
@@ -594,7 +594,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             this.t = t;
             return this.article.setLabels([this.label], { transaction: t });
           }).then(function() {
-            return this.Article.all({ transaction: this.t });
+            return this.Article.findAll({ transaction: this.t });
           }).then(function(articles) {
             return Promise.all([
               articles[0].hasLabels([this.label]),

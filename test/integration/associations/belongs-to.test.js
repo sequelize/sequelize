@@ -77,10 +77,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
               return Group.create({ name: 'bar' }).then(group => {
                 return sequelize.transaction().then(t => {
                   return group.setUser(user, { transaction: t }).then(() => {
-                    return Group.all().then(groups => {
+                    return Group.findAll().then(groups => {
                       return groups[0].getUser().then(associatedUser => {
                         expect(associatedUser).to.be.null;
-                        return Group.all({ transaction: t }).then(groups => {
+                        return Group.findAll({ transaction: t }).then(groups => {
                           return groups[0].getUser({ transaction: t }).then(associatedUser => {
                             expect(associatedUser).to.be.not.null;
                             return t.rollback();
@@ -207,7 +207,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
               return Group.create({ name: 'bar' }).then(group => {
                 return sequelize.transaction().then(t => {
                   return group.setUser(user, { transaction: t }).then(() => {
-                    return Group.all().then(groups => {
+                    return Group.findAll().then(groups => {
                       return groups[0].getUser().then(associatedUser => {
                         expect(associatedUser).to.be.null;
                         return t.rollback();

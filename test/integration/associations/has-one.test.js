@@ -76,10 +76,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
                 return Group.create({ name: 'bar' }).then(group => {
                   return sequelize.transaction().then(t => {
                     return group.setUser(user, { transaction: t }).then(() => {
-                      return Group.all().then(groups => {
+                      return Group.findAll().then(groups => {
                         return groups[0].getUser().then(associatedUser => {
                           expect(associatedUser).to.be.null;
-                          return Group.all({ transaction: t }).then(groups => {
+                          return Group.findAll({ transaction: t }).then(groups => {
                             return groups[0].getUser({ transaction: t }).then(associatedUser => {
                               expect(associatedUser).not.to.be.null;
                               expect(associatedUser.id).to.equal(user.id);
@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         ]);
       }).spread((fakeUser, user, group) => {
         return group.setUser(user).then(() => {
-          return Group.all().then(groups => {
+          return Group.findAll().then(groups => {
             return groups[0].getUser().then(associatedUser => {
               expect(associatedUser).not.to.be.null;
               expect(associatedUser.id).to.equal(user.id);
@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
               return Group.create({ name: 'bar' }).then(group => {
                 return sequelize.transaction().then(t => {
                   return group.setUser(user, { transaction: t }).then(() => {
-                    return Group.all().then(groups => {
+                    return Group.findAll().then(groups => {
                       return groups[0].getUser().then(associatedUser => {
                         expect(associatedUser).to.be.null;
                         return t.rollback();
@@ -365,10 +365,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
             return User.create({ username: 'bob' }).then(user => {
               return sequelize.transaction().then(t => {
                 return user.createGroup({ name: 'testgroup' }, { transaction: t }).then(() => {
-                  return User.all().then(users => {
+                  return User.findAll().then(users => {
                     return users[0].getGroup().then(group => {
                       expect(group).to.be.null;
-                      return User.all({ transaction: t }).then(users => {
+                      return User.findAll({ transaction: t }).then(users => {
                         return users[0].getGroup({ transaction: t }).then(group => {
                           expect(group).to.be.not.null;
                           return t.rollback();
