@@ -63,7 +63,7 @@
     "lint-staged": "^7.3.0",
     "mocha": "^5.x",
     "mysql2": "^1.x",
-    "pg": "^7.x",
+    "pg": "^7.5.0",
     "pg-hstore": "^2.x",
     "pg-types": "^1.x",
     "rimraf": "^2.x",
