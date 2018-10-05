@@ -420,7 +420,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2),
           expect: {
             default: 'TINYINT(2)',
-            mssql: 'TINYINT'
+            mssql: 'TINYINT',
+            postgres: 'TINYINT'
           }
         },
         {
@@ -428,7 +429,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT({ length: 2 }),
           expect: {
             default: 'TINYINT(2)',
-            mssql: 'TINYINT'
+            mssql: 'TINYINT',
+            postgres: 'TINYINT'
           }
         },
         {
@@ -436,7 +438,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.UNSIGNED,
           expect: {
             default: 'TINYINT UNSIGNED',
-            mssql: 'TINYINT'
+            mssql: 'TINYINT',
+            postgres: 'TINYINT'
           }
         },
         {
@@ -445,7 +448,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2) UNSIGNED',
             sqlite: 'TINYINT UNSIGNED(2)',
-            mssql: 'TINYINT'
+            mssql: 'TINYINT',
+            postgres: 'TINYINT'
           }
         },
         {
@@ -453,7 +457,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.UNSIGNED.ZEROFILL,
           expect: {
             default: 'TINYINT UNSIGNED ZEROFILL',
-            mssql: 'TINYINT'
+            mssql: 'TINYINT',
+            postgres: 'TINYINT'
           }
         },
         {
@@ -462,7 +467,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2) UNSIGNED ZEROFILL',
             sqlite: 'TINYINT UNSIGNED ZEROFILL(2)',
-            mssql: 'TINYINT'
+            mssql: 'TINYINT',
+            postgres: 'TINYINT'
           }
         },
         {
@@ -470,7 +476,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.ZEROFILL,
           expect: {
             default: 'TINYINT ZEROFILL',
-            mssql: 'TINYINT'
+            mssql: 'TINYINT',
+            postgres: 'TINYINT'
           }
         },
         {
@@ -479,7 +486,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2) ZEROFILL',
             sqlite: 'TINYINT ZEROFILL(2)',
-            mssql: 'TINYINT'
+            mssql: 'TINYINT',
+            postgres: 'TINYINT'
           }
         },
         {
@@ -487,7 +495,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.ZEROFILL.UNSIGNED,
           expect: {
             default: 'TINYINT UNSIGNED ZEROFILL',
-            mssql: 'TINYINT'
+            mssql: 'TINYINT',
+            postgres: 'TINYINT'
           }
         },
         {
@@ -496,7 +505,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2) UNSIGNED ZEROFILL',
             sqlite: 'TINYINT UNSIGNED ZEROFILL(2)',
-            mssql: 'TINYINT'
+            mssql: 'TINYINT',
+            postgres: 'TINYINT'
           }
         }
       ];
