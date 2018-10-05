@@ -471,5 +471,67 @@ describe('[ABSTRACT]', () => {
         }
       ]);
     });
+
+    it('should support nested include (from a parent include with empty attributes)', () => {
+      const Position = current.define('position', {
+        id: {
+          primaryKey: true,
+          type: current.Sequelize.STRING(1)
+        }
+      });
+
+      const Asset = current.define('asset', {
+        id: {
+          primaryKey: true,
+          type: current.Sequelize.STRING(1)
+        }
+      });
+
+      const AssetClass = current.define('assetclass', {
+        id: {
+          primaryKey: true,
+          type: current.Sequelize.STRING(1)
+        },
+        name: {
+          type: current.Sequelize.STRING(1)
+        }
+      });
+
+      Position.Asset = Position.belongsTo(Asset, { foreignKey: 'assetId' });
+      Asset.AssetClass = Asset.belongsTo(AssetClass, { foreignKey: 'assetClassId' });
+
+      const includeOptions = {
+        model: Position,
+        includeMap: {
+          'asset': {
+            model: Asset,
+            association: Position.Asset,
+            includeMap: {
+              'assetclass': {
+                model: AssetClass,
+                association: Asset.AssetClass
+              }
+            }
+          }
+        }
+      };
+
+      const data = [
+        {
+          'id': '1',
+          'asset.assetclass.id': '1-1',
+          'asset.assetclass.name': 'a'
+        }
+      ];
+
+      const result = Query._groupJoinData(data, includeOptions, { checkExisting: false });
+      expect(result.length).to.be.equal(1);
+      expect(result[0].asset).to.be.deep.equal({
+        'assetclass': {
+          'id': '1-1',
+          'name': 'a'
+        }
+      });
+    });
   });
 });
