@@ -363,9 +363,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 });
               })
               .then(parent => {
-                expect(parent.get('id')).to.equal(2);
+                expect(parent.get('name')).to.equal('parent2');
                 expect(parent.Children).to.have.length(1);
-                expect(parent.Children[0].get('id')).to.equal(2);
                 expect(parent.Children[0].dataValues).not.to.have.property('name');
               });
           });

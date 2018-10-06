@@ -110,7 +110,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should unite attributes with array', () => {
-        expect(User.scope('aScope', 'defaultScope')._scope.attributes).to.deep.equal({ exclude: ['value', 'password'] });
+        expect(User.scope('aScope', 'defaultScope')._scope.attributes).to.deep.equal({ exclude: ['password'] });
       });
     });
 
