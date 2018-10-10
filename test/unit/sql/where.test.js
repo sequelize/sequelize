@@ -432,6 +432,33 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    suite('$startsWith', () => {
+      testsql('username', {
+        [Op.startsWith]: 'swagger'
+      }, {
+        default: "[username] LIKE '%swagger'",
+        mssql: "[username] LIKE N'%swagger'"
+      });
+    });
+
+    suite('$endsWith', () => {
+      testsql('username', {
+        [Op.endsWith]: 'swagger'
+      }, {
+        default: "[username] LIKE 'swagger%'",
+        mssql: "[username] LIKE N'swagger%'"
+      });
+    });
+
+    suite('$substring', () => {
+      testsql('username', {
+        [Op.substring]: 'swagger'
+      }, {
+        default: "[username] LIKE '%swagger%'",
+        mssql: "[username] LIKE N'%swagger%'"
+      });
+    });
+
     suite('$between', () => {
       testsql('date', {
         [Op.between]: ['2013-01-01', '2013-01-11']
