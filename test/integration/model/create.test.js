@@ -998,6 +998,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    if (current.dialect.supports.index.functionBased) {
+      it("doesn't allow duplicated records with unique function based indexes", function () {
+        const User = this.sequelize.define('UserWithUniqueUsernameFunctionIndex', {
+          username: Sequelize.STRING,
+          email: {type: Sequelize.STRING, unique: true}
+        });
+
+        return User.sync({force: true}).then(() => {
+          const tableName = User.getTableName();
+          return this.sequelize.query('CREATE UNIQUE INDEX lower_case_username ON "' + tableName + '" ((lower(username)))');
+        }).then(() => {
+          return User.create({username: 'foo'});
+        }).then(() => {
+          return User.create({username: 'foo'});
+        }).catch(Sequelize.UniqueConstraintError, err => {
+          expect(err).to.be.ok;
+        });
+      });
+    }
+
     it('raises an error if created object breaks definition contraints', function() {
       const UserNull = this.sequelize.define('UserWithNonNullSmth', {
         username: { type: Sequelize.STRING, unique: true },
