@@ -110,77 +110,47 @@ if (dialect === 'sqlite') {
 
       createTableQuery: [
         {
-          arguments: ['myTable', { data: 'BLOB' }],
+          arguments: ['myTable', {data: 'BLOB'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB);'
         },
         {
-          arguments: ['myTable', { data: 'LONGBLOB' }],
+          arguments: ['myTable', {data: 'LONGBLOB'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB);'
         },
         {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }],
+          arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', { title: 'VARCHAR BINARY(255)', number: 'INTEGER(5) UNSIGNED PRIMARY KEY' }], // length and unsigned are not allowed on primary key
+          arguments: ['myTable', {title: 'VARCHAR BINARY(255)', number: 'INTEGER(5) UNSIGNED PRIMARY KEY '}], // length and unsigned are not allowed on primary key
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR BINARY(255), `number` INTEGER PRIMARY KEY);'
         },
         {
-          arguments: ['myTable', { title: 'VARCHAR BINARY(255)', number: 'TINYINT UNSIGNED PRIMARY KEY' }], // length and unsigned are not allowed on primary key
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR BINARY(255), `number` INTEGER PRIMARY KEY);'
-        },
-        {
-          arguments: ['myTable', {
-            tinyint: 'TINYINT UNSIGNED PRIMARY KEY',
-            smallint: 'SMALLINT UNSIGNED PRIMARY KEY',
-            mediumint: 'MEDIUMINT UNSIGNED PRIMARY KEY',
-            bigint: 'BIGINT UNSIGNED PRIMARY KEY'
-          }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`tinyint` INTEGER NOT NULL, `smallint` INTEGER NOT NULL, `mediumint` INTEGER NOT NULL, `bigint` INTEGER NOT NULL, PRIMARY KEY (`tinyint`, `smallint`, `mediumint`, `bigint`));'
-        },
-        {
-          arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }],
+          arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM(\"A\", \"B\", \"C\"), `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }],
+          arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `id` INTEGER PRIMARY KEY);'
         },
         {
-          arguments: ['myTable', {
-            title: 'VARCHAR(255)',
-            name: 'VARCHAR(255)',
-            otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION'
-          }],
+          arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);'
         },
         {
-          arguments: ['myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)' }],
+          arguments: ['myTable', {id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', { id: 'INTEGER(5) PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)' }],
+          arguments: ['myTable', {id: 'INTEGER(4) PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', { id: 'TINYINT PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)' }],
+          arguments: ['myTable', {id: 'SMALLINT(4) PRIMARY KEY AUTOINCREMENT UNSIGNED', name: 'VARCHAR(255)'}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', {
-            tinyint: 'TINYINT PRIMARY KEY AUTOINCREMENT',
-            smallint: 'SMALLINT PRIMARY KEY AUTOINCREMENT',
-            mediumint: 'MEDIUMINT PRIMARY KEY AUTOINCREMENT',
-            bigint: 'BIGINT PRIMARY KEY AUTOINCREMENT'
-          }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`tinyint` INTEGER NOT NULL AUTOINCREMENT, `smallint` INTEGER NOT NULL AUTOINCREMENT, `mediumint` INTEGER NOT NULL AUTOINCREMENT, `bigint` INTEGER NOT NULL AUTOINCREMENT, PRIMARY KEY (`tinyint`, `smallint`, `mediumint`, `bigint`));'
-        },
-        {
-          arguments: ['myTable', {
-            id: 'INTEGER PRIMARY KEY AUTOINCREMENT',
-            name: 'VARCHAR(255)',
-            surname: 'VARCHAR(255)'
-          }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'], customIndex: true } } }],
+          arguments: ['myTable', {id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)'}, {uniqueKeys: {uniqueConstraint: {fields: ['name', 'surname'], customIndex: true }}}],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255), UNIQUE (`name`, `surname`));'
         }
       ],
