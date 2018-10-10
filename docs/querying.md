@@ -156,6 +156,9 @@ const Op = Sequelize.Op
 [Op.notLike]: '%hat'       // NOT LIKE '%hat'
 [Op.iLike]: '%hat'         // ILIKE '%hat' (case insensitive) (PG only)
 [Op.notILike]: '%hat'      // NOT ILIKE '%hat'  (PG only)
+[Op.startsWith]: 'hat'     // LIKE '%hat'
+[Op.endsWith]: 'hat'       // LIKE 'hat%'
+[Op.substring]: 'hat'      // LIKE '%hat%'
 [Op.regexp]: '^[h|a|t]'    // REGEXP/~ '^[h|a|t]' (MySQL/PG only)
 [Op.notRegexp]: '^[h|a|t]' // NOT REGEXP/!~ '^[h|a|t]' (MySQL/PG only)
 [Op.iRegexp]: '^[h|a|t]'    // ~* '^[h|a|t]' (PG only)
