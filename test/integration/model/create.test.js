@@ -998,6 +998,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    if (current.dialect.supports.CITEXT) {
+      it("doesn't allow case-insensitive duplicated records using CITEXT", function () {
+        const User = this.sequelize.define('UserWithUniqueCITEXT', {
+          username: {type: Sequelize.CITEXT, unique: true}
+        });
+
+        return User.sync({force: true}).then(() => {
+          return User.create({username: 'foo'});
+        }).then(() => {
+          return User.create({username: 'fOO'});
+        }).catch(Sequelize.UniqueConstraintError, err => {
+          expect(err).to.be.ok;
+        });
+      });
+    }
+
     it('raises an error if created object breaks definition contraints', function() {
       const UserNull = this.sequelize.define('UserWithNonNullSmth', {
         username: { type: Sequelize.STRING, unique: true },

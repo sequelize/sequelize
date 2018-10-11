@@ -1396,6 +1396,12 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           });
         }
 
+        if (current.dialect.supports.CITEXT) {
+          testsql('ARRAY(CITEXT)', DataTypes.ARRAY(DataTypes.CITEXT), {
+            postgres: 'CITEXT[]'
+          });
+        }
+
         suite('validate', () => {
           test('should throw an error if `value` is invalid', () => {
             const type = DataTypes.ARRAY();
