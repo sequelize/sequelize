@@ -113,13 +113,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('warn for unsupported INTEGER options', () => {
         current.define('A', {
           age: {
-            type: DataTypes.INTEGER.UNSIGNED
+            type: DataTypes.TINYINT.UNSIGNED
           }
         });
 
         if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
           expect(true).to.equal(console.warn.calledOnce);
-          expect(console.warn.args[0][0]).to.contain("does not support 'INTEGER'");
+          expect(console.warn.args[0][0]).to.contain("does not support 'TINYINT'");
         } else {
           expect(false).to.equal(console.warn.calledOnce);
         }
