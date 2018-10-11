@@ -4,7 +4,9 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  current = Support.sequelize;
+  sinon = require('sinon'),
+  current = Support.sequelize,
+  dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('define', () => {
@@ -97,6 +99,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
       }).to.throw('Invalid definition for "part.name", "notNull" validator is only allowed with "allowNull:false"');
+    });
+
+    describe('datatype warnings', () => {
+      beforeEach(() => {
+        sinon.spy(console, 'warn');
+      });
+
+      afterEach(() => {
+        console.warn.restore();
+      });
+
+      it('warn for unsupported INTEGER options', () => {
+        current.define('A', {
+          age: {
+            type: DataTypes.INTEGER.UNSIGNED
+          }
+        });
+
+        if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
+          expect(true).to.equal(console.warn.calledOnce);
+          expect(console.warn.args[0][0]).to.contain("does not support 'INTEGER'");
+        } else {
+          expect(false).to.equal(console.warn.calledOnce);
+        }
+      });
     });
   });
 });

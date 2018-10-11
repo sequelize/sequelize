@@ -22,8 +22,8 @@ describe('[MYSQL Specific] Query', () => {
     it('check iterable', () => {
       const validWarning = [];
       const invalidWarning = {};
-      const warnings = [validWarning, undefined, invalidWarning];      
-      
+      const warnings = [validWarning, undefined, invalidWarning];
+
       const query = new Query({}, current, {});
       const stub = sinon.stub(query, 'run');
       stub.onFirstCall().resolves(warnings);
