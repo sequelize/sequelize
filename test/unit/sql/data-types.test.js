@@ -8,7 +8,8 @@ const Support = require('../support'),
   uuid = require('uuid'),
   expectsql = Support.expectsql,
   current = Support.sequelize,
-  expect = chai.expect;
+  expect = chai.expect,
+  dialect = Support.getTestDialect();
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -1396,7 +1397,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           });
         }
 
-        if (current.dialect.supports.CITEXT) {
+        if (dialect === 'postgres') {
           testsql('ARRAY(CITEXT)', DataTypes.ARRAY(DataTypes.CITEXT), {
             postgres: 'CITEXT[]'
           });

@@ -998,7 +998,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    if (current.dialect.supports.CITEXT) {
+    if (dialect === 'postgres') {
       it("doesn't allow case-insensitive duplicated records using CITEXT", function () {
         const User = this.sequelize.define('UserWithUniqueCITEXT', {
           username: {type: Sequelize.CITEXT, unique: true}
