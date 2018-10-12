@@ -153,5 +153,30 @@ describe('Sequelize', () => {
 
       expect(config.port).to.equal(port);
     });
+
+    it('should pass query string parameters to dialectOptions', () => {
+      const sequelize = new Sequelize('mysql://example.com:9821/dbname?ssl=true');
+      const dialectOptions = sequelize.config.dialectOptions;
+
+      expect(dialectOptions.foo).to.equal('true');
+    });
+
+    it('should merge query string parameters to options', () => {
+      const sequelize = new Sequelize('mysql://example.com:9821/dbname?ssl=true&application_name=client', {
+        storage: '/completely/different/path.db',
+        dialectOptions: {
+          supportBigNumbers: true,
+          application_name: 'server',
+        }
+      });
+
+      const options = sequelize.options;
+      const dialectOptions = sequelize.config.dialectOptions;
+
+      expect(options.storage).to.equal('/completely/different/path.db');
+      expect(dialectOptions.supportBigNumbers).to.be.true;
+      expect(dialectOptions.application_name).to.equal('client');
+      expect(dialectOptions.ssl).to.equal('true');
+    });
   });
 });
