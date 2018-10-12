@@ -158,7 +158,7 @@ describe('Sequelize', () => {
       const sequelize = new Sequelize('mysql://example.com:9821/dbname?ssl=true');
       const dialectOptions = sequelize.config.dialectOptions;
 
-      expect(dialectOptions.foo).to.equal('true');
+      expect(dialectOptions.ssl).to.equal('true');
     });
 
     it('should merge query string parameters to options', () => {
