@@ -11,6 +11,30 @@ const chai = require('chai'),
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', () => {
     const suites = {
+      createDatabaseQuery: [
+        {
+          arguments: ['myDatabase'],
+          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase`;'
+        },
+        {
+          arguments: ['myDatabase', {charset: 'utf8mb4'}],
+          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARSET SET = utf8mb4;'
+        },
+        {
+          arguments: ['myDatabase', {collate: 'utf8mb4_unicode_ci'}],
+          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT COLLATE = utf8mb4_unicode_ci;'
+        },
+        {
+          arguments: ['myDatabase', {charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci'}],
+          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARSET SET = utf8mb4 DEFAULT COLLATE = utf8mb4_unicode_ci;'
+        }
+      ],
+      dropDatabaseQuery: [
+        {
+          arguments: ['myDatabase'],
+          expectation: 'DROP DATABASE IF EXISTS `myDatabase`;'
+        }
+      ],
       arithmeticQuery: [
         {
           title: 'Should use the plus operator',
