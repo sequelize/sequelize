@@ -474,6 +474,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(users[1].intVal).to.equal(10);
         });
       });
+
+      if (dialect === 'postgres') {
+        it('should be able to find multiple users with case-insensitive on CITEXT type', function() {
+          const User = this.sequelize.define('UsersWithCaseInsensitiveName', {
+            username: Sequelize.CITEXT
+          });
+
+          return User.sync({force: true}).then(() => {
+            return User.bulkCreate([
+              {username: 'lowercase'},
+              {username: 'UPPERCASE'},
+              {username: 'MIXEDcase'}
+            ]);
+          }).then(() => {
+            return User.findAll({
+              where: { username: ['LOWERCASE', 'uppercase', 'mixedCase']},
+              order: [['id', 'ASC']]
+            });
+          }).then(users => {
+            expect(users[0].username).to.equal('lowercase');
+            expect(users[1].username).to.equal('UPPERCASE');
+            expect(users[2].username).to.equal('MIXEDcase');
+          });
+        });
+      }
     });
 
     describe('eager loading', () => {

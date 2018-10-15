@@ -287,6 +287,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       });
+
+      if (dialect === 'postgres') {
+        it('should allow case-insensitive find on CITEXT type', function() {
+          const User = this.sequelize.define('UserWithCaseInsensitiveName', {
+            username: Sequelize.CITEXT
+          });
+
+          return User.sync({force: true}).then(() => {
+            return User.create({username: 'longUserNAME'});
+          }).then(() => {
+            return User.findOne({where: {username: 'LONGusername'}});
+          }).then(user => {
+            expect(user).to.exist;
+            expect(user.username).to.equal('longUserNAME');
+          });
+        });
+      }
     });
 
     describe('eager loading', () => {

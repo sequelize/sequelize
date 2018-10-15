@@ -77,6 +77,7 @@ Create the following extensions in the test database:
 CREATE EXTENSION postgis;
 CREATE EXTENSION hstore;
 CREATE EXTENSION btree_gist;
+CREATE EXTENSION citext;
 ```
 
 #### 3.b Docker
