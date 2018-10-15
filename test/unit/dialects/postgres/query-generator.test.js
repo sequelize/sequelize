@@ -28,8 +28,20 @@ if (dialect.match(/^postgres/)) {
           expectation: 'CREATE DATABASE "myDatabase" LC_COLLATE = \'en_US.UTF-8\';'
         },
         {
-          arguments: ['myDatabase', {encoding: 'UTF8', collate: 'en_US.UTF-8'}],
-          expectation: 'CREATE DATABASE "myDatabase" ENCODING = \'UTF8\' LC_COLLATE = \'en_US.UTF-8\';'
+          arguments: ['myDatabase', {encoding: 'UTF8'}],
+          expectation: 'CREATE DATABASE "myDatabase" ENCODING = \'UTF8\';'
+        },
+        {
+          arguments: ['myDatabase', {ctype: 'zh_TW.UTF-8'}],
+          expectation: 'CREATE DATABASE "myDatabase" LC_CTYPE = \'zh_TW.UTF-8\';'
+        },
+        {
+          arguments: ['myDatabase', {template: 'template0'}],
+          expectation: 'CREATE DATABASE "myDatabase" TEMPLATE = \'template0\';'
+        },
+        {
+          arguments: ['myDatabase', {encoding: 'UTF8', collate: 'en_US.UTF-8', ctype: 'zh_TW.UTF-8', template: 'template0'}],
+          expectation: 'CREATE DATABASE "myDatabase" ENCODING = \'UTF8\' LC_COLLATE = \'en_US.UTF-8\' LC_CTYPE = \'zh_TW.UTF-8\' TEMPLATE = \'template0\';'
         }
       ],
       dropDatabaseQuery: [
