@@ -35,7 +35,7 @@ if (dialect.match(/^postgres/)) {
       dropDatabaseQuery: [
         {
           arguments: ['myDatabase'],
-          expectation: 'DROP DATABASE "myDatabase" CASCADE;'
+          expectation: 'DROP DATABASE IF EXISTS "myDatabase";'
         }
       ],
       arithmeticQuery: [
