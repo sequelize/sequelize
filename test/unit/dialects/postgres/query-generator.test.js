@@ -14,6 +14,30 @@ const chai = require('chai'),
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
     const suites = {
+      createDatabaseQuery: [
+        {
+          arguments: ['myDatabase'],
+          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase";'
+        },
+        {
+          arguments: ['myDatabase', {encoding: 'UTF8'}],
+          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase" ENCODING = \'UTF8\';'
+        },
+        {
+          arguments: ['myDatabase', {collate: 'en_US.UTF-8'}],
+          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase" LC_COLLATE = \'en_US.UTF-8\';'
+        },
+        {
+          arguments: ['myDatabase', {encoding: 'UTF8', collate: 'en_US.UTF-8'}],
+          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase" ENCODING = \'UTF8\' LC_COLLATE = \'en_US.UTF-8\';'
+        }
+      ],
+      dropDatabaseQuery: [
+        {
+          arguments: ['myDatabase'],
+          expectation: 'DROP DATABASE IF EXISTS "myDatabase" CASCADE;'
+        }
+      ],
       arithmeticQuery: [
         {
           title: 'Should use the plus operator',

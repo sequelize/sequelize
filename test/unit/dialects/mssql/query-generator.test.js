@@ -15,6 +15,24 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
+    it('createDatabaseQuery', function() {
+      expectsql(this.queryGenerator.createDatabaseQuery('myDatabase'), {
+        mssql: "IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN CREATE DATABASE [myDatabase] ; END;"
+      });
+    });
+
+    it('createDatabaseQuery with collate', function() {
+      expectsql(this.queryGenerator.createDatabaseQuery('myDatabase', {collate: 'Latin1_General_CS_AS_KS_WS'}), {
+        mssql: "IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN CREATE DATABASE [myDatabase] COLLATE N'Latin1_General_CS_AS_KS_WS'; END;"
+      });
+    });
+
+    it('dropDatabaseQuery', function() {
+      expectsql(this.queryGenerator.dropDatabaseQuery('myDatabase'), {
+        mssql: "IF EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN DROP DATABASE [myDatabase] ; END;"
+      });
+    });
+
     it('createTableQuery', function() {
       expectsql(this.queryGenerator.createTableQuery('myTable', { int: 'INTEGER' }, {}), {
         mssql: "IF OBJECT_ID('[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER);"
