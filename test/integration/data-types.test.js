@@ -282,6 +282,16 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }
   });
 
+  it('calls parse and stringify for CITEXT', () => {
+    const Type = new Sequelize.CITEXT();
+
+    if (dialect === 'postgres') {
+      return testSuccess(Type, 'foobar');
+    } else {
+      testFailure(Type);
+    }
+  });
+
   it('calls parse and stringify for MACADDR', () => {
     const Type = new Sequelize.MACADDR();
 
