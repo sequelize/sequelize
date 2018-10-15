@@ -998,6 +998,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    if (dialect === 'postgres') {
+      it("doesn't allow case-insensitive duplicated records using CITEXT", function () {
+        const User = this.sequelize.define('UserWithUniqueCITEXT', {
+          username: {type: Sequelize.CITEXT, unique: true}
+        });
+
+        return User.sync({force: true}).then(() => {
+          return User.create({username: 'foo'});
+        }).then(() => {
+          return User.create({username: 'fOO'});
+        }).catch(Sequelize.UniqueConstraintError, err => {
+          expect(err).to.be.ok;
+        });
+      });
+    }
+
     if (current.dialect.supports.index.functionBased) {
       it("doesn't allow duplicated records with unique function based indexes", function () {
         const User = this.sequelize.define('UserWithUniqueUsernameFunctionIndex', {
