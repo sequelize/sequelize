@@ -18,15 +18,15 @@ if (dialect === 'mysql') {
         },
         {
           arguments: ['myDatabase', {charset: 'utf8mb4'}],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARSET SET = \'utf8mb4\';'
+          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET \'utf8mb4\';'
         },
         {
           arguments: ['myDatabase', {collate: 'utf8mb4_unicode_ci'}],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT COLLATE = \'utf8mb4_unicode_ci\';'
+          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT COLLATE \'utf8mb4_unicode_ci\';'
         },
         {
           arguments: ['myDatabase', {charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci'}],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARSET SET = \'utf8mb4\' DEFAULT COLLATE = \'utf8mb4_unicode_ci\';'
+          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';'
         }
       ],
       dropDatabaseQuery: [
