@@ -475,7 +475,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      if (dialect === 'postgres') {
+      if (dialect === 'postgres' || dialect === 'sqlite') {
         it('should be able to find multiple users with case-insensitive on CITEXT type', function() {
           const User = this.sequelize.define('UsersWithCaseInsensitiveName', {
             username: Sequelize.CITEXT

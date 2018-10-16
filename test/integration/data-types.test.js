@@ -285,6 +285,11 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for CITEXT', () => {
     const Type = new Sequelize.CITEXT();
 
+    if (dialect === 'sqlite') {
+      // The "field type" sqlite returns is TEXT so is covered under TEXT test above
+      return;
+    }
+
     if (dialect === 'postgres') {
       return testSuccess(Type, 'foobar');
     } else {
