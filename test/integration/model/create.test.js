@@ -1346,6 +1346,39 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
+    describe('temporary tables', () => {
+      const noPoolSequelize = Support.createSequelizeInstance({pool: {max: 1}});
+
+      it('creates a temporary table', () => {
+        const User = noPoolSequelize.define('TemporaryUser', {username: Sequelize.TEXT}, {temporaryTable: true});
+
+        return User.sync({force: true}).then(() => {
+          return User.create({username: 'foo'});
+        }).then(user => {
+          return User.findByPk(user.id);
+        }).then(user => {
+          expect(user.username).to.equal('foo');
+        });
+      });
+
+      it('forgets a temporary table on new connection', () => {
+        const User = noPoolSequelize.define('TemporaryUser', {
+          username: Sequelize.TEXT
+        }, {temporaryTable: true});
+
+        return User.sync({force: true}).then(() => {
+          return User.create({username: 'foo'});
+        }).then(() => {
+          return noPoolSequelize.close();
+        }).then(() => {
+          const newNoPoolSequelize = Support.createSequelizeInstance({pool: {max: 1}});
+          const User = newNoPoolSequelize.define('TemporaryUser', {username: Sequelize.TEXT}, {temporaryTable: true});
+
+          return expect(User.findAll()).to.eventually.be.rejectedWith(Sequelize.SequelizeDatabaseError);
+        });
+      });
+    });
+
     describe('enums', () => {
       it('correctly restores enum values', function() {
         const self = this,
