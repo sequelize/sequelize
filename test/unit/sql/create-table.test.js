@@ -81,6 +81,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    describe('temporary tables', () => {
+      const FooUser = current.define('user', {}, {
+        timestamps: false,
+        temporaryTable: true
+      });
+
+      it('properly uses the temporary option', () => {
+        expectsql(sql.createTableQuery(FooUser.getTableName(), sql.attributesToSQL(FooUser.rawAttributes), {temporaryTable: true}), {
+          sqlite: 'CREATE TEMPORARY TABLE IF NOT EXISTS `users` (`id` INTEGER PRIMARY KEY AUTOINCREMENT);',
+          postgres: 'CREATE TEMPORARY TABLE IF NOT EXISTS "users" ("id"   SERIAL , PRIMARY KEY ("id"));',
+          mysql: 'CREATE TEMPORARY TABLE IF NOT EXISTS `users` (`id` INTEGER NOT NULL auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB;',
+          mssql: "IF OBJECT_ID('[##users]', 'U') IS NULL CREATE TABLE [##users] ([id] INTEGER NOT NULL IDENTITY(1,1) , PRIMARY KEY ([id]));"
+        });
+      });
+    });
+
     if (current.dialect.name === 'postgres') {
       describe('IF NOT EXISTS version check', () => {
         const modifiedSQL = _.clone(sql);

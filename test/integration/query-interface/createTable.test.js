@@ -151,5 +151,28 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       });
     });
+
+    describe('temporary tables', () => {
+
+      it('should not create a temporary table with connection pool', () => {
+        return expect(
+          Support.sequelize.queryInterface.createTable(
+            'TempUser',
+            {username: DataTypes.TEXT},
+            {temporaryTable: true})
+        ).to.eventually.be.rejectedWith('Temporary tables do not work with a connection pool');
+      });
+
+      it('should create a temporary table', () => {
+        const noPoolSequelize = Support.createSequelizeInstance({pool: {max: 1}});
+
+        return expect(
+          noPoolSequelize.queryInterface.createTable(
+            'TempUser',
+            {username: DataTypes.TEXT},
+            {temporaryTable: true})
+        ).to.eventually.be.fulfilled;
+      });
+    });
   });
 });
