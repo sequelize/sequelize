@@ -646,7 +646,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const self = this;
           return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch (err => {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
-            'You\'ve included an alias (Work), but it does not match the alias defined in your association.');
+            'You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDo).');
           });
         });
 
@@ -859,7 +859,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const self = this;
           return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch (err => {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
-            'You\'ve included an alias (Work), but it does not match the alias defined in your association.');
+            'You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDos).');
           });
         });
 
