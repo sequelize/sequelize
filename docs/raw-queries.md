@@ -5,7 +5,7 @@ As there are often use cases in which it is just easier to execute raw / already
 By default the function will return two arguments - a results array, and an object containing metadata (affected rows etc.). Note that since this is a raw query, the metadata (property names etc.) is dialect specific. Some dialects return the metadata "within" the results object (as properties on an array). However, two arguments will always be returned, but for MSSQL and MySQL it will be two references to the same object.
 
 ```js
-sequelize.query("UPDATE users SET y = 42 WHERE x = 12").spread((results, metadata) => {
+sequelize.query("UPDATE users SET y = 42 WHERE x = 12").then(([results, metadata]) => {
   // Results will be an empty array and metadata will contain the number of affected rows.
 })
 ```

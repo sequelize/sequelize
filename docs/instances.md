@@ -181,8 +181,7 @@ Task.bulkCreate([
     { status: 'inactive' }, /* set attributes' value */
     { where: { subject: 'programming' }} /* where criteria */
   );
-}).spread((affectedCount, affectedRows) => {
-  // .update returns two values in an array, therefore we use .spread
+}).then(([affectedCount, affectedRows]) => {
   // Notice that affectedRows will only be defined in dialects which support returning: true
 
   // affectedCount will be 2
