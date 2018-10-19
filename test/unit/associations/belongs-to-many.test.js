@@ -585,5 +585,67 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onUpdate).to.equal('SET NULL');
       expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId.onDelete).to.equal('RESTRICT');
     });
+
+    it('generate unique identifier with very long length', function() {
+      const User = this.sequelize.define('User', {}, { tableName: 'table_user_with_very_long_name' }),
+        Group = this.sequelize.define('Group', {}, { tableName: 'table_group_with_very_long_name' }),
+        UserGroup = this.sequelize.define(
+          'GroupUser',
+          {
+            id_user_very_long_field: {
+              type: DataTypes.INTEGER(1)
+            },
+            id_group_very_long_field: {
+              type: DataTypes.INTEGER(1)
+            }
+          },
+          {tableName: 'table_user_group_with_very_long_name'}
+        );
+
+      User.belongsToMany(Group, { as: 'MyGroups', through: UserGroup, foreignKey: 'id_user_very_long_field' });
+      Group.belongsToMany(User, { as: 'MyUsers', through: UserGroup, foreignKey: 'id_group_very_long_field' });
+
+      expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
+      expect(Group.associations.MyUsers.through.model.rawAttributes.id_user_very_long_field.unique).to.have.lengthOf(92);
+      expect(Group.associations.MyUsers.through.model.rawAttributes.id_group_very_long_field.unique).to.have.lengthOf(92);
+      expect(Group.associations.MyUsers.through.model.rawAttributes.id_user_very_long_field.unique).to.equal('table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique');
+      expect(Group.associations.MyUsers.through.model.rawAttributes.id_group_very_long_field.unique).to.equal('table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique');
+    });
+
+    it('generate unique identifier with custom name', function() {
+      const User = this.sequelize.define('User', {}, { tableName: 'table_user_with_very_long_name' }),
+        Group = this.sequelize.define('Group', {}, { tableName: 'table_group_with_very_long_name' }),
+        UserGroup = this.sequelize.define(
+          'GroupUser',
+          {
+            id_user_very_long_field: {
+              type: DataTypes.INTEGER(1)
+            },
+            id_group_very_long_field: {
+              type: DataTypes.INTEGER(1)
+            }
+          },
+          {tableName: 'table_user_group_with_very_long_name'}
+        );
+
+      User.belongsToMany(Group, {
+        as: 'MyGroups',
+        through: UserGroup,
+        foreignKey: 'id_user_very_long_field',
+        uniqueKey: 'custom_user_group_unique'
+      });
+      Group.belongsToMany(User, {
+        as: 'MyUsers',
+        through: UserGroup,
+        foreignKey: 'id_group_very_long_field',
+        uniqueKey: 'custom_user_group_unique'
+      });
+
+      expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
+      expect(Group.associations.MyUsers.through.model.rawAttributes.id_user_very_long_field.unique).to.have.lengthOf(24);
+      expect(Group.associations.MyUsers.through.model.rawAttributes.id_group_very_long_field.unique).to.have.lengthOf(24);
+      expect(Group.associations.MyUsers.through.model.rawAttributes.id_user_very_long_field.unique).to.equal('custom_user_group_unique');
+      expect(Group.associations.MyUsers.through.model.rawAttributes.id_group_very_long_field.unique).to.equal('custom_user_group_unique');
+    });
   });
 });
