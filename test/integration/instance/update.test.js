@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
@@ -375,7 +375,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('ignores undefined attributes', function() {
-      return this.User.sync({force: true}).bind(this).then(() => {
+      return this.User.sync({force: true}).then(() => {
         return this.User.create({ username: 'user' }).then(user => {
           return user.update({ username: undefined }).then(user => {
             expect(user.username).to.equal('user');
@@ -391,12 +391,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         identifier: {type: DataTypes.STRING, primaryKey: true}
       });
 
-      return User.sync({ force: true }).bind(this).then(() => {
+      return User.sync({ force: true }).then(() => {
         return User.create({
           name: 'snafu',
           identifier: 'identifier'
         });
-      }).then(function(user) {
+      }).then(user => {
         const oldCreatedAt = user.createdAt,
           oldUpdatedAt = user.updatedAt,
           oldIdentifier = user.identifier;

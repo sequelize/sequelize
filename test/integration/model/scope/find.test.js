@@ -67,18 +67,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should be able to combine scope and findAll where clauses', function() {
       return this.ScopeMe.scope({where: { parent_id: 1 }}).findAll({ where: {access_level: 3}}).then(users => {
         expect(users).to.have.length(2);
-        expect(['tony', 'fred'].indexOf(users[0].username) !== -1).to.be.true;
-        expect(['tony', 'fred'].indexOf(users[1].username) !== -1).to.be.true;
+        expect(['tony', 'fred'].includes(users[0].username)).to.be.true;
+        expect(['tony', 'fred'].includes(users[1].username)).to.be.true;
       });
     });
 
     it('should be able to use a defaultScope if declared', function() {
       return this.ScopeMe.findAll().then(users => {
         expect(users).to.have.length(2);
-        expect([10, 5].indexOf(users[0].access_level) !== -1).to.be.true;
-        expect([10, 5].indexOf(users[1].access_level) !== -1).to.be.true;
-        expect(['dan', 'tobi'].indexOf(users[0].username) !== -1).to.be.true;
-        expect(['dan', 'tobi'].indexOf(users[1].username) !== -1).to.be.true;
+        expect([10, 5].includes(users[0].access_level)).to.be.true;
+        expect([10, 5].includes(users[1].access_level)).to.be.true;
+        expect(['dan', 'tobi'].includes(users[0].username)).to.be.true;
+        expect(['dan', 'tobi'].includes(users[1].username)).to.be.true;
       });
     });
 
@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('should not overwrite', () => {
       it('default scope with values from previous finds', function() {
-        return this.ScopeMe.findAll({ where: { other_value: 10 }}).bind(this).then(function(users) {
+        return this.ScopeMe.findAll({ where: { other_value: 10 }}).then(users => {
           expect(users).to.have.length(1);
 
           return this.ScopeMe.findAll();
@@ -103,7 +103,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('other scopes with values from previous finds', function() {
-        return this.ScopeMe.scope('highValue').findAll({ where: { access_level: 10 }}).bind(this).then(function(users) {
+        return this.ScopeMe.scope('highValue').findAll({ where: { access_level: 10 }}).then(users => {
           expect(users).to.have.length(1);
 
           return this.ScopeMe.scope('highValue').findAll();

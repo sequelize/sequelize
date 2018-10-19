@@ -356,7 +356,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       postgres: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
       sqlite: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();'
     });
-  
+
     describe('Invalid', () => {
       it('Error on invalid association', () => {
         return expect(Subtask.findAll({

@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }).schema('bar');
 
       BarProject.belongsTo(BarUser, { foreignKey: 'user_id' });
-      
+
       it('references right schema when adding foreign key #9029', () => {
         expectsql(sql.createTableQuery(BarProject.getTableName(), sql.attributesToSQL(BarProject.rawAttributes), { }), {
           sqlite: 'CREATE TABLE IF NOT EXISTS `bar.projects` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `user_id` INTEGER REFERENCES `bar.users` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE);',
@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         timestamps: false
       });
-      
+
       it('references on primary key #9461', () => {
         expectsql(sql.createTableQuery(Image.getTableName(), sql.attributesToSQL(Image.rawAttributes), { }), {
           sqlite: 'CREATE TABLE IF NOT EXISTS `images` (`id` INTEGER PRIMARY KEY AUTOINCREMENT REFERENCES `files` (`id`));',

@@ -72,9 +72,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('throws an error if 2 autoIncrements are passed', function() {
-      const self = this;
       expect(() => {
-        self.sequelize.define('UserWithTwoAutoIncrements', {
+        this.sequelize.define('UserWithTwoAutoIncrements', {
           userid: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
           userscore: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true }
         });
@@ -82,9 +81,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('throws an error if a custom model-wide validation is not a function', function() {
-      const self = this;
       expect(() => {
-        self.sequelize.define('Foo', {
+        this.sequelize.define('Foo', {
           field: Sequelize.INTEGER
         }, {
           validate: {
@@ -95,9 +93,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('throws an error if a custom model-wide validation has the same name as a field', function() {
-      const self = this;
       expect(() => {
-        self.sequelize.define('Foo', {
+        this.sequelize.define('Foo', {
           field: Sequelize.INTEGER
         }, {
           validate: {
@@ -277,7 +274,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const User = this.sequelize.define('UserWithUniqueFieldAlias', {
         userName: { type: Sequelize.STRING, unique: 'user_name_unique', field: 'user_name' }
       });
-      return User.sync({ force: true }).bind(this).then(function() {
+      return User.sync({ force: true }).then(() => {
         return this.sequelize.queryInterface.showIndex(User.tableName).then(indexes => {
           let idxUnique;
           if (dialect === 'sqlite') {
@@ -329,7 +326,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
     it('allows us to map the customized error message with unique constraint name', function() {
       // Fake migration style index creation with explicit index definition
-      const self = this;
       let User = this.sequelize.define('UserWithUniqueUsername', {
         user_id: { type: Sequelize.INTEGER},
         email: { type: Sequelize.STRING}
@@ -346,7 +342,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return User.sync({ force: true }).then(() => {
         // Redefine the model to use the index in database and override error message
-        User = self.sequelize.define('UserWithUniqueUsername', {
+        User = this.sequelize.define('UserWithUniqueUsername', {
           user_id: { type: Sequelize.INTEGER, unique: { name: 'user_and_email_index', msg: 'User and email must be unique' }},
           email: { type: Sequelize.STRING, unique: 'user_and_email_index'}
         });
@@ -390,17 +386,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         engine: 'MyISAM'
       });
 
-      return this.sequelize.sync().bind(this).then(function() {
+      return this.sequelize.sync().then(() => {
         return this.sequelize.sync(); // The second call should not try to create the indices again
-      }).then(function() {
+      }).then(() => {
         return this.sequelize.queryInterface.showIndex(Model.tableName);
-      }).spread(function() {
+      }).then(args => {
         let primary, idx1, idx2, idx3;
 
         if (dialect === 'sqlite') {
           // PRAGMA index_info does not return the primary index
-          idx1 = arguments[0];
-          idx2 = arguments[1];
+          idx1 = args[0];
+          idx2 = args[1];
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: undefined},
@@ -411,7 +407,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             { attribute: 'fieldC', length: undefined, order: undefined}
           ]);
         } else if (dialect === 'mssql') {
-          idx1 = arguments[0];
+          idx1 = args[0];
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined},
@@ -419,10 +415,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
         } else if (dialect === 'postgres') {
           // Postgres returns indexes in alphabetical order
-          primary = arguments[2];
-          idx1 = arguments[0];
-          idx2 = arguments[1];
-          idx3 = arguments[2];
+          primary = args[2];
+          idx1 = args[0];
+          idx2 = args[1];
+          idx3 = args[2];
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined},
@@ -438,9 +434,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
         } else {
           // And finally mysql returns the primary first, and then the rest in the order they were defined
-          primary = arguments[0];
-          idx1 = arguments[1];
-          idx2 = arguments[2];
+          primary = args[0];
+          idx1 = args[1];
+          idx2 = args[2];
 
           expect(primary.primary).to.be.ok;
 
@@ -677,7 +673,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findOne', () => {
     if (current.dialect.supports.transactions) {
       it('supports the transaction option in the first parameter', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING });
           return User.sync({ force: true }).then(() => {
             return sequelize.transaction().then(t => {
@@ -736,7 +732,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
@@ -770,12 +766,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('returns an instance if it already exists', () => {
       it('with a single find field', function() {
-        const self = this;
-
         return this.User.create({ username: 'Username' }).then(user => {
-          return self.User.findOrBuild({
+          return this.User.findOrBuild({
             where: { username: user.username }
-          }).spread((_user, initialized) => {
+          }).then(([_user, initialized]) => {
             expect(_user.id).to.equal(user.id);
             expect(_user.username).to.equal('Username');
             expect(initialized).to.be.false;
@@ -784,13 +778,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('with multiple find fields', function() {
-        const self = this;
-
         return this.User.create({ username: 'Username', data: 'data' }).then(user => {
-          return self.User.findOrBuild({ where: {
+          return this.User.findOrBuild({ where: {
             username: user.username,
             data: user.data
-          }}).spread((_user, initialized) => {
+          }}).then(([_user, initialized]) => {
             expect(_user.id).to.equal(user.id);
             expect(_user.username).to.equal('Username');
             expect(_user.data).to.equal('data');
@@ -810,7 +802,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findOrBuild({
           where: data,
           defaults: default_values
-        }).spread((user, initialized) => {
+        }).then(([user, initialized]) => {
           expect(user.id).to.be.null;
           expect(user.username).to.equal('Username');
           expect(user.data).to.equal('ThisIsData');
@@ -837,7 +829,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
@@ -901,7 +893,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             logging(sql) {
               test = true;
               expect(sql).to.exist;
-              expect(sql.toUpperCase().indexOf('UPDATE')).to.be.above(-1);
+              expect(sql.toUpperCase()).to.include('UPDATE');
             }
           });
         });
@@ -911,14 +903,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('updates only values that match filter', function() {
-      const self = this,
-        data = [{ username: 'Peter', secretValue: '42' },
-          { username: 'Paul', secretValue: '42' },
-          { username: 'Bob', secretValue: '43' }];
+      const data = [{ username: 'Peter', secretValue: '42' },
+        { username: 'Paul', secretValue: '42' },
+        { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.update({username: 'Bill'}, {where: {secretValue: '42'}}).then(() => {
-          return self.User.findAll({order: ['id']}).then(users => {
+        return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}}).then(() => {
+          return this.User.findAll({order: ['id']}).then(users => {
             expect(users.length).to.equal(3);
 
             users.forEach(user => {
@@ -935,13 +926,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('throws an error if where has a key with undefined value', function() {
-      const self = this,
-        data = [{ username: 'Peter', secretValue: '42' },
-          { username: 'Paul', secretValue: '42' },
-          { username: 'Bob', secretValue: '43' }];
+      const data = [{ username: 'Peter', secretValue: '42' },
+        { username: 'Paul', secretValue: '42' },
+        { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.update({username: 'Bill'}, {where: {secretValue: '42', username: undefined}}).then(() => {
+        return this.User.update({username: 'Bill'}, {where: {secretValue: '42', username: undefined}}).then(() => {
           throw new Error('Update should throw an error if where has a key with undefined value');
         }, err => {
           expect(err).to.be.an.instanceof(Error);
@@ -951,12 +941,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('updates only values that match the allowed fields', function() {
-      const self = this,
-        data = [{ username: 'Peter', secretValue: '42' }];
+      const data = [{ username: 'Peter', secretValue: '42' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.update({username: 'Bill', secretValue: '43'}, {where: {secretValue: '42'}, fields: ['username']}).then(() => {
-          return self.User.findAll({order: ['id']}).then(users => {
+        return this.User.update({username: 'Bill', secretValue: '43'}, {where: {secretValue: '42'}, fields: ['username']}).then(() => {
+          return this.User.findAll({order: ['id']}).then(users => {
             expect(users.length).to.equal(1);
 
             const user = users[0];
@@ -968,12 +957,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('updates with casting', function() {
-      const self = this;
       return this.User.create({
         username: 'John'
       }).then(() => {
-        return self.User.update({username: self.sequelize.cast('1', dialect === 'mssql' ? 'nvarchar' : 'char')}, {where: {username: 'John'}}).then(() => {
-          return self.User.findAll().then(users => {
+        return this.User.update({username: this.sequelize.cast('1', dialect === 'mssql' ? 'nvarchar' : 'char')}, {where: {username: 'John'}}).then(() => {
+          return this.User.findAll().then(users => {
             expect(users[0].username).to.equal('1');
           });
         });
@@ -981,13 +969,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('updates with function and column value', function() {
-      const self = this;
-
       return this.User.create({
         username: 'John'
       }).then(() => {
-        return self.User.update({username: self.sequelize.fn('upper', self.sequelize.col('username'))}, {where: {username: 'John'}}).then(() => {
-          return self.User.findAll().then(users => {
+        return this.User.update({username: this.sequelize.fn('upper', this.sequelize.col('username'))}, {where: {username: 'John'}}).then(() => {
+          return this.User.findAll().then(users => {
             expect(users[0].username).to.equal('JOHN');
           });
         });
@@ -1090,15 +1076,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should properly set data when individualHooks are true', function() {
-      const self = this;
-
-      self.User.beforeUpdate(instance => {
+      this.User.beforeUpdate(instance => {
         instance.set('intVal', 1);
       });
 
-      return self.User.create({ username: 'Peter' }).then(user => {
-        return self.User.update({ data: 'test' }, { where: { id: user.id }, individualHooks: true }).then(() => {
-          return self.User.findByPk(user.id).then(userUpdated => {
+      return this.User.create({ username: 'Peter' }).then(user => {
+        return this.User.update({ data: 'test' }, { where: { id: user.id }, individualHooks: true }).then(() => {
+          return this.User.findByPk(user.id).then(userUpdated => {
             expect(userUpdated.intVal).to.be.equal(1);
           });
         });
@@ -1110,9 +1094,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { username: 'Paul', secretValue: '42' },
         { username: 'Bob', secretValue: '43' }];
 
-      return this.User.bulkCreate(data).bind(this).then(function() {
+      return this.User.bulkCreate(data).then(() => {
         return this.User.findAll({order: ['id']});
-      }).then(function(users) {
+      }).then(users => {
         this.updatedAt = users[0].updatedAt;
 
         expect(this.updatedAt).to.be.ok;
@@ -1121,9 +1105,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         // Pass the time so we can actually see a change
         this.clock.tick(1000);
         return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}});
-      }).then(function() {
+      }).then(() => {
         return this.User.findAll({order: ['id']});
-      }).then(function(users) {
+      }).then(users => {
         expect(users[0].username).to.equal('Bill');
         expect(users[1].username).to.equal('Bill');
         expect(users[2].username).to.equal('Bob');
@@ -1134,16 +1118,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('returns the number of affected rows', function() {
-      const self = this,
-        data = [{ username: 'Peter', secretValue: '42' },
-          { username: 'Paul', secretValue: '42' },
-          { username: 'Bob', secretValue: '43' }];
+      const data = [{ username: 'Peter', secretValue: '42' },
+        { username: 'Paul', secretValue: '42' },
+        { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.update({username: 'Bill'}, {where: {secretValue: '42'}}).spread(affectedRows => {
+        return this.User.update({username: 'Bill'}, {where: {secretValue: '42'}}).spread(affectedRows => {
           expect(affectedRows).to.equal(2);
         }).then(() => {
-          return self.User.update({username: 'Bill'}, {where: {secretValue: '44'}}).spread(affectedRows => {
+          return this.User.update({username: 'Bill'}, {where: {secretValue: '44'}}).spread(affectedRows => {
             expect(affectedRows).to.equal(0);
           });
         });
@@ -1213,17 +1196,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (dialect === 'postgres') {
       it('returns the affected rows if `options.returning` is true', function() {
-        const self = this,
-          data = [{ username: 'Peter', secretValue: '42' },
-            { username: 'Paul', secretValue: '42' },
-            { username: 'Bob', secretValue: '43' }];
+        const data = [{ username: 'Peter', secretValue: '42' },
+          { username: 'Paul', secretValue: '42' },
+          { username: 'Bob', secretValue: '43' }];
 
         return this.User.bulkCreate(data).then(() => {
-          return self.User.update({ username: 'Bill' }, { where: {secretValue: '42' }, returning: true }).spread((count, rows) => {
+          return this.User.update({ username: 'Bill' }, { where: {secretValue: '42' }, returning: true }).then(([count, rows]) => {
             expect(count).to.equal(2);
             expect(rows).to.have.length(2);
           }).then(() => {
-            return self.User.update({ username: 'Bill'}, { where: {secretValue: '44' }, returning: true }).spread((count, rows) => {
+            return this.User.update({ username: 'Bill'}, { where: {secretValue: '44' }, returning: true }).then(([count, rows]) => {
               expect(count).to.equal(0);
               expect(rows).to.have.length(0);
             });
@@ -1234,13 +1216,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (dialect === 'mysql') {
       it('supports limit clause', function() {
-        const self = this,
-          data = [{ username: 'Peter', secretValue: '42' },
-            { username: 'Peter', secretValue: '42' },
-            { username: 'Peter', secretValue: '42' }];
+        const data = [{ username: 'Peter', secretValue: '42' },
+          { username: 'Peter', secretValue: '42' },
+          { username: 'Peter', secretValue: '42' }];
 
         return this.User.bulkCreate(data).then(() => {
-          return self.User.update({secretValue: '43'}, {where: {username: 'Peter'}, limit: 1}).spread(affectedRows => {
+          return this.User.update({secretValue: '43'}, {where: {username: 'Peter'}, limit: 1}).spread(affectedRows => {
             expect(affectedRows).to.equal(1);
           });
         });
@@ -1329,7 +1310,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
@@ -1355,15 +1336,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('deletes values that match filter', function() {
-      const self = this,
-        data = [{ username: 'Peter', secretValue: '42' },
-          { username: 'Paul', secretValue: '42' },
-          { username: 'Bob', secretValue: '43' }];
+      const data = [{ username: 'Peter', secretValue: '42' },
+        { username: 'Paul', secretValue: '42' },
+        { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.destroy({where: {secretValue: '42'}})
+        return this.User.destroy({where: {secretValue: '42'}})
           .then(() => {
-            return self.User.findAll({order: ['id']}).then(users => {
+            return this.User.findAll({order: ['id']}).then(users => {
               expect(users.length).to.equal(1);
               expect(users[0].username).to.equal('Bob');
             });
@@ -1424,9 +1404,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('sets deletedAt to the current timestamp if paranoid is true', function() {
-      const self = this,
-        qi = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier.bind(this.sequelize.queryInterface.QueryGenerator),
-        ParanoidUser = self.sequelize.define('ParanoidUser', {
+      const qi = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier.bind(this.sequelize.queryInterface.QueryGenerator),
+        ParanoidUser = this.sequelize.define('ParanoidUser', {
           username: Sequelize.STRING,
           secretValue: Sequelize.STRING,
           data: Sequelize.STRING,
@@ -1438,11 +1417,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { username: 'Paul', secretValue: '42' },
           { username: 'Bob', secretValue: '43' }];
 
+      const ctx = {};
       return ParanoidUser.sync({ force: true }).then(() => {
         return ParanoidUser.bulkCreate(data);
-      }).bind({}).then(function() {
+      }).then(() => {
         // since we save in UTC, let's format to UTC time
-        this.date = moment().utc().format('YYYY-MM-DD h:mm');
+        ctx.date = moment().utc().format('YYYY-MM-DD h:mm');
         return ParanoidUser.destroy({where: {secretValue: '42'}});
       }).then(() => {
         return ParanoidUser.findAll({order: ['id']});
@@ -1450,13 +1430,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users.length).to.equal(1);
         expect(users[0].username).to.equal('Bob');
 
-        return self.sequelize.query('SELECT * FROM ' + qi('ParanoidUsers') + ' WHERE ' + qi('deletedAt') + ' IS NOT NULL ORDER BY ' + qi('id'));
-      }).spread(function(users) {
+        return this.sequelize.query('SELECT * FROM ' + qi('ParanoidUsers') + ' WHERE ' + qi('deletedAt') + ' IS NOT NULL ORDER BY ' + qi('id'));
+      }).then(([users]) => {
         expect(users[0].username).to.equal('Peter');
         expect(users[1].username).to.equal('Paul');
 
-        expect(moment(new Date(users[0].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
-        expect(moment(new Date(users[1].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(this.date);
+        expect(moment(new Date(users[0].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(ctx.date);
+        expect(moment(new Date(users[1].deletedAt)).utc().format('YYYY-MM-DD h:mm')).to.equal(ctx.date);
       });
     });
 
@@ -1542,9 +1522,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           })
           .then(user => {
             expect(user).to.be.null;
-            return [User.count(), User.count({ paranoid: false })];
+            return Promise.all([User.count(), User.count({ paranoid: false })]);
           })
-          .spread((cnt, cntWithDeleted) => {
+          .then(([cnt, cntWithDeleted]) => {
             expect(cnt).to.equal(2);
             expect(cntWithDeleted).to.equal(3);
           });
@@ -1577,15 +1557,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => { return Pet.findByPk(1); })
         .then(pet => { return pet.destroy(); })
         .then(() => {
-          return [
+          return Promise.all([
             User.findOne({ where: {id: user.id}, include: Pet }),
             User.findOne({
               where: {id: user.id},
               include: [{ model: Pet, paranoid: false }]
             })
-          ];
+          ]);
         })
-        .spread((user, userWithDeletedPets) => {
+        .then(([user, userWithDeletedPets]) => {
           expect(user).to.exist;
           expect(user.Pets).to.have.length(1);
           expect(userWithDeletedPets).to.exist;
@@ -1594,7 +1574,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should delete a paranoid record if I set force to true', function() {
-      const self = this;
       const User = this.sequelize.define('paranoiduser', {
         username: Sequelize.STRING
       }, { paranoid: true });
@@ -1617,17 +1596,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).then(tobi => {
         return tobi.destroy();
       }).then(() => {
-        return self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', { plain: true});
+        return this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', { plain: true});
       }).then(result => {
         expect(result.username).to.equal('Tobi');
         return User.destroy({where: {username: 'Tony'}});
       }).then(() => {
-        return self.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', { plain: true});
+        return this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', { plain: true});
       }).then(result => {
         expect(result.username).to.equal('Tony');
         return User.destroy({where: {username: ['Tony', 'Max']}, force: true});
       }).then(() => {
-        return self.sequelize.query('SELECT * FROM paranoidusers', {raw: true});
+        return this.sequelize.query('SELECT * FROM paranoidusers', {raw: true});
       }).spread(users => {
         expect(users).to.have.length(1);
         expect(users[0].username).to.equal('Tobi');
@@ -1635,28 +1614,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('returns the number of affected rows', function() {
-      const self = this,
-        data = [{ username: 'Peter', secretValue: '42' },
-          { username: 'Paul', secretValue: '42' },
-          { username: 'Bob', secretValue: '43' }];
+      const data = [{ username: 'Peter', secretValue: '42' },
+        { username: 'Paul', secretValue: '42' },
+        { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.destroy({where: {secretValue: '42'}}).then(affectedRows => {
+        return this.User.destroy({where: {secretValue: '42'}}).then(affectedRows => {
           expect(affectedRows).to.equal(2);
         });
       }).then(() => {
-        return self.User.destroy({where: {secretValue: '44'}}).then(affectedRows => {
+        return this.User.destroy({where: {secretValue: '44'}}).then(affectedRows => {
           expect(affectedRows).to.equal(0);
         });
       });
     });
 
     it('supports table schema/prefix', function() {
-      const self = this,
-        data = [{ username: 'Peter', secretValue: '42' },
+      const data = [{ username: 'Peter', secretValue: '42' },
           { username: 'Paul', secretValue: '42' },
           { username: 'Bob', secretValue: '43' }],
-        prefixUser = self.User.schema('prefix');
+        prefixUser = this.User.schema('prefix');
 
       const run = function() {
         return prefixUser.sync({ force: true }).then(() => {
@@ -1672,8 +1649,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       };
 
       return this.sequelize.queryInterface.dropAllSchemas().then(() => {
-        return self.sequelize.queryInterface.createSchema('prefix').then(() => {
-          return run.call(self);
+        return this.sequelize.queryInterface.createSchema('prefix').then(() => {
+          return run.call(this);
         });
       });
     });
@@ -1708,17 +1685,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('restore', () => {
     it('returns an error if the model is not paranoid', function() {
-      const self = this;
-
       return this.User.create({username: 'Peter', secretValue: '42'})
         .then(() => {
-          expect(() => {self.User.restore({where: {secretValue: '42'}});}).to.throw(Error, 'Model is not paranoid');
+          expect(() => {this.User.restore({where: {secretValue: '42'}});}).to.throw(Error, 'Model is not paranoid');
         });
     });
 
     it('restores a previously deleted model', function() {
-      const self = this,
-        ParanoidUser = self.sequelize.define('ParanoidUser', {
+      const ParanoidUser = this.sequelize.define('ParanoidUser', {
           username: Sequelize.STRING,
           secretValue: Sequelize.STRING,
           data: Sequelize.STRING,
@@ -1802,7 +1776,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('count', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
@@ -1823,22 +1797,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('counts all created objects', function() {
-      const self = this;
       return this.User.bulkCreate([{username: 'user1'}, {username: 'user2'}]).then(() => {
-        return self.User.count().then(count => {
+        return this.User.count().then(count => {
           expect(count).to.equal(2);
         });
       });
     });
 
     it('returns multiple rows when using group', function() {
-      const self = this;
       return this.User.bulkCreate([
         {username: 'user1', data: 'A'},
         {username: 'user2', data: 'A'},
         {username: 'user3', data: 'B'}
       ]).then(() => {
-        return self.User.count({
+        return this.User.count({
           attributes: ['data'],
           group: ['data']
         }).then(count => {
@@ -1901,7 +1873,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         logging(sql) {
           test = true;
           expect(sql).to.exist;
-          expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+          expect(sql.toUpperCase()).to.include('SELECT');
         }
       }).then(() => {
         expect(test).to.be.true;
@@ -1909,10 +1881,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('filters object', function() {
-      const self = this;
       return this.User.create({username: 'user1'}).then(() => {
-        return self.User.create({username: 'foo'}).then(() => {
-          return self.User.count({where: {username: {[Op.like]: '%us%'}}}).then(count => {
+        return this.User.create({username: 'foo'}).then(() => {
+          return this.User.count({where: {username: {[Op.like]: '%us%'}}}).then(count => {
             expect(count).to.equal(1);
           });
         });
@@ -1941,7 +1912,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('min', () => {
     beforeEach(function() {
-      const self = this;
       this.UserWithAge = this.sequelize.define('UserWithAge', {
         age: Sequelize.INTEGER
       });
@@ -1951,13 +1921,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       return this.UserWithAge.sync({ force: true }).then(() => {
-        return self.UserWithDec.sync({ force: true });
+        return this.UserWithDec.sync({ force: true });
       });
     });
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { age: Sequelize.INTEGER });
 
           return User.sync({ force: true }).then(() => {
@@ -1978,9 +1948,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('should return the min value', function() {
-      const self = this;
       return this.UserWithAge.bulkCreate([{age: 3}, { age: 2 }]).then(() => {
-        return self.UserWithAge.min('age').then(min => {
+        return this.UserWithAge.min('age').then(min => {
           expect(min).to.equal(2);
         });
       });
@@ -1992,7 +1961,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         logging(sql) {
           test = true;
           expect(sql).to.exist;
-          expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+          expect(sql.toUpperCase()).to.include('SELECT');
         }
       }).then(() => {
         expect(test).to.be.true;
@@ -2000,27 +1969,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should allow decimals in min', function() {
-      const self = this;
       return this.UserWithDec.bulkCreate([{value: 5.5}, {value: 3.5}]).then(() => {
-        return self.UserWithDec.min('value').then(min => {
+        return this.UserWithDec.min('value').then(min => {
           expect(min).to.equal(3.5);
         });
       });
     });
 
     it('should allow strings in min', function() {
-      const self = this;
       return this.User.bulkCreate([{username: 'bbb'}, {username: 'yyy'}]).then(() => {
-        return self.User.min('username').then(min => {
+        return this.User.min('username').then(min => {
           expect(min).to.equal('bbb');
         });
       });
     });
 
     it('should allow dates in min', function() {
-      const self = this;
       return this.User.bulkCreate([{theDate: new Date(2000, 1, 1)}, {theDate: new Date(1990, 1, 1)}]).then(() => {
-        return self.User.min('theDate').then(min => {
+        return this.User.min('theDate').then(min => {
           expect(min).to.be.a('Date');
           expect(new Date(1990, 1, 1)).to.equalDate(min);
         });
@@ -2030,7 +1996,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('max', () => {
     beforeEach(function() {
-      const self = this;
       this.UserWithAge = this.sequelize.define('UserWithAge', {
         age: Sequelize.INTEGER,
         order: Sequelize.INTEGER
@@ -2041,13 +2006,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       return this.UserWithAge.sync({ force: true }).then(() => {
-        return self.UserWithDec.sync({ force: true });
+        return this.UserWithDec.sync({ force: true });
       });
     });
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { age: Sequelize.INTEGER });
 
           return User.sync({ force: true }).then(() => {
@@ -2068,39 +2033,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('should return the max value for a field named the same as an SQL reserved keyword', function() {
-      const self = this;
       return this.UserWithAge.bulkCreate([{age: 2, order: 3}, {age: 3, order: 5}]).then(() => {
-        return self.UserWithAge.max('order').then(max => {
+        return this.UserWithAge.max('order').then(max => {
           expect(max).to.equal(5);
         });
       });
     });
 
     it('should return the max value', function() {
-      const self = this;
-      return self.UserWithAge.bulkCreate([{age: 2}, {age: 3}]).then(() => {
-        return self.UserWithAge.max('age').then(max => {
+      return this.UserWithAge.bulkCreate([{age: 2}, {age: 3}]).then(() => {
+        return this.UserWithAge.max('age').then(max => {
           expect(max).to.equal(3);
         });
       });
     });
 
     it('should allow decimals in max', function() {
-      const self = this;
       return this.UserWithDec.bulkCreate([{value: 3.5}, {value: 5.5}]).then(() => {
-        return self.UserWithDec.max('value').then(max => {
+        return this.UserWithDec.max('value').then(max => {
           expect(max).to.equal(5.5);
         });
       });
     });
 
     it('should allow dates in max', function() {
-      const self = this;
       return this.User.bulkCreate([
         {theDate: new Date(2013, 11, 31)},
         {theDate: new Date(2000, 1, 1)}
       ]).then(() => {
-        return self.User.max('theDate').then(max => {
+        return this.User.max('theDate').then(max => {
           expect(max).to.be.a('Date');
           expect(max).to.equalDate(new Date(2013, 11, 31));
         });
@@ -2108,9 +2069,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should allow strings in max', function() {
-      const self = this;
       return this.User.bulkCreate([{username: 'aaa'}, {username: 'zzz'}]).then(() => {
-        return self.User.max('username').then(max => {
+        return this.User.max('username').then(max => {
           expect(max).to.equal('zzz');
         });
       });
@@ -2122,7 +2082,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         logging(sql) {
           expect(sql).to.exist;
           logged = true;
-          expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+          expect(sql.toUpperCase()).to.include('SELECT');
         }
       }).then(() => {
         expect(logged).to.true;
@@ -2162,27 +2122,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should return the sum of the values for a field named the same as an SQL reserved keyword', function() {
-      const self = this;
       return this.UserWithAge.bulkCreate([{age: 2, order: 3}, {age: 3, order: 5}]).then(() => {
-        return self.UserWithAge.sum('order').then(sum => {
+        return this.UserWithAge.sum('order').then(sum => {
           expect(sum).to.equal(8);
         });
       });
     });
 
     it('should return the sum of a field in various records', function() {
-      const self = this;
-      return self.UserWithAge.bulkCreate([{age: 2}, {age: 3}]).then(() => {
-        return self.UserWithAge.sum('age').then(sum => {
+      return this.UserWithAge.bulkCreate([{age: 2}, {age: 3}]).then(() => {
+        return this.UserWithAge.sum('age').then(sum => {
           expect(sum).to.equal(5);
         });
       });
     });
 
     it('should allow decimals in sum', function() {
-      const self = this;
       return this.UserWithDec.bulkCreate([{value: 3.5}, {value: 5.25}]).then(() => {
-        return self.UserWithDec.sum('value').then(sum => {
+        return this.UserWithDec.sum('value').then(sum => {
           expect(sum).to.equal(8.75);
         });
       });
@@ -2191,9 +2148,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should accept a where clause', function() {
       const options = { where: { 'gender': 'male' }};
 
-      const self = this;
-      return self.UserWithAge.bulkCreate([{age: 2, gender: 'male'}, {age: 3, gender: 'female'}]).then(() => {
-        return self.UserWithAge.sum('age', options).then(sum => {
+      return this.UserWithAge.bulkCreate([{age: 2, gender: 'male'}, {age: 3, gender: 'female'}]).then(() => {
+        return this.UserWithAge.sum('age', options).then(sum => {
           expect(sum).to.equal(2);
         });
       });
@@ -2203,7 +2159,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.UserWithFields.bulkCreate([
         {age: 2, gender: 'male'},
         {age: 3, gender: 'female'}
-      ]).bind(this).then(function() {
+      ]).then(() => {
         return expect(this.UserWithFields.sum('age', {
           where: { 'gender': 'male' }
         })).to.eventually.equal(2);
@@ -2216,7 +2172,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         logging(sql) {
           expect(sql).to.exist;
           logged = true;
-          expect(sql.toUpperCase().indexOf('SELECT')).to.be.above(-1);
+          expect(sql.toUpperCase()).to.include('SELECT');
         }
       }).then(() => {
         expect(logged).to.true;
@@ -2270,14 +2226,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               logging(sql) {
                 expect(sql).to.exist;
                 test++;
-                expect(sql.indexOf('INSERT INTO `hello__UserSpecialDblUnderscores`')).to.be.above(-1);
+                expect(sql).to.include('INSERT INTO `hello__UserSpecialDblUnderscores`');
               }
             }).then(() => {
               return User.create({age: 3}, {
                 logging(sql) {
                   expect(sql).to.exist;
                   test++;
-                  expect(sql.indexOf('INSERT INTO `hello_UserSpecialUnderscores`')).to.be.above(-1);
+                  expect(sql).to.include('INSERT INTO `hello_UserSpecialUnderscores`');
                 }
               });
             });
@@ -2289,15 +2245,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('should describeTable using the default schema settings', function() {
-      const self = this,
-        UserPublic = this.sequelize.define('Public', {
-          username: Sequelize.STRING
-        });
+      const UserPublic = this.sequelize.define('Public', {
+        username: Sequelize.STRING
+      });
       let count = 0;
 
       return UserPublic.sync({ force: true }).then(() => {
         return UserPublic.schema('special').sync({ force: true }).then(() => {
-          return self.sequelize.queryInterface.describeTable('Publics', {
+          return this.sequelize.queryInterface.describeTable('Publics', {
             logging(sql) {
               if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql') {
                 expect(sql).to.not.contain('special');
@@ -2309,7 +2264,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(table.id.defaultValue).to.not.contain('special');
               count++;
             }
-            return self.sequelize.queryInterface.describeTable('Publics', {
+            return this.sequelize.queryInterface.describeTable('Publics', {
               schema: 'special',
               logging(sql) {
                 if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql') {
@@ -2331,8 +2286,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to reference a table with a schema set', function() {
-      const self = this;
-
       const UserPub = this.sequelize.define('UserPub', {
         username: Sequelize.STRING
       }, { schema: 'prefix' });
@@ -2362,48 +2315,47 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (dialect === 'postgres' || dialect === 'mssql') {
         return this.sequelize.queryInterface.dropAllSchemas().then(() => {
-          return self.sequelize.queryInterface.createSchema('prefix').then(() => {
-            return run.call(self);
+          return this.sequelize.queryInterface.createSchema('prefix').then(() => {
+            return run.call(this);
           });
         });
       } else {
-        return run.call(self);
+        return run.call(this);
       }
     });
 
     it('should be able to create and update records under any valid schematic', function() {
-      const self = this;
       let logged = 0;
-      return self.UserPublic.sync({ force: true }).then(UserPublicSync => {
+      return this.UserPublic.sync({ force: true }).then(UserPublicSync => {
         return UserPublicSync.create({age: 3}, {
-          logging(UserPublic) {
+          logging: UserPublic => {
             logged++;
             if (dialect === 'postgres') {
-              expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
-              expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1);
+              expect(this.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
+              expect(UserPublic).to.include('INSERT INTO "UserPublics"');
             } else if (dialect === 'sqlite') {
-              expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
-              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
+              expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
+              expect(UserPublic).to.include('INSERT INTO `UserPublics`');
             } else if (dialect === 'mssql') {
-              expect(self.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
-              expect(UserPublic.indexOf('INSERT INTO [UserPublics]')).to.be.above(-1);
+              expect(this.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
+              expect(UserPublic).to.include('INSERT INTO [UserPublics]');
             } else {
-              expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
-              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
+              expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
+              expect(UserPublic).to.include('INSERT INTO `UserPublics`');
             }
           }
         }).then(() => {
-          return self.UserSpecialSync.schema('special').create({age: 3}, {
+          return this.UserSpecialSync.schema('special').create({age: 3}, {
             logging(UserSpecial) {
               logged++;
               if (dialect === 'postgres') {
-                expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).to.be.above(-1);
+                expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
               } else if (dialect === 'sqlite') {
-                expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
+                expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
               } else if (dialect === 'mssql') {
-                expect(UserSpecial.indexOf('INSERT INTO [special].[UserSpecials]')).to.be.above(-1);
+                expect(UserSpecial).to.include('INSERT INTO [special].[UserSpecials]');
               } else {
-                expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
+                expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
               }
             }
           }).then(UserSpecial => {
@@ -2411,11 +2363,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               logging(user) {
                 logged++;
                 if (dialect === 'postgres') {
-                  expect(user.indexOf('UPDATE "special"."UserSpecials"')).to.be.above(-1);
+                  expect(user).to.include('UPDATE "special"."UserSpecials"');
                 } else if (dialect === 'mssql') {
-                  expect(user.indexOf('UPDATE [special].[UserSpecials]')).to.be.above(-1);
+                  expect(user).to.include('UPDATE [special].[UserSpecials]');
                 } else {
-                  expect(user.indexOf('UPDATE `special.UserSpecials`')).to.be.above(-1);
+                  expect(user).to.include('UPDATE `special.UserSpecials`');
                 }
               }
             });
@@ -2429,14 +2381,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('references', () => {
     beforeEach(function() {
-      const self = this;
-
       this.Author = this.sequelize.define('author', { firstName: Sequelize.STRING });
 
       return this.sequelize.getQueryInterface().dropTable('posts', { force: true }).then(() => {
-        return self.sequelize.getQueryInterface().dropTable('authors', { force: true });
+        return this.sequelize.getQueryInterface().dropTable('authors', { force: true });
       }).then(() => {
-        return self.Author.sync();
+        return this.Author.sync();
       });
     });
 
@@ -2470,8 +2420,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('uses a table name as a string and references the author table', function() {
       const authorIdColumn = { type: Sequelize.INTEGER, references: { model: 'authors', key: 'id' } };
 
-      const self = this,
-        Post = self.sequelize.define('post', { title: Sequelize.STRING, authorId: authorIdColumn });
+      const Post = this.sequelize.define('post', { title: Sequelize.STRING, authorId: authorIdColumn });
 
       this.Author.hasMany(Post);
       Post.belongsTo(this.Author);
@@ -2569,11 +2518,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should return a buffer when fetching a blob', function() {
-        const self = this;
         return this.BlobUser.create({
           data: new Buffer('Sequelize')
         }).then(user => {
-          return self.BlobUser.findByPk(user.id).then(user => {
+          return this.BlobUser.findByPk(user.id).then(user => {
             expect(user.data).to.be.an.instanceOf(Buffer);
             expect(user.data.toString()).to.have.string('Sequelize');
           });
@@ -2581,11 +2529,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should work when the database returns null', function() {
-        const self = this;
         return this.BlobUser.create({
           // create a null column
         }).then(user => {
-          return self.BlobUser.findByPk(user.id).then(user => {
+          return this.BlobUser.findByPk(user.id).then(user => {
             expect(user.data).to.be.null;
           });
         });
@@ -2608,11 +2555,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should return a buffer when fetching a BLOB, even when the BLOB was inserted as a string', function() {
-          const self = this;
           return this.BlobUser.create({
             data: 'Sequelize'
           }).then(user => {
-            return self.BlobUser.findByPk(user.id).then(user => {
+            return this.BlobUser.findByPk(user.id).then(user => {
               expect(user.data).to.be.an.instanceOf(Buffer);
               expect(user.data.toString()).to.have.string('Sequelize');
             });
@@ -2632,22 +2578,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Project.belongsToMany(this.User, {through: 'project_user'});
       this.User.belongsToMany(this.Project, {through: 'project_user'});
 
-      const self = this;
       return this.sequelize.sync({ force: true }).then(() => {
-        return self.User.bulkCreate([{
+        return this.User.bulkCreate([{
           username: 'leia'
         }, {
           username: 'luke'
         }, {
           username: 'vader'
         }]).then(() => {
-          return self.Project.bulkCreate([{
+          return this.Project.bulkCreate([{
             title: 'republic'
           }, {
             title: 'empire'
           }]).then(() => {
-            return self.User.findAll().then(users => {
-              return self.Project.findAll().then(projects => {
+            return this.User.findAll().then(users => {
+              return this.Project.findAll().then(projects => {
                 const leia = users[0],
                   luke = users[1],
                   vader = users[2],
@@ -2735,7 +2680,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
     it('supports multiple async transactions', function() {
       this.timeout(90000);
-      return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+      return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
         const User = sequelize.define('User', { username: Sequelize.STRING });
         const testAsync = function() {
           return sequelize.transaction().then(t => {
@@ -2767,10 +2712,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return t.rollback();
           });
         };
-        return User.sync({ force: true }).then(function() {
+        return User.sync({ force: true }).then(() => {
           const tasks = [];
           for (let i = 0; i < 1000; i++) {
-            tasks.push(testAsync.bind(this));
+            tasks.push(testAsync);
           }
           return Sequelize.Promise.resolve(tasks).map(entry => {
             return entry();
@@ -2785,8 +2730,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('Unique', () => {
     it('should set unique when unique is true', function() {
-      const self = this;
-      const uniqueTrue = self.sequelize.define('uniqueTrue', {
+      const uniqueTrue = this.sequelize.define('uniqueTrue', {
         str: { type: Sequelize.STRING, unique: true }
       });
 
@@ -2796,8 +2740,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not set unique when unique is false', function() {
-      const self = this;
-      const uniqueFalse = self.sequelize.define('uniqueFalse', {
+      const uniqueFalse = this.sequelize.define('uniqueFalse', {
         str: { type: Sequelize.STRING, unique: false }
       });
 
@@ -2807,8 +2750,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not set unique when unique is unset', function() {
-      const self = this;
-      const uniqueUnset = self.sequelize.define('uniqueUnset', {
+      const uniqueUnset = this.sequelize.define('uniqueUnset', {
         str: { type: Sequelize.STRING }
       });
 
@@ -2881,7 +2823,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return val.substring(0, val.length - 1);
           },
           set(val) {
-            if (val.indexOf('!') > -1) {
+            if (val.includes('!')) {
               throw new Error('val should not include a "!"');
             }
             this.setDataValue('username', val + '!');

@@ -7,13 +7,13 @@ const DataTypes = require('../../lib/data-types');
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 
-describe(Support.getTestDialectTeaser('Replication'), function() {
+describe(Support.getTestDialectTeaser('Replication'), () => {
   if (dialect === 'sqlite') return;
 
   let sandbox;
   let readSpy, writeSpy;
 
-  beforeEach(() => {
+  beforeEach(function() {
     sandbox = sinon.createSandbox();
 
     this.sequelize = Support.getSequelizeInstance(null, null, null, {
@@ -54,23 +54,23 @@ describe(Support.getTestDialectTeaser('Replication'), function() {
     chai.expect(readSpy.notCalled).eql(true);
   }
 
-  it('should be able to make a write', () => {
+  it('should be able to make a write', function() {
     return this.User.create({
       firstName: Math.random().toString()
     }).then(expectWriteCalls);
   });
 
-  it('should be able to make a read', () => {
+  it('should be able to make a read', function() {
     return this.User.findAll().then(expectReadCalls);
   });
 
-  it('should run read-only transactions on the replica', () => {
+  it('should run read-only transactions on the replica', function() {
     return this.sequelize.transaction({readOnly: true}, transaction => {
       return this.User.findAll({transaction});
     }).then(expectReadCalls);
   });
 
-  it('should run non-read-only transactions on the primary', () => {
+  it('should run non-read-only transactions on the primary', function() {
     return this.sequelize.transaction(transaction => {
       return this.User.findAll({transaction});
     }).then(expectWriteCalls);

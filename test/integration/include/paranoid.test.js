@@ -105,19 +105,19 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
     X.hasMany(Y);
 
-    return this.sequelize.sync({ force: true}).bind(this).then(() => {
+    return this.sequelize.sync({ force: true}).then(() => {
       return Sequelize.Promise.all([
         X.create(),
         Y.create()
       ]);
-    }).spread(function(x, y) {
+    }).then(([x, y]) => {
       this.x = x;
       this.y = y;
 
       return x.addY(y);
-    }).then(function() {
+    }).then(() => {
       return this.y.destroy();
-    }).then(function() {
+    }).then(() => {
       //prevent CURRENT_TIMESTAMP to be same
       this.clock.tick(1000);
 

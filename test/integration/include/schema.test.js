@@ -17,33 +17,32 @@ const sortById = function(a, b) {
 describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
   describe('findAll', () => {
     beforeEach(function() {
-      const self = this;
       this.fixtureA = function() {
-        return self.sequelize.dropAllSchemas().then(() => {
-          return self.sequelize.createSchema('account').then(() => {
-            const AccUser = self.sequelize.define('AccUser', {}, {schema: 'account'}),
-              Company = self.sequelize.define('Company', {
+        return this.sequelize.dropAllSchemas().then(() => {
+          return this.sequelize.createSchema('account').then(() => {
+            const AccUser = this.sequelize.define('AccUser', {}, {schema: 'account'}),
+              Company = this.sequelize.define('Company', {
                 name: DataTypes.STRING
               }, {schema: 'account'}),
-              Product = self.sequelize.define('Product', {
+              Product = this.sequelize.define('Product', {
                 title: DataTypes.STRING
               }, {schema: 'account'}),
-              Tag = self.sequelize.define('Tag', {
+              Tag = this.sequelize.define('Tag', {
                 name: DataTypes.STRING
               }, {schema: 'account'}),
-              Price = self.sequelize.define('Price', {
+              Price = this.sequelize.define('Price', {
                 value: DataTypes.FLOAT
               }, {schema: 'account'}),
-              Customer = self.sequelize.define('Customer', {
+              Customer = this.sequelize.define('Customer', {
                 name: DataTypes.STRING
               }, {schema: 'account'}),
-              Group = self.sequelize.define('Group', {
+              Group = this.sequelize.define('Group', {
                 name: DataTypes.STRING
               }, {schema: 'account'}),
-              GroupMember = self.sequelize.define('GroupMember', {
+              GroupMember = this.sequelize.define('GroupMember', {
 
               }, {schema: 'account'}),
-              Rank = self.sequelize.define('Rank', {
+              Rank = this.sequelize.define('Rank', {
                 name: DataTypes.STRING,
                 canInvite: {
                   type: DataTypes.INTEGER,
@@ -59,7 +58,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                 }
               }, {schema: 'account'});
 
-            self.models = {
+            this.models = {
               AccUser,
               Company,
               Product,
@@ -88,7 +87,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             GroupMember.belongsTo(Group);
             Group.hasMany(GroupMember, {as: 'Memberships'});
 
-            return self.sequelize.sync({force: true}).then(() => {
+            return this.sequelize.sync({force: true}).then(() => {
               return Promise.all([
                 Group.bulkCreate([
                   {name: 'Developers'},
@@ -121,7 +120,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                   Rank.findAll(),
                   Tag.findAll()
                 ]);
-              }).spread((groups, companies, ranks, tags) => {
+              }).then(([groups, companies, ranks, tags]) => {
                 return Promise.each([0, 1, 2, 3, 4], i => {
                   return Promise.all([
                     AccUser.create(),
@@ -134,7 +133,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                     ]).then(() => {
                       return Product.findAll();
                     })
-                  ]).spread((user, products) => {
+                  ]).then(([user, products]) => {
                     const groupMembers = [
                       {AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
                       {AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id}
@@ -194,27 +193,25 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should support an include with multiple different association types', function() {
-      const self = this;
-
-      return self.sequelize.dropAllSchemas().then(() => {
-        return self.sequelize.createSchema('account').then(() => {
-          const AccUser = self.sequelize.define('AccUser', {}, {schema: 'account'}),
-            Product = self.sequelize.define('Product', {
+      return this.sequelize.dropAllSchemas().then(() => {
+        return this.sequelize.createSchema('account').then(() => {
+          const AccUser = this.sequelize.define('AccUser', {}, {schema: 'account'}),
+            Product = this.sequelize.define('Product', {
               title: DataTypes.STRING
             }, {schema: 'account'}),
-            Tag = self.sequelize.define('Tag', {
+            Tag = this.sequelize.define('Tag', {
               name: DataTypes.STRING
             }, {schema: 'account'}),
-            Price = self.sequelize.define('Price', {
+            Price = this.sequelize.define('Price', {
               value: DataTypes.FLOAT
             }, {schema: 'account'}),
-            Group = self.sequelize.define('Group', {
+            Group = this.sequelize.define('Group', {
               name: DataTypes.STRING
             }, {schema: 'account'}),
-            GroupMember = self.sequelize.define('GroupMember', {
+            GroupMember = this.sequelize.define('GroupMember', {
 
             }, {schema: 'account'}),
-            Rank = self.sequelize.define('Rank', {
+            Rank = this.sequelize.define('Rank', {
               name: DataTypes.STRING,
               canInvite: {
                 type: DataTypes.INTEGER,
@@ -242,7 +239,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           GroupMember.belongsTo(Group);
           Group.hasMany(GroupMember, {as: 'Memberships'});
 
-          return self.sequelize.sync({force: true}).then(() => {
+          return this.sequelize.sync({force: true}).then(() => {
             return Promise.all([
               Group.bulkCreate([
                 {name: 'Developers'},
@@ -263,7 +260,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
               ]).then(() => {
                 return Tag.findAll();
               })
-            ]).spread((groups, ranks, tags) => {
+            ]).then(([groups, ranks, tags]) => {
               return Promise.each([0, 1, 2, 3, 4], i => {
                 return Promise.all([
                   AccUser.create(),
@@ -273,7 +270,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                   ]).then(() => {
                     return Product.findAll();
                   })
-                ]).spread((user, products) => {
+                ]).then(([user, products]) => {
                   return Promise.all([
                     GroupMember.bulkCreate([
                       {AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
@@ -455,7 +452,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             Item.findAll({order: ['id']}),
             Order.findAll({order: ['id']})
           ]);
-        }).spread((users, items, orders) => {
+        }).then(([users, items, orders]) => {
           return Promise.all([
             users[0].setItemA(items[0]),
             users[0].setItemB(items[1]),
@@ -518,7 +515,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             Product.findAll(),
             Tag.findAll()
           ]);
-        }).spread((products, tags) => {
+        }).then(([products, tags]) => {
           return Promise.all([
             products[0].addTag(tags[0], { through: {priority: 1}}),
             products[0].addTag(tags[1], { through: {priority: 2}}),
@@ -563,7 +560,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             Group.findAll(),
             User.findAll()
           ]);
-        }).spread((groups, users) => {
+        }).then(([groups, users]) => {
           return users[2].setGroup(groups[1]);
         }).then(() => {
           return User.findAll({
@@ -598,7 +595,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             Group.findAll(),
             User.findAll()
           ]);
-        }).spread((groups, users) => {
+        }).then(([groups, users]) => {
           return Promise.all([
             users[0].setGroup(groups[1]),
             users[1].setGroup(groups[0])
@@ -637,7 +634,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             Group.findAll(),
             User.findAll()
           ]);
-        }).spread((groups, users) => {
+        }).then(([groups, users]) => {
           return Promise.all([
             users[0].setGroup(groups[1]),
             users[1].setGroup(groups[0])
@@ -682,7 +679,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             User.findAll(),
             Category.findAll()
           ]);
-        }).spread((groups, users, categories) => {
+        }).then(([groups, users, categories]) => {
           const promises = [
             users[0].setGroup(groups[1]),
             users[1].setGroup(groups[0])
@@ -736,7 +733,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             User.findAll(),
             Category.findAll()
           ]);
-        }).spread((groups, users, categories) => {
+        }).then(([groups, users, categories]) => {
           const promises = [
             users[0].setTeam(groups[1]),
             users[1].setTeam(groups[0])
@@ -790,7 +787,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             User.findAll(),
             Category.findAll()
           ]);
-        }).spread((groups, users, categories) => {
+        }).then(([groups, users, categories]) => {
           const promises = [
             users[0].setGroup(groups[1]),
             users[1].setGroup(groups[0])
@@ -838,7 +835,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             Project.findAll(),
             User.findAll()
           ]);
-        }).spread((projects, users) => {
+        }).then(([projects, users]) => {
           return Promise.all([
             users[1].setLeaderOf(projects[1]),
             users[0].setLeaderOf(projects[0])
@@ -888,7 +885,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             Product.findAll(),
             Tag.findAll()
           ]);
-        }).spread((products, tags) => {
+        }).then(([products, tags]) => {
           return Promise.all([
             products[0].addTag(tags[0], {priority: 1}),
             products[0].addTag(tags[1], {priority: 2}),
@@ -978,7 +975,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             Rank.findAll(),
             Tag.findAll()
           ]);
-        }).spread((groups, ranks, tags) => {
+        }).then(([groups, ranks, tags]) => {
           return Promise.resolve([0, 1, 2, 3, 4]).each(i => {
             return Promise.all([
               User.create({name: 'FooBarzz'}),
@@ -988,7 +985,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
               ]).then(() => {
                 return Product.findAll();
               })
-            ]).spread((user, products) => {
+            ]).then(([user, products]) => {
               return Promise.all([
                 GroupMember.bulkCreate([
                   {UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
@@ -1093,14 +1090,13 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', function() {
-      const self = this;
       return this.fixtureA().then(() => {
-        return self.models.Product.findAll({
+        return this.models.Product.findAll({
           attributes: ['title'],
           include: [
-            {model: self.models.Company, where: {name: 'NYSE'}},
-            {model: self.models.Tag},
-            {model: self.models.Price}
+            {model: this.models.Company, where: {name: 'NYSE'}},
+            {model: this.models.Tag},
+            {model: this.models.Price}
           ],
           limit: 3,
           order: [
@@ -1119,13 +1115,12 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible to use limit and a where on a hasMany with additional includes', function() {
-      const self = this;
       return this.fixtureA().then(() => {
-        return self.models.Product.findAll({
+        return this.models.Product.findAll({
           include: [
-            {model: self.models.Company},
-            {model: self.models.Tag},
-            {model: self.models.Price, where: {
+            {model: this.models.Company},
+            {model: this.models.Tag},
+            {model: this.models.Price, where: {
               value: { [Op.gt]: 5}
             }}
           ],
@@ -1149,13 +1144,12 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     it('should be possible to use limit and a where on a hasMany with a through model with additional includes', function() {
-      const self = this;
       return this.fixtureA().then(() => {
-        return self.models.Product.findAll({
+        return this.models.Product.findAll({
           include: [
-            {model: self.models.Company},
-            {model: self.models.Tag, where: {name: ['A', 'B', 'C']}},
-            {model: self.models.Price}
+            {model: this.models.Company},
+            {model: this.models.Tag, where: {name: ['A', 'B', 'C']}},
+            {model: this.models.Price}
           ],
           limit: 10,
           order: [
@@ -1215,7 +1209,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
 
   describe('findOne', () => {
     it('should work with schemas', function() {
-      const self = this;
       const UserModel = this.sequelize.define('User', {
         Id: {
           type: DataTypes.INTEGER,
@@ -1267,10 +1260,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         foreignKey: 'UserId'
       });
 
-      return self.sequelize.dropAllSchemas().then(() => {
-        return self.sequelize.createSchema('hero');
+      return this.sequelize.dropAllSchemas().then(() => {
+        return this.sequelize.createSchema('hero');
       }).then(() => {
-        return self.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({force: true}).then(() => {
           return UserModel.findOne({
             where: {
               Id: 1

@@ -111,12 +111,10 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
     if (dialect === 'postgres') {
       describe('case insensitive', () => {
         it('should work with a case-insensitive regexp where', function() {
-          const self = this;
-
           return this.User.create({
             name: 'Foobar'
           }).then(() => {
-            return self.User.findOne({
+            return this.User.findOne({
               where: {
                 name: {
                   [Op.iRegexp]: '^foo'
@@ -129,12 +127,10 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
         });
 
         it('should work with a case-insensitive not regexp where', function() {
-          const self = this;
-
           return this.User.create({
             name: 'Foobar'
           }).then(() => {
-            return self.User.findOne({
+            return this.User.findOne({
               where: {
                 name: {
                   [Op.notIRegexp]: '^foo'

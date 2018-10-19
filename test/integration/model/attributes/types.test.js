@@ -44,8 +44,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.User.belongsToMany(this.Project, {through: 'project_user'});
 
           this.sqlAssert = function(sql) {
-            expect(sql.indexOf('field1')).to.equal(-1);
-            expect(sql.indexOf('field2')).to.equal(-1);
+            expect(sql).to.not.include('field1');
+            expect(sql).to.not.include('field2');
           };
 
           return this.sequelize.sync({ force: true });

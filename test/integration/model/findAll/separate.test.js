@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             LevelTwo.create({ name: 'testL21' }),
             LevelTwo.create({ name: 'testL22' })
           ]);
-        }).spread((project, level21, level22) => {
+        }).then(([project, level21, level22]) => {
           return Sequelize.Promise.all([
             project.addLevelTwo(level21),
             project.addLevelTwo(level22)

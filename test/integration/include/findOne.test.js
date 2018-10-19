@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Model2.hasMany(Model4);
       Model4.belongsTo(Model2);
 
-      return this.sequelize.sync({force: true}).bind(this).then(() => {
+      return this.sequelize.sync({force: true}).then(() => {
         return Model.findOne({
           include: [
             {model: Model2, include: [
@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             B.create({})
           );
         })
-        .spread((a, b) => {
+        .then(([a, b]) => {
           return a.addB(b, { through: {name: 'Foobar'}});
         })
         .then(() => {
@@ -326,7 +326,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
             return promise;
           })([B, C, D, E, F, G, H])
-        ).spread((a, b) => {
+        ).then(([a, b]) => {
           return a.setB(b);
         }).then(() => {
           return A.findOne({

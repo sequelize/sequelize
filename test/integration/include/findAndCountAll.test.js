@@ -84,8 +84,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }),
         C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true });
 
-      const self = this;
-
       // Associate them
       User.hasMany(SomeConnection, { foreignKey: 'u', constraints: false });
 
@@ -157,7 +155,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             u: 1,
             fk: [1, 2]
           }}).then(() => {
-            self.clock.tick(1000);
+            this.clock.tick(1000);
             // Last and most important queries ( we connected 4, but deleted 2, witch means we must get 2 only )
             return A.findAndCountAll({
               include: [{

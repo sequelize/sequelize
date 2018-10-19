@@ -46,7 +46,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should apply defaultScope', function() {
-        return this.ScopeMe.destroy({ where: {}}).bind(this).then(function() {
+        return this.ScopeMe.destroy({ where: {}}).then(() => {
           return this.ScopeMe.unscoped().findAll();
         }).then(users => {
           expect(users).to.have.length(2);
@@ -56,7 +56,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to override default scope', function() {
-        return this.ScopeMe.destroy({ where: { access_level: { [Op.lt]: 5 }}}).bind(this).then(function() {
+        return this.ScopeMe.destroy({ where: { access_level: { [Op.lt]: 5 }}}).then(() => {
           return this.ScopeMe.unscoped().findAll();
         }).then(users => {
           expect(users).to.have.length(2);
@@ -66,13 +66,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to unscope destroy', function() {
-        return this.ScopeMe.unscoped().destroy({ where: {}}).bind(this).then(function() {
+        return this.ScopeMe.unscoped().destroy({ where: {}}).then(() => {
           return expect(this.ScopeMe.unscoped().findAll()).to.eventually.have.length(0);
         });
       });
 
       it('should be able to apply other scopes', function() {
-        return this.ScopeMe.scope('lowAccess').destroy({ where: {}}).bind(this).then(function() {
+        return this.ScopeMe.scope('lowAccess').destroy({ where: {}}).then(() => {
           return this.ScopeMe.unscoped().findAll();
         }).then(users => {
           expect(users).to.have.length(1);
@@ -81,7 +81,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to merge scopes with where', function() {
-        return this.ScopeMe.scope('lowAccess').destroy({ where: { username: 'dan'}}).bind(this).then(function() {
+        return this.ScopeMe.scope('lowAccess').destroy({ where: { username: 'dan'}}).then(() => {
           return this.ScopeMe.unscoped().findAll();
         }).then(users => {
           expect(users).to.have.length(3);

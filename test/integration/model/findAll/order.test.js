@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             email: DataTypes.STRING
           });
 
-          return this.User.sync({force: true}).bind(this).then(function() {
+          return this.User.sync({force: true}).then(() => {
             return this.User.create({
               email: 'test@sequelizejs.com'
             });

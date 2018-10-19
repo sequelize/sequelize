@@ -268,7 +268,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
           });
 
         const record = { first_name: 'jan', last_name: 'meier' };
-        return this.sequelize.sync({ force: true }).bind(this).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           return User.create(record);
         }).then(() => {
           return User.create(record).catch(constraintTest.exception, spy);

@@ -293,7 +293,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             Product.findAll(),
             Tag.findAll()
           );
-        }).spread((sets, products, tags) => {
+        }).then(([sets, products, tags]) => {
           return Promise.join(
             sets[0].addProducts([products[0], products[1]]),
             products[0].addTag(tags[0], {priority: 1}).then(() => {
@@ -390,7 +390,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ]).then(() => {
             return Tag.findAll();
           })
-        ]).spread((groups, ranks, tags) => {
+        ]).then(([groups, ranks, tags]) => {
           return Promise.each([0, 1, 2, 3, 4], i => {
             return Promise.all([
               User.create(),
@@ -400,7 +400,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               ]).then(() => {
                 return Product.findAll();
               })
-            ]).spread((user, products) => {
+            ]).then(([user, products]) => {
               return Promise.all([
                 GroupMember.bulkCreate([
                   {UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id},
@@ -527,7 +527,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
             return promise;
           })([B, C, D, E, F, G, H])
-        ).spread((as, b) => {
+        ).then(([as, b]) => {
           return Promise.map(as, a => {
             return a.setB(b);
           });
@@ -626,7 +626,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
             return promise;
           })([B, C, D, E, F, G, H])
-        ).spread((as, b) => {
+        ).then(([as, b]) => {
           return Promise.map(as, a => {
             return a.setB(b);
           });
@@ -1259,7 +1259,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ]).then(() => {
             return Tag.findAll();
           })
-        ]).spread((groups, ranks, tags) => {
+        ]).then(([groups, ranks, tags]) => {
           return Promise.each([0, 1, 2, 3, 4], i => {
             return Promise.props({
               user: User.create({name: 'FooBarzz'}),
@@ -1376,18 +1376,17 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible use limit, attributes and a where on a belongsTo with additional hasMany includes', function() {
-      const self = this;
       return this.fixtureA().then(() => {
-        return self.models.Product.findAll({
+        return this.models.Product.findAll({
           attributes: ['id', 'title'],
           include: [
-            {model: self.models.Company, where: {name: 'NYSE'}},
-            {model: self.models.Tag},
-            {model: self.models.Price}
+            {model: this.models.Company, where: {name: 'NYSE'}},
+            {model: this.models.Tag},
+            {model: this.models.Price}
           ],
           limit: 3,
           order: [
-            [self.sequelize.col(self.models.Product.name + '.id'), 'ASC']
+            [this.sequelize.col(this.models.Product.name + '.id'), 'ASC']
           ]
         }).then(products => {
           expect(products.length).to.equal(3);
@@ -1413,7 +1412,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Parent.create(),
           Child1.create()
         ]);
-      }).spread((parent, child) => {
+      }).then(([parent, child]) => {
         return parent.addChild1(child).then(() => {
           return parent;
         });
@@ -1433,12 +1432,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to turn off the attributes for the through table', function() {
-      const self = this;
       return this.fixtureA().then(() => {
-        return self.models.Product.findAll({
+        return this.models.Product.findAll({
           attributes: ['title'],
           include: [
-            {model: self.models.Tag, through: {attributes: []}, required: true}
+            {model: this.models.Tag, through: {attributes: []}, required: true}
           ]
         }).then(products => {
           products.forEach(product => {
@@ -1452,13 +1450,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to select on columns inside a through table', function() {
-      const self = this;
       return this.fixtureA().then(() => {
-        return self.models.Product.findAll({
+        return this.models.Product.findAll({
           attributes: ['title'],
           include: [
             {
-              model: self.models.Tag,
+              model: this.models.Tag,
               through: {
                 where: {
                   ProductId: 3
@@ -1474,13 +1471,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to select on columns inside a through table and a limit', function() {
-      const self = this;
       return this.fixtureA().then(() => {
-        return self.models.Product.findAll({
+        return this.models.Product.findAll({
           attributes: ['title'],
           include: [
             {
-              model: self.models.Tag,
+              model: this.models.Tag,
               through: {
                 where: {
                   ProductId: 3
@@ -1570,13 +1566,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to use limit and a where on a hasMany with additional includes', function() {
-      const self = this;
       return this.fixtureA().then(() => {
-        return self.models.Product.findAll({
+        return this.models.Product.findAll({
           include: [
-            {model: self.models.Company},
-            {model: self.models.Tag},
-            {model: self.models.Price, where: {
+            {model: this.models.Company},
+            {model: this.models.Tag},
+            {model: this.models.Price, where: {
               value: { [Op.gt]: 5}
             }}
           ],
@@ -1600,13 +1595,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be possible to use limit and a where on a hasMany with a through model with additional includes', function() {
-      const self = this;
       return this.fixtureA().then(() => {
-        return self.models.Product.findAll({
+        return this.models.Product.findAll({
           include: [
-            {model: self.models.Company},
-            {model: self.models.Tag, where: {name: ['A', 'B', 'C']}},
-            {model: self.models.Price}
+            {model: this.models.Company},
+            {model: this.models.Tag, where: {name: ['A', 'B', 'C']}},
+            {model: this.models.Price}
           ],
           limit: 10,
           order: [
@@ -1846,7 +1840,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           User.create({lastName: 'Hansen'}),
           Company.create({rank: 1}),
           Company.create({rank: 2})
-        ).spread((albertsen, zenith, hansen, company1, company2) => {
+        ).then(([albertsen, zenith, hansen, company1, company2]) => {
           return Promise.join(
             albertsen.setCompany(company1),
             zenith.setCompany(company2),
@@ -1886,7 +1880,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       Post.Comments = Post.hasMany(Comment, {as: 'comments'});
 
-      return this.sequelize.sync({force: true}).bind(this).then(() => {
+      return this.sequelize.sync({force: true}).then(() => {
         return Post.create({
           title: Math.random().toString(),
           comments: [
@@ -1897,7 +1891,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         }, {
           include: [Post.Comments]
         });
-      }).then(function() {
+      }).then(() => {
         return Post.findAll({
           attributes: [
             [this.sequelize.fn('COUNT', this.sequelize.col('comments.id')), 'commentCount']
@@ -1929,7 +1923,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       Post.Comments = Post.hasMany(Comment, {as: 'comments'});
 
-      return this.sequelize.sync({force: true}).bind(this).then(() => {
+      return this.sequelize.sync({force: true}).then(() => {
         return Post.create({
           title: Math.random().toString(),
           comments: [
@@ -1940,7 +1934,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         }, {
           include: [Post.Comments]
         });
-      }).then(function() {
+      }).then(() => {
         return Post.findAll({
           attributes: [],
           include: [

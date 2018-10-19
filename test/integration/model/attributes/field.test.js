@@ -201,7 +201,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should support Model.destroy()', function() {
-          return this.User.create().bind(this).then(function(user) {
+          return this.User.create().then(user => {
             return this.User.destroy({
               where: {
                 id: user.get('id')
@@ -281,12 +281,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should create, fetch and update with alternative field names from a simple model', function() {
-        const self = this;
-
         return this.User.create({
           name: 'Foobar'
         }).then(() => {
-          return self.User.findOne({
+          return this.User.findOne({
             limit: 1
           });
         }).then(user => {
@@ -295,7 +293,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             name: 'Barfoo'
           });
         }).then(() => {
-          return self.User.findOne({
+          return this.User.findOne({
             limit: 1
           });
         }).then(user => {
@@ -366,8 +364,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should work with where on includes for find', function() {
-        const self = this;
-
         return this.User.create({
           name: 'Barfoo'
         }).then(user => {
@@ -379,10 +375,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             text: 'Comment'
           });
         }).then(() => {
-          return self.Task.findOne({
+          return this.Task.findOne({
             include: [
-              {model: self.Comment},
-              {model: self.User}
+              {model: this.Comment},
+              {model: this.User}
             ],
             where: {title: 'DatDo'}
           });
@@ -394,8 +390,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should work with where on includes for findAll', function() {
-        const self = this;
-
         return this.User.create({
           name: 'Foobar'
         }).then(user => {
@@ -407,10 +401,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             text: 'Comment'
           });
         }).then(() => {
-          return self.User.findAll({
+          return this.User.findAll({
             include: [
-              {model: self.Task, where: {title: 'DoDat'}, include: [
-                {model: self.Comment}
+              {model: this.Task, where: {title: 'DoDat'}, include: [
+                {model: this.Comment}
               ]}
             ]
           });
@@ -430,12 +424,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should work with a simple where', function() {
-        const self = this;
-
         return this.User.create({
           name: 'Foobar'
         }).then(() => {
-          return self.User.findOne({
+          return this.User.findOne({
             where: {
               name: 'Foobar'
             }
@@ -446,13 +438,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should work with a where or', function() {
-        const self = this;
-
         return this.User.create({
           name: 'Foobar'
         }).then(() => {
-          return self.User.findOne({
-            where: self.sequelize.or({
+          return this.User.findOne({
+            where: this.sequelize.or({
               name: 'Foobar'
             }, {
               name: 'Lollerskates'
@@ -464,7 +454,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should work with bulkCreate and findAll', function() {
-        const self = this;
         return this.User.bulkCreate([{
           name: 'Abc'
         }, {
@@ -472,10 +461,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }, {
           name: 'Cde'
         }]).then(() => {
-          return self.User.findAll();
+          return this.User.findAll();
         }).then(users => {
           users.forEach(user => {
-            expect(['Abc', 'Bcd', 'Cde'].indexOf(user.get('name')) !== -1).to.be.true;
+            expect(['Abc', 'Bcd', 'Cde'].includes(user.get('name'))).to.be.true;
           });
         });
       });
@@ -531,12 +520,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('field names that are the same as property names should create, update, and read correctly', function() {
-        const self = this;
-
         return this.Comment.create({
           notes: 'Foobar'
         }).then(() => {
-          return self.Comment.findOne({
+          return this.Comment.findOne({
             limit: 1
           });
         }).then(comment => {
@@ -545,7 +532,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             notes: 'Barfoo'
           });
         }).then(() => {
-          return self.Comment.findOne({
+          return this.Comment.findOne({
             limit: 1
           });
         }).then(comment => {
@@ -562,9 +549,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Task.create({
             user_id: userId
           })
-        ).spread((user, task) => {
-          return [user, task.getUser()];
-        }).spread((userA, userB) => {
+        ).then(([user, task]) => {
+          return Promise.all([user, task.getUser()]);
+        }).then(([userA, userB]) => {
           expect(userA.get('id')).to.equal(userB.get('id'));
           expect(userA.get('id')).to.equal(userId);
           expect(userB.get('id')).to.equal(userId);
@@ -583,14 +570,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({force: true})
-          .bind(this)
           .then(() => {
             return User.create();
           })
           .then(user => {
             return user.destroy();
           })
-          .then(function() {
+          .then(() => {
             this.clock.tick(1000);
             return User.findAll();
           })

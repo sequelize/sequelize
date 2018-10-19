@@ -12,16 +12,15 @@ if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] ExclusionConstraintError', () => {
     const constraintName = 'overlap_period';
     beforeEach(function() {
-      const self = this;
-      this.Booking = self.sequelize.define('Booking', {
+      this.Booking = this.sequelize.define('Booking', {
         roomNo: DataTypes.INTEGER,
         period: DataTypes.RANGE(DataTypes.DATE)
       });
-      return self.Booking
+      return this.Booking
         .sync({ force: true })
         .then(() => {
-          return self.sequelize.query(
-            `ALTER TABLE "${self.Booking.tableName}" ADD CONSTRAINT ${constraintName} EXCLUDE USING gist ("roomNo" WITH =, period WITH &&)`
+          return this.sequelize.query(
+            `ALTER TABLE "${this.Booking.tableName}" ADD CONSTRAINT ${constraintName} EXCLUDE USING gist ("roomNo" WITH =, period WITH &&)`
           );
         });
     });

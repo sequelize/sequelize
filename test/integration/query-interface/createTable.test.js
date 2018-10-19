@@ -4,7 +4,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const DataTypes = require('../../../lib/data-types');
-const _ = require('lodash');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
@@ -28,8 +27,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }
       }).then(() => {
         return this.queryInterface.insert(null, 'TableWithPK', {}, { raw: true, returning: true, plain: true })
-          .then(results => {
-            const response = _.head(results);
+          .then(([response]) => {
             expect(response.table_id || typeof response !== 'object' && response).to.be.ok;
           });
       });
@@ -119,7 +117,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should work with enums (4)', function() {
-      return this.queryInterface.createSchema('archive').bind(this).then(function() {
+      return this.queryInterface.createSchema('archive').then(() => {
         return this.queryInterface.createTable('SomeTable', {
           someEnum: {
             type: DataTypes.ENUM,
@@ -140,9 +138,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should work with schemas', function() {
-      const self = this;
-      return self.sequelize.createSchema('hero').then(() => {
-        return self.queryInterface.createTable('User', {
+      return this.sequelize.createSchema('hero').then(() => {
+        return this.queryInterface.createTable('User', {
           name: {
             type: DataTypes.STRING
           }

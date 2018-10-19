@@ -682,7 +682,7 @@ if (dialect.match(/^postgres/)) {
       it('should update hstore correctly and return the affected rows', function() {
         return this.User.create({ username: 'user', email: ['foo@bar.com'], settings: { test: '"value"' } }).then(oldUser => {
           // Update the user and check that the returned object's fields have been parsed by the hstore library
-          return this.User.update({ settings: { should: 'update', to: 'this', first: 'place' } }, { where: oldUser.where(), returning: true }).spread((count, users) => {
+          return this.User.update({ settings: { should: 'update', to: 'this', first: 'place' } }, { where: oldUser.where(), returning: true }).then(([count, users]) => {
             expect(count).to.equal(1);
             expect(users[0].settings).to.deep.equal({ should: 'update', to: 'this', first: 'place' });
           });
@@ -881,7 +881,7 @@ if (dialect.match(/^postgres/)) {
         }).then(oldUser => {
           // Update the user and check that the returned object's fields have been parsed by the range parser
           return User.update({ course_period: period }, { where: oldUser.where(), returning: true })
-            .spread((count, users) => {
+            .then(([count, users]) => {
               expect(count).to.equal(1);
               expect(users[0].course_period[0].value instanceof Date).to.be.ok;
               expect(users[0].course_period[1].value instanceof Date).to.be.ok;
@@ -1000,7 +1000,7 @@ if (dialect.match(/^postgres/)) {
       const point1 = { type: 'Point', coordinates: [39.807222, -76.984722] };
       const point2 = { type: 'Point', coordinates: [39.828333, -77.232222] };
       return User.create({ username: 'user', email: ['foo@bar.com'], location: point1 }).then(oldUser => {
-        return User.update({ location: point2 }, { where: { username: oldUser.username }, returning: true }).spread((count, updatedUsers) => {
+        return User.update({ location: point2 }, { where: { username: oldUser.username }, returning: true }).then(([, updatedUsers]) => {
           expect(updatedUsers[0].location).to.deep.eql(point2);
         });
       });

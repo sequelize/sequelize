@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return Promise.join(
           Person.create(),
           Company.create()
-        ).spread((person, company) => {
+        ).then(([person, company]) => {
           return person.setEmployer(company);
         });
       }).then(() => {
@@ -415,7 +415,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Tag.findAll({order: [['id']]});
           })
         ]);
-      }).spread((products, tags) => {
+      }).then(([products, tags]) => {
         return Promise.all([
           products[0].setTags([tags[0], tags[2]]),
           products[1].setTags([tags[1]]),
@@ -519,7 +519,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Tag.findAll();
           })
         ]);
-      }).spread((product1, product2, user, tags) => {
+      }).then(([product1, product2, user, tags]) => {
         return Promise.all([
           user.setProducts([product1, product2]),
           product1.setTags([tags[0], tags[2]]),
@@ -649,7 +649,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       Group.belongsToMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies'});
 
-      return this.sequelize.sync({force: true}).bind({}).then(() => {
+      const ctx = {};
+      return this.sequelize.sync({force: true}).then(() => {
         return Group.bulkCreate([
           {name: 'SoccerMoms'},
           {name: 'Coca Cola'},
@@ -658,13 +659,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ]);
       }).then(() => {
         return Group.findAll();
-      }).then(function(groups) {
-        this.groups = groups;
+      }).then(groups => {
+        ctx.groups = groups;
         return groups[0].setOutsourcingCompanies(groups.slice(1));
-      }).then(function() {
+      }).then(() => {
         return Group.findOne({
           where: {
-            id: this.groups[0].id
+            id: ctx.groups[0].id
           },
           include: [{model: Group, as: 'OutsourcingCompanies'}]
         });
@@ -684,18 +685,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       User.belongsToMany(Group, {through: 'group_user'});
       Group.belongsToMany(User, {through: 'group_user'});
 
-      return this.sequelize.sync({ force: true }).bind({}).then(() => {
+      const ctx = {};
+      return this.sequelize.sync({ force: true }).then(() => {
         return Promise.all([
           User.create({ dateField: Date.UTC(2014, 1, 20) }),
           Group.create({ dateField: Date.UTC(2014, 1, 20) })
         ]);
-      }).spread(function(user, group) {
-        this.user = user;
+      }).then(([user, group]) => {
+        ctx.user = user;
         return user.addGroup(group);
-      }).then(function() {
+      }).then(() => {
         return User.findOne({
           where: {
-            id: this.user.id
+            id: ctx.user.id
           },
           include: [Group]
         });
@@ -727,21 +729,22 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         as: 'Members'
       });
 
-      return this.sequelize.sync({ force: true }).bind({}).then(() => {
+      const ctx = {};
+      return this.sequelize.sync({ force: true }).then(() => {
         return Promise.all([
           User.create({ name: 'Owner' }),
           User.create({ name: 'Member' }),
           Group.create({ name: 'Group' })
         ]);
-      }).spread(function(owner, member, group) {
-        this.owner = owner;
-        this.member = member;
-        this.group = group;
+      }).then(([owner, member, group]) => {
+        ctx.owner = owner;
+        ctx.member = member;
+        ctx.group = group;
         return owner.addGroup(group);
-      }).then(function() {
-        return this.group.addMember(this.member);
-      }).then(function() {
-        return this.owner.getGroups({
+      }).then(() => {
+        return ctx.group.addMember(ctx.member);
+      }).then(() => {
+        return ctx.owner.getGroups({
           include: [{
             model: User,
             as: 'Members'
@@ -777,7 +780,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           return Item.findAll();
         })
       ]);
-    }).spread((users, items) => {
+    }).then(([users, items]) => {
       return Promise.all([
         users[0].setItem(items[0]),
         users[1].setItem(items[1]),
@@ -817,7 +820,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
   describe('findAndCountAll', () => {
     it('should include associations to findAndCountAll', function() {
-      return createUsersAndItems.bind(this)().bind(this).then(function() {
+      return createUsersAndItems.bind(this)().then(() => {
         return this.User.findAndCountAll({
           include: [
             {model: this.Item, where: {

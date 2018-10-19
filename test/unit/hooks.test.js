@@ -40,7 +40,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('defined by options.hooks', () => {
-      beforeEach(() => {
+      beforeEach(function() {
         this.beforeSaveHook = sinon.spy();
         this.afterSaveHook = sinon.spy();
         this.afterCreateHook = sinon.spy();
@@ -56,7 +56,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
       });
 
-      it('calls beforeSave/afterSave', () => {
+      it('calls beforeSave/afterSave', function() {
         return this.Model.create({}).then(() => {
           expect(this.afterCreateHook).to.have.been.calledOnce;
           expect(this.beforeSaveHook).to.have.been.calledOnce;
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('defined by addHook method', () => {
-      beforeEach(() => {
+      beforeEach(function() {
         this.beforeSaveHook = sinon.spy();
         this.afterSaveHook = sinon.spy();
 
@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.Model.addHook('afterSave', this.afterSaveHook);
       });
 
-      it('calls beforeSave/afterSave', () => {
+      it('calls beforeSave/afterSave', function() {
         return this.Model.create({}).then(() => {
           expect(this.beforeSaveHook).to.have.been.calledOnce;
           expect(this.afterSaveHook).to.have.been.calledOnce;
@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('defined by hook method', () => {
-      beforeEach(() => {
+      beforeEach(function() {
         this.beforeSaveHook = sinon.spy();
         this.afterSaveHook = sinon.spy();
 
@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.Model.addHook('afterSave', this.afterSaveHook);
       });
 
-      it('calls beforeSave/afterSave', () => {
+      it('calls beforeSave/afterSave', function() {
         return this.Model.create({}).then(() => {
           expect(this.beforeSaveHook).to.have.been.calledOnce;
           expect(this.afterSaveHook).to.have.been.calledOnce;
@@ -246,7 +246,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           }
         });
 
-        return Model.runHooks('beforeCreate').bind(this).then(function() {
+        return Model.runHooks('beforeCreate').then(() => {
           expect(this.beforeCreate).to.have.been.calledOnce;
         });
       });
@@ -259,7 +259,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             }
           });
 
-        return Model.runHooks('beforeCreate').bind(this).then(function() {
+        return Model.runHooks('beforeCreate').then(() => {
           expect(this.beforeCreate).not.to.have.been.called;
           expect(localHook).to.have.been.calledOnce;
         });
@@ -275,7 +275,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       this.Model.addHook('beforeCreate', 'myHook', hook1);
       this.Model.beforeCreate('myHook2', hook2);
 
-      return this.Model.runHooks('beforeCreate').bind(this).then(function() {
+      return this.Model.runHooks('beforeCreate').then(() => {
         expect(hook1).to.have.been.calledOnce;
         expect(hook2).to.have.been.calledOnce;
 
@@ -303,7 +303,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       this.Model.beforeCreate('myHook2', hook3);
       this.Model.beforeCreate(hook4);
 
-      return this.Model.runHooks('beforeCreate').bind(this).then(function() {
+      return this.Model.runHooks('beforeCreate').then(() => {
         expect(hook1).to.have.been.calledOnce;
         expect(hook2).to.have.been.calledOnce;
         expect(hook3).to.have.been.calledOnce;

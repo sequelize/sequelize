@@ -115,9 +115,8 @@ if (current.dialect.supports.transactions) {
                 field: 'value'
               }
             }),
-            self = this,
-            transTest = function(val) {
-              return self.sequelize.transaction({isolationLevel: 'SERIALIZABLE'}, t => {
+            transTest = val => {
+              return this.sequelize.transaction({isolationLevel: 'SERIALIZABLE'}, t => {
                 return SumSumSum.sum('value', {transaction: t}).then(() => {
                   return SumSumSum.create({value: -val}, {transaction: t});
                 });
@@ -127,12 +126,12 @@ if (current.dialect.supports.transactions) {
           return SumSumSum.sync({force: true}).then(() => {
             return expect(Promise.join(transTest(80), transTest(80), transTest(80))).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions');
           }).delay(100).then(() => {
-            if (self.sequelize.test.$runningQueries !== 0) {
+            if (this.sequelize.test.$runningQueries !== 0) {
               return Promise.delay(200);
             }
             return void 0;
           }).then(() => {
-            if (self.sequelize.test.$runningQueries !== 0) {
+            if (this.sequelize.test.$runningQueries !== 0) {
               return Promise.delay(500);
             }
           });
@@ -142,12 +141,11 @@ if (current.dialect.supports.transactions) {
     });
 
     it('does not allow queries after commit', function() {
-      const self = this;
       return this.sequelize.transaction().then(t => {
-        return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(() => {
+        return this.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(() => {
           return t.commit();
         }).then(() => {
-          return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true});
+          return this.sequelize.query('SELECT 1+1', {transaction: t, raw: true});
         });
       }).throw(new Error('Expected error not thrown'))
         .catch (err => {
@@ -157,13 +155,12 @@ if (current.dialect.supports.transactions) {
     });
 
     it('does not allow queries immediatly after commit call', function() {
-      const self = this;
       return expect(
         this.sequelize.transaction().then(t => {
-          return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(() => {
+          return this.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(() => {
             return Promise.join(
               expect(t.commit()).to.eventually.be.fulfilled,
-              self.sequelize.query('SELECT 1+1', {transaction: t, raw: true})
+              this.sequelize.query('SELECT 1+1', {transaction: t, raw: true})
                 .throw(new Error('Expected error not thrown'))
                 .catch (err => {
                   expect (err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
@@ -176,13 +173,12 @@ if (current.dialect.supports.transactions) {
     });
 
     it('does not allow queries after rollback', function() {
-      const self = this;
       return expect(
         this.sequelize.transaction().then(t => {
-          return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(() => {
+          return this.sequelize.query('SELECT 1+1', {transaction: t, raw: true}).then(() => {
             return t.rollback();
           }).then(() => {
-            return self.sequelize.query('SELECT 1+1', {transaction: t, raw: true});
+            return this.sequelize.query('SELECT 1+1', {transaction: t, raw: true});
           });
         })
       ).to.eventually.be.rejected;
@@ -199,12 +195,11 @@ if (current.dialect.supports.transactions) {
     });
 
     it('does not allow queries immediatly after rollback call', function() {
-      const self = this;
       return expect(
         this.sequelize.transaction().then(t => {
           return Promise.join(
             expect(t.rollback()).to.eventually.be.fulfilled,
-            self.sequelize.query('SELECT 1+1', {transaction: t, raw: true})
+            this.sequelize.query('SELECT 1+1', {transaction: t, raw: true})
               .throw(new Error('Expected error not thrown'))
               .catch (err => {
                 expect (err.message).to.match(/rollback has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
@@ -216,9 +211,8 @@ if (current.dialect.supports.transactions) {
     });
 
     it('does not allow commits after commit', function() {
-      const self = this;
       return expect(
-        self.sequelize.transaction().then(t => {
+        this.sequelize.transaction().then(t => {
           return t.commit().then(() => {
             return t.commit();
           });
@@ -326,8 +320,7 @@ if (current.dialect.supports.transactions) {
     });
 
     it('does not allow commits after rollback', function() {
-      const self = this;
-      return expect(self.sequelize.transaction().then(t => {
+      return expect(this.sequelize.transaction().then(t => {
         return t.rollback().then(() => {
           return t.commit();
         });
@@ -335,8 +328,7 @@ if (current.dialect.supports.transactions) {
     });
 
     it('does not allow rollbacks after commit', function() {
-      const self = this;
-      return expect(self.sequelize.transaction().then(t => {
+      return expect(this.sequelize.transaction().then(t => {
         return t.commit().then(() => {
           return t.rollback();
         });
@@ -344,8 +336,7 @@ if (current.dialect.supports.transactions) {
     });
 
     it('does not allow rollbacks after rollback', function() {
-      const self = this;
-      return expect(self.sequelize.transaction().then(t => {
+      return expect(this.sequelize.transaction().then(t => {
         return t.rollback().then(() => {
           return t.rollback();
         });
@@ -357,8 +348,8 @@ if (current.dialect.supports.transactions) {
 
       return this.sequelize.transaction({
         transaction: null
-      }).bind(this).then(function(t) {
-        return t.commit().bind(this).then(function() {
+      }).then(t => {
+        return t.commit().then(() => {
           expect(this.sequelize.query.callCount).to.be.greaterThan(0);
 
           for (let i = 0; i < this.sequelize.query.callCount; i++) {
@@ -373,8 +364,8 @@ if (current.dialect.supports.transactions) {
 
       return this.sequelize.transaction({
         transaction: undefined
-      }).bind(this).then(function(t) {
-        return t.commit().bind(this).then(function() {
+      }).then(t => {
+        return t.commit().then(() => {
           expect(this.sequelize.query.callCount).to.be.greaterThan(0);
 
           for (let i = 0; i < this.sequelize.query.callCount; i++) {
@@ -418,8 +409,8 @@ if (current.dialect.supports.transactions) {
       describe('transaction types', () => {
         it('should support default transaction type DEFERRED', function() {
           return this.sequelize.transaction({
-          }).bind(this).then(function(t) {
-            return t.rollback().bind(this).then(() => {
+          }).then(t => {
+            return t.rollback().then(() => {
               expect(t.options.type).to.equal('DEFERRED');
             });
           });
@@ -429,8 +420,8 @@ if (current.dialect.supports.transactions) {
           it('should allow specification of ' + key + ' type', function() {
             return this.sequelize.transaction({
               type: key
-            }).bind(this).then(function(t) {
-              return t.rollback().bind(this).then(() => {
+            }).then(t => {
+              return t.rollback().then(() => {
                 expect(t.options.type).to.equal(Transaction.TYPES[key]);
               });
             });
@@ -443,7 +434,7 @@ if (current.dialect.supports.transactions) {
 
     if (dialect === 'sqlite') {
       it('automatically retries on SQLITE_BUSY failure', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING });
           return User.sync({ force: true }).then(() => {
             const newTransactionFunc = function() {
@@ -463,7 +454,7 @@ if (current.dialect.supports.transactions) {
       });
 
       it('fails with SQLITE_BUSY when retry.match is changed', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { id: {type: Support.Sequelize.INTEGER, primaryKey: true}, username: Support.Sequelize.STRING });
           return User.sync({ force: true }).then(() => {
             const newTransactionFunc = function() {
@@ -490,14 +481,13 @@ if (current.dialect.supports.transactions) {
               username: Support.Sequelize.STRING,
               awesome: Support.Sequelize.BOOLEAN
             }),
-            self = this,
             t1Spy = sinon.spy(),
             t2Spy = sinon.spy();
 
           return this.sequelize.sync({ force: true }).then(() => {
             return User.create({ username: 'jan'});
           }).then(() => {
-            return self.sequelize.transaction().then(t1 => {
+            return this.sequelize.transaction().then(t1 => {
               return User.findOne({
                 where: {
                   username: 'jan'
@@ -505,7 +495,7 @@ if (current.dialect.supports.transactions) {
                 lock: t1.LOCK.UPDATE,
                 transaction: t1
               }).then(t1Jan => {
-                return self.sequelize.transaction({
+                return this.sequelize.transaction({
                   isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
                 }).then(t2 => {
                   return Promise.join(
@@ -585,8 +575,7 @@ if (current.dialect.supports.transactions) {
 
         it('fail locking with outer joins', function() {
           const User = this.sequelize.define('User', { username: Support.Sequelize.STRING }),
-            Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN }),
-            self = this;
+            Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN });
 
           User.belongsToMany(Task, { through: 'UserTasks' });
           Task.belongsToMany(User, { through: 'UserTasks' });
@@ -599,7 +588,7 @@ if (current.dialect.supports.transactions) {
                 return john.setTasks([task1]);
               })
               .then(() => {
-                return self.sequelize.transaction(t1 => {
+                return this.sequelize.transaction(t1 => {
 
                   if (current.dialect.supports.lockOuterJoinFailure) {
 
@@ -631,8 +620,7 @@ if (current.dialect.supports.transactions) {
         if (current.dialect.supports.lockOf) {
           it('supports for update of table', function() {
             const User = this.sequelize.define('User', { username: Support.Sequelize.STRING }, { tableName: 'Person' }),
-              Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN }),
-              self = this;
+              Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN });
 
             User.belongsToMany(Task, { through: 'UserTasks' });
             Task.belongsToMany(User, { through: 'UserTasks' });
@@ -646,7 +634,7 @@ if (current.dialect.supports.transactions) {
                   return john.setTasks([task1]);
                 })
                 .then(() => {
-                  return self.sequelize.transaction(t1 => {
+                  return this.sequelize.transaction(t1 => {
                     return User.findOne({
                       where: {
                         username: 'John'
@@ -659,7 +647,7 @@ if (current.dialect.supports.transactions) {
                       transaction: t1
                     }).then(t1John => {
                     // should not be blocked by the lock of the other transaction
-                      return self.sequelize.transaction(t2 => {
+                      return this.sequelize.transaction(t2 => {
                         return Task.update({
                           active: true
                         }, {
@@ -686,14 +674,13 @@ if (current.dialect.supports.transactions) {
                 username: Support.Sequelize.STRING,
                 awesome: Support.Sequelize.BOOLEAN
               }),
-              self = this,
               t1Spy = sinon.spy(),
               t2Spy = sinon.spy();
 
             return this.sequelize.sync({ force: true }).then(() => {
               return User.create({ username: 'jan'});
             }).then(() => {
-              return self.sequelize.transaction().then(t1 => {
+              return this.sequelize.transaction().then(t1 => {
                 return User.findOne({
                   where: {
                     username: 'jan'
@@ -701,7 +688,7 @@ if (current.dialect.supports.transactions) {
                   lock: t1.LOCK.NO_KEY_UPDATE,
                   transaction: t1
                 }).then(t1Jan => {
-                  return self.sequelize.transaction().then(t2 => {
+                  return this.sequelize.transaction().then(t2 => {
                     return Promise.join(
                       User.findOne({
                         where: {
@@ -737,7 +724,6 @@ if (current.dialect.supports.transactions) {
               username: Support.Sequelize.STRING,
               awesome: Support.Sequelize.BOOLEAN
             }),
-            self = this,
             t1Spy = sinon.spy(),
             t2FindSpy = sinon.spy(),
             t2UpdateSpy = sinon.spy();
@@ -745,7 +731,7 @@ if (current.dialect.supports.transactions) {
           return this.sequelize.sync({ force: true }).then(() => {
             return User.create({ username: 'jan'});
           }).then(() => {
-            return self.sequelize.transaction().then(t1 => {
+            return this.sequelize.transaction().then(t1 => {
               return User.findOne({
                 where: {
                   username: 'jan'
@@ -753,7 +739,7 @@ if (current.dialect.supports.transactions) {
                 lock: t1.LOCK.SHARE,
                 transaction: t1
               }).then(t1Jan => {
-                return self.sequelize.transaction({
+                return this.sequelize.transaction({
                   isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
                 }).then(t2 => {
                   return Promise.join(

@@ -8,8 +8,8 @@ const Sequelize = Support.Sequelize;
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 
-describe('Transaction', function() {
-  before(() => {
+describe('Transaction', () => {
+  before(function() {
     this.stub = sinon.stub(current, 'query').returns(Sequelize.Promise.resolve({}));
 
     this.stubConnection = sinon.stub(current.connectionManager, 'getConnection')
@@ -22,18 +22,18 @@ describe('Transaction', function() {
       .returns(Sequelize.Promise.resolve());
   });
 
-  beforeEach(() => {
+  beforeEach(function() {
     this.stub.resetHistory();
     this.stubConnection.resetHistory();
     this.stubRelease.resetHistory();
   });
 
-  after(() => {
+  after(function() {
     this.stub.restore();
     this.stubConnection.restore();
   });
 
-  it('should run auto commit query only when needed', () => {
+  it('should run auto commit query only when needed', function() {
     const expectations = {
       all: [
         'START TRANSACTION;'

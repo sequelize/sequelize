@@ -171,8 +171,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('#create', () => {
     describe('generic', () => {
       beforeEach(function() {
-        const self = this;
-
         const Project = this.sequelize.define('Project', {
           name: {
             type: Sequelize.STRING,
@@ -192,8 +190,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         Task.belongsTo(Project);
 
         return this.sequelize.sync({ force: true }).then(() => {
-          self.Project = Project;
-          self.Task = Task;
+          this.Project = Project;
+          this.Task = Task;
         });
       });
 
@@ -204,9 +202,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
 
       it('correctly validates using create method ', function() {
-        const self = this;
         return this.Project.create({}).then(project => {
-          return self.Task.create({something: 1}).then(task => {
+          return this.Task.create({something: 1}).then(task => {
             return project.setTask(task).then(task => {
               expect(task.ProjectId).to.not.be.null;
               return task.setProject(project).then(project => {
@@ -302,7 +299,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     describe('pass all paths when validating', () => {
       beforeEach(function() {
-        const self = this;
         const Project = this.sequelize.define('Project', {
           name: {
             type: Sequelize.STRING,
@@ -331,8 +327,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         return Project.sync({ force: true }).then(() => {
           return Task.sync({ force: true }).then(() => {
-            self.Project = Project;
-            self.Task = Task;
+            this.Project = Project;
+            this.Task = Task;
           });
         });
       });
