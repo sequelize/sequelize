@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to unscope destroy', function() {
-        return this.ScopeMe.unscoped().destroy({ where: {}}).then(() => {
+        return this.ScopeMe.unscoped().destroy({ where: {} }).then(() => {
           return expect(this.ScopeMe.unscoped().findAll()).to.eventually.have.length(0);
         });
       });

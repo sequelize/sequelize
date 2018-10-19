@@ -56,27 +56,27 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     if (dialect === 'sqlite') {
       it('should work with connection strings (1)', () => {
-        const sequelize = new Sequelize('sqlite://test.sqlite'); // eslint-disable-line
+        new Sequelize('sqlite://test.sqlite');
       });
       it('should work with connection strings (2)', () => {
-        const sequelize = new Sequelize('sqlite://test.sqlite/'); // eslint-disable-line
+        new Sequelize('sqlite://test.sqlite/');
       });
       it('should work with connection strings (3)', () => {
-        const sequelize = new Sequelize('sqlite://test.sqlite/lol?reconnect=true'); // eslint-disable-line
+        new Sequelize('sqlite://test.sqlite/lol?reconnect=true');
       });
     }
 
     if (dialect === 'postgres') {
-      const getConnectionUri = _.template('<%= protocol %>://<%= username %>:<%= password %>@<%= host %><% if(port) { %>:<%= port %><% } %>/<%= database %>');
+      const getConnectionUri = o => `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}`;
       it('should work with connection strings (postgres protocol)', () => {
         const connectionUri = getConnectionUri(Object.assign(config[dialect], {protocol: 'postgres'}));
         // postgres://...
-        const sequelize = new Sequelize(connectionUri); // eslint-disable-line
+        new Sequelize(connectionUri);
       });
       it('should work with connection strings (postgresql protocol)', () => {
         const connectionUri = getConnectionUri(Object.assign(config[dialect], {protocol: 'postgresql'}));
         // postgresql://...
-        const sequelize = new Sequelize(connectionUri); // eslint-disable-line
+        new Sequelize(connectionUri);
       });
     }
   });
@@ -122,11 +122,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             .authenticate()
             .catch(err => {
               expect(
-                err.message.match(/connect ECONNREFUSED/) ||
-                err.message.match(/invalid port number/) ||
+                err.message.includes('connect ECONNREFUSED') ||
+                err.message.includes('invalid port number') ||
                 err.message.match(/should be >=? 0 and < 65536/) ||
-                err.message.match(/Login failed for user/) ||
-                err.message.match(/Port must be > 0 and < 65536/)
+                err.message.includes('Login failed for user') ||
+                err.message.includes('Port must be > 0 and < 65536')
               ).to.be.ok;
             });
         });
