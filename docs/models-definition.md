@@ -724,47 +724,37 @@ sequelize.sync({ force: true, match: /_test$/ });
 Sequelize Models are ES6 classes. You can very easily add custom instance or class level methods.
 
 ```js
-class User {
-  // Adding a class level method
-  static classLevelMethod() {
-    return 'foo';
-  }
-  // Adding an instance level method
+const User = sequelize.define('user', { firstname: Sequelize.STRING });
 
-  instanceLevelMethod() {
-    return 'bar';
-  }
-}
+// Adding a class level method
+User.classLevelMethod = function() {
+  return 'foo';
+};
 
-User.init({ firstname: Sequelize.STRING }, {
-  sequelize,
-  tableName: 'user',
-});
+// Adding an instance level method
+User.prototype.instanceLevelMethod = function() {
+  return 'bar';
+};
 ```
 
 Of course you can also access the instance's data and generate virtual getters:
 
 ```js
-class User {
-  getFullname() {
-    return `${this.firstname} ${this.lastname}`;
-  }
-}
+const User = sequelize.define('user', { firstname: Sequelize.STRING, lastname: Sequelize.STRING });
 
-User.init({ firstname: Sequelize.STRING, lastname: Sequelize.STRING }, {
-  sequelize,
-  tableName: 'user',
-});
+User.prototype.getFullname = function() {
+  return [this.firstname, this.lastname].join(' ');
+};
 
 // Example:
-new User({ firstname: 'foo', lastname: 'bar' }).getFullname() // 'foo bar'
+User.build({ firstname: 'foo', lastname: 'bar' }).getFullname() // 'foo bar'
 ```
 
 ### Indexes
 Sequelize supports adding indexes to the model definition which will be created during `Model.sync()` or `sequelize.sync`.
 
 ```js
-User.init({ sequelize }, {
+sequelize.define('user', {}, {
   indexes: [
     // Create a unique index on email
     {
