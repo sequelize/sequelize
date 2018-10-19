@@ -161,9 +161,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }, { timestamps: true });
         let oldDate;
 
-        return User.sync({ force: true }).bind(this).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create({aNumber: 1});
-        }).then(function(user) {
+        }).then(user => {
           oldDate = user.updatedAt;
 
           this.clock.tick(1000);
@@ -179,9 +179,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }, { timestamps: true });
         let oldDate;
 
-        return User.sync({ force: true }).bind(this).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create({aNumber: 1});
-        }).then(function(user) {
+        }).then(user => {
           oldDate = user.updatedAt;
           this.clock.tick(1000);
           return User[method]('aNumber', {by: 1, silent: true, where: { }});

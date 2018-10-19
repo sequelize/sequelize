@@ -621,7 +621,7 @@ project.removeTask(task1).then(() => {
 })
  
 // and add 'em again
-project.addTask(task1).then(function() {
+project.addTask(task1).then(() => {
   // it's back again
 })
 ```
@@ -630,7 +630,7 @@ You can of course also do it vice versa:
 
 ```js
 // project is associated with task1 and task2
-task2.setProject(null).then(function() {
+task2.setProject(null).then(() => {
   // and it's gone
 })
 ```

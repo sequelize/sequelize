@@ -6,7 +6,7 @@ const chai    = require('chai'),
   DataTypes = require('../../../../lib/data-types'),
   dialect = Support.getTestDialect(),
   range   = require('../../../../lib/dialects/postgres/range');
-  
+
 if (dialect.match(/^postgres/)) {
   // Don't try to load pg until we know we're running on postgres.
   const pg = require('pg');
@@ -75,7 +75,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should stringify dateonly values with appropriate casting', () => {
         const Range = new DataTypes.postgres.RANGE(DataTypes.DATEONLY);
-        expect(Range.stringify(new Date(Date.UTC(2000, 1, 1))).indexOf('::date')).not.to.equal(-1);
+        expect(Range.stringify(new Date(Date.UTC(2000, 1, 1)))).to.include('::date');
       });
 
       it('should stringify date values with appropriate casting', () => {

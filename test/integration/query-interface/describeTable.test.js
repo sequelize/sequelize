@@ -18,8 +18,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('describeTable', () => {
     it('reads the metadata of the table', function() {
-      const self = this;
-      const Users = self.sequelize.define('_Users', {
+      const Users = this.sequelize.define('_Users', {
         username: DataTypes.STRING,
         city: {
           type: DataTypes.STRING,
@@ -31,7 +30,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }, { freezeTableName: true });
 
       return Users.sync({ force: true }).then(() => {
-        return self.queryInterface.describeTable('_Users').then(metadata => {
+        return this.queryInterface.describeTable('_Users').then(metadata => {
           const id = metadata.id;
           const username = metadata.username;
           const city = metadata.city;
@@ -105,12 +104,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should correctly determine the primary key columns', function() {
-      const self = this;
-      const Country = self.sequelize.define('_Country', {
+      const Country = this.sequelize.define('_Country', {
         code: {type: DataTypes.STRING, primaryKey: true },
         name: {type: DataTypes.STRING, allowNull: false}
       }, { freezeTableName: true });
-      const Alumni = self.sequelize.define('_Alumni', {
+      const Alumni = this.sequelize.define('_Alumni', {
         year: {type: DataTypes.INTEGER, primaryKey: true },
         num: {type: DataTypes.INTEGER, primaryKey: true },
         username: {type: DataTypes.STRING, allowNull: false, unique: true },
@@ -122,12 +120,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }, { freezeTableName: true });
 
       return Country.sync({ force: true }).then(() => {
-        return self.queryInterface.describeTable('_Country').then(metacountry => {
+        return this.queryInterface.describeTable('_Country').then(metacountry => {
           expect(metacountry.code.primaryKey).to.eql(true);
           expect(metacountry.name.primaryKey).to.eql(false);
 
           return Alumni.sync({ force: true }).then(() => {
-            return self.queryInterface.describeTable('_Alumni').then(metalumni => {
+            return this.queryInterface.describeTable('_Alumni').then(metalumni => {
               expect(metalumni.year.primaryKey).to.eql(true);
               expect(metalumni.num.primaryKey).to.eql(true);
               expect(metalumni.username.primaryKey).to.eql(false);

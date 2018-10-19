@@ -69,7 +69,7 @@ const Support = {
           resolve();
         }
       }).then(() => {
-        const options = _.extend({}, sequelize.options, { storage: p }),
+        const options = Object.assign({}, sequelize.options, { storage: p }),
           _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
         if (callback) {
@@ -142,9 +142,8 @@ const Support = {
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(__dirname + '/../lib/dialects').filter(file => {
-      return file.indexOf('.js') === -1 && file.indexOf('abstract') === -1;
-    });
+    return fs.readdirSync(__dirname + '/../lib/dialects')
+      .filter(file => !file.includes('.js') && !file.includes('abstract'));
   },
 
   checkMatchForDialects(dialect, value, expectations) {
@@ -177,7 +176,7 @@ const Support = {
       envDialect = 'postgres';
     }
 
-    if (this.getSupportedDialects().indexOf(envDialect) === -1) {
+    if (!this.getSupportedDialects().includes(envDialect)) {
       throw new Error('The dialect you have passed is unknown. Did you really mean: ' + envDialect);
     }
 

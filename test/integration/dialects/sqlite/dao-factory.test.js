@@ -34,13 +34,12 @@ if (dialect === 'sqlite') {
 
         describe('create', () => {
           it('creates a table entry', function() {
-            const self = this;
             return this.User.create({ age: 21, name: 'John Wayne', bio: 'noot noot' }).then(user => {
               expect(user.age).to.equal(21);
               expect(user.name).to.equal('John Wayne');
               expect(user.bio).to.equal('noot noot');
 
-              return self.User.findAll().then(users => {
+              return this.User.findAll().then(users => {
                 const usernames = users.map(user => {
                   return user.name;
                 });
@@ -138,15 +137,14 @@ if (dialect === 'sqlite') {
 
         describe('.min', () => {
           it('should return the min value', function() {
-            const self = this,
-              users = [];
+            const users = [];
 
             for (let i = 2; i < 5; i++) {
               users[users.length] = {age: i};
             }
 
             return this.User.bulkCreate(users).then(() => {
-              return self.User.min('age').then(min => {
+              return this.User.min('age').then(min => {
                 expect(min).to.equal(2);
               });
             });
@@ -155,15 +153,14 @@ if (dialect === 'sqlite') {
 
         describe('.max', () => {
           it('should return the max value', function() {
-            const self = this,
-              users = [];
+            const users = [];
 
             for (let i = 2; i <= 5; i++) {
               users[users.length] = {age: i};
             }
 
             return this.User.bulkCreate(users).then(() => {
-              return self.User.max('age').then(min => {
+              return this.User.max('age').then(min => {
                 expect(min).to.equal(5);
               });
             });

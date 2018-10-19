@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
         User.findOne({ where: { id: 1 }, include: [{model: Task, as: 'assignments'}] }),
         Task.findOne({ where: { id: 1 }, include: [{model: User, as: 'owner'}] })
       ]);
-    }).spread((user, task) => {
+    }).then(([user, task]) => {
       expect(user.assignments).to.be.ok;
       expect(task.owner).to.be.ok;
     });
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
         User.findOne({ where: { id: 1 }, include: [{model: Task, as: 'ASSIGNMENTS'}] }),
         Task.findOne({ where: { id: 1 }, include: [{model: User, as: 'OWNER'}] })
       ]);
-    }).spread((user, task) => {
+    }).then(([user, task]) => {
       expect(user.ASSIGNMENTS).to.be.ok;
       expect(task.OWNER).to.be.ok;
     });

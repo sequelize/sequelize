@@ -23,12 +23,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('count', () => {
     beforeEach(function() {
-      const self = this;
       return this.User.bulkCreate([
         {username: 'boo'},
         {username: 'boo2'}
       ]).then(() => {
-        return self.User.findOne();
+        return this.User.findOne();
       }).then(user => {
         return user.createProject({
           name: 'project1'

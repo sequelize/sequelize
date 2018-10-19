@@ -1,7 +1,6 @@
 'use strict';
 
-const _ = require('lodash'),
-  chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
   Sequelize = require('../../../index'),
@@ -19,7 +18,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         options = options || {};
 
         const taskTableName      = options.taskTableName || 'tasks_' + config.rand();
-        const transactionOptions = _.assign({}, { deferrable: Sequelize.Deferrable.SET_DEFERRED }, options);
+        const transactionOptions = Object.assign({}, { deferrable: Sequelize.Deferrable.SET_DEFERRED }, options);
         const userTableName      = 'users_' + config.rand();
 
         const User = this.sequelize.define(
@@ -43,16 +42,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           }
         );
 
-        return User.sync({ force: true }).bind(this).then(() => {
+        return User.sync({ force: true }).then(() => {
           return Task.sync({ force: true });
-        }).then(function() {
+        }).then(() => {
           return this.sequelize.transaction(transactionOptions, t => {
             return Task
               .create({ title: 'a task', user_id: -1 }, { transaction: t })
               .then(task => {
-                return [task, User.create({}, { transaction: t })];
+                return Promise.all([task, User.create({}, { transaction: t })]);
               })
-              .spread((task, user) => {
+              .then(([task, user]) => {
                 task.user_id = user.id;
                 return task.save({ transaction: t });
               });

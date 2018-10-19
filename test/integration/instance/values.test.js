@@ -106,27 +106,26 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
       });
 
       it('allows use of sequelize.fn and sequelize.col in date and bool fields', function() {
-        const self = this,
-          User = this.sequelize.define('User', {
-            d: DataTypes.DATE,
-            b: DataTypes.BOOLEAN,
-            always_false: {
-              type: DataTypes.BOOLEAN,
-              defaultValue: false
-            }
-          }, {timestamps: false});
+        const User = this.sequelize.define('User', {
+          d: DataTypes.DATE,
+          b: DataTypes.BOOLEAN,
+          always_false: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+          }
+        }, {timestamps: false});
 
         return User.sync({ force: true }).then(() => {
           return User.create({}).then(user => {
             // Create the user first to set the proper default values. PG does not support column references in insert,
             // so we must create a record with the right value for always_false, then reference it in an update
-            let now = dialect === 'sqlite' ? self.sequelize.fn('', self.sequelize.fn('datetime', 'now')) : self.sequelize.fn('NOW');
+            let now = dialect === 'sqlite' ? this.sequelize.fn('', this.sequelize.fn('datetime', 'now')) : this.sequelize.fn('NOW');
             if (dialect === 'mssql') {
-              now = self.sequelize.fn('', self.sequelize.fn('getdate'));
+              now = this.sequelize.fn('', this.sequelize.fn('getdate'));
             }
             user.set({
               d: now,
-              b: self.sequelize.col('always_false')
+              b: this.sequelize.col('always_false')
             });
 
             expect(user.get('d')).to.be.instanceof(Sequelize.Utils.Fn);
@@ -506,7 +505,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         }).then(user => {
           expect(changed).to.be.ok;
           expect(changed.length).to.be.ok;
-          expect(changed.indexOf('name') > -1).to.be.ok;
+          expect(changed).to.include('name');
           expect(user.changed()).not.to.be.ok;
         });
       });

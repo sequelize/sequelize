@@ -6,7 +6,7 @@ const expect = require('chai').expect;
 describe('errors', () => {
   it('should maintain stack trace with message', () => {
     const errorsWithMessage = [
-      'BaseError', 'ValidationError', 'InstanceError', 
+      'BaseError', 'ValidationError', 'InstanceError',
       'EmptyResultError', 'EagerLoadingError', 'AssociationError', 'QueryError'
     ];
 
@@ -25,7 +25,7 @@ describe('errors', () => {
       const fullErrorName = 'Sequelize' + errorName;
       expect(stackParts[0]).to.equal(fullErrorName + ': this is a message');
       expect(stackParts[1]).to.match(/^    at throwError \(.*errors.test.js:\d+:\d+\)$/);
-    });    
+    });
   });
 
   it('should maintain stack trace without message', () => {

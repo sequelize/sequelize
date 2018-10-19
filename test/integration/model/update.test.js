@@ -76,7 +76,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               id: account.get('id')
             },
             returning: true
-          }).spread((count, accounts) => {
+          }).then(([, accounts]) => {
             const firstAcc = accounts[0];
             expect(firstAcc.ownerId).to.be.equal(2);
             expect(firstAcc.name).to.be.equal('FooBar');

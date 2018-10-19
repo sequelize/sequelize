@@ -114,7 +114,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         return Sequelize.Promise.all([
           A.create({name: 'a'}),
           B.create({name: 'b'})
-        ]).spread((a, b) => {
+        ]).then(([a, b]) => {
           return a.addB(b).then(() => {
             expect(hookCalled).to.equal(1);
           });

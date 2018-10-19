@@ -17,7 +17,7 @@
   "bugs": {
     "url": "https://github.com/sequelize/sequelize/issues"
   },
-  "main": "index.js",
+  "main": "./lib/sequelize.js",
   "engines": {
     "node": ">=6.0.0"
   },

@@ -10,8 +10,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('attributes', () => {
     describe('set', () => {
       it('should only be called once when used on a join model called with an association getter', function() {
-        const self = this;
-        self.callCount = 0;
+        let callCount = 0;
 
         this.Student = this.sequelize.define('student', {
           no: {type: Sequelize.INTEGER, primaryKey: true},
@@ -34,7 +33,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           test_value: {
             type: Sequelize.INTEGER,
             set(v) {
-              self.callCount++;
+              callCount++;
               this.setDataValue('test_value', v + 1);
             }
           }
@@ -48,26 +47,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return this.sequelize.sync({force: true}).then(() => {
           return Promise.join(
-            self.Student.create({no: 1, name: 'ryan'}),
-            self.Course.create({no: 100, name: 'history'})
-          ).spread((student, course) => {
+            this.Student.create({no: 1, name: 'ryan'}),
+            this.Course.create({no: 100, name: 'history'})
+          ).then(([student, course]) => {
             return student.addCourse(course, { through: {score: 98, test_value: 1000}});
           }).then(() => {
-            expect(self.callCount).to.equal(1);
-            return self.Score.findOne({ where: { StudentId: 1, CourseId: 100 } }).then(score => {
+            expect(callCount).to.equal(1);
+            return this.Score.findOne({ where: { StudentId: 1, CourseId: 100 } }).then(score => {
               expect(score.test_value).to.equal(1001);
             });
           })
             .then(() => {
               return Promise.join(
-                self.Student.build({no: 1}).getCourses({where: {no: 100}}),
-                self.Score.findOne({ where: { StudentId: 1, CourseId: 100 } })
+                this.Student.build({no: 1}).getCourses({where: {no: 100}}),
+                this.Score.findOne({ where: { StudentId: 1, CourseId: 100 } })
               );
             })
-            .spread((courses, score) => {
+            .then(([courses, score]) => {
               expect(score.test_value).to.equal(1001);
               expect(courses[0].score.toJSON().test_value).to.equal(1001);
-              expect(self.callCount).to.equal(1);
+              expect(callCount).to.equal(1);
             });
         });
       });

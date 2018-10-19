@@ -4,13 +4,12 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require('../../../../lib/data-types'),
-  _ = require('lodash');
+  DataTypes = require('../../../../lib/data-types');
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES] Sequelize', () => {
     function checkTimezoneParsing(baseOptions) {
-      const options = _.extend({}, baseOptions, { timezone: 'Asia/Kolkata', timestamps: true });
+      const options = Object.assign({}, baseOptions, { timezone: 'Asia/Kolkata', timestamps: true });
       const sequelize = Support.createSequelizeInstance(options);
 
       const tzTable = sequelize.define('tz_table', { foo: DataTypes.STRING });

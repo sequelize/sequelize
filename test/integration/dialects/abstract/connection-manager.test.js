@@ -91,7 +91,7 @@ describe('Connection Manager', () => {
       useMaster: false
     };
 
-    const _getConnection = _.bind(connectionManager.getConnection, connectionManager, queryOptions);
+    const _getConnection = connectionManager.getConnection.bind(connectionManager, queryOptions);
 
     return _getConnection()
       .then(_getConnection)

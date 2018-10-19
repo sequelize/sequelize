@@ -1,7 +1,6 @@
 'use strict';
 
 const chai = require('chai'),
-  _ = require('lodash'),
   Sequelize = require('../../../../index'),
   expect = chai.expect,
   Op = Sequelize.Op,
@@ -47,7 +46,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should apply defaultScope', function() {
-        return this.ScopeMe.update({ username: 'ruben' }, { where: {}}).bind(this).then(function() {
+        return this.ScopeMe.update({ username: 'ruben' }, { where: {}}).then(() => {
           return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' }});
         }).then(users => {
           expect(users).to.have.length(2);
@@ -57,7 +56,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to override default scope', function() {
-        return this.ScopeMe.update({ username: 'ruben' }, { where: { access_level: { [Op.lt]: 5 }}}).bind(this).then(function() {
+        return this.ScopeMe.update({ username: 'ruben' }, { where: { access_level: { [Op.lt]: 5 }}}).then(() => {
           return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' }});
         }).then(users => {
           expect(users).to.have.length(2);
@@ -67,17 +66,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to unscope destroy', function() {
-        return this.ScopeMe.unscoped().update({ username: 'ruben' }, { where: {}}).bind(this).then(function() {
+        return this.ScopeMe.unscoped().update({ username: 'ruben' }, { where: {}}).then(() => {
           return this.ScopeMe.unscoped().findAll();
         }).then(rubens => {
-          expect(_.every(rubens, r => {
-            return r.get('username') === 'ruben';
-          })).to.be.true;
+          expect(rubens.every(r => r.get('username') === 'ruben')).to.be.true;
         });
       });
 
       it('should be able to apply other scopes', function() {
-        return this.ScopeMe.scope('lowAccess').update({ username: 'ruben' }, { where: {}}).bind(this).then(function() {
+        return this.ScopeMe.scope('lowAccess').update({ username: 'ruben' }, { where: {}}).then(() => {
           return this.ScopeMe.unscoped().findAll({ where: { username: { [Op.ne]: 'ruben' }}});
         }).then(users => {
           expect(users).to.have.length(1);
@@ -86,7 +83,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to merge scopes with where', function() {
-        return this.ScopeMe.scope('lowAccess').update({ username: 'ruben' }, { where: { username: 'dan'}}).bind(this).then(function() {
+        return this.ScopeMe.scope('lowAccess').update({ username: 'ruben' }, { where: { username: 'dan'}}).then(() => {
           return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' }});
         }).then(users => {
           expect(users).to.have.length(1);

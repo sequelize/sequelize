@@ -44,8 +44,6 @@ if (dialect.match(/^postgres/)) {
     describe('HasMany', () => {
       describe('addDAO / getModel', () => {
         beforeEach(function() {
-          const self = this;
-
           //prevent periods from occurring in the table name since they are used to delimit (table.column)
           this.User = this.sequelize.define('User' + config.rand(), { name: DataTypes.STRING });
           this.Task = this.sequelize.define('Task' + config.rand(), { name: DataTypes.STRING });
@@ -67,12 +65,12 @@ if (dialect.match(/^postgres/)) {
           }
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return self.User.bulkCreate(users).then(() => {
-              return self.Task.bulkCreate(tasks).then(() => {
-                return self.User.findAll().then(_users => {
-                  return self.Task.findAll().then(_tasks => {
-                    self.user = _users[0];
-                    self.task = _tasks[0];
+            return this.User.bulkCreate(users).then(() => {
+              return this.Task.bulkCreate(tasks).then(() => {
+                return this.User.findAll().then(_users => {
+                  return this.Task.findAll().then(_tasks => {
+                    this.user = _users[0];
+                    this.task = _tasks[0];
                   });
                 });
               });
@@ -81,12 +79,10 @@ if (dialect.match(/^postgres/)) {
         });
 
         it('should correctly add an association to the dao', function() {
-          const self = this;
-
-          return self.user.getTasks().then(_tasks => {
+          return this.user.getTasks().then(_tasks => {
             expect(_tasks).to.have.length(0);
-            return self.user.addTask(self.task).then(() => {
-              return self.user.getTasks().then(_tasks => {
+            return this.user.addTask(this.task).then(() => {
+              return this.user.getTasks().then(_tasks => {
                 expect(_tasks).to.have.length(1);
               });
             });
@@ -96,8 +92,7 @@ if (dialect.match(/^postgres/)) {
 
       describe('removeDAO', () => {
         it('should correctly remove associated objects', function() {
-          const self = this,
-            users = [],
+          const users = [],
             tasks = [];
 
           //prevent periods from occurring in the table name since they are used to delimit (table.column)
@@ -118,26 +113,26 @@ if (dialect.match(/^postgres/)) {
           }
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return self.User.bulkCreate(users).then(() => {
-              return self.Task.bulkCreate(tasks).then(() => {
-                return self.User.findAll().then(_users => {
-                  return self.Task.findAll().then(_tasks => {
-                    self.user = _users[0];
-                    self.task = _tasks[0];
-                    self.users = _users;
-                    self.tasks = _tasks;
+            return this.User.bulkCreate(users).then(() => {
+              return this.Task.bulkCreate(tasks).then(() => {
+                return this.User.findAll().then(_users => {
+                  return this.Task.findAll().then(_tasks => {
+                    this.user = _users[0];
+                    this.task = _tasks[0];
+                    this.users = _users;
+                    this.tasks = _tasks;
 
-                    return self.user.getTasks().then(__tasks => {
+                    return this.user.getTasks().then(__tasks => {
                       expect(__tasks).to.have.length(0);
-                      return self.user.setTasks(self.tasks).then(() => {
-                        return self.user.getTasks().then(_tasks => {
-                          expect(_tasks).to.have.length(self.tasks.length);
-                          return self.user.removeTask(self.tasks[0]).then(() => {
-                            return self.user.getTasks().then(_tasks => {
-                              expect(_tasks).to.have.length(self.tasks.length - 1);
-                              return self.user.removeTasks([self.tasks[1], self.tasks[2]]).then(() => {
-                                return self.user.getTasks().then(_tasks => {
-                                  expect(_tasks).to.have.length(self.tasks.length - 3);
+                      return this.user.setTasks(this.tasks).then(() => {
+                        return this.user.getTasks().then(_tasks => {
+                          expect(_tasks).to.have.length(this.tasks.length);
+                          return this.user.removeTask(this.tasks[0]).then(() => {
+                            return this.user.getTasks().then(_tasks => {
+                              expect(_tasks).to.have.length(this.tasks.length - 1);
+                              return this.user.removeTasks([this.tasks[1], this.tasks[2]]).then(() => {
+                                return this.user.getTasks().then(_tasks => {
+                                  expect(_tasks).to.have.length(this.tasks.length - 3);
                                 });
                               });
                             });

@@ -32,7 +32,7 @@ if (current.dialect.supports.tmpTableTrigger) {
           hasTrigger: true
         });
 
-        return User.sync({force: true}).bind(this).then(function() {
+        return User.sync({force: true}).then(() => {
           return this.sequelize.query(triggerQuery, {type: this.sequelize.QueryTypes.RAW});
         });
       });

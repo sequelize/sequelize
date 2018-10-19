@@ -55,14 +55,14 @@ function unwrapAndAttachMSSQLUniqueId(connection) {
   return connection;
 }
 
-describe(Support.getTestDialectTeaser('Pooling'), function() {
+describe(Support.getTestDialectTeaser('Pooling'), () => {
   if (dialect === 'sqlite' || process.env.DIALECT === 'postgres-native') return;
 
-  beforeEach(() => {
+  beforeEach(function() {
     this.sinon = sinon.createSandbox();
   });
 
-  afterEach(() => {
+  afterEach(function() {
     this.sinon.restore();
   });
 
@@ -239,7 +239,7 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
   });
 
   describe('acquire', () => {
-    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', () => {
+    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', function() {
       this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
         databaseVersion: '1.2.3',
@@ -255,7 +255,7 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
         .to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
     });
 
-    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', () => {
+    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', function() {
       this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
         databaseVersion: '1.2.3',

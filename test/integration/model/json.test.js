@@ -40,8 +40,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               transaction,
               lock: transaction.LOCK.UPDATE,
               logging: sql => {
-                if (sql.indexOf('SELECT') !== -1 && sql.indexOf('CREATE') === -1) {
-                  expect(sql.indexOf('FOR UPDATE')).not.to.be.equal(-1);
+                if (sql.includes('SELECT') && !sql.includes('CREATE')) {
+                  expect(sql.includes('FOR UPDATE')).to.be.true;
                 }
               }
             }).then(() => {

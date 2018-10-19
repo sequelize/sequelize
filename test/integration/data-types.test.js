@@ -254,7 +254,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite'].indexOf(dialect) !== -1) {
+    if (['postgres', 'sqlite'].includes(dialect)) {
       return testSuccess(Type, uuid.v4());
     } else {
       // No native uuid type
@@ -265,7 +265,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for CIDR', () => {
     const Type = new Sequelize.CIDR();
 
-    if (['postgres'].indexOf(dialect) !== -1) {
+    if (['postgres'].includes(dialect)) {
       return testSuccess(Type, '10.1.2.3/32');
     } else {
       testFailure(Type);
@@ -275,7 +275,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for INET', () => {
     const Type = new Sequelize.INET();
 
-    if (['postgres'].indexOf(dialect) !== -1) {
+    if (['postgres'].includes(dialect)) {
       return testSuccess(Type, '127.0.0.1');
     } else {
       testFailure(Type);
@@ -300,7 +300,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for MACADDR', () => {
     const Type = new Sequelize.MACADDR();
 
-    if (['postgres'].indexOf(dialect) !== -1) {
+    if (['postgres'].includes(dialect)) {
       return testSuccess(Type, '01:23:45:67:89:ab');
     } else {
       testFailure(Type);
@@ -310,7 +310,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for ENUM', () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
-    if (['postgres'].indexOf(dialect) !== -1) {
+    if (['postgres'].includes(dialect)) {
       return testSuccess(Type, 'hat');
     } else {
       testFailure(Type);

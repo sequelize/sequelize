@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.ScopeMe.belongsTo(this.Company);
         this.UserAssociation = this.Company.hasMany(this.ScopeMe, { as: 'users' });
 
-        return this.sequelize.sync({force: true}).bind(this).then(function() {
+        return this.sequelize.sync({force: true}).then(() => {
           return Promise.all([
             this.ScopeMe.create({ id: 1, username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10, parent_id: 1}),
             this.ScopeMe.create({ id: 2, username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11, parent_id: 2}),
@@ -107,7 +107,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.Company.create({ id: 1, active: true}),
             this.Company.create({ id: 2, active: false})
           ]);
-        }).spread((u1, u2, u3, u4, u5, c1, c2) => {
+        }).then(([u1, u2, u3, u4, u5, c1, c2]) => {
           return Promise.all([
             c1.setUsers([u1, u2, u3, u4]),
             c2.setUsers([u5])
@@ -155,7 +155,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return Promise.all([
             this.Project.create(),
             this.Company.unscoped().findAll()
-          ]).spread((p, companies) => {
+          ]).then(([p, companies]) => {
             return p.setCompanies(companies);
           });
         });
@@ -173,7 +173,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.Profile.create({
               active: false,
               userId: 1
-            }).bind(this).then(function() {
+            }).then(() => {
               return this.ScopeMe.findByPk(1);
             }).then(user => {
               return user.getProfile({ scope: false });
@@ -212,7 +212,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.Profile.create({
               active: false,
               userId: 1
-            }).bind(this).then(function() {
+            }).then(() => {
               return this.ScopeMe.findByPk(1);
             }).then(user => {
               return user.getProfile();
@@ -253,7 +253,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.Profile.create({
               active: true,
               userId: 1
-            }).bind(this).then(function() {
+            }).then(() => {
               return this.ScopeMe.findByPk(1);
             }).then(user => {
               return user.getProfile({ scope: 'notActive' });
@@ -288,7 +288,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.Company.findByPk(1),
             this.Project.create({ id: 1, active: true}),
             this.Project.create({ id: 2, active: false})
-          ]).spread((c, p1, p2) => {
+          ]).then(([c, p1, p2]) => {
             return c.setProjects([p1, p2]);
           });
         });

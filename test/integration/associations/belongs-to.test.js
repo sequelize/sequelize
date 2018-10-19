@@ -112,7 +112,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           User.create({ username: 'bar', gender: 'female' }),
           Task.create({ title: 'task', status: 'inactive' })
         ]);
-      }).spread((userA, userB, task) => {
+      }).then(([userA, , task]) => {
         return task.setUserXYZ(userA).then(() => {
           return task.getUserXYZ({where: {gender: 'female'}});
         });
@@ -138,7 +138,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           User.create({ username: 'foo', gender: 'male' }),
           Task.create({ title: 'task', status: 'inactive' })
         ]);
-      }).spread((user, task) => {
+      }).then(([user, task]) => {
         return task.setUserXYZ(user).then(() => {
           return task.getUserXYZ();
         });
@@ -368,7 +368,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         return Promise.join(
           Post.create(),
           Comment.create()
-        ).spread((post, comment) => {
+        ).then(([post, comment]) => {
           expect(comment.get('post_id')).not.to.be.ok;
 
           const setter = comment.setPost(post, {save: false});
@@ -386,19 +386,20 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       Home.belongsTo(User);
 
-      return this.sequelize.sync({ force: true }).bind({}).then(() => {
+      const ctx = {};
+      return this.sequelize.sync({ force: true }).then(() => {
         return Promise.all([
           Home.create(),
           User.create()
         ]);
-      }).spread(function(home, user) {
-        this.home = home;
-        this.user = user;
+      }).then(([home, user]) => {
+        ctx.home = home;
+        ctx.user = user;
         return home.setUser(user);
-      }).then(function() {
-        return this.home.setUser(this.user);
-      }).then(function() {
-        return expect(this.home.getUser()).to.eventually.have.property('id', this.user.get('id'));
+      }).then(() => {
+        return ctx.home.setUser(ctx.user);
+      }).then(() => {
+        return expect(ctx.home.getUser()).to.eventually.have.property('id', ctx.user.get('id'));
       });
     });
   });
@@ -493,7 +494,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           User.create({ username: 'foo' }),
           Account.create({ title: 'pepsico' })
         ]);
-      }).spread((user, account) => {
+      }).then(([user, account]) => {
         return user.setAccount(account).then(() => {
           return user.getAccount();
         });
@@ -883,17 +884,16 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     it('can specify data type for auto-generated relational keys', function() {
       const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING }),
         dataTypes = [DataTypes.INTEGER, DataTypes.BIGINT, DataTypes.STRING],
-        self = this,
         Tasks = {};
 
       dataTypes.forEach(dataType => {
         const tableName = 'TaskXYZ_' + dataType.key;
-        Tasks[dataType] = self.sequelize.define(tableName, { title: DataTypes.STRING });
+        Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
 
         Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType, constraints: false });
       });
 
-      return self.sequelize.sync({ force: true }).then(() => {
+      return this.sequelize.sync({ force: true }).then(() => {
         dataTypes.forEach(dataType => {
           expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
         });

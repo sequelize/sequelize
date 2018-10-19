@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAll', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
@@ -520,18 +520,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('belongsTo', () => {
         beforeEach(function() {
-          const self = this;
-          self.Task = self.sequelize.define('TaskBelongsTo', { title: Sequelize.STRING });
-          self.Worker = self.sequelize.define('Worker', { name: Sequelize.STRING });
-          self.Task.belongsTo(self.Worker);
+          this.Task = this.sequelize.define('TaskBelongsTo', { title: Sequelize.STRING });
+          this.Worker = this.sequelize.define('Worker', { name: Sequelize.STRING });
+          this.Task.belongsTo(this.Worker);
 
-          return self.Worker.sync({ force: true }).then(() => {
-            return self.Task.sync({ force: true }).then(() => {
-              return self.Worker.create({ name: 'worker' }).then(worker => {
-                return self.Task.create({ title: 'homework' }).then(task => {
-                  self.worker = worker;
-                  self.task = task;
-                  return self.task.setWorker(self.worker);
+          return this.Worker.sync({ force: true }).then(() => {
+            return this.Task.sync({ force: true }).then(() => {
+              return this.Worker.create({ name: 'worker' }).then(worker => {
+                return this.Task.create({ title: 'homework' }).then(task => {
+                  this.worker = worker;
+                  this.task = task;
+                  return this.task.setWorker(this.worker);
                 });
               });
             });
@@ -539,15 +538,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('throws an error about unexpected input if include contains a non-object', function() {
-          const self = this;
-          return self.Worker.findAll({ include: [1] }).catch (err => {
+          return this.Worker.findAll({ include: [1] }).catch (err => {
             expect(err.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
           });
         });
 
         it('throws an error if included DaoFactory is not associated', function() {
-          const self = this;
-          return self.Worker.findAll({ include: [self.Task] }).catch (err => {
+          return this.Worker.findAll({ include: [this.Task] }).catch (err => {
             expect(err.message).to.equal('TaskBelongsTo is not associated to Worker!');
           });
         });
@@ -579,17 +576,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('hasOne', () => {
         beforeEach(function() {
-          const self = this;
-          self.Task = self.sequelize.define('TaskHasOne', { title: Sequelize.STRING });
-          self.Worker = self.sequelize.define('Worker', { name: Sequelize.STRING });
-          self.Worker.hasOne(self.Task);
-          return self.Worker.sync({ force: true }).then(() => {
-            return self.Task.sync({ force: true }).then(() => {
-              return self.Worker.create({ name: 'worker' }).then(worker => {
-                return self.Task.create({ title: 'homework' }).then(task => {
-                  self.worker = worker;
-                  self.task = task;
-                  return self.worker.setTaskHasOne(self.task);
+          this.Task = this.sequelize.define('TaskHasOne', { title: Sequelize.STRING });
+          this.Worker = this.sequelize.define('Worker', { name: Sequelize.STRING });
+          this.Worker.hasOne(this.Task);
+          return this.Worker.sync({ force: true }).then(() => {
+            return this.Task.sync({ force: true }).then(() => {
+              return this.Worker.create({ name: 'worker' }).then(worker => {
+                return this.Task.create({ title: 'homework' }).then(task => {
+                  this.worker = worker;
+                  this.task = task;
+                  return this.worker.setTaskHasOne(this.task);
                 });
               });
             });
@@ -597,8 +593,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('throws an error if included DaoFactory is not associated', function() {
-          const self = this;
-          return self.Task.findAll({ include: [self.Worker] }).catch (err => {
+          return this.Task.findAll({ include: [this.Worker] }).catch (err => {
             expect(err.message).to.equal('Worker is not associated to TaskHasOne!');
           });
         });
@@ -617,17 +612,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('hasOne with alias', () => {
         beforeEach(function() {
-          const self = this;
-          self.Task = self.sequelize.define('Task', { title: Sequelize.STRING });
-          self.Worker = self.sequelize.define('Worker', { name: Sequelize.STRING });
-          self.Worker.hasOne(self.Task, { as: 'ToDo' });
-          return self.Worker.sync({ force: true }).then(() => {
-            return self.Task.sync({ force: true }).then(() => {
-              return self.Worker.create({ name: 'worker' }).then(worker => {
-                return self.Task.create({ title: 'homework' }).then(task => {
-                  self.worker = worker;
-                  self.task = task;
-                  return self.worker.setToDo(self.task);
+          this.Task = this.sequelize.define('Task', { title: Sequelize.STRING });
+          this.Worker = this.sequelize.define('Worker', { name: Sequelize.STRING });
+          this.Worker.hasOne(this.Task, { as: 'ToDo' });
+          return this.Worker.sync({ force: true }).then(() => {
+            return this.Task.sync({ force: true }).then(() => {
+              return this.Worker.create({ name: 'worker' }).then(worker => {
+                return this.Task.create({ title: 'homework' }).then(task => {
+                  this.worker = worker;
+                  this.task = task;
+                  return this.worker.setToDo(this.task);
                 });
               });
             });
@@ -635,16 +629,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('throws an error if included DaoFactory is not referenced by alias', function() {
-          const self = this;
-          return self.Worker.findAll({ include: [self.Task] }).catch (err => {
+          return this.Worker.findAll({ include: [this.Task] }).catch (err => {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You must use the \'as\' keyword to specify the alias within your include statement.');
           });
         });
 
         it('throws an error if alias is not associated', function() {
-          const self = this;
-          return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch (err => {
+          return this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] }).catch (err => {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDo).');
           });
@@ -673,17 +665,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('hasMany', () => {
         beforeEach(function() {
-          const self = this;
-          self.Task = self.sequelize.define('task', { title: Sequelize.STRING });
-          self.Worker = self.sequelize.define('worker', { name: Sequelize.STRING });
-          self.Worker.hasMany(self.Task);
-          return self.Worker.sync({ force: true }).then(() => {
-            return self.Task.sync({ force: true }).then(() => {
-              return self.Worker.create({ name: 'worker' }).then(worker => {
-                return self.Task.create({ title: 'homework' }).then(task => {
-                  self.worker = worker;
-                  self.task = task;
-                  return self.worker.setTasks([self.task]);
+          this.Task = this.sequelize.define('task', { title: Sequelize.STRING });
+          this.Worker = this.sequelize.define('worker', { name: Sequelize.STRING });
+          this.Worker.hasMany(this.Task);
+          return this.Worker.sync({ force: true }).then(() => {
+            return this.Task.sync({ force: true }).then(() => {
+              return this.Worker.create({ name: 'worker' }).then(worker => {
+                return this.Task.create({ title: 'homework' }).then(task => {
+                  this.worker = worker;
+                  this.task = task;
+                  return this.worker.setTasks([this.task]);
                 });
               });
             });
@@ -691,8 +682,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('throws an error if included DaoFactory is not associated', function() {
-          const self = this;
-          return self.Task.findAll({ include: [self.Worker] }).catch (err => {
+          return this.Task.findAll({ include: [this.Worker] }).catch (err => {
             expect(err.message).to.equal('worker is not associated to task!');
           });
         });
@@ -830,17 +820,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('hasMany with alias', () => {
         beforeEach(function() {
-          const self = this;
-          self.Task = self.sequelize.define('Task', { title: Sequelize.STRING });
-          self.Worker = self.sequelize.define('Worker', { name: Sequelize.STRING });
-          self.Worker.hasMany(self.Task, { as: 'ToDos' });
-          return self.Worker.sync({ force: true }).then(() => {
-            return self.Task.sync({ force: true }).then(() => {
-              return self.Worker.create({ name: 'worker' }).then(worker => {
-                return self.Task.create({ title: 'homework' }).then(task => {
-                  self.worker = worker;
-                  self.task = task;
-                  return self.worker.setToDos([self.task]);
+          this.Task = this.sequelize.define('Task', { title: Sequelize.STRING });
+          this.Worker = this.sequelize.define('Worker', { name: Sequelize.STRING });
+          this.Worker.hasMany(this.Task, { as: 'ToDos' });
+          return this.Worker.sync({ force: true }).then(() => {
+            return this.Task.sync({ force: true }).then(() => {
+              return this.Worker.create({ name: 'worker' }).then(worker => {
+                return this.Task.create({ title: 'homework' }).then(task => {
+                  this.worker = worker;
+                  this.task = task;
+                  return this.worker.setToDos([this.task]);
                 });
               });
             });
@@ -848,16 +837,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('throws an error if included DaoFactory is not referenced by alias', function() {
-          const self = this;
-          return self.Worker.findAll({ include: [self.Task] }).catch (err => {
+          return this.Worker.findAll({ include: [this.Task] }).catch (err => {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You must use the \'as\' keyword to specify the alias within your include statement.');
           });
         });
 
         it('throws an error if alias is not associated', function() {
-          const self = this;
-          return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch (err => {
+          return this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] }).catch (err => {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDos).');
           });
@@ -886,35 +873,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('queryOptions', () => {
         beforeEach(function() {
-          const self = this;
           return this.User.create({username: 'barfooz'}).then(user => {
-            self.user = user;
+            this.user = user;
           });
         });
 
         it('should return a DAO when queryOptions are not set', function() {
-          const self = this;
           return this.User.findAll({ where: { username: 'barfooz'}}).then(users => {
             users.forEach(user => {
-              expect(user).to.be.instanceOf(self.User);
+              expect(user).to.be.instanceOf(this.User);
             });
           });
         });
 
         it('should return a DAO when raw is false', function() {
-          const self = this;
           return this.User.findAll({ where: { username: 'barfooz'}, raw: false }).then(users => {
             users.forEach(user => {
-              expect(user).to.be.instanceOf(self.User);
+              expect(user).to.be.instanceOf(this.User);
             });
           });
         });
 
         it('should return raw data when raw is true', function() {
-          const self = this;
           return this.User.findAll({ where: { username: 'barfooz'}, raw: true }).then(users => {
             users.forEach(user => {
-              expect(user).to.not.be.instanceOf(self.User);
+              expect(user).to.not.be.instanceOf(this.User);
               expect(users[0]).to.be.instanceOf(Object);
             });
           });
@@ -923,37 +906,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('include all', () => {
         beforeEach(function() {
-          const self = this;
+          this.Continent = this.sequelize.define('continent', { name: Sequelize.STRING });
+          this.Country = this.sequelize.define('country', { name: Sequelize.STRING });
+          this.Industry = this.sequelize.define('industry', { name: Sequelize.STRING });
+          this.Person = this.sequelize.define('person', { name: Sequelize.STRING, lastName: Sequelize.STRING });
 
-          self.Continent = this.sequelize.define('continent', { name: Sequelize.STRING });
-          self.Country = this.sequelize.define('country', { name: Sequelize.STRING });
-          self.Industry = this.sequelize.define('industry', { name: Sequelize.STRING });
-          self.Person = this.sequelize.define('person', { name: Sequelize.STRING, lastName: Sequelize.STRING });
-
-          self.Continent.hasMany(self.Country);
-          self.Country.belongsTo(self.Continent);
-          self.Country.belongsToMany(self.Industry, {through: 'country_industry'});
-          self.Industry.belongsToMany(self.Country, {through: 'country_industry'});
-          self.Country.hasMany(self.Person);
-          self.Person.belongsTo(self.Country);
-          self.Country.hasMany(self.Person, { as: 'residents', foreignKey: 'CountryResidentId' });
-          self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
+          this.Continent.hasMany(this.Country);
+          this.Country.belongsTo(this.Continent);
+          this.Country.belongsToMany(this.Industry, {through: 'country_industry'});
+          this.Industry.belongsToMany(this.Country, {through: 'country_industry'});
+          this.Country.hasMany(this.Person);
+          this.Person.belongsTo(this.Country);
+          this.Country.hasMany(this.Person, { as: 'residents', foreignKey: 'CountryResidentId' });
+          this.Person.belongsTo(this.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
             return Sequelize.Promise.props({
-              europe: self.Continent.create({ name: 'Europe' }),
-              england: self.Country.create({ name: 'England' }),
-              coal: self.Industry.create({ name: 'Coal' }),
-              bob: self.Person.create({ name: 'Bob', lastName: 'Becket' })
+              europe: this.Continent.create({ name: 'Europe' }),
+              england: this.Country.create({ name: 'England' }),
+              coal: this.Industry.create({ name: 'Coal' }),
+              bob: this.Person.create({ name: 'Bob', lastName: 'Becket' })
             }).then(r => {
               _.forEach(r, (item, itemName) => {
-                self[itemName] = item;
+                this[itemName] = item;
               });
               return Sequelize.Promise.all([
-                self.england.setContinent(self.europe),
-                self.england.addIndustry(self.coal),
-                self.bob.setCountry(self.england),
-                self.bob.setCountryResident(self.england)
+                this.england.setContinent(this.europe),
+                this.england.addIndustry(this.coal),
+                this.bob.setCountry(this.england),
+                this.bob.setCountryResident(this.england)
               ]);
             });
           });
@@ -1042,11 +1023,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               this.Animal.create({ name: 'Peacock', age: 25 }),
               this.Animal.create({ name: 'Fish', age: 100 })
             ]))
-            .spread((a1, a2, a3, a4) => Sequelize.Promise.all([
+            .then(([a1, a2, a3, a4]) => Sequelize.Promise.all([
               this.Kingdom.create({ name: 'Earth' }),
               this.Kingdom.create({ name: 'Water' }),
               this.Kingdom.create({ name: 'Wind' })
-            ]).spread((k1, k2, k3) =>
+            ]).then(([k1, k2, k3]) =>
               Sequelize.Promise.all([
                 k1.addAnimals([a1, a2]),
                 k2.addAnimals([a4]),
@@ -1113,58 +1094,55 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('order by eager loaded tables', () => {
       describe('HasMany', () => {
         beforeEach(function() {
-          const self = this;
+          this.Continent = this.sequelize.define('continent', { name: Sequelize.STRING });
+          this.Country = this.sequelize.define('country', { name: Sequelize.STRING });
+          this.Person = this.sequelize.define('person', { name: Sequelize.STRING, lastName: Sequelize.STRING });
 
-          self.Continent = this.sequelize.define('continent', { name: Sequelize.STRING });
-          self.Country = this.sequelize.define('country', { name: Sequelize.STRING });
-          self.Person = this.sequelize.define('person', { name: Sequelize.STRING, lastName: Sequelize.STRING });
-
-          self.Continent.hasMany(self.Country);
-          self.Country.belongsTo(self.Continent);
-          self.Country.hasMany(self.Person);
-          self.Person.belongsTo(self.Country);
-          self.Country.hasMany(self.Person, { as: 'residents', foreignKey: 'CountryResidentId' });
-          self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
+          this.Continent.hasMany(this.Country);
+          this.Country.belongsTo(this.Continent);
+          this.Country.hasMany(this.Person);
+          this.Person.belongsTo(this.Country);
+          this.Country.hasMany(this.Person, { as: 'residents', foreignKey: 'CountryResidentId' });
+          this.Person.belongsTo(this.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
             return Sequelize.Promise.props({
-              europe: self.Continent.create({ name: 'Europe' }),
-              asia: self.Continent.create({ name: 'Asia' }),
-              england: self.Country.create({ name: 'England' }),
-              france: self.Country.create({ name: 'France' }),
-              korea: self.Country.create({ name: 'Korea' }),
-              bob: self.Person.create({ name: 'Bob', lastName: 'Becket' }),
-              fred: self.Person.create({ name: 'Fred', lastName: 'Able' }),
-              pierre: self.Person.create({ name: 'Pierre', lastName: 'Paris' }),
-              kim: self.Person.create({ name: 'Kim', lastName: 'Z' })
+              europe: this.Continent.create({ name: 'Europe' }),
+              asia: this.Continent.create({ name: 'Asia' }),
+              england: this.Country.create({ name: 'England' }),
+              france: this.Country.create({ name: 'France' }),
+              korea: this.Country.create({ name: 'Korea' }),
+              bob: this.Person.create({ name: 'Bob', lastName: 'Becket' }),
+              fred: this.Person.create({ name: 'Fred', lastName: 'Able' }),
+              pierre: this.Person.create({ name: 'Pierre', lastName: 'Paris' }),
+              kim: this.Person.create({ name: 'Kim', lastName: 'Z' })
             }).then(r => {
               _.forEach(r, (item, itemName) => {
-                self[itemName] = item;
+                this[itemName] = item;
               });
 
               return Sequelize.Promise.all([
-                self.england.setContinent(self.europe),
-                self.france.setContinent(self.europe),
-                self.korea.setContinent(self.asia),
+                this.england.setContinent(this.europe),
+                this.france.setContinent(this.europe),
+                this.korea.setContinent(this.asia),
 
-                self.bob.setCountry(self.england),
-                self.fred.setCountry(self.england),
-                self.pierre.setCountry(self.france),
-                self.kim.setCountry(self.korea),
+                this.bob.setCountry(this.england),
+                this.fred.setCountry(this.england),
+                this.pierre.setCountry(this.france),
+                this.kim.setCountry(this.korea),
 
-                self.bob.setCountryResident(self.england),
-                self.fred.setCountryResident(self.france),
-                self.pierre.setCountryResident(self.korea),
-                self.kim.setCountryResident(self.england)
+                this.bob.setCountryResident(this.england),
+                this.fred.setCountryResident(this.france),
+                this.pierre.setCountryResident(this.korea),
+                this.kim.setCountryResident(this.england)
               ]);
             });
           });
         });
 
         it('sorts simply', function() {
-          const self = this;
           return Sequelize.Promise.map([['ASC', 'Asia'], ['DESC', 'Europe']], params => {
-            return self.Continent.findAll({
+            return this.Continent.findAll({
               order: [['name', params[0]]]
             }).then(continents => {
               expect(continents).to.exist;
@@ -1175,11 +1153,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 1st degree association', function() {
-          const self = this;
           return Sequelize.Promise.map([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']], params => {
-            return self.Continent.findAll({
-              include: [self.Country],
-              order: [[self.Country, 'name', params[0]]]
+            return this.Continent.findAll({
+              include: [this.Country],
+              order: [[this.Country, 'name', params[0]]]
             }).then(continents => {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
@@ -1192,18 +1169,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', function() {
-          const self = this;
           return Sequelize.Promise.map([['ASC', 'Asia', 'Europe', 'England']], params => {
-            return self.Continent.findAll({
+            return this.Continent.findAll({
               include: [{
-                model: self.Country,
+                model: this.Country,
                 required: false,
                 where: {
                   name: params[3]
                 }
               }],
               limit: 2,
-              order: [['name', params[0]], [self.Country, 'name', params[0]]]
+              order: [['name', params[0]], [this.Country, 'name', params[0]]]
             }).then(continents => {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
@@ -1221,11 +1197,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 2nd degree association', function() {
-          const self = this;
           return Sequelize.Promise.map([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']], params => {
-            return self.Continent.findAll({
-              include: [{ model: self.Country, include: [self.Person] }],
-              order: [[self.Country, self.Person, 'lastName', params[0]]]
+            return this.Continent.findAll({
+              include: [{ model: this.Country, include: [this.Person] }],
+              order: [[this.Country, this.Person, 'lastName', params[0]]]
             }).then(continents => {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
@@ -1241,11 +1216,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }),
 
         it('sorts by 2nd degree association with alias', function() {
-          const self = this;
           return Sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
-            return self.Continent.findAll({
-              include: [{ model: self.Country, include: [self.Person, {model: self.Person, as: 'residents' }] }],
-              order: [[self.Country, {model: self.Person, as: 'residents' }, 'lastName', params[0]]]
+            return this.Continent.findAll({
+              include: [{ model: this.Country, include: [this.Person, {model: this.Person, as: 'residents' }] }],
+              order: [[this.Country, {model: this.Person, as: 'residents' }, 'lastName', params[0]]]
             }).then(continents => {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
@@ -1261,11 +1235,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 2nd degree association with alias while using limit', function() {
-          const self = this;
           return Sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
-            return self.Continent.findAll({
-              include: [{ model: self.Country, include: [self.Person, {model: self.Person, as: 'residents' }] }],
-              order: [[{ model: self.Country }, {model: self.Person, as: 'residents' }, 'lastName', params[0]]],
+            return this.Continent.findAll({
+              include: [{ model: this.Country, include: [this.Person, {model: this.Person, as: 'residents' }] }],
+              order: [[{ model: this.Country }, {model: this.Person, as: 'residents' }, 'lastName', params[0]]],
               limit: 3
             }).then(continents => {
               expect(continents).to.exist;
@@ -1284,44 +1257,41 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('ManyToMany', () => {
         beforeEach(function() {
-          const self = this;
+          this.Country = this.sequelize.define('country', { name: Sequelize.STRING });
+          this.Industry = this.sequelize.define('industry', { name: Sequelize.STRING });
+          this.IndustryCountry = this.sequelize.define('IndustryCountry', { numYears: Sequelize.INTEGER });
 
-          self.Country = this.sequelize.define('country', { name: Sequelize.STRING });
-          self.Industry = this.sequelize.define('industry', { name: Sequelize.STRING });
-          self.IndustryCountry = this.sequelize.define('IndustryCountry', { numYears: Sequelize.INTEGER });
-
-          self.Country.belongsToMany(self.Industry, {through: self.IndustryCountry});
-          self.Industry.belongsToMany(self.Country, {through: self.IndustryCountry});
+          this.Country.belongsToMany(this.Industry, {through: this.IndustryCountry});
+          this.Industry.belongsToMany(this.Country, {through: this.IndustryCountry});
 
           return this.sequelize.sync({ force: true }).then(() => {
             return Sequelize.Promise.props({
-              england: self.Country.create({ name: 'England' }),
-              france: self.Country.create({ name: 'France' }),
-              korea: self.Country.create({ name: 'Korea' }),
-              energy: self.Industry.create({ name: 'Energy' }),
-              media: self.Industry.create({ name: 'Media' }),
-              tech: self.Industry.create({ name: 'Tech' })
+              england: this.Country.create({ name: 'England' }),
+              france: this.Country.create({ name: 'France' }),
+              korea: this.Country.create({ name: 'Korea' }),
+              energy: this.Industry.create({ name: 'Energy' }),
+              media: this.Industry.create({ name: 'Media' }),
+              tech: this.Industry.create({ name: 'Tech' })
             }).then(r => {
               _.forEach(r, (item, itemName) => {
-                self[itemName] = item;
+                this[itemName] = item;
               });
 
               return Sequelize.Promise.all([
-                self.england.addIndustry(self.energy, { through: { numYears: 20 }}),
-                self.england.addIndustry(self.media, { through: { numYears: 40 }}),
-                self.france.addIndustry(self.media, { through: { numYears: 80 }}),
-                self.korea.addIndustry(self.tech, { through: { numYears: 30 }})
+                this.england.addIndustry(this.energy, { through: { numYears: 20 }}),
+                this.england.addIndustry(this.media, { through: { numYears: 40 }}),
+                this.france.addIndustry(this.media, { through: { numYears: 80 }}),
+                this.korea.addIndustry(this.tech, { through: { numYears: 30 }})
               ]);
             });
           });
         });
 
         it('sorts by 1st degree association', function() {
-          const self = this;
           return Sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
-            return self.Country.findAll({
-              include: [self.Industry],
-              order: [[self.Industry, 'name', params[0]]]
+            return this.Country.findAll({
+              include: [this.Industry],
+              order: [[this.Industry, 'name', params[0]]]
             }).then(countries => {
               expect(countries).to.exist;
               expect(countries[0]).to.exist;
@@ -1334,12 +1304,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 1st degree association while using limit', function() {
-          const self = this;
           return Sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
-            return self.Country.findAll({
-              include: [self.Industry],
+            return this.Country.findAll({
+              include: [this.Industry],
               order: [
-                [self.Industry, 'name', params[0]]
+                [this.Industry, 'name', params[0]]
               ],
               limit: 3
             }).then(countries => {
@@ -1354,11 +1323,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by through table attribute', function() {
-          const self = this;
           return Sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']], params => {
-            return self.Country.findAll({
-              include: [self.Industry],
-              order: [[self.Industry, self.IndustryCountry, 'numYears', params[0]]]
+            return this.Country.findAll({
+              include: [this.Industry],
+              order: [[this.Industry, this.IndustryCountry, 'numYears', params[0]]]
             }).then(countries => {
               expect(countries).to.exist;
               expect(countries[0]).to.exist;
@@ -1374,10 +1342,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('normal findAll', () => {
       beforeEach(function() {
-        const self = this;
         return this.User.create({username: 'user', data: 'foobar', theDate: moment().toDate()}).then(user => {
-          return self.User.create({username: 'user2', data: 'bar', theDate: moment().toDate()}).then(user2 => {
-            self.users = [user].concat(user2);
+          return this.User.create({username: 'user2', data: 'bar', theDate: moment().toDate()}).then(user2 => {
+            this.users = [user].concat(user2);
           });
         });
       });
@@ -1389,10 +1356,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('can also handle object notation', function() {
-        const self = this;
         return this.User.findAll({where: {id: this.users[1].id}}).then(users => {
           expect(users.length).to.equal(1);
-          expect(users[0].id).to.equal(self.users[1].id);
+          expect(users[0].id).to.equal(this.users[1].id);
         });
       });
 
@@ -1410,18 +1376,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('sorts the results via a date column', function() {
-        const self = this;
-        return self.User.create({username: 'user3', data: 'bar', theDate: moment().add(2, 'hours').toDate()}).then(() => {
-          return self.User.findAll({ order: [['theDate', 'DESC']] }).then(users => {
+        return this.User.create({username: 'user3', data: 'bar', theDate: moment().add(2, 'hours').toDate()}).then(() => {
+          return this.User.findAll({ order: [['theDate', 'DESC']] }).then(users => {
             expect(users[0].id).to.be.above(users[2].id);
           });
         });
       });
 
       it('handles offset and limit', function() {
-        const self = this;
         return this.User.bulkCreate([{username: 'bobby'}, {username: 'tables'}]).then(() => {
-          return self.User.findAll({ limit: 2, offset: 2 }).then(users => {
+          return this.User.findAll({ limit: 2, offset: 2 }).then(users => {
             expect(users.length).to.equal(2);
             expect(users[0].id).to.equal(3);
           });
@@ -1445,14 +1409,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be possible to order by sequelize.col()', function() {
-        const self = this;
         const Company = this.sequelize.define('Company', {
           name: Sequelize.STRING
         });
 
         return Company.sync().then(() => {
           return Company.findAll({
-            order: [self.sequelize.col('name')]
+            order: [this.sequelize.col('name')]
           });
         });
       });
@@ -1491,21 +1454,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('findAndCountAll', () => {
     beforeEach(function() {
-      const self = this;
       return this.User.bulkCreate([
         {username: 'user', data: 'foobar'},
         {username: 'user2', data: 'bar'},
         {username: 'bobby', data: 'foo'}
       ]).then(() => {
-        return self.User.findAll().then(users => {
-          self.users = users;
+        return this.User.findAll().then(users => {
+          this.users = users;
         });
       });
     });
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
@@ -1632,7 +1594,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {

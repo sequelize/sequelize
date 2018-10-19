@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     if (dialect === 'postgres') {
       it('should be able to drop the specified enum', function() {
-        return this.queryInterface.removeColumn('menus', 'structuretype').bind(this).then(function() {
+        return this.queryInterface.removeColumn('menus', 'structuretype').then(() => {
           return this.queryInterface.pgListEnums('menus');
         }).then(enumList => {
           expect(enumList).to.have.lengthOf(1);

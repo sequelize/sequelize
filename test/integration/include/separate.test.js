@@ -8,8 +8,7 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types'),
   current = Support.sequelize,
   dialect = Support.getTestDialect(),
-  Promise = Sequelize.Promise,
-  _ = require('lodash');
+  Promise = Sequelize.Promise;
 
 if (current.dialect.supports.groupedLimit) {
   describe(Support.getTestDialectTeaser('Include'), () => {
@@ -421,8 +420,8 @@ if (current.dialect.supports.groupedLimit) {
             expect(u1projects.length).to.equal(2);
 
             // WTB ES2015 syntax ...
-            expect(_.find(u1projects, p => { return p.id === 1; }).get('tasks').length).to.equal(3);
-            expect(_.find(u1projects, p => { return p.id === 2; }).get('tasks').length).to.equal(1);
+            expect(u1projects.find(p => p.id === 1).get('tasks').length).to.equal(3);
+            expect(u1projects.find(p => p.id === 2).get('tasks').length).to.equal(1);
 
             expect(users[1].get('projects')).to.be.ok;
             expect(users[1].get('projects')[0].get('tasks')).to.be.ok;

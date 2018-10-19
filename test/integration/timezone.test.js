@@ -32,7 +32,7 @@ if (dialect !== 'sqlite') {
       return Promise.all([
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
         this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT })
-      ]).spread((now1, now2) => {
+      ]).then(([now1, now2]) => {
         const elapsedQueryTime = Date.now() - startQueryTime + 1001;
         expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
       });
@@ -43,12 +43,12 @@ if (dialect !== 'sqlite') {
         const NormalUser = this.sequelize.define('user', {}),
           TimezonedUser = this.sequelizeWithTimezone.define('user', {});
 
-        return this.sequelize.sync({ force: true }).bind(this).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           return NormalUser.create({});
-        }).then(function(normalUser) {
+        }).then(normalUser => {
           this.normalUser = normalUser;
           return TimezonedUser.findByPk(normalUser.id);
-        }).then(function(timezonedUser) {
+        }).then(timezonedUser => {
           // Expect 7 hours difference, in milliseconds.
           // This difference is expected since two instances, configured for each their timezone is trying to read the same timestamp
           // this test does not apply to PG, since it stores the timezone along with the timestamp.
@@ -60,14 +60,14 @@ if (dialect !== 'sqlite') {
         const NormalUser = this.sequelize.define('user', {}),
           TimezonedUser = this.sequelizeWithNamedTimezone.define('user', {});
 
-        return this.sequelize.sync({ force: true }).bind(this).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           return TimezonedUser.create({});
         }).then(timezonedUser => {
           return Promise.all([
             NormalUser.findByPk(timezonedUser.id),
             TimezonedUser.findByPk(timezonedUser.id)
           ]);
-        }).spread((normalUser, timezonedUser) => {
+        }).then(([normalUser, timezonedUser]) => {
           // Expect 5 hours difference, in milliseconds, +/- 1 hour for DST
           expect(normalUser.createdAt.getTime() - timezonedUser.createdAt.getTime()).to.be.closeTo(60 * 60 * 4 * 1000 * -1, 60 * 60 * 1000);
         });

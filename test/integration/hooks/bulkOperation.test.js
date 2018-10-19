@@ -166,8 +166,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#bulkUpdate', () => {
     describe('on success', () => {
       it('should run hooks', function() {
-        const self = this,
-          beforeBulk = sinon.spy(),
+        const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
         this.User.beforeBulkUpdate(beforeBulk);
@@ -177,7 +176,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           {username: 'Cheech', mood: 'sad'},
           {username: 'Chong', mood: 'sad'}
         ]).then(() => {
-          return self.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).then(() => {
+          return this.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).then(() => {
             expect(beforeBulk).to.have.been.calledOnce;
             expect(afterBulk).to.have.been.calledOnce;
           });
@@ -187,8 +186,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('should return an error from before', function() {
-        const self = this;
-
         this.User.beforeBulkUpdate(() => {
           throw new Error('Whoops!');
         });
@@ -197,13 +194,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           {username: 'Cheech', mood: 'sad'},
           {username: 'Chong', mood: 'sad'}
         ]).then(() => {
-          return expect(self.User.update({mood: 'happy'}, {where: {mood: 'sad'}})).to.be.rejected;
+          return expect(this.User.update({mood: 'happy'}, {where: {mood: 'sad'}})).to.be.rejected;
         });
       });
 
       it('should return an error from after', function() {
-        const self = this;
-
         this.User.afterBulkUpdate(() => {
           throw new Error('Whoops!');
         });
@@ -212,7 +207,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           {username: 'Cheech', mood: 'sad'},
           {username: 'Chong', mood: 'sad'}
         ]).then(() => {
-          return expect(self.User.update({mood: 'happy'}, {where: {mood: 'sad'}})).to.be.rejected;
+          return expect(this.User.update({mood: 'happy'}, {where: {mood: 'sad'}})).to.be.rejected;
         });
       });
     });
@@ -238,8 +233,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item created successfully', function() {
-        const self = this,
-          beforeBulk = sinon.spy(),
+        const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
         this.User.beforeBulkUpdate(beforeBulk);
@@ -258,7 +252,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         return this.User.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).then(() => {
-          return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).spread((affectedRows, records) => {
+          return this.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).then(([, records]) => {
             records.forEach(record => {
               expect(record.username).to.equal('User' + record.id);
               expect(record.beforeHookTest).to.be.true;
@@ -270,8 +264,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item created successfully changing some data before updating', function() {
-        const self = this;
-
         this.User.beforeUpdate(user => {
           expect(user.changed()).to.not.be.empty;
           if (user.get('id') === 1) {
@@ -282,7 +274,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         return this.User.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).then(() => {
-          return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).spread((affectedRows, records) => {
+          return this.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).then(([, records]) => {
             records.forEach(record => {
               expect(record.aNumber).to.equal(10 + (record.id === 1 ? 3 : 0));
             });
@@ -291,8 +283,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item created with an error', function() {
-        const self = this,
-          beforeBulk = sinon.spy(),
+        const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
         this.User.beforeBulkUpdate(beforeBulk);
@@ -308,7 +299,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(() => {
-          return self.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).catch(err => {
+          return this.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).catch(err => {
             expect(err).to.be.instanceOf(Error);
             expect(err.message).to.be.equal('You shall not pass!');
             expect(beforeBulk).to.have.been.calledOnce;
@@ -374,7 +365,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item created successfully', function() {
-        const self = this;
         let beforeBulk = false,
           afterBulk = false,
           beforeHook = false,
@@ -403,7 +393,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         return this.User.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).then(() => {
-          return self.User.destroy({where: {aNumber: 1}, individualHooks: true}).then(() => {
+          return this.User.destroy({where: {aNumber: 1}, individualHooks: true}).then(() => {
             expect(beforeBulk).to.be.true;
             expect(afterBulk).to.be.true;
             expect(beforeHook).to.be.true;
@@ -413,7 +403,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item created with an error', function() {
-        const self = this;
         let beforeBulk = false,
           afterBulk = false,
           beforeHook = false,
@@ -440,7 +429,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(() => {
-          return self.User.destroy({where: {aNumber: 1}, individualHooks: true}).catch(err => {
+          return this.User.destroy({where: {aNumber: 1}, individualHooks: true}).catch(err => {
             expect(err).to.be.instanceOf(Error);
             expect(beforeBulk).to.be.true;
             expect(beforeHook).to.be.true;
@@ -457,7 +446,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       return this.ParanoidUser.bulkCreate([
         {username: 'adam', mood: 'happy'},
         {username: 'joe', mood: 'sad'}
-      ]).bind(this).then(function() {
+      ]).then(() => {
         return this.ParanoidUser.destroy({truncate: true});
       });
     });
@@ -510,8 +499,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item restored successfully', function() {
-        const self = this,
-          beforeBulk = sinon.spy(),
+        const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy(),
           beforeHook = sinon.spy(),
           afterHook = sinon.spy();
@@ -524,9 +512,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         return this.ParanoidUser.bulkCreate([
           {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
         ]).then(() => {
-          return self.ParanoidUser.destroy({where: {aNumber: 1}});
+          return this.ParanoidUser.destroy({where: {aNumber: 1}});
         }).then(() => {
-          return self.ParanoidUser.restore({where: {aNumber: 1}, individualHooks: true});
+          return this.ParanoidUser.restore({where: {aNumber: 1}, individualHooks: true});
         }).then(() => {
           expect(beforeBulk).to.have.been.calledOnce;
           expect(afterBulk).to.have.been.calledOnce;
@@ -536,8 +524,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item restored with an error', function() {
-        const self = this,
-          beforeBulk = sinon.spy(),
+        const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy(),
           beforeHook = sinon.spy(),
           afterHook = sinon.spy();
@@ -552,9 +539,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.ParanoidUser.afterRestore(afterHook);
 
         return this.ParanoidUser.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(() => {
-          return self.ParanoidUser.destroy({where: {aNumber: 1}});
+          return this.ParanoidUser.destroy({where: {aNumber: 1}});
         }).then(() => {
-          return self.ParanoidUser.restore({where: {aNumber: 1}, individualHooks: true});
+          return this.ParanoidUser.restore({where: {aNumber: 1}, individualHooks: true});
         }).catch(err => {
           expect(err).to.be.instanceOf(Error);
           expect(beforeBulk).to.have.been.calledOnce;

@@ -11,7 +11,7 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method count', () => {
-    before(() => {
+    before(function() {
       this.oldFindAll = Sequelize.Model.findAll;
       this.oldAggregate = Sequelize.Model.aggregate;
 
@@ -29,17 +29,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Project.belongsTo(this.User);
     });
 
-    after(() => {
+    after(function() {
       Sequelize.Model.findAll = this.oldFindAll;
       Sequelize.Model.aggregate = this.oldAggregate;
     });
 
-    beforeEach(() => {
+    beforeEach(function() {
       this.stub = Sequelize.Model.aggregate = sinon.stub().returns(Promise.resolve());
     });
 
     describe('should pass the same options to model.aggregate as findAndCountAll', () => {
-      it('with includes', () => {
+      it('with includes', function() {
         const queryObject = {
           include: [this.Project]
         };
@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
       });
 
-      it('attributes should be stripped in case of findAndCountAll', () => {
+      it('attributes should be stripped in case of findAndCountAll', function() {
         const queryObject = {
           attributes: ['username']
         };
