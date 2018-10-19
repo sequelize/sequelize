@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           this.sqlAssert = function(sql) {
             expect(sql).to.not.include('field1');
-            expect(sql).to.not.inclide('field2');
+            expect(sql).to.not.include('field2');
           };
 
           return this.sequelize.sync({ force: true });
