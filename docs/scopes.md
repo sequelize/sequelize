@@ -121,7 +121,7 @@ Project.scope('defaultScope', 'deleted').findAll();
 SELECT * FROM projects WHERE active = true AND deleted = true
 ```
 
-When invoking several scopes, keys from subsequent scopes will overwrite previous ones (similar to [_.assign](https://lodash.com/docs#assign)). Consider two scopes:
+When invoking several scopes, keys from subsequent scopes will overwrite previous ones (similar to [Object.assign](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign). Consider two scopes:
 
 ```js
 {
