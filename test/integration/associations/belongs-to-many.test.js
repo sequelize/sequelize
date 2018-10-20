@@ -1786,6 +1786,44 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             return ctx.worker.addTask(ctx.task);
           });
         });
+
+        it('should be able to create an instance along with its many-to-many association which has an extra column in the junction table', function() {
+          const Foo = this.sequelize.define('foo', { name: Sequelize.STRING });
+          const Bar = this.sequelize.define('bar', { name: Sequelize.STRING });
+          const FooBar = this.sequelize.define('foobar', { baz: Sequelize.STRING });
+          Foo.belongsToMany(Bar, { through: FooBar });
+          Bar.belongsToMany(Foo, { through: FooBar });
+
+          return this.sequelize.sync({force: true}).then(() => {
+            return Foo.create({
+              name: 'foo...',
+              bars: [
+                {
+                  name: 'bar...',
+                  foobar: {
+                    baz: 'baz...'
+                  }
+                }
+              ]
+            }, {
+              include: Bar
+            });
+          }).then(foo => {
+            expect(foo.name).to.equal('foo...');
+            expect(foo.bars).to.have.length(1);
+            expect(foo.bars[0].name).to.equal('bar...');
+            expect(foo.bars[0].foobar).to.not.equal(null);
+            expect(foo.bars[0].foobar.baz).to.equal('baz...');
+            
+            return Foo.findOne({ include: Bar });
+          }).then(foo => {
+            expect(foo.name).to.equal('foo...');
+            expect(foo.bars).to.have.length(1);
+            expect(foo.bars[0].name).to.equal('bar...');
+            expect(foo.bars[0].foobar).to.not.equal(null);
+            expect(foo.bars[0].foobar.baz).to.equal('baz...');
+          });
+        });
       });
 
       describe('set', () => {
