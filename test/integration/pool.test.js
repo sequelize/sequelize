@@ -71,7 +71,6 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       const sequelize = Support.createSequelizeInstance({
         pool: {
           max: 1,
-          min: 1,
           idle: 5000
         }
       });
@@ -114,7 +113,6 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       const sequelize = Support.createSequelizeInstance({
         pool: {
           max: 1,
-          min: 1,
           idle: 5000
         }
       });
@@ -165,7 +163,6 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
     it('should maintain connection within idle range', () => {
       const sequelize = Support.createSequelizeInstance({
         pool: {
-          min: 1,
           max: 1,
           idle: 10
         }
@@ -202,9 +199,8 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
     it('should get new connection beyond idle range', () => {
       const sequelize = Support.createSequelizeInstance({
         pool: {
-          min: 1,
           max: 1,
-          idle: 1,
+          idle: 100,
           evict: 10
         }
       });
@@ -227,7 +223,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
         })
         .then(() => {
           // Get next available connection
-          return Sequelize.Promise.delay(30).then(() => cm.getConnection());
+          return Sequelize.Promise.delay(110).then(() => cm.getConnection());
         })
         .then(connection => {
           assertNewConnection(connection, conn);
