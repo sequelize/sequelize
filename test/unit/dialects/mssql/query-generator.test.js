@@ -245,7 +245,7 @@ if (current.dialect.name === 'mssql') {
         {
           title: 'Should use the plus operator',
           arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]+ N\'bar\' OUTPUT INSERTED.* '
+          expectation: 'UPDATE [myTable] SET [foo]=[foo]+ N\'bar\' OUTPUT INSERTED.*'
         },
         {
           title: 'Should use the plus operator with where clause',
@@ -255,17 +255,17 @@ if (current.dialect.name === 'mssql') {
         {
           title: 'Should use the plus operator without returning clause',
           arguments: ['+', 'myTable', { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]+ N\'bar\' '
+          expectation: 'UPDATE [myTable] SET [foo]=[foo]+ N\'bar\''
         },
         {
           title: 'Should use the minus operator',
           arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]- N\'bar\' OUTPUT INSERTED.* '
+          expectation: 'UPDATE [myTable] SET [foo]=[foo]- N\'bar\' OUTPUT INSERTED.*'
         },
         {
           title: 'Should use the minus operator with negative value',
           arguments: ['-', 'myTable', { foo: -1 }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]- -1 OUTPUT INSERTED.* '
+          expectation: 'UPDATE [myTable] SET [foo]=[foo]- -1 OUTPUT INSERTED.*'
         },
         {
           title: 'Should use the minus operator with where clause',
@@ -275,7 +275,7 @@ if (current.dialect.name === 'mssql') {
         {
           title: 'Should use the minus operator without returning clause',
           arguments: ['-', 'myTable', { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]- N\'bar\' '
+          expectation: 'UPDATE [myTable] SET [foo]=[foo]- N\'bar\''
         }
       ].forEach(test => {
         it(test.title, function() {

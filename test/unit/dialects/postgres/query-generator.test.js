@@ -11,7 +11,7 @@ const chai = require('chai'),
   current = Support.sequelize,
   _ = require('lodash');
 
-if (dialect.match(/^postgres/)) {
+if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
     const suites = {
       createDatabaseQuery: [
@@ -64,7 +64,7 @@ if (dialect.match(/^postgres/)) {
         {
           title: 'Should use the plus operator without returning clause',
           arguments: ['+', 'myTable', { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' '
+          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\''
         },
         {
           title: 'Should use the minus operator',
@@ -84,7 +84,7 @@ if (dialect.match(/^postgres/)) {
         {
           title: 'Should use the minus operator without returning clause',
           arguments: ['-', 'myTable', { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' '
+          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\''
         }
       ],
       attributesToSQL: [
