@@ -49,15 +49,118 @@ Main outline
 
 [#9304](https://github.com/sequelize/sequelize/pull/9304)
 
+**Removed aliases**
+
+Many model based aliases has been removed [#9372](https://github.com/sequelize/sequelize/issues/9372)
+
+| Removed in v5 | Official Alternative |
+| :------ | :------ |
+| insertOrUpdate | upsert |
+| find | findOne |
+| findAndCount | findAndCountAll |
+| findOrInitialize | findOrBuild |
+| updateAttributes | update |
+| findById, findByPrimary	| findByPk |
+| all | findAll |
+| hook | addHook |
+
 ### Datatypes
 
-**Postgres Range**
+**Range**
 
 Now supports only one standard format `[{ value: 1, inclusive: true }, { value: 20, inclusive: false }]` [#9364](https://github.com/sequelize/sequelize/pull/9364)
 
 **Network types**
 
 Added support for `CIDR`, `INET` and `MACADDR` for Postgres
+
+**Case insensitive text**
+
+Added support for `CITEXT` for Postgres and SQLite
+
+**Removed**
+
+`NONE` type has been removed, use `VIRTUAL` instead
+
+### Hooks
+
+**Removed aliases**
+
+Hooks aliases has been removed [#9372](https://github.com/sequelize/sequelize/issues/9372)
+
+| Removed in v5 | Official Alternative |
+| :------ | :------ |
+| [after,before]BulkDelete | [after,before]BulkDestroy |
+| [after,before]Delete | [after,before]Destroy |
+| beforeConnection | beforeConnect |
+
+### Sequelize
+
+**Removed aliases**
+
+Prototype references for many constants, objects and classes has been removed [#9372](https://github.com/sequelize/sequelize/issues/9372)
+
+| Removed in v5 | Official Alternative |
+| :------ | :------ |
+| Sequelize.prototype.Utils	| Sequelize.Utils	|
+| Sequelize.prototype.Promise	| Sequelize.Promise	|
+| Sequelize.prototype.TableHints | Sequelize.TableHints	|
+| Sequelize.prototype.Op | Sequelize.Op	|
+| Sequelize.prototype.Transaction	| Sequelize.Transaction	|
+| Sequelize.prototype.Model	| Sequelize.Model	|
+| Sequelize.prototype.Deferrable | Sequelize.Deferrable	|
+| Sequelize.prototype.Error	| Sequelize.Error	|
+| Sequelize.prototype[error] | Sequelize[error] |
+
+```js
+import Sequelize from 'sequelize';
+const sequelize = new Sequelize('postgres://user:password@127.0.0.1:mydb');
+
+/**
+ * In v4 you can do this
+ */
+console.log(sequelize.Op === Sequelize.Op) // logs `true`
+console.log(sequelize.UniqueConstraintError === Sequelize.UniqueConstraintError) // logs `true`
+
+Model.findAll({
+  where: {
+    [sequelize.Op.and]: [ // Using sequelize.Op or Sequelize.Op interchangeably
+      {
+        name: "Abc"
+      },
+      {
+        age: {
+          [Sequelize.Op.gte]: 18
+        }
+      }
+    ]
+  }
+}).catch(sequelize.ConnectionError, () => {
+  console.error('Something wrong with connection?');
+});
+
+/**
+ * In v5 aliases has been removed from Sequelize prototype
+ * You should use Sequelize directly to access Op, Errors etc
+ */
+
+Model.findAll({
+  where: {
+    [Sequelize.Op.and]: [ // Dont use sequelize.Op, use Sequelize.Op instead
+      {
+        name: "Abc"
+      },
+      {
+        age: {
+          [Sequelize.Op.gte]: 18
+        }
+      }
+    ]
+  }
+}).catch(Sequelize.ConnectionError, () => {
+  console.error('Something wrong with connection?');
+});
+```
 
 ### Query Interface
 
@@ -68,7 +171,7 @@ Added support for `CIDR`, `INET` and `MACADDR` for Postgres
 - Sequelize now use parameterized queries for all INSERT / UPDATE operations (except UPSERT). They provide better protection against SQL Injection attack.
 - `ValidationErrorItem` now holds reference to original error in the `original` property, rather than the `__raw` property.
 - [retry-as-promised](https://github.com/mickhansen/retry-as-promised) has been updated to `3.0.0`, which use [any-promise](https://github.com/kevinbeaty/any-promise). This module repeat all `sequelize.query` operations. You can configure `any-promise` to use `bluebird` for better performance on Node 4 or 6
-- Sequelize will ignore all `undefined` keys in `where` options, In past versions `undefined` was converted to `null`. For `BULKUPDATE / BULKDELETE` query types passing undefined keys in where options will throw an error.
+- Sequelize will throw for all `undefined` keys in `where` options, In past versions `undefined` was converted to `null`.
 
 
 ### Packages
@@ -77,6 +180,40 @@ Added support for `CIDR`, `INET` and `MACADDR` for Postgres
 - mysql2: use `1.5.2` or above to support prepared statements
 
 ## Changelog
+
+### 5.0.0-beta.13
+
+- fix: throw on undefined where parameters [#10048](https://github.com/sequelize/sequelize/pull/10048)
+- fix(model): improve wrong alias error message [#10041](https://github.com/sequelize/sequelize/pull/10041)
+- feat(sqlite): CITEXT datatype [#10036](https://github.com/sequelize/sequelize/pull/10036)
+-  fix(postgres): remove if not exists and cascade from create/drop database queries [#10033](https://github.com/sequelize/sequelize/pull/10033)
+- fix(syntax): correct parentheses around union [#10003](https://github.com/sequelize/sequelize/pull/10003)
+- feat(query-interface): createDatabase / dropDatabase support [#10027](https://github.com/sequelize/sequelize/pull/10027)
+- feat(postgres): CITEXT datatype [#10024](https://github.com/sequelize/sequelize/pull/10024)
+- feat: pass uri query parameters to dialectOptions [#10025](https://github.com/sequelize/sequelize/pull/10025)
+- docs(query-generator): remove doc about where raw query [#10017](https://github.com/sequelize/sequelize/pull/10017)
+- fix(query): handle undefined field on unique constraint error [#10018](https://github.com/sequelize/sequelize/pull/10018)
+- fix(model): sum returns zero when empty matching [#9984](https://github.com/sequelize/sequelize/pull/9984)
+- feat(query-generator): add startsWith, endsWith and substring operators [#9999](https://github.com/sequelize/sequelize/pull/9999)
+- docs(sequelize): correct jsdoc annotations for authenticate [#10002](https://github.com/sequelize/sequelize/pull/10002)
+- docs(query-interface): add bulkUpdate docs [#10005](https://github.com/sequelize/sequelize/pull/10005)
+- fix(tinyint): ignore params for TINYINT on postgres [#9992](https://github.com/sequelize/sequelize/pull/9992)
+- fix(belongs-to): create now returns target model [#9980](https://github.com/sequelize/sequelize/pull/9980)
+- refactor(model): remove .all alias [#9975](https://github.com/sequelize/sequelize/pull/9975)
+- perf: fix memory leak due to instance reference by isImmutable [#9973](https://github.com/sequelize/sequelize/pull/9973)
+- feat(sequelize): dialectModule option [#9972](https://github.com/sequelize/sequelize/pull/9972)
+- fix(query): check valid warn message [#9948](https://github.com/sequelize/sequelize/pull/9948)
+- fix(model): check for own property when overriding association mixins [#9953](https://github.com/sequelize/sequelize/pull/9953)
+- fix(create-table): support for uniqueKeys [#9946](https://github.com/sequelize/sequelize/pull/9946)
+- refactor(transaction): remove autocommit mode [#9921](https://github.com/sequelize/sequelize/pull/9921)
+- feat(sequelize): getDatabaseName [#9937](https://github.com/sequelize/sequelize/pull/9937)
+- refactor: remove aliases [#9933](https://github.com/sequelize/sequelize/pull/9933)
+- feat(belongsToMany): override unique constraint name with uniqueKey [#9914](https://github.com/sequelize/sequelize/pull/9914)
+- fix(postgres): properly disconnect connections [#9911](https://github.com/sequelize/sequelize/pull/9911)
+- docs(instances.md): add section for restore() [#9917](https://github.com/sequelize/sequelize/pull/9917)
+- docs(hooks.md): add warning about memory limits of individual hooks [#9881](https://github.com/sequelize/sequelize/pull/9881)
+- fix(package): update debug to version 4.0.0 [#9908](https://github.com/sequelize/sequelize/pull/9908)
+- feat(postgres): support ignoreDuplicates with ON CONFLICT DO NOTHING [#9883](https://github.com/sequelize/sequelize/pull/9883)
 
 ### 5.0.0-beta.12
 
