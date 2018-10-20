@@ -935,7 +935,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           throw new Error('Update should throw an error if where has a key with undefined value');
         }, err => {
           expect(err).to.be.an.instanceof(Error);
-          expect(err.message).to.equal('WHERE parameter "username" of BULKUPDATE query has value of undefined');
+          expect(err.message).to.equal('WHERE parameter "username" has invalid "undefined" value');
         });
       });
     });
@@ -1304,7 +1304,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         throw new Error('Destroy should throw an error if where has a key with undefined value');
       }, err => {
         expect(err).to.be.an.instanceof(Error);
-        expect(err.message).to.equal('WHERE parameter "username" of BULKDELETE query has value of undefined');
+        expect(err.message).to.equal('WHERE parameter "username" has invalid "undefined" value');
       });
     });
 

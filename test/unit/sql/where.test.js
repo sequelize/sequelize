@@ -33,22 +33,22 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       default: ''
     });
     testsql({id: undefined}, {
-      default: ''
+      default: new Error('WHERE parameter "id" has invalid "undefined" value')
     });
     testsql({id: 1}, {
       default: 'WHERE [id] = 1'
     });
     testsql({id: 1, user: undefined}, {
-      default: 'WHERE [id] = 1'
+      default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
     testsql({id: 1, user: undefined}, {type: QueryTypes.SELECT}, {
-      default: 'WHERE [id] = 1'
+      default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
     testsql({id: 1, user: undefined}, {type: QueryTypes.BULKDELETE}, {
-      default: new Error('WHERE parameter "user" of BULKDELETE query has value of undefined')
+      default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
     testsql({id: 1, user: undefined}, {type: QueryTypes.BULKUPDATE}, {
-      default: new Error('WHERE parameter "user" of BULKUPDATE query has value of undefined')
+      default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
     testsql({id: 1}, {prefix: 'User'}, {
       default: 'WHERE [User].[id] = 1'

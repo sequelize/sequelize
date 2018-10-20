@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }));
     });
 
-    it('should work with undefined uuid primary key in where', function() {
+    it('should work with empty uuid primary key in where', function() {
       const User = this.sequelize.define('User', {
         id: {
           type: DataTypes.UUID,
@@ -179,9 +179,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return User.sync({force: true}).then(() => {
         return User.findOrCreate({
-          where: {
-            id: undefined
-          },
+          where: {},
           defaults: {
             name: Math.random().toString()
           }

@@ -203,7 +203,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           User
         );
         return expectsql(sqlOrError, {
-          default: new Error('WHERE parameter "name" of BULKDELETE query has value of undefined')
+          default: new Error('WHERE parameter "name" has invalid "undefined" value')
         });
       });
     });

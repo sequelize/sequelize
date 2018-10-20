@@ -1444,9 +1444,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should ignore undefined in where parameters', function() {
-        return this.User.findAll({where: {username: undefined}}).then(users => {
-          expect(users.length).to.equal(2);
+      it('should throw for undefined where parameters', function() {
+        return this.User.findAll({where: {username: undefined}}).then(() => {
+          throw new Error('findAll should throw an error if where has a key with undefined value');
+        }, err => {
+          expect(err).to.be.an.instanceof(Error);
+          expect(err.message).to.equal('WHERE parameter "username" has invalid "undefined" value');
         });
       });
     });
