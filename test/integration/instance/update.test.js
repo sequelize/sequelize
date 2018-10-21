@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     }
 
     it('should update fields that are not specified on create', function() {
-      const User = this.sequelize.define('User' + config.rand(), {
+      const User = this.sequelize.define(`User${  config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING
@@ -111,7 +111,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should succeed in updating when values are unchanged (without timestamps)', function() {
-      const User = this.sequelize.define('User' + config.rand(), {
+      const User = this.sequelize.define(`User${  config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING
@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should update timestamps with milliseconds', function() {
-      const User = this.sequelize.define('User' + config.rand(), {
+      const User = this.sequelize.define(`User${  config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING,
@@ -200,7 +200,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('hooks', () => {
       it('should update attributes added in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${  config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -231,7 +231,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should update attributes changed in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${  config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -263,7 +263,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should validate attributes added in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${  config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -296,7 +296,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should validate attributes changed in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${  config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -331,7 +331,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should not set attributes that are not specified by fields', function() {
-      const User = this.sequelize.define('User' + config.rand(), {
+      const User = this.sequelize.define(`User${  config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING
@@ -385,7 +385,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('doesn\'t update primary keys or timestamps', function() {
-      const User = this.sequelize.define('User' + config.rand(), {
+      const User = this.sequelize.define(`User${  config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         identifier: {type: DataTypes.STRING, primaryKey: true}

@@ -25,7 +25,7 @@ if (dialect === 'sqlite') {
     });
 
     storages.forEach(storage => {
-      describe('with storage "' + storage + '"', () => {
+      describe(`with storage "${storage}"`, () => {
         after(() => {
           if (storage === dbFile) {
             require('fs').writeFileSync(dbFile, '');

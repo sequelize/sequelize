@@ -8,7 +8,7 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const DataTypes = require('../../../../lib/data-types');
 
-const fileName = Math.random() + '_test.sqlite';
+const fileName = `${Math.random()}_test.sqlite`;
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] Connection Manager', () => {
@@ -35,14 +35,14 @@ if (dialect === 'sqlite') {
           expect(fs.existsSync(path.join(__dirname, fileName))).to.be.true;
           expect(fs.existsSync(path.join(__dirname, `${fileName}-shm`)), 'shm file should exists').to.be.true;
           expect(fs.existsSync(path.join(__dirname, `${fileName}-wal`)), 'wal file should exists').to.be.true;
-        
+
           return sequelize.close();
         })
         .then(() => {
           expect(fs.existsSync(path.join(__dirname, fileName))).to.be.true;
           expect(fs.existsSync(path.join(__dirname, `${fileName}-shm`)), 'shm file exists').to.be.false;
           expect(fs.existsSync(path.join(__dirname, `${fileName}-wal`)), 'wal file exists').to.be.false;
-          
+
           return this.sequelize.query('PRAGMA journal_mode = DELETE');
         });
     });

@@ -511,7 +511,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               promise = promise.then(() => {
                 return model.create({}).then(instance => {
                   if (previousInstance) {
-                    return previousInstance['set'+ _.upperFirst(model.name)](instance).then(() => {
+                    return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
                       previousInstance = instance;
                     });
                   } else {
@@ -610,7 +610,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               promise = promise.then(() => {
                 return model.create(values).then(instance => {
                   if (previousInstance) {
-                    return previousInstance['set'+ _.upperFirst(model.name)](instance).then(() => {
+                    return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
                       previousInstance = instance;
                     });
                   } else {
@@ -1386,7 +1386,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ],
           limit: 3,
           order: [
-            [this.sequelize.col(this.models.Product.name + '.id'), 'ASC']
+            [this.sequelize.col(`${this.models.Product.name}.id`), 'ASC']
           ]
         }).then(products => {
           expect(products.length).to.equal(3);
@@ -1535,11 +1535,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         for (let i = 1; i <= memberCount; i++) {
           members.push({
             id: i,
-            email: 'email' + i + '@lmu.com',
-            password: 'testing' + i
+            email: `email${i}@lmu.com`,
+            password: `testing${i}`
           });
           albums.push({
-            title: 'Album' + i,
+            title: `Album${i}`,
             MemberId: i
           });
         }

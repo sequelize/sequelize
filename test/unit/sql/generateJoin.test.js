@@ -12,18 +12,18 @@ const Support = require('../support'),
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite(Support.getTestDialectTeaser('SQL'), () => {
-  suite('generateJoin', () => {
+describe(Support.getTestDialectTeaser('SQL'), () => {
+  describe('generateJoin', () => {
     const testsql = function(path, options, expectation) {
 
-      const name = `${path}, ${util.inspect(options, { depth: 10 })}`;
+      const name = `${path}, ${util.inspect(options, { depth: 10})}`;
 
       Sequelize.Model._conformOptions(options);
       options = Sequelize.Model._validateIncludedElements(options);
 
       const include = _.at(options, path)[0];
 
-      test(name, () => {
+      it(name, () => {
 
         const join = sql.generateJoin(include,
           {

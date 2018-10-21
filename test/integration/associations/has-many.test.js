@@ -858,7 +858,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         const ctx = {};
         return this.sequelize.sync({ force: true }).then(() => {
-          const users = _.range(1000).map(i => ({username: 'user' + i, num: i, status: 'live'}));
+          const users = _.range(1000).map(i => ({username: `user${i}`, num: i, status: 'live'}));
           return User.bulkCreate(users);
         }).then(() => {
           return Task.create({ title: 'task' });
@@ -1337,7 +1337,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         Tasks = {};
 
       return Promise.each(dataTypes, dataType => {
-        const tableName = 'TaskXYZ_' + dataType.key;
+        const tableName = `TaskXYZ_${dataType.key}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
 
         User.hasMany(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });

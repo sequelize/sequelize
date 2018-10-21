@@ -1393,7 +1393,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should allow us to find IDs using capital letters', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
           Login: { type: Sequelize.STRING }
         });
