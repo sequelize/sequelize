@@ -142,7 +142,7 @@ const Support = {
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(__dirname + '/../lib/dialects')
+    return fs.readdirSync(`${__dirname}/../lib/dialects`)
       .filter(file => !file.includes('.js') && !file.includes('abstract'));
   },
 
@@ -150,7 +150,7 @@ const Support = {
     if (expectations[dialect]) {
       expect(value).to.match(expectations[dialect]);
     } else {
-      throw new Error('Undefined expectation for "' + dialect + '"!');
+      throw new Error(`Undefined expectation for "${dialect}"!`);
     }
   },
 
@@ -177,7 +177,7 @@ const Support = {
     }
 
     if (!this.getSupportedDialects().includes(envDialect)) {
-      throw new Error('The dialect you have passed is unknown. Did you really mean: ' + envDialect);
+      throw new Error(`The dialect you have passed is unknown. Did you really mean: ${envDialect}`);
     }
 
     return envDialect;
@@ -190,7 +190,7 @@ const Support = {
       dialect = 'postgres-native';
     }
 
-    return '[' + dialect.toUpperCase() + '] ' + moduleName;
+    return `[${dialect.toUpperCase()}] ${moduleName}`;
   },
 
   getTestUrl(config) {
@@ -198,16 +198,16 @@ const Support = {
     const dbConfig = config[config.dialect];
 
     if (config.dialect === 'sqlite') {
-      url = 'sqlite://' + dbConfig.storage;
+      url = `sqlite://${dbConfig.storage}`;
     } else {
 
       let credentials = dbConfig.username;
       if (dbConfig.password) {
-        credentials += ':' + dbConfig.password;
+        credentials += `:${dbConfig.password}`;
       }
 
-      url = config.dialect + '://' + credentials
-      + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database;
+      url = `${config.dialect}://${credentials
+      }@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`;
     }
     return url;
   },
@@ -225,7 +225,7 @@ const Support = {
             .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
         }
       } else {
-        throw new Error('Undefined expectation for "' + Support.sequelize.dialect.name + '"!');
+        throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"!`);
       }
     }
 

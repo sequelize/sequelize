@@ -380,7 +380,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           return Promise.each(singles, model => {
             return model.create({}).then(instance => {
               if (previousInstance) {
-                return previousInstance['set'+ _.upperFirst(model.name)](instance).then(() => {
+                return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
                   previousInstance = instance;
                 });
               }

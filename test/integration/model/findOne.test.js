@@ -132,7 +132,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('returns a single dao given a string id', function() {
-        return this.User.findByPk(this.user.id + '').then(user => {
+        return this.User.findByPk(this.user.id.toString()).then(user => {
           expect(Array.isArray(user)).to.not.be.ok;
           expect(user.id).to.equal(this.user.id);
           expect(user.id).to.equal(1);
@@ -266,7 +266,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should allow us to find IDs using capital letters', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
           Login: { type: Sequelize.STRING }
         });

@@ -28,7 +28,7 @@ if (dialect !== 'sqlite') {
         now = 'GETDATE()';
       }
 
-      const query = 'SELECT ' + now + ' as now';
+      const query = `SELECT ${now} as now`;
       return Promise.all([
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
         this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT })

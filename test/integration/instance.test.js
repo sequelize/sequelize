@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('is done properly for special characters', function() {
       // Ideally we should test more: "\0\n\r\b\t\\\'\"\x1a"
       // But this causes sqlite to fail and exits the entire test suite immediately
-      const bio = dialect + "'\"\n"; // Need to add the dialect here so in case of failure I know what DB it failed for
+      const bio = `${dialect}'"\n`; // Need to add the dialect here so in case of failure I know what DB it failed for
 
       return this.User.create({ username: bio }).then(u1 => {
         return this.User.findByPk(u1.id).then(u2 => {
@@ -967,7 +967,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('hooks', () => {
       it('should update attributes added in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -998,7 +998,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should update attributes changed in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -1030,7 +1030,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should validate attributes added in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -1063,7 +1063,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should validate attributes changed in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -1225,7 +1225,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should not throw ER_EMPTY_QUERY if changed only virtual fields', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: {
             type: DataTypes.VIRTUAL,

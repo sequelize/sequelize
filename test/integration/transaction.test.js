@@ -417,7 +417,7 @@ if (current.dialect.supports.transactions) {
         });
 
         Object.keys(Transaction.TYPES).forEach(key => {
-          it('should allow specification of ' + key + ' type', function() {
+          it(`should allow specification of ${key} type`, function() {
             return this.sequelize.transaction({
               type: key
             }).then(t => {
@@ -461,7 +461,7 @@ if (current.dialect.supports.transactions) {
               return sequelize.transaction({type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE, retry: {match: ['NO_MATCH']}}).then(t => {
               // introduce delay to force the busy state race condition to fail
                 return Promise.delay(1000).then(() => {
-                  return User.create({id: null, username: 'test ' + t.id}, {transaction: t}).then(() => {
+                  return User.create({id: null, username: `test ${t.id}`}, {transaction: t}).then(() => {
                     return t.commit();
                   });
                 });

@@ -508,7 +508,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         price: {
           type: Sequelize.INTEGER,
           get() {
-            return 'answer = ' + this.getDataValue('price');
+            return `answer = ${this.getDataValue('price')}`;
           },
           set(v) {
             return this.setDataValue('price', v + 42);
@@ -536,7 +536,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
         getterMethods: {
           price() {
-            return '$' + this.getDataValue('priceInCents') / 100;
+            return `$${this.getDataValue('priceInCents') / 100}`;
           },
 
           priceInCents() {
@@ -546,7 +546,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       expect(Product.build({price: 20}).priceInCents).to.equal(20 * 100);
-      expect(Product.build({priceInCents: 30 * 100}).price).to.equal('$' + 30);
+      expect(Product.build({priceInCents: 30 * 100}).price).to.equal(`$${30}`);
     });
 
     it('attaches getter and setter methods from options only if not defined in attribute', function() {
@@ -564,7 +564,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           price1(v) { this.setDataValue('price1', v * 100); }
         },
         getterMethods: {
-          price2() { return '$' + this.getDataValue('price2'); }
+          price2() { return `$${this.getDataValue('price2')}`;}
         }
       });
 
@@ -1430,7 +1430,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users.length).to.equal(1);
         expect(users[0].username).to.equal('Bob');
 
-        return this.sequelize.query('SELECT * FROM ' + qi('ParanoidUsers') + ' WHERE ' + qi('deletedAt') + ' IS NOT NULL ORDER BY ' + qi('id'));
+        return this.sequelize.query(`SELECT * FROM ${qi('ParanoidUsers')} WHERE ${qi('deletedAt')} IS NOT NULL ORDER BY ${qi('id')}`);
       }).then(([users]) => {
         expect(users[0].username).to.equal('Peter');
         expect(users[1].username).to.equal('Paul');
@@ -2632,7 +2632,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not fail with an include', function() {
       return this.User.findAll({
-        where: this.sequelize.literal(this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title') + ' = ' + this.sequelize.queryInterface.QueryGenerator.escape('republic')),
+        where: this.sequelize.literal(`${this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title')} = ${this.sequelize.queryInterface.QueryGenerator.escape('republic')}`),
         include: [
           {model: this.Project}
         ]
@@ -2645,11 +2645,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should not overwrite a specified deletedAt by setting paranoid: false', function() {
       let tableName = '';
       if (this.User.name) {
-        tableName = this.sequelize.queryInterface.QueryGenerator.quoteIdentifier(this.User.name) + '.';
+        tableName = `${this.sequelize.queryInterface.QueryGenerator.quoteIdentifier(this.User.name)}.`;
       }
       return this.User.findAll({
         paranoid: false,
-        where: this.sequelize.literal(tableName + this.sequelize.queryInterface.QueryGenerator.quoteIdentifier('deletedAt') + ' IS NOT NULL '),
+        where: this.sequelize.literal(`${tableName + this.sequelize.queryInterface.QueryGenerator.quoteIdentifier('deletedAt')} IS NOT NULL `),
         include: [
           {model: this.Project}
         ]
@@ -2826,7 +2826,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             if (val.includes('!')) {
               throw new Error('val should not include a "!"');
             }
-            this.setDataValue('username', val + '!');
+            this.setDataValue('username', `${val}!`);
           }
         }
       });

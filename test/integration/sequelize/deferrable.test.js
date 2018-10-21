@@ -17,9 +17,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       this.run = function(deferrable, options) {
         options = options || {};
 
-        const taskTableName      = options.taskTableName || 'tasks_' + config.rand();
+        const taskTableName      = options.taskTableName || `tasks_${config.rand()}`;
         const transactionOptions = Object.assign({}, { deferrable: Sequelize.Deferrable.SET_DEFERRED }, options);
-        const userTableName      = 'users_' + config.rand();
+        const userTableName      = `users_${config.rand()}`;
 
         const User = this.sequelize.define(
           'User', { name: Sequelize.STRING }, { tableName: userTableName }
@@ -83,11 +83,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('allows the violation of the foreign key constraint if the transaction deferres only the foreign key constraint', function() {
-        const taskTableName = 'tasks_' + config.rand();
+        const taskTableName = `tasks_${config.rand()}`;
 
         return this
           .run(Sequelize.Deferrable.INITIALLY_IMMEDIATE, {
-            deferrable: Sequelize.Deferrable.SET_DEFERRED([taskTableName + '_user_id_fkey']),
+            deferrable: Sequelize.Deferrable.SET_DEFERRED([`${taskTableName}_user_id_fkey`]),
             taskTableName
           })
           .then(task => {

@@ -117,13 +117,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         this.User.afterCreate(user => {
-          user.username = 'User' + user.id;
+          user.username = `User${user.id}`;
           return Promise.resolve();
         });
 
         return this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).then(records => {
           records.forEach(record => {
-            expect(record.username).to.equal('User' + record.id);
+            expect(record.username).to.equal(`User${record.id}`);
             expect(record.beforeHookTest).to.be.true;
           });
           expect(beforeBulkCreate).to.be.true;
@@ -150,7 +150,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         this.User.afterCreate(user => {
-          user.username = 'User' + user.id;
+          user.username = `User${user.id}`;
           return Promise.resolve();
         });
 
@@ -246,7 +246,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         this.User.afterUpdate(user => {
-          user.username = 'User' + user.id;
+          user.username = `User${user.id}`;
         });
 
         return this.User.bulkCreate([
@@ -254,7 +254,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         ]).then(() => {
           return this.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).then(([, records]) => {
             records.forEach(record => {
-              expect(record.username).to.equal('User' + record.id);
+              expect(record.username).to.equal(`User${record.id}`);
               expect(record.beforeHookTest).to.be.true;
             });
             expect(beforeBulk).to.have.been.calledOnce;
@@ -295,7 +295,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         this.User.afterUpdate(user => {
-          user.username = 'User' + user.id;
+          user.username = `User${user.id}`;
         });
 
         return this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(() => {

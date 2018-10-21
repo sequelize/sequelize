@@ -634,7 +634,7 @@ if (dialect === 'sqlite') {
 
         tests.forEach(test => {
           const query = test.expectation.query || test.expectation;
-          const title = test.title || 'SQLite correctly returns ' + query + ' for ' + JSON.stringify(test.arguments);
+          const title = test.title || `SQLite correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
           it(title, function() {
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
