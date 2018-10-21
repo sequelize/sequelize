@@ -9,6 +9,7 @@ changelog.md
 Makefile
 coverage*
 .github
+.vscode
 
 appveyor-setup.ps1
 appveyor.yml
