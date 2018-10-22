@@ -26,7 +26,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('does not invoke getter if raw: true', function() {
-      expect(this.getSpy, { raw: true }).not.to.have.been.called;
+      this.User.build().get('name', { raw: true });
+
+      expect(this.getSpy).not.to.have.been.called;
     });
   });
 });
