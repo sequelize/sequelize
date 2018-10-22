@@ -182,14 +182,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     const applyFailTest = function applyFailTest(validatorDetails, i, validator) {
         const failingValue = validatorDetails.fail[i];
-        it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function() {
+        it(`correctly specifies an instance as invalid using a value of "${failingValue}" for the validation "${validator}"`, function() {
           const validations = {},
-            message = validator + '(' + failingValue + ')';
+            message = `${validator}(${failingValue})`;
 
           validations[validator] = validatorDetails.spec || {};
           validations[validator].msg = message;
 
-          const UserFail = this.sequelize.define('User' + config.rand(), {
+          const UserFail = this.sequelize.define(`User${config.rand()}`, {
             name: {
               type: Sequelize.STRING,
               validate: validations
@@ -206,9 +206,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       },
       applyPassTest = function applyPassTest(validatorDetails, j, validator, type) {
         const succeedingValue = validatorDetails.pass[j];
-        it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function() {
+        it(`correctly specifies an instance as valid using a value of "${succeedingValue}" for the validation "${validator}"`, function() {
           const validations = {},
-            message = validator + '(' + succeedingValue + ')';
+            message = `${validator}(${succeedingValue})`;
 
           validations[validator] = validatorDetails.spec || {};
 
@@ -221,7 +221,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             validations[validator] = true;
           }
 
-          const UserSuccess = this.sequelize.define('User' + config.rand(), {
+          const UserSuccess = this.sequelize.define(`User${config.rand()}`, {
             name: {
               type: Sequelize.STRING,
               validate: validations

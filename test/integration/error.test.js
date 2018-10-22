@@ -254,7 +254,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       }
     ].forEach(constraintTest => {
 
-      it('Can be intercepted as ' + constraintTest.type + ' using .catch', function() {
+      it(`Can be intercepted as ${constraintTest.type} using .catch`, function() {
         const spy = sinon.spy(),
           User = this.sequelize.define('user', {
             first_name: {

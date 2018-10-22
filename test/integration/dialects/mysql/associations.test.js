@@ -46,8 +46,8 @@ if (dialect === 'mysql') {
     describe('HasMany', () => {
       beforeEach(function() {
         //prevent periods from occurring in the table name since they are used to delimit (table.column)
-        this.User = this.sequelize.define('User' + Math.ceil(Math.random() * 10000000), { name: DataTypes.STRING });
-        this.Task = this.sequelize.define('Task' + Math.ceil(Math.random() * 10000000), { name: DataTypes.STRING });
+        this.User = this.sequelize.define(`User${Math.ceil(Math.random() * 10000000)}`, { name: DataTypes.STRING});
+        this.Task = this.sequelize.define(`Task${Math.ceil(Math.random() * 10000000)}`, { name: DataTypes.STRING});
         this.users = null;
         this.tasks = null;
 
@@ -58,11 +58,11 @@ if (dialect === 'mysql') {
           tasks = [];
 
         for (let i = 0; i < 5; ++i) {
-          users[users.length] = {name: 'User' + Math.random()};
+          users[users.length] = {name: `User${Math.random()}`};
         }
 
         for (let x = 0; x < 5; ++x) {
-          tasks[tasks.length] = {name: 'Task' + Math.random()};
+          tasks[tasks.length] = {name: `Task${Math.random()}`};
         }
 
         return this.sequelize.sync({ force: true }).then(() => {

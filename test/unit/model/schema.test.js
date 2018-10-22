@@ -5,7 +5,7 @@ const chai = require('chai'),
   Support   = require('../support'),
   current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Model') + 'Schemas', () => {
+describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
   if (current.dialect.supports.schemas) {
     const Project = current.define('project'),
       Company = current.define('company', {}, {

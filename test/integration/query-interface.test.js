@@ -385,7 +385,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         } else if (dialect === 'mysql' || dialect === 'mssql') {
           expect(keys).to.have.length(12);
         } else {
-          console.log('This test doesn\'t support ' + dialect);
+          console.log(`This test doesn't support ${dialect}`);
         }
         return fks;
       }).then(fks => {

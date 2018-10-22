@@ -8,12 +8,12 @@ const Support   = require('../support'),
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite(Support.getTestDialectTeaser('SQL'), () => {
-  suite('offset/limit', () => {
+describe(Support.getTestDialectTeaser('SQL'), () => {
+  describe('offset/limit', () => {
     const testsql = function(options, expectation) {
       const model = options.model;
 
-      test(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, {depth: 2}), () => {
         return expectsql(
           sql.addLimitAndOffset(
             options,

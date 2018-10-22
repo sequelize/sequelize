@@ -3,7 +3,7 @@
 const fs = require('fs');
 let mssqlConfig;
 try {
-  mssqlConfig = JSON.parse(fs.readFileSync(__dirname + '/mssql.json', 'utf8'));
+  mssqlConfig = JSON.parse(fs.readFileSync(`${__dirname}/mssql.json`, 'utf8'));
 } catch (e) {
   // ignore
 }

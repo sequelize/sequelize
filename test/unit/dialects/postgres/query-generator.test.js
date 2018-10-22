@@ -1145,19 +1145,19 @@ if (dialect.startsWith('postgres')) {
       createTrigger: [
         {
           arguments: ['myTable', 'myTrigger', 'after', ['insert'],  'myFunction', [], []],
-          expectation: 'CREATE TRIGGER myTrigger\n\tAFTER INSERT\n\tON myTable\n\t\n\tEXECUTE PROCEDURE myFunction();'
+          expectation: 'CREATE TRIGGER myTrigger AFTER INSERT ON myTable EXECUTE PROCEDURE myFunction();'
         },
         {
           arguments: ['myTable', 'myTrigger', 'before', ['insert', 'update'],  'myFunction', [{name: 'bar', type: 'INTEGER'}], []],
-          expectation: 'CREATE TRIGGER myTrigger\n\tBEFORE INSERT OR UPDATE\n\tON myTable\n\t\n\tEXECUTE PROCEDURE myFunction(bar INTEGER);'
+          expectation: 'CREATE TRIGGER myTrigger BEFORE INSERT OR UPDATE ON myTable EXECUTE PROCEDURE myFunction(bar INTEGER);'
         },
         {
           arguments: ['myTable', 'myTrigger', 'instead_of', ['insert', 'update'],  'myFunction', [], ['FOR EACH ROW']],
-          expectation: 'CREATE TRIGGER myTrigger\n\tINSTEAD OF INSERT OR UPDATE\n\tON myTable\n\t\n\tFOR EACH ROW\n\tEXECUTE PROCEDURE myFunction();'
+          expectation: 'CREATE TRIGGER myTrigger INSTEAD OF INSERT OR UPDATE ON myTable FOR EACH ROW EXECUTE PROCEDURE myFunction();'
         },
         {
           arguments: ['myTable', 'myTrigger', 'after_constraint', ['insert', 'update'],  'myFunction', [{name: 'bar', type: 'INTEGER'}], ['FOR EACH ROW']],
-          expectation: 'CREATE CONSTRAINT TRIGGER myTrigger\n\tAFTER INSERT OR UPDATE\n\tON myTable\n\t\n\tFOR EACH ROW\n\tEXECUTE PROCEDURE myFunction(bar INTEGER);'
+          expectation: 'CREATE CONSTRAINT TRIGGER myTrigger AFTER INSERT OR UPDATE ON myTable FOR EACH ROW EXECUTE PROCEDURE myFunction(bar INTEGER);'
         }
       ],
       getForeignKeyReferenceQuery: [
@@ -1218,7 +1218,7 @@ if (dialect.startsWith('postgres')) {
 
         tests.forEach(test => {
           const query = test.expectation.query || test.expectation;
-          const title = test.title || 'Postgres correctly returns ' + query + ' for ' + JSON.stringify(test.arguments);
+          const title = test.title || `Postgres correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
           it(title, function() {
             if (test.needsSequelize) {
               if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);

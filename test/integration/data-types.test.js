@@ -108,7 +108,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     expect(() => {
       current.refreshTypes();
-    }).to.throw('Parse function not supported for type ' + Type.key + ' in dialect ' + dialect);
+    }).to.throw(`Parse function not supported for type ${Type.key} in dialect ${dialect}`);
 
     delete Type.constructor.parse;
   };

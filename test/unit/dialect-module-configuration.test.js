@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   path = require('path'),
-  Support = require(__dirname + '/support'),
+  Support = require(`${__dirname}/support`),
   Sequelize = Support.Sequelize,
   dialect = Support.getTestDialect();
 

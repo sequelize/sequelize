@@ -380,7 +380,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('correctly validates using custom validation methods', function() {
-    const User = this.sequelize.define('User' + config.rand(), {
+    const User = this.sequelize.define(`User${config.rand()}`, {
       name: {
         type: Sequelize.STRING,
         validate: {
@@ -407,7 +407,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('supports promises with custom validation methods', function() {
-    const User = this.sequelize.define('User' + config.rand(), {
+    const User = this.sequelize.define(`User${config.rand()}`, {
       name: {
         type: Sequelize.STRING,
         validate: {
@@ -434,7 +434,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('skips other validations if allowNull is true and the value is null', function() {
-    const User = this.sequelize.define('User' + config.rand(), {
+    const User = this.sequelize.define(`User${config.rand()}`, {
       age: {
         type: Sequelize.INTEGER,
         allowNull: true,
@@ -454,7 +454,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('validates a model with custom model-wide validation methods', function() {
-    const Foo = this.sequelize.define('Foo' + config.rand(), {
+    const Foo = this.sequelize.define(`Foo${config.rand()}`, {
       field1: {
         type: Sequelize.INTEGER,
         allowNull: true
@@ -488,7 +488,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('validates model with a validator whose arg is an Array successfully twice in a row', function() {
-    const Foo = this.sequelize.define('Foo' + config.rand(), {
+    const Foo = this.sequelize.define(`Foo${config.rand()}`, {
         bar: {
           type: Sequelize.STRING,
           validate: {
@@ -505,7 +505,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   it('validates enums', function() {
     const values = ['value1', 'value2'];
 
-    const Bar = this.sequelize.define('Bar' + config.rand(), {
+    const Bar = this.sequelize.define(`Bar${config.rand()}`, {
       field: {
         type: Sequelize.ENUM,
         values,
@@ -526,7 +526,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   it('skips validations for the given fields', function() {
     const values = ['value1', 'value2'];
 
-    const Bar = this.sequelize.define('Bar' + config.rand(), {
+    const Bar = this.sequelize.define(`Bar${config.rand()}`, {
       field: {
         type: Sequelize.ENUM,
         values,
@@ -544,7 +544,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   it('skips validations for fields with value that is SequelizeMethod', function() {
     const values = ['value1', 'value2'];
 
-    const Bar = this.sequelize.define('Bar' + config.rand(), {
+    const Bar = this.sequelize.define(`Bar${config.rand()}`, {
       field: {
         type: Sequelize.ENUM,
         values,

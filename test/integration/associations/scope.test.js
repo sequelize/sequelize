@@ -26,7 +26,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       });
 
       this.Comment.prototype.getItem = function() {
-        return this['get' + this.get('commentable').substr(0, 1).toUpperCase() + this.get('commentable').substr(1)]();
+        return this[`get${this.get('commentable').substr(0, 1).toUpperCase()}${this.get('commentable').substr(1)}`]();
       };
 
       this.Post.addScope('withComments', {

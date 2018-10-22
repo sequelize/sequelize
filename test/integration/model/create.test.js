@@ -204,7 +204,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return Promise.map(_.range(50), i => {
             return User.findOrCreate({
               where: {
-                email: 'unique.email.'+i+'@sequelizejs.com',
+                email: `unique.email.${i}@sequelizejs.com`,
                 companyId: Math.floor(Math.random() * 5)
               }
             });
@@ -228,7 +228,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return Promise.map(_.range(50), i => {
             return User.findOrCreate({
               where: {
-                email: 'unique.email.'+i+'@sequelizejs.com',
+                email: `unique.email.${i}@sequelizejs.com`,
                 companyId: 2
               }
             });
@@ -236,7 +236,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return Promise.map(_.range(50), i => {
               return User.findOrCreate({
                 where: {
-                  email: 'unique.email.'+i+'@sequelizejs.com',
+                  email: `unique.email.${i}@sequelizejs.com`,
                   companyId: 2
                 }
               });
@@ -804,7 +804,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         intVal: this.sequelize.cast('1', type)
       }, {
         logging(sql) {
-          expect(sql).to.match(new RegExp("CAST\\(N?'1' AS " + type.toUpperCase() + '\\)'));
+          expect(sql).to.match(new RegExp(`CAST\\(N?'1' AS ${type.toUpperCase()}\\)`));
           match = true;
         }
       }).then(user => {
@@ -844,7 +844,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('is possible to just use .literal() to bypass escaping', function() {
       return this.User.create({
-        intVal: this.sequelize.literal('CAST(1-2 AS ' + (dialect === 'mysql' ? 'SIGNED' : 'INTEGER') + ')')
+        intVal: this.sequelize.literal(`CAST(1-2 AS ${dialect === 'mysql' ? 'SIGNED' : 'INTEGER'})`)
       }).then(user => {
         return this.User.findByPk(user.id).then(user => {
           expect(user.intVal).to.equal(-1);
@@ -911,10 +911,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   if (number > 9) {
                     return number;
                   }
-                  return '0' + number;
+                  return `0${number}`;
                 };
 
-              expect(user.year).to.equal(now.getUTCFullYear() + '-' + pad(now.getUTCMonth() + 1) + '-' + pad(now.getUTCDate()));
+              expect(user.year).to.equal(`${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`);
             });
           });
         });
@@ -1007,7 +1007,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return User.sync({force: true}).then(() => {
           const tableName = User.getTableName();
-          return this.sequelize.query('CREATE UNIQUE INDEX lower_case_username ON "' + tableName + '" ((lower(username)))');
+          return this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON "${tableName}" ((lower(username)))`);
         }).then(() => {
           return User.create({username: 'foo'});
         }).then(() => {
@@ -1185,7 +1185,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         books = [];
 
       dataTypes.forEach((dataType, index) => {
-        books[index] = this.sequelize.define('Book' + index, {
+        books[index] = this.sequelize.define(`Book${index}`, {
           id: { type: dataType, primaryKey: true, autoIncrement: true },
           title: Sequelize.TEXT
         });

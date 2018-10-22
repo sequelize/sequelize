@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   const scopes = {
     complexFunction(value) {
       return {
-        where: [value + ' IN (SELECT foobar FROM some_sql_function(foo.bar))']
+        where: [`${value} IN (SELECT foobar FROM some_sql_function(foo.bar))`]
       };
     },
     somethingTrue: {

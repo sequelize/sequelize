@@ -310,7 +310,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               promise = promise.then(() => {
                 return model.create(values).then(instance => {
                   if (previousInstance) {
-                    return previousInstance['set'+ _.upperFirst(model.name)](instance).then(() => {
+                    return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
                       previousInstance = instance;
                     });
                   } else {
