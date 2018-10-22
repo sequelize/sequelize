@@ -22,5 +22,24 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const json2 = user.toJSON();
       expect(json2).to.have.property('name').and.be.equal('my-name');
     });
+
+    it('returns clone of JSON data-types', () => {
+      const User = current.define('User', {
+        name: DataTypes.STRING,
+        permissions: DataTypes.JSON
+      });
+      const user = User.build({ name: 'my-name', permissions: { admin: true, special: 'foobar' } });
+      const json = user.toJSON();
+
+      expect(json)
+        .to.have.property('permissions')
+        .that.does.not.equal(user.permissions);
+
+      json.permissions.admin = false;
+
+      expect(user.permissions)
+        .to.have.property('admin')
+        .that.equals(true);
+    });
   });
 });
