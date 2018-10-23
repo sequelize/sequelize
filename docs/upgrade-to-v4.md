@@ -195,7 +195,7 @@ are now ES6 classes. You can set class / instance level methods like this
     if (!Array.isArray(include)) include = [include];
 
     return include.reduce((isRequired, descriptor) => {
-      const hasRequiredChild = propogateRequired(descriptor);
+      const hasRequiredChild = propagateRequired(descriptor);
       if ((descriptor.where || hasRequiredChild) && descriptor.required === undefined) {
         descriptor.required = true;
       }
