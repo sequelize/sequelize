@@ -52,4 +52,18 @@ describe('errors', () => {
       expect(stackParts[1]).to.match(/^    at throwError \(.*errors.test.js:\d+:\d+\)$/);
     });
   });
+
+  describe('OptimisticLockError', () => {
+    it('message is correct', () => {
+      let err;
+      try {
+        throw new errors['OptimisticLockError']({modelName: 'FakeModel'});
+      } catch (error) {
+        err = error;
+      }
+
+      expect(err.message).to.exist;
+      expect(err.message).to.equal('Attempting to update a stale model instance: FakeModel');
+    });
+  });
 });
