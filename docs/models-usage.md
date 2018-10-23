@@ -275,7 +275,7 @@ Project.findAll({ offset: 10, limit: 2 })
 The syntax for grouping and ordering are equal, so below it is only explained with a single example for group, and the rest for order. Everything you see below can also be done for group
 
 ```js
-Project.findAll({order: 'title DESC'})
+Project.findAll({order: [['title', 'DESC']]})
 // yields ORDER BY title DESC
 
 Project.findAll({group: 'name'})
