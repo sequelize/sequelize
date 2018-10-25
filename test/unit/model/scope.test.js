@@ -313,7 +313,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should not work with exclude and include attributes', () => {
+    it('should keep exclude and include attributes', () => {
       Company.addScope('newIncludeScope', {
         attributes: {
           include: ['foobar'],
@@ -326,6 +326,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: ['foobar'],
           exclude: ['createdAt']
         }
+      });
+    });
+
+    it('should be able to merge scopes with the same include', () => {
+      Company.addScope('project', {
+        include: [{ model: Project, where: { something: false, somethingElse: 99 }}]
+      });
+      Company.addScope('alsoProject', {
+        include: [{ model: Project, where: { something: true }, limit: 1 }]
+      });
+      expect(Company.scope(['project', 'alsoProject'])._scope).to.deep.equal({
+        include: [{ model: Project, where: { something: true, somethingElse: 99 }, limit: 1 }]
       });
     });
   });
@@ -360,11 +372,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should be able to overwrite multiple scopes with the same include', () => {
+    it('should be able to merge scopes with the same include', () => {
       Sequelize.Model._scope = {
         include: [
-          { model: Project, where: { something: false }},
-          { model: Project, where: { something: true }}
+          { model: Project, where: { something: false, somethingElse: 99 }},
+          { model: Project, where: { something: true }, limit: 1 }
         ]
       };
 
@@ -373,22 +385,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Sequelize.Model._injectScope(options);
 
       expect(options.include).to.have.length(1);
-      expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
+      expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true, somethingElse: 99 }, limit: 1 });
     });
 
-    it('should be able to override scoped include', () => {
+    it('should be able to merge scoped include', () => {
       Sequelize.Model._scope = {
-        include: [{ model: Project, where: { something: false }}]
+        include: [{ model: Project, where: { something: false, somethingElse: 99 }}]
       };
 
       const options = {
-        include: [{ model: Project, where: { something: true }}]
+        include: [{ model: Project, where: { something: true }, limit: 1 }]
       };
 
       Sequelize.Model._injectScope(options);
 
       expect(options.include).to.have.length(1);
-      expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true }});
+      expect(options.include[0]).to.deep.equal({ model: Project, where: { something: true, somethingElse: 99 }, limit: 1 });
     });
 
     it('should be able to merge aliased includes with the same model', () => {
@@ -467,6 +479,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(options.include).to.have.length(2);
         expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
         expect(options.include[1]).to.deep.equal({ all: true });
+      });
+
+      it('should not merge scopes with the same include', () => {
+        Sequelize.Model._scope = {
+          include: [
+            User,
+            { all: true }
+          ]
+        };
+
+        const options = {
+          include: [
+            { model: User, where: { something: true }}
+          ]
+        };
+
+        Sequelize.Model._injectScope(options);
+
+        expect(options.include).to.have.length(3);
+        expect(options.include[0]).to.deep.equal({ model: User });
+        expect(options.include[1]).to.deep.equal({ all: true });
+        expect(options.include[2]).to.deep.equal({ model: User, where: { something: true }});
       });
     });
   });
