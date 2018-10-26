@@ -480,28 +480,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(options.include[0]).to.deep.equal({ model: User, where: { something: true }});
         expect(options.include[1]).to.deep.equal({ all: true });
       });
-
-      it('should not merge scopes with the same include', () => {
-        Sequelize.Model._scope = {
-          include: [
-            User,
-            { all: true }
-          ]
-        };
-
-        const options = {
-          include: [
-            { model: User, where: { something: true }}
-          ]
-        };
-
-        Sequelize.Model._injectScope(options);
-
-        expect(options.include).to.have.length(3);
-        expect(options.include[0]).to.deep.equal({ model: User });
-        expect(options.include[1]).to.deep.equal({ all: true });
-        expect(options.include[2]).to.deep.equal({ model: User, where: { something: true }});
-      });
     });
   });
 });
