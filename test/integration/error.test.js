@@ -242,7 +242,36 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
     });
   });
 
-  describe('Constraint error', () => {
+  describe('OptimisticLockError', () => {
+    it('got correct error type and message', function() {
+      const Account = this.sequelize.define('Account', {
+        number: {
+          type: Sequelize.INTEGER
+        }
+      }, {
+        version: true
+      });
+
+      return Account.sync({force: true}).then(() => {
+        const result = Account.create({number: 1}).then(accountA => {
+          return Account.findByPk(accountA.id).then(accountB => {
+            accountA.number += 1;
+            return accountA.save().then(() => { return accountB; });
+          });
+        }).then(accountB => {
+          accountB.number += 1;
+          return accountB.save();
+        });
+
+        return Promise.all([
+          expect(result).to.eventually.be.rejectedWith(Support.Sequelize.OptimisticLockError),
+          expect(result).to.eventually.be.rejectedWith('Attempting to update a stale model instance: Account')
+        ]);
+      });
+    });
+  });
+
+  describe('ConstraintError', () => {
     [
       {
         type: 'UniqueConstraintError',
