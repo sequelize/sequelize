@@ -689,5 +689,51 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
       });
     });
+
+    describe('virtual attribute', () => {
+      beforeEach(function() {
+        this.User = this.sequelize.define('user', {
+          password: {
+            type: Sequelize.VIRTUAL,
+            validate: {
+              customValidator: () => {
+                throw new Error('always invalid');
+              }
+            }
+          }
+        });
+      });
+
+      it('sholud validate', function() {
+        return this.User
+          .sync({ force: true })
+          .then(() => this.User.bulkCreate([
+            { password: 'password' }
+          ], { validate: true }))
+          .then(() => {
+            expect.fail();
+          }, error => {
+            expect(error.length).to.equal(1);
+            expect(error[0].message).to.match(/.*always invalid.*/);
+          });
+      });
+
+      it('shold not validate', function() {
+        return this.User
+          .sync({ force: true })
+          .then(() => this.User.bulkCreate([
+            { password: 'password' }
+          ], { validate: false }))
+          .then(users => {
+            expect(users.length).to.equal(1);
+          })
+          .then(() => this.User.bulkCreate([
+            { password: 'password' }
+          ]))
+          .then(users => {
+            expect(users.length).to.equal(1);
+          });
+      });
+    });
   });
 });
