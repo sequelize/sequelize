@@ -14,13 +14,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           username: Sequelize.STRING,
           email: Sequelize.STRING,
           access_level: Sequelize.INTEGER,
-          other_value: Sequelize.INTEGER
+          other_value: Sequelize.INTEGER,
+          password: Sequelize.STRING
         }, {
           defaultScope: {
             where: {
               access_level: {
                 [Op.gte]: 5
               }
+            },
+            attributes: {
+              exclude: ['password']
             }
           },
           scopes: {
@@ -30,16 +34,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   [Op.lte]: 5
                 }
               }
+            },
+            withoutPassword: {
+              attributes: {
+                exclude: ['password']
+              }
             }
           }
         });
 
         return this.sequelize.sync({force: true}).then(() => {
           const records = [
-            {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7},
-            {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11},
-            {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10},
-            {username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7}
+            {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7, password: 'password'},
+            {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11, password: 'password'},
+            {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10, password: 'password'},
+            {username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7, password: 'password'}
           ];
           return this.ScopeMe.bulkCreate(records);
         });
@@ -73,13 +82,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to apply other scopes', function() {
+      it('should be able to apply other `where` scopes', function() {
         return this.ScopeMe.scope('lowAccess').update({ username: 'ruben' }, { where: {}}).then(() => {
           return this.ScopeMe.unscoped().findAll({ where: { username: { [Op.ne]: 'ruben' }}});
         }).then(users => {
           expect(users).to.have.length(1);
           expect(users[0].get('email')).to.equal('tobi@fakeemail.com');
         });
+      });
+
+      it('should be able to apply other `attributes` scopes', function() {
+        return this.ScopeMe.scope('withoutPassword').update({ other_value: 99 }, { where: { other_value: 11 }, returning: true })
+          .spread((count, users) => {
+            expect(users).to.have.length(1);
+            expect(users[0].get('email')).to.equal('tobi@fakeemail.com');
+            expect(users[0].get('password')).to.equal(undefined);
+          });
       });
 
       it('should be able to merge scopes with where', function() {
