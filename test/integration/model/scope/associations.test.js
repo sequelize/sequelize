@@ -302,6 +302,122 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(user.company.projects).to.have.length(1);
           });
         });
+
+        describe('with different format', () => {
+          it('should not throw error', function() {
+            const Child = this.sequelize.define('Child');
+            const Parent = this.sequelize.define('Parent', {}, {
+              defaultScope: {
+                include: [{ model: Child }]
+              },
+              scopes: {
+                children: {
+                  include: [Child]
+                }
+              }
+            });
+            Parent.addScope('alsoChildren', {
+              include: [{ model: Child }]
+            });
+
+            Child.belongsTo(Parent);
+            Parent.hasOne(Child);
+
+            return this.sequelize.sync({ force: true }).then(() => {
+              return Promise.all([Child.create(), Parent.create()]);
+            }).then(([child, parent]) => {
+              return parent.setChild(child);
+            }).then(() => {
+              return Parent.scope('children', 'alsoChildren').findOne();
+            });
+          });
+        });
+
+        describe('with find options', () => {
+          it('should merge includes correctly', function() {
+            const Child = this.sequelize.define('Child', { name: Sequelize.STRING });
+            const Parent = this.sequelize.define('Parent', { name: Sequelize.STRING });
+            Parent.addScope('testScope1', {
+              include: [{
+                model: Child,
+                where: {
+                  name: 'child2'
+                }
+              }]
+            });
+            Parent.hasMany(Child);
+
+            return this.sequelize.sync({ force: true })
+              .then(() => {
+                return Promise.all([
+                  Parent.create({ name: 'parent1' }).then(parent => parent.createChild({ name: 'child1' })),
+                  Parent.create({ name: 'parent2' }).then(parent => parent.createChild({ name: 'child2' }))
+                ]);
+              })
+              .then(() => {
+                return Parent.scope('testScope1').findOne({
+                  include: [{
+                    model: Child,
+                    attributes: { exclude: ['name'] }
+                  }]
+                });
+              })
+              .then(parent => {
+                expect(parent.get('name')).to.equal('parent2');
+                expect(parent.Children).to.have.length(1);
+                expect(parent.Children[0].dataValues).not.to.have.property('name');
+              });
+          });
+        });
+      });
+
+      describe('scope with options', () => {
+        it('should return correct object included foreign_key', function() {
+          const Child = this.sequelize.define('Child', {
+            secret: Sequelize.STRING
+          }, {
+            scopes: {
+              public: {
+                attributes: {
+                  exclude: ['secret']
+                }
+              }
+            }
+          });
+          const Parent = this.sequelize.define('Parent');
+          Child.belongsTo(Parent);
+          Parent.hasOne(Child);
+
+          return this.sequelize.sync({ force: true })
+            .then(() => Child.create({ secret: 'super secret' }))
+            .then(() => Child.scope('public').findOne())
+            .then(user => {
+              expect(user.dataValues).to.have.property('ParentId');
+              expect(user.dataValues).not.to.have.property('secret');
+            });
+        });
+
+        it('should return correct object included foreign_key with defaultScope', function() {
+          const Child = this.sequelize.define('Child', {
+            secret: Sequelize.STRING
+          }, {
+            defaultScope: {
+              attributes: {
+                exclude: ['secret']
+              }
+            }
+          });
+          const Parent = this.sequelize.define('Parent');
+          Child.belongsTo(Parent);
+
+          return this.sequelize.sync({ force: true })
+            .then(() => Child.create({ secret: 'super secret' }))
+            .then(() => Child.findOne())
+            .then(user => {
+              expect(user.dataValues).to.have.property('ParentId');
+              expect(user.dataValues).not.to.have.property('secret');
+            });
+        });
       });
     });
   });
