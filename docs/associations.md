@@ -747,7 +747,7 @@ Comment.prototype.getItem = function(options) {
   return this[
     'get' +
       this.get('commentable')
-        .substr(0, 1)
+        [0]
         .toUpperCase() +
       this.get('commentable').substr(1)
   ](options);

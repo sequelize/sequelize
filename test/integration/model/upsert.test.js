@@ -220,7 +220,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works with BLOBs', function() {
-        return this.User.upsert({ id: 42, username: 'john', blob: new Buffer('kaj') }).then(created => {
+        return this.User.upsert({ id: 42, username: 'john', blob: Buffer.from('kaj') }).then(created => {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
           } else {
@@ -228,7 +228,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           this.clock.tick(1000);
-          return this.User.upsert({ id: 42, username: 'doe', blob: new Buffer('andrea') });
+          return this.User.upsert({ id: 42, username: 'doe', blob: Buffer.from('andrea') });
         }).then(created => {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
