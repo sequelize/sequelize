@@ -1686,7 +1686,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       describe('add', () => {
         it('should insert data provided on the object into the join table', function() {
           const ctx = {
-            UserProjects: this.UserProjects,
+            UserProjects: this.UserProjects
           };
           return Promise.all([
             this.User.create(),
@@ -1706,7 +1706,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         it('should insert data provided as a second argument into the join table', function() {
           const ctx = {
-            UserProjects: this.UserProjects,
+            UserProjects: this.UserProjects
           };
           return Promise.all([
             this.User.create(),
@@ -1814,7 +1814,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             expect(foo.bars[0].name).to.equal('bar...');
             expect(foo.bars[0].foobar).to.not.equal(null);
             expect(foo.bars[0].foobar.baz).to.equal('baz...');
-            
+
             return Foo.findOne({ include: Bar });
           }).then(foo => {
             expect(foo.name).to.equal('foo...');

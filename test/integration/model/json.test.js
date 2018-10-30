@@ -776,7 +776,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   employment: 'Nuclear Safety Inspector'
                 });
               });
-            } else if (current.options.dialect === 'postgres') {
+            }
+            if (current.options.dialect === 'postgres') {
               return expect(this.Event.findAll({
                 where: {
                   data: {

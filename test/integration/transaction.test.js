@@ -600,18 +600,16 @@ if (current.dialect.supports.transactions) {
                       lock: t1.LOCK.UPDATE,
                       transaction: t1
                     })).to.be.rejectedWith('FOR UPDATE cannot be applied to the nullable side of an outer join');
-
-                  } else {
-
-                    return User.findOne({
-                      where: {
-                        username: 'John'
-                      },
-                      include: [Task],
-                      lock: t1.LOCK.UPDATE,
-                      transaction: t1
-                    });
                   }
+
+                  return User.findOne({
+                    where: {
+                      username: 'John'
+                    },
+                    include: [Task],
+                    lock: t1.LOCK.UPDATE,
+                    transaction: t1
+                  });
                 });
               });
           });
