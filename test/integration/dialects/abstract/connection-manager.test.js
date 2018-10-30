@@ -6,7 +6,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   Config = require(__dirname + '/../../../config/config'),
   ConnectionManager = require(__dirname + '/../../../../lib/dialects/abstract/connection-manager'),
-  Pooling = require('generic-pool'),
+  Pool = require('sequelize-pool').Pool,
   _ = require('lodash'),
   Promise = require(__dirname + '/../../../../lib/promise');
 
@@ -21,7 +21,7 @@ describe('Connection Manager', () => {
   let sandbox;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
   });
 
   afterEach(() => {
@@ -35,9 +35,10 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const poolSpy = sandbox.spy(Pooling, 'createPool');
     connectionManager.initPools();
-    expect(poolSpy.calledOnce).to.be.true;
+    expect(connectionManager.pool).to.be.instanceOf(Pool);
+    expect(connectionManager.pool.read).to.be.undefined;
+    expect(connectionManager.pool.write).to.be.undefined;
   });
 
   it('should initialize a multiple pools with replication', () => {
@@ -50,9 +51,9 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const poolSpy = sandbox.spy(Pooling, 'createPool');
     connectionManager.initPools();
-    expect(poolSpy.calledTwice).to.be.true;
+    expect(connectionManager.pool.read).to.be.instanceOf(Pool);
+    expect(connectionManager.pool.write).to.be.instanceOf(Pool);
   });
 
   it('should round robin calls to the read pool', () => {
@@ -91,7 +92,7 @@ describe('Connection Manager', () => {
       useMaster: false
     };
 
-    const _getConnection = _.bind(connectionManager.getConnection, connectionManager, queryOptions);
+    const _getConnection = connectionManager.getConnection.bind(connectionManager, queryOptions);
 
     return _getConnection()
       .then(_getConnection)
@@ -155,7 +156,7 @@ describe('Connection Manager', () => {
     connectionManager.initPools();
 
     const poolDrainSpy = sandbox.spy(connectionManager.pool, 'drain');
-    const poolClearSpy = sandbox.spy(connectionManager.pool, 'clear');
+    const poolClearSpy = sandbox.spy(connectionManager.pool, 'destroyAllNow');
 
     return connectionManager.close().then(() => {
       expect(poolDrainSpy.calledOnce).to.be.true;
