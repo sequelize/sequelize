@@ -6,7 +6,32 @@ const chai      = require('chai'),
   Sequelize = Support.Sequelize,
   Promise   = Sequelize.Promise,
   cls       = require('continuation-local-storage'),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  { stub } = require('sinon'),
+  mod = require('module');
+
+// Only need to test this once.
+if (current.dialect.name === 'mysql') {
+  describe('cls not installed', () => {
+    it('fails on missing dependencies', () => {
+      let requireStub;
+      try {
+        const err = new Error('test error');
+        err.code = 'MODULE_NOT_FOUND';
+        // TODO: This is somewhat hacky and might break at some point
+        requireStub = stub(mod, '_resolveFilename');
+        requireStub.withArgs('continuation-local-storage').throws(err);
+        requireStub.callThrough();
+        expect(() => { Sequelize.useCLS(); }).to.throw(/continuation-local-storage/);
+      } finally {
+        if (requireStub) {
+          requireStub.restore();
+        }
+      }
+    });
+  });
+}
+
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('Continuation local storage'), () => {

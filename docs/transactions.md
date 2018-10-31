@@ -54,6 +54,8 @@ return sequelize.transaction(t => {
 
 ### Automatically pass transactions to all queries
 
+In order to use CLS you must first `npm install cls-bluebird`.
+
 In the examples above, the transaction is still manually passed, by passing `{ transaction: t }` as the second argument. To automatically pass the transaction to all queries you must install the [continuation local storage](https://github.com/othiym23/node-continuation-local-storage) (CLS) module and instantiate a namespace in your own code:
 
 ```js
