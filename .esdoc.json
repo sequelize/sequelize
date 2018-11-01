@@ -39,6 +39,7 @@
           "files": [
             "./docs/getting-started.md",
             "./docs/usage.md",
+            "./docs/data-types.md",
             "./docs/models-definition.md",
             "./docs/models-usage.md",
             "./docs/querying.md",
