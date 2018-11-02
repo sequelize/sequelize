@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           type: DataTypes.STRING
         }
       });
-      return this.Account.sync({force: true});
+      return this.Account.sync({ force: true });
     });
 
     it('should only update the passed fields', function() {
@@ -33,6 +33,57 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             id: account.get('id')
           }
         }));
+    });
+
+    it('should handle include options when updating', function() {
+      this.Group = this.sequelize.define('Group', {
+        name: {
+          type: DataTypes.STRING
+        }
+      });
+
+      this.Account.Group = this.Account.belongsTo(this.Group);
+
+      return this.Account.destroy({
+        where: {},
+        truncate: true
+      }).then(() => {
+        return this.Group.sync({ force: true })
+          .then(() => {
+            return this.Account.sync({ force: true }).then(() => {
+              return this.Account.create({ ownerId: 2 }).then(account => {
+                this.account = account;
+                return this.Group.create({ name: 'Developer' }).then(group => {
+                  this.group = group;
+                  return this.Account.update({
+                    name: Math.random().toString()
+                  }, {
+                    where: {
+                      id: this.account.get('id')
+                    }, include: [
+                      {
+                        association: this.Account.Group,
+                        where: { id: this.group.get('id') }
+                      }
+                    ]
+                  }).then(() => {
+                    return this.Account.update({
+                      name: Math.random().toString()
+                    }, {
+                      where: {
+                        id: this.account.get('id')
+                      }, include: [
+                        {
+                          all: true
+                        }
+                      ]
+                    });
+                  });
+                });
+              });
+            });
+          });
+      });
     });
 
 
