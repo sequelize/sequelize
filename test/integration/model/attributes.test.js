@@ -131,5 +131,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
       });
     });
+
+    describe('quote', () => {
+      it('allows for an attribute with dots', function() {
+        const User = this.sequelize.define('user', {
+          'foo.bar.baz': Sequelize.TEXT
+        });
+
+        return this.sequelize.sync({force: true})
+          .then(() => User.findAll())
+          .then(result => {
+            expect(result.length).to.equal(0);
+          });
+      });
+    });
   });
 });
