@@ -50,6 +50,15 @@ if (current.dialect.name === 'mysql') {
           mysql: 'ALTER TABLE `users` ADD `test_added_col_first` VARCHAR(255) FIRST;'
         });
       });
+
+      it('properly generates alter queries with column level comment', () => {
+        return expectsql(sql.addColumnQuery(Model.getTableName(), 'column_with_comment', current.normalizeAttribute({
+          type: DataTypes.STRING,
+          comment: 'This is a comment'
+        })), {
+          mysql: 'ALTER TABLE `users` ADD `column_with_comment` VARCHAR(255) COMMENT \'This is a comment\';'
+        });
+      });
     });
   });
 }
