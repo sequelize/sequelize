@@ -468,6 +468,18 @@ if (dialect === 'mysql') {
           expectation: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `creationYear` > 2002) AS `test`;',
           context: QueryGenerator,
           needsSequelize: true
+        }, {
+          title: 'Contains fields with "." characters.',
+          arguments: ['myTable', {
+            attributes: ['foo.bar.baz'],
+            model: {
+              rawAttributes: {
+                'foo.bar.baz': {}
+              }
+            }
+          }],
+          expectation: 'SELECT `foo.bar.baz` FROM `myTable`;',
+          context: QueryGenerator
         }
       ],
 
