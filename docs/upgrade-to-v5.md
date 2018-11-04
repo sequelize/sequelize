@@ -20,6 +20,10 @@ http://docs.sequelizejs.com/manual/tutorial/querying.html#operators-security
 - You can still use string operators by passing an operators map in `operatorsAliases`, but that will give you deprecation warning.
 - Op.$raw is removed
 
+### Pooling
+
+With v5 Sequelize now use `sequelize-pool` which is a modernized fork of `generic-pool@2.5`. You no longer need to call `sequelize.close` to shutdown pool, this helps with lambda executions. [#8468](https://github.com/sequelize/sequelize/issues/8468)
+
 ### Model
 
 **Attributes**
@@ -170,7 +174,7 @@ Model.findAll({
 
 - Sequelize now use parameterized queries for all INSERT / UPDATE operations (except UPSERT). They provide better protection against SQL Injection attack.
 - `ValidationErrorItem` now holds reference to original error in the `original` property, rather than the `__raw` property.
-- [retry-as-promised](https://github.com/mickhansen/retry-as-promised) has been updated to `3.0.0`, which use [any-promise](https://github.com/kevinbeaty/any-promise). This module repeat all `sequelize.query` operations. You can configure `any-promise` to use `bluebird` for better performance on Node 4 or 6
+- [retry-as-promised](https://github.com/mickhansen/retry-as-promised) has been updated to `3.1.0`, which use [any-promise](https://github.com/kevinbeaty/any-promise). This module repeat all `sequelize.query` operations. You can configure `any-promise` to use `bluebird` for better performance on Node 4 or 6
 - Sequelize will throw for all `undefined` keys in `where` options, In past versions `undefined` was converted to `null`.
 
 
@@ -178,8 +182,30 @@ Model.findAll({
 
 - removed: terraformer-wkt-parser [#9545](https://github.com/sequelize/sequelize/pull/9545)
 - mysql2: use `1.5.2` or above to support prepared statements
+- updated: retry-as-promised: `3.1.0`
+- change: `generic-pool` to `sequelize-pool`
 
 ## Changelog
+
+### 5.0.0-beta.14
+
+- fix(query): correctly quote identifier for attributes (#9964) [#10118](https://github.com/sequelize/sequelize/pull/10118)
+- feat(postgres): dyanmic oids [#10077](https://github.com/sequelize/sequelize/pull/10077)
+- fix(error): optimistic lock message [#10068](https://github.com/sequelize/sequelize/pull/10068)
+- fix(package): update depd to version 2.0.0 [#10081](https://github.com/sequelize/sequelize/pull/10081)
+- fix(model): validate virtual attribute (#9947) [#10085](https://github.com/sequelize/sequelize/pull/10085)
+- fix(test): actually test get method with raw option [#10059](https://github.com/sequelize/sequelize/pull/10059)
+- fix(model): return deep cloned value for toJSON [#10058](https://github.com/sequelize/sequelize/pull/10058)
+- fix(model): create instance with many-to-many association with extra column (#10034) [#10050](https://github.com/sequelize/sequelize/pull/10050)
+- fix(query-generator): fix bad property access [#10056](https://github.com/sequelize/sequelize/pull/10056)
+- docs(upgrade-to-v4): typo [#10060](https://github.com/sequelize/sequelize/pull/10060)
+- docs(model-usage): order expression format [#10061](https://github.com/sequelize/sequelize/pull/10061)
+- chore(package): update retry-as-promised to version 3.1.0 [#10065](https://github.com/sequelize/sequelize/pull/10065)
+- refactor(scopes): just in time options conforming [#9735](https://github.com/sequelize/sequelize/pull/9735)
+- refactor: use sequelize-pool for pooling [#10051](https://github.com/sequelize/sequelize/pull/10051)
+- refactor(*): cleanup code [#10091](https://github.com/sequelize/sequelize/pull/10091)
+- refactor: use template strings [#10055](https://github.com/sequelize/sequelize/pull/10055)
+- refactor(query-generation): cleanup template usage [#10047](https://github.com/sequelize/sequelize/pull/10047)
 
 ### 5.0.0-beta.13
 
