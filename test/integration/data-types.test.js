@@ -705,7 +705,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       force: true
     }).then(() => {
       return ByteModel.create({
-        byteToBool: new Buffer([true])
+        byteToBool: Buffer.from([true])
       });
     }).then(byte => {
       expect(byte.byteToBool).to.be.ok;

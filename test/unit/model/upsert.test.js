@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       beforeEach(function() {
-        this.sinon = sinon.sandbox.create();
+        this.sinon = sinon.createSandbox();
 
         this.query = this.sinon.stub(current, 'query').returns(Promise.resolve());
         this.stub = this.sinon.stub(current.getQueryInterface(), 'upsert').returns(Promise.resolve([true, undefined]));

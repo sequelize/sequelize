@@ -449,7 +449,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         date = new Date(),
         string = 't\'e"st',
         boolean = true,
-        buffer = new Buffer('t\'e"st');
+        buffer = Buffer.from('t\'e"st');
 
       date.setMilliseconds(0);
       return this.sequelize.query({
@@ -465,7 +465,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         res.date = res.date && new Date(res.date);
         res.boolean = res.boolean && true;
         if (typeof res.buffer === 'string' && res.buffer.startsWith('\\x')) {
-          res.buffer = new Buffer(res.buffer.substring(2), 'hex');
+          res.buffer = Buffer.from(res.buffer.substring(2), 'hex');
         }
         expect(res).to.deep.equal({
           number,

@@ -2511,7 +2511,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('buffers', () => {
       it('should be able to take a buffer as parameter to a BLOB field', function() {
         return this.BlobUser.create({
-          data: new Buffer('Sequelize')
+          data: Buffer.from('Sequelize')
         }).then(user => {
           expect(user).to.be.ok;
         });
@@ -2519,7 +2519,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should return a buffer when fetching a blob', function() {
         return this.BlobUser.create({
-          data: new Buffer('Sequelize')
+          data: Buffer.from('Sequelize')
         }).then(user => {
           return this.BlobUser.findByPk(user.id).then(user => {
             expect(user.data).to.be.an.instanceOf(Buffer);

@@ -475,7 +475,7 @@ if (dialect.startsWith('postgres')) {
           expectation: "SELECT * FROM \"mySchema\".\"myTable\" WHERE \"mySchema\".\"myTable\".\"name\" = 'foo'';DROP TABLE mySchema.myTable;';"
         }, {
           title: 'buffer as where argument',
-          arguments: ['myTable', {where: { field: new Buffer('Sequelize')}}],
+          arguments: ['myTable', {where: { field: Buffer.from('Sequelize')}}],
           expectation: "SELECT * FROM \"myTable\" WHERE \"myTable\".\"field\" = E'\\\\x53657175656c697a65';",
           context: QueryGenerator
         }, {
@@ -638,10 +638,10 @@ if (dialect.startsWith('postgres')) {
             bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()]
           }
         }, {
-          arguments: ['myTable', {data: new Buffer('Sequelize') }],
+          arguments: ['myTable', {data: Buffer.from('Sequelize') }],
           expectation: {
             query: 'INSERT INTO "myTable" ("data") VALUES ($1);',
-            bind: [new Buffer('Sequelize')]
+            bind: [Buffer.from('Sequelize')]
           }
         }, {
           arguments: ['myTable', {name: 'foo', numbers: [1, 2, 3]}],

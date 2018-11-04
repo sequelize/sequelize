@@ -146,7 +146,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('Buffer', () => {
-      testsql('field', new Buffer('Sequelize'), {
+      testsql('field', Buffer.from('Sequelize'), {
         postgres: '"field" = E\'\\\\x53657175656c697a65\'',
         sqlite: "`field` = X'53657175656c697a65'",
         mysql: "`field` = X'53657175656c697a65'",

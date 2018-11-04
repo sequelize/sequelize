@@ -704,7 +704,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('sholud validate', function() {
+      it('should validate', function() {
         return this.User
           .sync({ force: true })
           .then(() => this.User.bulkCreate([

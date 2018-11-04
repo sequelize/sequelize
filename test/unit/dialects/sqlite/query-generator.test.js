@@ -343,7 +343,7 @@ if (dialect === 'sqlite') {
           context: QueryGenerator
         }, {
           title: 'buffer as where argument',
-          arguments: ['myTable', {where: { field: new Buffer('Sequelize')}}],
+          arguments: ['myTable', {where: { field: Buffer.from('Sequelize')}}],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` = X'53657175656c697a65';",
           context: QueryGenerator
         }, {
@@ -383,10 +383,10 @@ if (dialect === 'sqlite') {
             bind: ["'bar'"]
           }
         }, {
-          arguments: ['myTable', {data: new Buffer('Sequelize') }],
+          arguments: ['myTable', {data: Buffer.from('Sequelize') }],
           expectation: {
             query: 'INSERT INTO `myTable` (`data`) VALUES ($1);',
-            bind: [new Buffer('Sequelize')]
+            bind: [Buffer.from('Sequelize')]
           }
         }, {
           arguments: ['myTable', { name: 'bar', value: null }],

@@ -17,7 +17,7 @@ if (dialect === 'mssql') {
   describe('[MSSQL Specific] Query', () => {
     describe('beginTransaction', () => {
       beforeEach(() => {
-        sandbox = sinon.sandbox.create();
+        sandbox = sinon.createSandbox();
         const options = {
           transaction: { name: 'transactionName' },
           isolationLevel: 'REPEATABLE_READ',
