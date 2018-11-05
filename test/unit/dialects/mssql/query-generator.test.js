@@ -193,6 +193,22 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
+    it('addColumnQuery', function() {
+      expectsql(this.queryGenerator.addColumnQuery('myTable', 'myColumn', { type: 'VARCHAR(255)' }), {
+        mssql: 'ALTER TABLE [myTable] ADD [myColumn] VARCHAR(255) NULL;'
+      });
+    });
+
+    it('addColumnQuery with comment', function() {
+      expectsql(this.queryGenerator.addColumnQuery('myTable', 'myColumn', { type: 'VARCHAR(255)', comment: 'This is a comment' }), {
+        mssql: 'ALTER TABLE [myTable] ADD [myColumn] VARCHAR(255) NULL; EXEC sp_addextendedproperty ' +
+        '@name = N\'MS_Description\', @value = N\'This is a comment\', ' +
+        '@level0type = N\'Schema\', @level0name = \'dbo\', ' +
+        '@level1type = N\'Table\', @level1name = [myTable], ' +
+        '@level2type = N\'Column\', @level2name = [myColumn];'
+      });
+    });
+
     it('removeColumnQuery', function() {
       expectsql(this.queryGenerator.removeColumnQuery('myTable', 'myColumn'), {
         mssql: 'ALTER TABLE [myTable] DROP COLUMN [myColumn];'
