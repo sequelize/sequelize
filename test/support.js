@@ -229,7 +229,7 @@ const Support = {
       }
     }
 
-    if (_.isError(query)) {
+    if (query instanceof Error) {
       expect(query.message).to.equal(expectation.message);
     } else {
       expect(query.query || query).to.equal(expectation);
@@ -242,7 +242,7 @@ const Support = {
   }
 };
 
-if (typeof beforeEach !== 'undefined') {
+if (global.beforeEach) {
   beforeEach(function() {
     this.sequelize = Support.sequelize;
   });
