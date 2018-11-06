@@ -124,7 +124,10 @@ if (dialect.startsWith('postgres')) {
           arguments: [{id: {type: 'INTEGER', unique: true, comment: 'This is my comment'}}],
           expectation: {id: 'INTEGER UNIQUE COMMENT This is my comment'}
         },
-
+        {
+          arguments: [{id: {type: 'INTEGER', unique: true, comment: 'This is my comment'}}, {context: 'addColumn', key: 'column', table: {schema: 'foo', tableName: 'bar'}}],
+          expectation: {id: 'INTEGER UNIQUE; COMMENT ON COLUMN "foo"."bar"."column" IS \'This is my comment\''}
+        },
         // New references style
         {
           arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }}}],
