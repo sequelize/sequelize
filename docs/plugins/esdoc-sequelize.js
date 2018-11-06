@@ -11,6 +11,8 @@ exports.onHandleHTML = function(ev) {
     $title.text($title.text() + ' | ' + esdocConfig.title);
   }
 
+  $('head').append('<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />');
+
   const $header = $('header');
   $header.prepend('<a href="/"><img src="manual/asset/logo-small.png" class="header-logo" /></a>');
   $('.repo-url-github').after('<a href="http://sequelize-slack.herokuapp.com/" class="slack-link"><img class="slack-logo" src="manual/asset/slack.svg"/>Join us on Slack</a>');
