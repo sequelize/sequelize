@@ -108,7 +108,7 @@
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
     "test-docker-unit": "npm run test-unit",
     "test-docker-integration": "env-cmd $npm_package_options_env_cmd npm run test-integration",
-    "docs": "esdoc && cp docs/ROUTER esdoc/ROUTER",
+    "docs": "esdoc && cp docs/ROUTER esdoc/ROUTER && cp docs/favicon.ico esdoc/favicon.ico",
     "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",
     "test-unit": "mocha $npm_package_options_mocha \"test/unit/**/*.js\"",
     "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",
