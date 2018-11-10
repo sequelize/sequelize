@@ -1,0 +1,52 @@
+{
+  "title": " Sequelize | The node.js ORM for PostgreSQL, MySQL, SQLite and MSSQL",
+  "source": "./lib",
+  "destination": "./esdoc",
+  "access": ["public"],
+  "builtinExternal": false,
+  "unexportIdentifier": true,
+  "undocumentIdentifier": false,
+  "includeSource": false,
+  "coverage": false,
+  "lint": false,
+  "plugins": [
+    {"name": "./docs/plugins/esdoc-sequelize.js"}
+  ],
+  "styles": [
+    "./docs/css/style.css",
+    "./docs/css/theme.css"
+  ],
+  "scripts": [
+    "./docs/scripts/script.js"
+  ],
+  "manual": {
+    "globalIndex": true,
+    "index": "./docs/index.md",
+    "asset": "./docs/images",
+    "badge": false,
+    "installation": [
+      "./docs/getting-started.md",
+      "./docs/usage.md"
+    ],
+    "tutorial": [
+      "./docs/models-definition.md",
+      "./docs/models-usage.md",
+      "./docs/querying.md",
+      "./docs/instances.md",
+      "./docs/associations.md",
+      "./docs/transactions.md",
+      "./docs/scopes.md",
+      "./docs/hooks.md",
+      "./docs/raw-queries.md",
+      "./docs/migrations.md",
+      "./docs/upgrade-to-v4.md"
+    ],
+    "advanced": [
+      "./docs/legacy.md"
+    ],
+    "faq": [
+      "./docs/whos-using.md",
+      "./docs/imprint.md"
+    ]
+  }
+}

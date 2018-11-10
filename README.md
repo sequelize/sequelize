@@ -1,20 +1,39 @@
 # Sequelize
 
-[![Build Status](https://travis-ci.org/sequelize/sequelize.svg?branch=master)](https://travis-ci.org/sequelize/sequelize) [![Dependency Status](https://david-dm.org/sequelize/sequelize.svg)](https://david-dm.org/sequelize/sequelize) [![Test Coverage](https://codeclimate.com/github/sequelize/sequelize/badges/coverage.svg)](https://codeclimate.com/github/sequelize/sequelize)
+[![npm version](https://img.shields.io/npm/v/sequelize.svg)](https://www.npmjs.com/package/sequelize)
+[![Build Status](https://travis-ci.org/sequelize/sequelize.svg?branch=master)](https://travis-ci.org/sequelize/sequelize)
+[![Windows Build status](https://ci.appveyor.com/api/projects/status/9l1ypgwsp5ij46m3/branch/master?svg=true)](https://ci.appveyor.com/project/sushantdhiman/sequelize/branch/master)
+[![codecov](https://codecov.io/gh/sequelize/sequelize/branch/master/graph/badge.svg)](https://codecov.io/gh/sequelize/sequelize)
 [![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
-[![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](http://flattr.com/thing/1259407/Sequelize)
+[![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com/)
+[![npm downloads](https://img.shields.io/npm/dm/sequelize.svg?maxAge=2592000)](https://www.npmjs.com/package/sequelize)
+![node](https://img.shields.io/node/v/sequelize.svg)
+[![License](https://img.shields.io/npm/l/sequelize.svg?maxAge=2592000?style=plastic)](https://github.com/sequelize/sequelize/blob/master/LICENSE)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+[![Greenkeeper badge](https://badges.greenkeeper.io/sequelize/sequelize.svg)](https://greenkeeper.io/)
 
-Sequelize is a promise-based Node.js/io.js ORM for Postgres, MySQL, MariaDB, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
+Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
 
-[Documentation](http://sequelize.readthedocs.org/en/latest/)
+## Table of Contents
+- [Installation](#installation)
+- [Features](#features)
+- [Responsible disclosure](#responsible-disclosure)
+- [Documentation](#documentation)
+- [Resources](#resources)
 
 ## Installation
 
-`npm install sequelize`
+```bash
+$ npm install --save sequelize
 
-Will install the latest version of sequelize (currently 2.0).
+# And one of the following:
+$ npm install --save pg pg-hstore
+$ npm install --save mysql2
+$ npm install --save sqlite3
+$ npm install --save tedious # MSSQL
+```
 
-[Upgrading to 2.0](https://github.com/sequelize/sequelize/wiki/Upgrading-to-2.0)
+Sequelize follows [SEMVER](http://semver.org). Supports Node v4 and above to use ES6 features.
 
 ## Features
 
@@ -29,14 +48,30 @@ Will install the latest version of sequelize (currently 2.0).
 - Migrations
 - CLI ([sequelize-cli](https://github.com/sequelize/cli))
 
+## Responsible disclosure
+If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md)
+
+## Documentation
+- [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
+- [v4 Documentation](http://docs.sequelizejs.com)
+- [v3 Documentation](https://sequelize.readthedocs.io/en/v3/)
+- [v3 to v4 Upgrade Guide](http://docs.sequelizejs.com/manual/tutorial/upgrade-to-v4.html)
+
 ## Resources
-- [Changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md)
-- [Getting Started](http://docs.sequelizejs.com/en/latest/docs/getting-started/)
-- [Documentation](http://docs.sequelizejs.com/en/latest/)
-- [API Reference](http://docs.sequelizejs.com/en/latest/)
-- [Collaboration and pull requests](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
-- [Roadmap](https://github.com/sequelize/sequelize/issues/2869)
-- [Twitter](https://twitter.com/SequelizeJS): @SequelizeJS
-- [IRC](http://webchat.freenode.net?channels=sequelizejs): sequelizejs on Freenode
+- [Changelog](https://github.com/sequelize/sequelize/releases)
+- [Slack](http://sequelize-slack.herokuapp.com/)
 - [Google Groups](https://groups.google.com/forum/#!forum/sequelize)
+
+### Tools
 - [Add-ons & Plugins](https://github.com/sequelize/sequelize/wiki/Add-ons-&-Plugins)
+- [Sequelize & TypeScript](https://github.com/RobinBuschmann/sequelize-typescript)
+
+### Learning
+- [Getting Started](http://docs.sequelizejs.com/manual/installation/getting-started)
+- [Express Example](https://github.com/sequelize/express-example)
+
+
+### Translations
+- [English v4](http://docs.sequelizejs.com) (OFFICIAL)
+- [中文文档 v4](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)
+

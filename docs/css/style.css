@@ -1,0 +1,119 @@
+@import url(https://fonts.googleapis.com/css?family=Titillium+Web);
+
+.algolia-autocomplete .algolia-docsearch-suggestion--category-header,
+.algolia-autocomplete .algolia-docsearch-suggestion--title,
+.algolia-autocomplete .algolia-docsearch-suggestion--subcategory-column,
+#docs-search-input {
+  font-size: 16px !important;
+  line-height: normal;
+}
+
+.algolia-autocomplete .algolia-docsearch-suggestion--wrapper {
+  padding: 0 !important;
+}
+
+.docs-search-container {
+  float: right;
+  margin-right: 30px;
+}
+
+#docs-search-input {
+  border: none;
+  background: transparent;
+  padding: 10px;
+}
+
+#docs-search-input, .docs-search-container {
+  height: 40px;
+  width: 300px;
+}
+
+/* ESDoc search */
+.search-box {
+  display: none;
+}
+
+div.logo img {
+  width: 200px;
+  height: 200px;
+}
+
+div.sequelize {
+  color: #399af3;
+  font-size: 60px;
+  font-family: 'Titillium Web', sans-serif;
+}
+
+.content {
+  max-width: 1200px;
+}
+
+.navigation {
+  overflow-x: hidden;
+}
+
+.manual-root .content img {
+  box-shadow: none !important;
+  max-width: 300px;
+}
+
+.manual-toc a {
+  width: 240px;
+  white-space: pre-wrap;
+}
+
+blockquote {
+  background: #fafafa;
+  border-left: 10px solid #ddd;
+  margin: 1.5em 10px;
+  padding: 0.5em 10px;
+}
+
+blockquote p {
+  margin-bottom: 0;
+}
+
+h3#static-variable-DataTypes ~ div[data-ice="properties"] table.params tr td:nth-child(3) {
+  display: none;
+}
+
+h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(2),
+h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(3),
+h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(4) {
+  display: none;
+}
+
+.manual-badge,
+.manual-cards {
+  display: none !important;
+}
+
+a[href="source.html"],
+a[href^="file/lib/"] {
+  display: none;
+}
+
+.manual-color:after  {
+  content: '' !important;
+}
+
+.slack-logo {
+  height: 20px;
+  position: relative;
+  top: 3px;
+  padding: 0 5px;
+}
+
+.header-logo {
+  height: 25px;
+  position: relative;
+  top: 6px;
+}
+
+.center {
+  text-align: center;
+}
+
+pre {
+  white-space: pre-wrap;
+}

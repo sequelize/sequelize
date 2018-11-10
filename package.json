@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
-  "description": "Multi dialect ORM for Node.JS/io.js",
-  "version": "2.1.3",
+  "description": "Multi dialect ORM for Node.JS",
+  "version": "0.0.0-development",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -22,6 +22,10 @@
     {
       "name": "Mick Hansen",
       "email": "mick.kasper.hansen@gmail.com"
+    },
+    {
+      "name": "Sushant Dhiman",
+      "email": "sushantdhiman@outlook.com"
     }
   ],
   "repository": {
@@ -32,41 +36,56 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "dependencies": {
-    "bluebird": "~2.9.24",
-    "dottie": "^0.3.1",
-    "generic-pool": "2.2.0",
-    "inflection": "^1.6.0",
-    "lodash": "^3.5.0",
-    "moment": "^2.9.0",
-    "moment-timezone": "^0.3.1",
-    "node-uuid": "~1.4.1",
-    "toposort-class": "~0.3.0",
-    "validator": "^3.34.0",
-    "shimmer": "1.0.0"
+    "bluebird": "^3.5.0",
+    "cls-bluebird": "^2.1.0",
+    "debug": "^3.1.0",
+    "depd": "^1.1.0",
+    "dottie": "^2.0.0",
+    "generic-pool": "^3.4.0",
+    "inflection": "1.12.0",
+    "lodash": "^4.17.1",
+    "moment": "^2.20.0",
+    "moment-timezone": "^0.5.14",
+    "retry-as-promised": "^2.3.2",
+    "semver": "^5.5.0",
+    "terraformer-wkt-parser": "^1.1.2",
+    "toposort-class": "^1.0.1",
+    "uuid": "^3.2.1",
+    "validator": "^10.4.0",
+    "wkx": "^0.4.1"
   },
   "devDependencies": {
-    "chai": "^2.1.2",
-    "chai-as-promised": "^4.3.0",
-    "chai-datetime": "~1.3.0",
-    "chai-spies": "~0.5.1",
-    "coffee-script": "~1.9.1",
-    "commander": "^2.6.0",
-    "continuation-local-storage": "^3.1.4",
-    "dox": "0.7.1",
-    "git": "^0.1.5",
-    "istanbul": "~0.3.0",
-    "jshint": ">=2.4.2",
-    "lcov-result-merger": "~1.0.0",
-    "mocha": "^2.2.1",
-    "mysql": "~2.6.2",
-    "pg": "^4.2.0",
-    "pg-hstore": "^2.3.1",
-    "pg-native": "^1.8.0",
-    "sinon": "^1.14.1",
-    "sinon-chai": "^2.7.0",
-    "sqlite3": "^3.0.6",
-    "tedious": "^1.7.0",
-    "watchr": "~2.4.11"
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-datetime": "^1.5.0",
+    "chai-spies": "^1.0.0",
+    "cheerio": "^1.0.0-rc.2",
+    "commitizen": "^2.9.6",
+    "continuation-local-storage": "^3.2.0",
+    "cross-env": "^5.0.5",
+    "cz-conventional-changelog": "^2.0.0",
+    "env-cmd": "^7.0.0",
+    "esdoc": "^0.5.2",
+    "eslint": "^4.16.0",
+    "eslint-plugin-mocha": "^4.11.0",
+    "hints": "^1.1.0",
+    "husky": "^0.14.2",
+    "istanbul": "^0.4.5",
+    "lcov-result-merger": "^2.0.0",
+    "mocha": "^5.0.4",
+    "mysql2": "1.5.3",
+    "pg": "^7.x",
+    "pg-hstore": "^2.3.2",
+    "pg-native": "^2.x",
+    "pg-types": "^1.x",
+    "rimraf": "^2.5.4",
+    "semantic-release": "^15.0.0",
+    "sinon": "^4.3.0",
+    "sinon-chai": "^2.14.0",
+    "sqlite3": "^3.x",
+    "tedious": "1.14.0",
+    "uuid-validate": "^0.0.2",
+    "validate-commit-msg": "^2.12.2"
   },
   "keywords": [
     "mysql",
@@ -79,14 +98,68 @@
     "object relational mapper"
   ],
   "main": "index",
+  "options": {
+    "env_cmd": "./test/config/.docker.env",
+    "mocha": "--globals setImmediate,clearImmediate --ui tdd --exit --check-leaks --colors -t 30000 --reporter spec"
+  },
   "scripts": {
-    "test": "make all",
-    "test-docker": "sudo docker-compose run sequelize /bin/sh -c \"make all\"",
-    "build-docker": "sudo docker-compose build",
-    "docs": "node docs/docs-generator.js"
+    "lint": "eslint lib test --quiet",
+    "test": "npm run teaser && npm run test-unit && npm run test-integration",
+    "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
+    "test-docker-unit": "npm run test-unit",
+    "test-docker-integration": "env-cmd $npm_package_options_env_cmd npm run test-integration",
+    "docs": "esdoc && cp docs/ROUTER esdoc/ROUTER && cp docs/favicon.ico esdoc/favicon.ico",
+    "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",
+    "test-unit": "mocha $npm_package_options_mocha \"test/unit/**/*.js\"",
+    "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",
+    "test-unit-postgres": "cross-env DIALECT=postgres npm run test-unit",
+    "test-unit-postgres-native": "cross-env DIALECT=postgres-native npm run test-unit",
+    "test-unit-sqlite": "cross-env DIALECT=sqlite npm run test-unit",
+    "test-unit-mssql": "cross-env DIALECT=mssql npm run test-unit",
+    "test-unit-all": "npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite",
+    "test-integration": "mocha $npm_package_options_mocha \"test/integration/**/*.test.js\"",
+    "test-integration-mysql": "cross-env DIALECT=mysql npm run test-integration",
+    "test-integration-postgres": "cross-env DIALECT=postgres npm run test-integration",
+    "test-integration-postgres-native": "cross-env DIALECT=postgres-native npm run test-integration",
+    "test-integration-sqlite": "cross-env DIALECT=sqlite npm run test-integration",
+    "test-integration-mssql": "cross-env DIALECT=mssql npm run test-integration",
+    "test-integration-all": "npm run test-integration-mysql && npm run test-integration-postgres && npm run test-integration-postgres-native && npm run test-integration-mssql && npm run test-integration-sqlite",
+    "test-mysql": "cross-env DIALECT=mysql npm test",
+    "test-sqlite": "cross-env DIALECT=sqlite npm test",
+    "test-postgres": "cross-env DIALECT=postgres npm test",
+    "test-pgsql": "npm run test-postgres",
+    "test-postgres-native": "cross-env DIALECT=postgres-native npm test",
+    "test-postgresn": "npm run test-postgres-native",
+    "test-mssql": "cross-env DIALECT=mssql npm test",
+    "test-all": "npm run test-mysql && npm run test-sqlite && npm run test-postgres && npm run test-postgres-native && npm run test-mssql",
+    "cover": "rimraf coverage && npm run teaser && npm run cover-integration && npm run cover-unit && npm run merge-coverage",
+    "cover-integration": "cross-env COVERAGE=true ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -t 30000 --exit --ui tdd \"test/integration/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
+    "cover-unit": "cross-env COVERAGE=true ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -t 30000 --exit --ui tdd \"test/unit/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",
+    "merge-coverage": "lcov-result-merger \"coverage/*.info\" \"coverage/lcov.info\"",
+    "sscce": "env-cmd $npm_package_options_env_cmd node sscce.js",
+    "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
+    "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
+    "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
+    "commitmsg": "validate-commit-msg",
+    "semantic-release": "semantic-release"
   },
   "engines": {
-    "node": ">=0.6.21"
+    "node": ">=4.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "release": {
+    "branch": "v4",
+    "verifyConditions": [
+      "@semantic-release/npm",
+      "@semantic-release/github"
+    ]
+  },
+  "publishConfig": {
+    "tag": "latest"
+  }
 }

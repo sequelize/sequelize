@@ -1,12 +1,11 @@
 'use strict';
 
-/* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/support')
-  , DataTypes = require(__dirname + '/../../lib/data-types');
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/support'),
+  DataTypes = require(__dirname + '/../../lib/data-types');
 
-describe(Support.getTestDialectTeaser('Schema'), function() {
+describe(Support.getTestDialectTeaser('Schema'), () => {
   beforeEach(function() {
     return this.sequelize.createSchema('testschema');
   });
@@ -22,26 +21,26 @@ describe(Support.getTestDialectTeaser('Schema'), function() {
       schema: 'testschema'
     });
 
-   return this.User.sync({ force: true });
+    return this.User.sync({ force: true });
   });
 
   it('supports increment', function() {
-    return this.User.create({ aNumber: 1 }).then(function(user) {
+    return this.User.create({ aNumber: 1 }).then(user => {
       return user.increment('aNumber', { by: 3 });
-    }).then(function(result) {
+    }).then(result => {
       return result.reload();
-    }).then(function(user) {
+    }).then(user => {
       expect(user).to.be.ok;
       expect(user.aNumber).to.be.equal(4);
     });
   });
 
   it('supports decrement', function() {
-    return this.User.create({ aNumber: 10 }).then(function(user) {
+    return this.User.create({ aNumber: 10 }).then(user => {
       return user.decrement('aNumber', { by: 3 });
-    }).then(function(result) {
+    }).then(result => {
       return result.reload();
-    }).then(function(user) {
+    }).then(user => {
       expect(user).to.be.ok;
       expect(user.aNumber).to.be.equal(7);
     });

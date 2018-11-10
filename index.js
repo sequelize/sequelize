@@ -1,5 +1,8 @@
+'use strict';
+
 /**
-  The entry point.
-  @module Sequelize
-**/
-module.exports = require("./lib/sequelize");
+  * The entry point.
+  *
+  * @module Sequelize
+  */
+module.exports = require('./lib/sequelize');

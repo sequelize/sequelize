@@ -1,4 +1,4 @@
-_Please note!_ The github issue tracker should only be used for feature requests and bugs with a clear description of the issue and the expected behaviour (see below). All questions belong on [StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js) or [Google groups](https://groups.google.com/forum/#!forum/sequelize).
+_Please note!_ The github issue tracker should only be used for feature requests and bugs with a clear description of the issue and the expected behaviour (see below). All questions belong on [Slack](https://sequelize.slack.com), [StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js) or [Google groups](https://groups.google.com/forum/#!forum/sequelize).
 
 # Issues
 Issues are always very welcome - after all, they are a big part of making sequelize better. However, there are a couple of things you can do to make the lives of the developers _much, much_ easier:
@@ -21,35 +21,38 @@ We're glad to get pull request if any functionality is missing or something is b
 
 * Explain the issue that your PR is solving - or link to an existing issue
 * Make sure that all existing tests pass
+* Make sure you followed [coding guidelines](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md#coding-guidelines)
 * Add some tests for your new functionality or a test exhibiting the bug you are solving. Ideally all new tests should not pass _without_ your changes.
-  - Use [promise style](https://github.com/petkaantonov/bluebird#what-are-promises-and-why-should-i-use-them) in all new tests. Specifically this means:
+  - Use [promise style](http://bluebirdjs.com/docs/why-promises.html) in all new tests. Specifically this means:
     - don't use `EventEmitter`, `QueryChainer` or the `success`, `done` and `error` events
-    - don't use nested callbacks (use [Promise.bind](https://github.com/petkaantonov/bluebird/blob/master/API.md#binddynamic-thisarg---promise) to maintain context in promise chains)
+    - don't use nested callbacks (use [Promise.bind](http://bluebirdjs.com/docs/api/promise.bind.html) to maintain context in promise chains)
     - don't use a done callback in your test, just return the promise chain.
   - Small bugfixes and direct backports to the 1.7 branch are accepted without tests.
 * If you are adding to / changing the public API, remember to add API docs, in the form of [JSDoc style](http://usejsdoc.org/about-getting-started.html) comments. See [section 4a](#4a-check-the-documentation  ) for the specifics.
-* Add an entry to [the changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md), with a link to the issue you are solving
+* Add an entry to the [changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md), with a link to the issue you are solving
 
 Still interested? Coolio! Here is how to get started:
 
 ### 1. Prepare your environment
-Here comes a little surprise: You need [Node.JS](http://nodejs.org). In order to be a productive developer, I would recommend the latest v0.10.
+Here comes a little surprise: You need [Node.JS](http://nodejs.org).
 
 ### 2. Install the dependencies
 
 Just "cd" into sequelize directory and run `npm install`, see an example below:
 
-```console
+```sh
 $ cd path/to/sequelize
 $ npm install
 ```
 
-### 3. Database... Come to me! ###
+### 3. Database
+
+#### 3.a Local instances
 
 For MySQL and PostgreSQL you'll need to create a DB called `sequelize_test`.
 For MySQL this would look like this:
 
-```console
+```sh
 $ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
 ```
 
@@ -57,123 +60,71 @@ $ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
 
 For Postgres, creating the database and (optionally) adding the test user this would look like:
 
-```console
+```sh
 $ psql
+
 # create database sequelize_test;
 # create user postgres with superuser;
 ```
 
-**AND ONE LAST THING:** Once `npm install` worked for you (see below), you'll
-get SQLite tests for free :)
+#### 3.b Docker
 
-#### 3a. Docker
+Makes sure `docker` and `docker-compose` are installed.
 
-Makes sure Docker and docker-compose are installed.
+If running on macOS, install [Docker for Mac](https://docs.docker.com/docker-for-mac/).
 
-Then simply run:
-
-```sh
-npm run test-docker
-```
-
-And once in a while you might want to run:
+Now launch the docker mysql and postgres servers with this command (you can add `-d` to run them in daemon mode):
 
 ```sh
-npm run build-docker
+$ docker-compose up postgres-95 mysql-57
 ```
 
-To rebuild the image (in case of changed dependencies or similar).
-
-If sequelize is unable to connect to mysql you might want to try running `sudo docker-compose up` in a second terminal window.
-
-#### 3b. Docker and OSX:
-
-Docker does not run on OSX natively so you will have to use an VM layer like `boot2docker`. See [OSX Docker Documentation](http://docs.docker.com/installation/mac/) for install or you can also use [Homebrew](http://brew.sh) to install `boot2docker` after installing [VirtualBox](https://www.virtualbox.org)
-
-After installing and intializing docker you can pull the docker container:
-```console
-$ boot2docker up
-Waiting for VM and Docker daemon to start...
-......
-Started.
-
-To connect the Docker client to the Docker daemon, please set:
-    export DOCKER_HOST=tcp://192.168.59.103:2375
-
-$ export DOCKER_HOST=tcp://192.168.59.103:2375
-$ docker pull mhansen/sequelize-contribution
-```
-
-And then setup and run the tests:
-```console
-$ CONTAINER=$(docker run -d -i -t mhansen/sequelize-contribution)
-$ CONTAINER_IP=$(docker inspect --format='{{.NetworkSettings.IPAddress}}' $CONTAINER)
-$ SEQ_HOST=$CONTAINER_IP SEQ_USER=sequelize_test make all
-```
-
-These are the same commands as above, although `sudo` is not required.
-
-When you are done with your testing:
-```console
-$ boot2docker down
-```
-
-### 4. Run the tests ###
+### 4. Running tests
 
 All tests are located in the `test` folder (which contains the
 lovely [Mocha](http://visionmedia.github.io/mocha/) tests).
 
-```console
-$ make all || mysql || sqlite || pgsql || postgres || mariadb || postgres-native
+```sh
+$ npm run test-all || test-mysql || test-sqlite || test-mssql || test-postgres || test-postgres-native
 
 $ # alternatively you can pass database credentials with $variables when testing
-$ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password make test
+$ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password npm test
 ```
 
-#### 4a. Check the documentation
-This step only applies if you have actually changed something in the documentation. Please read `CONTRIBUTING.DOCS.md` first.
-To generate documentation for the `sequelize.js` file, run (in the sequelize dir)
+For docker users you can use these commands instead
 
-```console
-$ npm run docs
+```sh
+$ DIALECT=mysql npm run test-docker # Or DIALECT=postgres for Postgres SQL
+
+# Only integration tests
+$ DIALECT=mysql npm run test-docker-integration
 ```
 
-The generated documentation will be placed in `docs/tmp.md`.
+### 5. Commit
 
-### 5. That's all ###
+Sequelize follows the [AngularJS Commit Message Conventions](https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit#heading=h.em2hiij8p46d).
+Example:
 
-Just commit and send your pull request. Happy hacking and thank you for contributing.
+    feat(pencil): add 'graphiteWidth' option
 
-### 6. Some words about coding style ###
-Have a look at our [.jshintrc](https://github.com/sequelize/sequelize/blob/master/.jshintrc) file for the specifics. As part of the test process, all files will be linted, and your PR will _not_ be accepted if it does not pass linting.
+Commit messages are used to automatically generate a changelog, so make sure to follow the convention.
+If you are unsure, you can let [commitizen](https://github.com/commitizen/cz-cli) ask you questions and commit for you (just run `node_modules/.bin/git-cz`).
+When you commit, your commit message will be validated automatically with [validate-commit-msg](https://github.com/kentcdodds/validate-commit-msg).
 
-#### 6.1. Spaces ####
+Then push and send your pull request. Happy hacking and thank you for contributing.
 
-Use spaces when defining functions.
+# Coding guidelines
 
-```js
-function(arg1, arg2, arg3) {
-  return 1;
-}
-```
+Have a look at our [.eslintrc.json](https://github.com/sequelize/sequelize/blob/master/.eslintrc.json) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
 
-Use spaces for if statements.
+# Publishing a release (For Maintainers)
 
-```js
-if (condition) {
-  // do something
-} else {
-  // something else
-}
-```
+**Note:** _You really don't need this as Sequelize use semantic-release, Travis will automatically release new version_
 
-#### 6.2. Variable declarations ####
-
-```js
-var num  = 1
-  , user = new User()
-  , date = new Date();
-```
-
-#### 6.3. Semicolons ####
-Yes
+1. Ensure that latest build on master is green
+2. Ensure your local code is up to date (`git pull origin master`)
+3. `npm version patch|minor|major` (see [Semantic Versioning](http://semver.org))
+4. Update changelog to match version number, commit changelog
+5. `git push --tags origin master`
+6. `npm publish .`
+7. Copy changelog for version to release notes for version on github
