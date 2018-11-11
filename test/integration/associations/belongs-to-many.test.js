@@ -2423,4 +2423,86 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(PersonChildren.rawAttributes[Children.otherKey].field).to.equal('child_id');
     });
   });
+
+  describe('Eager loading', () => {
+    beforeEach(function() {
+      this.Individual = this.sequelize.define('individual', {
+        name: Sequelize.STRING
+      });
+      this.Hat = this.sequelize.define('hat', {
+        name: Sequelize.STRING
+      });
+      this.Event = this.sequelize.define('event', {});
+      this.Individual.belongsToMany(this.Hat, {
+        through: this.Event,
+        as: {
+          singular: 'personwearinghat',
+          plural: 'personwearinghats'
+        }
+      });
+      this.Hat.belongsToMany(this.Individual, {
+        through: this.Event,
+        as: {
+          singular: 'hatwornby',
+          plural: 'hatwornbys'
+        }
+      });
+    });
+
+    it('should load with an alias', function() {
+      return this.sequelize.sync({force: true}).then(() => {
+        return Promise.join(
+          this.Individual.create({name: 'Foo Bar'}),
+          this.Hat.create({name: 'Baz'}));
+      }).then(([individual, hat]) => {
+        return individual.addPersonwearinghat(hat);
+      }).then(() => {
+        return this.Individual.findOne({
+          where: {name: 'Foo Bar'},
+          include: [{model: this.Hat, as: 'personwearinghats' }]
+        });
+      }).then(individual => {
+        expect(individual.name).to.equal('Foo Bar');
+        expect(individual.personwearinghats.length).to.equal(1);
+        expect(individual.personwearinghats[0].name).to.equal('Baz');
+      }).then(() => {
+        return this.Hat.findOne({
+          where: {name: 'Baz'},
+          include: [{model: this.Individual, as: 'hatwornbys'}]
+        });
+      }).then(hat => {
+        expect(hat.name).to.equal('Baz');
+        expect(hat.hatwornbys.length).to.equal(1);
+        expect(hat.hatwornbys[0].name).to.equal('Foo Bar');
+      });
+    });
+
+    it('should load all', function() {
+      return this.sequelize.sync({force: true}).then(() => {
+        return Promise.join(
+          this.Individual.create({name: 'Foo Bar'}),
+          this.Hat.create({name: 'Baz'}));
+      }).then(([individual, hat]) => {
+        return individual.addPersonwearinghat(hat);
+      }).then(() => {
+        return this.Individual.findOne({
+          where: {name: 'Foo Bar'},
+          include: [{all: true}]
+        });
+      }).then(individual => {
+        expect(individual.name).to.equal('Foo Bar');
+        expect(individual.personwearinghats.length).to.equal(1);
+        expect(individual.personwearinghats[0].name).to.equal('Baz');
+      }).then(() => {
+        return this.Hat.findOne({
+          where: {name: 'Baz'},
+          include: [{all: true}]
+        });
+      }).then(hat => {
+        expect(hat.name).to.equal('Baz');
+        expect(hat.hatwornbys.length).to.equal(1);
+        expect(hat.hatwornbys[0].name).to.equal('Foo Bar');
+      });
+    });
+  });
 });
