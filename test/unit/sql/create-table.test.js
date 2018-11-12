@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sqlite: 'CREATE TABLE IF NOT EXISTS `bar.projects` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `user_id` INTEGER REFERENCES `bar.users` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE);',
           postgres: 'CREATE TABLE IF NOT EXISTS "bar"."projects" ("id"   SERIAL , "user_id" INTEGER REFERENCES "bar"."users" ("id") ON DELETE NO ACTION ON UPDATE CASCADE, PRIMARY KEY ("id"));',
           mysql: 'CREATE TABLE IF NOT EXISTS `bar.projects` (`id` INTEGER NOT NULL auto_increment , `user_id` INTEGER, PRIMARY KEY (`id`), FOREIGN KEY (`user_id`) REFERENCES `bar.users` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE) ENGINE=InnoDB;',
-          mssql: 'IF OBJECT_ID(\'[bar].[projects]\', \'U\') IS NULL CREATE TABLE [bar].[projects] ([id] INTEGER NOT NULL IDENTITY(1,1) , [user_id] INTEGER NULL, PRIMARY KEY ([id]), FOREIGN KEY ([user_id]) REFERENCES [bar].[users] ([id]) ON DELETE NO ACTION);'
+          mssql: 'IF OBJECT_ID(\'[bar].[projects]\', \'U\') IS NULL CREATE TABLE [bar].[projects] ([id] INTEGER NOT NULL IDENTITY(1,1) , [user_id] INTEGER NULL, PRIMARY KEY ([id]), FOREIGN KEY ([user_id]) REFERENCES [bar].[users] ([id]) ON DELETE NO ACTION ON UPDATE CASCADE);'
         });
       });
     });
