@@ -256,10 +256,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     // there is no dialect.supports.UUID yet
     if (['postgres', 'sqlite'].includes(dialect)) {
       return testSuccess(Type, uuid.v4());
-    } else {
-      // No native uuid type
-      testFailure(Type);
     }
+    // No native uuid type
+    testFailure(Type);
   });
 
   it('calls parse and stringify for CIDR', () => {
@@ -267,9 +266,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     if (['postgres'].includes(dialect)) {
       return testSuccess(Type, '10.1.2.3/32');
-    } else {
-      testFailure(Type);
     }
+    testFailure(Type);
   });
 
   it('calls parse and stringify for INET', () => {
@@ -277,9 +275,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     if (['postgres'].includes(dialect)) {
       return testSuccess(Type, '127.0.0.1');
-    } else {
-      testFailure(Type);
     }
+    testFailure(Type);
   });
 
   it('calls parse and stringify for CITEXT', () => {
@@ -292,9 +289,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     if (dialect === 'postgres') {
       return testSuccess(Type, 'foobar');
-    } else {
-      testFailure(Type);
     }
+    testFailure(Type);
   });
 
   it('calls parse and stringify for MACADDR', () => {
@@ -302,9 +298,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     if (['postgres'].includes(dialect)) {
       return testSuccess(Type, '01:23:45:67:89:ab');
-    } else {
-      testFailure(Type);
     }
+    testFailure(Type);
+
   });
 
   it('calls parse and stringify for ENUM', () => {
@@ -312,9 +308,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     if (['postgres'].includes(dialect)) {
       return testSuccess(Type, 'hat');
-    } else {
-      testFailure(Type);
     }
+    testFailure(Type);
   });
 
   if (current.dialect.supports.GEOMETRY) {

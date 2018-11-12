@@ -21,6 +21,9 @@
   "engines": {
     "node": ">=6.0.0"
   },
+  "files": [
+    "lib"
+  ],
   "license": "MIT",
   "dependencies": {
     "bluebird": "^3.5.0",
