@@ -78,12 +78,11 @@ const Support = {
           return _sequelize.sync({ force: true }).return (_sequelize);
         }
       });
+    }
+    if (callback) {
+      callback(sequelize);
     } else {
-      if (callback) {
-        callback(sequelize);
-      } else {
-        return Sequelize.Promise.resolve(sequelize);
-      }
+      return Sequelize.Promise.resolve(sequelize);
     }
   },
 

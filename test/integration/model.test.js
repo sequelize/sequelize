@@ -2319,9 +2319,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return run.call(this);
           });
         });
-      } else {
-        return run.call(this);
       }
+      return run.call(this);
     });
 
     it('should be able to create and update records under any valid schematic', function() {

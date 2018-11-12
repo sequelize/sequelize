@@ -514,9 +514,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                     return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
                       previousInstance = instance;
                     });
-                  } else {
-                    previousInstance = b = instance;
                   }
+                  previousInstance = b = instance;
                 });
               });
             });
@@ -613,9 +612,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                     return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
                       previousInstance = instance;
                     });
-                  } else {
-                    previousInstance = b = instance;
                   }
+                  previousInstance = b = instance;
                 });
               });
             });

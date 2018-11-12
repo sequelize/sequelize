@@ -20,9 +20,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       if (dialect === 'sqlite') {
         // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
         return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file');
-      } else {
-        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith([Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]);
       }
+      return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith([Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]);
     });
 
     it('when we don\'t have the correct login information', () => {
@@ -37,9 +36,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       if (dialect === 'sqlite') {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         return expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
-      } else {
-        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
       }
+      return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
     });
 
     it('when we don\'t have a valid dialect.', () => {
@@ -57,14 +55,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         const createTableBar = 'CREATE TABLE bar (baz TEXT);';
 
         const testAccess = Sequelize.Promise.method(() => {
-          if (fs.access) {
-            return Sequelize.Promise.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
-          } else { // Node v0.10 and older don't have fs.access
-            return Sequelize.Promise.promisify(fs.open)(p, 'r+')
-              .then(fd => {
-                return Sequelize.Promise.promisify(fs.close)(fd);
-              });
-          }
+          return Sequelize.Promise.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
         });
 
         return Sequelize.Promise.promisify(fs.unlink)(p)

@@ -520,10 +520,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             if (dialect === 'mysql') {
               expect(constraints).to.include('PRIMARY');
               return this.queryInterface.removeConstraint('users', 'PRIMARY');
-            } else {
-              expect(constraints).to.include('users_username_pk');
-              return this.queryInterface.removeConstraint('users', 'users_username_pk');
             }
+            expect(constraints).to.include('users_username_pk');
+            return this.queryInterface.removeConstraint('users', 'users_username_pk');
           })
           .then(() => this.queryInterface.showConstraint('users'))
           .then(constraints => {

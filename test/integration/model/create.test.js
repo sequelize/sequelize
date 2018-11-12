@@ -893,7 +893,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
         });
-      } else if (dialect === 'sqlite') {
+      }
+      if (dialect === 'sqlite') {
         // The definition here is a bit hacky. sqlite expects () around the expression for default values, so we call a function without a name
         // to enclose the date function in (). http://www.sqlite.org/syntaxdiagrams.html#column-constraint
         userWithDefaults = this.sequelize.define('userWithDefaults', {
@@ -918,10 +919,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
         });
-      } else {
-        // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
-        return void 0;
       }
+      // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
+      return void 0;
     });
 
     if (dialect === 'postgres') {
@@ -983,7 +983,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     if (dialect === 'postgres' || dialect === 'sqlite') {
-      it("doesn't allow case-insensitive duplicated records using CITEXT", function () {
+      it("doesn't allow case-insensitive duplicated records using CITEXT", function() {
         const User = this.sequelize.define('UserWithUniqueCITEXT', {
           username: {type: Sequelize.CITEXT, unique: true}
         });
@@ -999,7 +999,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     if (current.dialect.supports.index.functionBased) {
-      it("doesn't allow duplicated records with unique function based indexes", function () {
+      it("doesn't allow duplicated records with unique function based indexes", function() {
         const User = this.sequelize.define('UserWithUniqueUsernameFunctionIndex', {
           username: Sequelize.STRING,
           email: {type: Sequelize.STRING, unique: true}

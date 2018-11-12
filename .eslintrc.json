@@ -25,17 +25,17 @@
     "keyword-spacing": "error",
 
     "no-console": "off",
-    "no-extra-parens": "warn",
+    "no-extra-parens": "error",
     "valid-jsdoc": "off",
     "new-cap": [
-      "warn",
+      "error",
       {
         "properties": false
       }
     ],
-    "no-extra-boolean-cast": "warn",
+    "no-extra-boolean-cast": "error",
     "strict": [
-      "warn",
+      "error",
       "global"
     ],
     "no-var": "error",
@@ -45,7 +45,7 @@
       "always"
     ],
     "space-before-function-paren": [
-      "warn",
+      "error",
       "never"
     ],
     "space-before-blocks": "error",
@@ -55,7 +55,7 @@
       "as-needed"
     ],
     "comma-style": [
-      "warn",
+      "error",
       "last"
     ],
     "no-bitwise": "off",
@@ -84,7 +84,7 @@
     "no-irregular-whitespace": "error",
     "max-depth": [
       "error",
-      8
+      6
     ],
     "quotes": [
       "error",
@@ -96,11 +96,13 @@
     "linebreak-style": "error",
     "no-loop-func": "warn",
     "object-shorthand": "error",
-    "one-var-declaration-per-line": "warn",
-    "comma-dangle": "warn",
+    "one-var-declaration-per-line": "error",
+    "comma-dangle": "error",
     "no-shadow": "warn",
     "camelcase": "warn",
-    "prefer-template": "error"
+    "prefer-template": "error",
+    "no-else-return": ["error", { "allowElseIf": false }],
+    "no-lonely-if": "error"
   },
   "parserOptions": {
     "ecmaVersion": 6,

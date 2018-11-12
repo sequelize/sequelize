@@ -220,9 +220,8 @@ module.exports = function(Sequelize) {
       if (logger) {
         if ((sequelize.options.benchmark || options.benchmark) && logger === console.log) {
           return logger.call(this, `${arguments[0]} Elapsed time: ${arguments[1]}ms`);
-        } else {
-          return logger.apply(this, arguments);
         }
+        return logger.apply(this, arguments);
       }
     };
 
