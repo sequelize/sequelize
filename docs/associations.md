@@ -1018,7 +1018,7 @@ Product.create({
   ]
 }, {
   include: [{
-    model: Categories,
+    association: Categories,
     as: 'categories'
   }]
 })
