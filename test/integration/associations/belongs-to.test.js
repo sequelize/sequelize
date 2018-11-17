@@ -975,4 +975,65 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         .throw ('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change either foreignKey or as in your association definition');
     });
   });
+
+  describe('Eager loading', () => {
+    beforeEach(function() {
+      this.Individual = this.sequelize.define('individual', {
+        name: Sequelize.STRING
+      });
+      this.Hat = this.sequelize.define('hat', {
+        name: Sequelize.STRING
+      });
+      this.Individual.belongsTo(this.Hat, {
+        as: 'personwearinghat'
+      });
+    });
+
+    it('should load with an alias', function() {
+      return this.sequelize.sync({force: true}).then(() => {
+        return Promise.join(
+          this.Individual.create({name: 'Foo Bar'}),
+          this.Hat.create({name: 'Baz'}));
+      }).then(([individual, hat]) => {
+        return individual.setPersonwearinghat(hat);
+      }).then(() => {
+        return this.Individual.findOne({
+          where: {name: 'Foo Bar'},
+          include: [{model: this.Hat, as: 'personwearinghat'}]
+        });
+      }).then(individual => {
+        expect(individual.name).to.equal('Foo Bar');
+        expect(individual.personwearinghat.name).to.equal('Baz');
+      }).then(() => {
+        return this.Individual.findOne({
+          where: {name: 'Foo Bar'},
+          include: [{
+            model: this.Hat,
+            as: {singular: 'personwearinghat'}
+          }]
+        });
+      }).then(individual => {
+        expect(individual.name).to.equal('Foo Bar');
+        expect(individual.personwearinghat.name).to.equal('Baz');
+      });
+    });
+
+    it('should load all', function() {
+      return this.sequelize.sync({force: true}).then(() => {
+        return Promise.join(
+          this.Individual.create({name: 'Foo Bar'}),
+          this.Hat.create({name: 'Baz'}));
+      }).then(([individual, hat]) => {
+        return individual.setPersonwearinghat(hat);
+      }).then(() => {
+        return this.Individual.findOne({
+          where: {name: 'Foo Bar'},
+          include: [{all: true}]
+        });
+      }).then(individual => {
+        expect(individual.name).to.equal('Foo Bar');
+        expect(individual.personwearinghat.name).to.equal('Baz');
+      });
+    });
+  });
 });

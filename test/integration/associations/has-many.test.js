@@ -1601,4 +1601,59 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
     });
   });
+
+  describe('Eager loading', () => {
+    beforeEach(function() {
+      this.Individual = this.sequelize.define('individual', {
+        name: Sequelize.STRING
+      });
+      this.Hat = this.sequelize.define('hat', {
+        name: Sequelize.STRING
+      });
+      this.Individual.hasMany(this.Hat, {
+        as: {
+          singular: 'personwearinghat',
+          plural: 'personwearinghats'
+        }
+      });
+    });
+
+    it('should load with an alias', function() {
+      return this.sequelize.sync({force: true}).then(() => {
+        return Promise.join(
+          this.Individual.create({name: 'Foo Bar'}),
+          this.Hat.create({name: 'Baz'}));
+      }).then(([individual, hat]) => {
+        return individual.addPersonwearinghat(hat);
+      }).then(() => {
+        return this.Individual.findOne({
+          where: {name: 'Foo Bar'},
+          include: [{model: this.Hat, as: 'personwearinghats'}]
+        });
+      }).then(individual => {
+        expect(individual.name).to.equal('Foo Bar');
+        expect(individual.personwearinghats.length).to.equal(1);
+        expect(individual.personwearinghats[0].name).to.equal('Baz');
+      });
+    });
+
+    it('should load all', function() {
+      return this.sequelize.sync({force: true}).then(() => {
+        return Promise.join(
+          this.Individual.create({name: 'Foo Bar'}),
+          this.Hat.create({name: 'Baz'}));
+      }).then(([individual, hat]) => {
+        return individual.addPersonwearinghat(hat);
+      }).then(() => {
+        return this.Individual.findOne({
+          where: {name: 'Foo Bar'},
+          include: [{all: true}]
+        });
+      }).then(individual => {
+        expect(individual.name).to.equal('Foo Bar');
+        expect(individual.personwearinghats.length).to.equal(1);
+        expect(individual.personwearinghats[0].name).to.equal('Baz');
+      });
+    });
+  });
 });
