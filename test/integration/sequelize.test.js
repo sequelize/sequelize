@@ -965,25 +965,35 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     if (dialect !== 'sqlite') {
+      it('fails for incorrect connection even when no models are defined', function() {
+        const sequelize = new Sequelize('cyber_bird', 'user', 'pass', {
+          dialect: this.sequelize.options.dialect
+        });
+
+        return expect(sequelize.sync({force: true})).to.be.rejected;
+      });
+
       it('fails with incorrect database credentials (1)', function() {
         this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
 
         const User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT });
 
-        return User2.sync().catch(err => {
-          if (dialect === 'postgres' || dialect === 'postgres-native') {
-            assert([
-              'fe_sendauth: no password supplied',
-              'role "bar" does not exist',
-              'FATAL:  role "bar" does not exist',
-              'password authentication failed for user "bar"'
-            ].includes(err.message.trim()));
-          } else if (dialect === 'mssql') {
-            expect(err.message).to.equal('Login failed for user \'bar\'.');
-          } else {
-            expect(err.message.toString()).to.match(/.*Access\ denied.*/);
-          }
-        });
+        return User2.sync()
+          .then(() => { expect.fail(); })
+          .catch(err => {
+            if (dialect === 'postgres' || dialect === 'postgres-native') {
+              assert([
+                'fe_sendauth: no password supplied',
+                'role "bar" does not exist',
+                'FATAL:  role "bar" does not exist',
+                'password authentication failed for user "bar"'
+              ].includes(err.message.trim()));
+            } else if (dialect === 'mssql') {
+              expect(err.message).to.equal('Login failed for user \'bar\'.');
+            } else {
+              expect(err.message.toString()).to.match(/.*Access\ denied.*/);
+            }
+          });
       });
 
       it('fails with incorrect database credentials (2)', function() {
@@ -994,9 +1004,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         sequelize.define('Project', {title: Sequelize.STRING});
         sequelize.define('Task', {title: Sequelize.STRING});
 
-        return sequelize.sync({force: true}).catch(err => {
-          expect(err).to.be.ok;
-        });
+        return expect(sequelize.sync({force: true})).to.be.rejected;
       });
 
       it('fails with incorrect database credentials (3)', function() {
@@ -1008,9 +1016,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         sequelize.define('Project', {title: Sequelize.STRING});
         sequelize.define('Task', {title: Sequelize.STRING});
 
-        return sequelize.sync({force: true}).catch(err => {
-          expect(err).to.be.ok;
-        });
+        return expect(sequelize.sync({force: true})).to.be.rejected;
       });
 
       it('fails with incorrect database credentials (4)', function() {
@@ -1023,19 +1029,22 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         sequelize.define('Project', {title: Sequelize.STRING});
         sequelize.define('Task', {title: Sequelize.STRING});
 
-        return sequelize.sync({force: true}).catch(err => {
-          expect(err).to.be.ok;
-        });
+        return expect(sequelize.sync({force: true})).to.be.rejected;
       });
 
       it('returns an error correctly if unable to sync a foreign key referenced model', function() {
         this.sequelize.define('Application', {
-          authorID: { type: Sequelize.BIGINT, allowNull: false, references: { model: 'User', key: 'id' } }
+          authorID: {
+            type: Sequelize.BIGINT,
+            allowNull: false,
+            references: {
+              model: 'User',
+              key: 'id'
+            }
+          }
         });
 
-        return this.sequelize.sync().catch(error => {
-          assert.ok(error);
-        });
+        return expect(this.sequelize.sync()).to.be.rejected;
       });
 
       it('handles this dependant foreign key constraints', function() {
@@ -1065,28 +1074,28 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         return this.sequelize.sync();
       });
-
-      it('return the sequelize instance after syncing', function() {
-        return this.sequelize.sync().then(sequelize => {
-          expect(sequelize).to.deep.equal(this.sequelize);
-        });
-      });
-
-      it('return the single dao after syncing', function() {
-        const block = this.sequelize.define('block', {
-          id: { type: DataTypes.INTEGER, primaryKey: true },
-          name: DataTypes.STRING
-        }, {
-          tableName: 'block',
-          timestamps: false,
-          paranoid: false
-        });
-
-        return block.sync().then(result => {
-          expect(result).to.deep.equal(block);
-        });
-      });
     }
+
+    it('return the sequelize instance after syncing', function() {
+      return this.sequelize.sync().then(sequelize => {
+        expect(sequelize).to.deep.equal(this.sequelize);
+      });
+    });
+
+    it('return the single dao after syncing', function() {
+      const block = this.sequelize.define('block', {
+        id: { type: DataTypes.INTEGER, primaryKey: true },
+        name: DataTypes.STRING
+      }, {
+        tableName: 'block',
+        timestamps: false,
+        paranoid: false
+      });
+
+      return block.sync().then(result => {
+        expect(result).to.deep.equal(block);
+      });
+    });
 
     describe("doesn't emit logging when explicitly saying not to", () => {
       afterEach(function() {
