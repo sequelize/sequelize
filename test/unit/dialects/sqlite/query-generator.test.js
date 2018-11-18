@@ -637,8 +637,8 @@ if (dialect === 'sqlite') {
           const title = test.title || `SQLite correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
           it(title, function() {
             if (test.needsSequelize) {
-              if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
-              if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
+              if (typeof test.arguments[1] === 'function') test.arguments[1] = test.arguments[1](this.sequelize);
+              if (typeof test.arguments[2] === 'function') test.arguments[2] = test.arguments[2](this.sequelize);
             }
 
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
