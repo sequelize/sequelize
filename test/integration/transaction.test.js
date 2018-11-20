@@ -375,6 +375,20 @@ if (current.dialect.supports.transactions) {
       });
     });
 
+    it('should provide different name to nested savepoints', function() {
+      return this.sequelize.transaction().then(transaction => {
+        return this.sequelize.transaction({ transaction }).then(savepoint1 => {
+          return this.sequelize.transaction({ transaction: savepoint1 }).then(savepoint2 => {
+            expect(savepoint2.name).to.not.equal(transaction.name);
+            expect(savepoint2.name).to.not.equal(savepoint1.name);
+
+            expect(savepoint1.name).to.not.equal(transaction.name);
+            expect(savepoint1.name).to.not.equal(savepoint2.name);
+          });
+        });
+      });
+    });
+
     if (dialect === 'sqlite') {
       it('provides persistent transactions', () => {
         const sequelize = new Support.Sequelize('database', 'username', 'password', {dialect: 'sqlite'}),
