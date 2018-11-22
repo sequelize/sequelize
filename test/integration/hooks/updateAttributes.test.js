@@ -34,8 +34,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
-          return user.update({username: 'Chong'}).then(user => {
+        return this.User.create({ username: 'Toni', mood: 'happy' }).then(user => {
+          return user.update({ username: 'Chong' }).then(user => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
             expect(beforeSave).to.have.been.calledTwice;
@@ -61,8 +61,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
-          return expect(user.update({username: 'Chong'})).to.be.rejected.then(() => {
+        return this.User.create({ username: 'Toni', mood: 'happy' }).then(user => {
+          return expect(user.update({ username: 'Chong' })).to.be.rejected.then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(beforeSave).to.have.been.calledOnce;
             expect(afterHook).not.to.have.been.called;
@@ -85,8 +85,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return this.User.create({username: 'Toni', mood: 'happy'}).then(user => {
-          return expect(user.update({username: 'Chong'})).to.be.rejected.then(() => {
+        return this.User.create({ username: 'Toni', mood: 'happy' }).then(user => {
+          return expect(user.update({ username: 'Chong' })).to.be.rejected.then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
             expect(beforeSave).to.have.been.calledTwice;
@@ -103,8 +103,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.mood = 'happy';
         });
 
-        return this.User.create({username: 'fireninja', mood: 'invalid'}).then(user => {
-          return user.update({username: 'hero'});
+        return this.User.create({ username: 'fireninja', mood: 'invalid' }).then(user => {
+          return user.update({ username: 'hero' });
         }).then(user => {
           expect(user.username).to.equal('hero');
           expect(user.mood).to.equal('happy');
@@ -117,8 +117,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.mood = 'sad';
         });
 
-        return this.User.create({username: 'fireninja', mood: 'nuetral'}).then(user => {
-          return user.update({username: 'spider'});
+        return this.User.create({ username: 'fireninja', mood: 'nuetral' }).then(user => {
+          return user.update({ username: 'spider' });
         }).then(user => {
           expect(user.username).to.equal('spider');
           expect(user.mood).to.equal('sad');
@@ -133,8 +133,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           hookCalled++;
         });
 
-        return this.User.create({username: 'fireninja', mood: 'nuetral'}).then(user => {
-          return user.update({username: 'spider', mood: 'sad'});
+        return this.User.create({ username: 'fireninja', mood: 'nuetral' }).then(user => {
+          return user.update({ username: 'spider', mood: 'sad' });
         }).then(user => {
           expect(user.username).to.equal('spider');
           expect(user.mood).to.equal('happy');
@@ -155,8 +155,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           hookCalled++;
         });
 
-        return this.User.create({username: 'akira'}).then(user => {
-          return user.update({username: 'spider', mood: 'sad'});
+        return this.User.create({ username: 'akira' }).then(user => {
+          return user.update({ username: 'spider', mood: 'sad' });
         }).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('spider');

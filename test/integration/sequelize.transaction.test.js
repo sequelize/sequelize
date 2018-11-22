@@ -98,7 +98,7 @@ if (current.dialect.supports.transactions) {
       it('works with promise syntax', function() {
         return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const Test = sequelize.define('Test', {
-            id: { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+            id: { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
             name: { type: Support.Sequelize.STRING }
           });
 

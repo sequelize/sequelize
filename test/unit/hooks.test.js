@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     beforeEach(() => {
       sinon.stub(current, 'query').returns(Promise.resolve([{
         _previousDataValues: {},
-        dataValues: {id: 1, name: 'abc'}
+        dataValues: { id: 1, name: 'abc' }
       }]));
     });
 

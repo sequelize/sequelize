@@ -15,12 +15,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    return this.sequelize.sync({force: true}).then(() => {
+    return this.sequelize.sync({ force: true }).then(() => {
       return this.Payment.bulkCreate([
-        {amount: 5, mood: 'neutral'},
-        {amount: -5, mood: 'neutral'},
-        {amount: 10, mood: 'happy'},
-        {amount: 90, mood: 'happy'}
+        { amount: 5, mood: 'neutral' },
+        { amount: -5, mood: 'neutral' },
+        { amount: 10, mood: 'happy' },
+        { amount: 90, mood: 'happy' }
       ]);
     });
   });
@@ -28,15 +28,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('sum', () => {
 
     it('should sum without rows', function() {
-      return expect(this.Payment.sum('amount', {where: {mood: 'sad'}})).to.eventually.be.equal(0);
+      return expect(this.Payment.sum('amount', { where: { mood: 'sad' } })).to.eventually.be.equal(0);
     });
 
     it('should sum when is 0', function() {
-      return expect(this.Payment.sum('amount', {where: {mood: 'neutral'}})).to.eventually.be.equal(0);
+      return expect(this.Payment.sum('amount', { where: { mood: 'neutral' } })).to.eventually.be.equal(0);
     });
 
     it('should sum', function() {
-      return expect(this.Payment.sum('amount', {where: {mood: 'happy'}})).to.eventually.be.equal(100);
+      return expect(this.Payment.sum('amount', { where: { mood: 'happy' } })).to.eventually.be.equal(100);
     });
   });
 });

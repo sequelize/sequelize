@@ -75,7 +75,7 @@ const Support = {
         if (callback) {
           _sequelize.sync({ force: true }).then(() => { callback(_sequelize); });
         } else {
-          return _sequelize.sync({ force: true }).return (_sequelize);
+          return _sequelize.sync({ force: true }).return(_sequelize);
         }
       });
     }

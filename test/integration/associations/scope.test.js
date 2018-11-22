@@ -98,7 +98,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
     describe('1:1', () => {
       it('should create, find and include associations with scope values', function() {
-        return this.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           return Promise.join(
             this.Post.create(),
             this.Comment.create({
@@ -148,13 +148,13 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         });
       });
       it('should create included association with scope values', function() {
-        return this.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           return this.Post.create({
             mainComment: {
               title: 'I am a main comment created with a post'
             }
           }, {
-            include: [{model: this.Comment, as: 'mainComment'}]
+            include: [{ model: this.Comment, as: 'mainComment' }]
           });
         }).then(post => {
           expect(post.mainComment.get('commentable')).to.equal('post');
@@ -169,7 +169,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
     describe('1:M', () => {
       it('should create, find and include associations with scope values', function() {
-        return this.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           return Promise.join(
             this.Post.create(),
             this.Image.create(),
@@ -254,7 +254,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           logs.push(log.substring(log.indexOf(':') + 1));
         };
 
-        return this.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           return this.Post.create();
         }).then(post => {
           return post.createComment({
@@ -273,7 +273,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         });
       });
       it('should created included association with scope values', function() {
-        return this.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           return this.Post.create({
             comments: [{
               title: 'I am a comment created with a post'
@@ -281,7 +281,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               title: 'I am a second comment created with a post'
             }]
           }, {
-            include: [{model: this.Comment, as: 'comments'}]
+            include: [{ model: this.Comment, as: 'comments' }]
           });
         }).then(post => {
           this.post = post;
@@ -297,7 +297,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         });
       });
       it('should include associations with operator scope values', function() {
-        return this.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           return Promise.join(
             this.Post.create(),
             this.Comment.create({
@@ -342,26 +342,26 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             });
             this.PostTag = this.sequelize.define('post_tag');
 
-            this.Tag.belongsToMany(this.Post, {through: this.PostTag});
-            this.Post.belongsToMany(this.Tag, {as: 'categories', through: this.PostTag, scope: { type: 'category' }});
-            this.Post.belongsToMany(this.Tag, {as: 'tags', through: this.PostTag, scope: { type: 'tag' }});
+            this.Tag.belongsToMany(this.Post, { through: this.PostTag });
+            this.Post.belongsToMany(this.Tag, { as: 'categories', through: this.PostTag, scope: { type: 'category' } });
+            this.Post.belongsToMany(this.Tag, { as: 'tags', through: this.PostTag, scope: { type: 'tag' } });
           });
 
           it('should create, find and include associations with scope values', function() {
             return Promise.join(
-              this.Post.sync({force: true}),
-              this.Tag.sync({force: true})
+              this.Post.sync({ force: true }),
+              this.Tag.sync({ force: true })
             ).then(() => {
-              return this.PostTag.sync({force: true});
+              return this.PostTag.sync({ force: true });
             }).then(() => {
               return Promise.join(
                 this.Post.create(),
                 this.Post.create(),
                 this.Post.create(),
-                this.Tag.create({type: 'category'}),
-                this.Tag.create({type: 'category'}),
-                this.Tag.create({type: 'tag'}),
-                this.Tag.create({type: 'tag'})
+                this.Tag.create({ type: 'category' }),
+                this.Tag.create({ type: 'category' }),
+                this.Tag.create({ type: 'tag' }),
+                this.Tag.create({ type: 'tag' })
               );
             }).then(([postA, postB, postC, categoryA, categoryB, tagA, tagB]) => {
               this.postA = postA;
@@ -406,8 +406,8 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                     id: this.postA.get('id')
                   },
                   include: [
-                    {model: this.Tag, as: 'tags'},
-                    {model: this.Tag, as: 'categories'}
+                    { model: this.Tag, as: 'tags' },
+                    { model: this.Tag, as: 'categories' }
                   ]
                 }),
                 this.Post.findOne({
@@ -415,8 +415,8 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                     id: this.postB.get('id')
                   },
                   include: [
-                    {model: this.Tag, as: 'tags'},
-                    {model: this.Tag, as: 'categories'}
+                    { model: this.Tag, as: 'tags' },
+                    { model: this.Tag, as: 'categories' }
                   ]
                 }),
                 this.Post.findOne({
@@ -424,8 +424,8 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                     id: this.postC.get('id')
                   },
                   include: [
-                    {model: this.Tag, as: 'tags'},
-                    {model: this.Tag, as: 'categories'}
+                    { model: this.Tag, as: 'tags' },
+                    { model: this.Tag, as: 'categories' }
                   ]
                 })
               );
@@ -537,20 +537,20 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
           it('should create, find and include associations with scope values', function() {
             return Promise.join(
-              this.Post.sync({force: true}),
-              this.Image.sync({force: true}),
-              this.Question.sync({force: true}),
-              this.Tag.sync({force: true})
+              this.Post.sync({ force: true }),
+              this.Image.sync({ force: true }),
+              this.Question.sync({ force: true }),
+              this.Tag.sync({ force: true })
             ).then(() => {
-              return this.ItemTag.sync({force: true});
+              return this.ItemTag.sync({ force: true });
             }).then(() => {
               return Promise.join(
                 this.Post.create(),
                 this.Image.create(),
                 this.Question.create(),
-                this.Tag.create({name: 'tagA'}),
-                this.Tag.create({name: 'tagB'}),
-                this.Tag.create({name: 'tagC'})
+                this.Tag.create({ name: 'tagA' }),
+                this.Tag.create({ name: 'tagB' }),
+                this.Tag.create({ name: 'tagC' })
               );
             }).then(([post, image, question, tagA, tagB, tagC]) => {
               this.post = post;
@@ -559,19 +559,19 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               return Promise.join(
                 post.setTags([tagA]).then(() => {
                   return Promise.join(
-                    post.createTag({name: 'postTag'}),
+                    post.createTag({ name: 'postTag' }),
                     post.addTag(tagB)
                   );
                 }),
                 image.setTags([tagB]).then(() => {
                   return Promise.join(
-                    image.createTag({name: 'imageTag'}),
+                    image.createTag({ name: 'imageTag' }),
                     image.addTag(tagC)
                   );
                 }),
                 question.setTags([tagC]).then(() => {
                   return Promise.join(
-                    question.createTag({name: 'questionTag'}),
+                    question.createTag({ name: 'questionTag' }),
                     question.addTag(tagA)
                   );
                 })

@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         factory.options.name.singular = 'barr';
       });
 
-      this.model = this.sequelize.define('foo', {name: DataTypes.STRING});
+      this.model = this.sequelize.define('foo', { name: DataTypes.STRING });
     });
 
     it('beforeDefine hook can change model name', function() {
@@ -389,11 +389,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       this.User.addHook('beforeCreate', 'sasuke', sasukeHook);
       this.User.addHook('beforeCreate', 'naruto', narutoHook);
 
-      return this.User.create({ username: 'makunouchi'}).then(() => {
+      return this.User.create({ username: 'makunouchi' }).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledOnce;
         this.User.removeHook('beforeCreate', 'sasuke');
-        return this.User.create({ username: 'sendo'});
+        return this.User.create({ username: 'sendo' });
       }).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledTwice;
@@ -407,11 +407,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       this.User.addHook('beforeCreate', sasukeHook);
       this.User.addHook('beforeCreate', narutoHook);
 
-      return this.User.create({ username: 'makunouchi'}).then(() => {
+      return this.User.create({ username: 'makunouchi' }).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledOnce;
         this.User.removeHook('beforeCreate', sasukeHook);
-        return this.User.create({ username: 'sendo'});
+        return this.User.create({ username: 'sendo' });
       }).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledTwice;
@@ -425,11 +425,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       this.User.addHook('beforeSave', sasukeHook);
       this.User.addHook('beforeSave', narutoHook);
 
-      return this.User.create({ username: 'makunouchi'}).then(user => {
+      return this.User.create({ username: 'makunouchi' }).then(user => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledOnce;
         this.User.removeHook('beforeSave', sasukeHook);
-        return user.update({ username: 'sendo'});
+        return user.update({ username: 'sendo' });
       }).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledTwice;

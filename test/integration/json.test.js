@@ -253,9 +253,9 @@ describe('model', () => {
             username: 'swen123',
             emergency_contact: 'Unknown'
           }).then(() => {
-            return this.User.findOne({where: {
+            return this.User.findOne({ where: {
               emergency_contact: 'Unknown'
-            }});
+            } });
           }).then(user => {
             expect(user.username).to.equal('swen123');
           });

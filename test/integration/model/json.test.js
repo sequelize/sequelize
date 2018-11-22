@@ -282,7 +282,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.Event.findAll({
               where: {
                 json: {
-                  lastLogin: {[Op.between]: [before, after]}
+                  lastLogin: { [Op.between]: [before, after] }
                 }
               }
             }).then(events => {
@@ -325,7 +325,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.Event.findAll({
               where: {
                 json: {
-                  active: {[Op.in]: [true, false]}
+                  active: { [Op.in]: [true, false] }
                 }
               }
             }).then(events => {

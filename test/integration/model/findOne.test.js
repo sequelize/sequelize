@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('general / basic function', () => {
       beforeEach(function() {
-        return this.User.create({username: 'barfooz'}).then(user => {
+        return this.User.create({ username: 'barfooz' }).then(user => {
           this.UserPrimary = this.sequelize.define('UserPrimary', {
             specialkey: {
               type: DataTypes.STRING,
@@ -63,8 +63,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
 
-          return this.UserPrimary.sync({force: true}).then(() => {
-            return this.UserPrimary.create({specialkey: 'a string'}).then(() => {
+          return this.UserPrimary.sync({ force: true }).then(() => {
+            return this.UserPrimary.create({ specialkey: 'a string' }).then(() => {
               this.user = user;
             });
           });
@@ -107,7 +107,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('treats questionmarks in an array', function() {
         let test = false;
         return this.UserPrimary.findOne({
-          where: {'specialkey': 'awesome'},
+          where: { 'specialkey': 'awesome' },
           logging(sql) {
             test = true;
             expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = N?'awesome'/);
@@ -160,7 +160,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           active: Sequelize.BOOLEAN
         });
 
-        return UserWithBoolean.sync({force: true}).then(() => {
+        return UserWithBoolean.sync({ force: true }).then(() => {
           return UserWithBoolean.create({ active: true }).then(user => {
             return UserWithBoolean.findOne({ where: { id: user.id }, attributes: ['id'] }).then(user => {
               expect(user.active).not.to.exist;
@@ -205,7 +205,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('finds entries via primary keys', function() {
         const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
-          identifier: {type: Sequelize.STRING, primaryKey: true},
+          identifier: { type: Sequelize.STRING, primaryKey: true },
           name: Sequelize.STRING
         });
 
@@ -225,7 +225,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('finds entries via a string primary key called id', function() {
         const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
-          id: {type: Sequelize.STRING, primaryKey: true},
+          id: { type: Sequelize.STRING, primaryKey: true },
           name: Sequelize.STRING
         });
 
@@ -249,7 +249,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ];
         let count = 0;
 
-        return this.User.bulkCreate([{username: 'jack'}, {username: 'jack'}]).then(() => {
+        return this.User.bulkCreate([{ username: 'jack' }, { username: 'jack' }]).then(() => {
           return Sequelize.Promise.map(permutations, perm => {
             return this.User.findByPk(perm, {
               logging(s) {
@@ -272,7 +272,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return User.create({Login: 'foo'}).then(() => {
+          return User.create({ Login: 'foo' }).then(() => {
             return User.findByPk(1).then(user => {
               expect(user).to.exist;
               expect(user.ID).to.equal(1);
@@ -287,10 +287,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             username: Sequelize.CITEXT
           });
 
-          return User.sync({force: true}).then(() => {
-            return User.create({username: 'longUserNAME'});
+          return User.sync({ force: true }).then(() => {
+            return User.create({ username: 'longUserNAME' });
           }).then(() => {
-            return User.findOne({where: {username: 'LONGusername'}});
+            return User.findOne({ where: { username: 'LONGusername' } });
           }).then(user => {
             expect(user).to.exist;
             expect(user.username).to.equal('longUserNAME');
@@ -320,13 +320,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('belongsTo', () => {
         describe('generic', () => {
           it('throws an error about unexpected input if include contains a non-object', function() {
-            return this.Worker.findOne({ include: [1] }).catch (err => {
+            return this.Worker.findOne({ include: [1] }).catch(err => {
               expect(err.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
             });
           });
 
           it('throws an error if included DaoFactory is not associated', function() {
-            return this.Worker.findOne({ include: [this.Task] }).catch (err => {
+            return this.Worker.findOne({ include: [this.Task] }).catch(err => {
               expect(err.message).to.equal('Task is not associated to Worker!');
             });
           });
@@ -419,25 +419,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('getting parent data in many to one relationship', function() {
           const User = this.sequelize.define('User', {
-            id: {type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true},
-            username: {type: Sequelize.STRING}
+            id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
+            username: { type: Sequelize.STRING }
           });
 
           const Message = this.sequelize.define('Message', {
-            id: {type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true},
-            user_id: {type: Sequelize.INTEGER},
-            message: {type: Sequelize.STRING}
+            id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
+            user_id: { type: Sequelize.INTEGER },
+            message: { type: Sequelize.STRING }
           });
 
           User.hasMany(Message);
           Message.belongsTo(User, { foreignKey: 'user_id' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return User.create({username: 'test_testerson'}).then(user => {
-              return Message.create({user_id: user.id, message: 'hi there!'}).then(() => {
-                return Message.create({user_id: user.id, message: 'a second message'}).then(() => {
+            return User.create({ username: 'test_testerson' }).then(user => {
+              return Message.create({ user_id: user.id, message: 'hi there!' }).then(() => {
+                return Message.create({ user_id: user.id, message: 'a second message' }).then(() => {
                   return Message.findAll({
-                    where: {user_id: user.id},
+                    where: { user_id: user.id },
                     attributes: [
                       'user_id',
                       'message'
@@ -481,7 +481,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('throws an error if included DaoFactory is not associated', function() {
-          return this.Task.findOne({ include: [this.Worker] }).catch (err => {
+          return this.Task.findOne({ include: [this.Worker] }).catch(err => {
             expect(err.message).to.equal('Worker is not associated to Task!');
           });
         });
@@ -533,7 +533,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('hasOne with alias', () => {
         it('throws an error if included DaoFactory is not referenced by alias', function() {
-          return this.Worker.findOne({ include: [this.Task] }).catch (err => {
+          return this.Worker.findOne({ include: [this.Task] }).catch(err => {
             expect(err.message).to.equal('Task is not associated to Worker!');
           });
         });
@@ -547,7 +547,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', function() {
-            return this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] }).catch (err => {
+            return this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] }).catch(err => {
               expect(err.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDo).');
             });
           });
@@ -595,7 +595,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('throws an error if included DaoFactory is not associated', function() {
-          return this.Task.findOne({ include: [this.Worker] }).catch (err => {
+          return this.Task.findOne({ include: [this.Worker] }).catch(err => {
             expect(err.message).to.equal('Worker is not associated to Task!');
           });
         });
@@ -658,8 +658,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               primaryKey: true
             }
           });
-          this.Group.belongsToMany(this.User, {through: 'group_user'});
-          this.User.belongsToMany(this.Group, {through: 'group_user'});
+          this.Group.belongsToMany(this.User, { through: 'group_user' });
+          this.User.belongsToMany(this.Group, { through: 'group_user' });
 
           return this.sequelize.sync({ force: true }).then(() => {
             return this.User.create({ username: 'someone' }).then(someUser => {
@@ -684,7 +684,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('hasMany with alias', () => {
         it('throws an error if included DaoFactory is not referenced by alias', function() {
-          return this.Worker.findOne({ include: [this.Task] }).catch (err => {
+          return this.Worker.findOne({ include: [this.Task] }).catch(err => {
             expect(err.message).to.equal('Task is not associated to Worker!');
           });
         });
@@ -698,7 +698,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', function() {
-            return this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] }).catch (err => {
+            return this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] }).catch(err => {
               expect(err.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDos).');
             });
           });
@@ -744,22 +744,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('returns the associated models when using through as string and alias', function() {
-          this.Product.belongsToMany(this.Tag, {as: 'tags', through: 'product_tag'});
-          this.Tag.belongsToMany(this.Product, {as: 'products', through: 'product_tag'});
+          this.Product.belongsToMany(this.Tag, { as: 'tags', through: 'product_tag' });
+          this.Tag.belongsToMany(this.Product, { as: 'products', through: 'product_tag' });
 
           return this.sequelize.sync().then(() => {
             return Promise.all([
               this.Product.bulkCreate([
-                {title: 'Chair'},
-                {title: 'Desk'},
-                {title: 'Handbag'},
-                {title: 'Dress'},
-                {title: 'Jan'}
+                { title: 'Chair' },
+                { title: 'Desk' },
+                { title: 'Handbag' },
+                { title: 'Dress' },
+                { title: 'Jan' }
               ]),
               this.Tag.bulkCreate([
-                {name: 'Furniture'},
-                {name: 'Clothing'},
-                {name: 'People'}
+                { name: 'Furniture' },
+                { name: 'Clothing' },
+                { name: 'People' }
               ])
             ]).then(() => {
               return Promise.all([
@@ -782,7 +782,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                       id: tags[0].id
                     },
                     include: [
-                      {model: this.Product, as: 'products'}
+                      { model: this.Product, as: 'products' }
                     ]
                   }).then(tag => {
                     expect(tag).to.exist;
@@ -796,7 +796,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                       id: products[0].id
                     },
                     include: [
-                      {model: this.Tag, as: 'tags'}
+                      { model: this.Tag, as: 'tags' }
                     ]
                   }).then(product => {
                     expect(product).to.exist;
@@ -815,22 +815,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           // Exactly the same code as the previous test, just with a through model instance, and promisified
           const ProductTag = this.sequelize.define('product_tag');
 
-          this.Product.belongsToMany(this.Tag, {as: 'tags', through: ProductTag});
-          this.Tag.belongsToMany(this.Product, {as: 'products', through: ProductTag});
+          this.Product.belongsToMany(this.Tag, { as: 'tags', through: ProductTag });
+          this.Tag.belongsToMany(this.Product, { as: 'products', through: ProductTag });
 
           return this.sequelize.sync().then(() => {
             return Promise.all([
               this.Product.bulkCreate([
-                {title: 'Chair'},
-                {title: 'Desk'},
-                {title: 'Handbag'},
-                {title: 'Dress'},
-                {title: 'Jan'}
+                { title: 'Chair' },
+                { title: 'Desk' },
+                { title: 'Handbag' },
+                { title: 'Dress' },
+                { title: 'Jan' }
               ]),
               this.Tag.bulkCreate([
-                {name: 'Furniture'},
-                {name: 'Clothing'},
-                {name: 'People'}
+                { name: 'Furniture' },
+                { name: 'Clothing' },
+                { name: 'People' }
               ])
             ]);
           }).then(() => {
@@ -856,7 +856,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   id: this.tags[0].id
                 },
                 include: [
-                  {model: this.Product, as: 'products'}
+                  { model: this.Product, as: 'products' }
                 ]
               })).to.eventually.have.property('products').to.have.length(2),
               expect(this.Product.findOne({
@@ -864,7 +864,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   id: this.products[0].id
                 },
                 include: [
-                  {model: this.Tag, as: 'tags'}
+                  { model: this.Tag, as: 'tags' }
                 ]
               })).to.eventually.have.property('tags').to.have.length(2),
               expect(this.tags[1].getProducts()).to.eventually.have.length(3),
@@ -877,25 +877,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('queryOptions', () => {
       beforeEach(function() {
-        return this.User.create({username: 'barfooz'}).then(user => {
+        return this.User.create({ username: 'barfooz' }).then(user => {
           this.user = user;
         });
       });
 
       it('should return a DAO when queryOptions are not set', function() {
-        return this.User.findOne({ where: { username: 'barfooz'}}).then(user => {
+        return this.User.findOne({ where: { username: 'barfooz' } }).then(user => {
           expect(user).to.be.instanceOf(this.User);
         });
       });
 
       it('should return a DAO when raw is false', function() {
-        return this.User.findOne({ where: { username: 'barfooz'}, raw: false }).then(user => {
+        return this.User.findOne({ where: { username: 'barfooz' }, raw: false }).then(user => {
           expect(user).to.be.instanceOf(this.User);
         });
       });
 
       it('should return raw data when raw is true', function() {
-        return this.User.findOne({ where: { username: 'barfooz'}, raw: true }).then(user => {
+        return this.User.findOne({ where: { username: 'barfooz' }, raw: true }).then(user => {
           expect(user).to.not.be.instanceOf(this.User);
           expect(user).to.be.instanceOf(Object);
         });

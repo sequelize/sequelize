@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.User.Tasks = this.User.hasMany(this.Task);
       this.User.Company = this.User.belongsTo(this.Company);
       this.Company.Employees = this.Company.hasMany(this.User);
-      this.Company.Owner = this.Company.belongsTo(this.User, {as: 'Owner', foreignKey: 'ownerId'});
+      this.Company.Owner = this.Company.belongsTo(this.User, { as: 'Owner', foreignKey: 'ownerId' });
     });
 
     describe('attributes', () => {
@@ -150,7 +150,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           }, scopes: {
             this: {
-              where: { this: true}
+              where: { this: true }
             },
             that: {
               where: { that: false },
@@ -244,7 +244,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Tasks, duplicating: false}
+            { association: this.User.Tasks, duplicating: false }
           ]
         });
 
@@ -292,7 +292,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('returns an association when there is a single aliased association', function() {
         const User = this.sequelize.define('User');
         const Task = this.sequelize.define('Task');
-        const Tasks = Task.belongsTo(User, {as: 'owner'});
+        const Tasks = Task.belongsTo(User, { as: 'owner' });
         expect(Task._getIncludedAssociation(User, 'owner')).to.equal(Tasks);
       });
 
@@ -306,7 +306,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Tasks}
+            { association: this.User.Tasks }
           ],
           limit: 3
         });
@@ -318,7 +318,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Tasks}
+            { association: this.User.Tasks }
           ],
           limit: null
         });
@@ -330,9 +330,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Company, include: [
+            { association: this.User.Company, include: [
               this.Company.Employees
-            ]}
+            ] }
           ],
           limit: 3
         });
@@ -344,9 +344,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Company, include: [
+            { association: this.User.Company, include: [
               this.Company.Employees
-            ]}
+            ] }
           ],
           limit: null
         });
@@ -358,7 +358,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Tasks, required: true}
+            { association: this.User.Tasks, required: true }
           ],
           limit: 3
         });
@@ -372,7 +372,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Tasks, required: true, duplicating: false}
+            { association: this.User.Tasks, required: true, duplicating: false }
           ],
           limit: 3
         });
@@ -386,7 +386,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Tasks, where: {title: Math.random().toString()}}
+            { association: this.User.Tasks, where: { title: Math.random().toString() } }
           ],
           limit: 3
         });
@@ -400,7 +400,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Tasks, where: {title: Math.random().toString()}, duplicating: false}
+            { association: this.User.Tasks, where: { title: Math.random().toString() }, duplicating: false }
           ],
           limit: 3
         });
@@ -414,8 +414,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Company, required: true},
-            {association: this.User.Tasks}
+            { association: this.User.Company, required: true },
+            { association: this.User.Tasks }
           ],
           limit: 3
         });
@@ -428,8 +428,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Company, required: true},
-            {association: this.User.Tasks, duplicating: false}
+            { association: this.User.Company, required: true },
+            { association: this.User.Tasks, duplicating: false }
           ],
           limit: 3
         });
@@ -442,8 +442,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Company, where: {name: Math.random().toString()}},
-            {association: this.User.Tasks}
+            { association: this.User.Company, where: { name: Math.random().toString() } },
+            { association: this.User.Tasks }
           ],
           limit: 3
         });
@@ -456,9 +456,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Company, required: true, include: [
+            { association: this.User.Company, required: true, include: [
               this.Company.Owner
-            ]},
+            ] },
             this.User.Tasks
           ],
           limit: 3
@@ -474,8 +474,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [
-            {association: this.User.Company, where: {name: Math.random().toString()}},
-            {association: this.User.Tasks, duplicating: false}
+            { association: this.User.Company, where: { name: Math.random().toString() } },
+            { association: this.User.Tasks, duplicating: false }
           ],
           limit: 3
         });

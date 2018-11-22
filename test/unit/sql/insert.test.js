@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         returning: true,
         hasTrigger: true
       };
-      expectsql(sql.insertQuery(User.tableName, {user_name: 'triggertest'}, User.rawAttributes, options),
+      expectsql(sql.insertQuery(User.tableName, { user_name: 'triggertest' }, User.rawAttributes, options),
         {
           query: {
             mssql: 'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp VALUES ($1);select * from @tmp;',
@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false
       });
 
-      expectsql(timezoneSequelize.dialect.QueryGenerator.insertQuery(User.tableName, {date: new Date(Date.UTC(2015, 0, 20))}, User.rawAttributes, {}),
+      expectsql(timezoneSequelize.dialect.QueryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.rawAttributes, {}),
         {
           query: {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
@@ -81,7 +81,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false
       });
 
-      expectsql(timezoneSequelize.dialect.QueryGenerator.insertQuery(User.tableName, {date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89))}, User.rawAttributes, {}),
+      expectsql(timezoneSequelize.dialect.QueryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.rawAttributes, {}),
         {
           query: {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',

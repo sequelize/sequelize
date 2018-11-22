@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
       }
     });
 
-    return this.User.sync({force: true})
+    return this.User.sync({ force: true })
       .then(() => {
         readSpy = sandbox.spy(this.sequelize.connectionManager.pool.read, 'acquire');
         writeSpy = sandbox.spy(this.sequelize.connectionManager.pool.write, 'acquire');
@@ -65,14 +65,14 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
   });
 
   it('should run read-only transactions on the replica', function() {
-    return this.sequelize.transaction({readOnly: true}, transaction => {
-      return this.User.findAll({transaction});
+    return this.sequelize.transaction({ readOnly: true }, transaction => {
+      return this.User.findAll({ transaction });
     }).then(expectReadCalls);
   });
 
   it('should run non-read-only transactions on the primary', function() {
     return this.sequelize.transaction(transaction => {
-      return this.User.findAll({transaction});
+      return this.User.findAll({ transaction });
     }).then(expectWriteCalls);
   });
 });

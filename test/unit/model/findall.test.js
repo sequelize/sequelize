@@ -20,21 +20,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('Warns the user if they use a model attribute without a where clause', function() {
-      const User = current.define('User', {firstName: 'string'});
-      User.warnOnInvalidOptions({firstName: 12, order: []}, ['firstName']);
+      const User = current.define('User', { firstName: 'string' });
+      User.warnOnInvalidOptions({ firstName: 12, order: [] }, ['firstName']);
       const expectedError = 'Model attributes (firstName) passed into finder method options of model User, but the options.where object is empty. Did you forget to use options.where?';
       expect(this.loggerSpy.calledWith(expectedError)).to.equal(true);
     });
 
     it('Does not warn the user if they use a model attribute without a where clause that shares its name with a query option', function() {
-      const User = current.define('User', {order: 'string'});
-      User.warnOnInvalidOptions({order: []}, ['order']);
+      const User = current.define('User', { order: 'string' });
+      User.warnOnInvalidOptions({ order: [] }, ['order']);
       expect(this.loggerSpy.called).to.equal(false);
     });
 
     it('Does not warn the user if they use valid query options', function() {
-      const User = current.define('User', {order: 'string'});
-      User.warnOnInvalidOptions({where: {order: 1}, order: []});
+      const User = current.define('User', { order: 'string' });
+      User.warnOnInvalidOptions({ where: { order: 1 }, order: [] });
       expect(this.loggerSpy.called).to.equal(false);
     });
   });
@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('Throws an error when the attributes option is formatted incorrectly', () => {
-        const errorFunction = Model.findAll.bind(Model, {attributes: 'name'});
+        const errorFunction = Model.findAll.bind(Model, { attributes: 'name' });
         expect(errorFunction).to.throw(sequelizeErrors.QueryError);
       });
     });

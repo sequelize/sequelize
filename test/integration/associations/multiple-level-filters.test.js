@@ -7,8 +7,8 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
   it('can filter through belongsTo', function() {
-    const User = this.sequelize.define('User', {username: DataTypes.STRING }),
-      Task = this.sequelize.define('Task', {title: DataTypes.STRING }),
+    const User = this.sequelize.define('User', { username: DataTypes.STRING }),
+      Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
       Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsTo(User);
@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
                 {
                   model: Project,
                   include: [
-                    {model: User, where: {username: 'leia'}}
+                    { model: User, where: { username: 'leia' } }
                   ],
                   required: true
                 }
@@ -66,8 +66,8 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
   });
 
   it('avoids duplicated tables in query', function() {
-    const User = this.sequelize.define('User', {username: DataTypes.STRING }),
-      Task = this.sequelize.define('Task', {title: DataTypes.STRING }),
+    const User = this.sequelize.define('User', { username: DataTypes.STRING }),
+      Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
       Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsTo(User);
@@ -107,10 +107,10 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
                 {
                   model: Project,
                   include: [
-                    {model: User, where: {
+                    { model: User, where: {
                       username: 'leia',
                       id: 1
-                    }}
+                    } }
                   ],
                   required: true
                 }
@@ -127,8 +127,8 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
   });
 
   it('can filter through hasMany', function() {
-    const User = this.sequelize.define('User', {username: DataTypes.STRING }),
-      Task = this.sequelize.define('Task', {title: DataTypes.STRING }),
+    const User = this.sequelize.define('User', { username: DataTypes.STRING }),
+      Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
       Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
     Project.belongsTo(User);
@@ -168,7 +168,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
                 {
                   model: Project,
                   include: [
-                    {model: Task, where: {title: 'fight empire'}}
+                    { model: Task, where: { title: 'fight empire' } }
                   ],
                   required: true
                 }
@@ -184,11 +184,11 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
   });
 
   it('can filter through hasMany connector', function() {
-    const User = this.sequelize.define('User', {username: DataTypes.STRING }),
+    const User = this.sequelize.define('User', { username: DataTypes.STRING }),
       Project = this.sequelize.define('Project', { title: DataTypes.STRING });
 
-    Project.belongsToMany(User, {through: 'user_project'});
-    User.belongsToMany(Project, {through: 'user_project'});
+    Project.belongsToMany(User, { through: 'user_project' });
+    User.belongsToMany(Project, { through: 'user_project' });
 
     return this.sequelize.sync({ force: true }).then(() => {
       return User.bulkCreate([{
@@ -209,7 +209,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
                     return user.setProjects([project]).then(() => {
                       return User.findAll({
                         include: [
-                          {model: Project, where: {title: 'republic'}}
+                          { model: Project, where: { title: 'republic' } }
                         ]
                       }).then(users => {
                         expect(users.length).to.be.equal(1);

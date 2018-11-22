@@ -107,7 +107,7 @@ if (current.dialect.supports.JSON) {
         });
 
         it('property array object', () => {
-          expectsql(sql.whereItemQuery(undefined, Sequelize.json({ property: [[4, 6], [8]]})), {
+          expectsql(sql.whereItemQuery(undefined, Sequelize.json({ property: [[4, 6], [8]] })), {
             postgres: '("property"#>>\'{0,0}\') = \'4\' AND ("property"#>>\'{0,1}\') = \'6\' AND ("property"#>>\'{1,0}\') = \'8\'',
             sqlite: "json_extract(`property`, '$[0][0]') = '4' AND json_extract(`property`, '$[0][1]') = '6' AND json_extract(`property`, '$[1][0]') = '8'",
             mariadb: "json_unquote(json_extract(`property`,'$.0.0')) = '4' and json_unquote(json_extract(`property`,'$.0.1')) = '6' and json_unquote(json_extract(`property`,'$.1.0')) = '8'",

@@ -101,7 +101,7 @@ if (dialect === 'sqlite') {
 
         describe('.findOne', () => {
           beforeEach(function() {
-            return this.User.create({name: 'user', bio: 'footbar'});
+            return this.User.create({ name: 'user', bio: 'footbar' });
           });
 
           it('finds normal lookups', function() {
@@ -123,8 +123,8 @@ if (dialect === 'sqlite') {
         describe('.all', () => {
           beforeEach(function() {
             return this.User.bulkCreate([
-              {name: 'user', bio: 'foobar'},
-              {name: 'user', bio: 'foobar'}
+              { name: 'user', bio: 'foobar' },
+              { name: 'user', bio: 'foobar' }
             ]);
           });
 
@@ -140,7 +140,7 @@ if (dialect === 'sqlite') {
             const users = [];
 
             for (let i = 2; i < 5; i++) {
-              users[users.length] = {age: i};
+              users[users.length] = { age: i };
             }
 
             return this.User.bulkCreate(users).then(() => {
@@ -156,7 +156,7 @@ if (dialect === 'sqlite') {
             const users = [];
 
             for (let i = 2; i <= 5; i++) {
-              users[users.length] = {age: i};
+              users[users.length] = { age: i };
             }
 
             return this.User.bulkCreate(users).then(() => {

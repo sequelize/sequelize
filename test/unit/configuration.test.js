@@ -88,7 +88,7 @@ describe('Sequelize', () => {
         });
 
         it('should prefer storage in options object', () => {
-          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', {storage: '/completely/different/path.db'});
+          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', { storage: '/completely/different/path.db' });
           const options = sequelize.options;
           expect(options.dialect).to.equal('sqlite');
           expect(options.storage).to.equal(path.resolve('/completely/different/path.db'));

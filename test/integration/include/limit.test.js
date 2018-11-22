@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      * shortcut for building simple {name: 'foo'} seed data
      */
     function build() {
-      return Array.prototype.slice.call(arguments).map(arg => ({name: arg}));
+      return Array.prototype.slice.call(arguments).map(arg => ({ name: arg }));
     }
 
     /*
@@ -40,78 +40,78 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           type: DataTypes.STRING,
           primaryKey: true
         }
-      }, {timestamps: false});
+      }, { timestamps: false });
 
       this.User = this.sequelize.define('User', {
         name: {
           type: DataTypes.STRING,
           primaryKey: true
         }
-      }, {timestamps: false});
+      }, { timestamps: false });
 
       this.Task = this.sequelize.define('Task', {
         name: {
           type: DataTypes.STRING,
           primaryKey: true
         }
-      }, {timestamps: false});
+      }, { timestamps: false });
 
       this.Hobby = this.sequelize.define('Hobby', {
         name: {
           type: DataTypes.STRING,
           primaryKey: true
         }
-      }, {timestamps: false});
+      }, { timestamps: false });
 
-      this.User.belongsToMany(this.Project, {through: 'user_project'});
-      this.Project.belongsToMany(this.User, {through: 'user_project'});
+      this.User.belongsToMany(this.Project, { through: 'user_project' });
+      this.Project.belongsToMany(this.User, { through: 'user_project' });
 
-      this.Project.belongsToMany(this.Task, {through: 'task_project'});
-      this.Task.belongsToMany(this.Project, {through: 'task_project'});
+      this.Project.belongsToMany(this.Task, { through: 'task_project' });
+      this.Task.belongsToMany(this.Project, { through: 'task_project' });
 
-      this.User.belongsToMany(this.Hobby, {through: 'user_hobby'});
-      this.Hobby.belongsToMany(this.User, {through: 'user_hobby'});
+      this.User.belongsToMany(this.Hobby, { through: 'user_hobby' });
+      this.Hobby.belongsToMany(this.User, { through: 'user_hobby' });
 
       this.Post = this.sequelize.define('Post', {
         name: {
           type: DataTypes.STRING,
           primaryKey: true
         }
-      }, {timestamps: false});
+      }, { timestamps: false });
 
       this.Comment = this.sequelize.define('Comment', {
         name: {
           type: DataTypes.STRING,
           primaryKey: true
         }
-      }, {timestamps: false});
+      }, { timestamps: false });
 
       this.Tag = this.sequelize.define('Tag', {
         name: {
           type: DataTypes.STRING,
           primaryKey: true
         }
-      }, {timestamps: false});
+      }, { timestamps: false });
 
       this.Color = this.sequelize.define('Color', {
         name: {
           type: DataTypes.STRING,
           primaryKey: true
         }
-      }, {timestamps: false});
+      }, { timestamps: false });
 
       this.Footnote = this.sequelize.define('Footnote', {
         name: {
           type: DataTypes.STRING,
           primaryKey: true
         }
-      }, {timestamps: false});
+      }, { timestamps: false });
 
       this.Post.hasMany(this.Comment);
       this.Comment.belongsTo(this.Post);
 
-      this.Post.belongsToMany(this.Tag, {through: 'post_tag'});
-      this.Tag.belongsToMany(this.Post, {through: 'post_tag'});
+      this.Post.belongsToMany(this.Tag, { through: 'post_tag' });
+      this.Tag.belongsToMany(this.Post, { through: 'post_tag' });
 
       this.Post.hasMany(this.Footnote);
       this.Footnote.belongsTo(this.Post);

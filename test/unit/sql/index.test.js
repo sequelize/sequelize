@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)'
       });
 
-      expectsql(sql.addIndexQuery('User', ['fieldB', {attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5}], {
+      expectsql(sql.addIndexQuery('User', ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }], {
         name: 'a_b_uniq',
         unique: true,
         using: 'BTREE',
@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('POJO field', () => {
-      expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC'}], {}, 'table'), {
+      expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
         default: 'CREATE INDEX [table_column] ON [table] ([column] COLLATE [BINARY] DESC)',
         mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC)',
         mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
@@ -77,7 +77,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('function', () => {
-      expectsql(sql.addIndexQuery('table', [current.fn('UPPER', current.col('test'))], { name: 'myindex'}), {
+      expectsql(sql.addIndexQuery('table', [current.fn('UPPER', current.col('test'))], { name: 'myindex' }), {
         default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]))',
         mariadb: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))',
         mysql: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))'
@@ -161,7 +161,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           't.relkind = \'r\' and t.relname = \'table\' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;'
         });
 
-        expectsql(sql.showIndexesQuery({tableName: 'table', schema: 'schema'}), {
+        expectsql(sql.showIndexesQuery({ tableName: 'table', schema: 'schema' }), {
           postgres: 'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, ' +
           'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) ' +
           'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s ' +

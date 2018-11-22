@@ -23,7 +23,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         stub = sinon.stub(current, 'query').returns(
           Sequelize.Promise.resolve({
             _previousDataValues: {},
-            dataValues: {id: 1}
+            dataValues: { id: 1 }
           })
         );
       });
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should allow destroies even if options are not given', () => {
-        instance = Model.build({id: 1}, {isNewRecord: false});
+        instance = Model.build({ id: 1 }, { isNewRecord: false });
         expect(() => {
           instance.destroy();
         }).to.not.throw();

@@ -23,6 +23,8 @@
     "comma-spacing": "error",
     "key-spacing": "error",
     "keyword-spacing": "error",
+    "object-curly-spacing": ["error", "always"],
+    "func-call-spacing": ["error", "never"],
 
     "no-console": "off",
     "no-extra-parens": "error",

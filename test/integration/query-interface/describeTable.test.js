@@ -26,14 +26,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         const MyTable2 = this.sequelize.define('my_table', {
           username2: DataTypes.STRING
-        }, {schema: 'test_meta'});
+        }, { schema: 'test_meta' });
 
         return this.sequelize.createSchema('test_meta')
           .then(() => {
-            return MyTable1.sync({force: true});
+            return MyTable1.sync({ force: true });
           })
           .then(() => {
-            return MyTable2.sync({force: true});
+            return MyTable2.sync({ force: true });
           })
           .then(() => {
             return this.queryInterface.describeTable('my_tables', 'test_meta');
@@ -61,9 +61,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         },
         isAdmin: DataTypes.BOOLEAN,
         enumVals: DataTypes.ENUM('hello', 'world')
-      }, {freezeTableName: true});
+      }, { freezeTableName: true });
 
-      return Users.sync({force: true}).then(() => {
+      return Users.sync({ force: true }).then(() => {
         return this.queryInterface.describeTable('_Users').then(metadata => {
           const id = metadata.id;
           const username = metadata.username;
@@ -139,29 +139,29 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     it('should correctly determine the primary key columns', function() {
       const Country = this.sequelize.define('_Country', {
-        code: {type: DataTypes.STRING, primaryKey: true},
-        name: {type: DataTypes.STRING, allowNull: false}
-      }, {freezeTableName: true});
+        code: { type: DataTypes.STRING, primaryKey: true },
+        name: { type: DataTypes.STRING, allowNull: false }
+      }, { freezeTableName: true });
       const Alumni = this.sequelize.define('_Alumni', {
-        year: {type: DataTypes.INTEGER, primaryKey: true},
-        num: {type: DataTypes.INTEGER, primaryKey: true},
-        username: {type: DataTypes.STRING, allowNull: false, unique: true},
-        dob: {type: DataTypes.DATEONLY, allowNull: false},
-        dod: {type: DataTypes.DATEONLY, allowNull: true},
-        city: {type: DataTypes.STRING, allowNull: false},
+        year: { type: DataTypes.INTEGER, primaryKey: true },
+        num: { type: DataTypes.INTEGER, primaryKey: true },
+        username: { type: DataTypes.STRING, allowNull: false, unique: true },
+        dob: { type: DataTypes.DATEONLY, allowNull: false },
+        dod: { type: DataTypes.DATEONLY, allowNull: true },
+        city: { type: DataTypes.STRING, allowNull: false },
         ctrycod: {
           type: DataTypes.STRING, allowNull: false,
-          references: {model: Country, key: 'code'}
+          references: { model: Country, key: 'code' }
         }
-      }, {freezeTableName: true});
+      }, { freezeTableName: true });
 
-      return Country.sync({force: true}).then(() => {
+      return Country.sync({ force: true }).then(() => {
         return this.queryInterface.describeTable('_Country').then(
           metacountry => {
             expect(metacountry.code.primaryKey).to.eql(true);
             expect(metacountry.name.primaryKey).to.eql(false);
 
-            return Alumni.sync({force: true}).then(() => {
+            return Alumni.sync({ force: true }).then(() => {
               return this.queryInterface.describeTable('_Alumni').then(
                 metalumni => {
                   expect(metalumni.year.primaryKey).to.eql(true);

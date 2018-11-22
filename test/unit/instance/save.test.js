@@ -13,7 +13,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const Model = current.define('User', {
 
         }),
-        instance = Model.build({}, {isNewRecord: false});
+        instance = Model.build({}, { isNewRecord: false });
 
       expect(() => {
         instance.save();
@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         stub = sinon.stub(current, 'query').returns(
           Sequelize.Promise.resolve([{
             _previousDataValues: {},
-            dataValues: {id: 1}
+            dataValues: { id: 1 }
           }, 1])
         );
       });

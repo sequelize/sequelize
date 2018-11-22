@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         returning: true,
         hasTrigger: true
       };
-      expectsql(sql.updateQuery(User.tableName, {user_name: 'triggertest'}, {id: 2}, options, User.rawAttributes),
+      expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.rawAttributes),
         {
           query: {
             mssql: 'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$1 OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp WHERE [id] = $2;select * from @tmp',

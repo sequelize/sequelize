@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           type: DataTypes.STRING
         }
       });
-      return this.Account.sync({force: true});
+      return this.Account.sync({ force: true });
     });
 
     it('should only update the passed fields', function() {

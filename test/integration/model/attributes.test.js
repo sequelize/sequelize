@@ -13,7 +13,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let callCount = 0;
 
         this.Student = this.sequelize.define('student', {
-          no: {type: Sequelize.INTEGER, primaryKey: true},
+          no: { type: Sequelize.INTEGER, primaryKey: true },
           name: Sequelize.STRING
         }, {
           tableName: 'student',
@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         this.Course = this.sequelize.define('course', {
-          no: {type: Sequelize.INTEGER, primaryKey: true},
+          no: { type: Sequelize.INTEGER, primaryKey: true },
           name: Sequelize.STRING
         }, {
           tableName: 'course',
@@ -42,15 +42,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           timestamps: false
         });
 
-        this.Student.belongsToMany(this.Course, {through: this.Score, foreignKey: 'StudentId'});
-        this.Course.belongsToMany(this.Student, {through: this.Score, foreignKey: 'CourseId'});
+        this.Student.belongsToMany(this.Course, { through: this.Score, foreignKey: 'StudentId' });
+        this.Course.belongsToMany(this.Student, { through: this.Score, foreignKey: 'CourseId' });
 
-        return this.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           return Promise.join(
-            this.Student.create({no: 1, name: 'ryan'}),
-            this.Course.create({no: 100, name: 'history'})
+            this.Student.create({ no: 1, name: 'ryan' }),
+            this.Course.create({ no: 100, name: 'history' })
           ).then(([student, course]) => {
-            return student.addCourse(course, { through: {score: 98, test_value: 1000}});
+            return student.addCourse(course, { through: { score: 98, test_value: 1000 } });
           }).then(() => {
             expect(callCount).to.equal(1);
             return this.Score.findOne({ where: { StudentId: 1, CourseId: 100 } }).then(score => {
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           })
             .then(() => {
               return Promise.join(
-                this.Student.build({no: 1}).getCourses({where: {no: 100}}),
+                this.Student.build({ no: 1 }).getCourses({ where: { no: 100 } }),
                 this.Score.findOne({ where: { StudentId: 1, CourseId: 100 } })
               );
             })
@@ -79,8 +79,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           timestamps: false
         });
 
-        return this.sequelize.sync({force: true})
-          .then(() => Person.create({name: 'Jozef', nick: 'Joe'}))
+        return this.sequelize.sync({ force: true })
+          .then(() => Person.create({ name: 'Jozef', nick: 'Joe' }))
           .then(() => Person.findOne({
             attributes: [
               'nick',
@@ -108,9 +108,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         Person.hasMany(Computer);
 
-        return this.sequelize.sync({force: true})
-          .then(() => Person.create({name: 'Jozef', nick: 'Joe'}))
-          .then(person => person.createComputer({hostname: 'laptop'}))
+        return this.sequelize.sync({ force: true })
+          .then(() => Person.create({ name: 'Jozef', nick: 'Joe' }))
+          .then(person => person.createComputer({ hostname: 'laptop' }))
           .then(() => Person.findAll({
             attributes: [
               'nick',
@@ -138,7 +138,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'foo.bar.baz': Sequelize.TEXT
         });
 
-        return this.sequelize.sync({force: true})
+        return this.sequelize.sync({ force: true })
           .then(() => User.findAll())
           .then(result => {
             expect(result.length).to.equal(0);

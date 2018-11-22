@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       id: { type: DataTypes.INTEGER, primaryKey: true },
       aNumber: { type: DataTypes.INTEGER },
       bNumber: { type: DataTypes.INTEGER },
-      cNumber: { type: DataTypes.INTEGER, field: 'c_number'}
+      cNumber: { type: DataTypes.INTEGER, field: 'c_number' }
     });
 
     return this.User.sync({ force: true }).then(() => {
@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('uses correct column names for where conditions', function() {
-        return this.User[method](['aNumber'], {by: 2, where: {cNumber: 0}}).then(() => {
+        return this.User[method](['aNumber'], { by: 2, where: { cNumber: 0 } }).then(() => {
           return this.User.findByPk(4).then(user4 => {
             expect(user4.aNumber).to.be.equal(this.assert(2, -2));
           });
@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('with single field and no value', function() {
         return this.User.findAll().then(aUsers => {
-          return this.User[method]('aNumber', { where: {}}).then(() => {
+          return this.User[method]('aNumber', { where: {} }).then(() => {
             return this.User.findAll().then(bUsers => {
               for (let i = 0; i < bUsers.length; i++) {
                 expect(bUsers[i].aNumber).to.equal(this.assert(aUsers[i].aNumber + 1, aUsers[i].aNumber - 1));
@@ -129,7 +129,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('with key value pair', function() {
         return this.User.findAll().then(aUsers => {
-          return this.User[method]({ 'aNumber': 1, 'bNumber': 2 }, { where: { }}).then(() => {
+          return this.User[method]({ 'aNumber': 1, 'bNumber': 2 }, { where: { } }).then(() => {
             return this.User.findAll().then(bUsers => {
               for (let i = 0; i < bUsers.length; i++) {
                 expect(bUsers[i].aNumber).to.equal(this.assert(aUsers[i].aNumber + 1, aUsers[i].aNumber - 1));
@@ -162,12 +162,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let oldDate;
 
         return User.sync({ force: true }).then(() => {
-          return User.create({aNumber: 1});
+          return User.create({ aNumber: 1 });
         }).then(user => {
           oldDate = user.updatedAt;
 
           this.clock.tick(1000);
-          return User[method]('aNumber', {by: 1, where: {}});
+          return User[method]('aNumber', { by: 1, where: {} });
         }).then(() => {
           return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
         });
@@ -180,11 +180,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let oldDate;
 
         return User.sync({ force: true }).then(() => {
-          return User.create({aNumber: 1});
+          return User.create({ aNumber: 1 });
         }).then(user => {
           oldDate = user.updatedAt;
           this.clock.tick(1000);
-          return User[method]('aNumber', {by: 1, silent: true, where: { }});
+          return User[method]('aNumber', { by: 1, silent: true, where: { } });
         }).then(() => {
           return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
         });

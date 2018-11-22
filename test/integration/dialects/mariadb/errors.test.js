@@ -19,28 +19,28 @@ describe('[MariaDB Specific] Errors', () => {
 
   describe('ForeignKeyConstraintError', () => {
     beforeEach(function() {
-      this.Task = this.sequelize.define('task', {title: DataTypes.STRING});
-      this.User = this.sequelize.define('user', {username: DataTypes.STRING});
+      this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
+      this.User = this.sequelize.define('user', { username: DataTypes.STRING });
       this.UserTasks = this.sequelize.define('tasksusers',
-        {userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER});
+        { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
 
       this.User.belongsToMany(this.Task,
-        {onDelete: 'RESTRICT', through: 'tasksusers'});
+        { onDelete: 'RESTRICT', through: 'tasksusers' });
       this.Task.belongsToMany(this.User,
-        {onDelete: 'RESTRICT', through: 'tasksusers'});
+        { onDelete: 'RESTRICT', through: 'tasksusers' });
 
       this.Task.belongsTo(this.User,
-        {foreignKey: 'primaryUserId', as: 'primaryUsers'});
+        { foreignKey: 'primaryUserId', as: 'primaryUsers' });
     });
 
     it('in context of DELETE restriction', function() {
       const self = this,
         ForeignKeyConstraintError = this.sequelize.ForeignKeyConstraintError;
 
-      return this.sequelize.sync({force: true}).bind({}).then(() => {
+      return this.sequelize.sync({ force: true }).bind({}).then(() => {
         return Promise.all([
-          self.User.create({id: 67, username: 'foo'}),
-          self.Task.create({id: 52, title: 'task'})
+          self.User.create({ id: 67, username: 'foo' }),
+          self.Task.create({ id: 52, title: 'task' })
         ]);
       }).spread(function(user1, task1) {
         this.user1 = user1;
@@ -70,8 +70,8 @@ describe('[MariaDB Specific] Errors', () => {
       const self = this,
         ForeignKeyConstraintError = this.sequelize.ForeignKeyConstraintError;
 
-      return this.sequelize.sync({force: true}).then(() =>
-        validateError(self.Task.create({title: 'task', primaryUserId: 5}),
+      return this.sequelize.sync({ force: true }).then(() =>
+        validateError(self.Task.create({ title: 'task', primaryUserId: 5 }),
           ForeignKeyConstraintError, {
             fields: ['primaryUserId'],
             table: 'users',

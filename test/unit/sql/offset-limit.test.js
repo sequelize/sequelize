@@ -13,7 +13,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = function(options, expectation) {
       const model = options.model;
 
-      it(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.addLimitAndOffset(
             options,
@@ -26,7 +26,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql({
       limit: 10, //when no order by present, one is automagically prepended, test its existence
-      model: {primaryKeyField: 'id', name: 'tableRef'}
+      model: { primaryKeyField: 'id', name: 'tableRef' }
     }, {
       default: ' LIMIT 10',
       mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'

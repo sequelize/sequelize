@@ -18,14 +18,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     this.User.hasMany(this.Project);
     this.Project.belongsTo(this.User);
 
-    return this.sequelize.sync({force: true});
+    return this.sequelize.sync({ force: true });
   });
 
   describe('count', () => {
     beforeEach(function() {
       return this.User.bulkCreate([
-        {username: 'boo'},
-        {username: 'boo2'}
+        { username: 'boo' },
+        { username: 'boo2' }
       ]).then(() => {
         return this.User.findOne();
       }).then(user => {
@@ -74,9 +74,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.sequelize.sync({ force: true })
         .then(() =>
           this.User.bulkCreate([
-            { username: 'valak', age: 10},
-            { username: 'conjuring', age: 20},
-            { username: 'scary', age: 10}
+            { username: 'valak', age: 10 },
+            { username: 'conjuring', age: 20 },
+            { username: 'scary', age: 10 }
           ])
         )
         .then(() =>
@@ -108,9 +108,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.sequelize.sync({ force: true })
         .then(() =>
           this.User.bulkCreate([
-            { username: 'ember', age: 10},
-            { username: 'angular', age: 20},
-            { username: 'mithril', age: 10}
+            { username: 'ember', age: 10 },
+            { username: 'angular', age: 20 },
+            { username: 'mithril', age: 10 }
           ])
         )
         .then(() =>
@@ -150,9 +150,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should be able to specify column for COUNT() with includes', function() {
       return this.sequelize.sync({ force: true }).then(() =>
         this.User.bulkCreate([
-          { username: 'ember', age: 10},
-          { username: 'angular', age: 20},
-          { username: 'mithril', age: 10}
+          { username: 'ember', age: 10 },
+          { username: 'angular', age: 20 },
+          { username: 'mithril', age: 10 }
         ])
       ).then(() =>
         this.User.count({

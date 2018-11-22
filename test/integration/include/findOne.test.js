@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { model: B, required: false, include: [
               { model: C, required: false },
               { model: D }
-            ]}
+            ] }
           ]
         });
       });
@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     it('should work with a 1:M to M:1 relation with a where on the last include', function()  {
       const Model = this.sequelize.define('Model', {});
       const Model2 = this.sequelize.define('Model2', {});
-      const Model4 = this.sequelize.define('Model4', {something: { type: DataTypes.INTEGER }});
+      const Model4 = this.sequelize.define('Model4', { something: { type: DataTypes.INTEGER } });
 
       Model.belongsTo(Model2);
       Model2.hasMany(Model);
@@ -53,12 +53,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Model2.hasMany(Model4);
       Model4.belongsTo(Model2);
 
-      return this.sequelize.sync({force: true}).then(() => {
+      return this.sequelize.sync({ force: true }).then(() => {
         return Model.findOne({
           include: [
-            {model: Model2, include: [
-              {model: Model4, where: {something: 2}}
-            ]}
+            { model: Model2, include: [
+              { model: Model4, where: { something: 2 } }
+            ] }
           ]
         });
       });
@@ -72,8 +72,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           }
         }, { paranoid: false });
 
-      User.hasMany(Task, {foreignKey: 'userId'});
-      Task.belongsTo(User, {foreignKey: 'userId'});
+      User.hasMany(Task, { foreignKey: 'userId' });
+      Task.belongsTo(User, { foreignKey: 'userId' });
 
       return this.sequelize.sync({
         force: true
@@ -81,14 +81,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return User.create();
       }).then(user => {
         return Task.bulkCreate([
-          {userId: user.get('id'), deletedAt: new Date()},
-          {userId: user.get('id'), deletedAt: new Date()},
-          {userId: user.get('id'), deletedAt: new Date()}
+          { userId: user.get('id'), deletedAt: new Date() },
+          { userId: user.get('id'), deletedAt: new Date() },
+          { userId: user.get('id'), deletedAt: new Date() }
         ]);
       }).then(() => {
         return User.findOne({
           include: [
-            {model: Task, where: {deletedAt: null}, required: false}
+            { model: Task, where: { deletedAt: null }, required: false }
           ]
         });
       }).then(user => {
@@ -110,8 +110,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           searchString: { type: DataTypes.STRING }
         });
 
-      User.hasMany(Task, {foreignKey: 'userId'});
-      Task.belongsTo(User, {foreignKey: 'userId'});
+      User.hasMany(Task, { foreignKey: 'userId' });
+      Task.belongsTo(User, { foreignKey: 'userId' });
 
       return this.sequelize.sync({
         force: true
@@ -119,13 +119,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return User.create();
       }).then(user => {
         return Task.bulkCreate([
-          {userId: user.get('id'), searchString: 'one'},
-          {userId: user.get('id'), searchString: 'two'}
+          { userId: user.get('id'), searchString: 'one' },
+          { userId: user.get('id'), searchString: 'two' }
         ]);
       }).then(() => {
         return User.findOne({
           include: [
-            {model: Task, where: {searchString: 'one'} }
+            { model: Task, where: { searchString: 'one' } }
           ]
         });
       }).then(user => {
@@ -149,7 +149,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       B.belongsToMany(A, { through: AB });
 
       return this.sequelize
-        .sync({force: true})
+        .sync({ force: true })
         .then(() => {
           return Promise.join(
             A.create({}),
@@ -157,12 +157,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           );
         })
         .then(([a, b]) => {
-          return a.addB(b, { through: {name: 'Foobar'}});
+          return a.addB(b, { through: { name: 'Foobar' } });
         })
         .then(() => {
           return A.findOne({
             include: [
-              {model: B, through: { where: {name: 'Foobar'} }, required: true }
+              { model: B, through: { where: { name: 'Foobar' } }, required: true }
             ]
           });
         })
@@ -181,11 +181,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           name: DataTypes.STRING(40)
         });
 
-      A.belongsToMany(B, {through: 'a_b'});
-      B.belongsToMany(A, {through: 'a_b'});
+      A.belongsToMany(B, { through: 'a_b' });
+      B.belongsToMany(A, { through: 'a_b' });
 
       return this.sequelize
-        .sync({force: true})
+        .sync({ force: true })
         .then(() => {
           return A.create({
             name: 'Foobar'
@@ -193,9 +193,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         })
         .then(() => {
           return A.findOne({
-            where: {name: 'Foobar'},
+            where: { name: 'Foobar' },
             include: [
-              {model: B, where: {name: 'idontexist'}, required: false}
+              { model: B, where: { name: 'idontexist' }, required: false }
             ]
           });
         })
@@ -250,7 +250,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const User = this.sequelize.define('User', { username: DataTypes.STRING }),
         Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       User.removeAttribute('id');
-      Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username'});
+      Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
 
       return this.sequelize.sync({ force: true }).then(() => {
         return User.create({ username: 'bob' }).then(newUser => {
@@ -292,7 +292,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       F.belongsTo(G);
       G.belongsTo(H);
 
-      return this.sequelize.sync({force: true}).then(() => {
+      return this.sequelize.sync({ force: true }).then(() => {
         return Promise.join(
           A.create({}),
           (function(singles) {
@@ -330,21 +330,21 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         }).then(() => {
           return A.findOne({
             include: [
-              {model: B, include: [
-                {model: C, include: [
-                  {model: D, include: [
-                    {model: E, include: [
-                      {model: F, include: [
-                        {model: G, where: {
+              { model: B, include: [
+                { model: C, include: [
+                  { model: D, include: [
+                    { model: E, include: [
+                      { model: F, include: [
+                        { model: G, where: {
                           name: 'yolo'
                         }, include: [
-                          {model: H}
-                        ]}
-                      ]}
-                    ]}
-                  ]}
-                ]}
-              ]}
+                          { model: H }
+                        ] }
+                      ] }
+                    ] }
+                  ] }
+                ] }
+              ] }
             ]
           }).then(a => {
             expect(a.b.c.d.e.f.g.h).to.be.ok;
@@ -369,11 +369,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       User.hasMany(Post, { foreignKey: 'owner_id', scope: { owner_type: 'user'  }, as: 'UserPosts', constraints: false });
       Post.belongsTo(User, { foreignKey: 'owner_id', as: 'Owner', constraints: false });
 
-      return this.sequelize.sync({force: true}).then(() => {
+      return this.sequelize.sync({ force: true }).then(() => {
         return User.findOne({
           where: { id: 2 },
           include: [
-            { model: Post, as: 'UserPosts', where: {'private': true} }
+            { model: Post, as: 'UserPosts', where: { 'private': true } }
           ]
         });
       });

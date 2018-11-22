@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.truncateTableQuery(
             options.table,
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.truncateTableQuery(
             options.table,
@@ -74,12 +74,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('delete without limit', () => {
       const options = {
         table: User.getTableName(),
-        where: {name: 'foo' },
+        where: { name: 'foo' },
         limit: null,
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.deleteQuery(
             options.table,
@@ -100,12 +100,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('delete with limit', () => {
       const options = {
         table: User.getTableName(),
-        where: {name: "foo';DROP TABLE mySchema.myTable;"},
+        where: { name: "foo';DROP TABLE mySchema.myTable;" },
         limit: 10,
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.deleteQuery(
             options.table,
@@ -126,12 +126,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('delete with limit and without model', () => {
       const options = {
         table: User.getTableName(),
-        where: {name: "foo';DROP TABLE mySchema.myTable;"},
+        where: { name: "foo';DROP TABLE mySchema.myTable;" },
         limit: 10,
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, { depth: 2 }), () => {
         let query;
         try {
           query = sql.deleteQuery(
@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.deleteQuery(
             options.table,
@@ -195,11 +195,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       const options = {
         table: User.getTableName(),
         type: QueryTypes.BULKDELETE,
-        where: {name: undefined },
+        where: { name: undefined },
         limit: null
       };
 
-      it(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, { depth: 2 }), () => {
         const sqlOrError = _.attempt(
           sql.deleteQuery.bind(sql),
           options.table,

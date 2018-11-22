@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(util.inspect(params, {depth: 10})+(options && `, ${util.inspect(options)}` || ''), () => {
+      it(util.inspect(params, { depth: 10 })+(options && `, ${util.inspect(options)}` || ''), () => {
         const sqlOrError = _.attempt(sql.whereQuery.bind(sql), params, options);
         return expectsql(sqlOrError, expectation);
       });
@@ -32,30 +32,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     testsql([], {
       default: ''
     });
-    testsql({id: undefined}, {
+    testsql({ id: undefined }, {
       default: new Error('WHERE parameter "id" has invalid "undefined" value')
     });
-    testsql({id: 1}, {
+    testsql({ id: 1 }, {
       default: 'WHERE [id] = 1'
     });
-    testsql({id: 1, user: undefined}, {
+    testsql({ id: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
-    testsql({id: 1, user: undefined}, {type: QueryTypes.SELECT}, {
+    testsql({ id: 1, user: undefined }, { type: QueryTypes.SELECT }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
-    testsql({id: 1, user: undefined}, {type: QueryTypes.BULKDELETE}, {
+    testsql({ id: 1, user: undefined }, { type: QueryTypes.BULKDELETE }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
-    testsql({id: 1, user: undefined}, {type: QueryTypes.BULKUPDATE}, {
+    testsql({ id: 1, user: undefined }, { type: QueryTypes.BULKUPDATE }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
-    testsql({id: 1}, {prefix: 'User'}, {
+    testsql({ id: 1 }, { prefix: 'User' }, {
       default: 'WHERE [User].[id] = 1'
     });
 
     it("{ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'})) }", () => {
-      expectsql(sql.whereQuery({id: 1}, {prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'}))}), {
+      expectsql(sql.whereQuery({ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, { schema: 'yolo', tableName: 'User' })) }), {
         default: 'WHERE [yolo.User].[id] = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
         mariadb: 'WHERE `yolo`.`User`.`id` = 1',
@@ -103,7 +103,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(`${String(key)}: ${util.inspect(value, {depth: 10})}${options && `, ${util.inspect(options)}` || ''}`, () => {
+      it(`${String(key)}: ${util.inspect(value, { depth: 10 })}${options && `, ${util.inspect(options)}` || ''}`, () => {
         return expectsql(sql.whereItemQuery(key, value, options), expectation);
       });
     };
@@ -228,8 +228,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql(Op.or, [
-          {email: 'maker@mhansen.io'},
-          {email: 'janzeh@gmail.com'}
+          { email: 'maker@mhansen.io' },
+          { email: 'janzeh@gmail.com' }
         ], {
           default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')',
           mssql: '([email] = N\'maker@mhansen.io\' OR [email] = N\'janzeh@gmail.com\')'
@@ -265,13 +265,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         it('sequelize.or({group_id: 1}, {user_id: 2})', function() {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2})), {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({ group_id: 1 }, { user_id: 2 })), {
             default: '([group_id] = 1 OR [user_id] = 2)'
           });
         });
 
         it("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function() {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})), {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({ group_id: 1 }, { user_id: 2, role: 'admin' })), {
             default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))",
             mssql: "([group_id] = 1 OR ([user_id] = 2 AND [role] = N'admin'))"
           });
@@ -330,8 +330,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         testsql('name', {
           [Op.and]: [
-            {[Op.like]: '%someValue1%'},
-            {[Op.like]: '%someValue2%'}
+            { [Op.like]: '%someValue1%' },
+            { [Op.like]: '%someValue2%' }
           ]
         }, {
           default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')",
@@ -339,7 +339,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         it('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function() {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.and({shared: 1}, this.sequelize.or({group_id: 1}, {user_id: 2}))), {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.and({ shared: 1 }, this.sequelize.or({ group_id: 1 }, { user_id: 2 }))), {
             default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
           });
         });
@@ -390,8 +390,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       testsql(Op.or, [
-        {'ownerId': {[Op.col]: 'user.id'}},
-        {'ownerId': {[Op.col]: 'organization.id'}}
+        { 'ownerId': { [Op.col]: 'user.id' } },
+        { 'ownerId': { [Op.col]: 'organization.id' } }
       ], {
         default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])'
       });
@@ -808,7 +808,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         it('sequelize.json({profile: {id: "12346-78912", name: "test"}})', function() {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.json({profile: {id: '12346-78912', name: 'test'}})), {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.json({ profile: { id: '12346-78912', name: 'test' } })), {
             postgres: "(\"profile\"#>>'{id}') = '12346-78912' AND (\"profile\"#>>'{name}') = 'test'",
             sqlite: "json_extract(`profile`, '$.id') = '12346-78912' AND json_extract(`profile`, '$.name') = 'test'",
             mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '12346-78912' and json_unquote(json_extract(`profile`,'$.name')) = 'test'",
@@ -873,7 +873,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           field: {
             type: new DataTypes.JSONB()
           },
-          prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {tableName: 'User'}))
+          prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, { tableName: 'User' }))
         }, {
           mariadb: "(json_unquote(json_extract(`User`.`data`,'$.nested.attribute')) = 'value' AND json_unquote(json_extract(`User`.`data`,'$.nested.prop')) != 'None')",
           mysql: "((`User`.`data`->>'$.\"nested\".\"attribute\"') = 'value' AND (`User`.`data`->>'$.\"nested\".\"prop\"') != 'None')",
@@ -1141,7 +1141,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('fn', () => {
       it('{name: this.sequelize.fn(\'LOWER\', \'DERP\')}', function() {
-        expectsql(sql.whereQuery({name: this.sequelize.fn('LOWER', 'DERP')}), {
+        expectsql(sql.whereQuery({ name: this.sequelize.fn('LOWER', 'DERP') }), {
           default: "WHERE [name] = LOWER('DERP')",
           mssql: "WHERE [name] = LOWER(N'DERP')"
         });
@@ -1153,7 +1153,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = function(value, expectation) {
       const User = current.define('user', {});
 
-      it(util.inspect(value, {depth: 10}), () => {
+      it(util.inspect(value, { depth: 10 }), () => {
         return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
       });
     };

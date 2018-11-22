@@ -53,14 +53,14 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   describe('cloneDeep', () => {
     it('should clone objects', () => {
-      const obj = {foo: 1},
+      const obj = { foo: 1 },
         clone = Utils.cloneDeep(obj);
 
       expect(obj).to.not.equal(clone);
     });
 
     it('should clone nested objects', () => {
-      const obj = {foo: {bar: 1}},
+      const obj = { foo: { bar: 1 } },
         clone = Utils.cloneDeep(obj);
 
       expect(obj.foo).to.not.equal(clone.foo);

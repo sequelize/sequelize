@@ -22,8 +22,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       before(() => {
         stub = sinon.stub(current, 'query').returns(
           Sequelize.Promise.resolve({
-            _previousDataValues: {id: 1},
-            dataValues: {id: 3}
+            _previousDataValues: { id: 1 },
+            dataValues: { id: 3 }
           })
         );
       });
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should allow increments even if options are not given', () => {
-        instance = Model.build({id: 1}, {isNewRecord: false});
+        instance = Model.build({ id: 1 }, { isNewRecord: false });
         expect(() => {
           instance.increment(['id']);
         }).to.not.throw();

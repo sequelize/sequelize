@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('with id primary key', function() {
         const Model = current.define('model');
 
-        return Model.findOne({ where: { id: 42 }}).then(() => {
+        return Model.findOne({ where: { id: 42 } }).then(() => {
           expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
         });
       });
@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        return Model.findOne({ where: { uid: 42 }}).then(() => {
+        return Model.findOne({ where: { uid: 42 } }).then(() => {
           expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
         });
       });
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        return Model.findOne({ where: { id: Buffer.from('foo') }}).then(() => {
+        return Model.findOne({ where: { id: Buffer.from('foo') } }).then(() => {
           expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
         });
       });
@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should add limit when using { $ gt on the primary key', function() {
       const Model = current.define('model');
 
-      return Model.findOne({ where: { id: { [Op.gt]: 42 }}}).then(() => {
+      return Model.findOne({ where: { id: { [Op.gt]: 42 } } }).then(() => {
         expect(this.stub.getCall(0).args[0]).to.be.an('object').to.have.property('limit');
       });
     });
@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        return Model.findOne({ where: { unique: 42 }}).then(() => {
+        return Model.findOne({ where: { unique: 42 } }).then(() => {
           expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
         });
       });
@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        return Model.findOne({ where: { unique: Buffer.from('foo') }}).then(() => {
+        return Model.findOne({ where: { unique: Buffer.from('foo') } }).then(() => {
           expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
         });
       });
@@ -109,7 +109,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      return Model.findOne({ where: { unique1: 42}}).then(() => {
+      return Model.findOne({ where: { unique1: 42 } }).then(() => {
         expect(this.stub.getCall(0).args[0]).to.be.an('object').to.have.property('limit');
       });
     });
