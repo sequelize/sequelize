@@ -16,6 +16,7 @@ if (current.dialect.name !== 'sqlite') {
           tableName: 'user'
         }, 'email'), {
           mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
+          mariadb: 'ALTER TABLE `archive`.`user` DROP `email`;',
           mysql: 'ALTER TABLE `archive.user` DROP `email`;',
           postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";'
         });

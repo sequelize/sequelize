@@ -16,23 +16,23 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   afterEach(function() {
-    return this.sequelize.dropAllSchemas();
+    return Support.dropTestSchemas(this.sequelize);
   });
 
   describe('renameTable', () => {
     it('should rename table', function() {
       return this.queryInterface
-        .createTable('myTestTable', {
+        .createTable('my_test_table', {
           name: DataTypes.STRING
         })
-        .then(() => this.queryInterface.renameTable('myTestTable', 'myTestTableNew'))
+        .then(() => this.queryInterface.renameTable('my_test_table', 'my_test_table_new'))
         .then(() => this.queryInterface.showAllTables())
         .then(tableNames => {
-          if (dialect === 'mssql') {
+          if (dialect === 'mssql' || dialect === 'mariadb') {
             tableNames = tableNames.map(v => v.tableName);
           }
-          expect(tableNames).to.contain('myTestTableNew');
-          expect(tableNames).to.not.contain('myTestTable');
+          expect(tableNames).to.contain('my_test_table_new');
+          expect(tableNames).to.not.contain('my_test_table');
         });
     });
   });
@@ -40,41 +40,46 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('dropAllTables', () => {
     it('should drop all tables', function() {
       const filterMSSQLDefault = tableNames => tableNames.filter(t => t.tableName !== 'spt_values');
-      return this.queryInterface.dropAllTables().then(() => {
-        return this.queryInterface.showAllTables().then(tableNames => {
+      return this.queryInterface.dropAllTables()
+        .then(() => {
+          return this.queryInterface.showAllTables();
+        })
+        .then(tableNames => {
           // MSSQL include spt_values table which is system defined, hence cant be dropped
           tableNames = filterMSSQLDefault(tableNames);
           expect(tableNames).to.be.empty;
-          return this.queryInterface.createTable('table', { name: DataTypes.STRING }).then(() => {
-            return this.queryInterface.showAllTables().then(tableNames => {
-              tableNames = filterMSSQLDefault(tableNames);
-              expect(tableNames).to.have.length(1);
-              return this.queryInterface.dropAllTables().then(() => {
-                return this.queryInterface.showAllTables().then(tableNames => {
-                  // MSSQL include spt_values table which is system defined, hence cant be dropped
-                  tableNames = filterMSSQLDefault(tableNames);
-                  expect(tableNames).to.be.empty;
-                });
-              });
-            });
-          });
+          return this.queryInterface.createTable('table', {name: DataTypes.STRING});
+        })
+        .then(() => {
+          return this.queryInterface.showAllTables();
+        })
+        .then(tableNames => {
+          tableNames = filterMSSQLDefault(tableNames);
+          expect(tableNames).to.have.length(1);
+          return this.queryInterface.dropAllTables();
+        })
+        .then(() => {
+          return this.queryInterface.showAllTables();
+        })
+        .then(tableNames => {
+          // MSSQL include spt_values table which is system defined, hence cant be dropped
+          tableNames = filterMSSQLDefault(tableNames);
+          expect(tableNames).to.be.empty;
         });
-      });
     });
 
     it('should be able to skip given tables', function() {
       return this.queryInterface.createTable('skipme', {
         name: DataTypes.STRING
-      }).then(() => {
-        return this.queryInterface.dropAllTables({skip: ['skipme']}).then(() => {
-          return this.queryInterface.showAllTables().then(tableNames => {
-            if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-              tableNames = tableNames.map(v => v.tableName);
-            }
-            expect(tableNames).to.contain('skipme');
-          });
+      })
+        .then(() => this.queryInterface.dropAllTables({skip: ['skipme']}))
+        .then(() => this.queryInterface.showAllTables())
+        .then(tableNames => {
+          if (dialect === 'mssql' || dialect === 'mariadb') {
+            tableNames = tableNames.map(v => v.tableName);
+          }
+          expect(tableNames).to.contain('skipme');
         });
-      });
     });
   });
 
@@ -517,7 +522,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           .then(constraints => {
             constraints = constraints.map(constraint => constraint.constraintName);
             //The name of primaryKey constraint is always PRIMARY in case of mysql
-            if (dialect === 'mysql') {
+            if (dialect === 'mysql' || dialect === 'mariadb') {
               expect(constraints).to.include('PRIMARY');
               return this.queryInterface.removeConstraint('users', 'PRIMARY');
             }
@@ -527,7 +532,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           .then(() => this.queryInterface.showConstraint('users'))
           .then(constraints => {
             constraints = constraints.map(constraint => constraint.constraintName);
-            expect(constraints).to.not.include('users_username_pk');
+            if (dialect === 'mysql' || dialect === 'mariadb') {
+              expect(constraints).to.not.include('PRIMARY');
+            } else {
+              expect(constraints).to.not.include('users_username_pk');
+            }
           });
       });
     });

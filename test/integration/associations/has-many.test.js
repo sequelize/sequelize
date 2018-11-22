@@ -331,7 +331,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           User.Tasks = User.hasMany(Task, {as: 'tasks'});
           Task.SubTasks = Task.hasMany(SubTask, {as: 'subtasks'});
 
-          return this.sequelize.dropAllSchemas().then(() => {
+          return Support.dropTestSchemas(this.sequelize).then(() => {
             return this.sequelize.createSchema('work');
           }).then(() => {
             return User.sync({force: true});
@@ -430,7 +430,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
               return this.sequelize.dropSchema('work').then(() => {
                 return this.sequelize.showAllSchemas().then(schemas => {
-                  if (dialect === 'postgres' || dialect === 'mssql') {
+                  if (dialect === 'postgres' || dialect === 'mssql' || schemas === 'mariadb') {
                     expect(schemas).to.be.empty;
                   }
                 });

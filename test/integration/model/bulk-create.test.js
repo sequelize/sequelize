@@ -399,7 +399,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         tableName: 'Dummy'
       });
 
-      return this.sequelize.dropAllSchemas().then(() => {
+      return Support.dropTestSchemas(this.sequelize).then(() => {
         return this.sequelize.createSchema('space1');
       }).then(() => {
         return Dummy.sync({force: true});

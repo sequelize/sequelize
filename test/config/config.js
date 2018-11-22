@@ -51,6 +51,18 @@ module.exports = {
     }
   },
 
+  mariadb: {
+    database: process.env.SEQ_MARIADB_DB   || process.env.SEQ_DB   || 'sequelize_test',
+    username: process.env.SEQ_MARIADB_USER || process.env.SEQ_USER || 'root',
+    password: process.env.SEQ_MARIADB_PW   || process.env.SEQ_PW   || null,
+    host: process.env.MARIADB_PORT_3306_TCP_ADDR || process.env.SEQ_MARIADB_HOST || process.env.SEQ_HOST || '127.0.0.1',
+    port: process.env.MARIADB_PORT_3306_TCP_PORT || process.env.SEQ_MARIADB_PORT || process.env.SEQ_PORT || 3306,
+    pool: {
+      max: process.env.SEQ_MARIADB_POOL_MAX  || process.env.SEQ_POOL_MAX  || 5,
+      idle: process.env.SEQ_MARIADB_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000
+    }
+  },
+
   sqlite: {
   },
 

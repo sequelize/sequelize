@@ -126,7 +126,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       Group.hasOne(User);
 
-      return this.sequelize.dropAllSchemas().then(() => {
+      return Support.dropTestSchemas(this.sequelize).then(() => {
         return this.sequelize.createSchema('admin');
       }).then(() => {
         return Group.sync({force: true });
@@ -151,8 +151,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       }).then(() => {
         return this.sequelize.dropSchema('admin').then(() => {
           return this.sequelize.showAllSchemas().then(schemas => {
-            if (dialect === 'postgres' || dialect === 'mssql') {
-              expect(schemas).to.be.empty;
+            if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+              expect(schemas).to.not.have.property('admin');
             };
           });
         });

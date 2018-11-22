@@ -250,7 +250,8 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       it('should make the same query if called multiple time (#4470)', function() {
         const logs = [];
         const logging = function(log) {
-          logs.push(log);
+          //removing 'executing(<uuid> || 'default'}) :' from logs
+          logs.push(log.substring(log.indexOf(':') + 1));
         };
 
         return this.sequelize.sync({force: true}).then(() => {

@@ -25,6 +25,7 @@ env:
     - SEQ_PW=sequelize_test
     - SEQ_HOST=127.0.0.1
     - COVERAGE=true
+    - MARIADB_ENTRYPOINT=$TRAVIS_BUILD_DIR/test/config/mariadb
 
 before_script:
   # mount ramdisk
@@ -34,7 +35,8 @@ before_script:
   - "if [ $MYSQL_VER ]; then sudo mount -t ramfs tmpfs /mnt/sequelize-mysql-ramdisk; fi"
 
   # setup docker
-  - "if [ $POSTGRES_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MYSQL_VER}; fi"
+  - "if [ $POSTGRES_VER ] || [ $MARIADB_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MARIADB_VER} ${MYSQL_VER}; fi"
+  - "if [ $MARIADB_VER ]; then docker run --link ${MARIADB_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
 
@@ -48,6 +50,10 @@ jobs:
     - stage: test
       node_js: '6'
       env: DIALECT=sqlite
+    - stage: test
+      node_js: '6'
+      sudo: required
+      env: MARIADB_VER=mariadb-103 SEQ_MARIADB_PORT=8960 DIALECT=mariadb
     - stage: test
       node_js: '6'
       sudo: required

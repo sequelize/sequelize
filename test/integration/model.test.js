@@ -1647,12 +1647,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       };
-
-      return this.sequelize.queryInterface.dropAllSchemas().then(() => {
-        return this.sequelize.queryInterface.createSchema('prefix').then(() => {
-          return run.call(this);
-        });
-      });
+      return Support.dropTestSchemas(this.sequelize)
+        .then(() => this.sequelize.queryInterface.createSchema('prefix'))
+        .then(() => run.call(this))
+        .then(() => this.sequelize.queryInterface.dropSchema('prefix'));
     });
 
     it('should work if model is paranoid and only operator in where clause is a Symbol', function() {
@@ -2190,15 +2188,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         age: Sequelize.INTEGER
       });
 
-      return this.sequelize.dropAllSchemas().then(() => {
-        return this.sequelize.createSchema('schema_test').then(() => {
-          return this.sequelize.createSchema('special').then(() => {
-            return this.UserSpecial.schema('special').sync({force: true}).then(UserSpecialSync => {
-              this.UserSpecialSync = UserSpecialSync;
-            });
-          });
+      return Support.dropTestSchemas(this.sequelize)
+        .then(() => this.sequelize.createSchema('schema_test'))
+        .then(() => this.sequelize.createSchema('special'))
+        .then(() => this.UserSpecial.schema('special').sync({force: true}))
+        .then(UserSpecialSync => {
+          this.UserSpecialSync = UserSpecialSync;
         });
-      });
+    });
+
+    afterEach(function() {
+      return this.sequelize.dropSchema('schema_test')
+        .finally(() => this.sequelize.dropSchema('special'))
+        .finally(() => this.sequelize.dropSchema('prefix'));
     });
 
     it('should be able to drop with schemas', function() {
@@ -2211,7 +2213,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         // sqlite & MySQL doesn't actually create schemas unless Model.sync() is called
         // Postgres supports schemas natively
-        expect(schemas).to.have.length(dialect === 'postgres' || dialect === 'mssql' ? 2 : 1);
+        switch (dialect) {
+          case 'mssql':
+          case 'postgres':
+            expect(schemas).to.have.length(2);
+            break;
+          case 'mariadb':
+            expect(schemas).to.have.length(3);
+            break;
+          default :
+            expect(schemas).to.have.length(1);
+            break;
+        }
       });
     });
 
@@ -2254,7 +2267,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return UserPublic.schema('special').sync({ force: true }).then(() => {
           return this.sequelize.queryInterface.describeTable('Publics', {
             logging(sql) {
-              if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql') {
+              if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql' || dialect === 'mariadb') {
                 expect(sql).to.not.contain('special');
                 count++;
               }
@@ -2267,7 +2280,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.sequelize.queryInterface.describeTable('Publics', {
               schema: 'special',
               logging(sql) {
-                if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql') {
+                if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql' || dialect === 'mariadb') {
                   expect(sql).to.contain('special');
                   count++;
                 }
@@ -2305,6 +2318,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
             } else if (dialect === 'mssql') {
               expect(sql).to.match(/REFERENCES\s+\[prefix\]\.\[UserPubs\] \(\[id\]\)/);
+            } else if (dialect === 'mariadb') {
+              expect(sql).to.match(/REFERENCES\s+`prefix`\.`UserPubs` \(`id`\)/);
             } else {
               expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/);
             }
@@ -2313,8 +2328,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       };
 
-      if (dialect === 'postgres' || dialect === 'mssql') {
-        return this.sequelize.queryInterface.dropAllSchemas().then(() => {
+      if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+        return Support.dropTestSchemas(this.sequelize).then(() => {
           return this.sequelize.queryInterface.createSchema('prefix').then(() => {
             return run.call(this);
           });
@@ -2338,6 +2353,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             } else if (dialect === 'mssql') {
               expect(this.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
               expect(UserPublic).to.include('INSERT INTO [UserPublics]');
+            } else if (dialect === 'mariadb') {
+              expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special`.`UserSpecials`');
+              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
             } else {
               expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
               expect(UserPublic).to.include('INSERT INTO `UserPublics`');
@@ -2353,6 +2371,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
               } else if (dialect === 'mssql') {
                 expect(UserSpecial).to.include('INSERT INTO [special].[UserSpecials]');
+              } else if (dialect === 'mariadb') {
+                expect(UserSpecial).to.include('INSERT INTO `special`.`UserSpecials`');
               } else {
                 expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
               }
@@ -2365,6 +2385,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   expect(user).to.include('UPDATE "special"."UserSpecials"');
                 } else if (dialect === 'mssql') {
                   expect(user).to.include('UPDATE [special].[UserSpecials]');
+                } else if (dialect === 'mariadb') {
+                  expect(user).to.include('UPDATE `special`.`UserSpecials`');
                 } else {
                   expect(user).to.include('UPDATE `special.UserSpecials`');
                 }
@@ -2404,7 +2426,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return Post.sync({logging: _.once(sql => {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (dialect === 'mysql') {
+        } else if (dialect === 'mysql' || dialect === 'mariadb') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'mssql') {
           expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
@@ -2428,7 +2450,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return Post.sync({logging: _.once(sql => {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-        } else if (dialect === 'mysql') {
+        } else if (dialect === 'mysql' || dialect === 'mariadb') {
           expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
         } else if (dialect === 'sqlite') {
           expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
@@ -2462,7 +2484,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).catch (err => {
         if (dialect === 'mysql') {
           // MySQL 5.7 or above doesn't support POINT EMPTY
-          if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '5.6.0')) {
+          if (semver.gte(current.options.databaseVersion, '5.6.0')) {
             expect(err.message).to.match(/Cannot add foreign key constraint/);
           } else {
             expect(err.message).to.match(/Can\'t create table/);
@@ -2470,6 +2492,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         } else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above
           expect(1).to.equal(2);
+        } else if (dialect === 'mariadb') {
+          expect(err.message).to.match(/Foreign key constraint is incorrectly formed/);
         } else if (dialect === 'postgres') {
           expect(err.message).to.match(/relation "4uth0r5" does not exist/);
         } else if (dialect === 'mssql') {

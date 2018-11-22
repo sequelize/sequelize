@@ -362,7 +362,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
           } else {
-            // After set node-mysql flags = '-FOUND_ROWS' in connection of mysql,
+            // After set node-mysql flags = '-FOUND_ROWS' / foundRows=false
             // result from upsert should be false when upsert a row to its current value
             // https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html
             expect(created).to.equal(false);

@@ -13,6 +13,7 @@ function assertSameConnection(newConnection, oldConnection) {
       expect(oldConnection.processID).to.be.equal(newConnection.processID).and.to.be.ok;
       break;
 
+    case 'mariadb':
     case 'mysql':
       expect(oldConnection.threadId).to.be.equal(newConnection.threadId).and.to.be.ok;
       break;
@@ -32,6 +33,7 @@ function assertNewConnection(newConnection, oldConnection) {
       expect(oldConnection.processID).to.not.be.equal(newConnection.processID);
       break;
 
+    case 'mariadb':
     case 'mysql':
       expect(oldConnection.threadId).to.not.be.equal(newConnection.threadId);
       break;

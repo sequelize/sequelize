@@ -62,6 +62,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           bind: {
             sqlite: ['2015-01-20 00:00:00.000 +00:00'],
             mysql: ['2015-01-20 01:00:00'],
+            mariadb: ['2015-01-20 01:00:00.000'],
             default: ['2015-01-20 01:00:00.000 +01:00']
           }
         });
@@ -89,6 +90,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           bind: {
             sqlite: ['2015-01-20 01:02:03.089 +00:00'],
+            mariadb: ['2015-01-20 02:02:03.089'],
             mysql: ['2015-01-20 02:02:03.089'],
             default: ['2015-01-20 02:02:03.089 +01:00']
           }
@@ -124,6 +126,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
           postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
           mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (N\'testuser\',N\'12345\');',
+          mariadb: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
           mysql: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);'
         });
     });

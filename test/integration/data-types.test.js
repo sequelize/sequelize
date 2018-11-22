@@ -356,8 +356,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
             //This case throw unhandled exception
             return User.findAll();
           }).then(users =>{
-            if (dialect === 'mysql') {
-              // MySQL will return NULL, becuase they lack EMPTY geometry data support.
+            if (dialect === 'mysql' || dialect === 'mariadb') {
+              // MySQL will return NULL, because they lack EMPTY geometry data support.
               expect(users[0].field).to.be.eql(null);
             } else if (dialect === 'postgres' || dialect === 'postgres-native') {
               //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996

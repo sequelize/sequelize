@@ -190,7 +190,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       AcmeProject.belongsToMany(AcmeUser, {through: AcmeProjectUsers});
 
       const ctx = {};
-      return this.sequelize.dropAllSchemas().then(() => {
+      return Support.dropTestSchemas(this.sequelize).then(() => {
         return this.sequelize.createSchema('acme');
       }).then(() => {
         return Promise.all([
@@ -216,8 +216,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(project.ProjectUsers.status).to.equal('active');
         return this.sequelize.dropSchema('acme').then(() => {
           return this.sequelize.showAllSchemas().then(schemas => {
-            if (dialect === 'postgres' || dialect === 'mssql') {
-              expect(schemas).to.be.empty;
+            if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+              expect(schemas).to.not.have.property('acme');
             }
           });
         });
@@ -2026,7 +2026,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       return this.sequelize.sync({force: true}).then(() => {
         return this.sequelize.getQueryInterface().showAllTables();
       }).then(result => {
-        if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
+        if (dialect === 'mssql' || dialect === 'mariadb') {
           result = result.map(v => v.tableName);
         }
 
@@ -2045,7 +2045,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       return this.sequelize.sync({force: true}).then(() => {
         return this.sequelize.getQueryInterface().showAllTables();
       }).then(result => {
-        if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
+        if (dialect === 'mssql' || dialect === 'mariadb') {
           result = result.map(v => v.tableName);
         }
 

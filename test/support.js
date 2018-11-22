@@ -137,7 +137,31 @@ const Support = {
         return sequelize
           .getQueryInterface()
           .dropAllEnums();
+      })
+      .then(() => {
+        return this.dropTestSchemas(sequelize);
       });
+  },
+
+  dropTestSchemas(sequelize) {
+
+    const queryInterface = sequelize.getQueryInterface();
+    if (!queryInterface.QueryGenerator._dialect.supports.schemas) {
+      return this.sequelize.drop({});
+    }
+
+    return sequelize.showAllSchemas().then(schemas => {
+      const schemasPromise = [];
+      schemas.forEach(schema => {
+        const schemaName = schema.name ? schema.name : schema;
+        if (schemaName !== sequelize.config.database) {
+          schemasPromise.push(sequelize.dropSchema(schemaName));
+        }
+      });
+      return Promise.all(schemasPromise.map(p => p.catch(e => e)))
+        .then(() => {})
+        .catch(() => {});
+    });
   },
 
   getSupportedDialects() {
