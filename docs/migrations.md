@@ -185,7 +185,7 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     // logic for transforming into the new state
   },
- 
+ 
   down: (queryInterface, Sequelize) => {
     // logic for reverting the changes
   }
@@ -210,6 +210,33 @@ module.exports = {
     return queryInterface.dropTable('Person');
   }
 }
+```
+
+The following is an example of a migration that performs two changes in the database, using a transaction to ensure that all instructions are successfully executed or rolled back in case of failure:
+```js
+module.exports = {
+    up: (queryInterface, Sequelize) => {
+        return queryInterface.sequelize.transaction((t) => {
+            return Promise.all([
+                queryInterface.addColumn('Person', 'petName', {
+                    type: Sequelize.STRING
+                }, { transaction: t }),
+                queryInterface.addColumn('Person', 'favoriteColor', {
+                    type: Sequelize.STRING,
+                }, { transaction: t })
+            ])
+        })
+    },
+
+    down: (queryInterface, Sequelize) => {
+        return queryInterface.sequelize.transaction((t) => {
+            return Promise.all([
+                queryInterface.removeColumn('Person', 'petName', { transaction: t }),
+                queryInterface.removeColumn('Person', 'favoriteColor', { transaction: t })
+            ])
+        })
+    }
+};
 ```
 
 ### The `.sequelizerc` File
