@@ -467,6 +467,17 @@ Subtask.findAll({
 })
 ```
 
+`order` is also supported in the `destroy` method, but will only accept an an array of attributes and directions.
+
+```js
+Subtask.destroy({
+  order: [
+    // Will escape title and age and validate DESC and ASC respectively against a list of valid direction parameters
+    ['title', 'DESC'], ['age', 'ASC']
+  ]
+})
+```
+
 ## Table Hint
 
 `tableHint` can be used to optionally pass a table hint when using mssql. The hint must be a value from `Sequelize.TableHints` and should only be used when absolutely necessary. Only a single table hint is currently supported per query.

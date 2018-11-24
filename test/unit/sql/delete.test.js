@@ -119,6 +119,89 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    describe('delete with order', () => {
+      const options = {
+        table: User.getTableName(),
+        where: {name: "foo';DROP TABLE mySchema.myTable;"},
+        order: [['id', 'DESC']],
+        type: QueryTypes.BULKDELETE
+      };
+
+      it(util.inspect(options, {depth: 2}), () => {
+        return expectsql(
+          sql.deleteQuery(
+            options.table,
+            options.where,
+            options,
+            User
+          ), {
+            postgres: 'DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' ORDER BY id DESC)',
+            sqlite: "DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' ORDER BY id DESC)",
+            mssql: "DELETE FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;' ORDER BY id DESC; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
+            default: "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' ORDER BY id DESC"
+          }
+        );
+      });
+    });
+
+    describe('delete with order and limit', () => {
+      const options = {
+        table: User.getTableName(),
+        where: {name: "foo';DROP TABLE mySchema.myTable;"},
+        order: [['id', 'DESC']],
+        limit: 10,
+        type: QueryTypes.BULKDELETE
+      };
+
+      it(util.inspect(options, {depth: 2}), () => {
+        return expectsql(
+          sql.deleteQuery(
+            options.table,
+            options.where,
+            options,
+            User
+          ), {
+            postgres: 'DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' ORDER BY id DESC LIMIT 10)',
+            sqlite: "DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' ORDER BY id DESC LIMIT 10)",
+            mssql: "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;' ORDER BY id DESC; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
+            default: "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' ORDER BY id DESC LIMIT 10"
+          }
+        );
+      });
+    });
+
+    describe('delete with order and without model', () => {
+      const options = {
+        table: User.getTableName(),
+        where: {name: "foo';DROP TABLE mySchema.myTable;"},
+        order: [['id', 'DESC']],
+        type: QueryTypes.BULKDELETE
+      };
+
+      it(util.inspect(options, {depth: 2}), () => {
+        let query;
+        try {
+          query = sql.deleteQuery(
+            options.table,
+            options.where,
+            options,
+            null
+          );
+        } catch (err) {
+          query = err;
+        }
+
+        return expectsql(
+          query, {
+            postgres: new Error('Cannot ORDER or LIMIT delete without a model.'),
+            sqlite: "DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;' ORDER BY id DESC)",
+            mssql: "DELETE FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;' ORDER BY id DESC; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
+            default: "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' ORDER BY id DESC"
+          }
+        );
+      });
+    });
+
     describe('delete with limit and without model', () => {
       const options = {
         table: User.getTableName(),
@@ -142,7 +225,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         return expectsql(
           query, {
-            postgres: new Error('Cannot LIMIT delete without a model.'),
+            postgres: new Error('Cannot ORDER or LIMIT delete without a model.'),
             sqlite: "DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)",
             mssql: "DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;",
             default: "DELETE FROM [public.test_users] WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10"
