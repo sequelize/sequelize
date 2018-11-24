@@ -380,6 +380,29 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
     });
 
+    it('should set the foreign key value without saving model', function() {
+      const User = this.sequelize.define('user', {name: DataTypes.STRING});
+      const Organization = this.sequelize.define('organization', {name: DataTypes.STRING});
+      Organization.belongsTo(User, {
+        as: 'admin',
+        foreignKey: {allowNull: false}
+      });
+
+      return this.sequelize.sync({force: true}).then(() => {
+        return User.create({name: 'Foo'});
+      }).then(user => {
+        expect(user.name).to.equal('Foo');
+
+        const org = Organization.build({name: 'Bar'});
+        const setter = org.setAdmin(user);
+        expect(setter).to.be.undefined;
+
+        return org.getAdmin();
+      }).then(admin => {
+        expect(admin.name).to.equal('Foo');
+      });
+    });
+
     it('supports setting same association twice', function() {
       const Home = this.sequelize.define('home', {}),
         User = this.sequelize.define('user');
