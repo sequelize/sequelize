@@ -159,8 +159,7 @@ const Support = {
         }
       });
       return Promise.all(schemasPromise.map(p => p.catch(e => e)))
-        .then(() => {})
-        .catch(() => {});
+        .then(() => {}, () => {});
     });
   },
 
