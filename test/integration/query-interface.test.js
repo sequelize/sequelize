@@ -19,6 +19,29 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     return Support.dropTestSchemas(this.sequelize);
   });
 
+  if (current.dialect.supports.schemas) {
+    describe('dropAllSchema', () => {
+      it('should drop all schema', function() {
+        return this.queryInterface.dropAllSchemas(
+          {skip: [this.sequelize.config.database]})
+          .then(() => {
+            return this.queryInterface.showAllSchemas();
+          })
+          .then(schemaNames => {
+
+            return this.queryInterface.createSchema('newSchema')
+              .then(() => {
+                return this.queryInterface.showAllSchemas();
+              })
+              .then(newSchemaNames => {
+                expect(newSchemaNames).to.have.length(schemaNames.length + 1);
+                return this.queryInterface.dropSchema('newSchema');
+              });
+          });
+      });
+    });
+  }
+
   describe('renameTable', () => {
     it('should rename table', function() {
       return this.queryInterface
