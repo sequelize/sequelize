@@ -314,7 +314,7 @@ const connection = new Sequelize(db, user, pass, { operatorsAliases });
 
 ### JSON
 
-The JSON data type is supported by the PostgreSQL, SQLite and MySQL dialects only.
+The JSON data type is supported by the PostgreSQL, SQLite, MySQL and MariaDB dialects only.
 
 #### PostgreSQL
 
