@@ -184,7 +184,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
 or using connection String:
 ```js
-const sequelize = new Sequelize('mariadb://user:password@example.com:9821/database)
+const sequelize = new Sequelize('mariadb://user:password@example.com:9821/database')
 ```
 
 ### SQLite

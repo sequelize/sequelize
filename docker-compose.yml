@@ -48,7 +48,7 @@ services:
       MYSQL_USER: sequelize_test
       MYSQL_PASSWORD: sequelize_test
     volumes:
-    - /mnt/sequelize-mariadb-ramdisk:/var/lib/mysql
+    - /mnt/sequelize-mariadb-103-ramdisk:/var/lib/mysql
     - $MARIADB_ENTRYPOINT:/docker-entrypoint-initdb.d
     ports:
     - "8960:3306"
