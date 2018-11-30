@@ -93,8 +93,7 @@ Usage in object notation:
 // for enums:
 sequelize.define('model', {
   states: {
-    type: Sequelize.ENUM,
-    values: ['active', 'pending', 'deleted']
+    type: Sequelize.ENUM('active', 'pending', 'deleted')
   }
 })
 ```
