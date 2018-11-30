@@ -19,28 +19,27 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     return Support.dropTestSchemas(this.sequelize);
   });
 
-  if (current.dialect.supports.schemas) {
-    describe('dropAllSchema', () => {
-      it('should drop all schema', function() {
-        return this.queryInterface.dropAllSchemas(
-          {skip: [this.sequelize.config.database]})
-          .then(() => {
-            return this.queryInterface.showAllSchemas();
-          })
-          .then(schemaNames => {
+  describe('dropAllSchema', () => {
+    it('should drop all schema', function() {
+      return this.queryInterface.dropAllSchemas(
+        {skip: [this.sequelize.config.database]})
+        .then(() => {
+          return this.queryInterface.showAllSchemas();
+        })
+        .then(schemaNames => {
 
-            return this.queryInterface.createSchema('newSchema')
-              .then(() => {
-                return this.queryInterface.showAllSchemas();
-              })
-              .then(newSchemaNames => {
-                expect(newSchemaNames).to.have.length(schemaNames.length + 1);
-                return this.queryInterface.dropSchema('newSchema');
-              });
-          });
-      });
+          return this.queryInterface.createSchema('newSchema')
+            .then(() => {
+              return this.queryInterface.showAllSchemas();
+            })
+            .then(newSchemaNames => {
+              if (!current.dialect.supports.schemas) return;
+              expect(newSchemaNames).to.have.length(schemaNames.length + 1);
+              return this.queryInterface.dropSchema('newSchema');
+            });
+        });
     });
-  }
+  });
 
   describe('renameTable', () => {
     it('should rename table', function() {
@@ -314,6 +313,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
+    it('addColumn expected error', function() {
+      return this.queryInterface.createTable('level2', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        }
+      }).then(() => {
+        expect(this.queryInterface.addColumn.bind(this, 'users', 'level_id')).to.throw(Error, 'addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
+        expect(this.queryInterface.addColumn.bind(this, null, 'level_id')).to.throw(Error, 'addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
+        expect(this.queryInterface.addColumn.bind(this, 'users', null, {})).to.throw(Error, 'addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
+      });
+    });
+
     it('should work with schemas', function() {
       return this.queryInterface.createTable({
         tableName: 'users',
@@ -500,6 +513,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               constraints = constraints.map(constraint => constraint.constraintName);
               expect(constraints).to.not.include('check_user_roles');
             });
+        });
+
+        it('addconstraint missing type', function() {
+          expect(this.queryInterface.addConstraint.bind(this, 'users', ['roles'], {
+            where: {roles: ['user', 'admin', 'guest', 'moderator']},
+            name: 'check_user_roles'
+          })).to.throw(Error, 'Constraint type must be specified through options.type');
         });
       });
     }
