@@ -111,7 +111,7 @@ if (current.dialect.supports.JSON) {
             postgres: '("property"#>>\'{0,0}\') = \'4\' AND ("property"#>>\'{0,1}\') = \'6\' AND ("property"#>>\'{1,0}\') = \'8\'',
             sqlite: "json_extract(`property`, '$[0][0]') = '4' AND json_extract(`property`, '$[0][1]') = '6' AND json_extract(`property`, '$[1][0]') = '8'",
             mariadb: "json_unquote(json_extract(`property`,'$.0.0')) = '4' and json_unquote(json_extract(`property`,'$.0.1')) = '6' and json_unquote(json_extract(`property`,'$.1.0')) = '8'",
-            mysql: "``property`->>'$.0.0' = '4' and `property`->>'$.0.1' = '6' and `property`->>'$.1.0' = '8'"
+            mysql: "`property`->>'$.0.0' = '4' and `property`->>'$.0.1' = '6' and `property`->>'$.1.0' = '8'"
           });
         });
 
