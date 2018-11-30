@@ -106,12 +106,30 @@ if (current.dialect.supports.JSON) {
           });
         });
 
+        it('property array object', () => {
+          expectsql(sql.whereItemQuery(undefined, Sequelize.json({ property: [[4, 6], [8]]})), {
+            postgres: '("property"#>>\'{0,0}\') = \'4\' AND ("property"#>>\'{0,1}\') = \'6\' AND ("property"#>>\'{1,0}\') = \'8\'',
+            sqlite: "json_extract(`property`, '$[0][0]') = '4' AND json_extract(`property`, '$[0][1]') = '6' AND json_extract(`property`, '$[1][0]') = '8'",
+            mariadb: "json_unquote(json_extract(`property`,'$.0.0')) = '4' and json_unquote(json_extract(`property`,'$.0.1')) = '6' and json_unquote(json_extract(`property`,'$.1.0')) = '8'",
+            mysql: "``property`->>'$.0.0' = '4' and `property`->>'$.0.1' = '6' and `property`->>'$.1.0' = '8'"
+          });
+        });
+
         it('dot notation', () => {
           expectsql(sql.whereItemQuery(Sequelize.json('profile.id'), '1'), {
             postgres: '("profile"#>>\'{id}\') = \'1\'',
             sqlite: "json_extract(`profile`, '$.id') = '1'",
             mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '1'",
             mysql: "`profile`->>'$.id' = '1'"
+          });
+        });
+
+        it('item dot notation array', () => {
+          expectsql(sql.whereItemQuery(Sequelize.json('profile.id.0.1'), '1'), {
+            postgres: '("profile"#>>\'{id,0,1}\') = \'1\'',
+            sqlite: "json_extract(`profile`, '$.id[0][1]') = '1'",
+            mariadb: "json_unquote(json_extract(`profile`,'$.id[0][1]')) = '1'",
+            mysql: "`profile`->>'$.id[0][1]' = '1'"
           });
         });
 
