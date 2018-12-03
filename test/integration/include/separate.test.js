@@ -442,7 +442,7 @@ if (current.dialect.supports.groupedLimit) {
 
         User.Tasks = User.hasMany(Task, {as: 'tasks'});
 
-        return this.sequelize.dropAllSchemas().then(() => {
+        return Support.dropTestSchemas(this.sequelize).then(() => {
           return this.sequelize.createSchema('archive').then(() => {
             return this.sequelize.sync({force: true}).then(() => {
               return Promise.join(
@@ -484,8 +484,8 @@ if (current.dialect.supports.groupedLimit) {
                 expect(result[1].tasks[1].title).to.equal('c');
                 return this.sequelize.dropSchema('archive').then(() => {
                   return this.sequelize.showAllSchemas().then(schemas => {
-                    if (dialect === 'postgres' || dialect === 'mssql') {
-                      expect(schemas).to.be.empty;
+                    if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+                      expect(schemas).to.not.have.property('archive');
                     }
                   });
                 });

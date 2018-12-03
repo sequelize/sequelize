@@ -12,7 +12,7 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Greenkeeper badge](https://badges.greenkeeper.io/sequelize/sequelize.svg)](https://greenkeeper.io/)
 
-Sequelize is a promise-based Node.js ORM for Postgres, MySQL, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
+Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite and Microsoft SQL Server. It features solid transaction support, relations, read replication and more.
 
 ## v5 Beta Release
 
@@ -38,6 +38,7 @@ $ npm install --save sequelize
 # And one of the following:
 $ npm install --save pg pg-hstore
 $ npm install --save mysql2
+$ npm install --save mariadb
 $ npm install --save sqlite3
 $ npm install --save tedious # MSSQL
 ```

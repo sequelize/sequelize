@@ -19,7 +19,7 @@ const qq = str => {
   if (dialect === 'postgres' || dialect === 'mssql') {
     return `"${str}"`;
   }
-  if (dialect === 'mysql' || dialect === 'sqlite') {
+  if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'sqlite') {
     return `\`${str}\``;
   }
   return str;
@@ -280,7 +280,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         return sequelize.query('select 1;').then(() => {
           expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
+          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; Elapsed time: \d+ms/);
         });
       });
 
@@ -293,7 +293,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         return sequelize.query('select 1;').then(() => {
           expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
+          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1/);
           expect(typeof logger.args[0][1] === 'number').to.be.true;
         });
       });
@@ -305,7 +305,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           benchmark: true
         }).then(() => {
           expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \(default\): select 1; Elapsed time: \d+ms/);
+          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; Elapsed time: \d+ms/);
         });
       });
 
@@ -317,7 +317,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           benchmark: true
         }).then(() => {
           expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.equal('Executed (default): select 1;');
+          expect(logger.args[0][0]).to.be.match(/Executed \(\d*|default\): select 1;/);
           expect(typeof logger.args[0][1] === 'number').to.be.true;
         });
       });
@@ -892,7 +892,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       return Photo.sync({ force: true }).then(() => {
         return this.sequelize.getQueryInterface().showAllTables().then(tableNames => {
-          if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
+          if (dialect === 'mssql' || dialect === 'mariadb') {
             tableNames = tableNames.map(v => v.tableName);
           }
           expect(tableNames).to.include('photos');

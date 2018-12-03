@@ -34,10 +34,25 @@ services:
       POSTGRES_PASSWORD: sequelize_test
       POSTGRES_DB: sequelize_test
     volumes:
-      - /mnt/sequelize-postgres-10-ramdisk:/var/lib/postgresql/data
+    - /mnt/sequelize-postgres-10-ramdisk:/var/lib/postgresql/data
     ports:
-      - "8991:5432"
+    - "8991:5432"
     container_name: postgres-10
+
+  # MariaDB
+  mariadb-103:
+    image: mariadb:10.3
+    environment:
+      MYSQL_ROOT_PASSWORD: lollerskates
+      MYSQL_DATABASE: sequelize_test
+      MYSQL_USER: sequelize_test
+      MYSQL_PASSWORD: sequelize_test
+    volumes:
+    - /mnt/sequelize-mariadb-103-ramdisk:/var/lib/mysql
+    - $MARIADB_ENTRYPOINT:/docker-entrypoint-initdb.d
+    ports:
+    - "8960:3306"
+    container_name: mariadb-103
 
   # MySQL
   mysql-57:

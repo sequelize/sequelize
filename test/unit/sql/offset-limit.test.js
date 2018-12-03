@@ -61,6 +61,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       ]
     }, {
       default: " LIMIT ''';DELETE FROM user'",
+      mariadb: " LIMIT '\\';DELETE FROM user'",
       mysql: " LIMIT '\\';DELETE FROM user'",
       mssql: " OFFSET 0 ROWS FETCH NEXT N''';DELETE FROM user' ROWS ONLY"
     });
@@ -74,6 +75,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       sqlite: " LIMIT ''';DELETE FROM user', 10",
       postgres: " LIMIT 10 OFFSET ''';DELETE FROM user'",
+      mariadb: " LIMIT '\\';DELETE FROM user', 10",
       mysql: " LIMIT '\\';DELETE FROM user', 10",
       mssql: " OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY"
     });

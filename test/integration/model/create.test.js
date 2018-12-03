@@ -797,7 +797,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('is possible to use casting when creating an instance', function() {
-      const type = dialect === 'mysql' ? 'signed' : 'integer';
+      const type = dialect === 'mysql' || dialect === 'mariadb' ? 'signed' : 'integer';
       let match = false;
 
       return this.User.create({
@@ -819,7 +819,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       let type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'integer'), 'integer'),
         match = false;
 
-      if (dialect === 'mysql') {
+      if (dialect === 'mysql' || dialect === 'mariadb') {
         type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'unsigned'), 'signed');
       }
 
@@ -827,7 +827,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         intVal: type
       }, {
         logging(sql) {
-          if (dialect === 'mysql') {
+          if (dialect === 'mysql' || dialect === 'mariadb') {
             expect(sql).to.contain('CAST(CAST(1-2 AS UNSIGNED) AS SIGNED)');
           } else {
             expect(sql).to.contain('CAST(CAST(1-2 AS INTEGER) AS INTEGER)');

@@ -10,7 +10,7 @@
 [![npm](https://img.shields.io/npm/v/sequelize.svg?style=flat-square)](https://github.com/sequelize/sequelize/releases)
 [![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com/)
 
-Sequelize is a promise-based ORM for Node.js v4 and up. It supports the dialects PostgreSQL, MySQL, SQLite and MSSQL and features solid transaction support, relations, read replication and more.
+Sequelize is a promise-based ORM for Node.js v4 and up. It supports the dialects PostgreSQL, MariaDB, MySQL, SQLite and MSSQL and features solid transaction support, relations, read replication and more.
 
 ## Example usage
 
@@ -18,7 +18,7 @@ Sequelize is a promise-based ORM for Node.js v4 and up. It supports the dialects
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
-  dialect: 'mysql'|'sqlite'|'postgres'|'mssql',
+  dialect: 'mysql'|'mariadb'|'sqlite'|'postgres'|'mssql',
 
   pool: {
     max: 5,

@@ -104,6 +104,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           attributes: []
         })).to.eventually.equal(1);
       });
+
+      if (Support.sequelize.dialect.supports.schemas) {
+        it('aggregate with schema', function() {
+          this.Hero = this.sequelize.define('Hero', {
+            codename: Sequelize.STRING
+          }, {schema: 'heroschema'});
+          return this.sequelize.createSchema('heroschema')
+            .then(() => {
+              return this.sequelize.sync({force: true});
+            })
+            .then(() => {
+              const records = [
+                {codename: 'hulk'},
+                {codename: 'rantanplan'}
+              ];
+              return this.Hero.bulkCreate(records);
+            })
+            .then(() => {
+              return expect(
+                this.Hero.unscoped().aggregate('*', 'count',
+                  {schema: 'heroschema'})).to.eventually.equal(
+                2);
+            });
+        });
+      }
     });
   });
 });

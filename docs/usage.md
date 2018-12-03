@@ -170,7 +170,22 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
 **Note:** You can pass options directly to dialect library by setting the
 `dialectOptions` parameter. See [Options][0]
-for examples (currently only mysql is supported).
+
+### MariaDB
+
+Library for MariaDB is `mariadb`.
+
+```js
+const sequelize = new Sequelize('database', 'username', 'password', {
+  dialect: 'mariadb',
+  dialectOptions: {connectTimeout: 1000} // mariadb connector option
+})
+```
+
+or using connection String:
+```js
+const sequelize = new Sequelize('mariadb://user:password@example.com:9821/database')
+```
 
 ### SQLite
 

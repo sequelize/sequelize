@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
     it('when we don\'t have a valid dialect.', () => {
       expect(() => {
         new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {host: '0.0.0.1', port: config[dialect].port, dialect: 'some-fancy-dialect'});
-      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mysql, postgres, and sqlite.');
+      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mariadb, mysql, postgres, and sqlite.');
     });
   });
 

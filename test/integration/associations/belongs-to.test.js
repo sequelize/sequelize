@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       Task.belongsTo(User);
 
-      return this.sequelize.dropAllSchemas().then(() => {
+      return Support.dropTestSchemas(this.sequelize).then(() => {
         return this.sequelize.createSchema('archive');
       }).then(() => {
         return User.sync({force: true });
@@ -146,8 +146,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         expect(user).to.be.ok;
         return this.sequelize.dropSchema('archive').then(() => {
           return this.sequelize.showAllSchemas().then(schemas => {
-            if (dialect === 'postgres' || dialect === 'mssql') {
-              expect(schemas).to.be.empty;
+            if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+              expect(schemas).to.not.have.property('archive');
             }
           });
         });
@@ -172,7 +172,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       Task.belongsTo(User, { foreignKey: 'user_id'});
 
-      return this.sequelize.dropAllSchemas().then(() => {
+      return Support.dropTestSchemas(this.sequelize).then(() => {
         return this.sequelize.createSchema('archive');
       }).then(() => {
         return User.sync({force: true });
@@ -188,6 +188,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         });
       }).then(user => {
         expect(user).to.be.ok;
+        return this.sequelize.dropSchema('archive');
       });
     });
   });

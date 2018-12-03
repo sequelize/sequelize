@@ -72,24 +72,28 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('TEXT("tiny")', DataTypes.TEXT('tiny'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
+        mariadb: 'TINYTEXT',
         mysql: 'TINYTEXT'
       });
 
       testsql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
+        mariadb: 'TINYTEXT',
         mysql: 'TINYTEXT'
       });
 
       testsql('TEXT("medium")', DataTypes.TEXT('medium'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
+        mariadb: 'MEDIUMTEXT',
         mysql: 'MEDIUMTEXT'
       });
 
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
+        mariadb: 'LONGTEXT',
         mysql: 'LONGTEXT'
       });
 
@@ -140,6 +144,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('BOOLEAN', DataTypes.BOOLEAN, {
         postgres: 'BOOLEAN',
         mssql: 'BIT',
+        mariadb: 'TINYINT(1)',
         mysql: 'TINYINT(1)',
         sqlite: 'TINYINT(1)'
       });
@@ -170,6 +175,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('DATE', DataTypes.DATE, {
         postgres: 'TIMESTAMP WITH TIME ZONE',
         mssql: 'DATETIMEOFFSET',
+        mariadb: 'DATETIME',
         mysql: 'DATETIME',
         sqlite: 'DATETIME'
       });
@@ -177,6 +183,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('DATE(6)', DataTypes.DATE(6), {
         postgres: 'TIMESTAMP WITH TIME ZONE',
         mssql: 'DATETIMEOFFSET',
+        mariadb: 'DATETIME(6)',
         mysql: 'DATETIME(6)',
         sqlite: 'DATETIME'
       });
@@ -222,6 +229,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('UUID', DataTypes.UUID, {
         postgres: 'UUID',
         mssql: 'CHAR(36)',
+        mariadb: 'CHAR(36) BINARY',
         mysql: 'CHAR(36) BINARY',
         sqlite: 'UUID'
       });
@@ -1187,16 +1195,19 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       testsql('DECIMAL.UNSIGNED', DataTypes.DECIMAL.UNSIGNED, {
+        mariadb: 'DECIMAL UNSIGNED',
         mysql: 'DECIMAL UNSIGNED',
         default: 'DECIMAL'
       });
 
       testsql('DECIMAL.UNSIGNED.ZEROFILL', DataTypes.DECIMAL.UNSIGNED.ZEROFILL, {
+        mariadb: 'DECIMAL UNSIGNED ZEROFILL',
         mysql: 'DECIMAL UNSIGNED ZEROFILL',
         default: 'DECIMAL'
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
+        mariadb: 'DECIMAL(10,2) UNSIGNED',
         mysql: 'DECIMAL(10,2) UNSIGNED',
         default: 'DECIMAL(10,2)'
       });
@@ -1430,21 +1441,25 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('POINT'), {
           postgres: 'GEOMETRY(POINT)',
+          mariadb: 'POINT',
           mysql: 'POINT'
         });
 
         testsql('GEOMETRY(\'LINESTRING\')', DataTypes.GEOMETRY('LINESTRING'), {
           postgres: 'GEOMETRY(LINESTRING)',
+          mariadb: 'LINESTRING',
           mysql: 'LINESTRING'
         });
 
         testsql('GEOMETRY(\'POLYGON\')', DataTypes.GEOMETRY('POLYGON'), {
           postgres: 'GEOMETRY(POLYGON)',
+          mariadb: 'POLYGON',
           mysql: 'POLYGON'
         });
 
         testsql('GEOMETRY(\'POINT\',4326)', DataTypes.GEOMETRY('POINT', 4326), {
           postgres: 'GEOMETRY(POINT,4326)',
+          mariadb: 'POINT',
           mysql: 'POINT'
         });
       });

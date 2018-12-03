@@ -16,9 +16,13 @@ const sortById = function(a, b) {
 
 describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
   describe('findAll', () => {
+    afterEach(function() {
+      return this.sequelize.dropSchema('account');
+    });
+
     beforeEach(function() {
       this.fixtureA = function() {
-        return this.sequelize.dropAllSchemas().then(() => {
+        return this.sequelize.dropSchema('account').then(() => {
           return this.sequelize.createSchema('account').then(() => {
             const AccUser = this.sequelize.define('AccUser', {}, {schema: 'account'}),
               Company = this.sequelize.define('Company', {
@@ -190,10 +194,11 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           });
         });
       };
+      return this.sequelize.createSchema('account');
     });
 
     it('should support an include with multiple different association types', function() {
-      return this.sequelize.dropAllSchemas().then(() => {
+      return this.sequelize.dropSchema('account').then(() => {
         return this.sequelize.createSchema('account').then(() => {
           const AccUser = this.sequelize.define('AccUser', {}, {schema: 'account'}),
             Product = this.sequelize.define('Product', {
@@ -1170,7 +1175,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       });
     });
 
-    it('should support including date fields, with the correct timeszone', function() {
+    it('should support including date fields, with the correct timezone', function() {
       const User = this.sequelize.define('user', {
           dateField: Sequelize.DATE
         }, {timestamps: false, schema: 'account'}),
@@ -1260,7 +1265,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         foreignKey: 'UserId'
       });
 
-      return this.sequelize.dropAllSchemas().then(() => {
+      return this.sequelize.dropSchema('hero').then(() => {
         return this.sequelize.createSchema('hero');
       }).then(() => {
         return this.sequelize.sync({force: true}).then(() => {
@@ -1274,7 +1279,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             }]
           });
         });
-      });
+      }).then(() => this.sequelize.dropSchema('hero'));
     });
   });
 });
