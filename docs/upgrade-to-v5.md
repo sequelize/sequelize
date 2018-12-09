@@ -187,6 +187,29 @@ Model.findAll({
 
 ## Changelog
 
+### 5.0.0-beta.15
+
+- fix(query-generator): fix addColumn create comment [#10117](https://github.com/sequelize/sequelize/pull/10117)
+- fix(sync): throw when no models defined [#10175](https://github.com/sequelize/sequelize/pull/10175)
+- fix(association): enable eager load with include all(#9928) [#10173](https://github.com/sequelize/sequelize/pull/10173)
+- fix(sqlite): simplify connection error handling
+- fix(model): prevent version number from being incremented as string [#10217](https://github.com/sequelize/sequelize/pull/10217)
+- feat(dialect): mariadb [#10192](https://github.com/sequelize/sequelize/pull/10192)
+- docs(migrations): improve dialect options docs
+- docs: fix favicon [#10242](https://github.com/sequelize/sequelize/pull/10242)
+- docs(model.init): `attribute.column.validate` option [#10237](https://github.com/sequelize/sequelize/pull/10237)
+- docs(bulk-create): update support information about ignoreDuplicates
+- docs: explain custom/new data types [#10170](https://github.com/sequelize/sequelize/pull/10170)
+- docs(migrations): Simplify CLI Call [#10201](https://github.com/sequelize/sequelize/pull/10201)
+- docs(migrations): added advanced skeleton example [#10190](https://github.com/sequelize/sequelize/pull/10190)
+- docs(transaction): default isolation level [#10111](https://github.com/sequelize/sequelize/pull/10111)
+- docs: typo in associations.md [#10157](https://github.com/sequelize/sequelize/pull/10157)
+- refactor: reduce code complexity [#10120](https://github.com/sequelize/sequelize/pull/10120)
+- refactor: optimize memoize use, misc cases [#10122](https://github.com/sequelize/sequelize/pull/10122)
+- chore(lint): enforce consistent spacing [#10193](https://github.com/sequelize/sequelize/pull/10193)
+
+
+
 ### 5.0.0-beta.14
 
 - fix(query): correctly quote identifier for attributes (#9964) [#10118](https://github.com/sequelize/sequelize/pull/10118)
