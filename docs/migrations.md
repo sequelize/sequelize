@@ -185,7 +185,7 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     // logic for transforming into the new state
   },
- 
+
   down: (queryInterface, Sequelize) => {
     // logic for reverting the changes
   }
@@ -517,16 +517,14 @@ use the `--url` option to pass in a connection string. For example:
 $ npx sequelize db:migrate --url 'mysql://root:password@mysql_host.com/database_name'
 ```
 
-### Connecting over SSL
-Ensure ssl is specified in both `dialectOptions` and in the base config.
+### Passing Dialect Specific Options
 
 ```json
 {
     "production": {
         "dialect":"postgres",
-        "ssl": true,
         "dialectOptions": {
-            "ssl": true
+            // dialect options like SSL etc here
         }
     }
 }
