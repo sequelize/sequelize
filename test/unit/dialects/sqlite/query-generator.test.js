@@ -28,7 +28,7 @@ if (dialect === 'sqlite') {
         },
         {
           title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz' }],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\''
         },
         {
@@ -43,114 +43,114 @@ if (dialect === 'sqlite') {
         },
         {
           title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz'}],
+          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz' }],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\''
         }
       ],
       attributesToSQL: [
         {
-          arguments: [{id: 'INTEGER'}],
-          expectation: {id: 'INTEGER'}
+          arguments: [{ id: 'INTEGER' }],
+          expectation: { id: 'INTEGER' }
         },
         {
-          arguments: [{id: 'INTEGER', foo: 'VARCHAR(255)'}],
-          expectation: {id: 'INTEGER', foo: 'VARCHAR(255)'}
+          arguments: [{ id: 'INTEGER', foo: 'VARCHAR(255)' }],
+          expectation: { id: 'INTEGER', foo: 'VARCHAR(255)' }
         },
         {
-          arguments: [{id: {type: 'INTEGER'}}],
-          expectation: {id: 'INTEGER'}
+          arguments: [{ id: { type: 'INTEGER' } }],
+          expectation: { id: 'INTEGER' }
         },
         {
-          arguments: [{id: {type: 'INTEGER', allowNull: false}}],
-          expectation: {id: 'INTEGER NOT NULL'}
+          arguments: [{ id: { type: 'INTEGER', allowNull: false } }],
+          expectation: { id: 'INTEGER NOT NULL' }
         },
         {
-          arguments: [{id: {type: 'INTEGER', allowNull: true}}],
-          expectation: {id: 'INTEGER'}
+          arguments: [{ id: { type: 'INTEGER', allowNull: true } }],
+          expectation: { id: 'INTEGER' }
         },
         {
-          arguments: [{id: {type: 'INTEGER', primaryKey: true, autoIncrement: true}}],
-          expectation: {id: 'INTEGER PRIMARY KEY AUTOINCREMENT'}
+          arguments: [{ id: { type: 'INTEGER', primaryKey: true, autoIncrement: true } }],
+          expectation: { id: 'INTEGER PRIMARY KEY AUTOINCREMENT' }
         },
         {
-          arguments: [{id: {type: 'INTEGER', defaultValue: 0}}],
-          expectation: {id: 'INTEGER DEFAULT 0'}
+          arguments: [{ id: { type: 'INTEGER', defaultValue: 0 } }],
+          expectation: { id: 'INTEGER DEFAULT 0' }
         },
         {
-          arguments: [{id: {type: 'INTEGER', defaultValue: undefined}}],
-          expectation: {id: 'INTEGER'}
+          arguments: [{ id: { type: 'INTEGER', defaultValue: undefined } }],
+          expectation: { id: 'INTEGER' }
         },
         {
-          arguments: [{id: {type: 'INTEGER', unique: true}}],
-          expectation: {id: 'INTEGER UNIQUE'}
+          arguments: [{ id: { type: 'INTEGER', unique: true } }],
+          expectation: { id: 'INTEGER UNIQUE' }
         },
 
         // New references style
         {
-          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }}}],
-          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`)'}
+          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' } } }],
+          expectation: { id: 'INTEGER REFERENCES `Bar` (`id`)' }
         },
         {
-          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar', key: 'pk' }}}],
-          expectation: {id: 'INTEGER REFERENCES `Bar` (`pk`)'}
+          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar', key: 'pk' } } }],
+          expectation: { id: 'INTEGER REFERENCES `Bar` (`pk`)' }
         },
         {
-          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE'}}],
-          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE'}
+          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE' } }],
+          expectation: { id: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE' }
         },
         {
-          arguments: [{id: {type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT'}
+          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT' } }],
+          expectation: { id: 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT' }
         },
         {
-          arguments: [{id: {type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT'}}],
-          expectation: {id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT'}
+          arguments: [{ id: { type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
+          expectation: { id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT' }
         }
       ],
 
       createTableQuery: [
         {
-          arguments: ['myTable', {data: 'BLOB'}],
+          arguments: ['myTable', { data: 'BLOB' }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB);'
         },
         {
-          arguments: ['myTable', {data: 'LONGBLOB'}],
+          arguments: ['myTable', { data: 'LONGBLOB' }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB);'
         },
         {
-          arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)'}],
+          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', {title: 'VARCHAR BINARY(255)', number: 'INTEGER(5) UNSIGNED PRIMARY KEY '}], // length and unsigned are not allowed on primary key
+          arguments: ['myTable', { title: 'VARCHAR BINARY(255)', number: 'INTEGER(5) UNSIGNED PRIMARY KEY ' }], // length and unsigned are not allowed on primary key
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR BINARY(255), `number` INTEGER PRIMARY KEY);'
         },
         {
-          arguments: ['myTable', {title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)'}],
+          arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM(\"A\", \"B\", \"C\"), `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY'}],
+          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `id` INTEGER PRIMARY KEY);'
         },
         {
-          arguments: ['myTable', {title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION'}],
+          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION' }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);'
         },
         {
-          arguments: ['myTable', {id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)'}],
+          arguments: ['myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)' }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', {id: 'INTEGER(4) PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)'}],
+          arguments: ['myTable', { id: 'INTEGER(4) PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)' }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', {id: 'SMALLINT(4) PRIMARY KEY AUTOINCREMENT UNSIGNED', name: 'VARCHAR(255)'}],
+          arguments: ['myTable', { id: 'SMALLINT(4) PRIMARY KEY AUTOINCREMENT UNSIGNED', name: 'VARCHAR(255)' }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));'
         },
         {
-          arguments: ['myTable', {id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)'}, {uniqueKeys: {uniqueConstraint: {fields: ['name', 'surname'], customIndex: true }}}],
+          arguments: ['myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'], customIndex: true } } }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255), UNIQUE (`name`, `surname`));'
         }
       ],
@@ -161,23 +161,23 @@ if (dialect === 'sqlite') {
           expectation: 'SELECT * FROM `myTable`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {attributes: ['id', 'name']}],
+          arguments: ['myTable', { attributes: ['id', 'name'] }],
           expectation: 'SELECT `id`, `name` FROM `myTable`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {where: {id: 2}}],
+          arguments: ['myTable', { where: { id: 2 } }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {where: {name: 'foo'}}],
+          arguments: ['myTable', { where: { name: 'foo' } }],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name` = 'foo';",
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {where: {name: "foo';DROP TABLE myTable;"}}],
+          arguments: ['myTable', { where: { name: "foo';DROP TABLE myTable;" } }],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name` = 'foo\'\';DROP TABLE myTable;';",
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {where: 2}],
+          arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
           context: QueryGenerator
         }, {
@@ -185,28 +185,28 @@ if (dialect === 'sqlite') {
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {order: ['id']}],
+          arguments: ['myTable', { order: ['id'] }],
           expectation: 'SELECT * FROM `myTable` ORDER BY `id`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {order: ['id', 'DESC']}],
+          arguments: ['myTable', { order: ['id', 'DESC'] }],
           expectation: 'SELECT * FROM `myTable` ORDER BY `id`, `DESC`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {order: ['myTable.id']}],
+          arguments: ['myTable', { order: ['myTable.id'] }],
           expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {order: [['myTable.id', 'DESC']]}],
+          arguments: ['myTable', { order: [['myTable.id', 'DESC']] }],
           expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id` DESC;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {order: [['id', 'DESC']]}, function(sequelize) {return sequelize.define('myTable', {});}],
+          arguments: ['myTable', { order: [['id', 'DESC']] }, function(sequelize) {return sequelize.define('myTable', {});}],
           expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC;',
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          arguments: ['myTable', {order: [['id', 'DESC'], ['name']]}, function(sequelize) {return sequelize.define('myTable', {});}],
+          arguments: ['myTable', { order: [['id', 'DESC'], ['name']] }, function(sequelize) {return sequelize.define('myTable', {});}],
           expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC, `myTable`.`name`;',
           context: QueryGenerator,
           needsSequelize: true
@@ -261,11 +261,11 @@ if (dialect === 'sqlite') {
           needsSequelize: true
         }, {
           title: 'single string argument should be quoted',
-          arguments: ['myTable', {group: 'name'}],
+          arguments: ['myTable', { group: 'name' }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {group: ['name']}],
+          arguments: ['myTable', { group: ['name'] }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
           context: QueryGenerator
         }, {
@@ -289,11 +289,11 @@ if (dialect === 'sqlite') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          arguments: ['myTable', {group: ['name', 'title']}],
+          arguments: ['myTable', { group: ['name', 'title'] }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name`, `title`;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {group: 'name', order: [['id', 'DESC']]}],
+          arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator
         }, {
@@ -309,61 +309,61 @@ if (dialect === 'sqlite') {
           context: QueryGenerator,
           needsSequelize: true
         }, {
-          arguments: ['myTable', {limit: 10}],
+          arguments: ['myTable', { limit: 10 }],
           expectation: 'SELECT * FROM `myTable` LIMIT 10;',
           context: QueryGenerator
         }, {
-          arguments: ['myTable', {limit: 10, offset: 2}],
+          arguments: ['myTable', { limit: 10, offset: 2 }],
           expectation: 'SELECT * FROM `myTable` LIMIT 2, 10;',
           context: QueryGenerator
         }, {
           title: 'uses default limit if only offset is specified',
-          arguments: ['myTable', {offset: 2}],
+          arguments: ['myTable', { offset: 2 }],
           expectation: 'SELECT * FROM `myTable` LIMIT 2, 10000000000000;',
           context: QueryGenerator
         }, {
           title: 'multiple where arguments',
-          arguments: ['myTable', {where: {boat: 'canoe', weather: 'cold'}}],
+          arguments: ['myTable', { where: { boat: 'canoe', weather: 'cold' } }],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`boat` = 'canoe' AND `myTable`.`weather` = 'cold';",
           context: QueryGenerator
         }, {
           title: 'no where arguments (object)',
-          arguments: ['myTable', {where: {}}],
+          arguments: ['myTable', { where: {} }],
           expectation: 'SELECT * FROM `myTable`;',
           context: QueryGenerator
         }, {
           title: 'no where arguments (string)',
-          arguments: ['myTable', {where: ['']}],
+          arguments: ['myTable', { where: [''] }],
           expectation: 'SELECT * FROM `myTable` WHERE 1=1;',
           context: QueryGenerator
         }, {
           title: 'no where arguments (null)',
-          arguments: ['myTable', {where: null}],
+          arguments: ['myTable', { where: null }],
           expectation: 'SELECT * FROM `myTable`;',
           context: QueryGenerator
         }, {
           title: 'buffer as where argument',
-          arguments: ['myTable', {where: { field: Buffer.from('Sequelize')}}],
+          arguments: ['myTable', { where: { field: Buffer.from('Sequelize') } }],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` = X'53657175656c697a65';",
           context: QueryGenerator
         }, {
           title: 'use != if ne !== null',
-          arguments: ['myTable', {where: {field: {[Op.ne]: 0}}}],
+          arguments: ['myTable', { where: { field: { [Op.ne]: 0 } } }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 0;',
           context: QueryGenerator
         }, {
           title: 'use IS NOT if ne === null',
-          arguments: ['myTable', {where: {field: {[Op.ne]: null}}}],
+          arguments: ['myTable', { where: { field: { [Op.ne]: null } } }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
           context: QueryGenerator
         }, {
           title: 'use IS NOT if not === BOOLEAN',
-          arguments: ['myTable', {where: {field: {[Op.not]: true}}}],
+          arguments: ['myTable', { where: { field: { [Op.not]: true } } }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT 1;',
           context: QueryGenerator
         }, {
           title: 'use != if not !== BOOLEAN',
-          arguments: ['myTable', {where: {field: {[Op.not]: 3}}}],
+          arguments: ['myTable', { where: { field: { [Op.not]: 3 } } }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
           context: QueryGenerator
         }
@@ -383,7 +383,7 @@ if (dialect === 'sqlite') {
             bind: ["'bar'"]
           }
         }, {
-          arguments: ['myTable', {data: Buffer.from('Sequelize') }],
+          arguments: ['myTable', { data: Buffer.from('Sequelize') }],
           expectation: {
             query: 'INSERT INTO `myTable` (`data`) VALUES ($1);',
             bind: [Buffer.from('Sequelize')]
@@ -401,7 +401,7 @@ if (dialect === 'sqlite') {
             bind: ['bar', undefined]
           }
         }, {
-          arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}],
+          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($1,$2);',
             bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()]
@@ -419,32 +419,32 @@ if (dialect === 'sqlite') {
             bind: ['foo', false]
           }
         }, {
-          arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
+          arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
             bind: ['foo', 1, null]
           }
         }, {
-          arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
+          arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
             bind: ['foo', 1, null]
           },
-          context: {options: {omitNull: false}}
+          context: { options: { omitNull: false } }
         }, {
-          arguments: ['myTable', {name: 'foo', foo: 1, nullValue: null}],
+          arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
             bind: ['foo', 1]
           },
-          context: {options: {omitNull: true}}
+          context: { options: { omitNull: true } }
         }, {
-          arguments: ['myTable', {name: 'foo', foo: 1, nullValue: undefined}],
+          arguments: ['myTable', { name: 'foo', foo: 1, nullValue: undefined }],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
             bind: ['foo', 1]
           },
-          context: {options: {omitNull: true}}
+          context: { options: { omitNull: true } }
         }, {
           arguments: ['myTable', function(sequelize) {
             return {
@@ -461,56 +461,56 @@ if (dialect === 'sqlite') {
 
       bulkInsertQuery: [
         {
-          arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}]],
+          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
           expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar');"
         }, {
-          arguments: ['myTable', [{name: "'bar'"}, {name: 'foo'}]],
+          arguments: ['myTable', [{ name: "'bar'" }, { name: 'foo' }]],
           expectation: "INSERT INTO `myTable` (`name`) VALUES ('''bar'''),('foo');"
         }, {
-          arguments: ['myTable', [{name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {name: 'bar', birthday: moment('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}]],
+          arguments: ['myTable', [{ name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: moment('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
           expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00');"
         }, {
-          arguments: ['myTable', [{name: 'bar', value: null}, {name: 'foo', value: 1}]],
+          arguments: ['myTable', [{ name: 'bar', value: null }, { name: 'foo', value: 1 }]],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL),('foo',1);"
         }, {
-          arguments: ['myTable', [{name: 'bar', value: undefined}, {name: 'bar', value: 2}]],
+          arguments: ['myTable', [{ name: 'bar', value: undefined }, { name: 'bar', value: 2 }]],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL),('bar',2);"
         }, {
-          arguments: ['myTable', [{name: 'foo', value: true}, {name: 'bar', value: false}]],
+          arguments: ['myTable', [{ name: 'foo', value: true }, { name: 'bar', value: false }]],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',1),('bar',0);"
         }, {
-          arguments: ['myTable', [{name: 'foo', value: false}, {name: 'bar', value: false}]],
+          arguments: ['myTable', [{ name: 'foo', value: false }, { name: 'bar', value: false }]],
           expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',0),('bar',0);"
         }, {
-          arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
+          arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
           expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);"
         }, {
-          arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
+          arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
           expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
-          context: {options: {omitNull: false}}
+          context: { options: { omitNull: false } }
         }, {
-          arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
+          arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
           expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
-          context: {options: {omitNull: true}} // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
+          context: { options: { omitNull: true } } // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
         }, {
-          arguments: ['myTable', [{name: 'foo', foo: 1, nullValue: null}, {name: 'bar', foo: 2, nullValue: null}]],
+          arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
           expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
-          context: {options: {omitNull: true}} // Note: As above
+          context: { options: { omitNull: true } } // Note: As above
         }, {
-          arguments: ['myTable', [{name: 'foo'}, {name: 'bar'}], {ignoreDuplicates: true}],
+          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
           expectation: "INSERT OR IGNORE INTO `myTable` (`name`) VALUES ('foo'),('bar');"
         }
       ],
 
       updateQuery: [
         {
-          arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
+          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
             query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
             bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2]
           }
         }, {
-          arguments: ['myTable', {name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate()}, {id: 2}],
+          arguments: ['myTable', { name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
           expectation: {
             query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
             bind: ['foo', moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), 2]
@@ -552,31 +552,31 @@ if (dialect === 'sqlite') {
             bind: [false, 2]
           }
         }, {
-          arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
+          arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
             query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
             bind: [2, null, 'foo']
           }
         }, {
-          arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
+          arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
             query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
             bind: [2, null, 'foo']
           },
-          context: {options: {omitNull: false}}
+          context: { options: { omitNull: false } }
         }, {
-          arguments: ['myTable', {bar: 2, nullValue: null}, {name: 'foo'}],
+          arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
             query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
             bind: [2, 'foo']
           },
-          context: {options: {omitNull: true}}
+          context: { options: { omitNull: true } }
         }, {
           arguments: ['myTable', function(sequelize) {
             return {
               bar: sequelize.fn('NOW')
             };
-          }, {name: 'foo'}],
+          }, { name: 'foo' }],
           expectation: {
             query: 'UPDATE `myTable` SET `bar`=NOW() WHERE `name` = $1',
             bind: ['foo']
@@ -587,7 +587,7 @@ if (dialect === 'sqlite') {
             return {
               bar: sequelize.col('foo')
             };
-          }, {name: 'foo'}],
+          }, { name: 'foo' }],
           expectation: {
             query: 'UPDATE `myTable` SET `bar`=`foo` WHERE `name` = $1',
             bind: ['foo']
@@ -598,7 +598,7 @@ if (dialect === 'sqlite') {
       renameColumnQuery: [
         {
           title: 'Properly quotes column names',
-          arguments: ['myTable', 'foo', 'commit', {commit: 'VARCHAR(255)', bar: 'VARCHAR(255)'}],
+          arguments: ['myTable', 'foo', 'commit', { commit: 'VARCHAR(255)', bar: 'VARCHAR(255)' }],
           expectation:
             'CREATE TEMPORARY TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
             'INSERT INTO `myTable_backup` SELECT `foo` AS `commit`, `bar` FROM `myTable`;' +
@@ -611,7 +611,7 @@ if (dialect === 'sqlite') {
       removeColumnQuery: [
         {
           title: 'Properly quotes column names',
-          arguments: ['myTable', {commit: 'VARCHAR(255)', bar: 'VARCHAR(255)'}],
+          arguments: ['myTable', { commit: 'VARCHAR(255)', bar: 'VARCHAR(255)' }],
           expectation:
             'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));' +
             'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;' +

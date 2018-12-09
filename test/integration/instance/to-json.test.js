@@ -207,13 +207,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       return this.User.create({ username: 'fnord', age: 1, isAdmin: true }).then(user => {
         return this.Project.create({ title: 'fnord' }).then(project => {
           return user.setProjects([project]).then(() => {
-            return this.User.findAll({include: [{ model: this.Project, as: 'Projects' }]}).then(users => {
+            return this.User.findAll({ include: [{ model: this.Project, as: 'Projects' }] }).then(users => {
               const _user = users[0];
 
               expect(_user.Projects).to.exist;
               expect(JSON.parse(JSON.stringify(_user)).Projects).to.exist;
 
-              return this.Project.findAll({include: [{ model: this.User, as: 'LovelyUser' }]}).then(projects => {
+              return this.Project.findAll({ include: [{ model: this.User, as: 'LovelyUser' }] }).then(projects => {
                 const _project = projects[0];
 
                 expect(_project.LovelyUser).to.exist;

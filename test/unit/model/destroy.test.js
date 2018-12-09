@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     beforeEach(function() {
-      this.deloptions = {where: {secretValue: '1'}};
+      this.deloptions = { where: { secretValue: '1' } };
       this.cloneOptions = _.clone(this.deloptions);
       this.stubDelete.resetHistory();
     });
@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const Where = function() { this.secretValue = '1'; };
 
       expect(() => {
-        User.destroy({where: new Where()});
+        User.destroy({ where: new Where() });
       }).to.throw();
 
     });

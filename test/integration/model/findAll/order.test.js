@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             email: DataTypes.STRING
           });
 
-          return this.User.sync({force: true}).then(() => {
+          return this.User.sync({ force: true }).then(() => {
             return this.User.create({
               email: 'test@sequelizejs.com'
             });
@@ -69,7 +69,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           });
           this.User.belongsTo(this.Group);
-          return this.sequelize.sync({force: true});
+          return this.sequelize.sync({ force: true });
         });
 
         if (current.dialect.supports['ORDER NULLS']) {

@@ -40,8 +40,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Project = this.sequelize.define('project', {});
 
           this.Task.belongsTo(this.User);
-          this.Project.belongsToMany(this.User, {through: 'project_user'});
-          this.User.belongsToMany(this.Project, {through: 'project_user'});
+          this.Project.belongsToMany(this.User, { through: 'project_user' });
+          this.User.belongsToMany(this.Project, { through: 'project_user' });
 
           this.sqlAssert = function(sql) {
             expect(sql).to.not.include('field1');
@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
 
-          return this.sequelize.sync({ force: true}).then(() => {
+          return this.sequelize.sync({ force: true }).then(() => {
             return Post.bulkCreate([{ text: 'text1' }, { text: 'text2' }]);
           }).then(() => {
             let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';

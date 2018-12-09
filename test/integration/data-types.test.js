@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and stringify for JSON', () => {
       const Type = new Sequelize.JSON();
 
-      return testSuccess(Type, { test: 42, nested: { foo: 'bar' }});
+      return testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
     });
   }
 
@@ -125,7 +125,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and stringify for JSONB', () => {
       const Type = new Sequelize.JSONB();
 
-      return testSuccess(Type, { test: 42, nested: { foo: 'bar' }});
+      return testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
     });
   }
 
@@ -622,7 +622,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const testDate = moment().format('YYYY-MM-DD');
     const newDate = new Date();
 
-    return Model.sync({ force: true})
+    return Model.sync({ force: true })
       .then(() => Model.create({ stamp: testDate }))
       .then(record => {
         expect(typeof record.stamp).to.be.eql('string');
@@ -662,7 +662,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
     const testDate = moment().format('YYYY-MM-DD');
 
-    return Model.sync({ force: true})
+    return Model.sync({ force: true })
       .then(() => Model.create({ stamp: testDate }))
       .then(record => {
         expect(typeof record.stamp).to.be.eql('string');

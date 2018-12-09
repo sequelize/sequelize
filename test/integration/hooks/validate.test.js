@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.username = 'Toni';
         });
 
-        return this.User.create({mood: 'ecstatic'}).then(user => {
+        return this.User.create({ mood: 'ecstatic' }).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('Toni');
         });
@@ -56,7 +56,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
 
-        return this.User.create({username: 'T', mood: 'neutral'}).then(user => {
+        return this.User.create({ username: 'T', mood: 'neutral' }).then(user => {
           expect(user.mood).to.equal('neutral');
           expect(user.username).to.equal('Samorost 3');
 
@@ -113,7 +113,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops! Changed user.mood!');
         });
 
-        return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejectedWith('Whoops! Changed user.mood!');
+        return expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejectedWith('Whoops! Changed user.mood!');
       });
 
       it('should call validationFailed hook', function() {
@@ -121,7 +121,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.validationFailed(validationFailedHook);
 
-        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(() => {
+        return expect(this.User.create({ mood: 'happy' })).to.be.rejected.then(() => {
           expect(validationFailedHook).to.have.been.calledOnce;
         });
       });
@@ -131,7 +131,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.validationFailed(validationFailedHook);
 
-        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(err => {
+        return expect(this.User.create({ mood: 'happy' })).to.be.rejected.then(err => {
           expect(err.name).to.equal('SequelizeValidationError');
         });
       });
@@ -141,7 +141,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.validationFailed(validationFailedHook);
 
-        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(err => {
+        return expect(this.User.create({ mood: 'happy' })).to.be.rejected.then(err => {
           expect(err.message).to.equal('Whoops!');
         });
       });

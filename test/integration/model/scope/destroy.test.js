@@ -34,19 +34,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        return this.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           const records = [
-            {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7},
-            {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11},
-            {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10},
-            {username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7}
+            { username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7 },
+            { username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11 },
+            { username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10 },
+            { username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7 }
           ];
           return this.ScopeMe.bulkCreate(records);
         });
       });
 
       it('should apply defaultScope', function() {
-        return this.ScopeMe.destroy({ where: {}}).then(() => {
+        return this.ScopeMe.destroy({ where: {} }).then(() => {
           return this.ScopeMe.unscoped().findAll();
         }).then(users => {
           expect(users).to.have.length(2);
@@ -56,7 +56,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to override default scope', function() {
-        return this.ScopeMe.destroy({ where: { access_level: { [Op.lt]: 5 }}}).then(() => {
+        return this.ScopeMe.destroy({ where: { access_level: { [Op.lt]: 5 } } }).then(() => {
           return this.ScopeMe.unscoped().findAll();
         }).then(users => {
           expect(users).to.have.length(2);
@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to apply other scopes', function() {
-        return this.ScopeMe.scope('lowAccess').destroy({ where: {}}).then(() => {
+        return this.ScopeMe.scope('lowAccess').destroy({ where: {} }).then(() => {
           return this.ScopeMe.unscoped().findAll();
         }).then(users => {
           expect(users).to.have.length(1);
@@ -81,7 +81,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to merge scopes with where', function() {
-        return this.ScopeMe.scope('lowAccess').destroy({ where: { username: 'dan'}}).then(() => {
+        return this.ScopeMe.scope('lowAccess').destroy({ where: { username: 'dan' } }).then(() => {
           return this.ScopeMe.unscoped().findAll();
         }).then(users => {
           expect(users).to.have.length(3);

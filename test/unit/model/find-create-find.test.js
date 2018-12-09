@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should return the result of the first find call if not empty', function() {
       const result = {},
-        where = {prop: Math.random().toString()},
+        where = { prop: Math.random().toString() },
         findSpy = this.sinon.stub(Model, 'findOne').returns(Promise.resolve(result));
 
       return expect(Model.findCreateFind({
@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should create if first find call is empty', function() {
       const result = {},
-        where = {prop: Math.random().toString()},
+        where = { prop: Math.random().toString() },
         createSpy = this.sinon.stub(Model, 'create').returns(Promise.resolve(result));
 
       this.sinon.stub(Model, 'findOne').returns(Promise.resolve(null));
@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should do a second find if create failed do to unique constraint', function() {
       const result = {},
-        where = {prop: Math.random().toString()},
+        where = { prop: Math.random().toString() },
         findSpy = this.sinon.stub(Model, 'findOne');
 
       this.sinon.stub(Model, 'create').callsFake(() => {

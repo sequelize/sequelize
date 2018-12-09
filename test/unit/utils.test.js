@@ -12,7 +12,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('merge', () => {
     it('does not clone sequelize models', () => {
       const User = Support.sequelize.define('user');
-      const merged = Utils.merge({}, { include: [{model: User }]});
+      const merged = Utils.merge({}, { include: [{ model: User }] });
       const merged2 = Utils.merge({}, { user: User });
 
       expect(merged.include[0].model).to.equal(User);
@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('defaults', () => {
     it('defaults normal object', () => {
       expect(Utils.defaults(
-        { a: 1, c: 3},
+        { a: 1, c: 3 },
         { b: 2 },
         { c: 4, d: 4 }
       )).to.eql({
@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     it('defaults symbol keys', () => {
       expect(Utils.defaults(
-        { a: 1, [Symbol.for('c')]: 3},
+        { a: 1, [Symbol.for('c')]: 3 },
         { b: 2 },
         { [Symbol.for('c')]: 4, [Symbol.for('d')]: 4 }
       )).to.eql({
@@ -175,8 +175,8 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       expect(Utils.mapOptionFieldNames({
         where: {
           [Op.or]: [
-            {firstName: 'Paul'},
-            {lastName: 'Atreides'}
+            { firstName: 'Paul' },
+            { lastName: 'Atreides' }
           ]
         }
       }, Support.sequelize.define('User', {
@@ -191,8 +191,8 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       }))).to.eql({
         where: {
           [Op.or]: [
-            {first_name: 'Paul'},
-            {last_name: 'Atreides'}
+            { first_name: 'Paul' },
+            { last_name: 'Atreides' }
           ]
         }
       });

@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('dropAllSchema', () => {
     it('should drop all schema', function() {
       return this.queryInterface.dropAllSchemas(
-        {skip: [this.sequelize.config.database]})
+        { skip: [this.sequelize.config.database] })
         .then(() => {
           return this.queryInterface.showAllSchemas();
         })
@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           // MSSQL include spt_values table which is system defined, hence cant be dropped
           tableNames = filterMSSQLDefault(tableNames);
           expect(tableNames).to.be.empty;
-          return this.queryInterface.createTable('table', {name: DataTypes.STRING});
+          return this.queryInterface.createTable('table', { name: DataTypes.STRING });
         })
         .then(() => {
           return this.queryInterface.showAllTables();
@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       return this.queryInterface.createTable('skipme', {
         name: DataTypes.STRING
       })
-        .then(() => this.queryInterface.dropAllTables({skip: ['skipme']}))
+        .then(() => this.queryInterface.dropAllTables({ skip: ['skipme'] }))
         .then(() => this.queryInterface.showAllTables())
         .then(tableNames => {
           if (dialect === 'mssql' || dialect === 'mariadb') {
@@ -411,7 +411,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     it('should get a list of foreign keys for the table', function() {
       const sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
-      return this.sequelize.query(sql, {type: this.sequelize.QueryTypes.FOREIGNKEYS}).then(fks => {
+      return this.sequelize.query(sql, { type: this.sequelize.QueryTypes.FOREIGNKEYS }).then(fks => {
         expect(fks).to.have.length(3);
         const keys = Object.keys(fks[0]),
           keys2 = Object.keys(fks[1]),
@@ -517,7 +517,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         it('addconstraint missing type', function() {
           expect(this.queryInterface.addConstraint.bind(this, 'users', ['roles'], {
-            where: {roles: ['user', 'admin', 'guest', 'moderator']},
+            where: { roles: ['user', 'admin', 'guest', 'moderator'] },
             name: 'check_user_roles'
           })).to.throw(Error, 'Constraint type must be specified through options.type');
         });

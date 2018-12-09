@@ -205,7 +205,7 @@ if (dialect.match(/^postgres/)) {
         let stringified = Range.stringify(testRange, {});
         stringified = stringified.substr(1, stringified.length - 2); // Remove the escaping ticks
 
-        expect(DataTypes.postgres.RANGE.parse(stringified, {parser: DataTypes.postgres.INTEGER.parse})).to.deep.equal(testRange);
+        expect(DataTypes.postgres.RANGE.parse(stringified, { parser: DataTypes.postgres.INTEGER.parse })).to.deep.equal(testRange);
       });
     });
   });

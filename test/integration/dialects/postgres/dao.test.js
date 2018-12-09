@@ -913,7 +913,7 @@ if (dialect.match(/^postgres/)) {
       it('should read range array correctly', function() {
         const User = this.User;
         const holidays = [
-          [{ value: new Date(2015, 3, 1, 10), inclusive: true}, { value: new Date(2015, 3, 15), inclusive: true }],
+          [{ value: new Date(2015, 3, 1, 10), inclusive: true }, { value: new Date(2015, 3, 15), inclusive: true }],
           [{ value: new Date(2015, 8, 1), inclusive: true }, { value: new Date(2015, 9, 15), inclusive: true }]
         ];
         const data = { username: 'user', email: ['foo@bar.com'], holidays };

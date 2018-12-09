@@ -44,8 +44,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterBulkCreate(afterBulk);
 
         return this.User.bulkCreate([
-          {username: 'Cheech', mood: 'sad'},
-          {username: 'Chong', mood: 'sad'}
+          { username: 'Cheech', mood: 'sad' },
+          { username: 'Chong', mood: 'sad' }
         ]).then(() => {
           expect(beforeBulk).to.have.been.calledOnce;
           expect(afterBulk).to.have.been.calledOnce;
@@ -60,8 +60,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return expect(this.User.bulkCreate([
-          {username: 'Cheech', mood: 'sad'},
-          {username: 'Chong', mood: 'sad'}
+          { username: 'Cheech', mood: 'sad' },
+          { username: 'Chong', mood: 'sad' }
         ])).to.be.rejected;
       });
 
@@ -71,8 +71,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return expect(this.User.bulkCreate([
-          {username: 'Cheech', mood: 'sad'},
-          {username: 'Chong', mood: 'sad'}
+          { username: 'Cheech', mood: 'sad' },
+          { username: 'Chong', mood: 'sad' }
         ])).to.be.rejected;
       });
     });
@@ -121,7 +121,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           return Promise.resolve();
         });
 
-        return this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).then(records => {
+        return this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], { fields: ['aNumber'], individualHooks: true }).then(records => {
           records.forEach(record => {
             expect(record.username).to.equal(`User${record.id}`);
             expect(record.beforeHookTest).to.be.true;
@@ -154,7 +154,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           return Promise.resolve();
         });
 
-        return this.User.bulkCreate([{aNumber: 5}, {aNumber: 7}, {aNumber: 3}], { fields: ['aNumber'], individualHooks: true }).catch(err => {
+        return this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], { fields: ['aNumber'], individualHooks: true }).catch(err => {
           expect(err).to.be.instanceOf(Error);
           expect(beforeBulkCreate).to.be.true;
           expect(afterBulkCreate).to.be.false;
@@ -173,10 +173,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterBulkUpdate(afterBulk);
 
         return this.User.bulkCreate([
-          {username: 'Cheech', mood: 'sad'},
-          {username: 'Chong', mood: 'sad'}
+          { username: 'Cheech', mood: 'sad' },
+          { username: 'Chong', mood: 'sad' }
         ]).then(() => {
-          return this.User.update({mood: 'happy'}, {where: {mood: 'sad'}}).then(() => {
+          return this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } }).then(() => {
             expect(beforeBulk).to.have.been.calledOnce;
             expect(afterBulk).to.have.been.calledOnce;
           });
@@ -191,10 +191,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.bulkCreate([
-          {username: 'Cheech', mood: 'sad'},
-          {username: 'Chong', mood: 'sad'}
+          { username: 'Cheech', mood: 'sad' },
+          { username: 'Chong', mood: 'sad' }
         ]).then(() => {
-          return expect(this.User.update({mood: 'happy'}, {where: {mood: 'sad'}})).to.be.rejected;
+          return expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be.rejected;
         });
       });
 
@@ -204,10 +204,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.bulkCreate([
-          {username: 'Cheech', mood: 'sad'},
-          {username: 'Chong', mood: 'sad'}
+          { username: 'Cheech', mood: 'sad' },
+          { username: 'Chong', mood: 'sad' }
         ]).then(() => {
-          return expect(this.User.update({mood: 'happy'}, {where: {mood: 'sad'}})).to.be.rejected;
+          return expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be.rejected;
         });
       });
     });
@@ -250,9 +250,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.bulkCreate([
-          {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
+          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
         ]).then(() => {
-          return this.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).then(([, records]) => {
+          return this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true }).then(([, records]) => {
             records.forEach(record => {
               expect(record.username).to.equal(`User${record.id}`);
               expect(record.beforeHookTest).to.be.true;
@@ -272,9 +272,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.bulkCreate([
-          {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
+          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
         ]).then(() => {
-          return this.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).then(([, records]) => {
+          return this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true }).then(([, records]) => {
             records.forEach(record => {
               expect(record.aNumber).to.equal(10 + (record.id === 1 ? 3 : 0));
             });
@@ -298,8 +298,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.username = `User${user.id}`;
         });
 
-        return this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(() => {
-          return this.User.update({aNumber: 10}, {where: {aNumber: 1}, individualHooks: true}).catch(err => {
+        return this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] }).then(() => {
+          return this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true }).catch(err => {
             expect(err).to.be.instanceOf(Error);
             expect(err.message).to.be.equal('You shall not pass!');
             expect(beforeBulk).to.have.been.calledOnce;
@@ -319,7 +319,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.beforeBulkDestroy(beforeBulk);
         this.User.afterBulkDestroy(afterBulk);
 
-        return this.User.destroy({where: {username: 'Cheech', mood: 'sad'}}).then(() => {
+        return this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } }).then(() => {
           expect(beforeBulk).to.have.been.calledOnce;
           expect(afterBulk).to.have.been.calledOnce;
         });
@@ -332,7 +332,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.User.destroy({where: {username: 'Cheech', mood: 'sad'}})).to.be.rejected;
+        return expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be.rejected;
       });
 
       it('should return an error from after', function() {
@@ -340,7 +340,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.User.destroy({where: {username: 'Cheech', mood: 'sad'}})).to.be.rejected;
+        return expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be.rejected;
       });
     });
 
@@ -391,9 +391,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.bulkCreate([
-          {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
+          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
         ]).then(() => {
-          return this.User.destroy({where: {aNumber: 1}, individualHooks: true}).then(() => {
+          return this.User.destroy({ where: { aNumber: 1 }, individualHooks: true }).then(() => {
             expect(beforeBulk).to.be.true;
             expect(afterBulk).to.be.true;
             expect(beforeHook).to.be.true;
@@ -428,8 +428,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           return Promise.resolve();
         });
 
-        return this.User.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(() => {
-          return this.User.destroy({where: {aNumber: 1}, individualHooks: true}).catch(err => {
+        return this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] }).then(() => {
+          return this.User.destroy({ where: { aNumber: 1 }, individualHooks: true }).catch(err => {
             expect(err).to.be.instanceOf(Error);
             expect(beforeBulk).to.be.true;
             expect(beforeHook).to.be.true;
@@ -444,10 +444,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#bulkRestore', () => {
     beforeEach(function() {
       return this.ParanoidUser.bulkCreate([
-        {username: 'adam', mood: 'happy'},
-        {username: 'joe', mood: 'sad'}
+        { username: 'adam', mood: 'happy' },
+        { username: 'joe', mood: 'sad' }
       ]).then(() => {
-        return this.ParanoidUser.destroy({truncate: true});
+        return this.ParanoidUser.destroy({ truncate: true });
       });
     });
 
@@ -459,7 +459,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.ParanoidUser.beforeBulkRestore(beforeBulk);
         this.ParanoidUser.afterBulkRestore(afterBulk);
 
-        return this.ParanoidUser.restore({where: {username: 'adam', mood: 'happy'}}).then(() => {
+        return this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } }).then(() => {
           expect(beforeBulk).to.have.been.calledOnce;
           expect(afterBulk).to.have.been.calledOnce;
         });
@@ -472,7 +472,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.ParanoidUser.restore({where: {username: 'adam', mood: 'happy'}})).to.be.rejected;
+        return expect(this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } })).to.be.rejected;
       });
 
       it('should return an error from after', function() {
@@ -480,7 +480,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.ParanoidUser.restore({where: {username: 'adam', mood: 'happy'}})).to.be.rejected;
+        return expect(this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } })).to.be.rejected;
       });
     });
 
@@ -510,11 +510,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.ParanoidUser.afterRestore(afterHook);
 
         return this.ParanoidUser.bulkCreate([
-          {aNumber: 1}, {aNumber: 1}, {aNumber: 1}
+          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
         ]).then(() => {
-          return this.ParanoidUser.destroy({where: {aNumber: 1}});
+          return this.ParanoidUser.destroy({ where: { aNumber: 1 } });
         }).then(() => {
-          return this.ParanoidUser.restore({where: {aNumber: 1}, individualHooks: true});
+          return this.ParanoidUser.restore({ where: { aNumber: 1 }, individualHooks: true });
         }).then(() => {
           expect(beforeBulk).to.have.been.calledOnce;
           expect(afterBulk).to.have.been.calledOnce;
@@ -538,10 +538,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.ParanoidUser.afterRestore(afterHook);
 
-        return this.ParanoidUser.bulkCreate([{aNumber: 1}, {aNumber: 1}, {aNumber: 1}], { fields: ['aNumber'] }).then(() => {
-          return this.ParanoidUser.destroy({where: {aNumber: 1}});
+        return this.ParanoidUser.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] }).then(() => {
+          return this.ParanoidUser.destroy({ where: { aNumber: 1 } });
         }).then(() => {
-          return this.ParanoidUser.restore({where: {aNumber: 1}, individualHooks: true});
+          return this.ParanoidUser.restore({ where: { aNumber: 1 }, individualHooks: true });
         }).catch(err => {
           expect(err).to.be.instanceOf(Error);
           expect(beforeBulk).to.have.been.calledOnce;

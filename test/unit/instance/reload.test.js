@@ -27,8 +27,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       before(() => {
         stub = sinon.stub(current, 'query').returns(
           Sequelize.Promise.resolve({
-            _previousDataValues: {id: 1},
-            dataValues: {id: 2}
+            _previousDataValues: { id: 1 },
+            dataValues: { id: 2 }
           })
         );
       });
@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should allow reloads even if options are not given', () => {
-        instance = Model.build({id: 1}, {isNewRecord: false});
+        instance = Model.build({ id: 1 }, { isNewRecord: false });
         expect(() => {
           instance.reload();
         }).to.not.throw();

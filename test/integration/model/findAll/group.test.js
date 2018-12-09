@@ -32,11 +32,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
         }).then(() => {
           return Comment.bulkCreate([
-            { text: 'Market', PostId: 1},
-            { text: 'Text', PostId: 2},
-            { text: 'Abc', PostId: 2},
-            { text: 'Semaphor', PostId: 1},
-            { text: 'Text', PostId: 1}
+            { text: 'Market', PostId: 1 },
+            { text: 'Text', PostId: 2 },
+            { text: 'Abc', PostId: 2 },
+            { text: 'Semaphor', PostId: 1 },
+            { text: 'Text', PostId: 1 }
           ]);
         }).then(() => {
           return Post.findAll({

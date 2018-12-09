@@ -102,7 +102,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).not.to.be.ok;
           }
 
-          return this.User.findOne({ where: { foo: 'baz', bar: 19 }});
+          return this.User.findOne({ where: { foo: 'baz', bar: 19 } });
         }).then(user => {
           expect(user.createdAt).to.be.ok;
           expect(user.username).to.equal('doe');
@@ -168,13 +168,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(created).not.to.be.ok;
           }
 
-          return User.findOne({ where: { a: 'a', b: 'b' }});
+          return User.findOne({ where: { a: 'a', b: 'b' } });
         }).then(user1 => {
           expect(user1.createdAt).to.be.ok;
           expect(user1.username).to.equal('doe');
           expect(user1.updatedAt).to.be.afterTime(user1.createdAt);
 
-          return User.findOne({ where: { a: 'a', b: 'a' }});
+          return User.findOne({ where: { a: 'a', b: 'a' } });
         }).then(user2 => {
           // The second one should not be updated
           expect(user2.createdAt).to.be.ok;
@@ -291,7 +291,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works with database functions', function() {
-        return this.User.upsert({ id: 42, username: 'john', foo: this.sequelize.fn('upper', 'mixedCase1')}).then(created => {
+        return this.User.upsert({ id: 42, username: 'john', foo: this.sequelize.fn('upper', 'mixedCase1') }).then(created => {
           if (dialect === 'sqlite') {
             expect(created).to.be.undefined;
           } else {
@@ -318,13 +318,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let originalCreatedAt;
         let originalUpdatedAt;
         const clock = sinon.useFakeTimers();
-        return this.User.create({ id: 42, username: 'john'}).then(() => {
+        return this.User.create({ id: 42, username: 'john' }).then(() => {
           return this.User.findByPk(42);
         }).then(user => {
           originalCreatedAt = user.createdAt;
           originalUpdatedAt = user.updatedAt;
           clock.tick(5000);
-          return this.User.upsert({ id: 42, username: 'doe'});
+          return this.User.upsert({ id: 42, username: 'doe' });
         }).then(() => {
           return this.User.findByPk(42);
         }).then(user => {
@@ -335,14 +335,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('does not update using default values', function() {
-        return this.User.create({ id: 42, username: 'john', baz: 'new baz value'}).then(() => {
+        return this.User.create({ id: 42, username: 'john', baz: 'new baz value' }).then(() => {
           return this.User.findByPk(42);
         }).then(user => {
           // 'username' should be 'john' since it was set
           expect(user.username).to.equal('john');
           // 'baz' should be 'new baz value' since it was set
           expect(user.baz).to.equal('new baz value');
-          return this.User.upsert({ id: 42, username: 'doe'});
+          return this.User.upsert({ id: 42, username: 'doe' });
         }).then(() => {
           return this.User.findByPk(42);
         }).then(user => {
@@ -402,7 +402,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(created).not.to.be.ok;
               }
               clock.tick(1000);
-              return User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' }});
+              return User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' } });
             })
             .then(user => {
               expect(user.createdAt).to.be.ok;
@@ -442,7 +442,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               } else {
                 expect(created).not.to.be.ok;
               }
-              return User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' }});
+              return User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' } });
             })
             .then(user => {
               expect(user.createdAt).to.be.ok;
@@ -478,7 +478,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               } else {
                 expect(created).not.to.be.ok;
               }
-              return User.findOne({ where: { name: 'user1', address: 'address' }});
+              return User.findOne({ where: { name: 'user1', address: 'address' } });
             })
             .then(user => {
               expect(user.createdAt).to.be.ok;
