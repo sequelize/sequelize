@@ -469,7 +469,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             users[2].setItemB(items[3]),
             users[2].setOrder(orders[0])
           ]);
-        }).spread(() => {
+        }).then(() => {
           return User.findAll({
             'include': [
               { 'model': Item, 'as': 'itemA', where: { test: 'abc' } },
@@ -515,7 +515,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             { name: 'B' },
             { name: 'C' }
           ])
-        ]).spread(() => {
+        ]).then(() => {
           return Promise.all([
             Product.findAll(),
             Tag.findAll()
@@ -529,7 +529,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             products[2].addTag(tags[1], { through: { priority: 1 } }),
             products[2].addTag(tags[2], { through: { priority: 2 } })
           ]);
-        }).spread(() => {
+        }).then(() => {
           return Product.findAll({
             include: [
               { model: Tag }

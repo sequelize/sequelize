@@ -612,7 +612,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(m.secret).to.be.eql(M1.secret);
 
           return Maya.bulkCreate([M2]);
-        }).spread(m => {
+        }).then(([m]) => {
 
           // only attributes are returned, no fields are mixed
           expect(m.createdAt).to.be.ok;

@@ -435,7 +435,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             this.queryInterface.QueryGenerator.getForeignKeyQuery('hosts', 'admin'),
             {}
           )
-            .spread(fk => {
+            .then(([fk]) => {
               expect(fks[0]).to.deep.eql(fk[0]);
             });
         }

@@ -1106,8 +1106,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return user.getTasks();
       }).then(tasks => {
         expect(tasks).to.have.length(2);
-        expect(_.find(tasks, item => { return item.title === 'get started'; })).to.be.ok;
-        expect(_.find(tasks, item => { return item.title === 'get done'; })).to.be.ok;
+        expect(tasks.some(item => { return item.title === 'get started'; })).to.be.ok;
+        expect(tasks.some(item => { return item.title === 'get done'; })).to.be.ok;
       });
     });
 

@@ -115,7 +115,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should have no problem performing findOrCreate', function() {
-      return this.ScopeMe.findOrCreate({ where: { username: 'fake' } }).spread(user => {
+      return this.ScopeMe.findOrCreate({ where: { username: 'fake' } }).then(([user]) => {
         expect(user.username).to.equal('fake');
       });
     });

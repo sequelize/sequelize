@@ -326,7 +326,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('executes select queries correctly', function() {
       return this.sequelize.query(this.insertQuery).then(() => {
         return this.sequelize.query(`select * from ${qq(this.User.tableName)}`);
-      }).spread(users => {
+      }).then(([users]) => {
         expect(users.map(u => { return u.username; })).to.include('john');
       });
     });
@@ -337,7 +337,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       seq.options.quoteIdentifiers = false;
       return seq.query(this.insertQuery).then(() => {
         return seq.query(`select * from ${qq(this.User.tableName)}`);
-      }).spread(users => {
+      }).then(([users]) => {
         expect(users.map(u => { return u.username; })).to.include('john');
       });
     });
@@ -347,7 +347,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         return this.sequelize.query(this.insertQuery);
       }).then(() => {
         return this.sequelize.query(`select username as ${qq('user.username')} from ${qq(this.User.tableName)}`);
-      }).spread(users => {
+      }).then(([users]) => {
         expect(users).to.deep.equal([{ 'user.username': 'john' }]);
       });
     });
@@ -715,7 +715,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         datetime = 'GETDATE()';
       }
 
-      return this.sequelize.query(`SELECT ${datetime} AS t`).spread(result => {
+      return this.sequelize.query(`SELECT ${datetime} AS t`).then(([result]) => {
         expect(moment(result[0].t).isValid()).to.be.true;
       });
     });
