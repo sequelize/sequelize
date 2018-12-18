@@ -125,7 +125,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_users].[user_id] AS [project_users.userId], [project_users].[project_id] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[user_id] AND [project_users].[project_id] = 1 ORDER BY [subquery_order_0] ASC${ current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
             `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_users].[user_id] AS [project_users.userId], [project_users].[project_id] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[user_id] AND [project_users].[project_id] = 5 ORDER BY [subquery_order_0] ASC${ current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`
           ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
-        }) AS [user] ORDER BY [subquery_order_0] ASC;`
+        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+
+        /* eslint-disable prefer-template */
+        mysql: 'SELECT `user`.* FROM (' +
+          [
+            'SELECT * FROM (SELECT `user`.`id_user` AS `id`, `user`.`last_name` AS `subquery_order_0`, `project_users`.`user_id` AS `project_users.userId`, `project_users`.`project_id` AS `project_users.projectId` FROM `sequelize_test`.`users` AS `user` INNER JOIN `sequelize_test`.`project_users` AS `project_users` ON `user`.`id_user` = `project_users`.`user_id` AND `project_users`.`project_id` = 1 ORDER BY `subquery_order_0` ASC' + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] }) + ') AS sub',
+            'SELECT * FROM (SELECT `user`.`id_user` AS `id`, `user`.`last_name` AS `subquery_order_0`, `project_users`.`user_id` AS `project_users.userId`, `project_users`.`project_id` AS `project_users.projectId` FROM `sequelize_test`.`users` AS `user` INNER JOIN `sequelize_test`.`project_users` AS `project_users` ON `user`.`id_user` = `project_users`.`user_id` AND `project_users`.`project_id` = 5 ORDER BY `subquery_order_0` ASC' + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] }) + ') AS sub'
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        +') AS `user` ORDER BY `subquery_order_0` ASC;'
+        /* eslint-enable prefer-template */
       });
 
       testsql({
@@ -156,7 +165,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_users].[user_id] AS [project_users.userId], [project_users].[project_id] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[user_id] AND [project_users].[project_id] = 1 AND [project_users].[status] = 1 ORDER BY [subquery_order_0] ASC${ current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
             `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_users].[user_id] AS [project_users.userId], [project_users].[project_id] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[user_id] AND [project_users].[project_id] = 5 AND [project_users].[status] = 1 ORDER BY [subquery_order_0] ASC${ current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`
           ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
-        }) AS [user] ORDER BY [subquery_order_0] ASC;`
+        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+        /* eslint-disable prefer-template */
+        mysql: 'SELECT `user`.* FROM (' +
+          [
+            'SELECT * FROM (SELECT `user`.`id_user` AS `id`, `user`.`last_name` AS `subquery_order_0`, `project_users`.`user_id` AS `project_users.userId`, `project_users`.`project_id` AS `project_users.projectId` FROM `sequelize_test`.`users` AS `user` INNER JOIN `sequelize_test`.`project_users` AS `project_users` ON `user`.`id_user` = `project_users`.`user_id` AND `project_users`.`project_id` = 1 AND `project_users`.`status` = 1 ORDER BY `subquery_order_0` ASC'+ sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] }) +') AS sub',
+            'SELECT * FROM (SELECT `user`.`id_user` AS `id`, `user`.`last_name` AS `subquery_order_0`, `project_users`.`user_id` AS `project_users.userId`, `project_users`.`project_id` AS `project_users.projectId` FROM `sequelize_test`.`users` AS `user` INNER JOIN `sequelize_test`.`project_users` AS `project_users` ON `user`.`id_user` = `project_users`.`user_id` AND `project_users`.`project_id` = 5 AND `project_users`.`status` = 1 ORDER BY `subquery_order_0` ASC'+ sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] }) +') AS sub'
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        +') AS `user` ORDER BY `subquery_order_0` ASC;'
+        /* eslint-enable prefer-template */
       });
 
 
@@ -188,7 +205,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_users].[user_id] AS [project_users.userId], [project_users].[project_id] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[user_id] AND [project_users].[project_id] = 1 WHERE [user].[age] >= 21 ORDER BY [subquery_order_0] ASC${ current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
             `SELECT * FROM (SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_users].[user_id] AS [project_users.userId], [project_users].[project_id] AS [project_users.projectId] FROM [users] AS [user] INNER JOIN [project_users] AS [project_users] ON [user].[id_user] = [project_users].[user_id] AND [project_users].[project_id] = 5 WHERE [user].[age] >= 21 ORDER BY [subquery_order_0] ASC${ current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`
           ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
-        }) AS [user] ORDER BY [subquery_order_0] ASC;`
+        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+        /* eslint-disable prefer-template */
+        mysql: 'SELECT `user`.* FROM (' +
+          [
+            'SELECT * FROM (SELECT `user`.`id_user` AS `id`, `user`.`id_user` AS `subquery_order_0`, `project_users`.`user_id` AS `project_users.userId`, `project_users`.`project_id` AS `project_users.projectId` FROM `sequelize_test`.`users` AS `user` INNER JOIN `sequelize_test`.`project_users` AS `project_users` ON `user`.`id_user` = `project_users`.`user_id` AND `project_users`.`project_id` = 1 WHERE `user`.`age` >= 21 ORDER BY `subquery_order_0` ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+') AS sub',
+            'SELECT * FROM (SELECT `user`.`id_user` AS `id`, `user`.`id_user` AS `subquery_order_0`, `project_users`.`user_id` AS `project_users.userId`, `project_users`.`project_id` AS `project_users.projectId` FROM `sequelize_test`.`users` AS `user` INNER JOIN `sequelize_test`.`project_users` AS `project_users` ON `user`.`id_user` = `project_users`.`user_id` AND `project_users`.`project_id` = 5 WHERE `user`.`age` >= 21 ORDER BY `subquery_order_0` ASC'+sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })+') AS sub'
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ') +
+          ') AS `user` ORDER BY `subquery_order_0` ASC;'
+        /* eslint-enable prefer-template */
       });
     }());
 
@@ -274,7 +299,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [user].[last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: [['last_name', 'ASC']] })}) AS sub`,
             `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [user].[last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: [['last_name', 'ASC']] })}) AS sub`
           ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
-        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];`
+        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];`,
+
+        /* eslint-disable prefer-template */
+        mysql: 'SELECT `user`.*, `POSTS`.`id` AS `POSTS.id`, `POSTS`.`title` AS `POSTS.title` FROM (' +
+          [
+            'SELECT * FROM (SELECT `id_user` AS `id`, `email`, `first_name` AS `firstName`, `last_name` AS `lastName` FROM `users` AS `user` WHERE `user`.`companyId` = 1 ORDER BY `user`.`last_name` ASC' + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] }) + ') AS sub',
+            'SELECT * FROM (SELECT `id_user` AS `id`, `email`, `first_name` AS `firstName`, `last_name` AS `lastName` FROM `users` AS `user` WHERE `user`.`companyId` = 5 ORDER BY `user`.`last_name` ASC' + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] }) + ') AS sub'
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          + ') AS `user` LEFT OUTER JOIN `sequelize_test`.`post` AS `POSTS` ON `user`.`id` = `POSTS`.`user_id`;'
+        /* eslint-enable prefer-template */
       });
 
       testsql({
@@ -296,7 +330,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: `${'SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (' +
                        'SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].[last_name] ASC'}${
           sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['`user`.`last_name`', 'ASC']] })
-        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].[last_name] ASC;`
+        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].[last_name] ASC;`,
+        /*eslint-disable prefer-template*/
+        mysql: 'SELECT `user`.*, `POSTS`.`id` AS `POSTS.id`, `POSTS`.`title` AS `POSTS.title` FROM (' +
+          'SELECT `user`.`id_user` AS `id`, `user`.`email`, `user`.`first_name` AS `firstName`, `user`.`last_name` AS `lastName` FROM `sequelize_test`.`users` AS `user` ORDER BY `user`.`last_name` ASC' +
+          sql.addLimitAndOffset({ limit: 30, offset: 10, order: ['`user`.`last_name`', 'ASC'] }) +
+          ') AS `user` LEFT OUTER JOIN `sequelize_test`.`post` AS `POSTS` ON `user`.`id_user` = `POSTS`.`user_id` ORDER BY `user`.`last_name` ASC;'
+        /*eslint-enable prefer-template*/
       });
 
       const nestedInclude = Model._validateIncludedElements({
@@ -333,6 +373,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ]
         }
       }, {
+
+        /*eslint-disable prefer-template*/
+        mysql: 'SELECT `user`.*, `POSTS`.`id` AS `POSTS.id`, `POSTS`.`title` AS `POSTS.title`, `POSTS->COMMENTS`.`id` AS `POSTS.COMMENTS.id`, `POSTS->COMMENTS`.`title` AS `POSTS.COMMENTS.title` FROM (' +
+          [
+            'SELECT * FROM (SELECT `id_user` AS `id`, `email`, `first_name` AS `firstName`, `last_name` AS `lastName` FROM `users` AS `user` WHERE `user`.`companyId` = 1 ORDER BY `user`.`last_name` ASC' + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] }) + ') AS sub',
+            'SELECT * FROM (SELECT `id_user` AS `id`, `email`, `first_name` AS `firstName`, `last_name` AS `lastName` FROM `users` AS `user` WHERE `user`.`companyId` = 5 ORDER BY `user`.`last_name` ASC' + sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] }) + ') AS sub'
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          + ') AS `user` LEFT OUTER JOIN `sequelize_test`.`post` AS `POSTS` ON `user`.`id` = `POSTS`.`user_id` LEFT OUTER JOIN `sequelize_test`.`comment` AS `POSTS->COMMENTS` ON `POSTS`.`id` = `POSTS->COMMENTS`.`post_id`;',
+        /*eslint-enable prefer-template*/
         default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title], [POSTS->COMMENTS].[id] AS [POSTS.COMMENTS.id], [POSTS->COMMENTS].[title] AS [POSTS.COMMENTS.title] FROM (${
           [
             `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [user].[last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
@@ -370,6 +419,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }).include,
         model: User
       }, User), {
+        mysql: 'SELECT `User`.`name`, `User`.`age`, `Posts`.`id` AS `Posts.id`, `Posts`.`title` AS `Posts.title` FROM `sequelize_test`.`User` AS `User` LEFT OUTER JOIN `sequelize_test`.`Post` AS `Posts` ON `User`.`id` = `Posts`.`user_id`;',
         default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
       });
     });
@@ -410,6 +460,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           '(SELECT [User].[name], [User].[age], [User].[id] AS [id] FROM [User] AS [User] ' +
           'WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id]) LIMIT 1 ) IS NOT NULL) AS [User] ' +
           'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id];',
+        mysql: 'SELECT `User`.*, `postaliasname`.`id` AS `postaliasname.id`, `postaliasname`.`title` AS `postaliasname.title` FROM ' +
+          '(SELECT `User`.`name`, `User`.`age`, `User`.`id` AS `id` FROM `sequelize_test`.`User` AS `User` ' +
+          'WHERE ( SELECT `user_id` FROM `sequelize_test`.`Post` AS `postaliasname` WHERE (`postaliasname`.`user_id` = `User`.`id`) LIMIT 1 ) IS NOT NULL) AS `User` ' +
+          'INNER JOIN `sequelize_test`.`Post` AS `postaliasname` ON `User`.`id` = `postaliasname`.`user_id`;',
         mssql: 'SELECT [User].*, [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM ' +
           '(SELECT [User].[name], [User].[age], [User].[id] AS [id] FROM [User] AS [User] ' +
           'WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id]) ORDER BY [postaliasname].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY ) IS NOT NULL) AS [User] ' +
@@ -533,6 +587,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).include,
           model: User
         }, User), {
+          mysql: 'SELECT `User`.`name`, `User`.`age`, `Posts`.`id` AS `Posts.id`, `Posts`.`* FROM User; DELETE FROM User;SELECT id` AS `Posts.* FROM User; DELETE FROM User;SELECT id` FROM `sequelize_test`.`User` AS `User` LEFT OUTER JOIN `sequelize_test`.`Post` AS `Posts` ON `User`.`id` = `Posts`.`user_id`;',
           default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM User; DELETE FROM User;SELECT id] AS [Posts.* FROM User; DELETE FROM User;SELECT id] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
         });
 
@@ -549,6 +604,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).include,
           model: User
         }, User), {
+          mysql: 'SELECT `User`.`name`, `User`.`age`, `Posts`.`id` AS `Posts.id`, `Posts`.`* FROM User; DELETE FROM User;SELECT id` AS `Posts.data` FROM `sequelize_test`.`User` AS `User` LEFT OUTER JOIN `sequelize_test`.`Post` AS `Posts` ON `User`.`id` = `Posts`.`user_id`;',
           default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM User; DELETE FROM User;SELECT id] AS [Posts.data] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
         });
 
@@ -565,6 +621,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).include,
           model: User
         }, User), {
+          mysql: 'SELECT `User`.`name`, `User`.`age`, `Posts`.`id` AS `Posts.id`, `Posts`.`* FROM User; DELETE FROM User;SELECT id` AS `Posts.data` FROM `sequelize_test`.`User` AS `User` LEFT OUTER JOIN `sequelize_test`.`Post` AS `Posts` ON `User`.`id` = `Posts`.`user_id`;',
           default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM User; DELETE FROM User;SELECT id] AS [Posts.data] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
         });
       });
@@ -624,6 +681,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: User
       }, User), {
         default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+        mysql: 'SELECT `User`.`name`, `User`.`age`, `Posts`.`id` AS `Posts.id`, `Posts`.`title` AS `Posts.title` FROM `sequelize_test`.`User` AS `User` LEFT OUTER JOIN `sequelize_test`.`Post` AS `Posts` ON `User`.`id` = `Posts`.`user_id`;',
         postgres: 'SELECT "User".name, "User".age, Posts.id AS "Posts.id", Posts.title AS "Posts.title" FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id;'
       });
     });
@@ -670,6 +728,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: User
       }, User), {
         default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts->Comments].[id] AS [Posts.Comments.id], [Posts->Comments].[title] AS [Posts.Comments.title], [Posts->Comments].[createdAt] AS [Posts.Comments.createdAt], [Posts->Comments].[updatedAt] AS [Posts.Comments.updatedAt], [Posts->Comments].[post_id] AS [Posts.Comments.post_id] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id] LEFT OUTER JOIN [Comment] AS [Posts->Comments] ON [Posts].[id] = [Posts->Comments].[post_id];',
+        mysql: 'SELECT `User`.`name`, `User`.`age`, `Posts`.`id` AS `Posts.id`, `Posts`.`title` AS `Posts.title`, `Posts->Comments`.`id` AS `Posts.Comments.id`, `Posts->Comments`.`title` AS `Posts.Comments.title`, `Posts->Comments`.`createdAt` AS `Posts.Comments.createdAt`, `Posts->Comments`.`updatedAt` AS `Posts.Comments.updatedAt`, `Posts->Comments`.`post_id` AS `Posts.Comments.post_id` FROM `sequelize_test`.`User` AS `User` LEFT OUTER JOIN `sequelize_test`.`Post` AS `Posts` ON `User`.`id` = `Posts`.`user_id` LEFT OUTER JOIN `sequelize_test`.`Comment` AS `Posts->Comments` ON `Posts`.`id` = `Posts->Comments`.`post_id`;',
         postgres: 'SELECT "User".name, "User".age, Posts.id AS "Posts.id", Posts.title AS "Posts.title", "Posts->Comments".id AS "Posts.Comments.id", "Posts->Comments".title AS "Posts.Comments.title", "Posts->Comments".createdAt AS "Posts.Comments.createdAt", "Posts->Comments".updatedAt AS "Posts.Comments.updatedAt", "Posts->Comments".post_id AS "Posts.Comments.post_id" FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id LEFT OUTER JOIN Comment AS "Posts->Comments" ON Posts.id = "Posts->Comments".post_id;'
       });
     });
