@@ -740,16 +740,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return User.create({ username: 'foo' }, { transaction: t }).then(() => {
                 return User.findOrBuild({
                   where: { username: 'foo' }
-                }).spread(user1 => {
+                }).then(([user1]) => {
                   return User.findOrBuild({
                     where: { username: 'foo' },
                     transaction: t
-                  }).spread(user2 => {
+                  }).then(([user2]) => {
                     return User.findOrBuild({
                       where: { username: 'foo' },
                       defaults: { foo: 'asd' },
                       transaction: t
-                    }).spread(user3 => {
+                    }).then(([user3]) => {
                       expect(user1.isNewRecord).to.be.true;
                       expect(user2.isNewRecord).to.be.false;
                       expect(user3.isNewRecord).to.be.false;
@@ -999,7 +999,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }).then(() => {
         return User.findAll();
-      }).spread(user => {
+      }).then(([user]) => {
         expect(user.username).to.equal('kurt');
       });
     });
@@ -1035,7 +1035,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }).then(() => {
         return User.findAll();
-      }).spread(user => {
+      }).then(([user]) => {
         expect(user.illness_pain).to.be.equal(5);
       });
     });
@@ -1070,7 +1070,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }).then(() => {
         return User.findAll();
-      }).spread(user => {
+      }).then(([user]) => {
         expect(user.illness_pain).to.be.equal(10);
       });
     });
@@ -1123,10 +1123,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return this.User.update({ username: 'Bill' }, { where: { secretValue: '42' } }).spread(affectedRows => {
+        return this.User.update({ username: 'Bill' }, { where: { secretValue: '42' } }).then(([affectedRows]) => {
           expect(affectedRows).to.equal(2);
         }).then(() => {
-          return this.User.update({ username: 'Bill' }, { where: { secretValue: '44' } }).spread(affectedRows => {
+          return this.User.update({ username: 'Bill' }, { where: { secretValue: '44' } }).then(([affectedRows]) => {
             expect(affectedRows).to.equal(0);
           });
         });
@@ -1221,7 +1221,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { username: 'Peter', secretValue: '42' }];
 
         return this.User.bulkCreate(data).then(() => {
-          return this.User.update({ secretValue: '43' }, { where: { username: 'Peter' }, limit: 1 }).spread(affectedRows => {
+          return this.User.update({ secretValue: '43' }, { where: { username: 'Peter' }, limit: 1 }).then(([affectedRows]) => {
             expect(affectedRows).to.equal(1);
           });
         });
@@ -1607,7 +1607,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.destroy({ where: { username: ['Tony', 'Max'] }, force: true });
       }).then(() => {
         return this.sequelize.query('SELECT * FROM paranoidusers', { raw: true });
-      }).spread(users => {
+      }).then(([users]) => {
         expect(users).to.have.length(1);
         expect(users[0].username).to.equal('Tobi');
       });

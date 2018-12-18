@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             project.addLevelTwo(level21),
             project.addLevelTwo(level22)
           ]);
-        }).spread(() => {
+        }).then(() => {
           // one include case
           return Project.findAll({
             where: { name: 'testProject' },

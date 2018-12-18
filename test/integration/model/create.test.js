@@ -355,13 +355,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.User.findOrCreate({
         where: data,
         defaults: {}
-      }).spread(user => {
+      }).then(([user]) => {
         expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
       }).then(() => {
         return this.User.findOrCreate({
           where: data,
           defaults: {}
-        }).spread(user => {
+        }).then(([user]) => {
           expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
         });
       });

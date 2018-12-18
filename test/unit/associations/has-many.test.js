@@ -146,15 +146,16 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
     it('should fetch associations for a single instance', () => {
       const findAll = stub(Task, 'findAll').returns(Promise.resolve([
-          Task.build({}),
-          Task.build({})
-        ])),
-        where = {};
+        Task.build({}),
+        Task.build({})
+      ]));
 
       User.Tasks = User.hasMany(Task, { foreignKey });
       const actual = User.Tasks.get(User.build({ id: idA }));
 
-      where[foreignKey] = idA;
+      const where = {
+        [foreignKey]: idA
+      };
 
       expect(findAll).to.have.been.calledOnce;
       expect(findAll.firstCall.args[0].where).to.deep.equal(where);

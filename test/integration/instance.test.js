@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const users = [];
 
       for (let i = 0; i < 10; i++) {
-        users[users.length] = { username: 'user' };
+        users[i] = { username: 'user' };
       }
 
       return this.User.bulkCreate(users).then(() => {
