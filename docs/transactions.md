@@ -260,6 +260,8 @@ model.afterSave((instance, options) => {
   }
   // Save done outside a transaction, safe for callers to fetch the updated model
   // Notify
+})
+```
 
 ## Locks
 
