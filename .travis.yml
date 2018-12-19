@@ -16,6 +16,8 @@ install:
   - npm install -g yarn
   - yarn
   - |-
+    if [ "$TSC" = true ]; then npm run test-typings; fi
+  - |-
     if [ "$DIALECT" = "postgres-native" ]; then yarn add pg-native; fi
 
 env:
@@ -66,7 +68,7 @@ jobs:
       env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres-native
     - stage: test
       node_js: '8'
-      env: DIALECT=sqlite COVERAGE=false
+      env: DIALECT=sqlite COVERAGE=false TSC=true
     # - stage: release
     #   node_js: '8'
     #   script:
