@@ -3,8 +3,8 @@ import { DataType } from './data-types';
 export type Primitive = 'string' | 'number' | 'boolean';
 
 export interface Inflector {
-    singularize(str: string): string;
-    pluralize(str: string): string;
+  singularize(str: string): string;
+  pluralize(str: string): string;
 }
 
 export function useInflection(inflection: Inflector): void;
@@ -15,13 +15,11 @@ export function isPrimitive(val: unknown): val is Primitive;
 
 /** Same concept as _.merge, but don't overwrite properties that have already been assigned */
 export function mergeDefaults<T>(a: T, b: Partial<T>): T;
-export function lowercaseFirst(s: string): string;
-export function uppercaseFirst(s: string): string;
 export function spliceStr(str: string, index: number, count: number, add: string): string;
 export function camelize(str: string): string;
 export function format(arr: string[], dialect: string): string;
 export function formatNamedParameters(sql: string, parameters: {
-    [key: string]: string | number | boolean;
+  [key: string]: string | number | boolean;
 }, dialect: string): string;
 export function cloneDeep<T>(obj: T, fn?: (el: any) => any): T;
 
@@ -52,7 +50,6 @@ export function toDefaultValue(value: any): any;
  */
 export function defaultValueSchemable(hash: DataType): boolean;
 export function stack(): NodeJS.CallSite[];
-export function sliceArgs<T>(args: T[], begin: number): T[];
 export function now(dialect: string): Date;
 
 // Note: Use the `quoteIdentifier()` and `escape()` methods on the
@@ -70,39 +67,39 @@ export class SequelizeMethod {
  * Please do not use these functions directly, use Sequelize.fn and Sequelize.col instead.
  */
 export class Fn extends SequelizeMethod {
-    constructor(fn: string, args: any);
-    public clone(): this;
+  constructor(fn: string, args: any);
+  public clone(): this;
 }
 
 export class Col extends SequelizeMethod {
-    public col: string;
-    constructor(col: string);
+  public col: string;
+  constructor(col: string);
 }
 
 export class Cast extends SequelizeMethod {
-    public val: any;
-    public type: string;
-    constructor(val: any, type?: string);
+  public val: any;
+  public type: string;
+  constructor(val: any, type?: string);
 }
 
 export class Literal extends SequelizeMethod {
-    public val: any;
-    constructor(val: any);
+  public val: any;
+  constructor(val: any);
 }
 
 export class Json extends SequelizeMethod {
-    public conditions: object;
-    public path: string;
-    public value: string | number | boolean;
-    constructor(conditionsOrPath: string | object, value?: string | number | boolean);
+  public conditions: object;
+  public path: string;
+  public value: string | number | boolean;
+  constructor(conditionsOrPath: string | object, value?: string | number | boolean);
 }
 
 export class Where extends SequelizeMethod {
-    public attribute: object;
-    public comparator: string;
-    public logic: string | object;
-    constructor(attr: object, comparator: string, logic: string | object);
-    constructor(attr: object, logic: string | object);
+  public attribute: object;
+  public comparator: string;
+  public logic: string | object;
+  constructor(attr: object, comparator: string, logic: string | object);
+  constructor(attr: object, logic: string | object);
 }
 
 export { Promise } from './promise';

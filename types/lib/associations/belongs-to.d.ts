@@ -9,21 +9,21 @@ import { Association, AssociationOptions, SingleAssociationAccessors } from './b
  * @see Association class belongsTo method
  */
 export interface BelongsToOptions extends AssociationOptions {
-    /**
-     * The name of the field to use as the key for the association in the target table. Defaults to the primary
-     * key of the target table
-     */
-    targetKey?: string;
+  /**
+   * The name of the field to use as the key for the association in the target table. Defaults to the primary
+   * key of the target table
+   */
+  targetKey?: string;
 
-    /**
-     * A string or a data type to represent the identifier in the table
-     */
-    keyType?: DataType;
+  /**
+   * A string or a data type to represent the identifier in the table
+   */
+  keyType?: DataType;
 }
 
 export class BelongsTo extends Association {
-    public accessors: SingleAssociationAccessors;
-    constructor(source: typeof Model, target: typeof Model, options: BelongsToOptions);
+  public accessors: SingleAssociationAccessors;
+  constructor(source: typeof Model, target: typeof Model, options: BelongsToOptions);
 }
 
 /**
@@ -31,10 +31,10 @@ export class BelongsTo extends Association {
  * @see BelongsToGetAssociationMixin
  */
 export interface BelongsToGetAssociationMixinOptions extends FindOptions {
-    /**
-     * Apply a scope on the related model, or remove its default scope by passing false.
-     */
-    scope?: string | string[] | boolean;
+  /**
+   * Apply a scope on the related model, or remove its default scope by passing false.
+   */
+  scope?: string | string[] | boolean;
 }
 
 /**
@@ -46,9 +46,9 @@ export interface BelongsToGetAssociationMixinOptions extends FindOptions {
  * User.belongsTo(Role);
  *
  * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttrib>, UserAttrib {
- *    getRole: Sequelize.BelongsToGetAssociationMixin<RoleInstance>;
- *    // setRole...
- *    // createRole...
+ *  getRole: Sequelize.BelongsToGetAssociationMixin<RoleInstance>;
+ *  // setRole...
+ *  // createRole...
  * }
  * ```
  *
@@ -62,10 +62,10 @@ export type BelongsToGetAssociationMixin<TModel> = (options?: BelongsToGetAssoci
  * @see BelongsToSetAssociationMixin
  */
 export interface BelongsToSetAssociationMixinOptions extends SaveOptions {
-    /**
-     * Skip saving this after setting the foreign key if false.
-     */
-    save?: boolean;
+  /**
+   * Skip saving this after setting the foreign key if false.
+   */
+  save?: boolean;
 }
 
 /**
@@ -77,9 +77,9 @@ export interface BelongsToSetAssociationMixinOptions extends SaveOptions {
  * User.belongsTo(Role);
  *
  * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttributes>, UserAttributes {
- *    // getRole...
- *    setRole: Sequelize.BelongsToSetAssociationMixin<RoleInstance, RoleId>;
- *    // createRole...
+ *  // getRole...
+ *  setRole: Sequelize.BelongsToSetAssociationMixin<RoleInstance, RoleId>;
+ *  // createRole...
  * }
  * ```
  *
@@ -87,8 +87,8 @@ export interface BelongsToSetAssociationMixinOptions extends SaveOptions {
  * @see Instance
  */
 export type BelongsToSetAssociationMixin<TModel, TPrimaryKey> = (
-    newAssociation?: TModel | TPrimaryKey,
-    options?: BelongsToSetAssociationMixinOptions
+  newAssociation?: TModel | TPrimaryKey,
+  options?: BelongsToSetAssociationMixinOptions
 ) => Promise<void>;
 
 /**
@@ -106,9 +106,9 @@ export interface BelongsToCreateAssociationMixinOptions extends CreateOptions, B
  * User.belongsTo(Role);
  *
  * interface UserInstance extends Sequelize.Instance<UserInstance, UserAttributes>, UserAttributes {
- *    // getRole...
- *    // setRole...
- *    createRole: Sequelize.BelongsToCreateAssociationMixin<RoleAttributes>;
+ *  // getRole...
+ *  // setRole...
+ *  createRole: Sequelize.BelongsToCreateAssociationMixin<RoleAttributes>;
  * }
  * ```
  *
@@ -116,8 +116,8 @@ export interface BelongsToCreateAssociationMixinOptions extends CreateOptions, B
  * @see Instance
  */
 export type BelongsToCreateAssociationMixin<TModel> = (
-    values?: { [attribute: string]: any },
-    options?: BelongsToCreateAssociationMixinOptions
+  values?: { [attribute: string]: any },
+  options?: BelongsToCreateAssociationMixinOptions
 ) => Promise<TModel>;
 
 export default BelongsTo;

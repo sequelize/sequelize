@@ -132,15 +132,14 @@ module.exports = function(Sequelize) {
     shimMethod(obj, name, original => {
       const sequelizeProto = obj === Sequelize.prototype;
 
-      return function() {
+      return function(...args) {
         let sequelize = sequelizeProto ? this : this.sequelize;
         if (this instanceof Sequelize.Association) sequelize = this.target.sequelize;
         if (!sequelize) throw new Error('Object does not have a `sequelize` attribute');
 
-        let args = Sequelize.Utils.sliceArgs(arguments);
         const fromTests = calledFromTests();
 
-        if (conform) args = conform.apply(this, arguments);
+        if (conform) args = conform.apply(this, args);
 
         let options = args[index];
 

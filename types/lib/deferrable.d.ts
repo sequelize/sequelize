@@ -9,12 +9,12 @@
  * ```js
  * sequelize.define('Model', {
  *   foreign_id: {
- *     type: Sequelize.INTEGER,
- *     references: {
- *       model: OtherModel,
- *       key: 'id',
- *       deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
- *     }
+ *   type: Sequelize.INTEGER,
+ *   references: {
+ *     model: OtherModel,
+ *     key: 'id',
+ *     deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
+ *   }
  *   }
  * });
  * ```
@@ -34,31 +34,31 @@
  *
  */
 export interface AbstractDeferrableStatic {
-    new (): Deferrable;
-    (): Deferrable;
+  new (): Deferrable;
+  (): Deferrable;
 }
 export interface Deferrable {
-    toString(): string;
-    toSql(): string;
+  toString(): string;
+  toSql(): string;
 }
 
 export interface InitiallyDeferredDeferrableStatic extends AbstractDeferrableStatic {
-    new (): InitiallyDeferredDeferrable;
-    (): InitiallyDeferredDeferrable;
+  new (): InitiallyDeferredDeferrable;
+  (): InitiallyDeferredDeferrable;
 }
 export interface InitiallyDeferredDeferrable extends Deferrable {}
 export const INITIALLY_DEFERRED: InitiallyDeferredDeferrableStatic;
 
 export interface InitiallyImmediateDeferrableStatic extends AbstractDeferrableStatic {
-    new (): InitiallyImmediateDeferrable;
-    (): InitiallyImmediateDeferrable;
+  new (): InitiallyImmediateDeferrable;
+  (): InitiallyImmediateDeferrable;
 }
 export interface InitiallyImmediateDeferrable extends Deferrable {}
 export const INITIALLY_IMMEDIATE: InitiallyImmediateDeferrableStatic;
 
 export interface NotDeferrableStatic extends AbstractDeferrableStatic {
-    new (): NotDeferrable;
-    (): NotDeferrable;
+  new (): NotDeferrable;
+  (): NotDeferrable;
 }
 export interface NotDeferrable extends Deferrable {}
 /**
@@ -68,14 +68,14 @@ export interface NotDeferrable extends Deferrable {}
 export const NOT: NotDeferrableStatic;
 
 export interface SetDeferredDeferrableStatic extends AbstractDeferrableStatic {
-    /**
-     * @param constraints An array of constraint names. Will defer all constraints by default.
-     */
-    new (constraints: string[]): SetDeferredDeferrable;
-    /**
-     * @param constraints An array of constraint names. Will defer all constraints by default.
-     */
-    (constraints: string[]): SetDeferredDeferrable;
+  /**
+   * @param constraints An array of constraint names. Will defer all constraints by default.
+   */
+  new (constraints: string[]): SetDeferredDeferrable;
+  /**
+   * @param constraints An array of constraint names. Will defer all constraints by default.
+   */
+  (constraints: string[]): SetDeferredDeferrable;
 }
 export interface SetDeferredDeferrable extends Deferrable {}
 /**
@@ -85,14 +85,14 @@ export interface SetDeferredDeferrable extends Deferrable {}
 export const SET_DEFERRED: SetDeferredDeferrableStatic;
 
 export interface SetImmediateDeferrableStatic extends AbstractDeferrableStatic {
-    /**
-     * @param constraints An array of constraint names. Will defer all constraints by default.
-     */
-    new (constraints: string[]): SetImmediateDeferrable;
-    /**
-     * @param constraints An array of constraint names. Will defer all constraints by default.
-     */
-    (constraints: string[]): SetImmediateDeferrable;
+  /**
+   * @param constraints An array of constraint names. Will defer all constraints by default.
+   */
+  new (constraints: string[]): SetImmediateDeferrable;
+  /**
+   * @param constraints An array of constraint names. Will defer all constraints by default.
+   */
+  (constraints: string[]): SetImmediateDeferrable;
 }
 export interface SetImmediateDeferrable extends Deferrable {}
 /**
