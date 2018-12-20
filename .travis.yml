@@ -40,6 +40,8 @@ script:
   - npm run lint
   - |-
     if [ "$COVERAGE" = true ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi
+  - |-
+    if [ "$TSC" = true ]; then npm run test-typings; fi
 
 jobs:
   include:
