@@ -7,6 +7,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   _ = require('lodash'),
   moment = require('moment'),
+  binaryUUID = require('binary-uuid'),
   current = Support.sequelize,
   Op = Sequelize.Op,
   uuid = require('uuid'),
@@ -260,6 +261,12 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }
     // No native uuid type
     testFailure(Type);
+  });
+
+  it('calls parse and stringify for BINARYUUID', () => {
+    const Type = new Sequelize.BINARYUUID();
+    const buf = binaryUUID.createBinaryUUID().buffer;
+    return testSuccess(Type, buf);
   });
 
   it('calls parse and stringify for CIDR', () => {
