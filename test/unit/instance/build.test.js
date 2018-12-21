@@ -65,6 +65,22 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(instance.get('id')).to.be.ok;
     });
 
+    it('should populate explicitly undefined UUID.BINARY primary keys', () => {
+      const Model = current.define('Model', {
+          id: {
+            type: DataTypes.UUID.BINARY,
+            primaryKey: true,
+            allowNull: false,
+            defaultValue: DataTypes.UUIDV1.BINARY
+          }
+        }),
+        instance  = Model.build({
+          id: undefined
+        });
+      expect(instance.get('id')).not.to.be.undefined;
+      expect(instance.get('id')).to.be.ok;
+    });
+
     it('should populate undefined columns with default value', () => {
       const Model = current.define('Model', {
           number1: {
@@ -85,6 +101,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(instance.get('number2')).not.to.be.undefined;
       expect(instance.get('number2')).to.equal(2);
     });
+
+
 
     it('should clone the default values', () => {
       const Model = current.define('Model', {

@@ -27,6 +27,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     it('return uuid v1', () => {
       expect(/^[a-z0-9\-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))).to.be.equal(true);
     });
+    it('return binary uuid v1', () => {
+      expect(Utils.toDefaultValue(DataTypes.UUIDV1().BINARY)).to.be.instanceof(Buffer);
+    });
     it('return uuid v4', () => {
       expect(/^[a-z0-9\-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4()))).to.be.equal(true);
     });

@@ -63,6 +63,24 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    describe('BINARY', () => {
+      testsql('BINARY', DataTypes.BINARY, {
+        default: 'BINARY(255)'
+      });
+
+      testsql('BINARY(16)', DataTypes.BINARY(16), {
+        default: 'BINARY(16)'
+      });
+
+      describe('validate', () => {
+        it('should return `true` if `value` is a Buffer', () => {
+          const type = DataTypes.BINARY();
+
+          expect(type.validate(Buffer.from('foobar'))).to.equal(true);
+        });
+      });
+    });
+
     describe('TEXT', () => {
       testsql('TEXT', DataTypes.TEXT, {
         default: 'TEXT',

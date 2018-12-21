@@ -187,6 +187,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     return testSuccess(Type, 'foobar');
   });
 
+
   it('calls parse and stringify for TEXT', () => {
     const Type = new Sequelize.TEXT();
 
