@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should populate explicitly undefined UUID.BINARY primary keys', () => {
       const Model = current.define('Model', {
           id: {
-            type: DataTypes.UUID.BINARY,
+            type: DataTypes.BINARYUUID,
             primaryKey: true,
             allowNull: false,
             defaultValue: DataTypes.UUIDV1.BINARY
