@@ -26,6 +26,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "binary-uuid": "^1.2.0",
     "bluebird": "^3.5.0",
     "cls-bluebird": "^2.1.0",
     "debug": "^4.1.0",
