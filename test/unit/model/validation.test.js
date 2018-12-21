@@ -130,11 +130,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         fail: 'f47ac10b-58cc-3372-a567-0e02b2c3d479',
         pass: 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
       },
-      isHexifiedBinaryUUID: {
-        spec: { args: ['730bcf3b-fd11-11e8-a1ce-0242ac110002'] },
-        fail: '11e8fd11730bcf3ba1ce0242ac110012',
-        pass: '11e8fd11730bcf3ba1ce0242ac110002'
-      },
       isDate: {
         fail: 'not a date',
         pass: '2011-02-04'

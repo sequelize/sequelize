@@ -6,6 +6,7 @@ const Support = require('../support'),
   chai = require('chai'),
   util = require('util'),
   uuid = require('uuid'),
+  binaryUUID = require('binary-uuid'),
   expectsql = Support.expectsql,
   current = Support.sequelize,
   expect = chai.expect,
@@ -63,20 +64,17 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('BINARY', () => {
-      testsql('BINARY', DataTypes.BINARY, {
-        default: 'BINARY(255)'
-      });
-
-      testsql('BINARY(16)', DataTypes.BINARY(16), {
+    describe('BINARYUUID', () => {
+      testsql('BINARY(16)', DataTypes.BINARYUUID, {
         default: 'BINARY(16)'
       });
 
       describe('validate', () => {
-        it('should return `true` if `value` is a Buffer', () => {
-          const type = DataTypes.BINARY();
+        it('should validate binary UUID', () => {
+          const type = DataTypes.BINARYUUID();
+          const buf = binaryUUID.createBinaryUUID().buffer;
 
-          expect(type.validate(Buffer.from('foobar'))).to.equal(true);
+          expect(type.validate(buf)).to.equal(true);
         });
       });
     });
