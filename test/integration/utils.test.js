@@ -222,7 +222,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     it('should return correctly if values are null', () => {
       const value = {
-        name: 'Jo',
+        name: 'John',
         address: {
           street: 'Fake St. 123',
           city: null,
