@@ -477,9 +477,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       validate: {
         customFn() {
           if (this.get('name') === 'error') {
-            return Promise.reject(new Error('Error from model validation promise'));
+            throw new Error('Error from model validation promise');
           }
-          return Promise.resolve();
         }
       }
     });
