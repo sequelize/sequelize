@@ -26,6 +26,10 @@ With v5 Sequelize now use `sequelize-pool` which is a modernized fork of `generi
 
 ### Model
 
+**Validators**
+
+Custom validators defined per attribute (as opposed to the custom validators defined in the model's options) now run when the attribute's value is `null` and `allowNull` is `true` (while previously they didn't run and the validation succeeded immediately). To avoid problems when upgrading, please check all your custom validators defined per attribute, where `allowNull` is `true`, and make sure all these validators behave correctly when the value is `null`. See #9143.
+
 **Attributes**
 
 `Model.attributes` now removed, use `Model.rawAttributes`. [#5320](https://github.com/sequelize/sequelize/issues/5320)

@@ -224,15 +224,17 @@ set(title) {
 
 ## Validations
 
-Model validations, allow you to specify format/content/inheritance validations for each attribute of the model.
+Model validations allow you to specify format/content/inheritance validations for each attribute of the model.
 
 Validations are automatically run on `create`, `update` and `save`. You can also call `validate()` to manually validate an instance.
 
-The validations are implemented by [validator.js][3].
+### Per-attribute validations
+
+You can define your custom validators or use several built-in validators, implemented by [validator.js][3], as shown below.
 
 ```js
 const ValidateMe = sequelize.define('foo', {
-  foo: {
+  bar: {
     type: Sequelize.STRING,
     validate: {
       is: ["^[a-z]+$",'i'],     // will only allow letters
@@ -268,12 +270,15 @@ const ValidateMe = sequelize.define('foo', {
       min: 23,                  // only allow values >= 23
       isCreditCard: true,       // check for valid credit card numbers
 
-      // custom validations are also possible:
+      // Examples of custom validators:
       isEven(value) {
-        if (parseInt(value) % 2 != 0) {
-          throw new Error('Only even values are allowed!')
-          // we also are in the model's context here, so this.otherField
-          // would get the value of otherField if it existed
+        if (parseInt(value) % 2 !== 0) {
+          throw new Error('Only even values are allowed!');
+        }
+      }
+      isGreaterThanOtherField(value) {
+        if (parseInt(value) <= parseInt(this.otherField)) {
+          throw new Error('Bar must be greater than otherField.');
         }
       }
     }
@@ -283,7 +288,7 @@ const ValidateMe = sequelize.define('foo', {
 
 Note that where multiple arguments need to be passed to the built-in validation functions, the arguments to be passed must be in an array. But if a single array argument is to be passed, for instance an array of acceptable strings for `isIn`, this will be interpreted as multiple string arguments instead of one array argument. To work around this pass a single-length array of arguments, such as `[['one', 'two']]` as shown above.
 
-To use a custom error message instead of that provided by validator.js, use an object instead of the plain value or array of arguments, for example a validator which needs no argument can be given a custom message with
+To use a custom error message instead of that provided by [validator.js][3], use an object instead of the plain value or array of arguments, for example a validator which needs no argument can be given a custom message with
 
 ```js
 isInt: {
@@ -291,7 +296,7 @@ isInt: {
 }
 ```
 
-or if arguments need to also be passed add an`args`property:
+or if arguments need to also be passed add an `args` property:
 
 ```js
 isIn: {
@@ -300,19 +305,52 @@ isIn: {
 }
 ```
 
-When using custom validator functions the error message will be whatever message the thrown`Error`object holds.
+When using custom validator functions the error message will be whatever message the thrown `Error` object holds.
 
 See [the validator.js project][3] for more details on the built in validation methods.
 
-**Hint: **You can also define a custom function for the logging part. Just pass a function. The first parameter will be the string that is logged.
+**Hint:** You can also define a custom function for the logging part. Just pass a function. The first parameter will be the string that is logged.
 
-### Validators and `allowNull`
+### Per-attribute validators and `allowNull`
 
-If a particular field of a model is set to allow null (with `allowNull: true`) and that value has been set to `null` , its validators do not run.
+If a particular field of a model is set to not allow null (with `allowNull: false`) and that value has been set to `null`, all validators will be skipped and a `ValidationError` will be thrown.
 
-This means you can, for instance, have a string field which validates its length to be at least 5 characters, but which also allows `null`.
+On the other hand, if it is set to allow null (with `allowNull: true`) and that value has been set to `null`, only the built-in validators will be skipped, while the custom validators will still run.
 
-You can customize `allowNull` error message by setting `notNull` validator, like this
+This means you can, for instance, have a string field which validates its length to be between 5 and 10 characters, but which also allows `null` (since the length validator will be skipped automatically when the value is `null`):
+
+```js
+const User = sequelize.define('user', {
+  username: {
+    type: Sequelize.STRING,
+    allowNull: true,
+    validate: {
+      len: [5, 10]
+    }
+  }
+});
+```
+
+You also can conditionally allow `null` values, with a custom validator, since it won't be skipped:
+
+```js
+const User = sequelize.define('user', {
+  age: Sequelize.INTEGER,
+  name: {
+    type: Sequelize.STRING,
+    allowNull: true,
+    validate: {
+      customValidator: function(value) {
+        if (value === null && this.age !== 10) {
+          throw new Error("name can't be null unless age is 10");
+        }
+      })
+    }
+  }
+});
+```
+
+You can customize `allowNull` error message by setting the `notNull` validator:
 
 ```js
 const User = sequelize.define('user', {
@@ -328,7 +366,7 @@ const User = sequelize.define('user', {
 });
 ```
 
-### Model validations
+### Model-wide validations
 
 Validations can also be defined to check the model after the field-specific validators. Using this you could, for example, ensure either neither of `latitude` and `longitude` are set or both, and fail if one but not the other is set.
 
@@ -373,6 +411,8 @@ In this simple case an object fails validation if either latitude or longitude i
   'bothCoordsOrNone': ['Require either both latitude and longitude or neither']
 }
 ```
+
+Such validation could have also been done with a custom validator defined on a single attribute (such as the `latitude` attribute, by checking `(value === null) !== (this.longitude === null)`), but the model-wide validation approach is cleaner.
 
 ## Configuration
 
