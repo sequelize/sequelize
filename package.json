@@ -62,6 +62,7 @@
     "hints": "^1.x",
     "husky": "^1.1.2",
     "istanbul": "^0.x",
+    "js-combinatorics": "^0.5.4",
     "lcov-result-merger": "^3.0.0",
     "lint-staged": "^7.3.0",
     "mariadb": "^2.0.1-beta",
