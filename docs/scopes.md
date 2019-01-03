@@ -121,7 +121,7 @@ Project.scope('defaultScope', 'deleted').findAll();
 SELECT * FROM projects WHERE active = true AND deleted = true
 ```
 
-When invoking several scopes, keys from subsequent scopes will overwrite previous ones (similar to [Object.assign](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign). Consider two scopes:
+When invoking several scopes, keys from subsequent scopes will overwrite previous ones (similarly to [Object.assign](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign)), except for `where` and `include`, which will be merged. Consider two scopes:
 
 ```js
 {
@@ -151,9 +151,9 @@ Calling `.scope('scope1', 'scope2')` will yield the following query
 WHERE firstName = 'bob' AND age > 30 LIMIT 10
 ```
 
-Note how `limit` and `age` are overwritten by `scope2`, while `firstName` is preserved. `limit`, `offset`, `order`, `paranoid`, `lock` and `raw` are overwritten, while `where` and `include` are shallowly merged. This means that identical keys in the where objects, and subsequent includes of the same model will both overwrite each other.
+Note how `limit` and `age` are overwritten by `scope2`, while `firstName` is preserved. The `limit`, `offset`, `order`, `paranoid`, `lock` and `raw` fields are overwritten, while `where` is shallowly merged (meaning that identical keys will be overwritten). The merge strategy for `include` will be discussed later on.
 
-The same merge logic applies when passing a find object directly to findAll on a scoped model:
+The same merge logic applies when passing a find object directly to `findAll` (and similar finders) on a scoped model:
 
 ```js
 Project.scope('deleted').findAll({
@@ -167,6 +167,89 @@ WHERE deleted = true AND firstName = 'john'
 ```
 
 Here the `deleted` scope is merged with the finder. If we were to pass `where: { firstName: 'john', deleted: false }` to the finder, the `deleted` scope would be overwritten.
+
+### Merging includes
+
+Includes are merged recursively based on the models being included. This is a very powerful merge, added on v5, and is better understood with an example.
+
+Consider four models: Foo, Bar, Baz and Qux, with has-many associations as follows:
+
+```js
+Foo = sequelize.define('foo', { name: Sequelize.STRING };
+Bar = sequelize.define('bar', { name: Sequelize.STRING };
+Baz = sequelize.define('baz', { name: Sequelize.STRING };
+Qux = sequelize.define('qux', { name: Sequelize.STRING };
+Foo.hasMany(Bar, { foreignKey: 'fooId' });
+Bar.hasMany(Baz, { foreignKey: 'barId' });
+Baz.hasMany(Qux, { foreignKey: 'bazId' });
+```
+
+Now, consider the following four scopes defined on Foo:
+
+```js
+{
+  includeEverything: {
+    include: {
+      model: this.Bar,
+      include: [{
+        model: this.Baz,
+        include: this.Qux
+      }]
+    }
+  },
+  limitedBars: {
+    include: [{
+      model: this.Bar,
+      limit: 2
+    }]
+  },
+  limitedBazs: {
+    include: [{
+      model: this.Bar,
+      include: [{
+        model: this.Baz,
+        limit: 2
+      }]
+    }]
+  },
+  excludeBazName: {
+    include: [{
+      model: this.Bar,
+      include: [{
+        model: this.Baz,
+        attributes: {
+          exclude: ['name']
+        }
+      }]
+    }]
+  }
+}
+```
+
+These four scopes can be deeply merged easily, for example by calling `Foo.scope('includeEverything', 'limitedBars', 'limitedBazs', 'excludeBazName').findAll()`, which would be entirely equivalent to calling the following:
+
+```js
+Foo.findAll({
+  include: {
+    model: this.Bar,
+    limit: 2,
+    include: [{
+      model: this.Baz,
+      limit: 2,
+      attributes: {
+        exclude: ['name']
+      },
+      include: this.Qux
+    }]
+  }
+});
+```
+
+Observe how the four scopes were merged into one. The includes of scopes are merged based on the model being included. If one scope includes model A and another includes model B, the merged result will include both models A and B. On the other hand, if both scopes include the same model A, but with different options (such as nested includes or other attributes), those will be merged recursively, as shown above.
+
+The merge illustrated above works in the exact same way regardless of the order applied to the scopes. The order would only make a difference if a certain option was set by two different scopes - which is not the case of the above example, since each scope does a different thing.
+
+This merge strategy also works in the exact same way with options passed to `.findAll`, `.findOne` and the like.
 
 ## Associations
 Sequelize has two different but related scope concepts in relation to associations. The difference is subtle but important:
