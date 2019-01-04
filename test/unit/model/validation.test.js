@@ -606,25 +606,29 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
   describe('custom validation functions and null values', () => {
 
-    const customValidator = sinon.fake(function(value) {
-      if (value === null && this.age !== 10) {
-        throw new Error("name can't be null unless age is 10");
-      }
+    before(function() {
+      this.customValidator = sinon.fake(function(value) {
+        if (value === null && this.age !== 10) {
+          throw new Error("name can't be null unless age is 10");
+        }
+      });
     });
 
     describe('with allowNull set to true', () => {
 
-      const User = current.define('user', {
-        age: Sequelize.INTEGER,
-        name: {
-          type: Sequelize.STRING,
-          allowNull: true,
-          validate: { customValidator }
-        }
-      });
-
       before(function() {
-        this.stub = sinon.stub(current, 'query').returns(Promise.resolve([User.build(), 1]));
+        this.User = current.define('user', {
+          age: Sequelize.INTEGER,
+          name: {
+            type: Sequelize.STRING,
+            allowNull: true,
+            validate: {
+              customValidator: this.customValidator
+            }
+          }
+        });
+
+        this.stub = sinon.stub(current, 'query').returns(Promise.resolve([this.User.build(), 1]));
       });
 
       after(function() {
@@ -632,47 +636,47 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
 
       describe('should call validator and not throw', () => {
-        beforeEach(() => {
-          customValidator.resetHistory();
+        beforeEach(function() {
+          this.customValidator.resetHistory();
         });
 
-        it('on create', () => {
-          return expect(User.create({
+        it('on create', function() {
+          return expect(this.User.create({
             age: 10,
             name: null
           })).not.to.be.rejected.then(() => {
-            return expect(customValidator).to.have.been.calledOnce;
+            return expect(this.customValidator).to.have.been.calledOnce;
           });
         });
-        it('on update', () => {
-          return expect(User.update({
+        it('on update', function() {
+          return expect(this.User.update({
             age: 10,
             name: null
           }, { where: {} })).not.to.be.rejected.then(() => {
-            return expect(customValidator).to.have.been.calledOnce;
+            return expect(this.customValidator).to.have.been.calledOnce;
           });
         });
       });
 
       describe('should call validator and throw ValidationError', () => {
-        beforeEach(() => {
-          customValidator.resetHistory();
+        beforeEach(function() {
+          this.customValidator.resetHistory();
         });
 
-        it('on create', () => {
-          return expect(User.create({
+        it('on create', function() {
+          return expect(this.User.create({
             age: 11,
             name: null
           })).to.be.rejectedWith(Sequelize.ValidationError).then(() => {
-            return expect(customValidator).to.have.been.calledOnce;
+            return expect(this.customValidator).to.have.been.calledOnce;
           });
         });
-        it('on update', () => {
-          return expect(User.update({
+        it('on update', function() {
+          return expect(this.User.update({
             age: 11,
             name: null
           }, { where: {} })).to.be.rejectedWith(Sequelize.ValidationError).then(() => {
-            return expect(customValidator).to.have.been.calledOnce;
+            return expect(this.customValidator).to.have.been.calledOnce;
           });
         });
       });
@@ -681,17 +685,19 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     describe('with allowNull set to false', () => {
 
-      const User = current.define('user', {
-        age: Sequelize.INTEGER,
-        name: {
-          type: Sequelize.STRING,
-          allowNull: false,
-          validate: { customValidator }
-        }
-      });
-
       before(function() {
-        this.stub = sinon.stub(current, 'query').returns(Promise.resolve([User.build(), 1]));
+        this.User = current.define('user', {
+          age: Sequelize.INTEGER,
+          name: {
+            type: Sequelize.STRING,
+            allowNull: false,
+            validate: {
+              customValidator: this.customValidator
+            }
+          }
+        });
+
+        this.stub = sinon.stub(current, 'query').returns(Promise.resolve([this.User.build(), 1]));
       });
 
       after(function() {
@@ -699,47 +705,47 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
 
       describe('should not call validator and throw ValidationError', () => {
-        beforeEach(() => {
-          customValidator.resetHistory();
+        beforeEach(function() {
+          this.customValidator.resetHistory();
         });
 
-        it('on create', () => {
-          return expect(User.create({
+        it('on create', function() {
+          return expect(this.User.create({
             age: 99,
             name: null
           })).to.be.rejectedWith(Sequelize.ValidationError).then(() => {
-            return expect(customValidator).to.have.not.been.called;
+            return expect(this.customValidator).to.have.not.been.called;
           });
         });
-        it('on update', () => {
-          return expect(User.update({
+        it('on update', function() {
+          return expect(this.User.update({
             age: 99,
             name: null
           }, { where: {} })).to.be.rejectedWith(Sequelize.ValidationError).then(() => {
-            return expect(customValidator).to.have.not.been.called;
+            return expect(this.customValidator).to.have.not.been.called;
           });
         });
       });
 
       describe('should call validator and not throw', () => {
-        beforeEach(() => {
-          customValidator.resetHistory();
+        beforeEach(function() {
+          this.customValidator.resetHistory();
         });
 
-        it('on create', () => {
-          return expect(User.create({
+        it('on create', function() {
+          return expect(this.User.create({
             age: 99,
             name: 'foo'
           })).not.to.be.rejected.then(() => {
-            return expect(customValidator).to.have.been.calledOnce;
+            return expect(this.customValidator).to.have.been.calledOnce;
           });
         });
-        it('on update', () => {
-          return expect(User.update({
+        it('on update', function() {
+          return expect(this.User.update({
             age: 99,
             name: 'foo'
           }, { where: {} })).not.to.be.rejected.then(() => {
-            return expect(customValidator).to.have.been.calledOnce;
+            return expect(this.customValidator).to.have.been.calledOnce;
           });
         });
       });
