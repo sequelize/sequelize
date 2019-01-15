@@ -70,7 +70,7 @@
     "mysql2": "^1.6.4",
     "pg": "^7.5.0",
     "pg-hstore": "^2.x",
-    "pg-types": "^1.x",
+    "pg-types": "^2.0.0",
     "rimraf": "^2.x",
     "sinon": "^6.3.5",
     "sinon-chai": "^3.2.0",
