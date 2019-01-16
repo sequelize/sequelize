@@ -44,10 +44,10 @@ if (dialect === 'mariadb') {
     it('newlines contained in err message are parsed correctly', () => {
       const fakeErr = new Error("Duplicate entry '13888888888\r' for key 'num'");
 
-      fakeErr.code = 1062;
+      fakeErr.errno = 1062;
 
       const parsedErr = queryProto.formatError(fakeErr);
-
+      
       expect(parsedErr).to.be.instanceOf(Sequelize.UniqueConstraintError);
       expect(parsedErr.parent).to.equal(fakeErr);
       expect(parsedErr.fields.num).to.equal('13888888888\r');
