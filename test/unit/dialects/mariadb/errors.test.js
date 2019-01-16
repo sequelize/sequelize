@@ -42,15 +42,15 @@ if (dialect === 'mariadb') {
     });
 
     it('newlines contained in err message are parsed correctly', () => {
-      const fakeErr = new Error("Duplicate entry '13888888888\r' for key 'num'");
+      const fakeErr = new Error("Duplicate entry 'test\r' for key 'num'");
 
       fakeErr.errno = 1062;
 
       const parsedErr = queryProto.formatError(fakeErr);
-      
+
       expect(parsedErr).to.be.instanceOf(Sequelize.UniqueConstraintError);
       expect(parsedErr.parent).to.equal(fakeErr);
-      expect(parsedErr.fields.num).to.equal('13888888888\r');
+      expect(parsedErr.fields.num).to.equal('test\r');
     });
   });
 }
