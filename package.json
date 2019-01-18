@@ -18,11 +18,14 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "main": "index.js",
+  "types": "types",
   "engines": {
     "node": ">=6.0.0"
   },
   "files": [
-    "lib"
+    "lib",
+    "types/index.d.ts",
+    "types/lib"
   ],
   "license": "MIT",
   "dependencies": {
@@ -46,6 +49,9 @@
   "devDependencies": {
     "@commitlint/cli": "^7.2.0",
     "@commitlint/config-angular": "^7.1.2",
+    "@types/bluebird": "^3.5.25",
+    "@types/node": "^10.12.18",
+    "@types/validator": "^9.4.4",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
     "chai-datetime": "^1.x",
@@ -75,7 +81,8 @@
     "sinon": "^6.3.5",
     "sinon-chai": "^3.2.0",
     "sqlite3": "^4.0.2",
-    "tedious": "^3.0.1"
+    "tedious": "^3.0.1",
+    "typescript": "^3.2.2"
   },
   "keywords": [
     "mysql",
@@ -138,6 +145,7 @@
     "test-postgresn": "npm run test-postgres-native",
     "test-mssql": "cross-env DIALECT=mssql npm test",
     "test-all": "npm run test-mariadb && npm run test-mysql && npm run test-sqlite && npm run test-postgres && npm run test-postgres-native && npm run test-mssql",
+    "test-typings": "tsc -b types/tsconfig.json && tsc -b types/test/tsconfig.json",
     "cover": "rimraf coverage && npm run teaser && npm run cover-integration && npm run cover-unit && npm run merge-coverage",
     "cover-integration": "cross-env COVERAGE=true ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --require scripts/mocha-bootload --report lcovonly -- -t 30000 --exit --ui tdd \"test/integration/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
     "cover-unit": "cross-env COVERAGE=true ./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --require scripts/mocha-bootload --report lcovonly -- -t 30000 --exit --ui tdd \"test/unit/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "noEmit": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "baseUrl": ".",
+    "paths": {
+      "sequelize": ["../"],
+      "sequelize/*": ["../"]
+    },
+    "types": ["node"],
+    "lib": ["es2016"]
+  },
+  "include": ["../index.d.ts", "./**/sequelize.d.ts", "./**/*.ts"]
+}

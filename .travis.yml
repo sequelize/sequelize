@@ -16,6 +16,8 @@ install:
   - npm install -g yarn
   - yarn
   - |-
+    if [ "$TSC" = true ]; then npm run test-typings; fi
+  - |-
     if [ "$DIALECT" = "postgres-native" ]; then yarn add pg-native; fi
 
 env:
@@ -38,6 +40,8 @@ script:
   - npm run lint
   - |-
     if [ "$COVERAGE" = true ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi
+  - |-
+    if [ "$TSC" = true ]; then npm run test-typings; fi
 
 jobs:
   include:
@@ -66,7 +70,7 @@ jobs:
       env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres-native
     - stage: test
       node_js: '8'
-      env: DIALECT=sqlite COVERAGE=false
+      env: DIALECT=sqlite COVERAGE=false TSC=true
     # - stage: release
     #   node_js: '8'
     #   script:

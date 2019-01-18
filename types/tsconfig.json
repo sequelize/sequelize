@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "lib": ["es2016"]
+  },
+  "types": ["node"],
+  "include": ["lib/**/*.d.ts", "index.d.ts"]
+}
