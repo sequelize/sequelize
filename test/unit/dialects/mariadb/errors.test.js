@@ -40,5 +40,17 @@ if (dialect === 'mariadb') {
       expect(parsedErr.value).to.be.undefined;
       expect(parsedErr.index).to.equal('brothers_ibfk_1');
     });
+
+    it('newlines contained in err message are parsed correctly', () => {
+      const fakeErr = new Error("Duplicate entry 'test\r' for key 'num'");
+
+      fakeErr.errno = 1062;
+
+      const parsedErr = queryProto.formatError(fakeErr);
+
+      expect(parsedErr).to.be.instanceOf(Sequelize.UniqueConstraintError);
+      expect(parsedErr.parent).to.equal(fakeErr);
+      expect(parsedErr.fields.num).to.equal('test\r');
+    });
   });
 }
