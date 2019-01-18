@@ -42,7 +42,7 @@ if (dialect === 'mariadb') {
     });
 
     it('newlines contained in err message are parsed correctly', () => {
-      const fakeErr = new Error("Duplicate entry 'test\r' for key 'num'");
+      const fakeErr = new Error('(conn=43, no: 1062, SQLState: 23000) Duplicate entry \'unique name one\r\' for key \'models_uniqueName2_unique\'\nsql: INSERT INTO `models` (`id`,`uniqueName1`,`uniqueName2`,`createdAt`,`updatedAt`) VALUES (DEFAULT,?,?,?,?); - parameters:[\'this is ok\',\'unique name one\',\'2019-01-18 09:05:28.496\',\'2019-01-18 09:05:28.496\']');
 
       fakeErr.errno = 1062;
 
@@ -50,7 +50,7 @@ if (dialect === 'mariadb') {
 
       expect(parsedErr).to.be.instanceOf(Sequelize.UniqueConstraintError);
       expect(parsedErr.parent).to.equal(fakeErr);
-      expect(parsedErr.fields.num).to.equal('test\r');
+      expect(parsedErr.fields.models_uniqueName2_unique).to.equal('unique name one\r');
     });
   });
 }
