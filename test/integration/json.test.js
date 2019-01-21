@@ -42,6 +42,8 @@ describe('model', () => {
           logging: sql => {
             if (dialect.match(/^mysql|mariadb/)) {
               expect(sql).to.include('?');
+            } else if (dialect === 'sqlite') {
+              expect(sql).to.include('?1');
             } else {
               expect(sql).to.include('$1');
             }

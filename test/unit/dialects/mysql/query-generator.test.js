@@ -8,6 +8,8 @@ const chai = require('chai'),
   Op = require('../../../../lib/operators'),
   QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
+const { Composition } = require('../../../../lib/dialects/abstract/query-generator/composition');
+
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', () => {
     const suites = {
@@ -39,27 +41,42 @@ if (dialect === 'mysql') {
         {
           title: 'Should use the plus operator',
           arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\''
+          expectation: {
+            query: 'UPDATE `myTable` SET `foo`=`foo`+ ?;',
+            bind: ['bar']
+          }
         },
         {
           title: 'Should use the plus operator with where clause',
           arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz' }, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\''
+          expectation: {
+            query: 'UPDATE `myTable` SET `foo`=`foo`+ ? WHERE `bar` = ?;',
+            bind: ['bar', 'biz']
+          }
         },
         {
           title: 'Should use the minus operator',
           arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\''
+          expectation: {
+            query: 'UPDATE `myTable` SET `foo`=`foo`- ?;',
+            bind: ['bar']
+          }
         },
         {
           title: 'Should use the minus operator with negative value',
           arguments: ['-', 'myTable', { foo: -1 }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1'
+          expectation: {
+            query: 'UPDATE `myTable` SET `foo`=`foo`- ?;',
+            bind: [-1]
+          }
         },
         {
           title: 'Should use the minus operator with where clause',
           arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz' }, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\''
+          expectation: {
+            query: 'UPDATE `myTable` SET `foo`=`foo`- ? WHERE `bar` = ?;',
+            bind: ['bar', 'biz']
+          }
         }
       ],
       attributesToSQL: [
@@ -209,56 +226,95 @@ if (dialect === 'mysql') {
       selectQuery: [
         {
           arguments: ['myTable'],
-          expectation: 'SELECT * FROM `myTable`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { attributes: ['id', 'name'] }],
-          expectation: 'SELECT `id`, `name` FROM `myTable`;',
+          expectation: {
+            query: 'SELECT `id`, `name` FROM `myTable`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { where: { id: 2 } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = ?;',
+            bind: [2]
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { where: { name: 'foo' } }],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name` = 'foo';",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`name` = ?;',
+            bind: ['foo']
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { where: { name: "foo';DROP TABLE myTable;" } }],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name` = 'foo\\';DROP TABLE myTable;';",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`name` = ?;',
+            bind: ["foo';DROP TABLE myTable;"]
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { where: 2 }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = ?;',
+            bind: [2]
+          },
           context: QueryGenerator
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS `count` FROM `foo`;',
+          expectation: {
+            query: 'SELECT count(*) AS `count` FROM `foo`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { order: ['id'] }],
-          expectation: 'SELECT * FROM `myTable` ORDER BY `id`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` ORDER BY `id`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { order: ['id', 'DESC'] }],
-          expectation: 'SELECT * FROM `myTable` ORDER BY `id`, `DESC`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` ORDER BY `id`, `DESC`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { order: ['myTable.id'] }],
-          expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { order: [['myTable.id', 'DESC']] }],
-          expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id` DESC;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id` DESC;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { order: [['id', 'DESC']] }, function(sequelize) {return sequelize.define('myTable', {});}],
-          expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
           arguments: ['myTable', { order: [['id', 'DESC'], ['name']] }, function(sequelize) {return sequelize.define('myTable', {});}],
-          expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC, `myTable`.`name`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC, `myTable`.`name`;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -268,7 +324,10 @@ if (dialect === 'mysql') {
               order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']]
             };
           }],
-          expectation: 'SELECT * FROM `myTable` ORDER BY f1(f2(`id`)) DESC;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` ORDER BY f1(f2(`id`)) DESC;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -277,11 +336,14 @@ if (dialect === 'mysql') {
             return {
               order: [
                 [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'],
-                [sequelize.fn('f2', 12, 'lalala', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))), 'ASC']
+                [sequelize.fn('f2', 12, 'lalala', '2011-03-27 10:01:55'), 'ASC']
               ]
             };
           }],
-          expectation: "SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, 'lalala', '2011-03-27 10:01:55') ASC;",
+          expectation: {
+            query: 'SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(?, ?, ?) ASC;',
+            bind: [12, 'lalala', '2011-03-27 10:01:55']
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -294,7 +356,10 @@ if (dialect === 'mysql') {
               )
             };
           }],
-          expectation: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) = 'jan' AND `myTable`.`type` = 1);",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) = ? AND `myTable`.`type` = ?);',
+            bind: ['jan', 1]
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -307,17 +372,26 @@ if (dialect === 'mysql') {
               )
             };
           }],
-          expectation: "SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) LIKE '%t%' AND `myTable`.`type` = 1);",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) LIKE ? AND `myTable`.`type` = ?);',
+            bind: ['%t%', 1]
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
           title: 'single string argument should be quoted',
           arguments: ['myTable', { group: 'name' }],
-          expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` GROUP BY `name`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { group: ['name'] }],
-          expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` GROUP BY `name`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'functions work for group by',
@@ -326,7 +400,10 @@ if (dialect === 'mysql') {
               group: [sequelize.fn('YEAR', sequelize.col('createdAt'))]
             };
           }],
-          expectation: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`);',
+          expectation: {
+            query: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`);',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -336,12 +413,18 @@ if (dialect === 'mysql') {
               group: [sequelize.fn('YEAR', sequelize.col('createdAt')), 'title']
             };
           }],
-          expectation: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`), `title`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`), `title`;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
-          expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'HAVING clause works with where-like hash',
@@ -352,7 +435,10 @@ if (dialect === 'mysql') {
               having: { creationYear: { [Op.gt]: 2002 } }
             };
           }],
-          expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;',
+          expectation: {
+            query: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > ?;',
+            bind: [2002]
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -365,86 +451,137 @@ if (dialect === 'mysql') {
               )
             };
           }],
-          expectation: "SELECT * FROM `myTable` WHERE (`myTable`.`archived` IS NULL AND COALESCE(`place_type_codename`, `announcement_type_codename`) IN ('Lost', 'Found'));",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE (`myTable`.`archived` IS NULL AND COALESCE(`place_type_codename`, `announcement_type_codename`) IN (?, ?));',
+            bind: ['Lost', 'Found']
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
           arguments: ['myTable', { limit: 10 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 10;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` LIMIT ?;',
+            bind: [10]
+          },
           context: QueryGenerator
         }, {
           arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 2, 10;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` LIMIT ?, ?;',
+            bind: [2, 10]
+          },
           context: QueryGenerator
         }, {
           title: 'uses default limit if only offset is specified',
           arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 2, 10000000000000;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` LIMIT ?, 10000000000000;',
+            bind: [2]
+          },
           context: QueryGenerator
         }, {
           title: 'uses limit 0',
           arguments: ['myTable', { limit: 0 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 0;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` LIMIT ?;',
+            bind: [0]
+          },
           context: QueryGenerator
         }, {
           title: 'uses offset 0',
           arguments: ['myTable', { offset: 0 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` LIMIT ?, 10000000000000;',
+            bind: [0]
+          },
           context: QueryGenerator
         }, {
           title: 'multiple where arguments',
           arguments: ['myTable', { where: { boat: 'canoe', weather: 'cold' } }],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`boat` = 'canoe' AND `myTable`.`weather` = 'cold';",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`boat` = ? AND `myTable`.`weather` = ?;',
+            bind: ['canoe', 'cold']
+          },
           context: QueryGenerator
         }, {
           title: 'no where arguments (object)',
           arguments: ['myTable', { where: {} }],
-          expectation: 'SELECT * FROM `myTable`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'no where arguments (string)',
           arguments: ['myTable', { where: [''] }],
-          expectation: 'SELECT * FROM `myTable` WHERE 1=1;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE 1=1;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'no where arguments (null)',
           arguments: ['myTable', { where: null }],
-          expectation: 'SELECT * FROM `myTable`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable`;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'buffer as where argument',
           arguments: ['myTable', { where: { field: Buffer.from('Sequelize') } }],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` = X'53657175656c697a65';",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` = ?;',
+            bind: [Buffer.from('Sequelize')]
+          },
           context: QueryGenerator
         }, {
           title: 'use != if ne !== null',
           arguments: ['myTable', { where: { field: { [Op.ne]: 0 } } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 0;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != ?;',
+            bind: [0]
+          },
           context: QueryGenerator
         }, {
           title: 'use IS NOT if ne === null',
           arguments: ['myTable', { where: { field: { [Op.ne]: null } } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
+            bind: []
+          },
           context: QueryGenerator
         }, {
           title: 'use IS NOT if not === BOOLEAN',
           arguments: ['myTable', { where: { field: { [Op.not]: true } } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT true;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT ?;',
+            bind: [true]
+          },
           context: QueryGenerator
         }, {
           title: 'use != if not !== BOOLEAN',
           arguments: ['myTable', { where: { field: { [Op.not]: 3 } } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != ?;',
+            bind: [3]
+          },
           context: QueryGenerator
         }, {
           title: 'Regular Expression in where clause',
           arguments: ['myTable', { where: { field: { [Op.regexp]: '^[h|a|t]' } } }],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` REGEXP '^[h|a|t]';",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` REGEXP ?;',
+            bind: ['^[h|a|t]']
+          },
           context: QueryGenerator
         }, {
           title: 'Regular Expression negation in where clause',
           arguments: ['myTable', { where: { field: { [Op.notRegexp]: '^[h|a|t]' } } }],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`field` NOT REGEXP '^[h|a|t]';",
+          expectation: {
+            query: 'SELECT * FROM `myTable` WHERE `myTable`.`field` NOT REGEXP ?;',
+            bind: ['^[h|a|t]']
+          },
           context: QueryGenerator
         }, {
           title: 'Empty having',
@@ -453,7 +590,10 @@ if (dialect === 'mysql') {
               having: {}
             };
           }],
-          expectation: 'SELECT * FROM `myTable`;',
+          expectation: {
+            query: 'SELECT * FROM `myTable`;',
+            bind: []
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -465,7 +605,10 @@ if (dialect === 'mysql') {
               having: { creationYear: { [Op.gt]: 2002 } }
             };
           }],
-          expectation: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `creationYear` > 2002) AS `test`;',
+          expectation: {
+            query: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `creationYear` > ?) AS `test`;',
+            bind: [2002]
+          },
           context: QueryGenerator,
           needsSequelize: true
         }, {
@@ -478,7 +621,10 @@ if (dialect === 'mysql') {
               }
             }
           }],
-          expectation: 'SELECT `foo.bar.baz` FROM `myTable`;',
+          expectation: {
+            query: 'SELECT `foo.bar.baz` FROM `myTable`;',
+            bind: []
+          },
           context: QueryGenerator
         }
       ],
@@ -487,70 +633,70 @@ if (dialect === 'mysql') {
         {
           arguments: ['myTable', { name: 'foo' }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`) VALUES ($1);',
+            query: 'INSERT INTO `myTable` (`name`) VALUES (?);',
             bind: ['foo']
           }
         }, {
           arguments: ['myTable', { name: "foo';DROP TABLE myTable;" }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`) VALUES ($1);',
+            query: 'INSERT INTO `myTable` (`name`) VALUES (?);',
             bind: ["foo';DROP TABLE myTable;"]
           }
         }, {
           arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($1,$2);',
-            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))]
+            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES (?,?);',
+            bind: ['foo', '2011-03-27 10:01:55']
           }
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1 }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES (?,?);',
             bind: ['foo', 1]
           }
         }, {
           arguments: ['myTable', { data: Buffer.from('Sequelize') }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`data`) VALUES ($1);',
+            query: 'INSERT INTO `myTable` (`data`) VALUES (?);',
             bind: [Buffer.from('Sequelize')]
           }
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
-            bind: ['foo', 1, null]
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES (?,?,NULL);',
+            bind: ['foo', 1]
           }
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
-            bind: ['foo', 1, null]
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES (?,?,NULL);',
+            bind: ['foo', 1]
           },
           context: { options: { omitNull: false } }
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES (?,?);',
             bind: ['foo', 1]
           },
           context: { options: { omitNull: true } }
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: undefined }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES (?,?);',
             bind: ['foo', 1]
           },
           context: { options: { omitNull: true } }
         }, {
           arguments: ['myTable', { foo: false }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`foo`) VALUES ($1);',
+            query: 'INSERT INTO `myTable` (`foo`) VALUES (?);',
             bind: [false]
           }
         }, {
           arguments: ['myTable', { foo: true }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`foo`) VALUES ($1);',
+            query: 'INSERT INTO `myTable` (`foo`) VALUES (?);',
             bind: [true]
           }
         }, {
@@ -570,40 +716,73 @@ if (dialect === 'mysql') {
       bulkInsertQuery: [
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES (?),(?);',
+            bind: ['foo', 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }]],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo\\';DROP TABLE myTable;'),('bar');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES (?),(?);',
+            bind: ["foo';DROP TABLE myTable;", 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55)) }]],
-          expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55'),('bar','2012-03-27 10:01:55');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES (?,?),(?,?);',
+            bind: ['foo', '2011-03-27 10:01:55', 'bar', '2012-03-27 10:01:55']
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1 }, { name: 'bar', foo: 2 }]],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1),('bar',2);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES (?,?),(?,?);',
+            bind: ['foo', 1, 'bar', 2]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', nullValue: null }]],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',NULL,NULL);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES (?,?,NULL),(?,NULL,NULL);',
+            bind: ['foo', 1, 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES (?,?,NULL),(?,?,NULL);',
+            bind: ['foo', 1, 'bar', 2]
+          },
           context: { options: { omitNull: false } }
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES (?,?,NULL),(?,?,NULL);',
+            bind: ['foo', 1, 'bar', 2]
+          },
           context: { options: { omitNull: true } } // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: undefined }, { name: 'bar', foo: 2, undefinedValue: undefined }]],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`,`undefinedValue`) VALUES ('foo',1,NULL,NULL),('bar',2,NULL,NULL);",
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`,`undefinedValue`) VALUES (?,?,NULL,NULL),(?,?,NULL,NULL);',
+            bind: ['foo', 1, 'bar', 2]
+          },
           context: { options: { omitNull: true } } // Note: As above
         }, {
           arguments: ['myTable', [{ name: 'foo', value: true }, { name: 'bar', value: false }]],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',true),('bar',false);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES (?,?),(?,?);',
+            bind: ['foo', true, 'bar', false]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
-          expectation: "INSERT IGNORE INTO `myTable` (`name`) VALUES ('foo'),('bar');"
+          expectation: {
+            query: 'INSERT IGNORE INTO `myTable` (`name`) VALUES (?),(?);',
+            bind: ['foo', 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { updateOnDuplicate: ['name'] }],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar') ON DUPLICATE KEY UPDATE `name`=VALUES(`name`);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES (?),(?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`);',
+            bind: ['foo', 'bar']
+          }
         }
       ],
 
@@ -611,58 +790,58 @@ if (dialect === 'mysql') {
         {
           arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
-            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), 2]
+            query: 'UPDATE `myTable` SET `name`=?,`birthday`=? WHERE `id` = ?;',
+            bind: ['foo', '2011-03-27 10:01:55', 2]
           }
 
         }, {
           arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
-            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), 2]
+            query: 'UPDATE `myTable` SET `name`=?,`birthday`=? WHERE `id` = ?;',
+            bind: ['foo', '2011-03-27 10:01:55', 2]
           }
         }, {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
+            query: 'UPDATE `myTable` SET `bar`=? WHERE `name` = ?;',
             bind: [2, 'foo']
           }
         }, {
           arguments: ['myTable', { name: "foo';DROP TABLE myTable;" }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1 WHERE `name` = $2',
+            query: 'UPDATE `myTable` SET `name`=? WHERE `name` = ?;',
             bind: ["foo';DROP TABLE myTable;", 'foo']
           }
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
+            query: 'UPDATE `myTable` SET `bar`=?,`nullValue`=? WHERE `name` = ?;',
             bind: [2, null, 'foo']
           }
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
+            query: 'UPDATE `myTable` SET `bar`=?,`nullValue`=? WHERE `name` = ?;',
             bind: [2, null, 'foo']
           },
           context: { options: { omitNull: false } }
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
+            query: 'UPDATE `myTable` SET `bar`=? WHERE `name` = ?;',
             bind: [2, 'foo']
           },
           context: { options: { omitNull: true } }
         }, {
           arguments: ['myTable', { bar: false }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
+            query: 'UPDATE `myTable` SET `bar`=? WHERE `name` = ?;',
             bind: [false, 'foo']
           }
         }, {
           arguments: ['myTable', { bar: true }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
+            query: 'UPDATE `myTable` SET `bar`=? WHERE `name` = ?;',
             bind: [true, 'foo']
           }
         }, {
@@ -672,7 +851,7 @@ if (dialect === 'mysql') {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=NOW() WHERE `name` = $1',
+            query: 'UPDATE `myTable` SET `bar`=NOW() WHERE `name` = ?;',
             bind: ['foo']
           },
           needsSequelize: true
@@ -683,7 +862,7 @@ if (dialect === 'mysql') {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=`foo` WHERE `name` = $1',
+            query: 'UPDATE `myTable` SET `bar`=`foo` WHERE `name` = ?;',
             bind: ['foo']
           },
           needsSequelize: true
@@ -738,8 +917,11 @@ if (dialect === 'mysql') {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             this.queryGenerator.options = Object.assign({}, this.queryGenerator.options, test.context && test.context.options || {});
 
-            const conditions = this.queryGenerator[suiteTitle].apply(this.queryGenerator, test.arguments);
-            expect(conditions).to.deep.equal(test.expectation);
+            let result = this.queryGenerator[suiteTitle].apply(this.queryGenerator, test.arguments);
+            if (result instanceof Composition) {
+              result = this.queryGenerator.composeQuery(result);
+            }
+            expect(result).to.deep.equal(test.expectation);
           });
         });
       });

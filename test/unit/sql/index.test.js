@@ -12,31 +12,31 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('addIndex', () => {
     it('naming', () => {
       expectsql(sql.addIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
-        default: 'CREATE INDEX [table_column1_column2] ON [table] ([column1], [column2])',
-        mariadb: 'ALTER TABLE `table` ADD INDEX `table_column1_column2` (`column1`, `column2`)',
-        mysql: 'ALTER TABLE `table` ADD INDEX `table_column1_column2` (`column1`, `column2`)'
+        default: 'CREATE INDEX [table_column1_column2] ON [table] ([column1], [column2]);',
+        mysql: 'ALTER TABLE `table` ADD INDEX `table_column1_column2` (`column1`, `column2`);',
+        mariadb: 'ALTER TABLE `table` ADD INDEX `table_column1_column2` (`column1`, `column2`);'
       });
 
       if (current.dialect.supports.schemas) {
         expectsql(sql.addIndexQuery('schema.table', ['column1', 'column2'], {}), {
-          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)'
+          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2]);',
+          mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`);'
         });
 
         expectsql(sql.addIndexQuery({
           schema: 'schema',
           tableName: 'table'
         }, ['column1', 'column2'], {}, 'schema_table'), {
-          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)'
+          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2]);',
+          mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`);'
         });
 
         expectsql(sql.addIndexQuery(sql.quoteTable(sql.addSchema({
           _schema: 'schema',
           tableName: 'table'
         })), ['column1', 'column2'], {}), {
-          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)'
+          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2]);',
+          mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`);'
         });
       }
     });
@@ -46,11 +46,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: 'FULLTEXT',
         concurrently: true
       }), {
-        sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
-        mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
-        postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
-        mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
-        mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)'
+        sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`);',
+        mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC]);',
+        postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC");',
+        mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`);',
+        mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`);'
       });
 
       expectsql(sql.addIndexQuery('User', ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }], {
@@ -59,28 +59,28 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         using: 'BTREE',
         parser: 'foo'
       }), {
-        sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
-        mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
-        postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
-        mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
-        mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo'
+        sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC);',
+        mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC);',
+        postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC);',
+        mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo;',
+        mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo;'
       });
     });
 
     it('POJO field', () => {
       expectsql(sql.addIndexQuery('table', [{ attribute: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
-        default: 'CREATE INDEX [table_column] ON [table] ([column] COLLATE [BINARY] DESC)',
-        mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC)',
-        mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
-        mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)'
+        default: 'CREATE INDEX [table_column] ON [table] ([column] COLLATE [BINARY] DESC);',
+        mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC);',
+        mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC);',
+        mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC);'
       });
     });
 
     it('function', () => {
       expectsql(sql.addIndexQuery('table', [current.fn('UPPER', current.col('test'))], { name: 'myindex' }), {
-        default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]))',
-        mariadb: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))',
-        mysql: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))'
+        default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]));',
+        mysql: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`));',
+        mariadb: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`));'
       });
     });
 
@@ -90,7 +90,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           fields: ['event'],
           using: 'gin'
         }), {
-          postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event")'
+          postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event");'
         });
       });
     }
@@ -103,25 +103,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: 'public'
           }
         }), {
-          sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'public\'',
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
-          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'public\''
+          sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'public\';',
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\';',
+          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'public\';'
         });
 
         expectsql(sql.addIndexQuery('table', {
           fields: ['type'],
           where: {
             type: {
-              [Op.or]: [
-                'group',
-                'private'
-              ]
+              [Op.or]: ['group', 'private']
             }
           }
         }), {
-          sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE (`type` = \'group\' OR `type` = \'private\')',
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
-          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N\'group\' OR [type] = N\'private\')'
+          sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE (`type` = \'group\' OR `type` = \'private\');',
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\');',
+          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N\'group\' OR [type] = N\'private\');'
         });
 
         expectsql(sql.addIndexQuery('table', {
@@ -132,9 +129,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }), {
-          sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL',
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
-          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL'
+          sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL;',
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL;',
+          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL;'
         });
       });
     }
@@ -146,7 +143,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gin',
           operator: 'jsonb_path_ops'
         }), {
-          postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)'
+          postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops);'
         });
       });
     }

@@ -9,7 +9,7 @@ const DataTypes = require('../../../../lib/data-types');
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connection Manager', () => {
     it('-FOUND_ROWS can be suppressed to get back legacy behavior', () => {
-      const sequelize = Support.createSequelizeInstance({ dialectOptions: { flags: '' } });
+      const sequelize = Support.createSequelizeInstance({ dialectOptions: { foundRows: true } });
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
       return User.sync({ force: true })

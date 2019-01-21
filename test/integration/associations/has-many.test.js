@@ -855,10 +855,19 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
         Task.hasMany(User);
+        let rows = 1000;
+        if (dialect === 'sqlite') {
+          // sqlite: number of binded params limited by SQLITE_LIMIT_VARIABLE_NUMBER (default 999)
+          // There are 5 variables per row, therefore 999/5 = 199
+          rows = 199;
+        } else if (dialect === 'mssql') {
+          // mssql: maximum 2100 binded params, i.e. 2099/5 = 419 rows
+          rows = 419;
+        }
 
         const ctx = {};
         return this.sequelize.sync({ force: true }).then(() => {
-          const users = _.range(1000).map(i => ({ username: `user${i}`, num: i, status: 'live' }));
+          const users = _.range(rows).map(i => ({ username: `user${i}`, num: i, status: 'live' }));
           return User.bulkCreate(users);
         }).then(() => {
           return Task.create({ title: 'task' });
@@ -866,7 +875,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           ctx.task = task;
           return User.findAll();
         }).then(users=> {
-          expect(users).to.have.length(1000);
+          expect(users).to.have.length(rows);
         });
       });
     });

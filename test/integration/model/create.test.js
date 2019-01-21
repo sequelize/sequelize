@@ -804,7 +804,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         intVal: this.sequelize.cast('1', type)
       }, {
         logging(sql) {
-          expect(sql).to.match(new RegExp(`CAST\\(N?'1' AS ${type.toUpperCase()}\\)`));
+          expect(sql).to.match(new RegExp(`CAST\\((\\$1|\\?1?|@0) AS ${type.toUpperCase()}\\)`));
           match = true;
         }
       }).then(user => {

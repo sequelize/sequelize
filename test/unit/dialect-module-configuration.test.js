@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       switch (dialect) {
         case 'postgres': dialectPath = path.join(dialectPath, 'pg'); break;
-        case 'mysql': dialectPath = path.join(dialectPath, 'mysql2'); break;
+        case 'mysql': dialectPath = path.join(dialectPath, 'mariadb'); break;
         case 'mariadb': dialectPath = path.join(dialectPath, 'mariadb'); break;
         case 'mssql': dialectPath = path.join(dialectPath, 'tedious'); break;
         case 'sqlite': dialectPath = path.join(dialectPath, 'sqlite3'); break;

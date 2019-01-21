@@ -270,6 +270,22 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
     });
 
+    it('executes a query from a composition', function() {
+      return this.sequelize.query(this.sequelize.composition(
+        `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ` +
+        `${qq('createdAt')}, ${qq('updatedAt')}) VALUES (`,
+        this.sequelize.slot('john'), ',', this.sequelize.slot('john@gmail.com'), ',',
+        this.sequelize.slot('2012-01-01 10:10:10'), ',',
+        this.sequelize.slot('2012-01-01 10:10:10'), ');'))
+        .then(() => this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+          type: this.sequelize.QueryTypes.SELECT
+        }))
+        .then(rows => {
+          expect(rows).to.be.lengthOf(1);
+          expect(rows[0].username).to.be.equal('john');
+        });
+    });
+
     describe('logging', () => {
       it('executes a query with global benchmarking option and default logger', () => {
         const logger = sinon.spy(console, 'log');
@@ -280,7 +296,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         return sequelize.query('select 1;').then(() => {
           expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; Elapsed time: \d+ms/);
+          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; with parameters/);
         });
       });
 
@@ -293,7 +309,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         return sequelize.query('select 1;').then(() => {
           expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1/);
+          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; with parameters/);
           expect(typeof logger.args[0][1] === 'number').to.be.true;
         });
       });
@@ -305,7 +321,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           benchmark: true
         }).then(() => {
           expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; Elapsed time: \d+ms/);
+          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; with parameters/);
         });
       });
 
@@ -317,7 +333,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           benchmark: true
         }).then(() => {
           expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \(\d*|default\): select 1;/);
+          expect(logger.args[0][0]).to.be.match(/Executed \(\d*|default\): select 1; with parameters/);
           expect(typeof logger.args[0][1] === 'number').to.be.true;
         });
       });
@@ -731,27 +747,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           .to.eventually.deep.equal([{ 'sum': '5050' }]);
       });
     }
-
-    if (Support.getTestDialect() === 'sqlite') {
-      it('binds array parameters for upsert are replaced. $$ unescapes only once', function() {
-        let logSql;
-        return this.sequelize.query('select $1 as foo, $2 as bar, \'$$$$\' as baz', { type: this.sequelize.QueryTypes.UPSERT, bind: [1, 2], logging(s) { logSql = s; } }).then(() => {
-          // sqlite.exec does not return a result
-          expect(logSql).to.not.include('$one');
-          expect(logSql).to.include('\'$$\'');
-        });
-      });
-
-      it('binds named parameters for upsert are replaced. $$ unescapes only once', function() {
-        let logSql;
-        return this.sequelize.query('select $one as foo, $two as bar, \'$$$$\' as baz', { type: this.sequelize.QueryTypes.UPSERT, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } }).then(() => {
-          // sqlite.exec does not return a result
-          expect(logSql).to.not.include('$one');
-          expect(logSql).to.include('\'$$\'');
-        });
-      });
-    }
-
   });
 
   describe('set', () => {

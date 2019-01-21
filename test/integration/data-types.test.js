@@ -26,11 +26,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return moment(value, 'YYYY-MM-DD HH:mm:ss');
     });
 
-    const stringify = Sequelize.DATE.prototype.stringify = sinon.spy(function(value, options) {
-      if (!moment.isMoment(value)) {
-        value = this._applyTimezone(value, options);
-      }
-      return value.format('YYYY-MM-DD HH:mm:ss');
+    const bindParam = Sequelize.DATE.prototype.bindParam = sinon.spy(function() {
+      return Sequelize.ABSTRACT.prototype.bindParam.apply(this, arguments);
     });
 
     current.refreshTypes();
@@ -49,28 +46,23 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return User.findAll().get(0);
     }).then(user => {
       expect(parse).to.have.been.called;
-      expect(stringify).to.have.been.called;
+      expect(bindParam).to.have.been.called;
 
       expect(moment.isMoment(user.dateField)).to.be.ok;
 
       delete Sequelize.DATE.parse;
+      delete Sequelize.DATE.prototype.bindParam;
     });
   });
 
-  const testSuccess = function(Type, value, options) {
+  const testSuccess = function(Type, value) {
     const parse = Type.constructor.parse = sinon.spy(value => {
       return value;
     });
 
-    const stringify = Type.constructor.prototype.stringify = sinon.spy(function() {
-      return Sequelize.ABSTRACT.prototype.stringify.apply(this, arguments);
+    const bindParam = Type.constructor.prototype.bindParam = sinon.spy(function() {
+      return Sequelize.ABSTRACT.prototype.bindParam.apply(this, arguments);
     });
-    let bindParam;
-    if (options && options.useBindParam) {
-      bindParam = Type.constructor.prototype.bindParam = sinon.spy(function() {
-        return Sequelize.ABSTRACT.prototype.bindParam.apply(this, arguments);
-      });
-    }
 
     const User = current.define('user', {
       field: Type
@@ -89,17 +81,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return User.findAll().get(0);
     }).then(() => {
       expect(parse).to.have.been.called;
-      if (options && options.useBindParam) {
-        expect(bindParam).to.have.been.called;
-      } else {
-        expect(stringify).to.have.been.called;
-      }
+      expect(bindParam).to.have.been.called;
 
       delete Type.constructor.parse;
-      delete Type.constructor.prototype.stringify;
-      if (options && options.useBindParam) {
-        delete Type.constructor.prototype.bindParam;
-      }
+      delete Type.constructor.prototype.bindParam;
     });
   };
 
@@ -418,7 +403,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres' || dialect === 'mysql') {
+  if (dialect === 'postgres') {
     it('should parse DECIMAL as string', function() {
       const Model = this.sequelize.define('model', {
         decimal: Sequelize.DECIMAL,
@@ -460,7 +445,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
+  if (dialect === 'postgres' || dialect === 'mssql') {
     it('should parse BIGINT as string', function() {
       const Model = this.sequelize.define('model', {
         jewelPurity: Sequelize.BIGINT

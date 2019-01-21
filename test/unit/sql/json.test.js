@@ -6,6 +6,7 @@ const Support = require('../support'),
   expectsql = Support.expectsql,
   Sequelize = Support.Sequelize,
   current = Support.sequelize,
+  util = require('util'),
   sql = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
@@ -79,66 +80,126 @@ if (current.dialect.supports.JSON) {
       });
 
       describe('path extraction', () => {
-        it('condition object', () => {
-          expectsql(sql.whereItemQuery(undefined, Sequelize.json({ id: 1 })), {
-            postgres: '("id"#>>\'{}\') = \'1\'',
-            sqlite: "json_extract(`id`, '$') = '1'",
-            mariadb: "json_unquote(json_extract(`id`,'$.')) = '1'",
-            mysql: "`id`->>'$.' = '1'"
+        const testsql = function(key, value, options, expectation) {
+          if (expectation === undefined) {
+            expectation = options;
+            options = undefined;
+          }
+
+          it(`${ String(key) }: ${ util.inspect(value, { depth: 10 }) }${ options && `, ${ util.inspect(options) }` || '' }`, () => {
+            return expectsql(sql.composeQuery(sql.whereItemQuery(key, value, options)), expectation);
+          });
+        };
+
+        describe('condition object', () => {
+          testsql(undefined, Sequelize.json({ id: 1 }), {
+            query: {
+              postgres: '("id"#>>$1) = $2;',
+              sqlite: 'json_extract(`id`, ?1) = ?2;',
+              mysql: 'json_unquote(json_extract(`id`,?)) = ?;',
+              mariadb: 'json_unquote(json_extract(`id`,?)) = ?;'
+            },
+            bind: {
+              postgres: ['{}', 1],
+              sqlite: ['$', 1],
+              mysql: ['$.', 1],
+              mariadb: ['$.', 1]
+            }
           });
         });
 
-        it('nested condition object', () => {
-          expectsql(sql.whereItemQuery(undefined, Sequelize.json({ profile: { id: 1 } })), {
-            postgres: '("profile"#>>\'{id}\') = \'1\'',
-            sqlite: "json_extract(`profile`, '$.id') = '1'",
-            mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '1'",
-            mysql: "`profile`->>'$.id' = '1'"
+        describe('nested condition object', () => {
+          testsql(undefined, Sequelize.json({ profile: { id: 1 } }), {
+            query: {
+              postgres: '("profile"#>>$1) = $2;',
+              sqlite: 'json_extract(`profile`, ?1) = ?2;',
+              mysql: 'json_unquote(json_extract(`profile`,?)) = ?;',
+              mariadb: 'json_unquote(json_extract(`profile`,?)) = ?;'
+            },
+            bind: {
+              postgres: ['{id}', 1],
+              default: ['$.id', 1]
+            }
           });
         });
 
-        it('multiple condition object', () => {
-          expectsql(sql.whereItemQuery(undefined, Sequelize.json({ property: { value: 1 }, another: { value: 'string' } })), {
-            postgres: '("property"#>>\'{value}\') = \'1\' AND ("another"#>>\'{value}\') = \'string\'',
-            sqlite: "json_extract(`property`, '$.value') = '1' AND json_extract(`another`, '$.value') = 'string'",
-            mariadb: "json_unquote(json_extract(`property`,'$.value')) = '1' and json_unquote(json_extract(`another`,'$.value')) = 'string'",
-            mysql: "`property`->>'$.value' = '1' and `another`->>'$.value' = 'string'"
+        describe('multiple condition object', () => {
+          testsql(undefined, Sequelize.json({ property: { value: 1 }, another: { value: 'string' } }), {
+            query: {
+              postgres: '("property"#>>$1) = $2 AND ("another"#>>$3) = $4;',
+              sqlite: 'json_extract(`property`, ?1) = ?2 AND json_extract(`another`, ?3) = ?4;',
+              mysql: 'json_unquote(json_extract(`property`,?)) = ? and json_unquote(json_extract(`another`,?)) = ?;',
+              mariadb: 'json_unquote(json_extract(`property`,?)) = ? and json_unquote(json_extract(`another`,?)) = ?;'
+            },
+            bind: {
+              postgres: ['{value}', 1, '{value}', 'string'],
+              sqlite: ['$.value', 1, '$.value', 'string'],
+              mysql: ['$.value', 1, '$.value', 'string'],
+              mariadb: ['$.value', 1, '$.value', 'string']
+            }
           });
         });
 
-        it('property array object', () => {
-          expectsql(sql.whereItemQuery(undefined, Sequelize.json({ property: [[4, 6], [8]] })), {
-            postgres: '("property"#>>\'{0,0}\') = \'4\' AND ("property"#>>\'{0,1}\') = \'6\' AND ("property"#>>\'{1,0}\') = \'8\'',
-            sqlite: "json_extract(`property`, '$[0][0]') = '4' AND json_extract(`property`, '$[0][1]') = '6' AND json_extract(`property`, '$[1][0]') = '8'",
-            mariadb: "json_unquote(json_extract(`property`,'$.0.0')) = '4' and json_unquote(json_extract(`property`,'$.0.1')) = '6' and json_unquote(json_extract(`property`,'$.1.0')) = '8'",
-            mysql: "`property`->>'$.0.0' = '4' and `property`->>'$.0.1' = '6' and `property`->>'$.1.0' = '8'"
+        describe('property array object', () => {
+          testsql(undefined, Sequelize.json({ property: [[4, 6], [8]] }), {
+            query: {
+              postgres: '("property"#>>$1) = $2 AND ("property"#>>$3) = $4 AND ("property"#>>$5) = $6;',
+              sqlite: 'json_extract(`property`, ?1) = ?2 AND json_extract(`property`, ?3) = ?4 AND json_extract(`property`, ?5) = ?6;',
+              mysql: 'json_unquote(json_extract(`property`,?)) = ? and json_unquote(json_extract(`property`,?)) = ? and json_unquote(json_extract(`property`,?)) = ?;',
+              mariadb: 'json_unquote(json_extract(`property`,?)) = ? and json_unquote(json_extract(`property`,?)) = ? and json_unquote(json_extract(`property`,?)) = ?;'
+            },
+            bind: {
+              postgres: ['{0,0}', 4, '{0,1}', 6, '{1,0}', 8],
+              sqlite: ['$[0][0]', 4, '$[0][1]', 6, '$[1][0]', 8],
+              default: ['$.0.0', 4, '$.0.1', 6, '$.1.0', 8]
+            }
           });
         });
 
-        it('dot notation', () => {
-          expectsql(sql.whereItemQuery(Sequelize.json('profile.id'), '1'), {
-            postgres: '("profile"#>>\'{id}\') = \'1\'',
-            sqlite: "json_extract(`profile`, '$.id') = '1'",
-            mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '1'",
-            mysql: "`profile`->>'$.id' = '1'"
+        describe('dot notation', () => {
+          testsql(Sequelize.json('profile.id'), '1', {
+            query: {
+              postgres: '("profile"#>>$1) = $2;',
+              sqlite: 'json_extract(`profile`, ?1) = ?2;',
+              mysql: 'json_unquote(json_extract(`profile`,?)) = ?;',
+              mariadb: 'json_unquote(json_extract(`profile`,?)) = ?;'
+            },
+            bind: {
+              postgres: ['{id}', '1'],
+              default: ['$.id', '1']
+            }
           });
         });
 
-        it('item dot notation array', () => {
-          expectsql(sql.whereItemQuery(Sequelize.json('profile.id.0.1'), '1'), {
-            postgres: '("profile"#>>\'{id,0,1}\') = \'1\'',
-            sqlite: "json_extract(`profile`, '$.id[0][1]') = '1'",
-            mariadb: "json_unquote(json_extract(`profile`,'$.id[0][1]')) = '1'",
-            mysql: "`profile`->>'$.id[0][1]' = '1'"
+        describe('item dot notation array', () => {
+          testsql(Sequelize.json('profile.id.0.1'), '1', {
+            query: {
+              postgres: '("profile"#>>$1) = $2;',
+              sqlite: 'json_extract(`profile`, ?1) = ?2;',
+              mysql: 'json_unquote(json_extract(`profile`,?)) = ?;',
+              mariadb: 'json_unquote(json_extract(`profile`,?)) = ?;'
+            },
+            bind: {
+              postgres: ['{id,0,1}', '1'],
+              default: ['$.id[0][1]', '1']
+            }
           });
         });
 
-        it('column named "json"', () => {
-          expectsql(sql.whereItemQuery(Sequelize.json('json'), '{}'), {
-            postgres: '("json"#>>\'{}\') = \'{}\'',
-            sqlite: "json_extract(`json`, '$') = '{}'",
-            mariadb: "json_unquote(json_extract(`json`,'$.')) = '{}'",
-            mysql: "`json`->>'$.' = '{}'"
+        describe('column named "json"', () => {
+          testsql(Sequelize.json('json'), '{}', {
+            query: {
+              postgres: '("json"#>>$1) = $2;',
+              sqlite: 'json_extract(`json`, ?1) = ?2;',
+              mysql: 'json_unquote(json_extract(`json`,?)) = ?;',
+              mariadb: 'json_unquote(json_extract(`json`,?)) = ?;'
+            },
+            bind: {
+              postgres: ['{}', '{}'],
+              sqlite: ['$', '{}'],
+              mysql: ['$.', '{}'],
+              mariadb: ['$.', '{}']
+            }
           });
         });
       });
@@ -146,27 +207,32 @@ if (current.dialect.supports.JSON) {
       describe('raw json query', () => {
         if (current.dialect.name === 'postgres') {
           it('#>> operator', () => {
-            expectsql(sql.whereItemQuery(Sequelize.json('("data"#>>\'{id}\')'), 'id'), {
-              postgres: '("data"#>>\'{id}\') = \'id\''
+            expectsql(sql.composeQuery(sql.whereItemQuery(Sequelize.json('("data"#>>\'{id}\')'), 'id')), {
+              query: {
+                postgres: '("data"#>>\'{id}\') = $1;'
+              },
+              bind: {
+                postgres: ['id']
+              }
             });
           });
         }
 
         it('json function', () => {
-          expectsql(sql.handleSequelizeMethod(Sequelize.json('json(\'{"profile":{"name":"david"}}\')')), {
-            default: 'json(\'{"profile":{"name":"david"}}\')'
+          expectsql(sql.composeQuery(sql.handleSequelizeMethod(Sequelize.json('json(\'{"profile":{"name":"david"}}\')'))), {
+            default: 'json(\'{"profile":{"name":"david"}}\');'
           });
         });
 
         it('nested json functions', () => {
-          expectsql(sql.handleSequelizeMethod(Sequelize.json('json_extract(json_object(\'{"profile":null}\'), "profile")')), {
-            default: 'json_extract(json_object(\'{"profile":null}\'), "profile")'
+          expectsql(sql.composeQuery(sql.handleSequelizeMethod(Sequelize.json('json_extract(json_object(\'{"profile":null}\'), "profile")'))), {
+            default: 'json_extract(json_object(\'{"profile":null}\'), "profile");'
           });
         });
 
         it('escaped string argument', () => {
-          expectsql(sql.handleSequelizeMethod(Sequelize.json('json(\'{"quote":{"single":"\'\'","double":""""},"parenthesis":"())("}\')')), {
-            default: 'json(\'{"quote":{"single":"\'\'","double":""""},"parenthesis":"())("}\')'
+          expectsql(sql.composeQuery(sql.handleSequelizeMethod(Sequelize.json('json(\'{"quote":{"single":"\'\'","double":""""},"parenthesis":"())("}\')'))), {
+            default: 'json(\'{"quote":{"single":"\'\'","double":""""},"parenthesis":"())("}\');'
           });
         });
 

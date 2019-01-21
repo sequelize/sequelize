@@ -273,10 +273,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     before(function() {
-      this.stub = sinon.stub(current, 'query').callsFake(() => {
-        return new Promise(resolve => {
-          resolve([User.build({}), 1]);
-        });
+      this.stub = sinon.stub(current, 'query').callsFake(sql => {
+        // Force to call composeQuery, which calls validation
+        current.dialect.QueryGenerator.composeQuery(sql);
+
+        return Promise.resolve([User.build({}), 1]);
       });
     });
 

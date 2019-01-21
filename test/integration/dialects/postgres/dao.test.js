@@ -50,7 +50,7 @@ if (dialect.match(/^postgres/)) {
         },
         attributes: ['id', 'username', 'email', 'settings', 'document', 'phones', 'emergency_contact', 'friends'],
         logging(sql) {
-          expect(sql).to.equal('Executing (default): SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "friends" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\']::TEXT[];');
+          expect(sql).to.include('Executing (default): SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "friends" FROM "Users" AS "User" WHERE "User"."email" = $1;');
         }
       });
     });
@@ -222,7 +222,9 @@ if (dialect.match(/^postgres/)) {
               }
             },
             logging(sql) {
-              expect(sql).to.equal('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE "Equipment"."utilityBelt" = \'"grapplingHook"=>"true"\';');
+              const sqlParts = sql.split(' with parameters ');
+              expect(sqlParts[0]).to.include('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE "Equipment"."utilityBelt" = $1;');
+              expect(sqlParts[1]).to.include('[ \'"grapplingHook"=>"true"\' ]');
             }
           });
         });
@@ -247,7 +249,9 @@ if (dialect.match(/^postgres/)) {
               }
             },
             logging(sql) {
-              expect(sql).to.equal('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE CAST(("Equipment"."utilityBelt"#>>\'{grapplingHook}\') AS BOOLEAN) = true;');
+              const sqlParts = sql.split(' with parameters ');
+              expect(sqlParts[0]).to.include('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE CAST(("Equipment"."utilityBelt"#>>$1) AS BOOLEAN) = $2;');
+              expect(sqlParts[1]).to.include('[ \'{grapplingHook}\', true ]');
             }
           });
         });
@@ -602,7 +606,7 @@ if (dialect.match(/^postgres/)) {
           dates: []
         }, {
           logging(sql) {
-            expect(sql).not.to.contain('TIMESTAMP WITH TIME ZONE');
+            expect(sql).not.to.contain('ARRAY');
             expect(sql).not.to.contain('DATETIME');
           }
         });

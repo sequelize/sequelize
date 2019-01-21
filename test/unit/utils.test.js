@@ -257,14 +257,18 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     const expectsql = Support.expectsql;
 
     it('accepts condition object (auto casting)', () => {
-      expectsql(run(sql.fn('SUM', sql.cast({
+      expectsql(generator.composeQuery(run(sql.fn('SUM', sql.cast({
         [Op.or]: {
           foo: 'foo',
           bar: 'bar'
         }
-      }, 'int'))), {
-        default: 'SUM(CAST(([foo] = \'foo\' OR [bar] = \'bar\') AS INT))',
-        mssql: 'SUM(CAST(([foo] = N\'foo\' OR [bar] = N\'bar\') AS INT))'
+      }, 'int')))), {
+        query: {
+          default: 'SUM(CAST(([foo] = $1 OR [bar] = $2) AS INT));'
+        },
+        bind: {
+          default: ['foo', 'bar']
+        }
       });
     });
   });

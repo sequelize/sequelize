@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   sinon = require('sinon'),
+  util = require('util'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
   expect = chai.expect,
@@ -110,7 +111,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: { 'specialkey': 'awesome' },
           logging(sql) {
             test = true;
-            expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = N?'awesome'/);
+            expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = (\$1|\?1?|@0)/);
           }
         }).then(() => {
           expect(test).to.be.true;
@@ -152,7 +153,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(this.User.findOne({
           where: { id: 1 },
           attributes: ['id', ['username']]
-        })).to.be.rejectedWith('["username"] is not a valid attribute definition. Please use the following format: [\'attribute definition\', \'alias\']');
+        })).to.be.rejectedWith('[ \'username\' ] is not a valid attribute definition. Please use the following format: [\'attribute definition\', \'alias\']');
       });
 
       it('should not try to convert boolean values if they are not selected', function() {
@@ -243,17 +244,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('always honors ZERO as primary key', function() {
-        const permutations = [
-          0,
-          '0'
-        ];
+        const permutations = [0, '0'];
         let count = 0;
 
         return this.User.bulkCreate([{ username: 'jack' }, { username: 'jack' }]).then(() => {
           return Sequelize.Promise.map(permutations, perm => {
             return this.User.findByPk(perm, {
               logging(s) {
-                expect(s).to.include(0);
+                const parts = s.split(' with parameters ');
+                if (dialect === 'mssql') {
+                  expect(parts[1]).to.include(util.inspect({ 0: perm }));
+                } else {
+                  expect(parts[1]).to.include(util.inspect([perm]));
+                }
                 count++;
               }
             }).then(user => {
@@ -924,9 +927,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('throws error when record not found by findByPk', function() {
+        // Postgres complains about invalid integer
+        const rejectArgs = dialect === 'postgres' ? 
+          [Sequelize.DatabaseError, 'invalid input syntax for integer: "4.732322332323333e+30"'] : [Sequelize.EmptyResultError];
+
         return expect(this.User.findByPk(4732322332323333232344334354234, {
           rejectOnEmpty: true
-        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+        })).to.eventually.be.rejectedWith(...rejectArgs);
       });
 
       it('throws error when record not found by find', function() {

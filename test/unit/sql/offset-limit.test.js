@@ -6,7 +6,10 @@ const Support   = require('../support'),
   current   = Support.sequelize,
   sql       = current.dialect.QueryGenerator;
 
+const { Composition } = require('../../../lib/dialects/abstract/query-generator/composition');
+
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
+// Some dialects require order for pagination, therefore include order
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('offset/limit', () => {
@@ -14,13 +17,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       const model = options.model;
 
       it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
-          sql.addLimitAndOffset(
-            options,
-            model
-          ),
-          expectation
-        );
+        const items = new Composition();
+
+        const order = sql.getQueryOrders(options, model).mainQueryOrder;
+        if (order.length) items.add('ORDER BY ', order);
+        if (items.length) items.add(' ');
+        items.add(sql.addLimitAndOffset(options, model));
+
+        const query = sql.composeQuery(items);
+
+        return expectsql(query, expectation);
       });
     };
 
@@ -28,8 +34,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       limit: 10, //when no order by present, one is automagically prepended, test its existence
       model: { primaryKeyField: 'id', name: 'tableRef' }
     }, {
-      default: ' LIMIT 10',
-      mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
+      query: {
+        default: 'LIMIT $1;',
+        mssql: 'ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY;'
+      },
+      bind: {
+        default: [10]
+      }
     });
 
     testsql({
@@ -38,8 +49,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ['email', 'DESC'] // for MSSQL
       ]
     }, {
-      default: ' LIMIT 10',
-      mssql: ' OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
+      query: {
+        default: 'ORDER BY [email] DESC LIMIT $1;',
+        mssql: 'ORDER BY [email] DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY;'
+      },
+      bind: {
+        default: [10]
+      }
     });
 
     testsql({
@@ -49,9 +65,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ['email', 'DESC'] // for MSSQL
       ]
     }, {
-      default: ' LIMIT 20, 10',
-      postgres: ' LIMIT 10 OFFSET 20',
-      mssql: ' OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY'
+      query: {
+        default: 'ORDER BY [email] DESC LIMIT $1, $2;',
+        postgres: 'ORDER BY "email" DESC LIMIT $1 OFFSET $2;',
+        mssql: 'ORDER BY [email] DESC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY;'
+      },
+      bind: {
+        default: [20, 10],
+        postgres: [10, 20]
+      }
     });
 
     testsql({
@@ -60,10 +82,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ['email', 'DESC'] // for MSSQL
       ]
     }, {
-      default: " LIMIT ''';DELETE FROM user'",
-      mariadb: " LIMIT '\\';DELETE FROM user'",
-      mysql: " LIMIT '\\';DELETE FROM user'",
-      mssql: " OFFSET 0 ROWS FETCH NEXT N''';DELETE FROM user' ROWS ONLY"
+      query: {
+        default: 'ORDER BY [email] DESC LIMIT $1;',
+        mssql: 'ORDER BY [email] DESC OFFSET 0 ROWS FETCH NEXT @0 ROWS ONLY;'
+      },
+      bind: {
+        default: ["';DELETE FROM user"]
+      }
     });
 
     testsql({
@@ -73,11 +98,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ['email', 'DESC'] // for MSSQL
       ]
     }, {
-      sqlite: " LIMIT ''';DELETE FROM user', 10",
-      postgres: " LIMIT 10 OFFSET ''';DELETE FROM user'",
-      mariadb: " LIMIT '\\';DELETE FROM user', 10",
-      mysql: " LIMIT '\\';DELETE FROM user', 10",
-      mssql: " OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY"
+      query: {
+        default: 'ORDER BY [email] DESC LIMIT $1, $2;',
+        postgres: 'ORDER BY "email" DESC LIMIT $1 OFFSET $2;',
+        mssql: 'ORDER BY [email] DESC OFFSET @0 ROWS FETCH NEXT @1 ROWS ONLY;'
+      },
+      bind: {
+        default: ["';DELETE FROM user", 10],
+        postgres: [10, "';DELETE FROM user"]
+      }
     });
   });
 });

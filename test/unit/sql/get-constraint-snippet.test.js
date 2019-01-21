@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('check', () => {
       it('naming', () => {
-        expectsql(sql.getConstraintSnippet('myTable', {
+        expectsql(sql.composeQuery(sql.getConstraintSnippet('myTable', {
           type: 'CHECK',
           fields: [{
             attribute: 'myColumn'
@@ -49,14 +49,18 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           where: {
             myColumn: ['value1', 'value2', 'value3']
           }
-        }), {
-          mssql: "CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (N'value1', N'value2', N'value3'))",
-          default: "CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN ('value1', 'value2', 'value3'))"
+        })), {
+          query: {
+            default: 'CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN ($1, $2, $3));'
+          },
+          bind: {
+            default: ['value1', 'value2', 'value3']
+          }
         });
       });
 
       it('where', () => {
-        expectsql(sql.getConstraintSnippet('myTable', {
+        expectsql(sql.composeQuery(sql.getConstraintSnippet('myTable', {
           type: 'CHECK',
           fields: ['myColumn'],
           name: 'check_mycolumn_where',
@@ -68,8 +72,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               }
             }
           }
-        }), {
-          default: 'CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100))'
+        })), {
+          query: {
+            default: 'CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > $1 AND [myColumn] < $2));'
+          },
+          bind: {
+            default: [50, 100]
+          }
         });
       });
 

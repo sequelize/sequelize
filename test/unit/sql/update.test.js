@@ -28,9 +28,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.rawAttributes),
         {
           query: {
-            mssql: 'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$1 OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp WHERE [id] = $2;select * from @tmp',
-            postgres: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2 RETURNING *',
-            default: 'UPDATE `users` SET `user_name`=$1 WHERE `id` = $2'
+            mssql: 'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));UPDATE [users] SET [user_name]=@0 OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp WHERE [id] = @1;select * from @tmp;',
+            postgres: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2 RETURNING *;',
+            default: 'UPDATE `users` SET `user_name`=$1 WHERE `id` = $2;'
           },
           bind: {
             default: ['triggertest', 2]
@@ -53,14 +53,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       expectsql(sql.updateQuery(User.tableName, { username: 'new.username' }, { username: 'username' }, { limit: 1 }), {
         query: {
-          mssql: 'UPDATE TOP(1) [Users] SET [username]=$1 OUTPUT INSERTED.* WHERE [username] = $2',
-          mariadb: 'UPDATE `Users` SET `username`=$1 WHERE `username` = $2 LIMIT 1',
-          mysql: 'UPDATE `Users` SET `username`=$1 WHERE `username` = $2 LIMIT 1',
-          sqlite: 'UPDATE `Users` SET `username`=$1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `username` = $2 LIMIT 1)',
-          default: 'UPDATE [Users] SET [username]=$1 WHERE [username] = $2'
+          mssql: 'UPDATE TOP(@0) [Users] SET [username]=@1 OUTPUT INSERTED.* WHERE [username] = @2;',
+          mysql: 'UPDATE `Users` SET `username`=? WHERE `username` = ? LIMIT ?;',
+          mariadb: 'UPDATE `Users` SET `username`=? WHERE `username` = ? LIMIT ?;',
+          sqlite: 'UPDATE `Users` SET `username`=?1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `username` = ?2 LIMIT ?3);',
+          default: 'UPDATE [Users] SET [username]=$1 WHERE [username] = $2;'
         },
         bind: {
-          default: ['new.username', 'username']
+          default: ['new.username', 'username', 1],
+          postgres: ['new.username', 'username'],
+          mssql: [1, 'new.username', 'username']
         }
       });
     });

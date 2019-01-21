@@ -102,24 +102,37 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
           },
           another_json_field: { x: 1 }
         };
-        const expected = '("metadata"#>>\'{language}\') = \'icelandic\' AND ("metadata"#>>\'{pg_rating,dk}\') = \'G\' AND ("another_json_field"#>>\'{x}\') = \'1\'';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))).to.deep.equal(expected);
+
+        expect(this.queryGenerator.composeQuery(this.queryGenerator.handleSequelizeMethod(new Utils.Json(conditions)))).to.deep.equal({
+          query: '("metadata"#>>$1) = $2 AND ("metadata"#>>$3) = $4 AND ("another_json_field"#>>$5) = $6;',
+          bind: ['{language}', 'icelandic', '{pg_rating,dk}', 'G', '{x}', 1]
+        });
       });
 
       it('successfully parses a string using dot notation', function() {
         const path = 'metadata.pg_rating.dk';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal('("metadata"#>>\'{pg_rating,dk}\')');
+        expect(this.queryGenerator.composeQuery(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path)))).to.deep.equal({
+          query: '("metadata"#>>$1);',
+          bind: ['{pg_rating,dk}']
+        });
       });
 
       it('allows postgres json syntax', function() {
         const path = 'metadata->pg_rating->>dk';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(path);
+        expect(this.queryGenerator.composeQuery(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path)))).to.deep.equal({
+          query: `${path};`,
+          bind: []
+        });
       });
 
       it('can take a value to compare against', function() {
         const path = 'metadata.pg_rating.is';
         const value = 'U';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal('("metadata"#>>\'{pg_rating,is}\') = \'U\'');
+
+        expect(this.queryGenerator.composeQuery(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path, value)))).to.deep.equal({
+          query: '("metadata"#>>$1) = $2;',
+          bind: ['{pg_rating,is}', 'U']
+        });
       });
     });
   }
@@ -166,7 +179,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
         return Airplane.findAll({
           attributes: [
-            [this.sequelize.fn('COUNT', '*'), 'count'],
+            [this.sequelize.fn('COUNT', this.sequelize.literal('*')), 'count'],
             [Sequelize.fn('SUM', Sequelize.cast({
               engines: 1
             }, type)), 'count-engines'],

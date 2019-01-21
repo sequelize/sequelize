@@ -8,6 +8,13 @@ const chai = require('chai'),
   DataTypes = require('../../../../lib/dialects/postgres/data-types')(BaseTypes),
   QueryGenerator = require('../../../../lib/dialects/postgres/query-generator');
 
+const createBinder = array => {
+  return value => {
+    array.push(value);
+    return `$${array.length}`;
+  };
+};
+
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] DataTypes', () => {
     beforeEach(function() {
@@ -18,10 +25,10 @@ if (dialect.match(/^postgres/)) {
     });
 
     describe('GEOMETRY', () => {
-      it('should use bindParam fn', function() {
+      it('should use bindParam fn', () => {
         const value = { type: 'Point' };
         const bind = [];
-        const bindParam = this.queryGenerator.bindParam(bind);
+        const bindParam = createBinder(bind);
         const result = DataTypes.GEOMETRY.prototype.bindParam(value, { bindParam });
         expect(result).to.equal('ST_GeomFromGeoJSON($1)');
         expect(bind).to.eql([value]);
@@ -29,10 +36,10 @@ if (dialect.match(/^postgres/)) {
     });
 
     describe('GEOGRAPHY', () => {
-      it('should use bindParam fn', function() {
+      it('should use bindParam fn', () => {
         const value = { type: 'Point' };
         const bind = [];
-        const bindParam = this.queryGenerator.bindParam(bind);
+        const bindParam = createBinder(bind);
         const result = DataTypes.GEOGRAPHY.prototype.bindParam(value, { bindParam });
         expect(result).to.equal('ST_GeomFromGeoJSON($1)');
         expect(bind).to.eql([value]);

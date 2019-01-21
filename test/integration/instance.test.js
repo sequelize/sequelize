@@ -1917,8 +1917,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                 logging(sql) {
                   expect(sql).to.exist;
                   expect(sql.toUpperCase()).to.include('DELETE');
-                  expect(sql).to.include('ru');
-                  expect(sql).to.include('bl');
                 }
               }).then(() => {
                 return MultiPrimary.findAll().then(ms => {

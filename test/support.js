@@ -9,8 +9,10 @@ const fs = require('fs'),
   supportShim = require('./supportShim'),
   chai = require('chai'),
   expect = chai.expect,
-  AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+  AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator'),
+  QuoteHelper = require('../lib/dialects/abstract/query-generator/helpers/quote');
 
+const { Composition } = require('../lib/dialects/abstract/query-generator/composition');
 
 chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));
@@ -18,6 +20,13 @@ chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 chai.config.includeStack = true;
 chai.should();
+
+const bindReplace = {
+  'mssql': (match, key) => `@${Number.parseInt(key)-1}`,
+  'sqlite': '?$1',
+  'mysql': '?',
+  'mariadb': '?'
+};
 
 // Make sure errors get thrown when testing
 process.on('uncaughtException', e => {
@@ -178,8 +187,14 @@ const Support = {
 
   getAbstractQueryGenerator(sequelize) {
     class ModdedQueryGenerator extends AbstractQueryGenerator {
-      quoteIdentifier(x) {
-        return x;
+      quoteIdentifier(identifier, force) {
+        // Tests should differenciate if a name is quoted or not, even for abstract queries
+        // Force postgres, it's the weaker one(can return rawIdentifier)
+        return QuoteHelper.quoteIdentifier('postgres', identifier, {
+          force,
+          quoteIdentifiers: this.options.quoteIdentifiers
+        });
+
       }
     }
 
@@ -241,25 +256,41 @@ const Support = {
     if (!expectation) {
       if (expectations['default'] !== undefined) {
         expectation = expectations['default'];
-        if (typeof expectation === 'string') {
-          expectation = expectation
-            .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-            .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
-        }
+      } else if (typeof expectations === 'string') {
+        expectation = expectations;
       } else {
         throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"!`);
       }
+
+      // Default dialect: translate quote marks and bind parameters to dialect
+      if (typeof expectation === 'string') {
+        expectation = expectation
+          .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
+          .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
+
+        if (bindReplace[Support.sequelize.dialect.name]) {
+          expectation = expectation
+            .replace(/\$(\d+)/g, bindReplace[Support.sequelize.dialect.name]);
+        }
+      }
+    }
+
+    if (query instanceof Composition) {
+      query = Support.sequelize.dialect.QueryGenerator.composeQuery(query);
     }
 
     if (query instanceof Error) {
       expect(query.message).to.equal(expectation.message);
     } else {
       expect(query.query || query).to.equal(expectation);
-    }
 
-    if (assertions.bind) {
-      const bind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind['default'] || assertions.bind;
-      expect(query.bind).to.deep.equal(bind);
+      if (assertions.bind) {
+        let bind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind['default'] || assertions.bind;
+        if (Support.sequelize.dialect.name === 'mssql' && Array.isArray(bind)) {
+          bind = Support.sequelize.dialect.QueryGenerator.outputBind(bind);
+        }
+        expect(query.bind).to.deep.equal(bind);
+      }
     }
   }
 };
@@ -270,4 +301,5 @@ if (global.beforeEach) {
   });
 }
 Support.sequelize = Support.createSequelizeInstance();
+
 module.exports = Support;

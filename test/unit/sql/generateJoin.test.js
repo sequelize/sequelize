@@ -10,6 +10,8 @@ const Support = require('../support'),
   sql = current.dialect.QueryGenerator,
   Op = Sequelize.Op;
 
+const { Composition } = require('../../../lib/dialects/abstract/query-generator/composition');
+
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
@@ -32,7 +34,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         );
 
-        return expectsql(`${join.join} ${join.body} ON ${join.condition}`, expectation);
+        const query = sql.composeQuery(new Composition(join.join, ' ', join.body, ' ON ', join.condition));
+
+        return expectsql(query, expectation);
       });
     };
 
@@ -99,7 +103,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ]
       },
       {
-        default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]'
+        default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id];'
       }
     );
 
@@ -116,9 +120,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ]
       },
       {
-        default: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = true',
-        sqlite: 'INNER JOIN `company` AS `Company` ON `User`.`company_id` = `Company`.`id` OR `Company`.`public` = 1',
-        mssql: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = 1'
+        query: {
+          default: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = $1;'
+        },
+        bind: {
+          default: [true]
+        }
+
       }
     );
 
@@ -137,7 +145,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ]
       },
       {
-        default: 'LEFT OUTER JOIN [company] AS [Professionals->Company] ON [Professionals].[company_id] = [Professionals->Company].[id]'
+        default: 'LEFT OUTER JOIN [company] AS [Professionals->Company] ON [Professionals].[company_id] = [Professionals->Company].[id];'
       }
     );
 
@@ -151,7 +159,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ]
       },
       {
-        default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]'
+        default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id];'
       }
     );
 
@@ -167,8 +175,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ]
       },
       {
-        default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = 'ABC'",
-        mssql: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = N'ABC'"
+        query: {
+          default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = $1;'
+        },
+        bind: {
+          default: ['ABC']
+        }
       }
     );
 
@@ -187,7 +199,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       },
       {
-        default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]'
+        default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user];'
       }
     );
 
@@ -208,7 +220,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         ]
       },
-      { default: 'LEFT OUTER JOIN [profession] AS [Company->Owner->Profession] ON [Company->Owner].[professionId] = [Company->Owner->Profession].[id]' }
+      { default: 'LEFT OUTER JOIN [profession] AS [Company->Owner->Profession] ON [Company->Owner].[professionId] = [Company->Owner->Profession].[id];' }
     );
 
     testsql(
@@ -226,7 +238,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         ]
       },
-      { default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]' }
+      { default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user];' }
     );
 
     testsql(
@@ -239,7 +251,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ]
       },
       {
-        default: 'INNER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]'
+        default: 'INNER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id];'
       }
     );
 
@@ -255,7 +267,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           User.Tasks
         ]
       },
-      { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id]' }
+      { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id];' }
     );
 
     testsql(
@@ -269,7 +281,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       },
       {
         // The primary key of the main model will be aliased because it's coming from a subquery that the :M join is not a part of
-        default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id]'
+        default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id];'
       }
     );
 
@@ -287,7 +299,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         ]
-      }, { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON ([User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2)' }
+      }, {
+        query: {
+          default: 'LEFT OUTER JOIN [task] AS [Tasks] ON ([User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = $1);'
+        },
+        bind: {
+          default: [2]
+        }
+      }
     );
 
     testsql(
@@ -300,7 +319,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             on: { 'user_id': { [Op.col]: 'User.alternative_id' } }
           }
         ]
-      }, { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id]' }
+      }, { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id];' }
     );
 
     testsql(
@@ -327,7 +346,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       },
       {
-        default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON ([Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = 2)'
+        query: {
+          default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON ([Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = $1);'
+        },
+        bind: {
+          default: [2]
+        }
       }
     );
 

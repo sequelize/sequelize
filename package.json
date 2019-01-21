@@ -73,7 +73,6 @@
     "lint-staged": "^7.3.0",
     "mariadb": "^2.0.1-beta",
     "mocha": "^5.x",
-    "mysql2": "^1.6.4",
     "pg": "^7.5.0",
     "pg-hstore": "^2.x",
     "pg-types": "^2.0.0",
