@@ -26,6 +26,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(Model.rawAttributes).not.to.have.property('updated_at');
     });
 
+    it('should underscore camelCased attributes with underscored: true', () => {
+      const Model = current.define('User', { fieldName: { type: DataTypes.TEXT } }, { underscored: true });
+
+      expect(Model.rawAttributes.fieldName.field).to.equal('field_name');
+    });
+
+    it('should underscore camelCased attributes with underscoredAll: true', () => {
+      const Model = current.define('User', { fieldName: { type: DataTypes.TEXT } }, { underscoredAll: true });
+
+      expect(Model.rawAttributes.fieldName.field).to.equal('field_name');
+    });
+
+    it('should not underscore attributes where field is already set', () => {
+      const Model = current.define('User', { fieldName: { type: DataTypes.TEXT, field: 'forcedFieldName' } }, { underscoredAll: true });
+
+      expect(Model.rawAttributes.fieldName.field).to.equal('forcedFieldName');
+    });
+
     it('should throw when id is added but not marked as PK', () => {
       expect(() => {
         current.define('foo', {
