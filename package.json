@@ -16,7 +16,8 @@
   },
   "bugs": {
     "url": "https://github.com/sequelize/sequelize/issues"
-  },
+  }"
+  "homepage": "http://docs.sequelizejs.com/",
   "main": "index.js",
   "types": "types",
   "engines": {
