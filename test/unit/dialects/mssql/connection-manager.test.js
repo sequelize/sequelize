@@ -20,7 +20,11 @@ if (dialect === 'mssql') {
         port: 2433,
         pool: {},
         dialectOptions: {
-          domain: 'TEST.COM'
+          authentication: {
+            options: {
+              domain: 'TEST.COM'
+            }
+          }
         }
       };
       this.instance = new Sequelize(
@@ -37,7 +41,7 @@ if (dialect === 'mssql') {
       this.connectionStub.restore();
     });
 
-    it('connectionManager._connect() does not delete `domain` from config.dialectOptions', function() {
+    it('connectionManager._connect() merges username, password, and config.dialectOptions.authentication into config.authentication', function() {
       this.connectionStub.returns({
         once(event, cb) {
           if (event === 'connect') {
@@ -50,9 +54,34 @@ if (dialect === 'mssql') {
         on: () => {}
       });
 
-      expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
       return this.instance.dialect.connectionManager._connect(this.config).then(() => {
-        expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
+        const connectionConfig = this.connectionStub.args[0][0];
+        expect(connectionConfig).to.have.property('authentication');
+        expect(connectionConfig.authentication).to.have.property('options');
+
+        const authOptions = connectionConfig.authentication.options;
+        expect(authOptions).to.have.property('userName', this.config.username);
+        expect(authOptions).to.have.property('password', this.config.password);
+        expect(authOptions).to.have.property('domain', this.config.dialectOptions.authentication.options.domain);
+      });
+    });
+
+    it('connectionManager._connect() does not delete `domain` from config.dialectOptions.authentication.options', function() {
+      this.connectionStub.returns({
+        once(event, cb) {
+          if (event === 'connect') {
+            setTimeout(() => {
+              cb();
+            }, 500);
+          }
+        },
+        removeListener: () => {},
+        on: () => {}
+      });
+
+      expect(this.config.dialectOptions.authentication.options.domain).to.equal('TEST.COM');
+      return this.instance.dialect.connectionManager._connect(this.config).then(() => {
+        expect(this.config.dialectOptions.authentication.options.domain).to.equal('TEST.COM');
       });
     });
 
