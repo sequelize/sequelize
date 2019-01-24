@@ -57,6 +57,7 @@ if (dialect === 'mssql') {
       return this.instance.dialect.connectionManager._connect(this.config).then(() => {
         const connectionConfig = this.connectionStub.args[0][0];
         expect(connectionConfig).to.have.property('authentication');
+        expect(connectionConfig.authentication).to.have.property('type');
         expect(connectionConfig.authentication).to.have.property('options');
 
         const authOptions = connectionConfig.authentication.options;
