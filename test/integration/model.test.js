@@ -1194,6 +1194,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('calls update hook for soft deleted objects', function() {
+      const hookSpy = sinon.spy();
+      const User = this.sequelize.define('User',
+        { username: DataTypes.STRING },
+        { paranoid: true, hooks: { beforeUpdate: hookSpy } }
+      );
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.bulkCreate([
+          { username: 'user1' }
+        ]);
+      }).then(() => {
+        return User.destroy({
+          where: {
+            username: 'user1'
+          }
+        });
+      }).then(() => {
+        return User.update(
+          { username: 'updUser1' },
+          { paranoid: false, where: { username: 'user1' }, individualHooks: true });
+      }).then(() => {
+        return User.findOne({ where: { username: 'updUser1' }, paranoid: false });
+      }).then( user => {
+        expect(user).to.not.be.null;
+        expect(user.username).to.eq('updUser1');
+        expect(hookSpy).to.have.been.called;
+      });
+    });
+
     if (dialect === 'postgres') {
       it('returns the affected rows if `options.returning` is true', function() {
         const data = [{ username: 'Peter', secretValue: '42' },
