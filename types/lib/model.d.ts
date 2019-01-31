@@ -1400,7 +1400,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   /**
    * Initialize a model, representing a table in the DB, with attributes and options.
    *
-   * The table columns are define by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
+   * The table columns are defined by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
      *
    * ```js
    * Project.init({
