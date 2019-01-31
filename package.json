@@ -72,7 +72,7 @@
     "js-combinatorics": "^0.5.4",
     "lcov-result-merger": "^3.0.0",
     "lint-staged": "^8.1.0",
-    "mariadb": "^2.0.2-rc",
+    "mariadb": "^2.0.3",
     "mocha": "^5.x",
     "mysql2": "^1.6.4",
     "pg": "^7.8.0",
