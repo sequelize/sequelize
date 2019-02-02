@@ -302,7 +302,12 @@ export interface Options extends Logging {
    *
    * @default all aliases
    */
-  operatorsAliases: OperatorsAliases | false;
+  operatorsAliases?: OperatorsAliases | false;
+
+  /**
+   * Sets global permanent hooks.
+   */
+  hooks?: Partial<SequelizeHooks>
 }
 
 export interface QueryOptionsTransactionRequired {}

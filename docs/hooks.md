@@ -107,7 +107,7 @@ You can have many hooks with same name. Calling `.removeHook()` will remove all 
 ## Global / universal hooks
 Global hooks are hooks which are run for all models. They can define behaviours that you want for all your models, and are especially useful for plugins. They can be defined in two ways, which have slightly different semantics:
 
-### Sequelize.options.define (default hook)
+### Default Hooks (Sequelize.options.define)
 ```js
 const sequelize = new Sequelize(..., {
     define: {
@@ -136,14 +136,14 @@ User.create() // Runs the global hook
 Project.create() // Runs its own hook (because the global hook is overwritten)
 ```
 
-### Sequelize.addHook (permanent hook)
+### Permanent Hooks (Sequelize.addHook)
 ```js
 sequelize.addHook('beforeCreate', () => {
     // Do stuff
 });
 ```
 
-This hooks is always run before create, regardless of whether the model specifies its own `beforeCreate` hook:
+This hook is always run before create, regardless of whether the model specifies its own `beforeCreate` hook. Local hooks are always run before global hooks:
 
 ```js
 const User = sequelize.define('user');
@@ -159,9 +159,43 @@ User.create() // Runs the global hook
 Project.create() // Runs its own hook, followed by the global hook
 ```
 
-Local hooks are always run before global hooks.
+Permanent hooks may also be defined in `Sequelize.options`:
 
-### Instance hooks
+```js
+new Sequelize(..., {
+    hooks: {
+        beforeCreate: () => {
+            // do stuff
+        }
+    }
+});
+```
+
+### Connection Hooks
+
+Sequelize provides two hooks that are executed immediately before and after a database connection is obtained:
+
+```
+beforeConnect(config)
+afterConnect(connection, config)
+```
+
+These hooks can be useful if you need to asynchronously obtain database credentials, or need to directly access the low-level database connection after it has been created.
+
+For example, we can asynchronously obtain a database password from a rotating token store, and mutate Sequelize's configuration object with the new credentials:
+
+```js
+sequelize.beforeConnect((config) => {
+    return getAuthToken()
+        .then((token) => {
+             config.password = token;
+         });
+    });
+```
+
+These hooks may _only_ be declared as a permanent global hook, as the connection pool is shared by all models.
+
+## Instance hooks
 
 The following hooks will emit whenever you're editing a single object
 
