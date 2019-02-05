@@ -458,7 +458,8 @@ configuration file. Using `migrationStorage`, you can choose the type of storage
 migrations. If you choose `json`, you can specify the path of the file using `migrationStoragePath`
 or the CLI will write to the file `sequelize-meta.json`. If you want to keep the information in the
 database, using `sequelize`, but want to use a different table, you can change the table name using
-`migrationStorageTableName`.
+`migrationStorageTableName`. Also you can define a different schema for the `SequelizeMeta` table by
+providing the `migrationStorageTableSchema` property.
 
 ```json
 {
@@ -476,7 +477,10 @@ database, using `sequelize`, but want to use a different table, you can change t
     "migrationStoragePath": "sequelizeMeta.json",
 
     // Use a different table name. Default: SequelizeMeta
-    "migrationStorageTableName": "sequelize_meta"
+    "migrationStorageTableName": "sequelize_meta",
+
+    // Use a different schema for the SequelizeMeta table
+    "migrationStorageTableSchema": "custom_schema"
   }
 }
 ```
