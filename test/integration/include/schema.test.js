@@ -197,6 +197,22 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       return this.sequelize.createSchema('account');
     });
 
+    it('should throw an error if the passed object is undefined or null', function() {
+      const User = this.sequelize.define('User', {}, { schema: 'account' });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.findAll({
+          include: [
+            { model: null }
+          ]
+        }).then(() => {
+          expect(1).to.equal(0);
+        }).catch(() => {
+          expect(1).to.equal(1);
+        });
+      });
+    });
+
     it('should support an include with multiple different association types', function() {
       return this.sequelize.dropSchema('account').then(() => {
         return this.sequelize.createSchema('account').then(() => {
