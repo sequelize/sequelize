@@ -205,6 +205,26 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
+    if (current.dialect.supports.INTERVAL) {
+      describe('INTERVAL', () => {
+        testsql('INTERVAL', DataTypes.INTERVAL, {
+          default: 'INTERVAL'
+        });
+
+        testsql('INTERVAL(6)', DataTypes.INTERVAL(6), {
+          default: 'INTERVAL (6)'
+        });
+
+        testsql('INTERVAL(0)', DataTypes.INTERVAL(0), {
+          default: 'INTERVAL (0)'
+        });
+
+        testsql('INTERVAL()', DataTypes.INTERVAL(), {
+          default: 'INTERVAL'
+        });
+      });
+    }
+
     if (current.dialect.supports.HSTORE) {
       describe('HSTORE', () => {
         describe('validate', () => {

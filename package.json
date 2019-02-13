@@ -78,6 +78,7 @@
     "pg": "^7.8.0",
     "pg-hstore": "^2.x",
     "pg-types": "^2.0.0",
+    "postgres-interval": "^1.1.2",
     "rimraf": "^2.x",
     "sinon": "^6.3.5",
     "sinon-chai": "^3.2.0",

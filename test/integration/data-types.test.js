@@ -12,7 +12,8 @@ const chai = require('chai'),
   uuid = require('uuid'),
   DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect(),
-  semver = require('semver');
+  semver = require('semver'),
+  PgInterval = require('postgres-interval');
 
 describe(Support.getTestDialectTeaser('DataTypes'), () => {
   afterEach(function() {
@@ -302,6 +303,165 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     testFailure(Type);
 
   });
+
+  it('calls parse and stringify for INTERVAL', () => {
+    const Type = new Sequelize.INTERVAL();
+
+    if (dialect === 'postgres') {
+      return testSuccess(Type, 'PT5M')
+        .then(() => testSuccess(Type, ''));
+    }
+    testFailure(Type);
+  });
+
+  if (current.dialect.supports.INTERVAL) {
+    it('allows INTERVALS to be defined as moment.duration objects', () => {
+      const sequelize = Support.createSequelizeInstance({ intervalStyle: 'iso_8601' });
+      const Model = sequelize.define('M', {
+        interval: {
+          type: Sequelize.INTERVAL()
+        }
+      });
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: moment.duration(1, 'day').add(1, 'second') }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval).to.be.ok;
+          expect(moment.isDuration(m.interval)).to.equal(true, 'should return moment.duration object');
+          expect(m.interval.toISOString()).to.equal('P1DT1S');
+        });
+    });
+
+    it('allows INTERVAL to be defined as a number representing milliseconds', () => {
+      const sequelize = Support.createSequelizeInstance({ intervalStyle: 'iso_8601' });
+      const Model = sequelize.define('M', {
+        interval: {
+          type: Sequelize.INTERVAL()
+        }
+      });
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: 1 }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval).to.be.ok;
+          expect(moment.isDuration(m.interval)).to.equal(true, 'should return moment.duration object');
+          expect(m.interval.toISOString()).to.equal('PT0.001S');
+        });
+    });
+
+    it('allows INTERVAL to be defined as ISO 8601 strings', () => {
+      const sequelize = Support.createSequelizeInstance({ intervalStyle: 'iso_8601' });
+      const Model = sequelize.define('M', {
+        interval: {
+          type: Sequelize.INTERVAL()
+        }
+      });
+
+      const isoString = 'P1Y2M3DT4H5M6S';
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: isoString }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval).to.be.ok;
+          expect(moment.isDuration(m.interval)).to.equal(true, 'should return moment.duration object');
+          expect(m.interval.toISOString()).to.equal(isoString);
+        });
+    });
+
+    it('allows INTERVAL to be defined as objects', () => {
+      const sequelize = Support.createSequelizeInstance({ intervalStyle: 'iso_8601' });
+      const Model = sequelize.define('M', {
+        interval: {
+          type: Sequelize.INTERVAL()
+        }
+      });
+
+      const input = {
+        years: 1,
+        months: 2,
+        weeks: 3,
+        days: 4,
+        hours: 5,
+        minutes: 6,
+        seconds: 7,
+        milliseconds: 8
+      };
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: input }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval).to.be.ok;
+          expect(moment.isDuration(m.interval)).to.equal(true, 'should return moment.duration object');
+          expect(m.interval.asMilliseconds()).to.equal(moment.duration(input).asMilliseconds());
+        });
+    });
+
+    it('allows INTERVAL to be defined as PgInterval instances', () => {
+      const sequelize = Support.createSequelizeInstance({ intervalStyle: 'iso_8601' });
+      const Model = sequelize.define('M', {
+        interval: {
+          type: Sequelize.INTERVAL()
+        }
+      });
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: new PgInterval('01:02:03') }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval).to.be.ok;
+          expect(moment.isDuration(m.interval)).to.equal(true, 'should return moment.duration object');
+          expect(m.interval.toISOString()).to.equal('PT1H2M3S');
+        });
+    });
+
+    it('supports passing precision to INTERVAL', () => {
+      const sequelize = Support.createSequelizeInstance({ intervalStyle: 'iso_8601' });
+      const Model = sequelize.define('M', {
+        interval: {
+          // 1 fractional digit in seconds field means we can represent 1/10 of a second (100 milliseconds)
+          type: Sequelize.INTERVAL(1)
+        }
+      });
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: moment.duration(101, 'milliseconds') }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval).to.be.ok;
+          expect(moment.isDuration(m.interval)).to.equal(true, 'should return moment.duration object');
+          expect(m.interval.toISOString()).to.equal('PT0.1S');
+        });
+    });
+
+    it('supports 0 precision INTERVAL', () => {
+      const sequelize = Support.createSequelizeInstance({ intervalStyle: 'iso_8601' });
+      const Model = sequelize.define('M', {
+        interval: {
+          type: Sequelize.INTERVAL(0) // 0 fractional digits in seconds field
+        }
+      });
+
+      return Model.sync({ force: true })
+        .then(() => Model.create({ interval: moment.duration(1, 'millisecond') }))
+        .then(() => Model.findOne())
+        .then(m => {
+          expect(m).to.exist;
+          expect(m.interval).to.be.ok;
+          expect(moment.isDuration(m.interval)).to.equal(true, 'should return moment.duration object');
+
+          // Postgres actually returns PT0S in this case, but moment serializes that as P0D
+          expect(m.interval.toISOString()).to.equal('P0D');
+        });
+    });
+  }
 
   it('calls parse and stringify for ENUM', () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
