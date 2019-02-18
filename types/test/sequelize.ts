@@ -1,6 +1,12 @@
 import { Config, Sequelize } from 'sequelize';
 
-export const sequelize = new Sequelize('uri');
+export const sequelize = new Sequelize({
+  hooks: {
+    afterConnect: (connection, config: Config) => {
+      // noop
+    }
+  }
+});
 
 const conn = sequelize.connectionManager;
 

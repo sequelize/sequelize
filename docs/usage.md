@@ -160,11 +160,18 @@ With the release of Sequelize `1.6.0`, the library got independent from specific
 
 ### MySQL
 
-In order to get Sequelize working nicely together with MySQL, you'll need to install`mariadb@^2.0.1`or higher. Once that's done you can use it like this:
+In order to get Sequelize working nicely together with MySQL, you'll need to install `mysql2@^1.0.0-rc.10` or `mariadb@^2.0.1`. Once that's done you can use it like this:
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
   dialect: 'mysql'
+})
+
+// You can also use mariadb connector to communicate with MySQL severs
+// Unlike mysql2, mariadb connector binds parameters for all Sequelize native queries
+
+const sequelize = new Sequelize('database', 'username', 'password', {
+  dialect: 'mariadb'
 })
 ```
 
@@ -349,7 +356,7 @@ sequelize.query('select 1 as `foo.bar.baz`').then(rows => {
 ```
 
 
-[0]: /docs/latest/usage#options
+[0]: /manual/installation/usage.html#options
 [1]: /manual/tutorial/models-definition.html#configuration
 [2]: /class/lib/sequelize.js~Sequelize.html
 [3]: /manual/tutorial/transactions.html

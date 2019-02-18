@@ -302,7 +302,12 @@ export interface Options extends Logging {
    *
    * @default all aliases
    */
-  operatorsAliases: OperatorsAliases | false;
+  operatorsAliases?: OperatorsAliases | false;
+
+  /**
+   * Sets global permanent hooks.
+   */
+  hooks?: Partial<SequelizeHooks>
 }
 
 export interface QueryOptionsTransactionRequired {}
@@ -939,7 +944,7 @@ export class Sequelize extends Hooks {
   /**
    * Define a new model, representing a table in the DB.
    *
-   * The table columns are define by the hash that is given as the second argument. Each attribute of the
+   * The table columns are defined by the hash that is given as the second argument. Each attribute of the
    * hash
    * represents a column. A short table definition might look like this:
    *
