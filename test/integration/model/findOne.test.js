@@ -111,6 +111,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: { 'specialkey': 'awesome' },
           logging(sql) {
             test = true;
+            // From node-mysql2 workaround in QueryInterface 
+            // mysql doesn't use binded parameters for select queries generated from QueryInterface.
+            if (dialect === 'mysql') {
+              expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = 'awesome'/);
+            }
             expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = (\$1|\?1?|@0)/);
           }
         }).then(() => {
