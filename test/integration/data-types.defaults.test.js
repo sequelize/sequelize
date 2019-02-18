@@ -105,7 +105,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
       return getInstance(Model).then(instance => {
         let expected = 1.1;
-        if (dialect === 'postgres') expected = '1.1';
+        if (dialect === 'postgres' || dialect === 'mysql') expected = '1.1';
         expect(instance.decimal).to.equal(expected);
       });
     });

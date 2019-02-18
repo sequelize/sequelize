@@ -198,8 +198,10 @@ describe('Composition Group', () => {
 
 describe('Query proto', () => {
 
-  class TestProto extends QueryProto {};
-  TestProto.partNames = ['foo', 'bar'];
+  const partNames = ['foo', 'bar'];
+  class TestProto extends QueryProto {
+    static get partNames() { return partNames; }
+  };
 
   it('constructor should accept QueryProto instances or similar objects', () => {
     const similar = { foo: new Composition('abc'), extrange: new Composition('def') };

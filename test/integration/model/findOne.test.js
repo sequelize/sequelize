@@ -115,8 +115,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             // mysql doesn't use binded parameters for select queries generated from QueryInterface.
             if (dialect === 'mysql') {
               expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = 'awesome'/);
+            } else {
+              expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = (\$1|\?1?|@0)/);
             }
-            expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = (\$1|\?1?|@0)/);
           }
         }).then(() => {
           expect(test).to.be.true;
@@ -257,7 +258,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.User.findByPk(perm, {
               logging(s) {
                 const parts = s.split(' with parameters ');
-                if (dialect === 'mssql') {
+                if (dialect === 'mysql') {
+                  // Workaround: Values are not binded for node-mysql2 select queries
+                  expect(parts[0]).to.include(`\`User\`.\`id\` = ${perm === 0 ? '0' : "'0'"}`);
+                } else if (dialect === 'mssql') {
                   expect(parts[1]).to.include(util.inspect({ 0: perm }));
                 } else {
                   expect(parts[1]).to.include(util.inspect([perm]));

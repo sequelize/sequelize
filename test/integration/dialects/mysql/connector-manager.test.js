@@ -9,7 +9,7 @@ const DataTypes = require('../../../../lib/data-types');
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connection Manager', () => {
     it('-FOUND_ROWS can be suppressed to get back legacy behavior', () => {
-      const sequelize = Support.createSequelizeInstance({ dialectOptions: { foundRows: true } });
+      const sequelize = Support.createSequelizeInstance({ dialectOptions: { flags: '' } });
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
       return User.sync({ force: true })
@@ -20,7 +20,7 @@ if (dialect === 'mysql') {
           }
         }))
         // https://github.com/sequelize/sequelize/issues/7184
-        .then(([affectedCount]) => affectedCount.should.equal(1));
+        .spread(affectedCount => affectedCount.should.equal(1));
     });
 
     it('should acquire a valid connection when keepDefaultTimezone is true', () => {

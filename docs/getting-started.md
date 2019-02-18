@@ -11,7 +11,7 @@ $ npm install --save sequelize
 # And one of the following:
 $ npm install --save pg pg-hstore
 $ npm install --save mysql2
-$ npm install --save mariadb # Works for MySQL as well
+$ npm install --save mariadb
 $ npm install --save sqlite3
 $ npm install --save tedious // MSSQL
 
@@ -20,8 +20,8 @@ $ yarn add sequelize
 
 # And one of the following:
 $ yarn add pg pg-hstore
-$ yarn add mysql2 # Works for MySQL as well
-$ yarn add mariadb # MariaDB and MySQL
+$ yarn add mysql2
+$ yarn add mariadb
 $ yarn add sqlite3
 $ yarn add tedious // MSSQL
 ```
