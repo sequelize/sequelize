@@ -4,6 +4,7 @@ const path = require('path');
 const Query = require(path.resolve('./lib/dialects/abstract/query.js'));
 const Support = require(path.join(__dirname, './../../support'));
 const chai = require('chai');
+const dialect = Support.getTestDialect();
 
 const current = Support.sequelize;
 const expect = chai.expect;
@@ -472,4 +473,78 @@ describe('[ABSTRACT]', () => {
       ]);
     });
   });
+
+  describe('formatBindParameters', () => {
+    function createReplacementFunc(array) {
+      return function replacementFunc(match, key, values) {
+        if (values[key] !== undefined) {
+          array.push(values[key]);
+          return `@${key}`;
+        }
+        return undefined;
+      };
+    }
+
+    it('with replacement function', () => {
+      // It can replace keys with anything. Function could interpolate values
+      // or simply be used to transform key format.
+      const sql = 'select $one as a, $two as b, $one as c, $three as d, $one as e';
+      const values = { one: 1, two: 2, three: 3 };
+
+      const expected = 'select @one as a, @two as b, @one as c, @three as d, @one as e';
+
+      const valueArray = [];
+      const replacementFunc = createReplacementFunc(valueArray);
+
+      const result = Query.formatBindParameters(sql, values, dialect, replacementFunc);
+      expect(result[0]).to.be.a('string');
+      expect(result[0]).to.equal(expected);
+      expect(valueArray).to.deep.equal([1, 2, 1, 3, 1]);
+    });
+
+    it('with replacement function and skipValueReplace, keys preserved', () => {
+      // Cannot interpolate values into sql, what is more cannot even be replaced
+      const sql = 'select $one as a, $two as b, $one as c, $three as d, $one as e';
+      const values = { one: 1, two: 2, three: 3 };
+
+      const expected = 'select $one as a, $two as b, $one as c, $three as d, $one as e';
+
+      const valueArray = [];
+      const replacementFunc = createReplacementFunc(valueArray);
+
+      const result = Query.formatBindParameters(sql, values, dialect, replacementFunc, {
+        skipValueReplace: true
+      });
+      expect(result[0]).to.be.a('string');
+      expect(result[0]).to.equal(expected);
+      expect(valueArray).to.deep.equal([1, 2, 1, 3, 1]);
+    });
+
+    it('without function, interpolates escaped values', () => {
+      // By default, values are escaped and interpolated
+      const sql = 'select $one as a, $two as b, $one as c, $three as d, $one as e';
+      const values = { one: 1, two: 2, three: 3 };
+
+      const expected = 'select 1 as a, 2 as b, 1 as c, 3 as d, 1 as e';
+
+      const result = Query.formatBindParameters(sql, values, 'postgres');
+      expect(result[0]).to.be.a('string');
+      expect(result[0]).to.equal(expected);
+    });
+
+    it('without function and skipValueReplace, only checks keys', () => {
+      // It just validates that all keys are present in values, no value interpolation
+      const sql = 'select $one as a, $two as b, $one as c, $three as d, $one as e';
+      const values = { one: 1, two: 2, three: 3 };
+
+      const expected = 'select $one as a, $two as b, $one as c, $three as d, $one as e';
+
+      const result = Query.formatBindParameters(sql, values, dialect, {
+        skipValueReplace: true
+      });
+      expect(result[0]).to.be.a('string');
+      expect(result[0]).to.equal(expected);
+    });
+  });
+
 });

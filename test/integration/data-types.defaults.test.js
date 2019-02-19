@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   describe('should encode and fetch column default values', () => {
 
     it('string family', () => {
-      const Model = sequelize.define('Defaults', {
+      const definition = {
         string: {
           type: DataTypes.STRING,
           defaultValue: 'abc\'"\n\r\b\t\\\x1a'
@@ -31,12 +31,27 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           type: DataTypes.TEXT,
           defaultValue: 'abc\'"\n\r\b\t\\\x1a'
         }
-      });
+      };
+
+      // pg-native does not handle this correctly
+      if (dialect !== 'postgres') {
+        definition.binaryString = {
+          type: DataTypes.STRING(11, true),
+          defaultValue: Buffer.from('abc\'"\n\r\b\t\\\x1a')
+        };
+      }
+
+      const Model = sequelize.define('Defaults', definition);
 
       return getInstance(Model).then(instance => {
         expect(instance.string).to.equal('abc\'"\n\r\b\t\\\x1a');
         expect(instance.char).to.equal('abc\'"\n\r\b\t\\\x1a');
         expect(instance.text).to.equal('abc\'"\n\r\b\t\\\x1a');
+        if (dialect === 'mysql' || dialect === 'mariadb') {
+          expect(instance.binaryString).to.equal('abc\'"\n\r\b\t\\\x1a');
+        } else if (dialect !== 'postgres') {
+          expect(Buffer.from('abc\'"\n\r\b\t\\\x1a').equals(instance.binaryString)).to.be.ok;
+        }
       });
     });
 
@@ -167,15 +182,32 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
 
     it('blob', () => {
-      const Model = sequelize.define('Defaults', {
+      const definition = {
         blob: {
           type: DataTypes.BLOB,
           defaultValue: Buffer.from('Sequelize')
         }
-      });
+      };
+
+      if (dialect !== 'mssql') {
+        definition.blobString = {
+          type: DataTypes.BLOB,
+          defaultValue: 'Sequelize'
+        };
+        definition.blobArray = {
+          type: DataTypes.BLOB,
+          defaultValue: [0x53, 0x65, 0x71, 0x75, 0x65, 0x6C, 0x69, 0x7A, 0x65]
+        };
+      }
+
+      const Model = sequelize.define('Defaults', definition);
 
       return getInstance(Model).then(instance => {
         expect(Buffer.from('Sequelize').equals(instance.blob)).to.be.ok;
+        if (dialect !== 'mssql') {
+          expect(Buffer.from('Sequelize').equals(instance.blobString)).to.be.ok;
+          expect(Buffer.from('Sequelize').equals(instance.blobArray)).to.be.ok;
+        }
       });
     });
 

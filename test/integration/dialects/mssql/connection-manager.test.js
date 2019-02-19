@@ -28,6 +28,19 @@ if (dialect.match(/^mssql/)) {
         const sequelize = new Support.Sequelize('localhost', 'was', 'ddsd', Support.sequelize.options);
         return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
       });
+
+      it('Unsupported database version, hardcoded', () => {
+        return expect(Support.createSequelizeInstance.bind(Support, { databaseVersion: '10.50.6000' })).to.throw(Sequelize.UnsupportedDBVersionError);
+      });
+
+      it('Unsupported database version, autodetect', () => {
+        const sequelize = Support.createSequelizeInstance();
+        sequelize.databaseVersion = function databaseVersion() {
+          return Promise.resolve('10.50.6000');
+        };
+
+        return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.UnsupportedDBVersionError);
+      });
     });
   });
 }

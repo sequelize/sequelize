@@ -131,5 +131,62 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         });
     });
+
+    it('bulk create accepts sequelize methods', () => {
+      const User = Support.sequelize.define('user', {
+        username: {
+          type: DataTypes.STRING,
+          field: 'user_name'
+        },
+        password: {
+          type: DataTypes.STRING,
+          field: 'pass_word'
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+          field: 'created_at'
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+          field: 'updated_at'
+        }
+      }, {
+        timestamps: true
+      });
+
+      expectsql(sql.bulkInsertQuery(User.tableName, [{
+        user_name: current.literal('\'testuser\''),
+        pass_word: current.composition('\'12345\'')
+      }], {
+        updateOnDuplicate: ['user_name', 'pass_word', 'updated_at']
+      }, User.fieldRawAttributesMap),
+      {
+        query: {
+          default: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (\'testuser\',\'12345\');',
+          mysql: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+          mariadb: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);'
+        },
+        bind: {
+          default: []
+        }
+      });
+
+      expectsql(sql.bulkInsertQuery(User.tableName, [{
+        user_name: current.fn('upper', current.slot('testuser')),
+        pass_word: current.slot('12345')
+      }], {
+        updateOnDuplicate: ['user_name', 'pass_word', 'updated_at']
+      }, User.fieldRawAttributesMap),
+      {
+        query: {
+          default: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (upper($1),$2);',
+          mysql: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (upper(?),?) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+          mariadb: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (upper(?),?) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);'
+        },
+        bind: {
+          default: ['testuser', '12345']
+        }
+      });
+    });
   });
 });

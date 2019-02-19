@@ -420,11 +420,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('several concurrent calls', () => {
       if (current.dialect.supports.transactions) {
         it('works with a transaction', function() {
-          if (dialect === 'postgres') {
-            // Only postgres 9.5+
-            current.options.databaseVersion = '9.5.0';
-          }
-
           return this.sequelize.transaction().then(transaction => {
             return Promise.join(
               this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
