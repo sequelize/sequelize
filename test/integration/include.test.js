@@ -914,15 +914,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support eager loading associations using the name of the relation (string)', function() {
-      return this.Team.findAll({
+      return this.Team.findOne({
+        where: {
+          name: 'TeamA'
+        },
         include: [
           {
             association: 'members',
             required: true
           }
         ]
-      }).then(teams => {
-        expect(teams.map(team => team.members).flat()).to.have.length(4);
+      }).then(team => {
+        expect(team.members).to.have.length(2);
       });
     });
 
