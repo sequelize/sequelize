@@ -319,7 +319,7 @@ export interface IncludeOptions extends Filterable, Projectable {
   /**
    * The association you want to eagerly load. (This can be used instead of providing a model/as pair)
    */
-  association?: Association;
+  association?: Association | string;
 
   /**
    * Note that this converts the eager load to an inner join,
