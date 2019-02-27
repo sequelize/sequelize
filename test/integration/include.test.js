@@ -922,7 +922,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           }
         ]
       }).then(teams => {
-        expect(teams.map(team => team.members)).to.have.length(4);
+        expect(teams.map(team => team.members).flat()).to.have.length(4);
       });
     });
 
