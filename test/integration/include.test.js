@@ -918,15 +918,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         include: [
           {
             association: 'members',
-            required: true,
-            include: [{
-              association: 'clearence',
-              required: true
-            }]
+            required: true
           }
         ]
       }).then(teams => {
-        expect(teams.map(team => team.members).map(member => member.clearence)).to.have.length(2);
+        expect(teams.map(team => team.members)).to.have.length(4);
       });
     });
 
