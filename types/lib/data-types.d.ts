@@ -78,7 +78,7 @@ interface StringDataTypeConstructor extends AbstractDataTypeConstructor {
 export interface StringDataType extends AbstractDataType {
   options?: StringDataTypeOptions;
   BINARY: this;
-  validate(value: any): boolean;
+  validate(value: unknown): boolean;
 }
 
 export interface StringDataTypeOptions {
@@ -119,7 +119,7 @@ interface TextDataTypeConstructor extends AbstractDataTypeConstructor {
 
 export interface TextDataType extends AbstractDataType {
   options: TextDataTypeOptions;
-  validate(value: any): boolean;
+  validate(value: unknown): boolean;
 }
 
 export interface TextDataTypeOptions {
@@ -134,14 +134,14 @@ interface NumberDataTypeConstructor extends AbstractDataTypeConstructor {
   ZEROFILL: this;
   new (options?: NumberDataTypeOptions): NumberDataType;
   (options?: NumberDataTypeOptions): NumberDataType;
-  validate(value: any): boolean;
+  validate(value: unknown): boolean;
 }
 
 export interface NumberDataType extends AbstractDataType {
   options: NumberDataTypeOptions;
   UNSIGNED: this;
   ZEROFILL: this;
-  validate(value: any): boolean;
+  validate(value: unknown): boolean;
 }
 
 export interface NumberDataTypeOptions {
@@ -297,9 +297,9 @@ export const TIME: AbstractDataTypeConstructor;
 export const DATE: DateDataTypeConstructor;
 
 interface DateDataTypeConstructor extends AbstractDataTypeConstructor {
-  new (length?: any): DateDataType;
+  new (length?: string | number): DateDataType;
   new (options?: DateDataTypeOptions): DateDataType;
-  (length?: any): DateDataType;
+  (length?: string | number): DateDataType;
   (options?: DateDataTypeOptions): DateDataType;
 }
 
@@ -308,7 +308,7 @@ export interface DateDataType extends AbstractDataTypeConstructor {
 }
 
 export interface DateDataTypeOptions {
-  length?: any;
+  length?: string | number;
 }
 
 /**
@@ -317,19 +317,13 @@ export interface DateDataTypeOptions {
 export const DATEONLY: DateOnlyDataTypeConstructor;
 
 interface DateOnlyDataTypeConstructor extends AbstractDataTypeConstructor {
-  new (length: any): DateOnlyDataType;
-  new (options: DateOnlyDataTypeOptions): DateOnlyDataType;
-  (length: any): DateOnlyDataType;
-  (options: DateOnlyDataTypeOptions): DateOnlyDataType;
+  new (): DateOnlyDataType;
+  (): DateOnlyDataType;
 }
 
 export interface DateOnlyDataType extends AbstractDataType {
-  options: DateOnlyDataTypeOptions;
 }
 
-export interface DateOnlyDataTypeOptions {
-  length?: any;
-}
 
 /**
  * A key / value column. Only available in postgres.
@@ -510,7 +504,7 @@ interface ArrayDataTypeConstructor extends AbstractDataTypeConstructor {
   new <T extends AbstractDataTypeConstructor | AbstractDataType>(options: ArrayDataTypeOptions<T>): ArrayDataType<T>;
   <T extends AbstractDataTypeConstructor | AbstractDataType>(type: T): ArrayDataType<T>;
   <T extends AbstractDataTypeConstructor | AbstractDataType>(options: ArrayDataTypeOptions<T>): ArrayDataType<T>;
-  is<T extends AbstractDataTypeConstructor | AbstractDataType>(obj: any, type: T): obj is ArrayDataType<T>;
+  is<T extends AbstractDataTypeConstructor | AbstractDataType>(obj: unknown, type: T): obj is ArrayDataType<T>;
 }
 
 export interface ArrayDataType<T extends AbstractDataTypeConstructor | AbstractDataType> extends AbstractDataType {

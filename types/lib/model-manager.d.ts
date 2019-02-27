@@ -9,7 +9,7 @@ export class ModelManager {
   constructor(sequelize: Sequelize);
   public addModel<T extends typeof Model>(model: T): T;
   public removeModel(model: typeof Model): void;
-  public getModel(against: any, options?: { attribute?: string }): typeof Model;
+  public getModel(against: unknown, options?: { attribute?: string }): typeof Model;
 }
 
 export default ModelManager;
