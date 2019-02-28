@@ -54,7 +54,7 @@ export interface AllModelHooks extends ModelHookOptions {
 
 export interface SequelizeHooks extends AllModelHooks {
   beforeConnect(config: Config): HookReturn;
-  afterConnect(connection: any, config: Config): HookReturn;
+  afterConnect(connection: unknown, config: Config): HookReturn;
 }
 
 /**

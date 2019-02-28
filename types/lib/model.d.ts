@@ -105,7 +105,7 @@ export interface ScopeOptions {
    * any arguments, or an array, where the first element is the name of the method, and consecutive elements
    * are arguments to that method. Pass null to remove all scopes, including the default.
    */
-  method: string | any[];
+  method: string | [string, ...unknown[]];
 }
 
 /**
@@ -199,14 +199,14 @@ export interface WhereOperators {
    *
    * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  [Op.contains]?: any[];
+  [Op.contains]?: [number, number] | [Date, Date];
 
   /**
    * PG array contained by operator
    *
    * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?: any[];
+  [Op.contained]?: [number, number] | [Date, Date];
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
   [Op.gt]?: number | string | Date;
@@ -283,11 +283,11 @@ export interface WhereAttributeHash {
    * - A simple attribute name
    * - A nested key for JSON columns
    *
-   *     {
-   *     "meta.audio.length": {
-   *       [Op.gt]: 20
-   *     }
-   *     }
+   *  {
+   *    "meta.audio.length": {
+   *      [Op.gt]: 20
+   *    }
+   *  }
    */
   [field: string]: WhereValue | WhereOptions;
 }
@@ -320,6 +320,11 @@ export interface IncludeOptions extends Filterable, Projectable {
    * The association you want to eagerly load. (This can be used instead of providing a model/as pair)
    */
   association?: Association | string;
+
+  /**
+   * Custom `on` clause, overrides default.
+   */
+  on?: WhereOptions;
 
   /**
    * Note that this converts the eager load to an inner join,
@@ -830,7 +835,7 @@ export interface SaveOptions extends Logging, Transactionable, Silent {
 export interface ModelValidateOptions {
   /**
    * is: ["^[a-z]+$",'i'] // will only allow letters
-   * is: /^[a-z]+[Op./i]    // same as the previous example using real RegExp
+   * is: /^[a-z]+[Op./i]  // same as the previous example using real RegExp
    */
   is?: string | (string | RegExp)[] | RegExp | { msg: string; args: string | (string | RegExp)[] | RegExp };
 
@@ -997,14 +1002,14 @@ export interface ModelValidateOptions {
    * We can't enforce any other method to be a function, so :
    *
    * ```typescript
-   * [name: string] : ( value : any ) => boolean;
+   * [name: string] : ( value : unknown ) => boolean;
    * ```
    *
    * doesn't work in combination with the properties above
    *
    * @see https://github.com/Microsoft/TypeScript/issues/1889
    */
-  [name: string]: any;
+  [name: string]: unknown;
 }
 
 /**
@@ -1069,14 +1074,14 @@ export interface ModelNameOptions {
  * Interface for getterMethods in DefineOptions
  */
 export interface ModelGetterOptions {
-  [name: string]: () => any;
+  [name: string]: (this: Model) => unknown;
 }
 
 /**
  * Interface for setterMethods in DefineOptions
  */
 export interface ModelSetterOptions {
-  [name: string]: (val: any) => void;
+  [name: string]: (this: Model, val: any) => void;
 }
 
 /**
@@ -1107,7 +1112,7 @@ export interface ColumnOptions {
   /**
    * A literal default value, a JavaScript function, or an SQL function (see `sequelize.fn`)
    */
-  defaultValue?: any;
+  defaultValue?: unknown;
 }
 
 /**
@@ -1197,10 +1202,10 @@ export interface ModelAttributeColumnOptions extends ColumnOptions {
    *
    * ```js
    * sequelize.define('model', {
-   *   states: {
-   *     type:   Sequelize.ENUM,
-   *     values: ['active', 'pending', 'deleted']
-   *   }
+   *     states: {
+   *       type:   Sequelize.ENUM,
+   *       values: ['active', 'pending', 'deleted']
+   *     }
    *   })
    * ```
    */
@@ -1210,13 +1215,13 @@ export interface ModelAttributeColumnOptions extends ColumnOptions {
    * Provide a custom getter for this column. Use `this.getDataValue(String)` to manipulate the underlying
    * values.
    */
-  get?(): any;
+  get?(): unknown;
 
   /**
    * Provide a custom setter for this column. Use `this.setDataValue(String, Value)` to manipulate the
    * underlying values.
    */
-  set?(val: any): void;
+  set?(val: unknown): void;
 }
 
 /**
@@ -1351,6 +1356,16 @@ export interface ModelOptions<M extends Model = Model> {
    * accepts an optional error.
    */
   validate?: ModelValidateOptions;
+
+  /**
+   * Allows defining additional setters that will be available on model instances.
+   */
+  setterMethods?: ModelSetterOptions;
+
+  /**
+   * Allows defining additional getters that will be available on model instances.
+   */
+  getterMethods?: ModelGetterOptions;
 }
 
 /**
@@ -1375,47 +1390,54 @@ export interface AddScopeOptions {
 
 export abstract class Model<T = any, T2 = any> extends Hooks {
   /** The name of the database table */
-  public static tableName: string;
+  public static readonly tableName: string;
 
   /**
    * The name of the primary key attribute
    */
-  public static primaryKeyAttribute: string;
+  public static readonly primaryKeyAttribute: string;
 
   /**
    * An object hash from alias to association object
    */
-  public static associations: any;
+  public static readonly associations: {
+    [key: string]: Association;
+  };
 
   /**
    * The options that the model was initialized with
    */
-  public static options: InitOptions;
+  public static readonly options: InitOptions;
 
   /**
    * The attributes of the model
    */
-  public static rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
+  public static readonly rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
+
+  /**
+   * Reference to the sequelize instance the model was initialized with
+   */
+  public static readonly sequelize?: Sequelize;
 
   /**
    * Initialize a model, representing a table in the DB, with attributes and options.
    *
-   * The table columns are defined by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
-     *
+   * The table columns are define by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
+   *
    * ```js
    * Project.init({
    *   columnA: {
-   *   type: Sequelize.BOOLEAN,
-   *   validate: {
-   *     is: ['[a-z]','i'],    // will only allow letters
-   *     max: 23,          // only allow values <= 23
-   *     isIn: {
-   *     args: [['en', 'zh']],
-   *     msg: "Must be English or Chinese"
-   *     }
-   *   },
-   *   field: 'column_a'
-   *   // Other attributes here
+   *     type: Sequelize.BOOLEAN,
+   *     validate: {
+   *       is: ['[a-z]','i'],        // will only allow letters
+   *       max: 23,                  // only allow values <= 23
+   *       isIn: {
+   *         args: [['en', 'zh']],
+   *         msg: "Must be English or Chinese"
+   *       }
+   *     },
+   *     field: 'column_a'
+   *     // Other attributes here
    *   },
    *   columnB: Sequelize.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
@@ -1481,9 +1503,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * if the model has no schema, or an object with `tableName`, `schema` and `delimiter` properties.
    *
    * @param options The hash of options from any query. You can use one model to access tables with matching
-   *   schemas by overriding `getTableName` and using custom key/values to alter the name of the table.
-   *   (eg.
-   *   subscribers_1, subscribers_2)
+   *     schemas by overriding `getTableName` and using custom key/values to alter the name of the table.
+   *     (eg.
+   *     subscribers_1, subscribers_2)
    */
   public static getTableName(): string | {
     tableName: string;
@@ -1496,29 +1518,29 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ```js
    * var Model = sequelize.define('model', attributes, {
    *   defaultScope: {
-   *   where: {
-   *     username: 'dan'
-   *   },
-   *   limit: 12
+   *     where: {
+   *       username: 'dan'
+   *     },
+   *     limit: 12
    *   },
    *   scopes: {
-   *   isALie: {
-   *     where: {
-   *     stuff: 'cake'
-   *     }
-   *   },
-   *   complexFunction: function(email, accessLevel) {
-   *     return {
-   *     where: {
-   *       email: {
-   *       [Op.like]: email
-   *       },
-   *       accesss_level {
-   *       [Op.gte]: accessLevel
+   *     isALie: {
+   *       where: {
+   *         stuff: 'cake'
+   *       }
+   *     },
+   *     complexFunction: function(email, accessLevel) {
+   *       return {
+   *         where: {
+   *           email: {
+   *             [Op.like]: email
+   *           },
+   *           accesss_level {
+   *             [Op.gte]: accessLevel
+   *           }
+   *         }
    *       }
    *     }
-   *     }
-   *   }
    *   }
    * })
    * ```
@@ -1536,7 +1558,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ```
    *
    * @return Model A reference to the model, with the scope(s) applied. Calling scope again on the returned
-   *   model will clear the previous scope.
+   *  model will clear the previous scope.
    */
   public static scope<M extends { new (): Model }>(
     this: M,
@@ -1552,8 +1574,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ```js
    * Model.findAll({
    *   where: {
-   *   attr1: 42,
-   *   attr2: 'cake'
+   *     attr1: 42,
+   *     attr2: 'cake'
    *   }
    * })
    * ```
@@ -1566,18 +1588,18 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *
    * Model.findAll({
    *   where: {
-   *   attr1: {
-   *     gt: 50
-   *   },
-   *   attr2: {
-   *     lte: 45
-   *   },
-   *   attr3: {
-   *     in: [1,2,3]
-   *   },
-   *   attr4: {
-   *     ne: 5
-   *   }
+   *     attr1: {
+   *       gt: 50
+   *     },
+   *     attr2: {
+   *       lte: 45
+   *     },
+   *     attr3: {
+   *       in: [1,2,3]
+   *     },
+   *     attr4: {
+   *       ne: 5
+   *     }
    *   }
    * })
    * ```
@@ -1591,11 +1613,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ```js
    * Model.findAll({
    *   where: Sequelize.and(
-   *   { name: 'a project' },
-   *   Sequelize.or(
-   *     { id: [1,2,3] },
-   *     { id: { gt: 10 } }
-   *   )
+   *     { name: 'a project' },
+   *     Sequelize.or(
+   *       { id: [1,2,3] },
+   *       { id: { gt: 10 } }
+   *     )
    *   )
    * })
    * ```
@@ -1641,7 +1663,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param aggregateFunction The function to use for aggregation, e.g. sum, max etc.
    * @param options Query options. See sequelize.query for full options
    * @return Returns the aggregate result cast to `options.dataType`, unless `options.plain` is false, in
-   *   which case the complete data result is returned.
+   *     which case the complete data result is returned.
    */
   public static aggregate<M extends Model, T extends DataType | unknown>(
     this: { new (): M } & typeof Model,
@@ -1682,7 +1704,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ```js
    * User.findAndCountAll({
    *   include: [
-   *    { model: Profile, required: true}
+   *      { model: Profile, required: true}
    *   ],
    *   limit 3
    * });
@@ -2370,7 +2392,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options.plain If set to true, included instances will be returned as plain objects
    */
   public get(options?: { plain?: boolean; clone?: boolean }): object;
-  public get(key: string, options?: { plain?: boolean; clone?: boolean }): any;
+  public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
   public get<K extends keyof this>(key: K, options?: { plain?: boolean; clone?: boolean }): this[K];
 
   /**
@@ -2477,13 +2499,13 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * instance.increment('number') // increment number by 1
    * instance.increment(['number', 'count'], { by: 2 }) // increment number and count by 2
    * instance.increment({ answer: 42, tries: 1}, { by: 2 }) // increment answer by 42, and tries by 1.
-   *                            // `by` is ignored, since each column has its own
-   *                            // value
+   *                                                        // `by` is ignored, since each column has its own
+   *                                                        // value
    * ```
    *
    * @param fields If a string is provided, that column is incremented by the value of `by` given in options.
-   *         If an array is provided, the same is true for each column.
-   *         If and object is provided, each column is incremented by the value given.
+   *               If an array is provided, the same is true for each column.
+   *               If and object is provided, each column is incremented by the value given.
    */
   public increment<K extends keyof this>(
     fields: K | K[] | Partial<this>,
@@ -2502,13 +2524,13 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * instance.decrement('number') // decrement number by 1
    * instance.decrement(['number', 'count'], { by: 2 }) // decrement number and count by 2
    * instance.decrement({ answer: 42, tries: 1}, { by: 2 }) // decrement answer by 42, and tries by 1.
-   *                            // `by` is ignored, since each column has its own
-   *                            // value
+   *                                                        // `by` is ignored, since each column has its own
+   *                                                        // value
    * ```
    *
    * @param fields If a string is provided, that column is decremented by the value of `by` given in options.
-   *         If an array is provided, the same is true for each column.
-   *         If and object is provided, each column is decremented by the value given
+   *               If an array is provided, the same is true for each column.
+   *               If and object is provided, each column is decremented by the value given
    */
   public decrement<K extends keyof this>(
     fields: K | K[] | Partial<this>,

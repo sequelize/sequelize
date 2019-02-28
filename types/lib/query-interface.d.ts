@@ -1,5 +1,5 @@
 import { DataType } from './data-types';
-import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions } from './model';
+import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable } from './model';
 import { Promise } from './promise';
 import QueryTypes = require('./query-types');
 import { Sequelize } from './sequelize';
@@ -57,6 +57,10 @@ export interface QueryOptions extends Logging, Transactionable {
   instance?: Model;
 }
 
+export interface QueryOptionsWithWhere extends QueryOptions, Filterable {
+
+}
+
 export interface QueryOptionsWithModel {
   /**
    * A sequelize model used to build the returned model instances (used to be called callee)
@@ -73,9 +77,9 @@ export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions
 }
 
 /**
- * Most of the methods accept options and use only the logger property of the options. That's why the most used
- * interface type for options in a method is separated here as another interface.
- */
+* Most of the methods accept options and use only the logger property of the options. That's why the most used
+* interface type for options in a method is separated here as another interface.
+*/
 export interface QueryInterfaceOptions extends Logging, Transactionable {}
 
 export interface CollateCharsetOptions {
@@ -126,7 +130,7 @@ export interface AddUniqueConstraintOptions {
 export interface AddDefaultConstraintOptions {
   type: 'default';
   name?: string;
-  defaultValue?: any;
+  defaultValue?: unknown;
 }
 
 export interface AddCheckConstraintOptions {
@@ -152,29 +156,35 @@ export interface AddForeignKeyConstraintOptions {
 }
 
 export type AddConstraintOptions =
-  | AddUniqueConstraintOptions
-  | AddDefaultConstraintOptions
-  | AddCheckConstraintOptions
-  | AddPrimaryKeyConstraintOptions
-  | AddForeignKeyConstraintOptions;
+| AddUniqueConstraintOptions
+| AddDefaultConstraintOptions
+| AddCheckConstraintOptions
+| AddPrimaryKeyConstraintOptions
+| AddForeignKeyConstraintOptions;
 
 export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryOptions {
   encoding?: string;
 }
 
+export interface FunctionParam {
+  type: string;
+  name?: string;
+  direction?: string;
+}
+
 /**
- * The interface that Sequelize uses to talk to all databases.
- *
- * This interface is available through sequelize.QueryInterface. It should not be commonly used, but it's
- * referenced anyway, so it can be used.
- */
+* The interface that Sequelize uses to talk to all databases.
+*
+* This interface is available through sequelize.QueryInterface. It should not be commonly used, but it's
+* referenced anyway, so it can be used.
+*/
 export class QueryInterface {
   /**
    * Returns the dialect-specific sql generator.
    *
    * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
    */
-  public QueryGenerator: any;
+  public QueryGenerator: unknown;
 
   /**
    * Returns the current sequelize instance.
@@ -217,9 +227,9 @@ export class QueryInterface {
   /**
    * Creates a table with specified attributes.
    *
-   * @param tableName   Name of table to create
-   * @param attributes  Hash of attributes, key is attribute name, value is data type
-   * @param options     Table options.
+   * @param tableName     Name of table to create
+   * @param attributes    Hash of attributes, key is attribute name, value is data type
+   * @param options       Table options.
    */
   public createTable(
     tableName: string | { schema?: string; tableName?: string },
@@ -389,7 +399,7 @@ export class QueryInterface {
     instance: Model,
     tableName: string,
     values: object,
-    identifier: object,
+    identifier: WhereOptions,
     options?: QueryOptions
   ): Promise<object>;
 
@@ -399,7 +409,7 @@ export class QueryInterface {
   public bulkUpdate(
     tableName: string,
     values: object,
-    identifier: object,
+    identifier: WhereOptions,
     options?: QueryOptions,
     attributes?: string[] | string
   ): Promise<object>;
@@ -407,14 +417,14 @@ export class QueryInterface {
   /**
    * Deletes a row
    */
-  public delete(instance: Model, tableName: string, identifier: object, options?: QueryOptions): Promise<object>;
+  public delete(instance: Model | null, tableName: string, identifier: WhereOptions, options?: QueryOptions): Promise<object>;
 
   /**
    * Deletes multiple rows at once
    */
   public bulkDelete(
     tableName: string,
-    identifier: object,
+    identifier: WhereOptions,
     options?: QueryOptions,
     model?: typeof Model
   ): Promise<object>;
@@ -422,7 +432,7 @@ export class QueryInterface {
   /**
    * Returns selected rows
    */
-  public select(model: typeof Model, tableName: string, options?: QueryOptions): Promise<object[]>;
+  public select(model: typeof Model | null, tableName: string, options?: QueryOptionsWithWhere): Promise<object[]>;
 
   /**
    * Increments a row value
@@ -431,7 +441,7 @@ export class QueryInterface {
     instance: Model,
     tableName: string,
     values: object,
-    identifier: object,
+    identifier: WhereOptions,
     options?: QueryOptions
   ): Promise<object>;
 
@@ -440,7 +450,7 @@ export class QueryInterface {
    */
   public rawSelect(
     tableName: string,
-    options: QueryOptions,
+    options: QueryOptionsWithWhere,
     attributeSelector: string | string[],
     model?: typeof Model
   ): Promise<string[]>;
@@ -453,9 +463,11 @@ export class QueryInterface {
     tableName: string,
     triggerName: string,
     timingType: string,
-    fireOnArray: any[],
+    fireOnArray: {
+      [key: string]: unknown;
+    }[],
     functionName: string,
-    functionParams: any[],
+    functionParams: FunctionParam[],
     optionsArray: string[],
     options?: QueryInterfaceOptions
   ): Promise<void>;
@@ -480,7 +492,7 @@ export class QueryInterface {
    */
   public createFunction(
     functionName: string,
-    params: any[],
+    params: FunctionParam[],
     returnType: string,
     language: string,
     body: string,
@@ -490,14 +502,14 @@ export class QueryInterface {
   /**
    * Postgres only. Drops a function
    */
-  public dropFunction(functionName: string, params: any[], options?: QueryInterfaceOptions): Promise<void>;
+  public dropFunction(functionName: string, params: FunctionParam[], options?: QueryInterfaceOptions): Promise<void>;
 
   /**
    * Postgres only. Rename a function
    */
   public renameFunction(
     oldFunctionName: string,
-    params: any[],
+    params: FunctionParam[],
     newFunctionName: string,
     options?: QueryInterfaceOptions
   ): Promise<void>;

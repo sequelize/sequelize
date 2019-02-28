@@ -93,7 +93,7 @@ export interface UniqueConstraintErrorOptions {
   parent?: Error;
   message?: string;
   errors?: ValidationErrorItem[];
-  fields?: { [key: string]: any };
+  fields?: { [key: string]: unknown };
   original?: Error;
 }
 
@@ -104,7 +104,7 @@ export class UniqueConstraintError extends ValidationError implements CommonErro
   public readonly parent: Error;
   public readonly original: Error;
   public readonly sql: string;
-  public readonly fields: { [key: string]: any };
+  public readonly fields: { [key: string]: unknown };
   constructor(options?: UniqueConstraintErrorOptions);
 }
 
@@ -114,7 +114,7 @@ export class UniqueConstraintError extends ValidationError implements CommonErro
 export class ForeignKeyConstraintError extends DatabaseError {
   public table: string;
   public fields: { [field: string]: string };
-  public value: any;
+  public value: unknown;
   public index: string;
   constructor(options: { parent?: Error; message?: string; index?: string; fields?: string[]; table?: string });
 }

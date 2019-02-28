@@ -116,7 +116,7 @@ export interface BelongsToCreateAssociationMixinOptions extends CreateOptions, B
  * @see Instance
  */
 export type BelongsToCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: any },
+  values?: { [attribute: string]: unknown },
   options?: BelongsToCreateAssociationMixinOptions
 ) => Promise<TModel>;
 
