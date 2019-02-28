@@ -5,48 +5,48 @@ import { QueryInterface } from 'sequelize/lib/query-interface';
 declare let queryInterface: QueryInterface;
 
 queryInterface.createTable(
-    'nameOfTheNewTable',
-    {
-        attr1: DataTypes.STRING,
-        attr2: DataTypes.INTEGER,
-        attr3: {
-            allowNull: false,
-            defaultValue: false,
-            type: DataTypes.BOOLEAN,
-        },
-        // foreign key usage
-        attr4: {
-            onDelete: 'cascade',
-            onUpdate: 'cascade',
-            references: {
-                key: 'id',
-                model: 'another_table_name',
-            },
-            type: DataTypes.INTEGER,
-        },
-        createdAt: {
-            type: DataTypes.DATE,
-        },
-        id: {
-            autoIncrement: true,
-            primaryKey: true,
-            type: DataTypes.INTEGER,
-        },
-        updatedAt: {
-            type: DataTypes.DATE,
-        },
+  'nameOfTheNewTable',
+  {
+    attr1: DataTypes.STRING,
+    attr2: DataTypes.INTEGER,
+    attr3: {
+      allowNull: false,
+      defaultValue: false,
+      type: DataTypes.BOOLEAN,
     },
-    {
-        charset: 'latin1', // default: null
-        collate: 'latin1_general_ci',
-        engine: 'MYISAM', // default: 'InnoDB'
-        uniqueKeys: {
-            test: {
-                customIndex: true,
-                fields: ['attr2', 'attr3'],
-            }
-        }
+    // foreign key usage
+    attr4: {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+      references: {
+        key: 'id',
+        model: 'another_table_name',
+      },
+      type: DataTypes.INTEGER,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+    },
+    id: {
+      autoIncrement: true,
+      primaryKey: true,
+      type: DataTypes.INTEGER,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+    },
+  },
+  {
+    charset: 'latin1', // default: null
+    collate: 'latin1_general_ci',
+    engine: 'MYISAM', // default: 'InnoDB'
+    uniqueKeys: {
+      test: {
+        customIndex: true,
+        fields: ['attr2', 'attr3'],
+      }
     }
+  }
 );
 
 queryInterface.dropTable('nameOfTheExistingTable');
@@ -56,25 +56,25 @@ queryInterface.dropAllTables();
 queryInterface.renameTable('Person', 'User');
 
 queryInterface.showAllTables().then(tableNames => {
-    // do nothing
+  // do nothing
 });
 
 queryInterface.describeTable('Person').then(attributes => {
-    /*
-    attributes will be something like:
+  /*
+  attributes will be something like:
 
-    {
-      name: {
-        type:         'VARCHAR(255)', // this will be 'CHARACTER VARYING' for pg!
-        allowNull:    true,
-        defaultValue: null
-      },
-      isBetaMember: {
-        type:         'TINYINT(1)', // this will be 'BOOLEAN' for pg!
-        allowNull:    false,
-        defaultValue: false
-      }
+  {
+    name: {
+    type:     'VARCHAR(255)', // this will be 'CHARACTER VARYING' for pg!
+    allowNull:  true,
+    defaultValue: null
+    },
+    isBetaMember: {
+    type:     'TINYINT(1)', // this will be 'BOOLEAN' for pg!
+    allowNull:  false,
+    defaultValue: false
     }
+  }
   */
 });
 
@@ -83,16 +83,16 @@ queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', DataT
 // or
 
 queryInterface.addColumn(
-    { tableName: 'nameOfAnExistingTable', schema: 'nameOfSchema' },
-    'nameOfTheNewAttribute',
-    DataTypes.STRING
+  { tableName: 'nameOfAnExistingTable', schema: 'nameOfSchema' },
+  'nameOfTheNewAttribute',
+  DataTypes.STRING
 );
 
 // or
 
 queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', {
-    allowNull: false,
-    type: DataTypes.STRING,
+  allowNull: false,
+  type: DataTypes.STRING,
 });
 
 queryInterface.removeColumn('Person', 'signature');
@@ -102,21 +102,21 @@ queryInterface.removeColumn('Person', 'signature');
 queryInterface.removeColumn({ tableName: 'Person', schema: 'nameOfSchema' }, 'signature');
 
 queryInterface.changeColumn('nameOfAnExistingTable', 'nameOfAnExistingAttribute', {
-    allowNull: false,
-    defaultValue: 0.0,
-    type: DataTypes.FLOAT,
+  allowNull: false,
+  defaultValue: 0.0,
+  type: DataTypes.FLOAT,
 });
 
 // or
 
 queryInterface.changeColumn(
-    { tableName: 'nameOfAnExistingTable', schema: 'nameOfSchema' },
-    'nameOfAnExistingAttribute',
-    {
-        allowNull: false,
-        defaultValue: 0.0,
-        type: DataTypes.FLOAT,
-    }
+  { tableName: 'nameOfAnExistingTable', schema: 'nameOfSchema' },
+  'nameOfAnExistingAttribute',
+  {
+    allowNull: false,
+    defaultValue: 0.0,
+    type: DataTypes.FLOAT,
+  }
 );
 
 queryInterface.renameColumn('Person', 'signature', 'sig');
@@ -132,8 +132,8 @@ queryInterface.addIndex('Person', ['firstname', 'lastname']);
 // - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect
 // - logging: A function that receives the sql query, e.g. console.log
 queryInterface.addIndex('Person', ['firstname', 'lastname'], {
-    indexName: 'SuperDuperIndex',
-    indicesType: 'UNIQUE',
+  indexName: 'SuperDuperIndex',
+  indicesType: 'UNIQUE',
 });
 
 queryInterface.removeIndex('Person', 'SuperDuperIndex');
@@ -143,8 +143,20 @@ queryInterface.removeIndex('Person', 'SuperDuperIndex');
 queryInterface.removeIndex('Person', ['firstname', 'lastname']);
 
 queryInterface.addConstraint('Person', ['firstname', 'lastname'], {
-    name: 'firstnamexlastname',
-    type: 'unique',
+  name: 'firstnamexlastname',
+  type: 'unique',
 });
 
 queryInterface.removeConstraint('Person', 'firstnamexlastname');
+
+queryInterface.select(null, 'Person', {
+  where: {
+    a: 1,
+  },
+});
+
+queryInterface.delete(null, 'Person', {
+  where: {
+    a: 1,
+  },
+});

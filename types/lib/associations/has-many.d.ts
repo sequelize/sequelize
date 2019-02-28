@@ -205,7 +205,7 @@ export interface HasManyCreateAssociationMixinOptions extends CreateOptions {}
  * @see Instance
  */
 export type HasManyCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: any },
+  values?: { [attribute: string]: unknown },
   options?: HasManyCreateAssociationMixinOptions
 ) => Promise<TModel>;
 

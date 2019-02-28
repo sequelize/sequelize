@@ -101,7 +101,7 @@ export interface AssociationScope {
   /**
    * The name of the column that will be used for the associated scope and it's value
    */
-  [scopeName: string]: any;
+  [scopeName: string]: unknown;
 }
 
 /**

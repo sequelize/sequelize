@@ -9,6 +9,9 @@ MyModel.findAll({
         {
             limit: 1,
             model: AssociatedModel,
+            on: {
+              a: 1,
+            },
             order: [['id', 'DESC']],
             separate: true,
             where: { state: Sequelize.col('project.state') },

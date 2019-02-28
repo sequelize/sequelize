@@ -235,7 +235,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
 ### MSSQL
 
-The library for MSSQL is`tedious@^1.7.0` You'll just need to define the dialect:
+The library for MSSQL is`tedious@^3.0.0` You'll just need to define the dialect:
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {

@@ -83,7 +83,7 @@ export interface PoolOptions {
    * A function that validates a connection. Called with client. The default function checks that client is an
    * object, and that its state is not disconnected
    */
-  validate?(client?: any): boolean;
+  validate?(client?: unknown): boolean;
 }
 
 /**
@@ -131,7 +131,7 @@ export interface Config {
   };
   readonly protocol: 'tcp';
   readonly native: boolean;
-  readonly ssl: any;
+  readonly ssl: boolean;
   readonly replication: boolean;
   readonly dialectModulePath: null | string;
   readonly keepDefaultTimezone?: boolean;
@@ -1052,14 +1052,14 @@ export class Sequelize extends Hooks {
    * @param sql
    * @param options Query options
    */
-  public query(sql: string | { query: string; values: any[] }, options: QueryOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
-  public query(sql: string | { query: string; values: any[] }, options: QueryOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
-  public query(sql: string | { query: string; values: any[] }, options: QueryOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
-  public query(sql: string | { query: string; values: any[] }, options: QueryOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
-  public query(sql: string | { query: string; values: any[] }, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<void>;
-  public query(sql: string | { query: string; values: any[] }, options: QueryOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
-  public query(sql: string | { query: string; values: any[] }, options: QueryOptionsWithType<QueryTypes.SHOWTABLES>): Promise<string[]>;
-  public query(sql: string | { query: string; values: any[] }, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<{
+  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
+  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
+  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
+  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
+  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<void>;
+  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
+  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SHOWTABLES>): Promise<string[]>;
+  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<{
     [key: string]: {
       type: string;
       allowNull: boolean;
@@ -1070,11 +1070,11 @@ export class Sequelize extends Hooks {
     }
   }>;
   public query<M extends Model>(
-    sql: string | { query: string; values: any[] },
+    sql: string | { query: string; values: unknown[] },
     options: QueryOptionsWithModel
   ): Promise<M[]>;
-  public query<T extends object>(sql: string | { query: string; values: any[] }, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
-  public query(sql: string | { query: string; values: any[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<unknown[]>;
+  public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
+  public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<unknown[]>;
 
   /**
    * Execute a query which would set an environment or user variable. The variables are set per connection,
@@ -1251,7 +1251,7 @@ export class Sequelize extends Hooks {
  * @param fn The function you want to call
  * @param args All further arguments will be passed as arguments to the function
  */
-export function fn(fn: string, ...args: any[]): Fn;
+export function fn(fn: string, ...args: unknown[]): Fn;
 
 /**
  * Creates a object representing a column in the DB. This is often useful in conjunction with
@@ -1267,14 +1267,14 @@ export function col(col: string): Col;
  * @param val The value to cast
  * @param type The type to cast it to
  */
-export function cast(val: any, type: string): Cast;
+export function cast(val: unknown, type: string): Cast;
 
 /**
  * Creates a object representing a literal, i.e. something that will not be escaped.
  *
  * @param val
  */
-export function literal(val: any): Literal;
+export function literal(val: string): Literal;
 
 /**
  * An AND query
