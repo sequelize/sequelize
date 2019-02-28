@@ -6,7 +6,7 @@ class MyModel extends Model {
 	};
 }
 
-class AssociatedModel extends Model { }
+class AssociatedModel extends Model {}
 
 MyModel.findAll({
     include: [
