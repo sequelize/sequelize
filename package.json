@@ -156,6 +156,7 @@
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
-    "sscce-mssql": "cross-env DIALECT=mssql npm run sscce"
+    "sscce-mssql": "cross-env DIALECT=mssql npm run sscce",
+    "setup-mssql": "env-cmd $npm_package_options_env_cmd ./scripts/setup-mssql"
   }
 }
