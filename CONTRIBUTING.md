@@ -57,7 +57,7 @@ For MySQL this would look like this:
 $ echo "CREATE DATABASE sequelize_test;" | mysql -uroot
 ```
 
-**CLEVER NOTE:** by default, your local MySQL install must be with username `root` without password. If you want to customize that, you can set the environment variables `SEQ_DB`, `SEQ_USER`, `SEQ_PW`, `SEQ_HOST` and `SEQ_PORT`.
+**HINT:** by default, your local MySQL install must be with username `root` without password. If you want to customize that, you can set the environment variables `SEQ_DB`, `SEQ_USER`, `SEQ_PW`, `SEQ_HOST` and `SEQ_PORT`.
 
 For Postgres, creating the database and (optionally) adding the test user this would look like:
 
@@ -89,10 +89,12 @@ If running on macOS, install [Docker for Mac](https://docs.docker.com/docker-for
 Now launch the docker mysql and postgres servers with this command (you can add `-d` to run them in daemon mode):
 
 ```sh
-$ docker-compose up postgres-95 mysql-57
+$ docker-compose up postgres-95 mysql-57 mssql
 ```
 
-Sequelize uses [special](https://github.com/sushantdhiman/sequelize-postgres) Docker image for PostgreSQL, which install all the extensions required by tests.
+**MSSQL:** Please run `npm run setup-mssql` to create the test database.
+
+**POSTGRES:** Sequelize uses [special](https://github.com/sushantdhiman/sequelize-postgres) Docker image for PostgreSQL, which install all the extensions required by tests.
 
 ### 4. Running tests
 

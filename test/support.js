@@ -6,11 +6,9 @@ const fs = require('fs'),
   Sequelize = require('../index'),
   DataTypes = require('../lib/data-types'),
   Config = require('./config/config'),
-  supportShim = require('./supportShim'),
   chai = require('chai'),
   expect = chai.expect,
   AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
-
 
 chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));
@@ -29,10 +27,6 @@ Sequelize.Promise.onPossiblyUnhandledRejection(e => {
   throw e;
 });
 Sequelize.Promise.longStackTraces();
-
-// shim all Sequelize methods for testing for correct `options.logging` passing
-// and no modification of `options` objects
-if (!process.env.COVERAGE && process.env.SHIM) supportShim(Sequelize);
 
 const Support = {
   Sequelize,
@@ -228,8 +222,7 @@ const Support = {
         credentials += `:${dbConfig.password}`;
       }
 
-      url = `${config.dialect}://${credentials
-      }@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`;
+      url = `${config.dialect}://${credentials}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`;
     }
     return url;
   },
