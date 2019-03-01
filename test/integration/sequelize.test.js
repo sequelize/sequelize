@@ -124,7 +124,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               expect(
                 err.message.includes('connect ECONNREFUSED') ||
                 err.message.includes('invalid port number') ||
-                err.message.match(/should be >=? 0 and < 65536/) ||
+                err.message.match(/must be >=? 0 and < 65536/) ||
                 err.message.includes('Login failed for user') ||
                 err.message.includes('Port must be > 0 and < 65536')
               ).to.be.ok;
