@@ -14,6 +14,7 @@
     "new-cap": [
       "warn",
       {
+        "capIsNewExceptionPattern": "^BigInt",
         "properties": false
       }
     ],
