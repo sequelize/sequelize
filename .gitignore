@@ -6,6 +6,7 @@ npm-debug.log
 *~
 test/dialects/sqlite/test.sqlite
 test/sqlite/test.sqlite
+test.sqlite
 docs/api/tmp.md
 ssce.js
 sscce.js
