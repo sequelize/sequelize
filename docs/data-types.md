@@ -196,51 +196,49 @@ modules.exports = function sequelizeAdditions(Sequelize) {
   /*
    * Create new types
    */
+  class NEWTYPE extends DataTypes.ABSTRACT {
+    // Mandatory, complete definition of the new type in the database
+    toSql() {
+      return 'INTEGER(11) UNSIGNED ZEROFILL'
+    }
 
-  // Create new type
-  DataTypes.NEWTYPE = function NEWTYPE() {
-    if (!(this instanceof DataTypes.NEWTYPE)) return new DataTypes.NEWTYPE()
+    // Optional, validator function
+    validate(value, options) {
+      return (typeof value === 'number') && (! Number.isNaN(value))
+    }
+
+    // Optional, sanitizer
+    _sanitize(value) {
+      // Force all numbers to be positive
+      if (value < 0) {
+        value = 0
+      }
+
+      return Math.round(value)
+    }
+
+    // Optional, value stringifier before sending to database
+    _stringify(value) {
+      return value.toString()
+    }
+
+    // Optional, parser for values received from the database
+    static parse(value) {
+      return Number.parseInt(value)
+    }
   }
-  inherits(DataTypes.NEWTYPE, DataTypes.ABSTRACT)
 
   // Mandatory, set key
   DataTypes.NEWTYPE.prototype.key = DataTypes.NEWTYPE.key = 'NEWTYPE'
 
-  // Mandatory, complete definition of the new type in the database
-  DataTypes.NEWTYPE.prototype.toSql = function toSql() {
-    return 'INTEGER(11) UNSIGNED ZEROFILL'
-  }
 
-  // Optional, validator function
-  DataTypes.NEWTYPE.prototype.validate = function validate(value, options) {
-    return (typeof value === 'number') && (! Number.isNaN(value))
-  }
-
-  // Optional, sanitizer
-  DataTypes.NEWTYPE.prototype._sanitize = function _sanitize(value) {
-    // Force all numbers to be positive
-    if (value < 0) {
-      value = 0
-    }
-
-    return Math.round(value)
-  }
-
-  // Optional, value stringifier before sending to database
-  DataTypes.NEWTYPE.prototype._stringify = function _stringify(value) {
-      return value.toString()
-  }
   // Optional, disable escaping after stringifier. Not recommended.
   // Warning: disables Sequelize protection against SQL injections
   //DataTypes.NEWTYPE.escape = false
 
-  // Optional, parser for values received from the database
-  DataTypes.NEWTYPE.parse = function parse(value) {
-      return Number.parseInt(value)
-  }
-
   // For convenience
-  Sequelize.NEWTYPE = DataTypes.NEWTYPE
+  // `inferNew` allows you to use the datatype without `new`
+  Sequelize.NEWTYPE = Sequelize.Utils.inferNew(DataTypes.NEWTYPE)
 
 }
 ```

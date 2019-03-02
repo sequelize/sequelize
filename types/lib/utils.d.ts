@@ -64,6 +64,14 @@ export const TICK_CHAR: string;
 export function addTicks(s: string, tickChar?: string): string;
 export function removeTicks(s: string, tickChar?: string): string;
 
+/**
+ * Wraps a constructor to not need the `new` keyword using a proxy.
+ * Only used for data types.
+ */
+export function classToInvokable<T extends new (...args: any[]) => any>(ctor: T): T & {
+  (...args: ConstructorParameters<T>): T;
+}
+
 export class SequelizeMethod {
 
 }

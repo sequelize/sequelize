@@ -105,7 +105,8 @@
     "camelcase": "warn",
     "prefer-template": "error",
     "no-else-return": ["error", { "allowElseIf": false }],
-    "no-lonely-if": "error"
+    "no-lonely-if": "error",
+    "no-this-before-super": "error"
   },
   "parserOptions": {
     "ecmaVersion": 6,
