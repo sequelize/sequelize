@@ -53,6 +53,7 @@
     "@types/bluebird": "^3.5.26",
     "@types/node": "^10.12.27",
     "@types/validator": "^10.9.0",
+    "big-integer": "^1.6.42",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
     "chai-datetime": "^1.x",

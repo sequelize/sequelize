@@ -32,6 +32,7 @@
     "new-cap": [
       "error",
       {
+        "capIsNewExceptionPattern": "^BigInt",
         "properties": false
       }
     ],
