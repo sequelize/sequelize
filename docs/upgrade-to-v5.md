@@ -78,10 +78,6 @@ Many model based aliases has been removed [#9372](https://github.com/sequelize/s
 
 Now supports only one standard format `[{ value: 1, inclusive: true }, { value: 20, inclusive: false }]` [#9364](https://github.com/sequelize/sequelize/pull/9364)
 
-**Network types**
-
-Added support for `CIDR`, `INET` and `MACADDR` for Postgres
-
 **Case insensitive text**
 
 Added support for `CITEXT` for Postgres and SQLite
@@ -181,13 +177,39 @@ Model.findAll({
 - [retry-as-promised](https://github.com/mickhansen/retry-as-promised) has been updated to `3.1.0`, which use [any-promise](https://github.com/kevinbeaty/any-promise). This module repeat all `sequelize.query` operations. You can configure `any-promise` to use `bluebird` for better performance on Node 4 or 6
 - Sequelize will throw for all `undefined` keys in `where` options, In past versions `undefined` was converted to `null`.
 
+### Dialect Specific
+
+#### MSSQL
+
+- Sequelize now works with `tedious@6.0.0`, this means old `dialectOptions` has to be updated to match their new format. Please refer to tedious [documentation](http://tediousjs.github.io/tedious/api-connection.html#function_newConnection). An example of new `dialectOptions` is given below
+
+```json
+dialectOptions: {
+  authentication: {
+    domain: 'my-domain'
+  },
+  options: {
+    requestTimeout: 60000,
+    cryptoCredentialsDetails: {
+      ciphers: "RC4-MD5"
+    }
+  }
+}
+```
+
+#### MySQL
+
+- Requires `mysql2 >= 1.5.2` for prepared statements
+
+#### MariaDB
+
+- `dialect: 'mariadb'` is now [supported](https://github.com/sequelize/sequelize/pull/10192) with `mariadb` package
 
 ### Packages
 
 - removed: terraformer-wkt-parser [#9545](https://github.com/sequelize/sequelize/pull/9545)
-- mysql2: use `1.5.2` or above to support prepared statements
-- updated: retry-as-promised: `3.1.0`
-- change: `generic-pool` to `sequelize-pool`
+- removed: `generic-pool`
+- added: `sequelize-pool`
 
 ## Changelog
 

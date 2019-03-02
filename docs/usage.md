@@ -156,11 +156,11 @@ Each `write` or `useMaster: true` query will use write pool. For `SELECT` read p
 
 ## Dialects
 
-With the release of Sequelize `1.6.0`, the library got independent from specific dialects. This means, that you'll have to add the respective connector library to your project yourself.
+With the release of Sequelize `1.6.0`, the library got independent from specific dialects. This means, that you'll have to install the respective connector library to your project yourself.
 
 ### MySQL
 
-In order to get Sequelize working nicely together with MySQL, you'll need to install`mysql2@^1.0.0-rc.10`or higher. Once that's done you can use it like this:
+In order to get Sequelize working nicely together with MySQL, you'll need to install`mysql2@^1.5.2`or higher. Once that's done you can use it like this:
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
@@ -189,7 +189,7 @@ const sequelize = new Sequelize('mariadb://user:password@example.com:9821/databa
 
 ### SQLite
 
-For SQLite compatibility you'll need`sqlite3@~3.0.0`. Configure Sequelize like this:
+For SQLite compatibility you'll need`sqlite3@^4.0.0`. Configure Sequelize like this:
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
@@ -211,7 +211,7 @@ const sequelize = new Sequelize('sqlite:relativePath/dbname.db')
 
 ### PostgreSQL
 
-The library for PostgreSQL is`pg@^5.0.0 || ^6.0.0` You'll just need to define the dialect:
+The library for PostgreSQL is`pg@^7.0.0` You'll just need to define the dialect:
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
@@ -235,7 +235,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
 ### MSSQL
 
-The library for MSSQL is`tedious@^3.0.0` You'll just need to define the dialect:
+The library for MSSQL is`tedious@^6.0.0` You'll just need to define the dialect:
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {

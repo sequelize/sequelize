@@ -22,9 +22,11 @@ $config = @{
   port = $port
   database = "sequelize_test"
   dialectOptions = @{
-    requestTimeout = 25000
-    cryptoCredentialsDetails = @{
-      ciphers = "RC4-MD5"
+    options = @{
+      requestTimeout = 25000
+      cryptoCredentialsDetails = @{
+        ciphers = "RC4-MD5"
+      }
     }
   }
   pool = @{
