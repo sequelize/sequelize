@@ -121,12 +121,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             .sequelizeWithInvalidConnection
             .authenticate()
             .catch(err => {
+              console.log(err);
               expect(
                 err.message.includes('connect ECONNREFUSED') ||
                 err.message.includes('invalid port number') ||
                 err.message.match(/should be >=? 0 and < 65536/) ||
                 err.message.includes('Login failed for user') ||
-                err.message.includes('Port must be > 0 and < 65536')
+                err.message.includes('must be > 0 and < 65536')
               ).to.be.ok;
             });
         });
