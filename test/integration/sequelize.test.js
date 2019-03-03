@@ -282,7 +282,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         const spy = sinon.spy();
 
         return expect(this.User.create(payload).then(() => this.sequelize.query(`
-          INSERT INTO "Users" ("id","username","createdAt","updatedAt") VALUES ($id,$username,$createdAt,$updatedAt) RETURNING *;
+          INSERT INTO "Users" ("id","username","createdAt","updatedAt") VALUES ($id,$username,$createdAt,$updatedAt);
         `, {
           bind: payload,
           logging: spy,
