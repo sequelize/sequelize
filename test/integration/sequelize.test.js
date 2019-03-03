@@ -225,13 +225,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('query', () => {
     afterEach(function() {
       this.sequelize.options.quoteIdentifiers = true;
-
       console.log.restore && console.log.restore();
     });
 
     beforeEach(function() {
       this.User = this.sequelize.define('User', {
-        username: DataTypes.STRING,
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        },
         emailAddress: {
           type: DataTypes.STRING,
           field: 'email_address'
@@ -269,6 +271,33 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           expect(rows[0].username).to.be.equal('john');
           expect(rows[1].username).to.be.equal('michael');
         });
+    });
+
+    describe('retry',  () => {
+      it('properly bind parameters on extra retries', function() {
+        const payload = {
+          username: 'test',
+          createdAt: '2010-10-10 00:00:00',
+          updatedAt: '2010-10-10 00:00:00'
+        };
+
+        const spy = sinon.spy();
+
+        return expect(this.User.create(payload).then(() => this.sequelize.query(`
+          INSERT INTO ${qq(this.User.tableName)} (username,${qq('createdAt')},${qq('updatedAt')}) VALUES ($username,$createdAt,$updatedAt);
+        `, {
+          bind: payload,
+          logging: spy,
+          retry: {
+            max: 3,
+            match: [
+              /Validation/
+            ]
+          }
+        }))).to.be.rejectedWith(Sequelize.UniqueConstraintError).then(() => {
+          expect(spy.callCount).to.eql(3);
+        });
+      });
     });
 
     describe('logging', () => {
