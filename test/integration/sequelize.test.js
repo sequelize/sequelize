@@ -230,7 +230,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     beforeEach(function() {
       this.User = this.sequelize.define('User', {
-        username: DataTypes.STRING,
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        },
         emailAddress: {
           type: DataTypes.STRING,
           field: 'email_address'
@@ -273,16 +276,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     describe('retry',  () => {
       it('properly bind parameters on extra retries', function() {
         const payload = {
-          id: 1,
           username: 'test',
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: '2010-10-10 00:00:00',
+          updatedAt: '2010-10-10 00:00:00'
         };
 
         const spy = sinon.spy();
 
         return expect(this.User.create(payload).then(() => this.sequelize.query(`
-          INSERT INTO "Users" ("id","username","createdAt","updatedAt") VALUES ($id,$username,$createdAt,$updatedAt);
+          INSERT INTO ${qq(this.User.tableName)} (username,${qq('createdAt')},${qq('updatedAt')}) VALUES ($username,$createdAt,$updatedAt);
         `, {
           bind: payload,
           logging: spy,
