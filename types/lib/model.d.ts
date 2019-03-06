@@ -1688,7 +1688,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *   where: ...,
    *   limit: 12,
    *   offset: 12
-   * }).then(function (result) {
+   * }).then(result => {
    *   ...
    * })
    * ```
@@ -1776,7 +1776,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
-   * The successfull result of the promise will be (instance, initialized) - Make sure to use .spread()
+   * The successfull result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
    */
   public static findOrBuild<M extends Model>(
     this: { new (): M } & typeof Model,
@@ -1785,7 +1785,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
   /**
    * Find a row that matches the query, or build and save the row if none is found
-   * The successful result of the promise will be (instance, created) - Make sure to use .spread()
+   * The successful result of the promise will be (instance, created) - Make sure to use `.then(([...]))`
    *
    * If no transaction is passed in the `options` object, a new transaction will be created internally, to
    * prevent the race condition where a matching row is created by another connection after the find but
@@ -2291,7 +2291,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Similarily, when fetching through a join table with custom attributes, these attributes will be
    * available as an object with the name of the through model.
    * ```js
-   * user.getProjects().then(function (projects) {
+   * user.getProjects().then(projects => {
    *   var p1 = projects[0]
    *   p1.userprojects.started // Is this project started yet?
    * })
@@ -2340,8 +2340,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Similarily, when fetching through a join table with custom attributes, these attributes will be
    * available as an object with the name of the through model.
    * ```js
-   * user.getProjects().then(function (projects) {
-   *   var p1 = projects[0]
+   * user.getProjects().then(projects => {
+   *   const p1 = projects[0]
    *   p1.userprojects.started // Is this project started yet?
    * })
    * ```
