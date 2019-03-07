@@ -1,11 +1,11 @@
 # Working with legacy tables
 
-While out of the box Sequelize will seem a bit opinionated it's trivial to both legacy and forward proof your application by defining (otherwise generated) table and field names.
+While out of the box Sequelize will seem a bit opinionated it's easy to work legacy tables and forward proof your application by defining (otherwise generated) table and field names.
 
 ## Tables
 ```js
 sequelize.define('user', {
-
+  // ...
 }, {
   tableName: 'users'
 });
@@ -48,14 +48,14 @@ And if your model has no primary key at all you can use `Model.removeAttribute('
 ## Foreign keys
 ```js
 // 1:1
-Organization.belongsTo(User, {foreignKey: 'owner_id'});
-User.hasOne(Organization, {foreignKey: 'owner_id'});
+Organization.belongsTo(User, { foreignKey: 'owner_id' });
+User.hasOne(Organization, { foreignKey: 'owner_id' });
 
 // 1:M
-Project.hasMany(Task, {foreignKey: 'tasks_pk'});
-Task.belongsTo(Project, {foreignKey: 'tasks_pk'});
+Project.hasMany(Task, { foreignKey: 'tasks_pk' });
+Task.belongsTo(Project, { foreignKey: 'tasks_pk' });
 
 // N:M
-User.hasMany(Role, {through: 'user_has_roles', foreignKey: 'user_role_user_id'});
-Role.hasMany(User, {through: 'user_has_roles', foreignKey: 'roles_identifier'});
+User.belongsToMany(Role, { through: 'user_has_roles', foreignKey: 'user_role_user_id' });
+Role.belongsToMany(User, { through: 'user_has_roles', foreignKey: 'roles_identifier' });
 ```
