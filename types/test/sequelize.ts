@@ -5,6 +5,10 @@ export const sequelize = new Sequelize({
     afterConnect: (connection, config: Config) => {
       // noop
     }
+  },
+  retry: {
+    max: 123,
+    match: ['hurr'],
   }
 });
 

@@ -143,6 +143,11 @@ export interface Config {
 
 export type Dialect =  'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'mariadb';
 
+export interface RetryOptions {
+  match?: (RegExp | string | Function)[];
+  max?: number;
+}
+
 /**
  * Options for the constructor of Sequelize main class
  */
@@ -307,7 +312,9 @@ export interface Options extends Logging {
   /**
    * Sets global permanent hooks.
    */
-  hooks?: Partial<SequelizeHooks>
+  hooks?: Partial<SequelizeHooks>;
+
+  retry?: RetryOptions;
 }
 
 export interface QueryOptionsTransactionRequired {}
@@ -1034,17 +1041,17 @@ export class Sequelize extends Hooks {
    * Execute a query on the DB, with the posibility to bypass all the sequelize goodness.
    *
    * By default, the function will return two arguments: an array of results, and a metadata object,
-   * containing number of affected rows etc. Use `.spread` to access the results.
+   * containing number of affected rows etc. Use `.then(([...]))` to access the results.
    *
    * If you are running a type of query where you don't need the metadata, for example a `SELECT` query, you
    * can pass in a query type to make sequelize format the results:
    *
    * ```js
-   * sequelize.query('SELECT...').spread(function (results, metadata) {
+   * sequelize.query('SELECT...').then(([results, metadata]) {
    *   // Raw query - use spread
    * });
    *
-   * sequelize.query('SELECT...', { type: sequelize.QueryTypes.SELECT }).then(function (results) {
+   * sequelize.query('SELECT...', { type: sequelize.QueryTypes.SELECT }).then(results => {
    *   // SELECT query - use then
    * })
    * ```
@@ -1175,8 +1182,8 @@ export class Sequelize extends Hooks {
    * in order for the query to happen under that transaction
    *
    * ```js
-   * sequelize.transaction().then(function (t) {
-   *   return User.findOne(..., { transaction: t}).then(function (user) {
+   * sequelize.transaction().then(t => {
+   *   return User.findOne(..., { transaction: t}).then(user => {
    *   return user.update(..., { transaction: t});
    *   })
    *   .then(t.commit.bind(t))
@@ -1188,13 +1195,13 @@ export class Sequelize extends Hooks {
    * supported:
    *
    * ```js
-   * sequelize.transaction(function (t) { // Note that we use a callback rather than a promise.then()
-   *   return User.findOne(..., { transaction: t}).then(function (user) {
-   *   return user.update(..., { transaction: t});
+   * sequelize.transaction(t => { // Note that we use a callback rather than a promise.then()
+   *   return User.findOne(..., { transaction: t}).then(user => {
+   *    return user.update(..., { transaction: t});
    *   });
-   * }).then(function () {
+   * }).then(() => {
    *   // Commited
-   * }).catch(function (err) {
+   * }).catch(err => {
    *   // Rolled back
    *   console.error(err);
    * });

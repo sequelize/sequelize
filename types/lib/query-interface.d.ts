@@ -2,7 +2,7 @@ import { DataType } from './data-types';
 import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable } from './model';
 import { Promise } from './promise';
 import QueryTypes = require('./query-types');
-import { Sequelize } from './sequelize';
+import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
 
 /**
@@ -55,13 +55,15 @@ export interface QueryOptions extends Logging, Transactionable {
    * A sequelize instance used to build the return instance
    */
   instance?: Model;
+
+  retry?: RetryOptions;
 }
 
 export interface QueryOptionsWithWhere extends QueryOptions, Filterable {
 
 }
 
-export interface QueryOptionsWithModel {
+export interface QueryOptionsWithModel extends QueryOptions {
   /**
    * A sequelize model used to build the returned model instances (used to be called callee)
    */
