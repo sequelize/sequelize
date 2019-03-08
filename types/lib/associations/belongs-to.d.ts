@@ -21,9 +21,9 @@ export interface BelongsToOptions extends AssociationOptions {
   keyType?: DataType;
 }
 
-export class BelongsTo extends Association {
+export class BelongsTo<S = typeof Model, T = typeof Model> extends Association<S, T> {
   public accessors: SingleAssociationAccessors;
-  constructor(source: typeof Model, target: typeof Model, options: BelongsToOptions);
+  constructor(source: S, target: T, options: BelongsToOptions);
 }
 
 /**

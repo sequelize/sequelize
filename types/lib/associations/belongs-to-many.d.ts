@@ -68,10 +68,10 @@ export interface BelongsToManyOptions extends ManyToManyOptions {
   timestamps?: boolean;
 }
 
-export class BelongsToMany extends Association {
+export class BelongsToMany<S = typeof Model, T = typeof Model> extends Association<S, T> {
   public otherKey: string;
   public accessors: MultiAssociationAccessors;
-  constructor(source: typeof Model, target: typeof Model, options: BelongsToManyOptions);
+  constructor(source: S, target: T, options: BelongsToManyOptions);
 }
 
 /**

@@ -22,9 +22,9 @@ export interface HasManyOptions extends ManyToManyOptions {
   keyType?: DataType;
 }
 
-export class HasMany extends Association {
+export class HasMany<S = typeof Model, T = typeof Model> extends Association<S, T> {
   public accessors: MultiAssociationAccessors;
-  constructor(source: typeof Model, target: typeof Model, options: HasManyOptions);
+  constructor(source: S, target: T, options: HasManyOptions);
 }
 
 /**

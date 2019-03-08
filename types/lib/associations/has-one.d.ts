@@ -13,9 +13,9 @@ export interface HasOneOptions extends AssociationOptions {
   keyType?: DataType;
 }
 
-export class HasOne extends Association {
+export class HasOne<S = typeof Model, T = typeof Model> extends Association<S, T> {
   public accessors: SingleAssociationAccessors;
-  constructor(source: typeof Model, target: typeof Model, options: HasOneOptions);
+  constructor(source: S, target: T, options: HasOneOptions);
 }
 
 /**
