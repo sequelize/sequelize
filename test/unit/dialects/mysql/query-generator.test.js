@@ -145,6 +145,10 @@ if (dialect === 'mysql') {
         {
           arguments: [{ id: { type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT' }
+        },
+        {
+          arguments: [{ createdAt: { type: 'TIMESTAMP', allowNull: false, defaultValue: 'CURRENT_TIMESTAMP' } }],
+          expectation: { createdAt: 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP' }
         }
       ],
 
