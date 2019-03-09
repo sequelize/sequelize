@@ -890,7 +890,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       dataTypes.forEach(dataType => {
         const tableName = `TaskXYZ_${dataType.key}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
-
         Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType, constraints: false });
       });
 
