@@ -6,13 +6,16 @@ import {
   DataTypes,
   FindOptions,
   Model,
+  ModelCtor
 } from 'sequelize';
 import { sequelize } from '../connection';
 
 export class User extends Model {
+  /*
   public static associations: {
-    group: BelongsTo<typeof User, typeof UserGroup>;
+    group: BelongsTo<User, UserGroup>;
   };
+  */
 
   public id: number;
   public username: string;
@@ -74,5 +77,5 @@ User.addHook('beforeFind', 'test', (options: FindOptions) => {
 import { UserGroup } from './UserGroup';
 export const Group = User.belongsTo(UserGroup, { as: 'group', foreignKey: 'groupId' });
 
-const userType: typeof User = User.associations.group.source;
-const groupType: typeof UserGroup = User.associations.group.target;
+// const userType: ModelCtor<User> = User.associations.group.source;
+// const groupType: ModelCtor<UserGroup> = User.associations.group.target;

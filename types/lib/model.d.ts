@@ -2235,9 +2235,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static hasOne<M, T extends typeof Model>(
-    this: M, 
-    target: T, options?: HasOneOptions
+  public static hasOne<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: HasOneOptions
   ): HasOne<M, T>;
 
   /**
@@ -2249,9 +2248,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static belongsTo<M, T extends typeof Model>(
-    this: M, 
-    target: T, options?: BelongsToOptions
+  public static belongsTo<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: BelongsToOptions
   ): BelongsTo<M, T>;
     
   /**
@@ -2306,9 +2304,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static hasMany<M, T extends typeof Model>(
-    this: M, 
-    target: T, options?: HasManyOptions
+  public static hasMany<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: HasManyOptions
   ): HasMany<M, T>;
 
   /**
@@ -2359,9 +2356,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options Options for the association
    *
    */
-  public static belongsToMany<M, T extends typeof Model>(
-    this: M, 
-    target: T, options: BelongsToManyOptions
+  public static belongsToMany<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options: BelongsToManyOptions
   ): BelongsToMany<M, T>;
 
   /**
@@ -2565,5 +2561,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public toJSON(): object;
 }
+
+export type ModelType = typeof Model;
+
+export type ModelCtor<M extends Model> = { new (): M } & ModelType;
 
 export default Model;

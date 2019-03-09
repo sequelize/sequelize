@@ -5,6 +5,7 @@ import {
   FindOptions,
   InstanceUpdateOptions,
   Model,
+  ModelCtor,
   Transactionable,
   WhereOptions,
 } from '../model';
@@ -22,9 +23,9 @@ export interface HasManyOptions extends ManyToManyOptions {
   keyType?: DataType;
 }
 
-export class HasMany<S = typeof Model, T = typeof Model> extends Association<S, T> {
+export class HasMany<S extends Model = Model, T extends Model = Model> extends Association<S, T> {
   public accessors: MultiAssociationAccessors;
-  constructor(source: S, target: T, options: HasManyOptions);
+  constructor(source: ModelCtor<S>, target: ModelCtor<T>, options: HasManyOptions);
 }
 
 /**
