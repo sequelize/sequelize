@@ -1516,7 +1516,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   /**
    * Apply a scope created in `define` to the model. First let's look at how to create scopes:
    * ```js
-   * var Model = sequelize.define('model', attributes, {
+   * const Model = sequelize.define('model', attributes, {
    *   defaultScope: {
    *     where: {
    *       username: 'dan'
@@ -2266,7 +2266,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ways. Consider users and projects from before with a join table that stores whether the project has been
    * started yet:
    * ```js
-   * var UserProjects = sequelize.define('userprojects', {
+   * const UserProjects = sequelize.define('userprojects', {
    *   started: Sequelize.BOOLEAN
    * })
    * User.hasMany(Project, { through: UserProjects })
@@ -2292,7 +2292,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * available as an object with the name of the through model.
    * ```js
    * user.getProjects().then(projects => {
-   *   var p1 = projects[0]
+   *   const p1 = projects[0]
    *   p1.userprojects.started // Is this project started yet?
    * })
    * ```
@@ -2316,7 +2316,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * associations in two ways. Consider users and projects from before with a join table that stores whether
    * the project has been started yet:
    * ```js
-   * var UserProjects = sequelize.define('userprojects', {
+   * const UserProjects = sequelize.define('userprojects', {
    *   started: Sequelize.BOOLEAN
    * })
    * User.belongsToMany(Project, { through: UserProjects })

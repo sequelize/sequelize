@@ -102,11 +102,22 @@
     "one-var-declaration-per-line": "error",
     "comma-dangle": "error",
     "no-shadow": "warn",
-    "camelcase": "warn",
+    "camelcase": "error",
     "prefer-template": "error",
     "no-else-return": ["error", { "allowElseIf": false }],
     "no-lonely-if": "error",
-    "no-this-before-super": "error"
+    "no-this-before-super": "error",
+    "no-throw-literal": "error",
+    "prefer-promise-reject-errors": "error",
+    "no-invalid-this": "error",
+    "radix": "error",
+    "no-with": "error",
+    "no-useless-concat": "error",
+    "no-useless-catch": "error",
+    "no-useless-call": "error",
+    "no-unused-expressions": "error",
+    "no-sequences": "error",
+    "no-self-compare": "error"
   },
   "parserOptions": {
     "ecmaVersion": 6,
@@ -133,5 +144,5 @@
   //   "Model": true,
   //   "QueryInterface": true,
   //   "QueryType": true
-  // }
+  // },
 }
