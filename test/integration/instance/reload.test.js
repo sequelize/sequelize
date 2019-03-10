@@ -5,9 +5,22 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
+  sinon = require('sinon'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
+  before(function() {
+    this.clock = sinon.useFakeTimers();
+  });
+
+  afterEach(function() {
+    this.clock.reset();
+  });
+
+  after(function() {
+    this.clock.restore();
+  });
+
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
