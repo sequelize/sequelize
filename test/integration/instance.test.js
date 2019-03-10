@@ -136,9 +136,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(isUUID(user.uuidv4, 4)).to.be.true;
       });
 
-      it('should store a valid uuid if the field is a primary key named id', function() {
+      it('should store a valid uuid if the multiple primary key fields used', function() {
         const Person = this.sequelize.define('Person', {
-          id: {
+          id1: {
+            type: DataTypes.UUID,
+            defaultValue: DataTypes.UUIDV1,
+            primaryKey: true
+          },
+          id2: {
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV1,
             primaryKey: true
@@ -146,8 +151,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
 
         const person = Person.build({});
-        expect(person.id).to.be.ok;
-        expect(person.id).to.have.length(36);
+        expect(person.id1).to.be.ok;
+        expect(person.id1).to.have.length(36);
+
+        expect(person.id2).to.be.ok;
+        expect(person.id2).to.have.length(36);
       });
     });
     describe('current date', () => {
