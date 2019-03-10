@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require('../../index'),
-  Support = require('./support'),
-  DataTypes = require('../../lib/data-types'),
+  Sequelize = require('../../../index'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
