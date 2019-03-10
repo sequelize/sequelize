@@ -22,11 +22,11 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle empty string correctly', () => {
-        expect(hstore.stringify({ foo: '' })).to.equal('"foo"=>\"\"');
+        expect(hstore.stringify({ foo: '' })).to.equal('"foo"=>""');
       });
 
       it('should handle a string with backslashes correctly', () => {
-        expect(hstore.stringify({ foo: '\\' })).to.equal('"foo"=>"\\\\"');
+        expect(hstore.stringify({ foo: '\\' })).to.equal('"foo"=>"\\"');
       });
 
       it('should handle a string with double quotes correctly', () => {
@@ -49,11 +49,11 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle empty string correctly', () => {
-        expect(hstore.parse('"foo"=>\"\"')).to.deep.equal({ foo: '' });
+        expect(hstore.parse('"foo"=>""')).to.deep.equal({ foo: '' });
       });
 
       it('should handle a string with double quotes correctly', () => {
-        expect(hstore.parse('"foo"=>"\\\"\\\"a\\\""')).to.deep.equal({ foo: '\"\"a\"' });
+        expect(hstore.parse('"foo"=>"\\"\\"a\\""')).to.deep.equal({ foo: '""a"' });
       });
 
       it('should handle a string with single quotes correctly', () => {
