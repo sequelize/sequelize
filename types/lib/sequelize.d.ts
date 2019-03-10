@@ -324,7 +324,7 @@ export interface QueryOptionsTransactionRequired {}
  * import sequelize:
  *
  * ```js
- * var Sequelize = require('sequelize');
+ * const Sequelize = require('sequelize');
  * ```
  *
  * In addition to sequelize, the connection library for the dialect you want to use
@@ -676,19 +676,19 @@ export class Sequelize extends Hooks {
    *
    * ```javascript
    * // without password and options
-   * var sequelize = new Sequelize('database', 'username')
+   * const sequelize = new Sequelize('database', 'username')
    *
    * // without options
-   * var sequelize = new Sequelize('database', 'username', 'password')
+   * const sequelize = new Sequelize('database', 'username', 'password')
    *
    * // without password / with blank password
-   * var sequelize = new Sequelize('database', 'username', null, {})
+   * const sequelize = new Sequelize('database', 'username', null, {})
    *
    * // with password and options
-   * var sequelize = new Sequelize('my_database', 'john', 'doe', {})
+   * const sequelize = new Sequelize('my_database', 'john', 'doe', {})
    *
    * // with uri (see below)
-   * var sequelize = new Sequelize('mysql://localhost:3306/database', {})
+   * const sequelize = new Sequelize('mysql://localhost:3306/database', {})
    * ```
    *
    * @param database The name of the database
@@ -1212,9 +1212,9 @@ export class Sequelize extends Hooks {
    * project, create a namespace and set it on the sequelize constructor:
    *
    * ```js
-   * var cls = require('continuation-local-storage'),
+   * const cls = require('continuation-local-storage'),
    *   ns = cls.createNamespace('....');
-   * var Sequelize = require('sequelize');
+   * const Sequelize = require('sequelize');
    * Sequelize.cls = ns;
    * ```
    * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace

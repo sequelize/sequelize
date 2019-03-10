@@ -1213,7 +1213,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0].people[0].name).to.equal(params[3]);
             });
           });
-        }),
+        });
 
         it('sorts by 2nd degree association with alias', function() {
           return Sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
@@ -1253,7 +1253,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
         });
-      }),
+      });
 
       describe('ManyToMany', () => {
         beforeEach(function() {
