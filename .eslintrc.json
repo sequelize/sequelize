@@ -18,7 +18,7 @@
     "jsdoc/require-param-type": "error",
     "jsdoc/require-returns-description": "off",
     "jsdoc/require-returns-type": "error",
-    "jsdoc/valid-types": "off",
+    "jsdoc/valid-types": "error",
 
     // style
     "array-bracket-spacing": "error",
@@ -140,17 +140,4 @@
     "mocha": true,
     "es6": true
   }
-  // "globals": {
-  //   "Association": true,
-  //   "HasMany": true,
-  //   "BelongsTo": true,
-  //   "HasOne": true,
-  //   "BelongsToMany": true,
-  //   "DataTypes": true,
-  //   "Sequelize": true,
-  //   "Transaction": true,
-  //   "Model": true,
-  //   "QueryInterface": true,
-  //   "QueryType": true
-  // },
 }
