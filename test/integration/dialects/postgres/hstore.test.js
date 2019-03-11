@@ -26,7 +26,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle a string with backslashes correctly', () => {
-        expect(hstore.stringify({ foo: '\\' })).to.equal('"foo"=>"\\"');
+        expect(hstore.stringify({ foo: '\\' })).to.equal('"foo"=>"\\\\"');
       });
 
       it('should handle a string with double quotes correctly', () => {
