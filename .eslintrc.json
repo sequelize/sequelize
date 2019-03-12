@@ -8,7 +8,7 @@
     "jsdoc/check-tag-names": "error",
     "jsdoc/check-types": "error",
     "jsdoc/newline-after-description": "error",
-    "jsdoc/no-undefined-types": "error",
+    "jsdoc/no-undefined-types": "off",
     "jsdoc/require-description-complete-sentence": "off",
     "jsdoc/require-example": "off",
     "jsdoc/require-hyphen-before-param-description": "off",
@@ -111,21 +111,6 @@
     "no-sequences": "error",
     "no-self-compare": "error",
     "no-case-declarations": "off"
-  },
-  "globals": {
-    "Association": true,
-    "HasMany": true,
-    "BelongsTo": true,
-    "HasOne": true,
-    "BelongsToMany": true,
-    "DataTypes": true,
-    "Sequelize": true,
-    "Transaction": true,
-    "Model": true,
-    "QueryInterface": true,
-    "QueryType": true,
-    "ValidationErrorItem": true,
-    "Connection": true
   },
   "parserOptions": {
     "ecmaVersion": 6,
