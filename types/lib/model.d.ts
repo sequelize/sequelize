@@ -11,7 +11,7 @@ import {
 } from './associations/index';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
-import { AllModelHooks, HookReturn, Hooks, ModelHookOptions } from './hooks';
+import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { ModelManager } from './model-manager';
 import Op = require('./operators');
@@ -1348,7 +1348,7 @@ export interface ModelOptions<M extends Model = Model> {
    * See Hooks for more information about hook
    * functions and their signatures. Each property can either be a function, or an array of functions.
    */
-  hooks?: Partial<ModelHookOptions<M>>;
+  hooks?: Partial<ModelHooks<M>>;
 
   /**
    * An object of model wide validations. Validations have access to all model values via `this`. If the
@@ -2154,49 +2154,6 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M } & typeof Model,
     fn: (instancesOrInstance: M[] | M, options: FindOptions) => HookReturn
   ): void;
-
-  /**
-   * A hook that is run before a define call
-   *
-   * @param name
-   * @param fn   A callback function that is called with attributes, options
-   */
-  public static beforeDefine<M extends Model>(
-    this: { new (): M } & typeof Model,
-    name: string,
-    fn: (attributes: ModelAttributes, options: ModelOptions<M>) => void
-  ): void;
-  public static beforeDefine<M extends Model>(
-    this: { new (): M } & typeof Model,
-    fn: (attributes: ModelAttributes, options: ModelOptions<M>) => void
-  ): void;
-
-  /**
-   * A hook that is run after a define call
-   *
-   * @param name
-   * @param fn   A callback function that is called with factory
-   */
-  public static afterDefine(name: string, fn: (model: typeof Model) => void): void;
-  public static afterDefine(fn: (model: typeof Model) => void): void;
-
-  /**
-   * A hook that is run before Sequelize() call
-   *
-   * @param name
-   * @param fn   A callback function that is called with config, options
-   */
-  public static beforeInit(name: string, fn: (config: Config, options: Options) => void): void;
-  public static beforeInit(fn: (config: Config, options: Options) => void): void;
-
-  /**
-   * A hook that is run after Sequelize() call
-   *
-   * @param name
-   * @param fn   A callback function that is called with sequelize
-   */
-  public static afterInit(name: string, fn: (sequelize: Sequelize) => void): void;
-  public static afterInit(fn: (sequelize: Sequelize) => void): void;
 
   /**
    * A hook that is run before sequelize.sync call

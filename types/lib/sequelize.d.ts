@@ -555,6 +555,24 @@ export class Sequelize extends Hooks {
   public static beforeFind(fn: (options: FindOptions) => void): void;
 
   /**
+   * A hook that is run before a connection is established
+   *
+   * @param name
+   * @param fn   A callback function that is called with options
+   */
+  public static beforeConnect(name: string, fn: (options: Config) => void): void;
+  public static beforeConnect(fn: (options: Config) => void): void;
+
+  /**
+   * A hook that is run after a connection is established
+   *
+   * @param name
+   * @param fn   A callback function that is called with options
+   */
+  public static afterConnect(name: string, fn: (connection: unknown, options: Config) => void): void;
+  public static afterConnect(fn: (connection: unknown, options: Config) => void): void;
+
+  /**
    * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
    *
    * @param name
