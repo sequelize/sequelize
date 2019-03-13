@@ -1021,7 +1021,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             } else if (dialect === 'mssql') {
               expect(err.message).to.equal('Login failed for user \'bar\'.');
             } else {
-              expect(err.message.toString()).to.match(/.*Access\ denied.*/);
+              expect(err.message.toString()).to.match(/.*Access denied.*/);
             }
           });
       });

@@ -2,6 +2,7 @@
   "rules": {
     "no-invalid-this": 0,
     "no-unused-expressions": 0,
-    "camelcase": 0
+    "camelcase": 0,
+    "no-console": 0
   }
 }
