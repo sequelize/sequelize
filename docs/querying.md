@@ -178,7 +178,7 @@ const Op = Sequelize.Op
 Range types can be queried with all supported operators.
 
 Keep in mind, the provided range value can
-[define the bound inclusion/exclusion](/manual/tutorial/data-types.html#range-types)
+[define the bound inclusion/exclusion](/manual/data-types.html#range-types)
 as well.
 
 ```js

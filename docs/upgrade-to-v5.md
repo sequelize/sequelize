@@ -12,7 +12,7 @@ Sequelize v5 will only support Node 6 and up [#9015](https://github.com/sequeliz
 
 With v4 you started to get a deprecation warning `String based operators are now deprecated`. Also concept of operators was introduced. These operators are Symbols which prevent hash injection attacks.
 
-http://docs.sequelizejs.com/manual/tutorial/querying.html#operators-security
+http://docs.sequelizejs.com/manual/querying.html#operators-security
 
 **With v5**
 
@@ -181,7 +181,7 @@ Model.findAll({
 
 #### MSSQL
 
-- Sequelize now works with `tedious@6.0.0`, this means old `dialectOptions` has to be updated to match their new format. Please refer to tedious [documentation](http://tediousjs.github.io/tedious/api-connection.html#function_newConnection). An example of new `dialectOptions` is given below
+- Sequelize now works with `tedious >= 6.0.0`. Old `dialectOptions` has to be updated to match their new format. Please refer to tedious [documentation](http://tediousjs.github.io/tedious/api-connection.html#function_newConnection). An example of new `dialectOptions` is given below
 
 ```json
 dialectOptions: {
@@ -212,6 +212,44 @@ dialectOptions: {
 - added: `sequelize-pool`
 
 ## Changelog
+
+### 5.0.0-beta.17
+
+- fix(build): default null for multiple primary keys
+- fix(util): improve performance of classToInvokable [#10534](https://github.com/sequelize/sequelize/pull/10534)
+- fix(model/update): propagate paranoid to individualHooks query [#10369](https://github.com/sequelize/sequelize/pull/10369)
+- fix(association): use minimal select for hasAssociation [#10529](https://github.com/sequelize/sequelize/pull/10529)
+- fix(query-interface): reject with error for describeTable [#10528](https://github.com/sequelize/sequelize/pull/10528)
+- fix(model): throw for invalid include type [#10527](https://github.com/sequelize/sequelize/pull/10527)
+- fix(types): additional options for db.query and add missing retry [#10512](https://github.com/sequelize/sequelize/pull/10512)
+- fix(query): don't prepare options & sql for every retry [#10498](https://github.com/sequelize/sequelize/pull/10498)
+- feat: expose Sequelize.BaseError
+- feat: upgrade to tedious@6.0.0 [#10494](https://github.com/sequelize/sequelize/pull/10494)
+- feat(sqlite/query-generator): support restart identity for truncate-table [#10522](https://github.com/sequelize/sequelize/pull/10522)
+- feat(data-types): handle numbers passed as objects [#10492](https://github.com/sequelize/sequelize/pull/10492)
+- feat(types): enabled string association [#10481](https://github.com/sequelize/sequelize/pull/10481)
+- feat(postgres): allow customizing client_min_messages [#10448](https://github.com/sequelize/sequelize/pull/10448)
+- refactor(data-types): move to classes [#10495](https://github.com/sequelize/sequelize/pull/10495)
+- docs(legacy): fix N:M example [#10509](https://github.com/sequelize/sequelize/pull/10509)
+- docs(migrations): use migrationStorageTableSchema [#10417](https://github.com/sequelize/sequelize/pull/10417)
+- docs(hooks): add documentation for connection hooks [#10410](https://github.com/sequelize/sequelize/pull/10410)
+- docs(addIndex): concurrently option [#10409](https://github.com/sequelize/sequelize/pull/10409)
+- docs(model): fix typo [#10405](https://github.com/sequelize/sequelize/pull/10405)
+- docs(usage): fix broken link on Basic Usage [#10381](https://github.com/sequelize/sequelize/pull/10381)
+- docs(package.json): add homepage [#10372](https://github.com/sequelize/sequelize/pull/10372)
+
+### 5.0.0-beta.16
+
+- feat: add typescript typings [#10287](https://github.com/sequelize/sequelize/pull/10117)
+- fix(mysql): match with newlines in error message [#10320](https://github.com/sequelize/sequelize/pull/10320)
+- fix(update): skips update when nothing to update [#10248](https://github.com/sequelize/sequelize/pull/10248)
+- fix(utils): flattenObject for null values [#10293](https://github.com/sequelize/sequelize/pull/10293)
+- fix(instance-validator): don't skip custom validators on null [#9143](https://github.com/sequelize/sequelize/pull/9143)
+- docs(transaction): after save example [#10280](https://github.com/sequelize/sequelize/pull/10280)
+- docs(query-generator): typo [#10277](https://github.com/sequelize/sequelize/pull/10277)
+- refactor(errors): restructure [#10355](https://github.com/sequelize/sequelize/pull/10355)
+- refactor(scope): documentation #9087 [#10312](https://github.com/sequelize/sequelize/pull/10312)
+- refactor: cleanup association and spread use [#10276](https://github.com/sequelize/sequelize/pull/10276)
 
 ### 5.0.0-beta.16
 

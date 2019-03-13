@@ -350,8 +350,8 @@ sequelize.query('select 1 as `foo.bar.baz`').then(rows => {
 
 
 [0]: /manual/installation/usage.html#options
-[1]: /manual/tutorial/models-definition.html#configuration
+[1]: /manual/models-definition.html#configuration
 [2]: /class/lib/sequelize.js~Sequelize.html
-[3]: /manual/tutorial/transactions.html
+[3]: /manual/transactions.html
 [4]: /variable/index.html#static-variable-QueryTypes
 [5]: /class/lib/sequelize.js~Sequelize.html#instance-method-query

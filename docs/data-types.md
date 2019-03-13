@@ -164,7 +164,7 @@ Timeline.create({ range: [-Infinity, new Date(Date.UTC(2016, 0, 1))] });
 
 # Extending datatypes
 
-Most likely the type you are trying to implement is already included in [DataTypes](/manual/tutorial/data-types.html). If a new datatype is not included, this manual will show how to write it yourself.
+Most likely the type you are trying to implement is already included in [DataTypes](/manual/data-types.html). If a new datatype is not included, this manual will show how to write it yourself.
 
 Sequelize doesn't create new datatypes in the database. This tutorial explains how to make Sequelize recognize new datatypes and assumes that those new datatypes are already created in the database.
 
@@ -271,7 +271,7 @@ modules.exports = function sequelizeAdditions(Sequelize) {
 
   // Mandatory, create a postgres-specific child datatype with its own parse
   // method. The parser will be dynamically mapped to the OID of pg_new_type.
-  PgTypes = DataTypes.postgres 
+  PgTypes = DataTypes.postgres
 
   PgTypes.NEWTYPE = function NEWTYPE() {
     if (!(this instanceof PgTypes.NEWTYPE)) return new PgTypes.NEWTYPE();

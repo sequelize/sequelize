@@ -102,7 +102,7 @@ User.findAll().then(users => {
 })
 ```
 
-You can read more about finder functions on models like `.findAll()` at [Data retrieval](/manual/tutorial/models-usage.html#data-retrieval-finders) or how to do specific queries like `WHERE` and `JSONB` at [Querying](/manual/tutorial/querying.html).
+You can read more about finder functions on models like `.findAll()` at [Data retrieval](/manual/models-usage.html#data-retrieval-finders) or how to do specific queries like `WHERE` and `JSONB` at [Querying](/manual/querying.html).
 
 ### Application wide model options
 

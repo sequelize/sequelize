@@ -2,7 +2,7 @@
 
 ## Data retrieval / Finders
 
-Finder methods are intended to query data from the database. They do *not* return plain objects but instead return model instances. Because finder methods return model instances you can call any model instance member on the result as described in the documentation for [*instances*](/manual/tutorial/instances.html).
+Finder methods are intended to query data from the database. They do *not* return plain objects but instead return model instances. Because finder methods return model instances you can call any model instance member on the result as described in the documentation for [*instances*](/manual/instances.html).
 
 In this document we'll explore what finder methods can do:
 

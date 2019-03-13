@@ -719,7 +719,7 @@ project.setUsers([user1, user2]).then(() => {
 ## Advance Concepts
 
 ### Scopes
-This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/manual/tutorial/scopes.html).
+This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/manual/scopes.html).
 
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
