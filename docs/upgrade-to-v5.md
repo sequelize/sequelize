@@ -251,19 +251,6 @@ dialectOptions: {
 - refactor(scope): documentation #9087 [#10312](https://github.com/sequelize/sequelize/pull/10312)
 - refactor: cleanup association and spread use [#10276](https://github.com/sequelize/sequelize/pull/10276)
 
-### 5.0.0-beta.16
-
-- feat: add typescript typings [#10287](https://github.com/sequelize/sequelize/pull/10117)
-- fix(mysql): match with newlines in error message [#10320](https://github.com/sequelize/sequelize/pull/10320)
-- fix(update): skips update when nothing to update [#10248](https://github.com/sequelize/sequelize/pull/10248)
-- fix(utils): flattenObject for null values [#10293](https://github.com/sequelize/sequelize/pull/10293)
-- fix(instance-validator): don't skip custom validators on null [#9143](https://github.com/sequelize/sequelize/pull/9143)
-- docs(transaction): after save example [#10280](https://github.com/sequelize/sequelize/pull/10280)
-- docs(query-generator): typo [#10277](https://github.com/sequelize/sequelize/pull/10277)
-- refactor(errors): restructure [#10355](https://github.com/sequelize/sequelize/pull/10355)
-- refactor(scope): documentation #9087 [#10312](https://github.com/sequelize/sequelize/pull/10312)
-- refactor: cleanup association and spread use [#10276](https://github.com/sequelize/sequelize/pull/10276)
-
 ### 5.0.0-beta.15
 
 - fix(query-generator): fix addColumn create comment [#10117](https://github.com/sequelize/sequelize/pull/10117)
