@@ -24,10 +24,8 @@ npm install --save sequelize # will install v5
 ## Table of Contents
 - [Installation](#installation)
 - [Documentation](#documentation)
-- [Resources](#resources)
-- [Tools](#tools)
-- [Learning](#learning)
 - [Responsible disclosure](#responsible-disclosure)
+- [Resources](#resources)
 
 ## Installation
 
@@ -50,7 +48,11 @@ Sequelize follows [SEMVER](http://semver.org). Supports Node v6 and above to use
 - [v3 Documentation](https://sequelize.readthedocs.io/en/v3/)
 - [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 
+## Responsible disclosure
+If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md)
+
 ## Resources
+
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Slack](http://sequelize-slack.herokuapp.com/)
 
@@ -67,6 +69,3 @@ Sequelize follows [SEMVER](http://semver.org). Supports Node v6 and above to use
 ### Translations
 - [English v5](http://docs.sequelizejs.com) (OFFICIAL)
 - [中文文档 v4](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)
-
-## Responsible disclosure
-If you have any security issue to report, contact project maintainers privately. You can find contact information [here](https://github.com/sequelize/sequelize/blob/master/CONTACT.md)
