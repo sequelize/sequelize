@@ -71,20 +71,19 @@ jobs:
     - stage: test
       node_js: '8'
       env: DIALECT=sqlite COVERAGE=false TSC=true
-    # - stage: release
-    #   node_js: '8'
-    #   script:
-    #     - npm run semantic-release
-    #   before_deploy:
-    #     - npm run docs
-    #   deploy:
-    #     provider: surge
-    #     project: ./esdoc/
-    #     domain: docs.sequelizejs.com
-    #     skip_cleanup: true
-    #     on: v4
+    - stage: release
+      node_js: '8'
+      script:
+        - npm run docs
+      # before_deploy:
+      #   - npm run docs
+      deploy:
+        provider: surge
+        project: ./esdoc/
+        domain: docs.sequelizejs.com
+        skip_cleanup: true
 
 stages:
   - test
-  # - name: release
-  #   if: branch = master AND type = push AND fork = false
+  - name: release
+    if: branch = master AND type = push AND fork = false

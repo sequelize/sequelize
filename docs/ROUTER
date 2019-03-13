@@ -24,3 +24,6 @@
 301 /en/latest/api/errors/ /class/lib/errors/index.js~BaseError.html
 
 302 /manual/tutorial/:section.html /manual/:section.html
+302 /manual/installation/:section.html /manual/:section.html
+302 /manual/faq/:section.html /manual/:section.html
+302 /manual/advanced/:section.html /manual/:section.html
