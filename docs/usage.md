@@ -349,7 +349,7 @@ sequelize.query('select 1 as `foo.bar.baz`').then(rows => {
 ```
 
 
-[0]: /manual/installation/usage.html#options
+[0]: /manual/usage.html#options
 [1]: /manual/models-definition.html#configuration
 [2]: /class/lib/sequelize.js~Sequelize.html
 [3]: /manual/transactions.html
