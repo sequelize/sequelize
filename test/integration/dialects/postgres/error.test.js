@@ -1,12 +1,12 @@
 'use strict';
 
-const chai      = require('chai'),
-  expect    = chai.expect,
-  DataTypes = require('../../../../lib/data-types'),
-  Support   = require('../../support'),
-  Sequelize = Support.Sequelize,
-  dialect   = Support.getTestDialect(),
-  _ = require('lodash');
+const chai      = require('chai');
+const expect    = chai.expect;
+const DataTypes = require('../../../../lib/data-types');
+const Support   = require('../../support');
+const Sequelize = Support.Sequelize;
+const dialect   = Support.getTestDialect();
+const { forEach } = require('../../../../lib/utils/forEach');
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] ExclusionConstraintError', () => {
@@ -35,7 +35,7 @@ if (dialect.match(/^postgres/)) {
       };
       const err = new Sequelize.ExclusionConstraintError(errDetails);
 
-      _.each(errDetails, (value, key) => {
+      forEach(errDetails, (value, key) => {
         expect(value).to.be.deep.equal(err[key]);
       });
     });

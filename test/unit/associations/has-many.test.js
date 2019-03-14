@@ -1,16 +1,17 @@
 'use strict';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  expect = chai.expect,
-  stub = sinon.stub,
-  _ = require('lodash'),
-  Support = require('../support'),
-  Promise = Support.Sequelize.Promise,
-  DataTypes = require('../../../lib/data-types'),
-  HasMany = require('../../../lib/associations/has-many'),
-  Op = require('../../../lib/operators'),
-  current = Support.sequelize;
+const chai = require('chai');
+const sinon = require('sinon');
+const expect = chai.expect;
+const stub = sinon.stub;
+const Support = require('../support');
+const Promise = Support.Sequelize.Promise;
+const DataTypes = require('../../../lib/data-types');
+const HasMany = require('../../../lib/associations/has-many');
+const Op = require('../../../lib/operators');
+const current = Support.sequelize;
+const { forEach } = require('../../../lib/utils/forEach');
+
 
 describe(Support.getTestDialectTeaser('hasMany'), () => {
   it('throws when invalid model is passed', () => {
@@ -108,7 +109,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         createTask: 'create'
       };
 
-      _.each(methods, (alias, method) => {
+      forEach(methods, (alias, method) => {
         User.prototype[method] = function() {
           const realMethod = this.constructor.associations.task[alias];
           expect(realMethod).to.be.a('function');
@@ -120,7 +121,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
       const user = User.build();
 
-      _.each(methods, (alias, method) => {
+      forEach(methods, (alias, method) => {
         expect(user[method]()).to.be.a('function');
       });
     });

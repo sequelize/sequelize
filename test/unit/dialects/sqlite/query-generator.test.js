@@ -1,14 +1,15 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  DataTypes = require('../../../../lib/data-types'),
-  dialect = Support.getTestDialect(),
-  _ = require('lodash'),
-  moment = require('moment'),
-  Op = require('../../../../lib/operators'),
-  QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require('../../support');
+const DataTypes = require('../../../../lib/data-types');
+const dialect = Support.getTestDialect();
+const moment = require('moment');
+const Op = require('../../../../lib/operators');
+const QueryGenerator = require('../../../../lib/dialects/sqlite/query-generator');
+const { forEach } = require('../../../../lib/utils/forEach');
+
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] QueryGenerator', () => {
@@ -623,7 +624,7 @@ if (dialect === 'sqlite') {
       ]
     };
 
-    _.each(suites, (tests, suiteTitle) => {
+    forEach(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
         beforeEach(function() {
           this.queryGenerator = new QueryGenerator({

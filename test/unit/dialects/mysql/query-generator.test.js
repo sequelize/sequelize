@@ -1,12 +1,12 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../../support'),
-  dialect = Support.getTestDialect(),
-  _ = require('lodash'),
-  Op = require('../../../../lib/operators'),
-  QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require('../../support');
+const dialect = Support.getTestDialect();
+const Op = require('../../../../lib/operators');
+const QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
+const { forEach } = require('../../../../lib/utils/forEach');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', () => {
@@ -717,7 +717,7 @@ if (dialect === 'mysql') {
       ]
     };
 
-    _.each(suites, (tests, suiteTitle) => {
+    forEach(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
         beforeEach(function() {
           this.queryGenerator = new QueryGenerator({

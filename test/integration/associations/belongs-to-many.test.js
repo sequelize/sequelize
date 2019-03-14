@@ -1,16 +1,17 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  Sequelize = require('../../../index'),
-  _ = require('lodash'),
-  sinon = require('sinon'),
-  Promise = Sequelize.Promise,
-  Op = Sequelize.Op,
-  current = Support.sequelize,
-  dialect = Support.getTestDialect();
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require('../support');
+const DataTypes = require('../../../lib/data-types');
+const Sequelize = require('../../../index');
+const sinon = require('sinon');
+const Promise = Sequelize.Promise;
+const Op = Sequelize.Op;
+const current = Support.sequelize;
+const dialect = Support.getTestDialect();
+const { forEach } = require('../../../lib/utils/forEach');
+
 
 describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   describe('getAssociations', () => {
@@ -1452,7 +1453,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(ParanoidUser.options.paranoid).to.be.ok;
       expect(ParanoidTask.options.paranoid).to.be.ok;
 
-      _.forEach(ParanoidUser.associations, association => {
+      forEach(ParanoidUser.associations, association => {
         expect(association.through.model.options.paranoid).not.to.be.ok;
       });
     });

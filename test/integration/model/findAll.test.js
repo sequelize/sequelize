@@ -1,17 +1,18 @@
 'use strict';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  Sequelize = require('../../../index'),
-  expect = chai.expect,
-  Support = require('../support'),
-  Op = Sequelize.Op,
-  DataTypes = require('../../../lib/data-types'),
-  dialect = Support.getTestDialect(),
-  config = require('../../config/config'),
-  _ = require('lodash'),
-  moment = require('moment'),
-  current = Support.sequelize;
+const chai = require('chai');
+const sinon = require('sinon');
+const Sequelize = require('../../../index');
+const expect = chai.expect;
+const Support = require('../support');
+const Op = Sequelize.Op;
+const DataTypes = require('../../../lib/data-types');
+const dialect = Support.getTestDialect();
+const config = require('../../config/config');
+const moment = require('moment');
+const current = Support.sequelize;
+const { forEach } = require('../../../lib/utils/forEach');
+
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(function() {
@@ -927,7 +928,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               coal: this.Industry.create({ name: 'Coal' }),
               bob: this.Person.create({ name: 'Bob', lastName: 'Becket' })
             }).then(r => {
-              _.forEach(r, (item, itemName) => {
+              forEach(r, (item, itemName) => {
                 this[itemName] = item;
               });
               return Sequelize.Promise.all([
@@ -1117,7 +1118,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               pierre: this.Person.create({ name: 'Pierre', lastName: 'Paris' }),
               kim: this.Person.create({ name: 'Kim', lastName: 'Z' })
             }).then(r => {
-              _.forEach(r, (item, itemName) => {
+              forEach(r, (item, itemName) => {
                 this[itemName] = item;
               });
 
@@ -1273,7 +1274,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               media: this.Industry.create({ name: 'Media' }),
               tech: this.Industry.create({ name: 'Tech' })
             }).then(r => {
-              _.forEach(r, (item, itemName) => {
+              forEach(r, (item, itemName) => {
                 this[itemName] = item;
               });
 

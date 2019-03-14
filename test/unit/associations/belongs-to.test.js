@@ -1,12 +1,12 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  sinon = require('sinon'),
-  _         = require('lodash'),
-  DataTypes = require('../../../lib/data-types'),
-  Support   = require('../support'),
-  current   = Support.sequelize;
+const chai = require('chai');
+const expect = chai.expect;
+const sinon = require('sinon');
+const DataTypes = require('../../../lib/data-types');
+const Support   = require('../support');
+const current   = Support.sequelize;
+const { forEach } = require('../../../lib/utils/forEach');
 
 describe(Support.getTestDialectTeaser('belongsTo'), () => {
   it('throws when invalid model is passed', () => {
@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
     const User = current.define('User');
     const Task = current.define('Task');
 
-    _.each(methods, (alias, method) => {
+    forEach(methods, (alias, method) => {
       User.prototype[method] = function() {
         const realMethod = this.constructor.associations.task[alias];
         expect(realMethod).to.be.a('function');
@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
     const user = User.build();
 
-    _.each(methods, (alias, method) => {
+    forEach(methods, (alias, method) => {
       expect(user[method]()).to.be.a('function');
     });
   });

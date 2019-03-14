@@ -4,7 +4,6 @@ const chai = require('chai');
 const sinon = require('sinon');
 const expect = chai.expect;
 const stub = sinon.stub;
-const _ = require('lodash');
 const Sequelize = require('../../../index');
 const Promise = Sequelize.Promise;
 const Support = require('../support');
@@ -14,6 +13,7 @@ const HasMany = require('../../../lib/associations/has-many');
 const HasOne = require('../../../lib/associations/has-one');
 const current = Support.sequelize;
 const AssociationError = require('../../../lib/errors').AssociationError;
+const { forEach } = require('../../../lib/utils/forEach');
 
 describe(Support.getTestDialectTeaser('belongsToMany'), () => {
   it('throws when invalid model is passed', () => {
@@ -82,7 +82,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     const User = current.define('User');
     const Task = current.define('Task');
 
-    _.each(methods, (alias, method) => {
+    forEach(methods, (alias, method) => {
       User.prototype[method] = function() {
         const realMethod = this.constructor.associations.task[alias];
         expect(realMethod).to.be.a('function');
@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
     const user = User.build();
 
-    _.each(methods, (alias, method) => {
+    forEach(methods, (alias, method) => {
       expect(user[method]()).to.be.a('function');
     });
   });

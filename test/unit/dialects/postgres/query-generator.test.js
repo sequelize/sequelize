@@ -1,15 +1,15 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Op = require('../../../../lib/operators'),
-  QueryGenerator = require('../../../../lib/dialects/postgres/query-generator'),
-  Support = require('../../support'),
-  dialect = Support.getTestDialect(),
-  DataTypes = require('../../../../lib/data-types'),
-  moment = require('moment'),
-  current = Support.sequelize,
-  _ = require('lodash');
+const chai = require('chai');
+const expect = chai.expect;
+const Op = require('../../../../lib/operators');
+const QueryGenerator = require('../../../../lib/dialects/postgres/query-generator');
+const Support = require('../../support');
+const dialect = Support.getTestDialect();
+const DataTypes = require('../../../../lib/data-types');
+const moment = require('moment');
+const current = Support.sequelize;
+const { forEach } = require('../../../../lib/utils/forEach');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
@@ -1210,7 +1210,7 @@ if (dialect.startsWith('postgres')) {
       ]
     };
 
-    _.each(suites, (tests, suiteTitle) => {
+    forEach(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
         beforeEach(function() {
           this.queryGenerator = new QueryGenerator({
