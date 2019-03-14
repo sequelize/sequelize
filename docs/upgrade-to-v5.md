@@ -20,6 +20,10 @@ http://docs.sequelizejs.com/manual/querying.html#operators-security
 - You can still use string operators by passing an operators map in `operatorsAliases`, but that will give you deprecation warning.
 - Op.$raw is removed
 
+### Typescript Support
+
+Sequelize now ship official typings [#10287](https://github.com/sequelize/sequelize/pull/10287). You can consider migrating away from external typings which may get out of sync.
+
 ### Pooling
 
 With v5 Sequelize now use `sequelize-pool` which is a modernized fork of `generic-pool@2.5`. You no longer need to call `sequelize.close` to shutdown pool, this helps with lambda executions. [#8468](https://github.com/sequelize/sequelize/issues/8468)
