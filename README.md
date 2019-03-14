@@ -18,9 +18,9 @@ Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite an
 
 Sequelize follows [SEMVER](http://semver.org). Supports Node v6 and above to use ES6 features.
 
-## v5 Release (March 13, 2019)
+## v5 Release
 
-You can find the upgrade guide and changelog on [upgrade-to-v5.md](https://github.com/sequelize/sequelize/blob/master/docs/upgrade-to-v5.md).
+You can find the upgrade guide and changelog in [upgrade-to-v5.md](https://github.com/sequelize/sequelize/blob/master/docs/upgrade-to-v5.md).
 
 ## Table of Contents
 - [Installation](#installation)
