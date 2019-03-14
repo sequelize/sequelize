@@ -51,11 +51,25 @@ const sequelize = new Sequelize({
 });
 ```
 
-### Note for production
+### Note: connection pool (production)
 
-If you're connecting to the database from a single process, you should create only one Sequelize instance. Sequelize will setup a connection pool on initialization. This connection pool can be configured with the construction options (using `options.pool`). Learn more in the [API Reference for the Sequelize constructor](/class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor). If you're connecting to the database from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of such that the total maximum size is respected. For example, if you want a max connection pool size of 90 and you have three processes, the Sequelize instance of each process should have a max connection pool size of 30.
+If you're connecting to the database from a single process, you should create only one Sequelize instance. Sequelize will setup a connection pool on initialization. This connection pool can be configured with the construction options (using `options.pool`). Example:
 
-## Testing the connection
+```js
+const sequelize = new Sequelize(/* ... */, {
+  // ...
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  }
+});
+```
+
+Learn more in the [API Reference for the Sequelize constructor](/class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor). If you're connecting to the database from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of such that the total maximum size is respected. For example, if you want a max connection pool size of 90 and you have three processes, the Sequelize instance of each process should have a max connection pool size of 30.
+
+### Testing the connection
 
 You can use the `.authenticate()` function to test if the connection is OK:
 
@@ -69,6 +83,10 @@ sequelize
     console.error('Unable to connect to the database:', err);
   });
 ```
+
+### Closing the connection
+
+Sequelize will keep the connection open by default, and use the same connection for all queries. If you need to close the connection, call `sequelize.close()` (which is asynchronous and returns a Promise).
 
 ## Modeling a table
 
@@ -105,10 +123,10 @@ const sequelize = new Sequelize(connectionURI, {
 });
 
 // Here `timestamps` will be false, so the `createdAt` and `updatedAt` fields will not be created.
-const User = sequelize.define('user', {});
+const Foo = sequelize.define('foo', { /* ... */ });
 
 // Here `timestamps` is directly set to true, so the `createdAt` and `updatedAt` fields will be created.
-const Post = sequelize.define('post', {}, { timestamps: true });
+const Bar = sequelize.define('bar', { /* ... */ }, { timestamps: true });
 ```
 
 You can read more about creating models in the [define API Reference](/class/lib/sequelize.js~Sequelize.html#instance-method-define) and the [Model API reference](/class/lib/model.js~Model.html).
@@ -128,9 +146,13 @@ User.sync({ force: true }).then(() => {
 });
 ```
 
+### Synchronizing all models at once
+
+Instead of calling `sync()` for every model, you can call `sequelize.sync()` which will automatically sync all models.
+
 ### Note for production
 
-In production, you might want to consider using Migrations instead of calling `sync` in your code. Learn more in the [Migrations](http://docs.sequelizejs.com/manual/migrations.html) guide.
+In production, you might want to consider using Migrations instead of calling `sync()` in your code. Learn more in the [Migrations](http://docs.sequelizejs.com/manual/migrations.html) guide.
 
 ## Querying
 
@@ -139,24 +161,30 @@ A few simple queries are shown below:
 ```js
 // Find all users
 User.findAll().then(users => {
-  console.log(users);
-  // Create a new user
-  return User.create({ firstName: "Jane", lastName: "Doe" })
-}).then(jane => {
-  console.log(jane.id); // Log the auto generated ID (assuming default behavior)
-  // Delete everyone named "Jane"
-  return User.destroy({
-    where: {
-      firstName: "Jane"
-    }
-  });
+  console.log("All users:", JSON.stringify(users, null, 4));
+});
+
+// Create a new user
+User.create({ firstName: "Jane", lastName: "Doe" }).then(jane => {
+  console.log("Jane's auto-generated ID:", jane.id);
+});
+
+// Delete everyone named "Jane"
+User.destroy({
+  where: {
+    firstName: "Jane"
+  }
 }).then(() => {
-  // Change everyone without a last name to "Doe"
-  return User.update({ lastName: "Doe" }, {
-    where: {
-      lastName: null
-    }
-  });
+  console.log("Done");
+});
+
+// Change everyone without a last name to "Doe"
+User.update({ lastName: "Doe" }, {
+  where: {
+    lastName: null
+  }
+}).then(() => {
+  console.log("Done");
 });
 ```
 
