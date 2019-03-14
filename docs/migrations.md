@@ -17,7 +17,7 @@ $ npm install --save sequelize-cli
 To create an empty project you will need to execute `init` command
 
 ```bash
-$ npx sequelize init
+$ npx sequelize-cli init
 ```
 
 This will create following folders
