@@ -132,6 +132,10 @@ Then push and send your pull request. Happy hacking and thank you for contributi
 
 Have a look at our [.eslintrc.json](https://github.com/sequelize/sequelize/blob/master/.eslintrc.json) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
 
+# Contributing to the documentation
+
+For contribution guidelines for the documentation, see [CONTRIBUTING.DOCS.md](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.DOCS.md).
+
 # Publishing a release (For Maintainers)
 
 1. Ensure that latest build on master is green
