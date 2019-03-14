@@ -71,7 +71,7 @@ We will use `model:generate` command. This command requires two options
 Let's create a model named `User`.
 
 ```bash
-$ npx sequelize model:generate --name User --attributes firstName:string,lastName:string,email:string
+$ npx sequelize-cli model:generate --name User --attributes firstName:string,lastName:string,email:string
 ```
 
 This will do following
@@ -85,7 +85,7 @@ This will do following
 Until this step, we haven't inserted anything into the database. We have just created required model and migration files for our first model `User`. Now to actually create that table in database you need to run `db:migrate` command.
 
 ```bash
-$ npx sequelize db:migrate
+$ npx sequelize-cli db:migrate
 ```
 
 This command will execute these steps:
@@ -100,13 +100,13 @@ Now our table has been created and saved in database. With migration you can rev
 You can use `db:migrate:undo`, this command will revert most recent migration.
 
 ```bash
-$ npx sequelize db:migrate:undo
+$ npx sequelize-cli db:migrate:undo
 ```
 
 You can revert back to initial state by undoing all migrations with `db:migrate:undo:all` command. You can also revert back to a specific migration by passing its name in `--to` option.
 
 ```bash
-$ npx sequelize db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js
+$ npx sequelize-cli db:migrate:undo:all --to XXXXXXXXXXXXXX-create-posts.js
 ```
 
 ### Creating First Seed
@@ -117,7 +117,7 @@ To manage all data migrations you can use seeders. Seed files are some change in
 Let's create a seed file which will add a demo user to our `User` table.
 
 ```bash
-$ npx sequelize seed:generate --name demo-user
+$ npx sequelize-cli seed:generate --name demo-user
 ```
 
 This command will create a seed file in `seeders` folder. File name will look something like `XXXXXXXXXXXXXX-demo-user.js`. It follows the same `up / down` semantics as the migration files.
@@ -147,7 +147,7 @@ module.exports = {
 In last step you have create a seed file. It's still not committed to database. To do that we need to run a simple command.
 
 ```bash
-$ npx sequelize db:seed:all
+$ npx sequelize-cli db:seed:all
 ```
 
 This will execute that seed file and you will have a demo user inserted into `User` table.
@@ -160,19 +160,19 @@ Seeders can be undone if they are using any storage. There are two commands avai
 If you wish to undo most recent seed
 
 ```bash
-$ npx sequelize db:seed:undo
+$ npx sequelize-cli db:seed:undo
 ```
 
 If you wish to undo a specific seed
 
 ```bash
-$ npx sequelize db:seed:undo --seed name-of-seed-as-in-data
+$ npx sequelize-cli db:seed:undo --seed name-of-seed-as-in-data
 ```
 
 If you wish to undo all seeds
 
 ```bash
-$ npx sequelize db:seed:undo:all
+$ npx sequelize-cli db:seed:undo:all
 ```
 
 ## Advance Topics
@@ -518,7 +518,7 @@ As an alternative to the `--config` option with configuration files defining you
 use the `--url` option to pass in a connection string. For example:
 
 ```bash
-$ npx sequelize db:migrate --url 'mysql://root:password@mysql_host.com/database_name'
+$ npx sequelize-cli db:migrate --url 'mysql://root:password@mysql_host.com/database_name'
 ```
 
 ### Passing Dialect Specific Options
