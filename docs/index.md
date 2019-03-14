@@ -19,26 +19,19 @@
 [![License](https://badgen.net/github/license/sequelize/sequelize)](https://github.com/sequelize/sequelize/blob/master/LICENSE)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-Sequelize is a promise-based ORM for Node.js v6 and up. It supports the dialects PostgreSQL, MariaDB, MySQL, SQLite and MSSQL and features solid transaction support, relations, read replication and more.
+Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite and Microsoft SQL Server. It features solid transaction support, relations, eager and lazy loading, read replication and more.
 
-## Example usage
+Sequelize follows [SEMVER](http://semver.org). Supports Node v6 and above to use ES6 features.
+
+**Sequelize v5** was released on March 13, 2019.
+
+You are currently looking at the **Tutorials and Guides** for Sequelize. You might also be interested in the [API Reference](identifiers).
+
+## Quick example
 
 ```js
 const Sequelize = require('sequelize');
-const sequelize = new Sequelize('database', 'username', 'password', {
-  host: 'localhost',
-  dialect: 'mysql'|'mariadb'|'sqlite'|'postgres'|'mssql',
-
-  pool: {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
-  },
-
-  // SQLite only
-  storage: 'path/to/database.sqlite'
-});
+const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 
 const User = sequelize.define('user', {
   username: Sequelize.STRING,
@@ -55,4 +48,4 @@ sequelize.sync()
   });
 ```
 
-Please use [Getting Started](manual/getting-started) to learn more. If you wish to learn about Sequelize API please use [API Reference](identifiers)
+To learn more about how to use Sequelize, read the tutorials available in the left menu. [Begin with Getting Started](manual/getting-started).
