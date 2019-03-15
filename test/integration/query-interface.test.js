@@ -289,6 +289,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
+    it('should be able to add a column of type of array of enums', function() {
+      return this.queryInterface.addColumn('users', 'tags', {
+        allowNull: false,
+        type: Sequelize.ARRAY(Sequelize.ENUM(
+          'Value1',
+          'Value2',
+          'Value3'
+        ))
+      }).then(() => {
+        return this.queryInterface.describeTable('users');
+      }).then(table => {
+        expect(table).to.have.property('tags');
+      });
+    });
+
     it('should be able to add a foreign key reference', function() {
       return this.queryInterface.createTable('level', {
         id: {
