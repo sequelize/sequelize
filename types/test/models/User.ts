@@ -11,11 +11,9 @@ import {
 import { sequelize } from '../connection';
 
 export class User extends Model {
-  /*
   public static associations: {
     group: BelongsTo<User, UserGroup>;
   };
-  */
 
   public id: number;
   public username: string;
@@ -77,5 +75,6 @@ User.addHook('beforeFind', 'test', (options: FindOptions) => {
 import { UserGroup } from './UserGroup';
 export const Group = User.belongsTo(UserGroup, { as: 'group', foreignKey: 'groupId' });
 
-// const userType: ModelCtor<User> = User.associations.group.source;
-// const groupType: ModelCtor<UserGroup> = User.associations.group.target;
+// associations refer to their Model
+const userType: ModelCtor<User> = User.associations.group.source;
+const groupType: ModelCtor<UserGroup> = User.associations.group.target;
