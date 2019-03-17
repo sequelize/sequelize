@@ -788,7 +788,7 @@ if (dialect === 'mariadb') {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             this.queryGenerator.options = Object.assign({}, this.queryGenerator.options, test.context && test.context.options || {});
 
-            const conditions = this.queryGenerator[suiteTitle].apply(this.queryGenerator, test.arguments);
+            const conditions = this.queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         });
