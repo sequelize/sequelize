@@ -21,6 +21,7 @@ describe('Connection Manager', () => {
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
+    sandbox.usingPromise(require('bluebird'));
   });
 
   afterEach(() => {
