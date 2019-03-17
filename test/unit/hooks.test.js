@@ -35,10 +35,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('proxies', () => {
     beforeEach(() => {
-      sinon.stub(current, 'query').returns(Promise.resolve([{
+      sinon.stub(current, 'query').resolves([{
         _previousDataValues: {},
         dataValues: { id: 1, name: 'abc' }
-      }]));
+      }]);
     });
 
     afterEach(() => {
