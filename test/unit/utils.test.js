@@ -144,7 +144,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       });
     });
 
-    it('$or where', () => {
+    it('Op.or where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
           [Op.or]: {
@@ -171,7 +171,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       });
     });
 
-    it('$or[] where', () => {
+    it('Op.or[] where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
           [Op.or]: [
