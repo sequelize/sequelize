@@ -1,61 +1,77 @@
 # Getting started
 
-## Installation
+In this tutorial you will learn to make a simple setup of Sequelize to learn the basics.
 
-Sequelize is available via NPM and Yarn.
+## Installing
 
-```bash
-// Using NPM
-$ npm install --save sequelize
+Sequelize is available via [npm](https://www.npmjs.com/package/sequelize) (or [yarn](https://yarnpkg.com/package/sequelize)).
 
-# And one of the following:
-$ npm install --save pg pg-hstore
+```sh
+npm install --save sequelize
+```
+
+You also have to install manually the driver for the database of your choice:
+
+```sh
+# One of the following:
+$ npm install --save pg pg-hstore # Postgres
 $ npm install --save mysql2
 $ npm install --save mariadb
 $ npm install --save sqlite3
-$ npm install --save tedious // MSSQL
-
-// Using Yarn
-$ yarn add sequelize
-
-# And one of the following:
-$ yarn add pg pg-hstore
-$ yarn add mysql2
-$ yarn add mariadb
-$ yarn add sqlite3
-$ yarn add tedious // MSSQL
+$ npm install --save tedious # Microsoft SQL Server
 ```
 
 ## Setting up a connection
 
-Sequelize will setup a connection pool on initialization so you should ideally only ever create one instance per database if you're connecting to the DB from a single process. If you're connecting to the DB from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of "max connection pool size divided by number of instances".  So, if you wanted a max connection pool size of 90 and you had 3 worker processes, each process's instance should have a max connection pool size of 30.
+To connect to the database, you must create a Sequelize instance. This can be done by passing the connection parameters separately to the Sequelize constructor or by passing a single connection URI directly:
 
 ```js
 const Sequelize = require('sequelize');
+
+// Option 1: Passing parameters separately
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
-  dialect: 'mysql'|'mariadb'|'sqlite'|'postgres'|'mssql',
+  dialect: /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */
+});
 
+// Option 2: Using a connection URI
+const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
+```
+
+The Sequelize constructor takes a whole slew of options that are documented in the [API Reference for the Sequelize constructor](/class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor).
+
+### Note: setting up SQLite
+
+If you're using SQLite, you should use the following instead:
+
+```js
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: 'path/to/database.sqlite'
+});
+```
+
+### Note: connection pool (production)
+
+If you're connecting to the database from a single process, you should create only one Sequelize instance. Sequelize will setup a connection pool on initialization. This connection pool can be configured with the construction options (using `options.pool`). Example:
+
+```js
+const sequelize = new Sequelize(/* ... */, {
+  // ...
   pool: {
     max: 5,
     min: 0,
     acquire: 30000,
     idle: 10000
-  },
-
-  // SQLite only
-  storage: 'path/to/database.sqlite'
+  }
 });
-
-// Or you can simply use a connection uri
-const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 ```
 
-The Sequelize constructor takes a whole slew of options that are available via the [API reference](/class/lib/sequelize.js~Sequelize.html).
+Learn more in the [API Reference for the Sequelize constructor](/class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor). If you're connecting to the database from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of such that the total maximum size is respected. For example, if you want a max connection pool size of 90 and you have three processes, the Sequelize instance of each process should have a max connection pool size of 30.
 
-## Test the connection
+### Testing the connection
 
-You can use the `.authenticate()` function like this to test the connection.
+You can use the `.authenticate()` function to test if the connection is OK:
 
 ```js
 sequelize
@@ -68,23 +84,61 @@ sequelize
   });
 ```
 
-## Your first model
+### Closing the connection
 
-Models are defined with `sequelize.define('name', {attributes}, {options})`.
+Sequelize will keep the connection open by default, and use the same connection for all queries. If you need to close the connection, call `sequelize.close()` (which is asynchronous and returns a Promise).
+
+## Modeling a table
+
+Models are defined with `sequelize.define('name', attributes, options)`:
 
 ```js
 const User = sequelize.define('user', {
   firstName: {
-    type: Sequelize.STRING
+    type: Sequelize.STRING,
+    allowNull: false
   },
   lastName: {
     type: Sequelize.STRING
+    // allowNull defaults to true
+  }
+});
+```
+
+The above code tells Sequelize to expect a table named `users` in the database with the fields `firstName` and `lastName`. The table name is automatically pluralized by default (a library called [inflection](https://www.npmjs.com/package/inflection) is used under the hood to do this). This behavior can be stopped for a specific model by using the `freezeTableName: true` option, or for all models by using the `define` option from the Sequelize constructor.
+
+Sequelize also defines by default the fields `id` (primary key), `createdAt` and `updatedAt` to every model. This behavior can also be changed, of course (check the API Reference to learn more about the available options).
+
+### Changing the default model options
+
+The Sequelize constructor takes a `define` option which will change the default options for all defined models.
+
+```js
+const sequelize = new Sequelize(connectionURI, {
+  define: {
+    // The `timestamps` field specify whether or not the `createdAt` and `updatedAt` fields will be created. 
+    // This was true by default, but now is false by default
+    timestamps: false
   }
 });
 
-// force: true will drop the table if it already exists
-User.sync({force: true}).then(() => {
-  // Table created
+// Here `timestamps` will be false, so the `createdAt` and `updatedAt` fields will not be created.
+const Foo = sequelize.define('foo', { /* ... */ });
+
+// Here `timestamps` is directly set to true, so the `createdAt` and `updatedAt` fields will be created.
+const Bar = sequelize.define('bar', { /* ... */ }, { timestamps: true });
+```
+
+You can read more about creating models in the [define API Reference](/class/lib/sequelize.js~Sequelize.html#instance-method-define) and the [Model API reference](/class/lib/model.js~Model.html).
+
+## Synchronizing the model with the database
+
+If you want Sequelize to automatically create the table (or modify it as needed) according to your model definition, you can use the `sync` method, as follows:
+
+```js
+// Note: using `force: true` will drop the table if it already exists
+User.sync({ force: true }).then(() => {
+  // Now the `users` table in the database corresponds to the model definition
   return User.create({
     firstName: 'John',
     lastName: 'Hancock'
@@ -92,67 +146,52 @@ User.sync({force: true}).then(() => {
 });
 ```
 
-You can read more about creating models at [Model API reference](/class/lib/model.js~Model.html)
+### Synchronizing all models at once
 
-## Your first query
+Instead of calling `sync()` for every model, you can call `sequelize.sync()` which will automatically sync all models.
+
+### Note for production
+
+In production, you might want to consider using Migrations instead of calling `sync()` in your code. Learn more in the [Migrations](http://docs.sequelizejs.com/manual/migrations.html) guide.
+
+## Querying
+
+A few simple queries are shown below:
 
 ```js
+// Find all users
 User.findAll().then(users => {
-  console.log(users)
-})
-```
+  console.log("All users:", JSON.stringify(users, null, 4));
+});
 
-You can read more about finder functions on models like `.findAll()` at [Data retrieval](/manual/tutorial/models-usage.html#data-retrieval-finders) or how to do specific queries like `WHERE` and `JSONB` at [Querying](/manual/tutorial/querying.html).
+// Create a new user
+User.create({ firstName: "Jane", lastName: "Doe" }).then(jane => {
+  console.log("Jane's auto-generated ID:", jane.id);
+});
 
-### Application wide model options
-
-The Sequelize constructor takes a `define` option which will be used as the default options for all defined models.
-
-```js
-const sequelize = new Sequelize('connectionUri', {
-  define: {
-    timestamps: false // true by default
+// Delete everyone named "Jane"
+User.destroy({
+  where: {
+    firstName: "Jane"
   }
+}).then(() => {
+  console.log("Done");
 });
 
-const User = sequelize.define('user', {}); // timestamps is false by default
-const Post = sequelize.define('post', {}, {
-  timestamps: true // timestamps will now be true
-});
-```
-
-## Promises
-
-Sequelize uses [Bluebird](http://bluebirdjs.com) promises to control async control-flow.
-
-**Note:** _Sequelize use independent copy of Bluebird instance. You can access it using
- `Sequelize.Promise` if you want to set any Bluebird specific options_
-
-If you are unfamiliar with how promises work, don't worry, you can read up on them [here](http://bluebirdjs.com/docs/why-promises.html).
-
-Basically, a promise represents a value which will be present at some point - "I promise you I will give you a result or an error at some point". This means that
-
-```js
-// DON'T DO THIS
-user = User.findOne()
-
-console.log(user.get('firstName'));
-```
-
-_will never work!_ This is because `user` is a promise object, not a data row from the DB. The right way to do it is:
-
-```js
-User.findOne().then(user => {
-  console.log(user.get('firstName'));
+// Change everyone without a last name to "Doe"
+User.update({ lastName: "Doe" }, {
+  where: {
+    lastName: null
+  }
+}).then(() => {
+  console.log("Done");
 });
 ```
 
-When your environment or transpiler supports [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await) this will work but only in the body of an [async](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) function:
+Sequelize has a lot of options for querying. You will learn more about those in the next tutorials. It is also possible to make raw SQL queries, if you really need them.
 
-```js
-user = await User.findOne()
+## Promises and async/await
 
-console.log(user.get('firstName'));
-```
+As shown above by the extensive usage of `.then` calls, Sequelize uses Promises extensively. This means that, if your Node version supports it, you can use ES2017 `async/await` syntax for all asynchronous calls made with Sequelize.
 
-Once you've got the hang of what promises are and how they work, use the [bluebird API reference](http://bluebirdjs.com/docs/api-reference.html) as your go-to tool. In particular, you'll probably be using [`.all`](http://bluebirdjs.com/docs/api/promise.all.html) a lot.
+Also, all Sequelize promises are in fact [Bluebird](http://bluebirdjs.com) promises, so you have the rich Bluebird API to use as well (for example, using `finally`, `tap`, `tapCatch`, `map`, `mapSeries`, etc). You can access the Bluebird constructor used internally by Sequelize with `Sequelize.Promise`, if you want to set any Bluebird specific options.

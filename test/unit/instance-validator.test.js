@@ -102,7 +102,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     it('should run beforeValidate hook but not afterValidate hook when _validate is unsuccessful', function() {
       const failingInstanceValidator = new InstanceValidator(this.User.build());
       sinon.stub(failingInstanceValidator, '_validate').callsFake(() => {
-        return Promise.reject();
+        return Promise.reject(new Error());
       });
       const beforeValidate = sinon.spy();
       const afterValidate = sinon.spy();
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       it('should call validationFailed hook when validation fails', function() {
         const failingInstanceValidator = new InstanceValidator(this.User.build());
         sinon.stub(failingInstanceValidator, '_validate').callsFake(() => {
-          return Promise.reject();
+          return Promise.reject(new Error());
         });
         const validationFailedHook = sinon.spy();
         this.User.validationFailed(validationFailedHook);

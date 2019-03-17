@@ -719,7 +719,7 @@ project.setUsers([user1, user2]).then(() => {
 ## Advance Concepts
 
 ### Scopes
-This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/manual/tutorial/scopes.html).
+This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/manual/scopes.html).
 
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
@@ -788,15 +788,19 @@ Note that the Image -> Comment and Post -> Comment relations define a scope, `co
 
 ```js
 image.getComments()
-// SELECT "id", "title", "commentable", "commentableId", "createdAt", "updatedAt" FROM "comments" AS "comment" WHERE "comment"."commentable" = 'image' AND "comment"."commentableId" = 1;
+// SELECT "id", "title", "commentable", "commentableId", "createdAt", "updatedAt" FROM "comments" AS
+// "comment" WHERE "comment"."commentable" = 'image' AND "comment"."commentableId" = 1;
 
 image.createComment({
   title: 'Awesome!'
 })
-// INSERT INTO "comments" ("id","title","commentable","commentableId","createdAt","updatedAt") VALUES (DEFAULT,'Awesome!','image',1,'2018-04-17 05:36:40.454 +00:00','2018-04-17 05:36:40.454 +00:00') RETURNING *;
+// INSERT INTO "comments" ("id","title","commentable","commentableId","createdAt","updatedAt") VALUES
+// (DEFAULT,'Awesome!','image',1,'2018-04-17 05:36:40.454 +00:00','2018-04-17 05:36:40.454 +00:00')
+// RETURNING *;
 
 image.addComment(comment);
-// UPDATE "comments" SET "commentableId"=1,"commentable"='image',"updatedAt"='2018-04-17 05:38:43.948 +00:00' WHERE "id" IN (1)
+// UPDATE "comments" SET "commentableId"=1,"commentable"='image',"updatedAt"='2018-04-17 05:38:43.948
+// +00:00' WHERE "id" IN (1)
 ```
 
 The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to either `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image. You can pass a normal options object as a parameter to `getItem(options)` to specify any where conditions or includes.

@@ -11,7 +11,7 @@ import {
 } from './associations/index';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
-import { AllModelHooks, HookReturn, Hooks, ModelHookOptions } from './hooks';
+import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { ModelManager } from './model-manager';
 import Op = require('./operators');
@@ -1348,7 +1348,7 @@ export interface ModelOptions<M extends Model = Model> {
    * See Hooks for more information about hook
    * functions and their signatures. Each property can either be a function, or an array of functions.
    */
-  hooks?: Partial<ModelHookOptions<M>>;
+  hooks?: Partial<ModelHooks<M>>;
 
   /**
    * An object of model wide validations. Validations have access to all model values via `this`. If the
@@ -1516,7 +1516,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   /**
    * Apply a scope created in `define` to the model. First let's look at how to create scopes:
    * ```js
-   * var Model = sequelize.define('model', attributes, {
+   * const Model = sequelize.define('model', attributes, {
    *   defaultScope: {
    *     where: {
    *       username: 'dan'
@@ -2156,49 +2156,6 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): void;
 
   /**
-   * A hook that is run before a define call
-   *
-   * @param name
-   * @param fn   A callback function that is called with attributes, options
-   */
-  public static beforeDefine<M extends Model>(
-    this: { new (): M } & typeof Model,
-    name: string,
-    fn: (attributes: ModelAttributes, options: ModelOptions<M>) => void
-  ): void;
-  public static beforeDefine<M extends Model>(
-    this: { new (): M } & typeof Model,
-    fn: (attributes: ModelAttributes, options: ModelOptions<M>) => void
-  ): void;
-
-  /**
-   * A hook that is run after a define call
-   *
-   * @param name
-   * @param fn   A callback function that is called with factory
-   */
-  public static afterDefine(name: string, fn: (model: typeof Model) => void): void;
-  public static afterDefine(fn: (model: typeof Model) => void): void;
-
-  /**
-   * A hook that is run before Sequelize() call
-   *
-   * @param name
-   * @param fn   A callback function that is called with config, options
-   */
-  public static beforeInit(name: string, fn: (config: Config, options: Options) => void): void;
-  public static beforeInit(fn: (config: Config, options: Options) => void): void;
-
-  /**
-   * A hook that is run after Sequelize() call
-   *
-   * @param name
-   * @param fn   A callback function that is called with sequelize
-   */
-  public static afterInit(name: string, fn: (sequelize: Sequelize) => void): void;
-  public static afterInit(fn: (sequelize: Sequelize) => void): void;
-
-  /**
    * A hook that is run before sequelize.sync call
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
@@ -2270,7 +2227,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ways. Consider users and projects from before with a join table that stores whether the project has been
    * started yet:
    * ```js
-   * var UserProjects = sequelize.define('userprojects', {
+   * const UserProjects = sequelize.define('userprojects', {
    *   started: Sequelize.BOOLEAN
    * })
    * User.hasMany(Project, { through: UserProjects })
@@ -2296,7 +2253,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * available as an object with the name of the through model.
    * ```js
    * user.getProjects().then(projects => {
-   *   var p1 = projects[0]
+   *   const p1 = projects[0]
    *   p1.userprojects.started // Is this project started yet?
    * })
    * ```
@@ -2322,7 +2279,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * associations in two ways. Consider users and projects from before with a join table that stores whether
    * the project has been started yet:
    * ```js
-   * var UserProjects = sequelize.define('userprojects', {
+   * const UserProjects = sequelize.define('userprojects', {
    *   started: Sequelize.BOOLEAN
    * })
    * User.belongsToMany(Project, { through: UserProjects })

@@ -33,3 +33,12 @@ Sequelize.addHook('beforeCreate', () => {
 }).addHook('beforeBulkCreate', () => {
     // noop
 });
+
+Sequelize.beforeConnect(() => {
+
+});
+
+Sequelize.afterConnect(() => {
+
+});
+

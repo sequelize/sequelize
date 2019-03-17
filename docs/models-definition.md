@@ -127,7 +127,7 @@ Sequelize.Deferrable.NOT
 ```
 
 The last option is the default in PostgreSQL and won't allow you to dynamically change
-the rule in a transaction. See [the transaction section](/manual/tutorial/transactions.html#options) for further information.
+the rule in a transaction. See [the transaction section](/manual/transactions.html#options) for further information.
 
 ## Getters & setters
 
@@ -666,7 +666,7 @@ sequelize.define('user', {}, {
 ```
 
 
-[0]: /manual/tutorial/models-definition.html#configuration
-[1]: /manual/tutorial/data-types.html
+[0]: /manual/models-definition.html#configuration
+[1]: /manual/data-types.html
 [3]: https://github.com/chriso/validator.js
 [5]: /docs/final/misc#asynchronicity

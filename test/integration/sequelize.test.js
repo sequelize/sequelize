@@ -1021,7 +1021,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             } else if (dialect === 'mssql') {
               expect(err.message).to.equal('Login failed for user \'bar\'.');
             } else {
-              expect(err.message.toString()).to.match(/.*Access\ denied.*/);
+              expect(err.message.toString()).to.match(/.*Access denied.*/);
             }
           });
       });
@@ -1187,7 +1187,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('imports a dao definition from a function', function() {
       const Project = this.sequelize.import('Project', (sequelize, DataTypes) => {
-        return sequelize.define(`Project${parseInt(Math.random() * 9999999999999999)}`, {
+        return sequelize.define(`Project${parseInt(Math.random() * 9999999999999999, 10)}`, {
           name: DataTypes.STRING
         });
       });
