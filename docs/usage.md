@@ -275,7 +275,7 @@ sequelize
 sequelize
   .query('SELECT 1', {
     // A function (or false) for logging your queries
-    // Will get called for every SQL query that gets send
+    // Will get called for every SQL query that gets sent
     // to the server.
     logging: console.log,
 
