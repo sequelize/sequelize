@@ -6,8 +6,7 @@ const chai = require('chai'),
   Sequelize = Support.Sequelize,
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require('../../../lib/data-types'),
-  Promise = require('bluebird');
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method count', () => {
@@ -15,7 +14,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.oldFindAll = Sequelize.Model.findAll;
       this.oldAggregate = Sequelize.Model.aggregate;
 
-      Sequelize.Model.findAll = sinon.stub().returns(Promise.resolve());
+      Sequelize.Model.findAll = sinon.stub().resolves();
 
       this.User = current.define('User', {
         username: DataTypes.STRING,
@@ -35,7 +34,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     beforeEach(function() {
-      this.stub = Sequelize.Model.aggregate = sinon.stub().returns(Promise.resolve());
+      this.stub = Sequelize.Model.aggregate = sinon.stub().resolves();
     });
 
     describe('should pass the same options to model.aggregate as findAndCountAll', () => {

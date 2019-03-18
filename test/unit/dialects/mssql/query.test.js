@@ -23,9 +23,7 @@ if (dialect === 'mssql') {
           isolationLevel: 'REPEATABLE_READ',
           logging: false
         };
-        sandbox.stub(connectionStub, 'beginTransaction').callsFake(cb => {
-          cb();
-        });
+        sandbox.stub(connectionStub, 'beginTransaction').callsArg(0);
         query = new Query(connectionStub, sequelize, options);
       });
 

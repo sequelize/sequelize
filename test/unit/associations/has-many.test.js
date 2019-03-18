@@ -38,8 +38,8 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       });
 
     beforeEach(function() {
-      this.findAll = stub(Task, 'findAll').returns(Promise.resolve([]));
-      this.update = stub(Task, 'update').returns(Promise.resolve([]));
+      this.findAll = stub(Task, 'findAll').resolves([]);
+      this.update = stub(Task, 'update').resolves([]);
     });
 
     afterEach(function() {
@@ -56,11 +56,11 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
     it('uses one delete from statement', function() {
       this.findAll
-        .onFirstCall().returns(Promise.resolve([]))
-        .onSecondCall().returns(Promise.resolve([
+        .onFirstCall().resolves([])
+        .onSecondCall().resolves([
           { userId: 42, taskId: 15 },
           { userId: 42, taskId: 16 }
-        ]));
+        ]);
 
       return user.setTasks([task1, task2]).then(() => {
         this.update.resetHistory();
@@ -145,10 +145,10 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       foreignKey = 'user_id';
 
     it('should fetch associations for a single instance', () => {
-      const findAll = stub(Task, 'findAll').returns(Promise.resolve([
+      const findAll = stub(Task, 'findAll').resolves([
         Task.build({}),
         Task.build({})
-      ]));
+      ]);
 
       User.Tasks = User.hasMany(Task, { foreignKey });
       const actual = User.Tasks.get(User.build({ id: idA }));
