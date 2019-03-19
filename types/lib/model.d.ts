@@ -2192,7 +2192,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static hasOne(target: typeof Model, options?: HasOneOptions): HasOne;
+  public static hasOne<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: HasOneOptions
+  ): HasOne<M, T>;
 
   /**
    * Creates an association between this (the source) and the provided target. The foreign key is added on the
@@ -2203,8 +2205,10 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static belongsTo(target: typeof Model, options?: BelongsToOptions): BelongsTo;
-
+  public static belongsTo<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: BelongsToOptions
+  ): BelongsTo<M, T>;
+    
   /**
    * Create an association that is either 1:m or n:m.
    *
@@ -2257,7 +2261,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static hasMany(target: typeof Model, options?: HasManyOptions): HasMany;
+  public static hasMany<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: HasManyOptions
+  ): HasMany<M, T>;
 
   /**
    * Create an N:M association with a join table
@@ -2307,7 +2313,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options Options for the association
    *
    */
-  public static belongsToMany(target: typeof Model, options: BelongsToManyOptions): BelongsToMany;
+  public static belongsToMany<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options: BelongsToManyOptions
+  ): BelongsToMany<M, T>;
 
   /**
    * Returns true if this instance has not yet been persisted to the database
@@ -2510,5 +2518,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public toJSON(): object;
 }
+
+export type ModelType = typeof Model;
+
+export type ModelCtor<M extends Model> = { new (): M } & ModelType;
 
 export default Model;

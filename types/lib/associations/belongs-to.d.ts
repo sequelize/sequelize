@@ -1,8 +1,9 @@
 import { DataType } from '../data-types';
-import { CreateOptions, FindOptions, Model, SaveOptions } from '../model';
+import { CreateOptions, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
 import { Promise } from '../promise';
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
+// type ModelCtor<M extends Model> = InstanceType<typeof M>;
 /**
  * Options provided when associating models with belongsTo relationship
  *
@@ -21,9 +22,9 @@ export interface BelongsToOptions extends AssociationOptions {
   keyType?: DataType;
 }
 
-export class BelongsTo extends Association {
+export class BelongsTo<S extends Model = Model, T extends Model = Model> extends Association<S, T> {
   public accessors: SingleAssociationAccessors;
-  constructor(source: typeof Model, target: typeof Model, options: BelongsToOptions);
+  constructor(source: ModelCtor<S>, target: ModelCtor<T>, options: BelongsToOptions);
 }
 
 /**

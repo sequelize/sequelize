@@ -1,5 +1,5 @@
 import { DataType } from '../data-types';
-import { CreateOptions, FindOptions, Model, SaveOptions } from '../model';
+import { CreateOptions, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
 import { Promise } from '../promise';
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
@@ -13,9 +13,9 @@ export interface HasOneOptions extends AssociationOptions {
   keyType?: DataType;
 }
 
-export class HasOne extends Association {
+export class HasOne<S extends Model = Model, T extends Model = Model> extends Association<S, T> {
   public accessors: SingleAssociationAccessors;
-  constructor(source: typeof Model, target: typeof Model, options: HasOneOptions);
+  constructor(source: ModelCtor<S>, target: ModelCtor<T>, options: HasOneOptions);
 }
 
 /**

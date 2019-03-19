@@ -6,6 +6,7 @@ import {
   InstanceDestroyOptions,
   InstanceUpdateOptions,
   Model,
+  ModelCtor,
   Transactionable,
   WhereOptions,
 } from '../model';
@@ -68,10 +69,10 @@ export interface BelongsToManyOptions extends ManyToManyOptions {
   timestamps?: boolean;
 }
 
-export class BelongsToMany extends Association {
+export class BelongsToMany<S extends Model = Model, T extends Model = Model> extends Association<S, T> {
   public otherKey: string;
   public accessors: MultiAssociationAccessors;
-  constructor(source: typeof Model, target: typeof Model, options: BelongsToManyOptions);
+  constructor(source: ModelCtor<S>, target: ModelCtor<T>, options: BelongsToManyOptions);
 }
 
 /**
