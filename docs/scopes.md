@@ -7,7 +7,8 @@ Scoping allows you to define commonly used queries that you can easily use later
 Scopes are defined in the model definition and can be finder objects, or functions returning finder objects - except for the default scope, which can only be an object:
 
 ```js
-const Project = sequelize.define('project', {
+class Project extends Model {}
+Project.init({
   // Attributes
 }, {
   defaultScope: {
@@ -26,14 +27,14 @@ const Project = sequelize.define('project', {
         { model: User, where: { active: true }}
       ]
     },
-    random: function () {
+    random () {
       return {
         where: {
           someNumber: Math.random()
         }
       }
     },
-    accessLevel: function (value) {
+    accessLevel (value) {
       return {
         where: {
           accessLevel: {
@@ -42,6 +43,7 @@ const Project = sequelize.define('project', {
         }
       }
     }
+    sequelize,
   }
 });
 ```
@@ -175,10 +177,14 @@ Includes are merged recursively based on the models being included. This is a ve
 Consider four models: Foo, Bar, Baz and Qux, with has-many associations as follows:
 
 ```js
-Foo = sequelize.define('foo', { name: Sequelize.STRING };
-Bar = sequelize.define('bar', { name: Sequelize.STRING };
-Baz = sequelize.define('baz', { name: Sequelize.STRING };
-Qux = sequelize.define('qux', { name: Sequelize.STRING };
+class Foo extends Model {}
+class Bar extends Model {}
+class Baz extends Model {}
+class Qux extends Model {}
+Foo.init({ name: Sequelize.STRING }, { sequelize });
+Bar.init({ name: Sequelize.STRING }, { sequelize });
+Baz.init({ name: Sequelize.STRING }, { sequelize });
+Qux.init({ name: Sequelize.STRING }, { sequelize });
 Foo.hasMany(Bar, { foreignKey: 'fooId' });
 Bar.hasMany(Baz, { foreignKey: 'barId' });
 Baz.hasMany(Qux, { foreignKey: 'bazId' });
@@ -282,7 +288,8 @@ User.getPosts({ scope: ['scope1', 'scope2']});
 If you want to create a shortcut method to a scope on an associated model, you can pass the scoped model to the association. Consider a shortcut to get all deleted posts for a user:
 
 ```js
-const Post = sequelize.define('post', attributes, {
+class Post extends Model {}
+Post.init(attributes, {
   defaultScope: {
     where: {
       active: true
@@ -294,7 +301,8 @@ const Post = sequelize.define('post', attributes, {
         deleted: true
       }
     }
-  }
+  },
+  sequelize,
 });
 
 User.hasMany(Post); // regular getPosts association

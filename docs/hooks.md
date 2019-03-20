@@ -47,8 +47,9 @@ Arguments to hooks are passed by reference. This means, that you can change the 
 There are currently three ways to programmatically add hooks:
 
 ```js
-// Method 1 via the .define() method
-const User = sequelize.define('user', {
+// Method 1 via the .init() method
+class User extends Model {}
+User.init({
   username: DataTypes.STRING,
   mood: {
     type: DataTypes.ENUM,
@@ -62,7 +63,8 @@ const User = sequelize.define('user', {
     afterValidate: (user, options) => {
       user.username = 'Toni';
     }
-  }
+  },
+  sequelize
 });
 
 // Method 2 via the .addHook() method
@@ -91,9 +93,10 @@ User.afterValidate('myHookAfter', (user, options) => {
 Only a hook with name param can be removed.
 
 ```js
-const Book = sequelize.define('book', {
+class Book extends Model {}
+Book.init({
   title: DataTypes.STRING
-});
+}, { sequelize });
 
 Book.addHook('afterCreate', 'notifyUsers', (book, options) => {
   // ...
@@ -123,13 +126,16 @@ const sequelize = new Sequelize(..., {
 This adds a default hook to all models, which is run if the model does not define its own `beforeCreate` hook:
 
 ```js
-const User = sequelize.define('user');
-const Project = sequelize.define('project', {}, {
+class User extends Model {}
+User.init({}, { sequelize });
+class Project extends Model {}
+Project.init({}, {
     hooks: {
         beforeCreate: () => {
             // Do other stuff
         }
-    }
+    },
+    sequelize
 });
 
 User.create() // Runs the global hook
@@ -146,13 +152,16 @@ sequelize.addHook('beforeCreate', () => {
 This hook is always run before create, regardless of whether the model specifies its own `beforeCreate` hook. Local hooks are always run before global hooks:
 
 ```js
-const User = sequelize.define('user');
-const Project = sequelize.define('project', {}, {
+class User extends Model {}
+User.init({}, { sequelize });
+class Project extends Model {}
+Project.init({}, {
     hooks: {
         beforeCreate: () => {
             // Do other stuff
         }
-    }
+    },
+    sequelize
 });
 
 User.create() // Runs the global hook
@@ -318,13 +327,15 @@ For the most part hooks will work the same for instances when being associated e
 2. The only way to call beforeDestroy/afterDestroy hooks are on associations with `onDelete: 'cascade'` and the option `hooks: true`. For instance:
 
 ```js
-const Projects = sequelize.define('projects', {
+class Projects extends Model {}
+Projects.init({
   title: DataTypes.STRING
-});
+}, { sequelize });
 
-const Tasks = sequelize.define('tasks', {
+class Tasks extends Model {}
+Tasks.init({
   title: DataTypes.STRING
-});
+}, { sequelize });
 
 Projects.hasMany(Tasks, { onDelete: 'cascade', hooks: true });
 Tasks.belongsTo(Projects);

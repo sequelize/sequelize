@@ -974,7 +974,8 @@ export class Sequelize extends Hooks {
    * represents a column. A short table definition might look like this:
    *
    * ```js
-   * sequelize.define('modelName', {
+   * class MyModel extends Model {}
+   * MyModel.init({
    *   columnA: {
    *     type: Sequelize.BOOLEAN,
    *     validate: {
@@ -990,7 +991,7 @@ export class Sequelize extends Hooks {
    *   },
    *   columnB: Sequelize.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
-   * })
+   * }, { sequelize })
    *
    * sequelize.models.modelName // The model will now be available in models under the name given to define
    * ```
