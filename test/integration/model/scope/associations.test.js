@@ -418,6 +418,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(user.dataValues).not.to.have.property('secret');
             });
         });
+
+        it('should not throw error', function() {
+          const Clientfile = this.sequelize.define('clientfile');
+          const Mission = this.sequelize.define('mission', { secret: Sequelize.STRING });
+          const Building = this.sequelize.define('building');
+          Clientfile.hasOne(Mission);
+          Clientfile.hasOne(Building);
+
+          return this.sequelize.sync({ force: true })
+            .then(() => {
+              return Clientfile.findAll({
+                include: [
+                  {
+                    association: 'mission',
+                    where: {
+                      secret: 'foo'
+                    }
+                  },
+                  {
+                    association: 'building'
+                  }
+                ]
+              });
+            });
+        });
       });
     });
   });
