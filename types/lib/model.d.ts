@@ -1101,6 +1101,7 @@ export interface ColumnOptions {
   /**
    * If false, the column will have a NOT NULL constraint, and a not null validation will be run before an
    * instance is saved.
+   * @default true
    */
   allowNull?: boolean;
 
@@ -2208,7 +2209,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static belongsTo<M extends Model, T extends Model>(
     this: ModelCtor<M>, target: ModelCtor<T>, options?: BelongsToOptions
   ): BelongsTo<M, T>;
-    
+
   /**
    * Create an association that is either 1:m or n:m.
    *

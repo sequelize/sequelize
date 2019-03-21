@@ -1,0 +1,165 @@
+# TypeScript
+
+Since v5 Sequelize provides it's own TypeScript definitions.
+Please note that only TS >= 3.1 is supported.
+
+## Installation:
+
+In order to avoid installation bloat for non TS users you must install the following packages manually:
+ - `@types/node` this is universally required
+ - `@types/node @types/validator`
+ - `@types/bluebird`
+
+ ## Note
+
+As Sequelize heavily relies on runtime property assignments, TypeScript won't be very useful out of the box.
+A decent amount of manual type declarations are needed to make models workable.
+
+## Usage
+
+Example of a minimal TypeScript project:
+
+```ts
+import { Sequelize, Model, DataTypes, BuildOptions } from 'sequelize';
+import { HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyHasAssociationMixin, Association, HasManyCountAssociationsMixin, HasManyCreateAssociationMixin } from '../../lib/associations';
+
+class User extends Model {
+  public id!: number; // Note that the `null assertion` `!` is required in strict mode.
+  public name!: string;
+  public preferredName!: string | null; // for nullable fields
+
+  // timestamps!
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+
+  // Since TS cannot determine model association at compile time
+  // we have to declare them here purely virtually
+  // these will not exist until `Model.init` was called.
+
+  public getProjects: HasManyGetAssociationsMixin<Project>;
+  public addProject: HasManyAddAssociationMixin<Project, number>;
+  public hasProject: HasManyHasAssociationMixin<Project, number>;
+  public countProjects: HasManyCountAssociationsMixin;
+  public createProject: HasManyCreateAssociationMixin<Project>;
+
+  // You can also pre-declare possible inclusions, these will only be populated if you
+  // actively include a relation.
+  public readonly projects?: Project[];
+
+  public static associtations: {
+    projects: Association<User, Project>;
+  };
+}
+
+const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
+
+class Project extends Model {
+  public id!: number;
+  public ownerId!: number;
+  public name!: string;
+
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+Project.init({
+  id: {
+    type: new DataTypes.INTEGER.UNSIGNED(), // you can omit the `new` but this is discouraged
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  ownerId: {
+    type: new DataTypes.INTEGER.UNSIGNED(),
+    allowNull: false,
+  },
+  name: {
+    type: new DataTypes.STRING(128),
+    allowNull: false,
+  }
+}, {
+  sequelize,
+  tableName: 'projects',
+});
+
+User.init({
+  id: {
+    type: new DataTypes.INTEGER.UNSIGNED(),
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  name: {
+    type: new DataTypes.STRING(128),
+    allowNull: false,
+  },
+  preferredName: {
+    type: new DataTypes.STRING(128),
+    allowNull: true
+  }
+}, {
+  tableName: 'users',
+  sequelize: sequelize, // this bit is important
+});
+
+// Here we associate which actually populates out pre-declared `association` static and other methods.
+User.hasMany(Project, {
+  foreignKey: 'ownerId',
+  as: 'projects' // this determines the name in `associations`!
+});
+
+async function stuff() {
+  // Please note that when using async/await you lose the `bluebird` promise context
+  // and you fall back to native
+  const newUser = await User.create({
+    name: 'Johnny',
+    preferredName: 'John',
+  });
+  console.log(newUser.id, newUser.name, newUser.preferredName);
+
+  const project = await newUser.createProject({
+    name: 'first!',
+  });
+
+  const ourUser = await User.findByPk(1, {
+    include: [User.associations.Project],
+    rejectOnEmpty: true, // Specifying true here removes `null` from the return type!
+  });
+  console.log(ourUser.projects![0].name); // Note the `!` null assertion since TS can't know if we included
+                                          // the model or not
+}
+```
+
+## Legacy `.define` usage
+
+TypeScript doesn't know how to generate a `class` definition when we use the legacy `.define`,
+therefor we need to do some manual work and declare an interface and a type and eventually cast 
+the result of `.define` to the _static_ type.
+
+```ts
+// We need to declare an interface for our model that is basically what our class would be
+interface MyModel extends Model {
+  readonly id: number;
+}
+
+// Need to declare the static model so `findOne` etc. use correct types.
+// You can also declare all your association stuff in here
+type MyModelStatic = typeof Model & {
+  new (values?: object, options?: BuildOptions): MyModel;
+}
+
+// TS can't derive a proper class definition from a `.define` call, therefor we need to cast here.
+const MyDefineModel = <MyModelStatic>sequelize.define('MyDefineModel', {
+  id: {
+    primaryKey: true,
+    type: DataTypes.INTEGER.UNSIGNED,
+  }
+});
+
+function stuffTwo() {
+  MyDefineModel.findByPk(1, {
+    rejectOnEmpty: true,
+  })
+  .then(myModel => {
+    console.log(myModel.id);
+  });
+}
+```

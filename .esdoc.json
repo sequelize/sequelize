@@ -50,6 +50,7 @@
             "./docs/hooks.md",
             "./docs/raw-queries.md",
             "./docs/migrations.md",
+            "./docs/typescript.md",
             "./docs/upgrade-to-v5.md",
             "./docs/legacy.md",
             "./docs/whos-using.md",
