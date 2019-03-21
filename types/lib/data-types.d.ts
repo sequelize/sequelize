@@ -310,7 +310,9 @@ export interface DecimalDataTypeOptions {
   scale?: number;
 }
 
-export interface BooleanDataType extends AbstractDataType {}
+export interface BooleanDataType extends AbstractDataType {
+  __type: boolean;
+}
 
 /**
  * A boolean / tinyint column, depending on dialect
@@ -435,7 +437,9 @@ export interface RangeDataTypeOptions<T extends RangeableDataType> {
   subtype?: T;
 }
 
-export interface UuidDataType extends AbstractDataType {}
+export interface UuidDataType extends AbstractDataType {
+  __type: string
+}
 
 /**
  * A column storing a unique universal identifier. Use with `UUIDV1` or `UUIDV4` for default values.
@@ -610,3 +614,46 @@ export const CITEXT: AbstractDataTypeConstructor;
 
 // umzug compatibility
 export type DataTypeAbstract = AbstractDataTypeConstructor;
+
+
+type CastSimpleDataType<T extends DataType> = 
+  T extends 
+    | NumberDataType
+    | NumberDataTypeConstructor
+  ? number : 
+  T extends UuidDataType
+  ? string : 
+  T extends BooleanDataType
+  ? boolean : 
+  T extends 
+    | StringDataType
+    | StringDataTypeConstructor
+    | TextDataType
+    | TextDataTypeConstructor
+  ? string :
+  T extends 
+    | DateOnlyDataType
+    | DateOnlyDataTypeConstructor
+    | DateDataType
+    | DateDataTypeConstructor
+  ? Date : 
+  T extends AbstractDataTypeConstructor
+  ? any : 
+  {};
+
+
+/**
+ * Conditional type mapper
+ * From a sequelize  datatype to basic type (string, number, boolean, Date)
+ * ```typescript
+ * const date: CastDataType<DateOnlyDataType> = new Date();
+ * ```
+ */
+export type CastDataType<T extends DataType> = 
+  T extends ArrayDataType<infer ArrayType>
+  ? CastSimpleDataType<ArrayType>[]
+  : T extends EnumDataType<infer EnumType>
+  ? EnumType
+  : T extends EnumDataTypeConstructor
+  ? string[]
+  : CastSimpleDataType<T>;

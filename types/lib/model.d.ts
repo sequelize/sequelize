@@ -9,7 +9,7 @@ import {
   HasOne,
   HasOneOptions,
 } from './associations/index';
-import { DataType } from './data-types';
+import { DataType, CastDataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
@@ -2531,8 +2531,54 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public toJSON(): object;
 }
 
+/**
+ * Simple shorthand to use typeof Model
+ */
 export type ModelType = typeof Model;
 
+/**
+ * Constructor type of Model
+ * To get ModelType from a generic Model
+ */
 export type ModelCtor<M extends Model> = { new (): M } & ModelType;
 
+/**
+ * Conditional type mapper
+ * Get DataType from a generic ModelAttributes value T
+ * if T is a ModelAttributeColumnOptions, DataType is ModelAttributeColumnOptions["type"]
+ */
+type ExtractAttributeDataType<T extends DataType | ModelAttributeColumnOptions> = 
+  T extends DataType
+  ? T :
+  T extends ModelAttributeColumnOptions
+  ? T["type"] :
+  any;
+
+/**
+ * Get attributes "basic types" (string, number, boolean, Date, *[]) from a ModelAttributes
+ * ```typescript
+ * const productAttributes = {
+ *  sku: DataTypes.STRING,
+ *  qty: {
+ *     type: DataTypes.INTEGER,
+ *     allowNull: true
+ *  },
+ *  instock: DataTypes.BOOLEAN,
+ *  label: {
+ *     type: DataTypes.STRING(100),
+ *     allowNull: true
+ * };
+ * type TProduct = AttributesTypes<typeof productAttributes>;
+ * // {
+ * //   sku: string;
+ * //   qty: number;
+ * //   instock: boolean;
+ * //   label: string;
+ * // }
+ * ```
+ */
+export type AttributesTypes<T extends ModelAttributes> = { [P in keyof T]: CastDataType<ExtractAttributeDataType<T[P]>> };
+
 export default Model;
+
+
