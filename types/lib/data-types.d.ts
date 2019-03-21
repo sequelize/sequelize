@@ -310,10 +310,12 @@ export interface DecimalDataTypeOptions {
   scale?: number;
 }
 
+export interface BooleanDataType extends AbstractDataType {}
+
 /**
  * A boolean / tinyint column, depending on dialect
  */
-export const BOOLEAN: AbstractDataTypeConstructor;
+export const BOOLEAN: BooleanDataType;
 
 /**
  * A time column
@@ -433,20 +435,22 @@ export interface RangeDataTypeOptions<T extends RangeableDataType> {
   subtype?: T;
 }
 
+export interface UuidDataType extends AbstractDataType {}
+
 /**
  * A column storing a unique universal identifier. Use with `UUIDV1` or `UUIDV4` for default values.
  */
-export const UUID: AbstractDataTypeConstructor;
+export const UUID: UuidDataType;
 
 /**
  * A default unique universal identifier generated following the UUID v1 standard
  */
-export const UUIDV1: AbstractDataTypeConstructor;
+export const UUIDV1: UuidDataType;
 
 /**
  * A default unique universal identifier generated following the UUID v4 standard
  */
-export const UUIDV4: AbstractDataTypeConstructor;
+export const UUIDV4: UuidDataType;
 
 /**
  * A virtual value that is not stored in the DB. This could for example be useful if you want to provide a default value in your model that is returned to the user but not stored in the DB.
