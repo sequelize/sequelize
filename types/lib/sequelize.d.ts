@@ -3,6 +3,7 @@ import * as Deferrable from './deferrable';
 import { HookReturn, Hooks, SequelizeHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import {
+  AttributesTypes,
   AndOperator,
   BulkCreateOptions,
   CreateOptions,
@@ -1019,7 +1020,7 @@ export class Sequelize extends Hooks {
    * @param options  These options are merged with the default define options provided to the Sequelize
    *           constructor
    */
-  public define(modelName: string, attributes: ModelAttributes, options?: ModelOptions): typeof Model;
+  public define<A extends ModelAttributes>(modelName: string, attributes: A, options?: ModelOptions): { new (...args: any[]): Model & AttributesTypes<A> } & typeof Model;
 
   /**
    * Fetch a Model which is already defined

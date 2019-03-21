@@ -1469,7 +1469,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *  string or a type-description object, with the properties described below:
    * @param options These options are merged with the default define options provided to the Sequelize constructor
    */
-  public static init(attributes: ModelAttributes, options: InitOptions): void;
+  public static init<A extends ModelAttributes>(attributes: A, options: InitOptions): { new (...args: any[]): Model & AttributesTypes<A> } & typeof Model;
 
   /**
    * Remove attribute from model definition

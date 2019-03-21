@@ -30,3 +30,27 @@ async function test() {
 
     await user2.save();
 }
+
+
+// Instance types are infered from the model attributes
+
+const Product = sequelize.define('Product', 
+    { 
+        sku: DataTypes.STRING(3),
+        availableOn: DataTypes.DATE,
+        price: DataTypes.DECIMAL(7,2),
+        instock: DataTypes.BOOLEAN
+    }, 
+    { tableName: 'users' }
+);
+
+async function test2() {
+    const p = await Product.findOne();
+    if (p) {
+        p.instock = true;
+        p.availableOn = new Date();
+        p.price = 10;
+        p.sku = 'P1000';
+        await p.save();
+    }
+}
