@@ -379,15 +379,21 @@ export type OrderItem =
   | [typeof Model, typeof Model, string, string];
 export type Order = string | Fn | Col | Literal | OrderItem[];
 
+/**
+ * Please note if this is used the aliased property will not be available on the model instance
+ * as a property but only via `instance.get('alias')`.
+ */
+export type ProjectionAlias = [string | Literal | Fn, string];
+
 export type FindAttributeOptions =
-  | (string | [string | Literal | Fn, string])[]
+  | (string | ProjectionAlias)[]
   | {
       exclude: string[];
-      include?: (string | [string | Literal | Fn, string])[];
+      include?: (string | ProjectionAlias)[];
     }
   | {
       exclude?: string[];
-      include: (string | [string | Literal | Fn, string])[];
+      include: (string | ProjectionAlias)[];
     };
 
 /**
@@ -2208,7 +2214,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static belongsTo<M extends Model, T extends Model>(
     this: ModelCtor<M>, target: ModelCtor<T>, options?: BelongsToOptions
   ): BelongsTo<M, T>;
-    
+
   /**
    * Create an association that is either 1:m or n:m.
    *
