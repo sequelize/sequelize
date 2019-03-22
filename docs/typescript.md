@@ -7,7 +7,7 @@ Please note that only TS >= 3.1 is supported.
 
 In order to avoid installation bloat for non TS users you must install the following packages manually:
  - `@types/node` this is universally required
- - `@types/node @types/validator`
+ - `@types/validator`
  - `@types/bluebird`
 
  ## Note
