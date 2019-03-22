@@ -3,22 +3,25 @@
 To define mappings between a model and a table, use the `define` method. Each column must have a datatype, see more about [datatypes][1].
 
 ```js
-const Project = sequelize.define('project', {
+class Project extends Model {}
+Project.init({
   title: Sequelize.STRING,
   description: Sequelize.TEXT
-})
+}, { sequelize });
 
-const Task = sequelize.define('task', {
+class Task extends Model {}
+Task.init({
   title: Sequelize.STRING,
   description: Sequelize.TEXT,
   deadline: Sequelize.DATE
-})
+}, { sequelize })
 ```
 
 Apart from [datatypes][1], there are plenty of options that you can set on each column.
 
 ```js
-const Foo = sequelize.define('foo', {
+class Foo extends Model {}
+Foo.init({
  // instantiating will automatically set the flag to true if not set
  flag: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: true },
 
@@ -74,7 +77,7 @@ const Foo = sequelize.define('foo', {
 
    comment: 'This is a column name that has a comment'
  }
-})
+}, { sequelize });
 ```
 
 The comment option can also be used on a table, see [model configuration][0].
@@ -143,7 +146,8 @@ Getters and Setters can be defined in 2 ways (you can mix and match these 2 appr
 ### Defining as part of a property
 
 ```js
-const Employee = sequelize.define('employee', {
+class Employee extends Model {}
+Employee.init({
   name: {
     type: Sequelize.STRING,
     allowNull: false,
@@ -160,7 +164,7 @@ const Employee = sequelize.define('employee', {
       this.setDataValue('title', val.toUpperCase());
     }
   }
-});
+}, { sequelize });
 
 Employee
   .create({ name: 'John Doe', title: 'senior engineer' })
@@ -179,7 +183,26 @@ The `fullName` getter, is an example of how you can define pseudo properties on 
 Note that the `this.firstname` and `this.lastname` references in the `fullName` getter function will trigger a call to the respective getter functions. If you do not want that then use the `getDataValue()` method to access the raw value (see below).
 
 ```js
-const Foo = sequelize.define('foo', {
+class Foo extends Model {
+  get fullName() {
+    return this.firstname + ' ' + this.lastname;
+  }
+
+  set fullName(value) {
+    const names = value.split(' ');
+    this.setDataValue('firstname', names.slice(0, -1).join(' '));
+    this.setDataValue('lastname', names.slice(-1).join(' '));
+  }
+}
+Foo.init({
+  firstname: Sequelize.STRING,
+  lastname: Sequelize.STRING
+}, {
+  sequelize,
+});
+
+// legacy with `sequelize.define`
+sequelize.define('Foo', {
   firstname: Sequelize.STRING,
   lastname: Sequelize.STRING
 }, {
@@ -197,8 +220,9 @@ const Foo = sequelize.define('foo', {
       this.setDataValue('lastname', names.slice(-1).join(' '));
     }
   }
-});
+} );
 ```
+
 
 ### Helper functions for use inside getter and setter definitions
 
@@ -233,7 +257,8 @@ Validations are automatically run on `create`, `update` and `save`. You can also
 You can define your custom validators or use several built-in validators, implemented by [validator.js][3], as shown below.
 
 ```js
-const ValidateMe = sequelize.define('foo', {
+class ValidateMe extends Model {}
+ValidateMe.init({
   bar: {
     type: Sequelize.STRING,
     validate: {
@@ -283,7 +308,7 @@ const ValidateMe = sequelize.define('foo', {
       }
     }
   }
-});
+}, { sequelize });
 ```
 
 Note that where multiple arguments need to be passed to the built-in validation functions, the arguments to be passed must be in an array. But if a single array argument is to be passed, for instance an array of acceptable strings for `isIn`, this will be interpreted as multiple string arguments instead of one array argument. To work around this pass a single-length array of arguments, such as `[['one', 'two']]` as shown above.
@@ -320,7 +345,8 @@ On the other hand, if it is set to allow null (with `allowNull: true`) and that 
 This means you can, for instance, have a string field which validates its length to be between 5 and 10 characters, but which also allows `null` (since the length validator will be skipped automatically when the value is `null`):
 
 ```js
-const User = sequelize.define('user', {
+class User extends Model {}
+User.init({
   username: {
     type: Sequelize.STRING,
     allowNull: true,
@@ -328,32 +354,34 @@ const User = sequelize.define('user', {
       len: [5, 10]
     }
   }
-});
+}, { sequelize });
 ```
 
 You also can conditionally allow `null` values, with a custom validator, since it won't be skipped:
 
 ```js
-const User = sequelize.define('user', {
+class User extends Model {}
+User.init({
   age: Sequelize.INTEGER,
   name: {
     type: Sequelize.STRING,
     allowNull: true,
     validate: {
-      customValidator: function(value) {
+      customValidator(value) {
         if (value === null && this.age !== 10) {
           throw new Error("name can't be null unless age is 10");
         }
       })
     }
   }
-});
+}, { sequelize });
 ```
 
 You can customize `allowNull` error message by setting the `notNull` validator:
 
 ```js
-const User = sequelize.define('user', {
+class User extends Model {}
+User.init({
   name: {
     type: Sequelize.STRING,
     allowNull: false,
@@ -363,7 +391,7 @@ const User = sequelize.define('user', {
       }
     }
   }
-});
+}, { sequelize });
 ```
 
 ### Model-wide validations
@@ -377,7 +405,8 @@ Any error messages collected are put in the validation result object alongside t
 An example:
 
 ```js
-const Pub = Sequelize.define('pub', {
+class Pub extends Model {}
+Pub.init({
   name: { type: Sequelize.STRING },
   address: { type: Sequelize.STRING },
   latitude: {
@@ -399,7 +428,8 @@ const Pub = Sequelize.define('pub', {
         throw new Error('Require either both latitude and longitude or neither')
       }
     }
-  }
+  },
+  sequelize,
 })
 ```
 
@@ -419,7 +449,8 @@ Such validation could have also been done with a custom validator defined on a s
 You can also influence the way Sequelize handles your column names:
 
 ```js
-const Bar = sequelize.define('bar', { /* bla */ }, {
+class Bar extends Model {}
+Bar.init({ /* bla */ }, {
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
 
@@ -443,14 +474,18 @@ const Bar = sequelize.define('bar', { /* bla */ }, {
   // Enable optimistic locking.  When enabled, sequelize will add a version count attribute
   // to the model and throw an OptimisticLockingError error when stale instances are saved.
   // Set to true or a string with the attribute name you want to use to enable.
-  version: true
+  version: true,
+
+  // Sequelize instance
+  sequelize,
 })
 ```
 
 If you want sequelize to handle timestamps, but only want some of them, or want your timestamps to be called something else, you can override each column individually:
 
 ```js
-const Foo = sequelize.define('foo',  { /* bla */ }, {
+class Foo extends Model {}
+Foo.init({ /* bla */ }, {
   // don't forget to enable timestamps!
   timestamps: true,
 
@@ -462,15 +497,19 @@ const Foo = sequelize.define('foo',  { /* bla */ }, {
 
   // And deletedAt to be called destroyTime (remember to enable paranoid for this to work)
   deletedAt: 'destroyTime',
-  paranoid: true
+  paranoid: true,
+
+  sequelize,
 })
 ```
 
 You can also change the database engine, e.g. to MyISAM. InnoDB is the default.
 
 ```js
-const Person = sequelize.define('person', { /* attributes */ }, {
-  engine: 'MYISAM'
+class Person extends Model {}
+Person.init({ /* attributes */ }, {
+  engine: 'MYISAM',
+  sequelize
 })
 
 // or globally
@@ -482,8 +521,10 @@ const sequelize = new Sequelize(db, user, pw, {
 Finally you can specify a comment for the table in MySQL and PG
 
 ```js
-const Person = sequelize.define('person', { /* attributes */ }, {
-  comment: "I'm a table comment!"
+class Person extends Model {}
+Person.init({ /* attributes */ }, {
+  comment: "I'm a table comment!",
+  sequelize
 })
 ```
 
@@ -498,10 +539,12 @@ const Project = sequelize.import(__dirname + "/path/to/models/project")
 // The model definition is done in /path/to/models/project.js
 // As you might notice, the DataTypes are the very same as explained above
 module.exports = (sequelize, DataTypes) => {
-  return sequelize.define("project", {
+  class Project extends sequelize.Model { }
+  Project.init({
     name: DataTypes.STRING,
     description: DataTypes.TEXT
-  })
+  }, { sequelize });
+  return Projectl
 }
 ```
 
@@ -509,10 +552,12 @@ The `import` method can also accept a callback as an argument.
 
 ```js
 sequelize.import('project', (sequelize, DataTypes) => {
-  return sequelize.define("project", {
+  class Project extends sequelize.Model {}
+  Project.init({
     name: DataTypes.STRING,
     description: DataTypes.TEXT
-  })
+  }, { sequelize })
+  return Project;
 })
 ```
 
@@ -600,7 +645,8 @@ sequelize.sync({ force: true, match: /_test$/ });
 Sequelize Models are ES6 classes. You can very easily add custom instance or class level methods.
 
 ```js
-const User = sequelize.define('user', { firstname: Sequelize.STRING });
+class User extends Model {}
+User.init({ firstname: Sequelize.STRING }, { sequelize });
 
 // Adding a class level method
 User.classLevelMethod = function() {
@@ -616,7 +662,8 @@ User.prototype.instanceLevelMethod = function() {
 Of course you can also access the instance's data and generate virtual getters:
 
 ```js
-const User = sequelize.define('user', { firstname: Sequelize.STRING, lastname: Sequelize.STRING });
+class User extends Model {}
+User.init({ firstname: Sequelize.STRING, lastname: Sequelize.STRING }, { sequelize });
 
 User.prototype.getFullname = function() {
   return [this.firstname, this.lastname].join(' ');
@@ -630,7 +677,8 @@ User.build({ firstname: 'foo', lastname: 'bar' }).getFullname() // 'foo bar'
 Sequelize supports adding indexes to the model definition which will be created during `Model.sync()` or `sequelize.sync`.
 
 ```js
-sequelize.define('user', {}, {
+class User extends Model {}
+User.init({}, {
   indexes: [
     // Create a unique index on email
     {
@@ -661,8 +709,9 @@ sequelize.define('user', {}, {
       method: 'BTREE',
       fields: ['author', {attribute: 'title', collate: 'en_US', order: 'DESC', length: 5}]
     }
-  ]
-})
+  ],
+  sequelize
+});
 ```
 
 

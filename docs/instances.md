@@ -21,10 +21,11 @@ Built instances will automatically get default values when they were defined&col
 
 ```js
 // first define the model
-const Task = sequelize.define('task', {
+class Task extends Model {}
+Task.init({
   title: Sequelize.STRING,
   rating: { type: Sequelize.TINYINT, defaultValue: 3 }
-})
+}, { sequelize });
  
 // now instantiate an object
 const task = Task.build({title: 'very important task'})
@@ -227,7 +228,8 @@ User.bulkCreate([
 `bulkCreate` was originally made to be a mainstream&sol;fast way of inserting records&comma; however&comma; sometimes you want the luxury of being able to insert multiple rows at once without sacrificing model validations even when you explicitly tell Sequelize which columns to sift through&period; You can do by adding a `validate: true` property to the options object.
 
 ```js
-const Tasks = sequelize.define('task', {
+class Tasks extends Model {}
+Tasks.init({
   name: {
     type: Sequelize.STRING,
     validate: {
@@ -240,7 +242,7 @@ const Tasks = sequelize.define('task', {
       len: [3, 10]
     }
   }
-})
+}, { sequelize })
  
 Tasks.bulkCreate([
   {name: 'foo', code: '123'},

@@ -1207,12 +1207,13 @@ export interface ModelAttributeColumnOptions extends ColumnOptions {
    * Usage in object notation
    *
    * ```js
-   * sequelize.define('model', {
-   *     states: {
-   *       type:   Sequelize.ENUM,
-   *       values: ['active', 'pending', 'deleted']
-   *     }
-   *   })
+   * class MyModel extends Model {}
+   * MyModel.init({
+   *   states: {
+   *     type:   Sequelize.ENUM,
+   *     values: ['active', 'pending', 'deleted']
+   *   }
+   * }, { sequelize })
    * ```
    */
   values?: string[];
@@ -1522,7 +1523,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   /**
    * Apply a scope created in `define` to the model. First let's look at how to create scopes:
    * ```js
-   * const Model = sequelize.define('model', attributes, {
+   * class MyModel extends Model {}
+   * MyModel.init(attributes, {
    *   defaultScope: {
    *     where: {
    *       username: 'dan'
@@ -1535,7 +1537,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *         stuff: 'cake'
    *       }
    *     },
-   *     complexFunction: function(email, accessLevel) {
+   *     complexFunction(email, accessLevel) {
    *       return {
    *         where: {
    *           email: {
@@ -1547,7 +1549,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *         }
    *       }
    *     }
-   *   }
+   *   },
+   *   sequelize,
    * })
    * ```
    * Now, since you defined a default scope, every time you do Model.find, the default scope is appended to
@@ -2233,9 +2236,10 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ways. Consider users and projects from before with a join table that stores whether the project has been
    * started yet:
    * ```js
-   * const UserProjects = sequelize.define('userprojects', {
+   * class UserProjects extends Model {}
+   * UserProjects.init({
    *   started: Sequelize.BOOLEAN
-   * })
+   * }, { sequelize })
    * User.hasMany(Project, { through: UserProjects })
    * Project.hasMany(User, { through: UserProjects })
    * ```
@@ -2285,9 +2289,10 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * associations in two ways. Consider users and projects from before with a join table that stores whether
    * the project has been started yet:
    * ```js
-   * const UserProjects = sequelize.define('userprojects', {
+   * class UserProjects extends Model {}
+   * UserProjects.init({
    *   started: Sequelize.BOOLEAN
-   * })
+   * }, { sequelize });
    * User.belongsToMany(Project, { through: UserProjects })
    * Project.belongsToMany(User, { through: UserProjects })
    * ```
