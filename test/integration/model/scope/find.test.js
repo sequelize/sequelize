@@ -46,6 +46,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
+      this.DefaultScopeExclude = this.sequelize.define('DefaultScopeExclude', {
+        name: Sequelize.STRING
+      }, {
+        defaultScope: {
+          attributes: {
+            exclude: ['name']
+          }
+        }
+      });
+
+      this.ScopeMe.hasMany(this.DefaultScopeExclude);
+
       return this.sequelize.sync({ force: true }).then(() => {
         const records = [
           { username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7, parent_id: 1 },
@@ -117,6 +129,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should have no problem performing findOrCreate', function() {
       return this.ScopeMe.findOrCreate({ where: { username: 'fake' } }).then(([user]) => {
         expect(user.username).to.equal('fake');
+      });
+    });
+
+    it('should work when included with default scope', function() {
+      return this.ScopeMe.findOne({
+        include: [this.DefaultScopeExclude]
       });
     });
   });
