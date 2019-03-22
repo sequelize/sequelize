@@ -91,12 +91,13 @@ Usage in object notation:
 
 ```js
 // for enums:
-sequelize.define('model', {
+class MyModel extends Model {}
+MyModel.init({
   states: {
     type: Sequelize.ENUM,
     values: ['active', 'pending', 'deleted']
   }
-})
+}, { sequelize })
 ```
 
 ### Array(ENUM)

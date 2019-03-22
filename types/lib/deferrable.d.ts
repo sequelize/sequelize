@@ -7,16 +7,17 @@
  * that will check the constraints immediately when the data was inserted.
  *
  * ```js
- * sequelize.define('Model', {
+ * class MyModel extends Model {}
+ * MyModel.init({
  *   foreign_id: {
- *   type: Sequelize.INTEGER,
- *   references: {
- *     model: OtherModel,
- *     key: 'id',
- *     deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
+ *     type: Sequelize.INTEGER,
+ *     references: {
+ *       model: OtherModel,
+ *       key: 'id',
+ *       deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE
+ *     }
  *   }
- *   }
- * });
+ * }, { sequelize });
  * ```
  *
  * The constraints can be configured in a transaction like this. It will

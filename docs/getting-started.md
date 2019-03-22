@@ -90,10 +90,14 @@ Sequelize will keep the connection open by default, and use the same connection 
 
 ## Modeling a table
 
-Models are defined with `sequelize.define('name', attributes, options)`:
+
+
+Models are defined with `Model.init(attributes, options)`:
 
 ```js
-const User = sequelize.define('user', {
+class User extends Model {}
+User.init({
+  // attributes
   firstName: {
     type: Sequelize.STRING,
     allowNull: false
@@ -102,6 +106,27 @@ const User = sequelize.define('user', {
     type: Sequelize.STRING
     // allowNull defaults to true
   }
+}, {
+  sequelize,
+  // options
+});
+```
+
+Alternatively (legacy):
+
+```js
+const User = sequelize.define('User', {
+  // attributes
+  firstName: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  lastName: {
+    type: Sequelize.STRING
+    // allowNull defaults to true
+  }
+}, {
+  // options
 });
 ```
 
@@ -123,10 +148,12 @@ const sequelize = new Sequelize(connectionURI, {
 });
 
 // Here `timestamps` will be false, so the `createdAt` and `updatedAt` fields will not be created.
-const Foo = sequelize.define('foo', { /* ... */ });
+class Foo extends Model {}
+Foo.init({ /* ... */ }, { sequelize });
 
 // Here `timestamps` is directly set to true, so the `createdAt` and `updatedAt` fields will be created.
-const Bar = sequelize.define('bar', { /* ... */ }, { timestamps: true });
+class Bar extends Model {}
+Bar.init({ /* ... */ }, { sequelize, timestamps: true });
 ```
 
 You can read more about creating models in the [define API Reference](/class/lib/sequelize.js~Sequelize.html#instance-method-define) and the [Model API reference](/class/lib/model.js~Model.html).

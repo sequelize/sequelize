@@ -94,7 +94,8 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   // The following example:
   //   define: { timestamps: false }
   // is basically the same as:
-  //   sequelize.define(name, attributes, { timestamps: false })
+  //   Model.init(attributes, { timestamps: false });
+  //   sequelize.define(name, attributes, { timestamps: false });
   // so defining the timestamps for each model will be not necessary
   define: {
     underscored: false,
