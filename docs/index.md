@@ -33,10 +33,11 @@ You are currently looking at the **Tutorials and Guides** for Sequelize. You mig
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 
-const User = sequelize.define('user', {
+class User extends Model {}
+User.init({
   username: Sequelize.STRING,
   birthday: Sequelize.DATE
-});
+}, { sequelize });
 
 sequelize.sync()
   .then(() => User.create({
