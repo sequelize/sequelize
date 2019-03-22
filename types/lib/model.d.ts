@@ -1107,6 +1107,7 @@ export interface ColumnOptions {
   /**
    * If false, the column will have a NOT NULL constraint, and a not null validation will be run before an
    * instance is saved.
+   * @default true
    */
   allowNull?: boolean;
 
