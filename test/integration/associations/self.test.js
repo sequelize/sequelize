@@ -1,12 +1,10 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
-  _ = require('lodash');
+const { expect } = require('chai');
+const Support = require('../support');
+const DataTypes = require('../../../lib/data-types');
+const Sequelize = require('../../../index');
+const Promise = Sequelize.Promise;
 
 describe(Support.getTestDialectTeaser('Self'), () => {
   it('supports freezeTableName', function() {
@@ -52,7 +50,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     Person.belongsToMany(Person, { as: 'Parents', through: 'Family', foreignKey: 'ChildId', otherKey: 'PersonId' });
     Person.belongsToMany(Person, { as: 'Childs', through: 'Family', foreignKey: 'PersonId', otherKey: 'ChildId' });
 
-    const foreignIdentifiers = _.values(Person.associations).map(v => v.foreignIdentifier);
+    const foreignIdentifiers = Object.values(Person.associations).map(v => v.foreignIdentifier);
     const rawAttributes = Object.keys(this.sequelize.models.Family.rawAttributes);
 
     expect(foreignIdentifiers.length).to.equal(2);
@@ -94,7 +92,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     Person.belongsToMany(Person, { as: 'Parents', through: Family, foreignKey: 'preexisting_child', otherKey: 'preexisting_parent' });
     Person.belongsToMany(Person, { as: 'Children', through: Family, foreignKey: 'preexisting_parent', otherKey: 'preexisting_child' });
 
-    const foreignIdentifiers = _.values(Person.associations).map(v => v.foreignIdentifier);
+    const foreignIdentifiers = Object.values(Person.associations).map(v => v.foreignIdentifier);
     const rawAttributes = Object.keys(Family.rawAttributes);
 
     expect(foreignIdentifiers.length).to.equal(2);
