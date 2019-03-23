@@ -1,19 +1,16 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  assert = chai.assert,
-  Support = require('./support'),
-  DataTypes = require('../../lib/data-types'),
-  dialect = Support.getTestDialect(),
-  _ = require('lodash'),
-  Sequelize = require('../../index'),
-  config = require('../config/config'),
-  moment = require('moment'),
-  Transaction = require('../../lib/transaction'),
-  logger = require('../../lib/utils/logger'),
-  sinon = require('sinon'),
-  current = Support.sequelize;
+const { expect, assert } = require('chai');
+const Support = require('./support');
+const DataTypes = require('../../lib/data-types');
+const dialect = Support.getTestDialect();
+const _ = require('lodash');
+const Sequelize = require('../../index');
+const config = require('../config/config');
+const moment = require('moment');
+const Transaction = require('../../lib/transaction');
+const sinon = require('sinon');
+const current = Support.sequelize;
 
 const qq = str => {
   if (dialect === 'postgres' || dialect === 'mssql') {
@@ -27,10 +24,6 @@ const qq = str => {
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('constructor', () => {
-    afterEach(() => {
-      logger.deprecate.restore && logger.deprecate.restore();
-    });
-
     it('should pass the global options correctly', () => {
       const sequelize = Support.createSequelizeInstance({ logging: false, define: { underscored: true } }),
         DAO = sequelize.define('dao', { name: DataTypes.STRING });
