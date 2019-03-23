@@ -64,8 +64,6 @@ export interface AbstractDataType {
 
 /**
  * A variable length string. Default length 255
- *
- * Available properties: `BINARY`
  */
 export const STRING: StringDataTypeConstructor;
 
@@ -89,9 +87,6 @@ export interface StringDataTypeOptions {
 
 /**
  * A fixed length string. Default length 255
- *
- * Available properties: `BINARY`
- *
  */
 export const CHAR: CharDataTypeConstructor;
 
@@ -145,20 +140,61 @@ export interface NumberDataType extends AbstractDataType {
   validate(value: unknown): boolean;
 }
 
-export interface NumberDataTypeOptions {
+export interface IntegerDataTypeOptions {
   length?: number;
   zerofill?: boolean;
+  unsigned?: boolean;
+}
+export interface NumberDataTypeOptions extends IntegerDataTypeOptions {
   decimals?: number;
   precision?: number;
   scale?: number;
-  unsigned?: boolean;
+}
+
+/**
+ * A 8 bit integer.
+ */
+export const TINYINT: TinyIntegerDataTypeConstructor;
+
+interface TinyIntegerDataTypeConstructor extends NumberDataTypeConstructor {
+  new (options?: IntegerDataTypeOptions): TinyIntegerDataType;
+  (options?: IntegerDataTypeOptions): TinyIntegerDataType;
+}
+
+export interface TinyIntegerDataType extends NumberDataType {
+  options: IntegerDataTypeOptions;
+}
+
+/**
+ * A 16 bit integer.
+ */
+export const SMALLINT: SmallIntegerDataTypeConstructor;
+
+interface SmallIntegerDataTypeConstructor extends NumberDataTypeConstructor {
+  new (options?: IntegerDataTypeOptions): SmallIntegerDataType;
+  (options?: IntegerDataTypeOptions): SmallIntegerDataType;
+}
+
+export interface SmallIntegerDataType extends NumberDataType {
+  options: IntegerDataTypeOptions;
+}
+
+/**
+ * A 24 bit integer.
+ */
+export const MEDIUMINT: MediumIntegerDataTypeConstructor;
+
+interface MediumIntegerDataTypeConstructor extends NumberDataTypeConstructor {
+  new (options?: IntegerDataTypeOptions): MediumIntegerDataType;
+  (options?: IntegerDataTypeOptions): MediumIntegerDataType;
+}
+
+export interface MediumIntegerDataType extends NumberDataType {
+  options: IntegerDataTypeOptions;
 }
 
 /**
  * A 32 bit integer.
- *
- * Available properties: `UNSIGNED`, `ZEROFILL`
- *
  */
 export const INTEGER: IntegerDataTypeConstructor;
 
@@ -171,10 +207,6 @@ export interface IntegerDataType extends NumberDataType {
   options: NumberDataTypeOptions;
 }
 
-export interface IntegerDataTypeOptions {
-  length?: number;
-}
-
 /**
  * A 64 bit integer.
  *
@@ -184,16 +216,12 @@ export interface IntegerDataTypeOptions {
 export const BIGINT: BigIntDataTypeConstructor;
 
 interface BigIntDataTypeConstructor extends NumberDataTypeConstructor {
-  new (options?: BigIntDataTypeOptions): BigIntDataType;
-  (options?: BigIntDataTypeOptions): BigIntDataType;
+  new (options?: IntegerDataTypeOptions): BigIntDataType;
+  (options?: IntegerDataTypeOptions): BigIntDataType;
 }
 
 export interface BigIntDataType extends NumberDataType {
-  options: BigIntDataTypeOptions;
-}
-
-export interface BigIntDataTypeOptions {
-  length?: number;
+  options: IntegerDataTypeOptions;
 }
 
 /**
@@ -575,7 +603,6 @@ export const MACADDR: AbstractDataTypeConstructor;
  * Case incenstive text
  */
 export const CITEXT: AbstractDataTypeConstructor;
-
 
 // umzug compatibility
 export type DataTypeAbstract = AbstractDataTypeConstructor;
