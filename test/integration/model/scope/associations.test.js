@@ -423,8 +423,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const Clientfile = this.sequelize.define('clientfile');
           const Mission = this.sequelize.define('mission', { secret: Sequelize.STRING });
           const Building = this.sequelize.define('building');
-          Clientfile.hasOne(Mission);
-          Clientfile.hasOne(Building);
+          const MissionAssociation = Clientfile.hasOne(Mission);
+          const BuildingAssociation = Clientfile.hasOne(Building);
 
           return this.sequelize.sync({ force: true })
             .then(() => {
@@ -438,6 +438,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   },
                   {
                     association: 'building'
+                  }
+                ]
+              });
+            })
+            .then(() => {
+              return Clientfile.findAll({
+                include: [
+                  {
+                    association: MissionAssociation,
+                    where: {
+                      secret: 'foo'
+                    }
+                  },
+                  {
+                    association: BuildingAssociation
                   }
                 ]
               });

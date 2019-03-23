@@ -256,7 +256,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = {
           include: ['Owner']
         };
-        Sequelize.Model._conformOptions(options, this.Company);
+        Sequelize.Model._conformIncludes(options, this.Company);
 
         expect(options.include[0]).to.deep.equal({
           model: this.User,
@@ -272,7 +272,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             attributes: ['id']
           }]
         };
-        Sequelize.Model._conformOptions(options, this.Company);
+        Sequelize.Model._conformIncludes(options, this.Company);
 
         expect(options.include[0]).to.deep.equal({
           model: this.User,
@@ -290,7 +290,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         };
 
         expect(() => {
-          Sequelize.Model._conformOptions(options, this.Company);
+          Sequelize.Model._conformIncludes(options, this.Company);
         }).to.throw('Include unexpected. Element has to be either a Model, an Association or an object.');
       });
 
@@ -302,7 +302,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         };
 
         expect(() => {
-          Sequelize.Model._conformOptions(options, this.Company);
+          Sequelize.Model._conformIncludes(options, this.Company);
         }).to.throw('Include unexpected. Element has to be either a Model, an Association or an object.');
       });
     });
