@@ -1,12 +1,10 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  current = Support.sequelize,
-  sinon = require('sinon'),
-  DataTypes = require('../../../lib/data-types'),
-  _ = require('lodash');
+const { expect } = require('chai');
+const Support = require('../support');
+const current = Support.sequelize;
+const sinon = require('sinon');
+const DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method update', () => {
@@ -20,7 +18,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     beforeEach(function() {
       this.stubUpdate = sinon.stub(current.getQueryInterface(), 'bulkUpdate').resolves([]);
       this.updates = { name: 'Batman', secretValue: '7' };
-      this.cloneUpdates = _.clone(this.updates);
+      this.cloneUpdates = { ...this.updates };
     });
 
     afterEach(function() {
