@@ -913,13 +913,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return userWithDefaults.sync({ force: true }).then(() => {
           return userWithDefaults.create({}).then(user => {
             return userWithDefaults.findByPk(user.id).then(user => {
-              const now = new Date(),
-                pad = function(number) {
-                  if (number > 9) {
-                    return number;
-                  }
-                  return `0${number}`;
-                };
+              const now = new Date();
+              const pad = number =>  number.toString().padStart(2, '0');
 
               expect(user.year).to.equal(`${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`);
             });
