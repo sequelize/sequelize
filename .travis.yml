@@ -47,26 +47,26 @@ jobs:
         - npm run lint-docs
         - npm run test-typings
     - stage: test
-      node_js: '6'
+      node_js: '8'
       env: DIALECT=sqlite TSC=true
     - stage: test
-      node_js: '6'
+      node_js: '8'
       sudo: required
       env: MARIADB_VER=mariadb-103 SEQ_MARIADB_PORT=8960 DIALECT=mariadb
     - stage: test
-      node_js: '6'
+      node_js: '8'
       sudo: required
       env: MYSQL_VER=mysql-57 SEQ_MYSQL_PORT=8980 DIALECT=mysql
     - stage: test
-      node_js: '6'
+      node_js: '8'
       sudo: required
       env: POSTGRES_VER=postgres-10 SEQ_PG_PORT=8991 DIALECT=postgres
     - stage: test
-      node_js: '6'
+      node_js: '8'
       sudo: required
       env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres-native
     - stage: release
-      node_js: '8'
+      node_js: '10'
       script:
         - npm run semantic-release
       before_deploy:
