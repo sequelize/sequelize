@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const _ = require('lodash');
 const Sequelize = require('../index');
 const DataTypes = require('../lib/data-types');
 const Config = require('./config/config');
@@ -89,14 +88,15 @@ const Support = {
 
     const config = Config[options.dialect];
 
-    const sequelizeOptions = _.defaults(options, {
+    const sequelizeOptions = {
       host: options.host || config.host,
       logging: process.env.SEQ_LOG ? console.log : false,
       dialect: options.dialect,
       port: options.port || process.env.SEQ_PORT || config.port,
       pool: config.pool,
-      dialectOptions: options.dialectOptions || config.dialectOptions || {}
-    });
+      dialectOptions: options.dialectOptions || config.dialectOptions || {},
+      ...options
+    };
 
     if (process.env.DIALECT === 'postgres-native') {
       sequelizeOptions.native = true;
