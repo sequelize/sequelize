@@ -212,18 +212,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('returns proper defaultValues after save when setter is set', function() {
-      const titleSetter = sinon.spy(),
-        Task = this.sequelize.define('TaskBuild', {
-          title: {
-            type: Sequelize.STRING(50),
-            allowNull: false,
-            defaultValue: ''
-          }
-        }, {
-          setterMethods: {
-            title: titleSetter
-          }
-        });
+      const titleSetter = sinon.spy();
+      class Task extends Sequelize.Model {
+        set title(val) {
+          titleSetter(val);
+        }
+      }
+      Task.init({
+        title: {
+          type: Sequelize.STRING(50),
+          allowNull: false,
+          defaultValue: ''
+        }
+      }, { sequelize: this.sequelize });
 
       return Task.sync({ force: true }).then(() => {
         return Task.build().save().then(record => {
@@ -526,52 +527,44 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('attaches getter and setter methods from options', function() {
-      const Product = this.sequelize.define('ProductWithSettersAndGetters2', {
-        priceInCents: Sequelize.INTEGER
-      }, {
-        setterMethods: {
-          price(value) {
-            this.dataValues.priceInCents = value * 100;
-          }
-        },
-        getterMethods: {
-          price() {
-            return `$${this.getDataValue('priceInCents') / 100}`;
-          },
-
-          priceInCents() {
-            return this.dataValues.priceInCents;
-          }
+      class Product extends Sequelize.Model {
+        set price(value) {
+          this.dataValues.priceInCents = value * 100;
         }
-      });
+
+        get price() {
+          return `$${this.getDataValue('priceInCents') / 100}`;
+        }
+
+        get priceInCents() {
+          return this.dataValues.priceInCents;
+        }
+      }
+      Product.init({
+        priceInCents: Sequelize.INTEGER
+      }, { sequelize: this.sequelize });
 
       expect(Product.build({ price: 20 }).priceInCents).to.equal(20 * 100);
       expect(Product.build({ priceInCents: 30 * 100 }).price).to.equal(`$${30}`);
     });
 
-    it('attaches getter and setter methods from options only if not defined in attribute', function() {
-      const Product = this.sequelize.define('ProductWithSettersAndGetters3', {
-        price1: {
-          type: Sequelize.INTEGER,
-          set(v) { this.setDataValue('price1', v * 10); }
-        },
-        price2: {
-          type: Sequelize.INTEGER,
-          get() { return this.getDataValue('price2') * 10; }
+    it('throws when attribute getter conflicts with model getter', function() {
+      expect(() => {
+        class Product extends Sequelize.Model {
+          set price1(v) { this.setDataValue('price1', v * 100); }
+          get price2() { return `$${this.getDataValue('price2')}`;}
         }
-      }, {
-        setterMethods: {
-          price1(v) { this.setDataValue('price1', v * 100); }
-        },
-        getterMethods: {
-          price2() { return `$${this.getDataValue('price2')}`;}
-        }
-      });
-
-      const p = Product.build({ price1: 1, price2: 2 });
-
-      expect(p.price1).to.equal(10);
-      expect(p.price2).to.equal(20);
+        Product.init({
+          price1: {
+            type: Sequelize.INTEGER,
+            set(v) { this.setDataValue('price1', v * 10); }
+          },
+          price2: {
+            type: Sequelize.INTEGER,
+            get() { return this.getDataValue('price2') * 10; }
+          }
+        }, { sequelize: this.sequelize });
+      }).to.throw('conflicting getter');
     });
 
     describe('include', () => {

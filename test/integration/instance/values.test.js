@@ -78,17 +78,15 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
       });
 
       it('doesn\'t set value if not a dynamic setter or a model attribute', function() {
-        const User = this.sequelize.define('User', {
+        class User extends Sequelize.Model {
+          set email_secret(value) {
+            this.set('email_hidden', value);
+          }
+        }
+        User.init({
           name: { type: DataTypes.STRING },
           email_hidden: { type: DataTypes.STRING }
-        }, {
-          setterMethods: {
-            email_secret(value) {
-              this.set('email_hidden', value);
-            }
-          }
-        });
-
+        }, { sequelize: this.sequelize });
         const user = User.build();
 
         user.set({
@@ -248,17 +246,16 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
       });
 
       it('should custom virtual getters in get(key)', function() {
-        const Product = this.sequelize.define('Product', {
+        class Product extends Sequelize.Model {
+          get price() {
+            return this.dataValues.priceInCents / 100;
+          }
+        }
+        Product.init({
           priceInCents: {
             type: Sequelize.FLOAT
           }
-        }, {
-          getterMethods: {
-            price() {
-              return this.dataValues.priceInCents / 100;
-            }
-          }
-        });
+        }, { sequelize: this.sequelize });
 
         const product = Product.build({
           priceInCents: 1000
@@ -267,20 +264,19 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
       });
 
       it('should use custom getters in toJSON', function() {
-        const Product = this.sequelize.define('Product', {
+        class Product extends Sequelize.Model {
+          get withTaxes() {
+            return this.get('price') * 1.25;
+          }
+        }
+        Product.init({
           price: {
             type: Sequelize.STRING,
             get() {
               return this.dataValues.price * 100;
             }
           }
-        }, {
-          getterMethods: {
-            withTaxes() {
-              return this.get('price') * 1.25;
-            }
-          }
-        });
+        }, { sequelize: this.sequelize });
 
         const product = Product.build({
           price: 10
@@ -367,67 +363,6 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
           expect(product.get({ clone: true }).title).to.be.ok;
         });
-      });
-
-      it('can pass parameters to getters', function() {
-        const Product = this.sequelize.define('product', {
-          title: Sequelize.STRING
-        }, {
-          getterMethods: {
-            rating(key, options) {
-              if (options.apiVersion > 1) {
-                return 100;
-              }
-
-              return 5;
-            }
-          }
-        });
-
-        const User = this.sequelize.define('user', {
-          first_name: Sequelize.STRING,
-          last_name: Sequelize.STRING
-        }, {
-          getterMethods: {
-            height(key, options) {
-              if (options.apiVersion > 1) {
-                return 185; // cm
-              }
-
-              return 6.06; // ft
-            }
-          }
-        });
-
-        Product.belongsTo(User);
-
-        const product = Product.build({}, {
-          include: [
-            User
-          ]
-        });
-
-        product.set({
-          id: 1,
-          title: 'Chair',
-          user: {
-            id: 1,
-            first_name: 'Jozef',
-            last_name: 'Hartinger'
-          }
-        });
-
-        expect(product.get('rating')).to.equal(5);
-        expect(product.get('rating', { apiVersion: 2 })).to.equal(100);
-
-        expect(product.get({ plain: true })).to.have.property('rating', 5);
-        expect(product.get({ plain: true }).user).to.have.property('height', 6.06);
-        expect(product.get({ plain: true, apiVersion: 1 })).to.have.property('rating', 5);
-        expect(product.get({ plain: true, apiVersion: 1 }).user).to.have.property('height', 6.06);
-        expect(product.get({ plain: true, apiVersion: 2 })).to.have.property('rating', 100);
-        expect(product.get({ plain: true, apiVersion: 2 }).user).to.have.property('height', 185);
-
-        expect(product.get('user').get('height', { apiVersion: 2 })).to.equal(185);
       });
     });
 

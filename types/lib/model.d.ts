@@ -1087,20 +1087,6 @@ export interface ModelNameOptions {
 }
 
 /**
- * Interface for getterMethods in InitOptions
- */
-export interface ModelGetterOptions {
-  [name: string]: (this: Model) => unknown;
-}
-
-/**
- * Interface for setterMethods in InitOptions
- */
-export interface ModelSetterOptions {
-  [name: string]: (this: Model, val: any) => void;
-}
-
-/**
  * Interface for Define Scope Options
  */
 export interface ModelScopeOptions {
@@ -1379,16 +1365,6 @@ export interface ModelOptions<M extends Model = Model> {
    * accepts an optional error.
    */
   validate?: ModelValidateOptions;
-
-  /**
-   * Allows defining additional setters that will be available on model instances.
-   */
-  setterMethods?: ModelSetterOptions;
-
-  /**
-   * Allows defining additional getters that will be available on model instances.
-   */
-  getterMethods?: ModelGetterOptions;
 
   /**
    * Enable optimistic locking.

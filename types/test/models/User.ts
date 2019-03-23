@@ -38,16 +38,6 @@ User.init(
   },
   {
     version: true,
-    getterMethods: {
-    a() {
-      return 1;
-    },
-    },
-    setterMethods: {
-      b(val: string) {
-        (<User>this).username = val;
-      },
-    },
     scopes: {
       custom(a: number) {
         return {

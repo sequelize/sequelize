@@ -203,27 +203,6 @@ Foo.init({
   sequelize,
   modelName: 'foo'
 });
-
-// Or with `sequelize.define`
-sequelize.define('Foo', {
-  firstname: Sequelize.STRING,
-  lastname: Sequelize.STRING
-}, {
-  getterMethods: {
-    fullName() {
-      return this.firstname + ' ' + this.lastname;
-    }
-  },
-
-  setterMethods: {
-    fullName(value) {
-      const names = value.split(' ');
-
-      this.setDataValue('firstname', names.slice(0, -1).join(' '));
-      this.setDataValue('lastname', names.slice(-1).join(' '));
-    }
-  }
-});
 ```
 
 ### Helper functions for use inside getter and setter definitions
