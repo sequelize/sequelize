@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     if (current.dialect.name === 'postgres') {
       describe('IF NOT EXISTS version check', () => {
-        const modifiedSQL = _.clone(sql);
+        const modifiedSQL = { ...sql };
         const createTableQueryModified = sql.createTableQuery.bind(modifiedSQL);
         it('it will not have IF NOT EXISTS for version 9.0 or below', () => {
           modifiedSQL.sequelize.options.databaseVersion = '9.0.0';
