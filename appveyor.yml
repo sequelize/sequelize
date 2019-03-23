@@ -10,7 +10,7 @@ shallow_clone: true
 
 environment:
   matrix:
-    - { NODE_VERSION: 6, DIALECT: mssql, COVERAGE: true }
+    - { NODE_VERSION: 8, DIALECT: mssql, COVERAGE: true }
 
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
