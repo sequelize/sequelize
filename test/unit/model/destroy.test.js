@@ -1,12 +1,10 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('../support'),
-  current = Support.sequelize,
-  sinon = require('sinon'),
-  DataTypes = require('../../../lib/data-types'),
-  _ = require('lodash');
+const { expect } = require('chai');
+const Support = require('../support');
+const current = Support.sequelize;
+const sinon = require('sinon');
+const DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
 
@@ -22,7 +20,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     beforeEach(function() {
       this.deloptions = { where: { secretValue: '1' } };
-      this.cloneOptions = _.clone(this.deloptions);
+      this.cloneOptions = { ...this.deloptions };
       this.stubDelete.resetHistory();
     });
 
