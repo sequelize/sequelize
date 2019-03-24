@@ -14,9 +14,7 @@ if (!Support.sequelize.dialect.supports.deferrableConstraints) {
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('Deferrable', () => {
     beforeEach(function() {
-      this.run = function(deferrable, options) {
-        options = options || {};
-
+      this.run = function(deferrable, options = {}) {
         const taskTableName      = options.taskTableName || `tasks_${config.rand()}`;
         const transactionOptions = Object.assign({}, { deferrable: Sequelize.Deferrable.SET_DEFERRED }, options);
         const userTableName      = `users_${config.rand()}`;
