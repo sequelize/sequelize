@@ -53,6 +53,7 @@
             "./docs/resources.md",
             "./docs/typescript.md",
             "./docs/upgrade-to-v5.md",
+            "./docs/upgrade-to-v6.md",
             "./docs/legacy.md",
             "./docs/whos-using.md",
             "./docs/legal.md"
