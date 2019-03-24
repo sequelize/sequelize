@@ -82,8 +82,7 @@ const Support = {
     }
   },
 
-  createSequelizeInstance(options) {
-    options = options || {};
+  createSequelizeInstance(options = {}) {
     options.dialect = this.getTestDialect();
 
     const config = Config[options.dialect];
@@ -117,8 +116,7 @@ const Support = {
     return config;
   },
 
-  getSequelizeInstance(db, user, pass, options) {
-    options = options || {};
+  getSequelizeInstance(db, user, pass, options = {}) {
     options.dialect = options.dialect || this.getTestDialect();
     return new Sequelize(db, user, pass, options);
   },
