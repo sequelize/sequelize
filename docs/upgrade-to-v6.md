@@ -1,6 +1,6 @@
-# Upgrade to v5
+# Upgrade to v6
 
-Sequelize v5 is the next major release after v4
+Sequelize v6 is the next major release after v4
 
 ## Breaking Changes
 
