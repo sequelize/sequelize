@@ -1,13 +1,13 @@
 'use strict';
 
-const chai = require('chai'),
-  Sequelize = require('../../index'),
-  Op = Sequelize.Op,
-  Promise = Sequelize.Promise,
-  expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('../../lib/data-types'),
-  dialect = Support.getTestDialect();
+const { stub } = require('sinon');
+const { expect } = require('chai');
+const Sequelize = require('../../index');
+const Op = Sequelize.Op;
+const Promise = Sequelize.Promise;
+const Support = require('../support');
+const DataTypes = require('../../lib/data-types');
+const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Operators'), () => {
   describe('REGEXP', () => {
@@ -23,6 +23,9 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
         name: {
           type: DataTypes.STRING,
           field: 'full_name'
+        },
+        json: {
+          type: DataTypes.JSON
         }
       }, {
         tableName: 'users',
@@ -39,6 +42,9 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
           },
           full_name: {
             type: DataTypes.STRING
+          },
+          json: {
+            type: DataTypes.JSON
           }
         })
       ]);
@@ -76,6 +82,21 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
           }).then(user => {
             expect(user).to.not.be.ok;
           });
+        });
+
+        it('should work with json', function() {
+          const logging = stub();
+          return this.User.findOne({
+            logging,
+            where: {
+              json: {
+                [Op.regexp]: 'test'
+              }
+            }
+          })
+            .then(() => {
+              expect(logging.firstCall.args[0]).to.not.include('\\"test\\"');
+            });
         });
 
         it('should properly escape regular expressions', function() {
