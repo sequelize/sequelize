@@ -270,11 +270,6 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   });
 
   describe('Logger', () => {
-    it('deprecate', () => {
-      expect(logger.deprecate).to.be.a('function');
-      logger.deprecate('test deprecation');
-    });
-
     it('debug', () => {
       expect(logger.debug).to.be.a('function');
       logger.debug('test debug');
