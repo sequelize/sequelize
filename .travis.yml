@@ -10,11 +10,10 @@ branches:
   except:
     - /^v\d+\.\d+\.\d+$/
 
-cache: yarn
+cache: npm
 
 install:
-  - npm install -g yarn
-  - yarn
+  - npm install
   - |-
     if [ "$TSC" = true ]; then npm run test-typings; fi
   - |-
@@ -47,7 +46,7 @@ jobs:
   include:
     - stage: test
       node_js: '6'
-      env: DIALECT=sqlite
+      env: DIALECT=sqlite TSC=true
     - stage: test
       node_js: '6'
       sudo: required
@@ -63,14 +62,7 @@ jobs:
     - stage: test
       node_js: '6'
       sudo: required
-      env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres
-    - stage: test
-      node_js: '6'
-      sudo: required
       env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres-native
-    - stage: test
-      node_js: '8'
-      env: DIALECT=sqlite COVERAGE=false TSC=true
     - stage: release
       node_js: '8'
       script:
