@@ -1504,7 +1504,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M } & typeof Model,
     schema: string,
     options?: SchemaOptions
-  ): M;
+  ): { new (): M } & typeof Model;
 
   /**
    * Get the tablename of the model, taking schema into account. The method will return The name as a string
