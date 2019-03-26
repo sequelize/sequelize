@@ -635,8 +635,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         as: 'items'
       });
 
-      return this.sequelize.sync({force: true}).then(() => {
-        return Promise.all([Cart.create(), Product.create({name: 'Test', price: 12.3})])
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.all([Cart.create(), Product.create({ name: 'Test', price: 12.3 })])
           .then(results => {
             const c = results[0];
             const p = results[1];
@@ -649,7 +649,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 attributes: ['id', 'name', 'price'],
                 as: 'items'
               }],
-              where: {id: c.id}
+              where: { id: c.id }
             };
 
             return Promise.all([
