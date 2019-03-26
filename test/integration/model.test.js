@@ -220,7 +220,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
       Task.init({
         title: {
-          type: Sequelize.STRING(50),
+          type: new Sequelize.STRING(50),
           allowNull: false,
           defaultValue: ''
         }
@@ -2005,7 +2005,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       this.UserWithDec = this.sequelize.define('UserWithDec', {
-        value: Sequelize.DECIMAL(10, 3)
+        value: new Sequelize.DECIMAL(10, 3)
       });
 
       return this.UserWithAge.sync({ force: true }).then(() => {
@@ -2090,7 +2090,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       this.UserWithDec = this.sequelize.define('UserWithDec', {
-        value: Sequelize.DECIMAL(10, 3)
+        value: new Sequelize.DECIMAL(10, 3)
       });
 
       return this.UserWithAge.sync({ force: true }).then(() => {
@@ -2183,11 +2183,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.UserWithAge = this.sequelize.define('UserWithAge', {
         age: Sequelize.INTEGER,
         order: Sequelize.INTEGER,
-        gender: Sequelize.ENUM('male', 'female')
+        gender: new Sequelize.ENUM('male', 'female')
       });
 
       this.UserWithDec = this.sequelize.define('UserWithDec', {
-        value: Sequelize.DECIMAL(10, 3)
+        value: new Sequelize.DECIMAL(10, 3)
       });
 
       this.UserWithFields = this.sequelize.define('UserWithFields', {
@@ -2197,7 +2197,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
         order: Sequelize.INTEGER,
         gender: {
-          type: Sequelize.ENUM('male', 'female'),
+          type: new Sequelize.ENUM('male', 'female'),
           field: 'male_female'
         }
       });

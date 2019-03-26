@@ -89,7 +89,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           firstName: DataTypes.STRING
         }).then(() => {
           return this.queryInterface.changeColumn('users', 'firstName', {
-            type: DataTypes.ENUM(['value1', 'value2', 'value3'])
+            type: new DataTypes.ENUM(['value1', 'value2', 'value3'])
           });
         });
       });
@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             tableName: 'users',
             schema: 'archive'
           }, 'firstName', {
-            type: DataTypes.ENUM(['value1', 'value2', 'value3'])
+            type: new DataTypes.ENUM(['value1', 'value2', 'value3'])
           });
         });
       });
@@ -209,7 +209,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             expect(firstForeignKeys.length).to.be.equal(newForeignKeys.length);
             expect(firstForeignKeys[0].columnName).to.be.equal('level_id');
             expect(firstForeignKeys[0].columnName).to.be.equal(newForeignKeys[0].columnName);
-            
+
             return this.queryInterface.describeTable({
               tableName: 'users'
             });
@@ -219,7 +219,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             expect(describedTable.level_id.allowNull).to.be.equal(true);
           });
         });
-        
+
       });
     }
   });

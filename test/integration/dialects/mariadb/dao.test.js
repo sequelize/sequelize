@@ -13,7 +13,7 @@ describe('[MariaDB Specific] DAO', () => {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
       email: DataTypes.STRING,
-      location: DataTypes.GEOMETRY()
+      location: new DataTypes.GEOMETRY()
     });
     return this.User.sync({ force: true });
   });

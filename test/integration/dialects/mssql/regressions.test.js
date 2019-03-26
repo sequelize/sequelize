@@ -33,7 +33,7 @@ if (dialect.match(/^mssql/)) {
         },
         UserName: {
           field: 'username',
-          type: Sequelize.STRING(50),
+          type: new Sequelize.STRING(50),
           allowNull: false
         }
       });

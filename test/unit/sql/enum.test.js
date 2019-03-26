@@ -12,14 +12,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('enum', () => {
     if (Support.getTestDialect() === 'postgres') {
       const FooUser = current.define('user', {
-        mood: DataTypes.ENUM('happy', 'sad')
+        mood: new DataTypes.ENUM('happy', 'sad')
       }, {
         schema: 'foo'
       });
 
       const PublicUser = current.define('user', {
         mood: {
-          type: DataTypes.ENUM('happy', 'sad'),
+          type: new DataTypes.ENUM('happy', 'sad'),
           field: 'theirMood'
         }
       });

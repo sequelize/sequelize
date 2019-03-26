@@ -200,7 +200,7 @@ if (dialect.startsWith('postgres')) {
           expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);'
         },
         {
-          arguments: ['myTable', { data: current.normalizeDataType(DataTypes.BLOB('long')).toSql() }],
+          arguments: ['myTable', { data: current.normalizeDataType(new DataTypes.BLOB('long')).toSql() }],
           expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);'
         },
         {

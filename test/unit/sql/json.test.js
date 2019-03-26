@@ -59,7 +59,7 @@ if (current.dialect.supports.JSON) {
               { some: 'nested', more: { nested: true }, answer: 42 },
               43,
               'joe'
-            ], { type: DataTypes.ARRAY(DataTypes.JSON) }), {
+            ], { type: new DataTypes.ARRAY(DataTypes.JSON) }), {
               postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]'
             });
           });
@@ -70,7 +70,7 @@ if (current.dialect.supports.JSON) {
                 { some: 'nested', more: { nested: true }, answer: 42 },
                 43,
                 'joe'
-              ], { type: DataTypes.ARRAY(DataTypes.JSONB) }), {
+              ], { type: new DataTypes.ARRAY(DataTypes.JSONB) }), {
                 postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]'
               });
             });

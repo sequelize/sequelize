@@ -480,10 +480,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('should parse DECIMAL as string', function() {
       const Model = this.sequelize.define('model', {
         decimal: Sequelize.DECIMAL,
-        decimalPre: Sequelize.DECIMAL(10, 4),
-        decimalWithParser: Sequelize.DECIMAL(32, 15),
-        decimalWithIntParser: Sequelize.DECIMAL(10, 4),
-        decimalWithFloatParser: Sequelize.DECIMAL(10, 8)
+        decimalPre: new Sequelize.DECIMAL(10, 4),
+        decimalWithParser: new Sequelize.DECIMAL(32, 15),
+        decimalWithIntParser: new Sequelize.DECIMAL(10, 4),
+        decimalWithFloatParser: new Sequelize.DECIMAL(10, 8)
       });
 
       const sampleData = {
@@ -544,7 +544,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('should return Int4 range properly #5747', function() {
       const Model = this.sequelize.define('M', {
         interval: {
-          type: Sequelize.RANGE(Sequelize.INTEGER),
+          type: new Sequelize.RANGE(Sequelize.INTEGER),
           allowNull: false,
           unique: true
         }
@@ -565,7 +565,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('should allow date ranges to be generated with default bounds inclusion #8176', function() {
       const Model = this.sequelize.define('M', {
         interval: {
-          type: Sequelize.RANGE(Sequelize.DATE),
+          type: new Sequelize.RANGE(Sequelize.DATE),
           allowNull: false,
           unique: true
         }
@@ -589,7 +589,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('should allow date ranges to be generated using a single range expression to define bounds inclusion #8176', function() {
       const Model = this.sequelize.define('M', {
         interval: {
-          type: Sequelize.RANGE(Sequelize.DATE),
+          type: new Sequelize.RANGE(Sequelize.DATE),
           allowNull: false,
           unique: true
         }
@@ -613,7 +613,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('should allow date ranges to be generated using a composite range expression #8176', function() {
       const Model = this.sequelize.define('M', {
         interval: {
-          type: Sequelize.RANGE(Sequelize.DATE),
+          type: new Sequelize.RANGE(Sequelize.DATE),
           allowNull: false,
           unique: true
         }
@@ -637,7 +637,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('should correctly return ranges when using predicates that define bounds inclusion #8176', function() {
       const Model = this.sequelize.define('M', {
         interval: {
-          type: Sequelize.RANGE(Sequelize.DATE),
+          type: new Sequelize.RANGE(Sequelize.DATE),
           allowNull: false,
           unique: true
         }
@@ -663,7 +663,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('should allow spaces in ENUM', function() {
     const Model = this.sequelize.define('user', {
       name: Sequelize.STRING,
-      type: Sequelize.ENUM(['action', 'mecha', 'canon', 'class s'])
+      type: new Sequelize.ENUM(['action', 'mecha', 'canon', 'class s'])
     });
 
     return Model.sync({ force: true }).then(() => {

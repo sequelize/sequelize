@@ -65,7 +65,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           comment: 'Users City'
         },
         isAdmin: DataTypes.BOOLEAN,
-        enumVals: DataTypes.ENUM('hello', 'world')
+        enumVals: new DataTypes.ENUM('hello', 'world')
       }, { freezeTableName: true });
 
       return Users.sync({ force: true }).then(() => {

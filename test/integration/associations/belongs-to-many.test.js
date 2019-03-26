@@ -711,11 +711,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     it('joins an association with custom primary keys', function() {
       const Group = this.sequelize.define('group', {
           group_id: { type: DataTypes.INTEGER, primaryKey: true },
-          name: DataTypes.STRING(64)
+          name: new DataTypes.STRING(64)
         }),
         Member = this.sequelize.define('member', {
           member_id: { type: DataTypes.INTEGER, primaryKey: true },
-          email: DataTypes.STRING(64)
+          email: new DataTypes.STRING(64)
         });
 
       Group.belongsToMany(Member, { through: 'group_members', foreignKey: 'group_id', otherKey: 'member_id' });
@@ -2417,10 +2417,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     it('create custom unique identifier', function() {
       this.UserTasksLong = this.sequelize.define('table_user_task_with_very_long_name', {
         id_user_very_long_field: {
-          type: DataTypes.INTEGER(1)
+          type: new DataTypes.INTEGER(1)
         },
         id_task_very_long_field: {
-          type: DataTypes.INTEGER(1)
+          type: new DataTypes.INTEGER(1)
         }
       },
       { tableName: 'table_user_task_with_very_long_name' }
@@ -2476,7 +2476,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   describe('thisAssociations', () => {
     it('should work with this reference', function() {
       const User = this.sequelize.define('User', {
-          name: Sequelize.STRING(100)
+          name: new Sequelize.STRING(100)
         }),
         Follow = this.sequelize.define('Follow');
 
@@ -2502,7 +2502,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     it('should work with custom this reference', function() {
       const User = this.sequelize.define('User', {
-          name: Sequelize.STRING(100)
+          name: new Sequelize.STRING(100)
         }),
         UserFollowers = this.sequelize.define('UserFollower');
 

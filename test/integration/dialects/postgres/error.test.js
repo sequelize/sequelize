@@ -14,7 +14,7 @@ if (dialect.match(/^postgres/)) {
     beforeEach(function() {
       this.Booking = this.sequelize.define('Booking', {
         roomNo: DataTypes.INTEGER,
-        period: DataTypes.RANGE(DataTypes.DATE)
+        period: new DataTypes.RANGE(DataTypes.DATE)
       });
       return this.Booking
         .sync({ force: true })

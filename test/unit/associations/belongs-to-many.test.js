@@ -600,10 +600,10 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
           'GroupUser',
           {
             id_user_very_long_field: {
-              type: DataTypes.INTEGER(1)
+              type: new DataTypes.INTEGER(1)
             },
             id_group_very_long_field: {
-              type: DataTypes.INTEGER(1)
+              type: new DataTypes.INTEGER(1)
             }
           },
           { tableName: 'table_user_group_with_very_long_name' }
@@ -626,10 +626,10 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
           'GroupUser',
           {
             id_user_very_long_field: {
-              type: DataTypes.INTEGER(1)
+              type: new DataTypes.INTEGER(1)
             },
             id_group_very_long_field: {
-              type: DataTypes.INTEGER(1)
+              type: new DataTypes.INTEGER(1)
             }
           },
           { tableName: 'table_user_group_with_very_long_name' }

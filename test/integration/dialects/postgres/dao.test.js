@@ -16,25 +16,25 @@ if (dialect.match(/^postgres/)) {
       this.sequelize.options.quoteIdentifiers = true;
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
-        email: { type: DataTypes.ARRAY(DataTypes.TEXT) },
+        email: { type: new DataTypes.ARRAY(DataTypes.TEXT) },
         settings: DataTypes.HSTORE,
         document: { type: DataTypes.HSTORE, defaultValue: { default: "'value'" } },
-        phones: DataTypes.ARRAY(DataTypes.HSTORE),
+        phones: new DataTypes.ARRAY(DataTypes.HSTORE),
         emergency_contact: DataTypes.JSON,
         emergencyContact: DataTypes.JSON,
         friends: {
-          type: DataTypes.ARRAY(DataTypes.JSON),
+          type: new DataTypes.ARRAY(DataTypes.JSON),
           defaultValue: []
         },
         magic_numbers: {
-          type: DataTypes.ARRAY(DataTypes.INTEGER),
+          type: new DataTypes.ARRAY(DataTypes.INTEGER),
           defaultValue: []
         },
-        course_period: DataTypes.RANGE(DataTypes.DATE),
-        acceptable_marks: { type: DataTypes.RANGE(DataTypes.DECIMAL), defaultValue: [0.65, 1] },
+        course_period: new DataTypes.RANGE(DataTypes.DATE),
+        acceptable_marks: { type: new DataTypes.RANGE(DataTypes.DECIMAL), defaultValue: [0.65, 1] },
         available_amount: DataTypes.RANGE,
-        holidays: DataTypes.ARRAY(DataTypes.RANGE(DataTypes.DATE)),
-        location: DataTypes.GEOMETRY()
+        holidays: new DataTypes.ARRAY(new DataTypes.RANGE(DataTypes.DATE)),
+        location: new DataTypes.GEOMETRY()
       });
       return this.User.sync({ force: true });
     });
@@ -268,7 +268,7 @@ if (dialect.match(/^postgres/)) {
     describe('enums', () => {
       it('should be able to ignore enum types that already exist', function() {
         const User = this.sequelize.define('UserEnums', {
-          mood: DataTypes.ENUM('happy', 'sad', 'meh')
+          mood: new DataTypes.ENUM('happy', 'sad', 'meh')
         });
 
         return User.sync({ force: true }).then(() => {
@@ -278,7 +278,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should be able to create/drop enums multiple times', function() {
         const User = this.sequelize.define('UserEnums', {
-          mood: DataTypes.ENUM('happy', 'sad', 'meh')
+          mood: new DataTypes.ENUM('happy', 'sad', 'meh')
         });
 
         return User.sync({ force: true }).then(() => {
@@ -350,12 +350,12 @@ if (dialect.match(/^postgres/)) {
 
       it('should be able to add values to enum types', function() {
         let User = this.sequelize.define('UserEnums', {
-          mood: DataTypes.ENUM('happy', 'sad', 'meh')
+          mood: new DataTypes.ENUM('happy', 'sad', 'meh')
         });
 
         return User.sync({ force: true }).then(() => {
           User = this.sequelize.define('UserEnums', {
-            mood: DataTypes.ENUM('neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful')
+            mood: new DataTypes.ENUM('neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful')
           });
 
           return User.sync();
@@ -370,7 +370,7 @@ if (dialect.match(/^postgres/)) {
       describe('ARRAY(ENUM)', () => {
         it('should be able to ignore enum types that already exist', function() {
           const User = this.sequelize.define('UserEnums', {
-            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+            permissions: new DataTypes.ARRAY(new DataTypes.ENUM([
               'access',
               'write',
               'check',
@@ -383,7 +383,7 @@ if (dialect.match(/^postgres/)) {
 
         it('should be able to create/drop enums multiple times', function() {
           const User = this.sequelize.define('UserEnums', {
-            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+            permissions: new DataTypes.ARRAY(new DataTypes.ENUM([
               'access',
               'write',
               'check',
@@ -396,7 +396,7 @@ if (dialect.match(/^postgres/)) {
 
         it('should be able to add values to enum types', function() {
           let User = this.sequelize.define('UserEnums', {
-            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+            permissions: new DataTypes.ARRAY(new DataTypes.ENUM([
               'access',
               'write',
               'check',
@@ -406,7 +406,7 @@ if (dialect.match(/^postgres/)) {
 
           return User.sync({ force: true }).then(() => {
             User = this.sequelize.define('UserEnums', {
-              permissions: DataTypes.ARRAY(
+              permissions: new DataTypes.ARRAY(
                 DataTypes.ENUM('view', 'access', 'edit', 'write', 'check', 'delete')
               )
             });
@@ -423,9 +423,9 @@ if (dialect.match(/^postgres/)) {
         it('should be able to insert new record', function() {
           const User = this.sequelize.define('UserEnums', {
             name: DataTypes.STRING,
-            type: DataTypes.ENUM('A', 'B', 'C'),
-            owners: DataTypes.ARRAY(DataTypes.STRING),
-            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+            type: new DataTypes.ENUM('A', 'B', 'C'),
+            owners: new DataTypes.ARRAY(DataTypes.STRING),
+            permissions: new DataTypes.ARRAY(new DataTypes.ENUM([
               'access',
               'write',
               'check',
@@ -453,9 +453,9 @@ if (dialect.match(/^postgres/)) {
         it('should fail when trying to insert foreign element on ARRAY(ENUM)', function() {
           const User = this.sequelize.define('UserEnums', {
             name: DataTypes.STRING,
-            type: DataTypes.ENUM('A', 'B', 'C'),
-            owners: DataTypes.ARRAY(DataTypes.STRING),
-            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+            type: new DataTypes.ENUM('A', 'B', 'C'),
+            owners: new DataTypes.ARRAY(DataTypes.STRING),
+            permissions: new DataTypes.ARRAY(new DataTypes.ENUM([
               'access',
               'write',
               'check',
@@ -476,8 +476,8 @@ if (dialect.match(/^postgres/)) {
         it('should be able to find records', function() {
           const User = this.sequelize.define('UserEnums', {
             name: DataTypes.STRING,
-            type: DataTypes.ENUM('A', 'B', 'C'),
-            permissions: DataTypes.ARRAY(DataTypes.ENUM([
+            type: new DataTypes.ENUM('A', 'B', 'C'),
+            permissions: new DataTypes.ARRAY(new DataTypes.ENUM([
               'access',
               'write',
               'check',
@@ -592,7 +592,7 @@ if (dialect.match(/^postgres/)) {
     describe('timestamps', () => {
       beforeEach(function() {
         this.User = this.sequelize.define('User', {
-          dates: DataTypes.ARRAY(DataTypes.DATE)
+          dates: new DataTypes.ARRAY(DataTypes.DATE)
         });
         return this.User.sync({ force: true });
       });
@@ -958,7 +958,7 @@ if (dialect.match(/^postgres/)) {
       it('should read range correctly from included models as well', function() {
         const period = [new Date(2016, 0, 1), new Date(2016, 11, 31)];
         const HolidayDate = this.sequelize.define('holidayDate', {
-          period: DataTypes.RANGE(DataTypes.DATE)
+          period: new DataTypes.RANGE(DataTypes.DATE)
         });
 
         this.User.hasMany(HolidayDate);

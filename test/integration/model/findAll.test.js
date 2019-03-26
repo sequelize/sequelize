@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       intVal: DataTypes.INTEGER,
       theDate: DataTypes.DATE,
       aBool: DataTypes.BOOLEAN,
-      binary: DataTypes.STRING(16, true)
+      binary: new DataTypes.STRING(16, true)
     });
 
     return this.User.sync({ force: true });
@@ -255,7 +255,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = this.User;
         const Binary = this.sequelize.define('Binary', {
           id: {
-            type: DataTypes.STRING(16, true),
+            type: new DataTypes.STRING(16, true),
             primaryKey: true
           }
         });
@@ -1638,7 +1638,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('rejectOnEmpty mode', () => {
     it('works from model options', () => {
       const Model = current.define('Test', {
-        username: Sequelize.STRING(100)
+        username: new Sequelize.STRING(100)
       }, {
         rejectOnEmpty: true
       });
@@ -1655,7 +1655,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('throws custom error with initialized', () => {
       const Model = current.define('Test', {
-        username: Sequelize.STRING(100)
+        username: new Sequelize.STRING(100)
       }, {
         rejectOnEmpty: new Sequelize.ConnectionError('Some Error') //using custom error instance
       });
@@ -1672,7 +1672,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('throws custom error with instance', () => {
       const Model = current.define('Test', {
-        username: Sequelize.STRING(100)
+        username: new Sequelize.STRING(100)
       }, {
         rejectOnEmpty: Sequelize.ConnectionError //using custom error instance
       });
