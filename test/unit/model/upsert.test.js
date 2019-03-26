@@ -3,7 +3,6 @@
 const chai = require('chai'),
   expect = chai.expect,
   Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
   Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
@@ -43,14 +42,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       beforeEach(function() {
-        this.sinon = sinon.createSandbox();
-
-        this.query = this.sinon.stub(current, 'query').returns(Promise.resolve());
-        this.stub = this.sinon.stub(current.getQueryInterface(), 'upsert').returns(Promise.resolve([true, undefined]));
+        this.query = sinon.stub(current, 'query').resolves();
+        this.stub = sinon.stub(current.getQueryInterface(), 'upsert').resolves([true, undefined]);
       });
 
       afterEach(function() {
-        this.sinon.restore();
+        this.query.restore();
+        this.stub.restore();
       });
 
       it('skip validations for missing fields', function() {

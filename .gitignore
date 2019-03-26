@@ -6,6 +6,7 @@ npm-debug.log
 *~
 test/dialects/sqlite/test.sqlite
 test/sqlite/test.sqlite
+test.sqlite
 docs/api/tmp.md
 ssce.js
 sscce.js
@@ -13,6 +14,7 @@ sscce.js
 package-lock.json
 yarn.lock
 
+.nyc_output
 coverage-*
 coverage
 test/tmp/*

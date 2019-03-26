@@ -414,6 +414,150 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
   });
 
+  describe('hasAssociations', () => {
+    beforeEach(function() {
+      this.Article = this.sequelize.define('Article', {
+        pk: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
+        title: DataTypes.STRING
+      });
+      this.Label = this.sequelize.define('Label', {
+        sk: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true
+        },
+        text: DataTypes.STRING
+      });
+      this.ArticleLabel = this.sequelize.define('ArticleLabel');
+
+      this.Article.belongsToMany(this.Label, { through: this.ArticleLabel });
+      this.Label.belongsToMany(this.Article, { through: this.ArticleLabel });
+
+      return this.sequelize.sync({ force: true });
+    });
+
+    if (current.dialect.supports.transactions) {
+      it('supports transactions', function() {
+        const ctx = {};
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          ctx.sequelize = sequelize;
+          ctx.Article = ctx.sequelize.define('Article', {
+            pk: {
+              type: DataTypes.INTEGER,
+              autoIncrement: true,
+              primaryKey: true
+            },
+            title: DataTypes.STRING
+          });
+          ctx.Label = ctx.sequelize.define('Label', {
+            sk: {
+              type: DataTypes.INTEGER,
+              autoIncrement: true,
+              primaryKey: true
+            },
+            text: DataTypes.STRING
+          });
+          ctx.ArticleLabel = ctx.sequelize.define('ArticleLabel');
+
+          ctx.Article.belongsToMany(ctx.Label, { through: ctx.ArticleLabel });
+          ctx.Label.belongsToMany(ctx.Article, { through: ctx.ArticleLabel });
+
+          return ctx.sequelize.sync({ force: true });
+        }).then(() => {
+          return Promise.all([
+            ctx.Article.create({ title: 'foo' }),
+            ctx.Label.create({ text: 'bar' })
+          ]);
+        }).then(([article, label]) => {
+          ctx.article = article;
+          ctx.label = label;
+          return ctx.sequelize.transaction();
+        }).then(t => {
+          ctx.t = t;
+          return ctx.article.setLabels([ctx.label], { transaction: t });
+        }).then(() => {
+          return ctx.Article.findAll({ transaction: ctx.t });
+        }).then(articles => {
+          return Promise.all([
+            articles[0].hasLabels([ctx.label]),
+            articles[0].hasLabels([ctx.label], { transaction: ctx.t })
+          ]);
+        }).then(([hasLabel1, hasLabel2]) => {
+          expect(hasLabel1).to.be.false;
+          expect(hasLabel2).to.be.true;
+
+          return ctx.t.rollback();
+        });
+      });
+    }
+
+    it('answers false if only some labels have been assigned', function() {
+      return Promise.all([
+        this.Article.create({ title: 'Article' }),
+        this.Label.create({ text: 'Awesomeness' }),
+        this.Label.create({ text: 'Epicness' })
+      ]).then(([article, label1, label2]) => {
+        return article.addLabel(label1).then(() => {
+          return article.hasLabels([label1, label2]);
+        });
+      }).then(result => {
+        expect(result).to.be.false;
+      });
+    });
+
+    it('answers false if only some labels have been assigned when passing a primary key instead of an object', function() {
+      return Promise.all([
+        this.Article.create({ title: 'Article' }),
+        this.Label.create({ text: 'Awesomeness' }),
+        this.Label.create({ text: 'Epicness' })
+      ]).then(([article, label1, label2]) => {
+        return article.addLabels([label1]).then(() => {
+          return article.hasLabels([
+            label1[this.Label.primaryKeyAttribute],
+            label2[this.Label.primaryKeyAttribute]
+          ]).then(result => {
+            expect(result).to.be.false;
+          });
+        });
+      });
+    });
+
+    it('answers true if all label have been assigned', function() {
+      return Promise.all([
+        this.Article.create({ title: 'Article' }),
+        this.Label.create({ text: 'Awesomeness' }),
+        this.Label.create({ text: 'Epicness' })
+      ]).then(([article, label1, label2]) => {
+        return article.setLabels([label1, label2]).then(() => {
+          return article.hasLabels([label1, label2]).then(result => {
+            expect(result).to.be.true;
+          });
+        });
+      });
+    });
+
+    it('answers true if all label have been assigned when passing a primary key instead of an object', function() {
+      return Promise.all([
+        this.Article.create({ title: 'Article' }),
+        this.Label.create({ text: 'Awesomeness' }),
+        this.Label.create({ text: 'Epicness' })
+      ]).then(([article, label1, label2]) => {
+        return article.setLabels([label1, label2]).then(() => {
+          return article.hasLabels([
+            label1[this.Label.primaryKeyAttribute],
+            label2[this.Label.primaryKeyAttribute]
+          ]).then(result => {
+            expect(result).to.be.true;
+          });
+        });
+      });
+    });
+  });
+
   describe('countAssociations', () => {
     beforeEach(function() {
       this.User = this.sequelize.define('User', {
@@ -1542,7 +1686,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
   });
-
 
   describe('primary key handling for join table', () => {
     beforeEach(function() {

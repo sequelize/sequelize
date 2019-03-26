@@ -8,7 +8,6 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('all', () => {
-
     const Referral = current.define('referal');
 
     Referral.belongsTo(Referral);
@@ -252,12 +251,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    describe('_conformInclude: string alias', () => {
+    describe('_conformInclude', () => {
       it('should expand association from string alias', function() {
         const options = {
           include: ['Owner']
         };
-        Sequelize.Model._conformOptions(options, this.Company);
+        Sequelize.Model._conformIncludes(options, this.Company);
 
         expect(options.include[0]).to.deep.equal({
           model: this.User,
@@ -273,7 +272,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             attributes: ['id']
           }]
         };
-        Sequelize.Model._conformOptions(options, this.Company);
+        Sequelize.Model._conformIncludes(options, this.Company);
 
         expect(options.include[0]).to.deep.equal({
           model: this.User,
@@ -281,6 +280,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           attributes: ['id'],
           as: 'Owner'
         });
+      });
+
+      it('should throw an error if invalid model is passed', function() {
+        const options = {
+          include: [{
+            model: null
+          }]
+        };
+
+        expect(() => {
+          Sequelize.Model._conformIncludes(options, this.Company);
+        }).to.throw('Include unexpected. Element has to be either a Model, an Association or an object.');
+      });
+
+      it('should throw an error if invalid association is passed', function() {
+        const options = {
+          include: [{
+            association: null
+          }]
+        };
+
+        expect(() => {
+          Sequelize.Model._conformIncludes(options, this.Company);
+        }).to.throw('Include unexpected. Element has to be either a Model, an Association or an object.');
       });
     });
 

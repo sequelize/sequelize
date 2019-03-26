@@ -186,7 +186,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should handle native postgres timestamp format', () => {
         // Make sure nameOidMap is loaded
-        Support.sequelize.connectionManager.getConnection().then(connection => {
+        return Support.sequelize.connectionManager.getConnection().then(connection => {
           Support.sequelize.connectionManager.releaseConnection(connection);
 
           const tsName = DataTypes.postgres.DATE.types.postgres[0],

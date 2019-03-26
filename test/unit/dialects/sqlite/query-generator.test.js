@@ -143,7 +143,7 @@ if (dialect === 'sqlite') {
         },
         {
           arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM(\"A\", \"B\", \"C\"), `name` VARCHAR(255));'
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM("A", "B", "C"), `name` VARCHAR(255));'
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }],
@@ -803,7 +803,7 @@ if (dialect === 'sqlite') {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             this.queryGenerator.options = Object.assign({}, this.queryGenerator.options, test.context && test.context.options || {});
 
-            let result = this.queryGenerator[suiteTitle].apply(this.queryGenerator, test.arguments);
+            let result = this.queryGenerator[suiteTitle](...test.arguments);
             if (result instanceof Composition) {
               result = this.queryGenerator.composeQuery(result);
             }

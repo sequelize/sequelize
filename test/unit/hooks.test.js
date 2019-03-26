@@ -14,6 +14,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     this.Model = current.define('m');
   });
 
+  it('does not expose non-model hooks', function() {
+    for (const badHook of ['beforeDefine', 'afterDefine', 'beforeConnect', 'afterConnect', 'beforeInit', 'afterInit']) {
+      expect(this.Model).to.not.have.property(badHook);
+    }
+  });
+
   describe('arguments', () => {
     it('hooks can modify passed arguments', function() {
       this.Model.addHook('beforeCreate', options => {
@@ -29,10 +35,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('proxies', () => {
     beforeEach(() => {
-      sinon.stub(current, 'query').returns(Promise.resolve([{
+      sinon.stub(current, 'query').resolves([{
         _previousDataValues: {},
         dataValues: { id: 1, name: 'abc' }
-      }]));
+      }]);
     });
 
     afterEach(() => {

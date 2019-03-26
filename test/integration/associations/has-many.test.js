@@ -443,10 +443,25 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   });
 
   describe('(1:N)', () => {
-    describe('hasSingle', () => {
+    describe('hasAssociation', () => {
       beforeEach(function() {
-        this.Article = this.sequelize.define('Article', { 'title': DataTypes.STRING });
-        this.Label = this.sequelize.define('Label', { 'text': DataTypes.STRING });
+        this.Article = this.sequelize.define('Article', {
+          pk: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true
+          },
+          title: DataTypes.STRING
+        });
+
+        this.Label = this.sequelize.define('Label', {
+          key: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true
+          },
+          text: DataTypes.STRING
+        });
 
         this.Article.hasMany(this.Label);
 
@@ -546,8 +561,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         ]).then(([article, label1, label2]) => {
           return article.addLabel(label1).then(() => {
             return Promise.all([
-              article.hasLabel(label1.id),
-              article.hasLabel(label2.id)
+              article.hasLabel(label1[this.Label.primaryKeyAttribute]),
+              article.hasLabel(label2[this.Label.primaryKeyAttribute])
             ]);
           });
         }).then(([hasLabel1, hasLabel2]) => {
@@ -557,13 +572,24 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
     });
 
-    describe('hasAll', () => {
+    describe('hasAssociations', () => {
       beforeEach(function() {
         this.Article = this.sequelize.define('Article', {
-          'title': DataTypes.STRING
+          pk: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true
+          },
+          title: DataTypes.STRING
         });
+
         this.Label = this.sequelize.define('Label', {
-          'text': DataTypes.STRING
+          key: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true
+          },
+          text: DataTypes.STRING
         });
 
         this.Article.hasMany(this.Label);
@@ -631,7 +657,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Label.create({ text: 'Epicness' })
         ]).then(([article, label1, label2]) => {
           return article.addLabel(label1).then(() => {
-            return article.hasLabels([label1.id, label2.id]).then(result => {
+            return article.hasLabels([
+              label1[this.Label.primaryKeyAttribute],
+              label2[this.Label.primaryKeyAttribute]
+            ]).then(result => {
               expect(result).to.be.false;
             });
           });
@@ -659,7 +688,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Label.create({ text: 'Epicness' })
         ]).then(([article, label1, label2]) => {
           return article.setLabels([label1, label2]).then(() => {
-            return article.hasLabels([label1.id, label2.id]).then(result => {
+            return article.hasLabels([
+              label1[this.Label.primaryKeyAttribute],
+              label2[this.Label.primaryKeyAttribute]
+            ]).then(result => {
               expect(result).to.be.true;
             });
           });
@@ -668,7 +700,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     });
 
     describe('setAssociations', () => {
-
       if (current.dialect.supports.transactions) {
         it('supports transactions', function() {
           const ctx = {};

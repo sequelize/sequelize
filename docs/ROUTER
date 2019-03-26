@@ -7,8 +7,8 @@
 301 /en/latest /
 301 /en/latest/ /
 
-301 /en/latest/docs/getting-started/ /manual/installation/getting-started.html
-301 /en/latest/docs/:section/ /manual/tutorial/:section.html
+301 /en/latest/docs/getting-started/ /manual/getting-started.html
+301 /en/latest/docs/:section/ /manual/:section.html
 
 301 /en/latest/api/sequelize/ /class/lib/sequelize.js~Sequelize.html
 301 /en/latest/api/model/ /class/lib/model.js~Model.html
@@ -22,3 +22,8 @@
 301 /en/latest/api/datatypes/ /variable/index.html#static-variable-DataTypes
 301 /en/latest/api/deferrable/ /variable/index.html#static-variable-Deferrable
 301 /en/latest/api/errors/ /class/lib/errors/index.js~BaseError.html
+
+302 /manual/tutorial/:section.html /manual/:section.html
+302 /manual/installation/:section.html /manual/:section.html
+302 /manual/faq/:section.html /manual/:section.html
+302 /manual/advanced/:section.html /manual/:section.html

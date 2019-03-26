@@ -19,7 +19,7 @@ describe('QueryGenerator', () => {
 
       it(`${String(key)}: ${util.inspect(value, { depth: 10 })}${options && `, ${util.inspect(options)}` || ''}`, () => {
         const sqlOrError = _.attempt(() =>
-          QG.composeQuery.call(QG, QG.whereItemQuery.apply(QG, arguments)),
+          QG.composeQuery(QG.whereItemQuery.apply(QG, arguments)),
         key, value, options);
 
         if (sqlOrError instanceof Error) {

@@ -114,9 +114,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             // From node-mysql2 workaround in QueryInterface 
             // mysql doesn't use binded parameters for select queries generated from QueryInterface.
             if (dialect === 'mysql') {
-              expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = 'awesome'/);
+              expect(sql).to.match(/WHERE ["|`|[]UserPrimary["|`|\]]\.["|`|[]specialkey["|`|\]] = 'awesome'/);
             } else {
-              expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = (\$1|\?1?|@0)/);
+              expect(sql).to.match(/WHERE ["|`|[]UserPrimary["|`|\]]\.["|`|[]specialkey["|`|\]] = (\$1|\?1?|@0)/);
             }
           }
         }).then(() => {

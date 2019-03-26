@@ -5,7 +5,6 @@ const chai = require('chai'),
   Support = require('../support'),
   Sequelize = Support.Sequelize,
   Op = Sequelize.Op,
-  Promise = Sequelize.Promise,
   current = Support.sequelize,
   sinon = require('sinon'),
   DataTypes = require('../../../lib/data-types');
@@ -20,7 +19,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     beforeEach(function() {
-      this.stub = Sequelize.Model.findAll = sinon.stub().returns(Promise.resolve());
+      this.stub = Sequelize.Model.findAll = sinon.stub().resolves();
     });
 
     describe('should not add limit when querying on a primary key', () => {

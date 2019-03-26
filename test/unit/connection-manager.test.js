@@ -4,32 +4,25 @@ const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
   Support = require('./support'),
-  Sequelize = require('../../index'),
-  ConnectionManager = require('../../lib/dialects/abstract/connection-manager'),
-  Promise = Sequelize.Promise;
+  ConnectionManager = require('../../lib/dialects/abstract/connection-manager');
 
 describe('connection manager', () => {
   describe('_connect', () => {
     beforeEach(function() {
-      this.sinon = sinon.createSandbox();
       this.connection = {};
 
       this.dialect = {
         connectionManager: {
-          connect: this.sinon.stub().returns(Promise.resolve(this.connection))
+          connect: sinon.stub().resolves(this.connection)
         }
       };
 
       this.sequelize = Support.createSequelizeInstance();
     });
 
-    afterEach(function() {
-      this.sinon.restore();
-    });
-
     it('should resolve connection on dialect connection manager', function() {
       const connection = {};
-      this.dialect.connectionManager.connect.returns(Promise.resolve(connection));
+      this.dialect.connectionManager.connect.resolves(connection);
 
       const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
 

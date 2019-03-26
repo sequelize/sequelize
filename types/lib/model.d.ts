@@ -11,7 +11,7 @@ import {
 } from './associations/index';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
-import { AllModelHooks, HookReturn, Hooks, ModelHookOptions } from './hooks';
+import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { ModelManager } from './model-manager';
 import Op = require('./operators');
@@ -105,7 +105,7 @@ export interface ScopeOptions {
    * any arguments, or an array, where the first element is the name of the method, and consecutive elements
    * are arguments to that method. Pass null to remove all scopes, including the default.
    */
-  method: string | any[];
+  method: string | [string, ...unknown[]];
 }
 
 /**
@@ -199,14 +199,14 @@ export interface WhereOperators {
    *
    * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  [Op.contains]?: any[];
+  [Op.contains]?: [number, number] | [Date, Date];
 
   /**
    * PG array contained by operator
    *
    * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?: any[];
+  [Op.contained]?: [number, number] | [Date, Date];
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
   [Op.gt]?: number | string | Date;
@@ -283,11 +283,11 @@ export interface WhereAttributeHash {
    * - A simple attribute name
    * - A nested key for JSON columns
    *
-   *     {
-   *     "meta.audio.length": {
-   *       [Op.gt]: 20
-   *     }
-   *     }
+   *  {
+   *    "meta.audio.length": {
+   *      [Op.gt]: 20
+   *    }
+   *  }
    */
   [field: string]: WhereValue | WhereOptions;
 }
@@ -319,7 +319,12 @@ export interface IncludeOptions extends Filterable, Projectable {
   /**
    * The association you want to eagerly load. (This can be used instead of providing a model/as pair)
    */
-  association?: Association;
+  association?: Association | string;
+
+  /**
+   * Custom `on` clause, overrides default.
+   */
+  on?: WhereOptions;
 
   /**
    * Note that this converts the eager load to an inner join,
@@ -374,15 +379,21 @@ export type OrderItem =
   | [typeof Model, typeof Model, string, string];
 export type Order = string | Fn | Col | Literal | OrderItem[];
 
+/**
+ * Please note if this is used the aliased property will not be available on the model instance
+ * as a property but only via `instance.get('alias')`.
+ */
+export type ProjectionAlias = [string | Literal | Fn, string];
+
 export type FindAttributeOptions =
-  | (string | [string | Literal | Fn, string])[]
+  | (string | ProjectionAlias)[]
   | {
       exclude: string[];
-      include?: (string | [string | Literal | Fn, string])[];
+      include?: (string | ProjectionAlias)[];
     }
   | {
       exclude?: string[];
-      include: (string | [string | Literal | Fn, string])[];
+      include: (string | ProjectionAlias)[];
     };
 
 /**
@@ -830,7 +841,7 @@ export interface SaveOptions extends Logging, Transactionable, Silent {
 export interface ModelValidateOptions {
   /**
    * is: ["^[a-z]+$",'i'] // will only allow letters
-   * is: /^[a-z]+[Op./i]    // same as the previous example using real RegExp
+   * is: /^[a-z]+[Op./i]  // same as the previous example using real RegExp
    */
   is?: string | (string | RegExp)[] | RegExp | { msg: string; args: string | (string | RegExp)[] | RegExp };
 
@@ -997,14 +1008,14 @@ export interface ModelValidateOptions {
    * We can't enforce any other method to be a function, so :
    *
    * ```typescript
-   * [name: string] : ( value : any ) => boolean;
+   * [name: string] : ( value : unknown ) => boolean;
    * ```
    *
    * doesn't work in combination with the properties above
    *
    * @see https://github.com/Microsoft/TypeScript/issues/1889
    */
-  [name: string]: any;
+  [name: string]: unknown;
 }
 
 /**
@@ -1069,14 +1080,14 @@ export interface ModelNameOptions {
  * Interface for getterMethods in DefineOptions
  */
 export interface ModelGetterOptions {
-  [name: string]: () => any;
+  [name: string]: (this: Model) => unknown;
 }
 
 /**
  * Interface for setterMethods in DefineOptions
  */
 export interface ModelSetterOptions {
-  [name: string]: (val: any) => void;
+  [name: string]: (this: Model, val: any) => void;
 }
 
 /**
@@ -1096,6 +1107,7 @@ export interface ColumnOptions {
   /**
    * If false, the column will have a NOT NULL constraint, and a not null validation will be run before an
    * instance is saved.
+   * @default true
    */
   allowNull?: boolean;
 
@@ -1107,7 +1119,7 @@ export interface ColumnOptions {
   /**
    * A literal default value, a JavaScript function, or an SQL function (see `sequelize.fn`)
    */
-  defaultValue?: any;
+  defaultValue?: unknown;
 }
 
 /**
@@ -1196,12 +1208,13 @@ export interface ModelAttributeColumnOptions extends ColumnOptions {
    * Usage in object notation
    *
    * ```js
-   * sequelize.define('model', {
+   * class MyModel extends Model {}
+   * MyModel.init({
    *   states: {
    *     type:   Sequelize.ENUM,
    *     values: ['active', 'pending', 'deleted']
    *   }
-   *   })
+   * }, { sequelize })
    * ```
    */
   values?: string[];
@@ -1210,13 +1223,13 @@ export interface ModelAttributeColumnOptions extends ColumnOptions {
    * Provide a custom getter for this column. Use `this.getDataValue(String)` to manipulate the underlying
    * values.
    */
-  get?(): any;
+  get?(): unknown;
 
   /**
    * Provide a custom setter for this column. Use `this.setDataValue(String, Value)` to manipulate the
    * underlying values.
    */
-  set?(val: any): void;
+  set?(val: unknown): void;
 }
 
 /**
@@ -1343,7 +1356,7 @@ export interface ModelOptions<M extends Model = Model> {
    * See Hooks for more information about hook
    * functions and their signatures. Each property can either be a function, or an array of functions.
    */
-  hooks?: Partial<ModelHookOptions<M>>;
+  hooks?: Partial<ModelHooks<M>>;
 
   /**
    * An object of model wide validations. Validations have access to all model values via `this`. If the
@@ -1351,6 +1364,16 @@ export interface ModelOptions<M extends Model = Model> {
    * accepts an optional error.
    */
   validate?: ModelValidateOptions;
+
+  /**
+   * Allows defining additional setters that will be available on model instances.
+   */
+  setterMethods?: ModelSetterOptions;
+
+  /**
+   * Allows defining additional getters that will be available on model instances.
+   */
+  getterMethods?: ModelGetterOptions;
 }
 
 /**
@@ -1375,47 +1398,54 @@ export interface AddScopeOptions {
 
 export abstract class Model<T = any, T2 = any> extends Hooks {
   /** The name of the database table */
-  public static tableName: string;
+  public static readonly tableName: string;
 
   /**
    * The name of the primary key attribute
    */
-  public static primaryKeyAttribute: string;
+  public static readonly primaryKeyAttribute: string;
 
   /**
    * An object hash from alias to association object
    */
-  public static associations: any;
+  public static readonly associations: {
+    [key: string]: Association;
+  };
 
   /**
    * The options that the model was initialized with
    */
-  public static options: InitOptions;
+  public static readonly options: InitOptions;
 
   /**
    * The attributes of the model
    */
-  public static rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
+  public static readonly rawAttributes: { [attribute: string]: ModelAttributeColumnOptions };
+
+  /**
+   * Reference to the sequelize instance the model was initialized with
+   */
+  public static readonly sequelize?: Sequelize;
 
   /**
    * Initialize a model, representing a table in the DB, with attributes and options.
    *
-   * The table columns are defined by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
-     *
+   * The table columns are define by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
+   *
    * ```js
    * Project.init({
    *   columnA: {
-   *   type: Sequelize.BOOLEAN,
-   *   validate: {
-   *     is: ['[a-z]','i'],    // will only allow letters
-   *     max: 23,          // only allow values <= 23
-   *     isIn: {
-   *     args: [['en', 'zh']],
-   *     msg: "Must be English or Chinese"
-   *     }
-   *   },
-   *   field: 'column_a'
-   *   // Other attributes here
+   *     type: Sequelize.BOOLEAN,
+   *     validate: {
+   *       is: ['[a-z]','i'],        // will only allow letters
+   *       max: 23,                  // only allow values <= 23
+   *       isIn: {
+   *         args: [['en', 'zh']],
+   *         msg: "Must be English or Chinese"
+   *       }
+   *     },
+   *     field: 'column_a'
+   *     // Other attributes here
    *   },
    *   columnB: Sequelize.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
@@ -1474,16 +1504,16 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M } & typeof Model,
     schema: string,
     options?: SchemaOptions
-  ): M;
+  ): { new (): M } & typeof Model;
 
   /**
    * Get the tablename of the model, taking schema into account. The method will return The name as a string
    * if the model has no schema, or an object with `tableName`, `schema` and `delimiter` properties.
    *
    * @param options The hash of options from any query. You can use one model to access tables with matching
-   *   schemas by overriding `getTableName` and using custom key/values to alter the name of the table.
-   *   (eg.
-   *   subscribers_1, subscribers_2)
+   *     schemas by overriding `getTableName` and using custom key/values to alter the name of the table.
+   *     (eg.
+   *     subscribers_1, subscribers_2)
    */
   public static getTableName(): string | {
     tableName: string;
@@ -1494,32 +1524,34 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   /**
    * Apply a scope created in `define` to the model. First let's look at how to create scopes:
    * ```js
-   * var Model = sequelize.define('model', attributes, {
+   * class MyModel extends Model {}
+   * MyModel.init(attributes, {
    *   defaultScope: {
-   *   where: {
-   *     username: 'dan'
-   *   },
-   *   limit: 12
+   *     where: {
+   *       username: 'dan'
+   *     },
+   *     limit: 12
    *   },
    *   scopes: {
-   *   isALie: {
-   *     where: {
-   *     stuff: 'cake'
-   *     }
-   *   },
-   *   complexFunction: function(email, accessLevel) {
-   *     return {
-   *     where: {
-   *       email: {
-   *       [Op.like]: email
-   *       },
-   *       accesss_level {
-   *       [Op.gte]: accessLevel
+   *     isALie: {
+   *       where: {
+   *         stuff: 'cake'
+   *       }
+   *     },
+   *     complexFunction(email, accessLevel) {
+   *       return {
+   *         where: {
+   *           email: {
+   *             [Op.like]: email
+   *           },
+   *           accesss_level {
+   *             [Op.gte]: accessLevel
+   *           }
+   *         }
    *       }
    *     }
-   *     }
-   *   }
-   *   }
+   *   },
+   *   sequelize,
    * })
    * ```
    * Now, since you defined a default scope, every time you do Model.find, the default scope is appended to
@@ -1536,7 +1568,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ```
    *
    * @return Model A reference to the model, with the scope(s) applied. Calling scope again on the returned
-   *   model will clear the previous scope.
+   *  model will clear the previous scope.
    */
   public static scope<M extends { new (): Model }>(
     this: M,
@@ -1552,8 +1584,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ```js
    * Model.findAll({
    *   where: {
-   *   attr1: 42,
-   *   attr2: 'cake'
+   *     attr1: 42,
+   *     attr2: 'cake'
    *   }
    * })
    * ```
@@ -1566,18 +1598,18 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *
    * Model.findAll({
    *   where: {
-   *   attr1: {
-   *     gt: 50
-   *   },
-   *   attr2: {
-   *     lte: 45
-   *   },
-   *   attr3: {
-   *     in: [1,2,3]
-   *   },
-   *   attr4: {
-   *     ne: 5
-   *   }
+   *     attr1: {
+   *       gt: 50
+   *     },
+   *     attr2: {
+   *       lte: 45
+   *     },
+   *     attr3: {
+   *       in: [1,2,3]
+   *     },
+   *     attr4: {
+   *       ne: 5
+   *     }
    *   }
    * })
    * ```
@@ -1591,11 +1623,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ```js
    * Model.findAll({
    *   where: Sequelize.and(
-   *   { name: 'a project' },
-   *   Sequelize.or(
-   *     { id: [1,2,3] },
-   *     { id: { gt: 10 } }
-   *   )
+   *     { name: 'a project' },
+   *     Sequelize.or(
+   *       { id: [1,2,3] },
+   *       { id: { gt: 10 } }
+   *     )
    *   )
    * })
    * ```
@@ -1641,7 +1673,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param aggregateFunction The function to use for aggregation, e.g. sum, max etc.
    * @param options Query options. See sequelize.query for full options
    * @return Returns the aggregate result cast to `options.dataType`, unless `options.plain` is false, in
-   *   which case the complete data result is returned.
+   *     which case the complete data result is returned.
    */
   public static aggregate<M extends Model, T extends DataType | unknown>(
     this: { new (): M } & typeof Model,
@@ -1666,7 +1698,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *   where: ...,
    *   limit: 12,
    *   offset: 12
-   * }).then(function (result) {
+   * }).then(result => {
    *   ...
    * })
    * ```
@@ -1682,7 +1714,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ```js
    * User.findAndCountAll({
    *   include: [
-   *    { model: Profile, required: true}
+   *      { model: Profile, required: true}
    *   ],
    *   limit 3
    * });
@@ -1754,7 +1786,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
-   * The successfull result of the promise will be (instance, initialized) - Make sure to use .spread()
+   * The successfull result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
    */
   public static findOrBuild<M extends Model>(
     this: { new (): M } & typeof Model,
@@ -1763,7 +1795,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
   /**
    * Find a row that matches the query, or build and save the row if none is found
-   * The successful result of the promise will be (instance, created) - Make sure to use .spread()
+   * The successful result of the promise will be (instance, created) - Make sure to use `.then(([...]))`
    *
    * If no transaction is passed in the `options` object, a new transaction will be created internally, to
    * prevent the race condition where a matching row is created by another connection after the find but
@@ -2134,49 +2166,6 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): void;
 
   /**
-   * A hook that is run before a define call
-   *
-   * @param name
-   * @param fn   A callback function that is called with attributes, options
-   */
-  public static beforeDefine<M extends Model>(
-    this: { new (): M } & typeof Model,
-    name: string,
-    fn: (attributes: ModelAttributes, options: ModelOptions<M>) => void
-  ): void;
-  public static beforeDefine<M extends Model>(
-    this: { new (): M } & typeof Model,
-    fn: (attributes: ModelAttributes, options: ModelOptions<M>) => void
-  ): void;
-
-  /**
-   * A hook that is run after a define call
-   *
-   * @param name
-   * @param fn   A callback function that is called with factory
-   */
-  public static afterDefine(name: string, fn: (model: typeof Model) => void): void;
-  public static afterDefine(fn: (model: typeof Model) => void): void;
-
-  /**
-   * A hook that is run before Sequelize() call
-   *
-   * @param name
-   * @param fn   A callback function that is called with config, options
-   */
-  public static beforeInit(name: string, fn: (config: Config, options: Options) => void): void;
-  public static beforeInit(fn: (config: Config, options: Options) => void): void;
-
-  /**
-   * A hook that is run after Sequelize() call
-   *
-   * @param name
-   * @param fn   A callback function that is called with sequelize
-   */
-  public static afterInit(name: string, fn: (sequelize: Sequelize) => void): void;
-  public static afterInit(fn: (sequelize: Sequelize) => void): void;
-
-  /**
    * A hook that is run before sequelize.sync call
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
@@ -2213,7 +2202,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static hasOne(target: typeof Model, options?: HasOneOptions): HasOne;
+  public static hasOne<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: HasOneOptions
+  ): HasOne<M, T>;
 
   /**
    * Creates an association between this (the source) and the provided target. The foreign key is added on the
@@ -2224,7 +2215,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static belongsTo(target: typeof Model, options?: BelongsToOptions): BelongsTo;
+  public static belongsTo<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: BelongsToOptions
+  ): BelongsTo<M, T>;
 
   /**
    * Create an association that is either 1:m or n:m.
@@ -2244,9 +2237,10 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ways. Consider users and projects from before with a join table that stores whether the project has been
    * started yet:
    * ```js
-   * var UserProjects = sequelize.define('userprojects', {
+   * class UserProjects extends Model {}
+   * UserProjects.init({
    *   started: Sequelize.BOOLEAN
-   * })
+   * }, { sequelize })
    * User.hasMany(Project, { through: UserProjects })
    * Project.hasMany(User, { through: UserProjects })
    * ```
@@ -2269,8 +2263,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Similarily, when fetching through a join table with custom attributes, these attributes will be
    * available as an object with the name of the through model.
    * ```js
-   * user.getProjects().then(function (projects) {
-   *   var p1 = projects[0]
+   * user.getProjects().then(projects => {
+   *   const p1 = projects[0]
    *   p1.userprojects.started // Is this project started yet?
    * })
    * ```
@@ -2278,7 +2272,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static hasMany(target: typeof Model, options?: HasManyOptions): HasMany;
+  public static hasMany<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: HasManyOptions
+  ): HasMany<M, T>;
 
   /**
    * Create an N:M association with a join table
@@ -2294,9 +2290,10 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * associations in two ways. Consider users and projects from before with a join table that stores whether
    * the project has been started yet:
    * ```js
-   * var UserProjects = sequelize.define('userprojects', {
+   * class UserProjects extends Model {}
+   * UserProjects.init({
    *   started: Sequelize.BOOLEAN
-   * })
+   * }, { sequelize });
    * User.belongsToMany(Project, { through: UserProjects })
    * Project.belongsToMany(User, { through: UserProjects })
    * ```
@@ -2318,8 +2315,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Similarily, when fetching through a join table with custom attributes, these attributes will be
    * available as an object with the name of the through model.
    * ```js
-   * user.getProjects().then(function (projects) {
-   *   var p1 = projects[0]
+   * user.getProjects().then(projects => {
+   *   const p1 = projects[0]
    *   p1.userprojects.started // Is this project started yet?
    * })
    * ```
@@ -2328,7 +2325,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options Options for the association
    *
    */
-  public static belongsToMany(target: typeof Model, options: BelongsToManyOptions): BelongsToMany;
+  public static belongsToMany<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options: BelongsToManyOptions
+  ): BelongsToMany<M, T>;
 
   /**
    * Returns true if this instance has not yet been persisted to the database
@@ -2370,7 +2369,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options.plain If set to true, included instances will be returned as plain objects
    */
   public get(options?: { plain?: boolean; clone?: boolean }): object;
-  public get(key: string, options?: { plain?: boolean; clone?: boolean }): any;
+  public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
   public get<K extends keyof this>(key: K, options?: { plain?: boolean; clone?: boolean }): this[K];
 
   /**
@@ -2477,13 +2476,13 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * instance.increment('number') // increment number by 1
    * instance.increment(['number', 'count'], { by: 2 }) // increment number and count by 2
    * instance.increment({ answer: 42, tries: 1}, { by: 2 }) // increment answer by 42, and tries by 1.
-   *                            // `by` is ignored, since each column has its own
-   *                            // value
+   *                                                        // `by` is ignored, since each column has its own
+   *                                                        // value
    * ```
    *
    * @param fields If a string is provided, that column is incremented by the value of `by` given in options.
-   *         If an array is provided, the same is true for each column.
-   *         If and object is provided, each column is incremented by the value given.
+   *               If an array is provided, the same is true for each column.
+   *               If and object is provided, each column is incremented by the value given.
    */
   public increment<K extends keyof this>(
     fields: K | K[] | Partial<this>,
@@ -2502,13 +2501,13 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * instance.decrement('number') // decrement number by 1
    * instance.decrement(['number', 'count'], { by: 2 }) // decrement number and count by 2
    * instance.decrement({ answer: 42, tries: 1}, { by: 2 }) // decrement answer by 42, and tries by 1.
-   *                            // `by` is ignored, since each column has its own
-   *                            // value
+   *                                                        // `by` is ignored, since each column has its own
+   *                                                        // value
    * ```
    *
    * @param fields If a string is provided, that column is decremented by the value of `by` given in options.
-   *         If an array is provided, the same is true for each column.
-   *         If and object is provided, each column is decremented by the value given
+   *               If an array is provided, the same is true for each column.
+   *               If and object is provided, each column is decremented by the value given
    */
   public decrement<K extends keyof this>(
     fields: K | K[] | Partial<this>,
@@ -2531,5 +2530,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public toJSON(): object;
 }
+
+export type ModelType = typeof Model;
+
+export type ModelCtor<M extends Model> = { new (): M } & ModelType;
 
 export default Model;

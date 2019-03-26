@@ -250,7 +250,7 @@ if (current.dialect.name === 'mssql') {
         }
       ].forEach(test => {
         it(test.title, function() {
-          expectsql(this.queryGenerator.arithmeticQuery.apply(this.queryGenerator, test.arguments), test.expectation);
+          expectsql(this.queryGenerator.arithmeticQuery(...test.arguments), test.expectation);
         });
       });
     });

@@ -5,8 +5,6 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const stub = sinon.stub;
 const _ = require('lodash');
-const Sequelize = require('../../../index');
-const Promise = Sequelize.Promise;
 const Support = require('../support');
 const DataTypes = require('../../../lib/data-types');
 const BelongsTo = require('../../../lib/associations/belongs-to');
@@ -171,9 +169,9 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       });
 
     beforeEach(function() {
-      this.findAll = stub(UserTasks, 'findAll').returns(Promise.resolve([]));
-      this.bulkCreate = stub(UserTasks, 'bulkCreate').returns(Promise.resolve([]));
-      this.destroy = stub(UserTasks, 'destroy').returns(Promise.resolve([]));
+      this.findAll = stub(UserTasks, 'findAll').resolves([]);
+      this.bulkCreate = stub(UserTasks, 'bulkCreate').resolves([]);
+      this.destroy = stub(UserTasks, 'destroy').resolves([]);
     });
 
     afterEach(function() {
@@ -191,11 +189,11 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
     it('uses one delete from statement', function() {
       this.findAll
-        .onFirstCall().returns(Promise.resolve([]))
-        .onSecondCall().returns(Promise.resolve([
+        .onFirstCall().resolves([])
+        .onSecondCall().resolves([
           { userId: 42, taskId: 15 },
           { userId: 42, taskId: 16 }
-        ]));
+        ]);
 
       return user.setTasks([task1, task2]).then(() => {
         return user.setTasks(null);

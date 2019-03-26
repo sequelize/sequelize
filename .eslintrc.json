@@ -1,47 +1,39 @@
 {
+  "extends": "eslint:recommended",
   "rules": {
     "mocha/no-exclusive-tests": "error",
     "mocha/no-skipped-tests": "warn",
 
-    // "jsdoc/check-param-names": "error",
-    // "jsdoc/check-tag-names": "error",
-    // "jsdoc/check-types": "error",
-    // "jsdoc/newline-after-description": "error",
-    // "jsdoc/no-undefined-types": "error",
-    // "jsdoc/require-description-complete-sentence": "off",
-    // "jsdoc/require-example": "off",
-    // "jsdoc/require-hyphen-before-param-description": "off",
-    // "jsdoc/require-param": "error",
-    // "jsdoc/require-param-description": "error",
-    // "jsdoc/require-param-name": "error",
-    // "jsdoc/require-param-type": "error",
-    // "jsdoc/require-returns-description": "off",
-    // "jsdoc/require-returns-type": "error",
-    // "jsdoc/valid-types": "off",
+    "jsdoc/check-param-names": "error",
+    "jsdoc/check-tag-names": "error",
+    "jsdoc/check-types": "error",
+    "jsdoc/newline-after-description": "error",
+    "jsdoc/no-undefined-types": "off",
+    "jsdoc/require-description-complete-sentence": "off",
+    "jsdoc/require-example": "off",
+    "jsdoc/require-hyphen-before-param-description": "off",
+    "jsdoc/require-param": "error",
+    "jsdoc/require-param-description": "off",
+    "jsdoc/require-param-name": "error",
+    "jsdoc/require-param-type": "error",
+    "jsdoc/require-returns-description": "off",
+    "jsdoc/require-returns-type": "error",
+    "jsdoc/valid-types": "error",
 
+    // style
     "array-bracket-spacing": "error",
     "comma-spacing": "error",
     "key-spacing": "error",
     "keyword-spacing": "error",
     "object-curly-spacing": ["error", "always"],
     "func-call-spacing": ["error", "never"],
-
-    "no-console": "off",
-    "no-extra-parens": "error",
-    "valid-jsdoc": "off",
     "new-cap": [
       "error",
       {
+        "capIsNewExceptionPattern": "^BigInt",
         "properties": false
       }
     ],
-    "no-extra-boolean-cast": "error",
-    "strict": [
-      "error",
-      "global"
-    ],
-    "no-var": "error",
-    "prefer-const": "error",
     "semi": [
       "error",
       "always"
@@ -51,7 +43,6 @@
       "never"
     ],
     "space-before-blocks": "error",
-    "prefer-arrow-callback": "error",
     "arrow-parens": [
       "error",
       "as-needed"
@@ -60,18 +51,6 @@
       "error",
       "last"
     ],
-    "no-bitwise": "off",
-    "no-cond-assign": [
-      "error",
-      "except-parens"
-    ],
-    "curly": "off",
-    "eqeqeq": "error",
-    "no-extend-native": "error",
-    "wrap-iife": [
-      "error",
-      "any"
-    ],
     "indent": [
       "error",
       2,
@@ -79,15 +58,8 @@
         "SwitchCase": 1
       }
     ],
-    "no-use-before-define": "off",
-    "no-caller": "error",
-    "no-undef": "error",
-    "no-unused-vars": "error",
-    "no-irregular-whitespace": "error",
-    "max-depth": [
-      "error",
-      6
-    ],
+    "no-extra-parens": "error",
+    "curly": "off",
     "quotes": [
       "error",
       "single",
@@ -96,15 +68,49 @@
       }
     ],
     "linebreak-style": "error",
+    "camelcase": "error",
+    "comma-dangle": "error",
+
+    // functional
+    "valid-jsdoc": "off",
+    "strict": [
+      "error",
+      "global"
+    ],
+    "no-var": "error",
+    "prefer-const": "error",
+    "prefer-arrow-callback": "error",
+    "no-extend-native": "error",
+    "wrap-iife": [
+      "error",
+      "any"
+    ],
+    "no-use-before-define": "off",
+    "no-caller": "error",
+    "no-irregular-whitespace": "error",
+    "max-depth": [
+      "error",
+      6
+    ],
     "no-loop-func": "warn",
     "object-shorthand": "error",
     "one-var-declaration-per-line": "error",
-    "comma-dangle": "error",
     "no-shadow": "warn",
-    "camelcase": "warn",
     "prefer-template": "error",
     "no-else-return": ["error", { "allowElseIf": false }],
-    "no-lonely-if": "error"
+    "no-lonely-if": "error",
+    "no-throw-literal": "error",
+    "prefer-promise-reject-errors": "error",
+    "no-invalid-this": "error",
+    "radix": "error",
+    "no-with": "error",
+    "no-useless-concat": "error",
+    "no-useless-catch": "error",
+    "no-useless-call": "error",
+    "no-unused-expressions": "error",
+    "no-sequences": "error",
+    "no-self-compare": "error",
+    "no-case-declarations": "off"
   },
   "parserOptions": {
     "ecmaVersion": 6,
@@ -119,17 +125,4 @@
     "mocha": true,
     "es6": true
   }
-  // "globals": {
-  //   "Association": true,
-  //   "HasMany": true,
-  //   "BelongsTo": true,
-  //   "HasOne": true,
-  //   "BelongsToMany": true,
-  //   "DataTypes": true,
-  //   "Sequelize": true,
-  //   "Transaction": true,
-  //   "Model": true,
-  //   "QueryInterface": true,
-  //   "QueryType": true
-  // }
 }

@@ -12,6 +12,7 @@ const chai = require('chai'),
   uuid = require('uuid'),
   DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect(),
+  BigInt = require('big-integer'),
   semver = require('semver');
 
 describe(Support.getTestDialectTeaser('DataTypes'), () => {
@@ -210,6 +211,26 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     } else {
       return testSuccess(Type, 1);
     }
+  });
+
+  it('should handle JS BigInt type', function() {
+    const User = this.sequelize.define('user', {
+      age: Sequelize.BIGINT
+    });
+
+    const age = BigInt(Number.MAX_SAFE_INTEGER).add(Number.MAX_SAFE_INTEGER);
+
+    return User.sync({ force: true }).then(() => {
+      return User.create({ age });
+    }).then(user => {
+      expect(BigInt(user.age).toString()).to.equal(age.toString());
+      return User.findAll({
+        where: { age }
+      });
+    }).then(users => {
+      expect(users).to.have.lengthOf(1);
+      expect(BigInt(users[0].age).toString()).to.equal(age.toString());
+    });
   });
 
   it('calls parse and bindParam for DOUBLE', () => {

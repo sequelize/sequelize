@@ -1,4 +1,5 @@
 import { DataType } from './data-types';
+import { Model, WhereOptions } from './model';
 
 export type Primitive = 'string' | 'number' | 'boolean';
 
@@ -21,17 +22,22 @@ export function format(arr: string[], dialect: string): string;
 export function formatNamedParameters(sql: string, parameters: {
   [key: string]: string | number | boolean;
 }, dialect: string): string;
-export function cloneDeep<T>(obj: T, fn?: (el: any) => any): T;
+export function cloneDeep<T>(obj: T, fn?: (el: unknown) => unknown): T;
+
+export interface OptionsForMapping {
+  attributes?: string[];
+  where?: WhereOptions;
+}
 
 /** Expand and normalize finder options */
-export function mapFinderOptions(options: any, Model: any): any;
+export function mapFinderOptions<T extends OptionsForMapping>(options: T, model: typeof Model): T;
 
 /* Used to map field names in attributes and where conditions */
-export function mapOptionFieldNames(options: any, Model: any): any;
+export function mapOptionFieldNames<T extends OptionsForMapping>(options: T, model: typeof Model): T;
 
-export function mapWhereFieldNames(attributes: any, Model: any): any;
+export function mapWhereFieldNames(attributes: object, model: typeof Model): object;
 /** Used to map field names in values */
-export function mapValueFieldNames(dataValues: any, fields: any, Model: any): any;
+export function mapValueFieldNames(dataValues: object, fields: string[], model: typeof Model): object;
 
 export function isColString(value: string): boolean;
 export function canTreatArrayAsAnd(arr: unknown[]): boolean;
@@ -40,7 +46,7 @@ export function combineTableNames(tableName1: string, tableName2: string): strin
 export function singularize(s: string): string;
 export function pluralize(s: string): string;
 
-export function toDefaultValue(value: any): any;
+export function toDefaultValue<T>(value: unknown): unknown;
 
 /**
  * Determine if the default value provided exists and can be described
@@ -58,6 +64,14 @@ export const TICK_CHAR: string;
 export function addTicks(s: string, tickChar?: string): string;
 export function removeTicks(s: string, tickChar?: string): string;
 
+/**
+ * Wraps a constructor to not need the `new` keyword using a proxy.
+ * Only used for data types.
+ */
+export function classToInvokable<T extends new (...args: any[]) => any>(ctor: T): T & {
+  (...args: ConstructorParameters<T>): T;
+}
+
 export class SequelizeMethod {
 
 }
@@ -67,7 +81,7 @@ export class SequelizeMethod {
  * Please do not use these functions directly, use Sequelize.fn and Sequelize.col instead.
  */
 export class Fn extends SequelizeMethod {
-  constructor(fn: string, args: any);
+  constructor(fn: string, args: unknown[]);
   public clone(): this;
 }
 
@@ -77,14 +91,14 @@ export class Col extends SequelizeMethod {
 }
 
 export class Cast extends SequelizeMethod {
-  public val: any;
+  public val: unknown;
   public type: string;
-  constructor(val: any, type?: string);
+  constructor(val: unknown, type?: string);
 }
 
 export class Literal extends SequelizeMethod {
-  public val: any;
-  constructor(val: any);
+  public val: unknown;
+  constructor(val: unknown);
 }
 
 export class Json extends SequelizeMethod {

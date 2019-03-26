@@ -65,7 +65,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mssql: 'TRUNCATE TABLE [public].[test_users]',
             mariadb: 'TRUNCATE `public`.`test_users`',
             mysql: 'TRUNCATE `public.test_users`',
-            sqlite: 'DELETE FROM `public.test_users`'
+            sqlite: 'DELETE FROM `public.test_users`; DELETE FROM `sqlite_sequence` WHERE `name` = \'public.test_users\';'
           }
         );
       });

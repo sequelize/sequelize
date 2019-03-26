@@ -10,15 +10,15 @@ branches:
   except:
     - /^v\d+\.\d+\.\d+$/
 
-cache: yarn
+cache: npm
 
 install:
-  - npm install -g yarn
-  - yarn
+  - npm install -g npm@latest
+  - npm install
   - |-
     if [ "$TSC" = true ]; then npm run test-typings; fi
   - |-
-    if [ "$DIALECT" = "postgres-native" ]; then yarn add pg-native; fi
+    if [ "$DIALECT" = "postgres-native" ]; then npm install pg-native; fi
 
 env:
   global:
@@ -47,7 +47,7 @@ jobs:
   include:
     - stage: test
       node_js: '6'
-      env: DIALECT=sqlite
+      env: DIALECT=sqlite TSC=true
     - stage: test
       node_js: '6'
       sudo: required
@@ -63,28 +63,20 @@ jobs:
     - stage: test
       node_js: '6'
       sudo: required
-      env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres
-    - stage: test
-      node_js: '6'
-      sudo: required
       env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres-native
-    - stage: test
+    - stage: release
       node_js: '8'
-      env: DIALECT=sqlite COVERAGE=false TSC=true
-    # - stage: release
-    #   node_js: '8'
-    #   script:
-    #     - npm run semantic-release
-    #   before_deploy:
-    #     - npm run docs
-    #   deploy:
-    #     provider: surge
-    #     project: ./esdoc/
-    #     domain: docs.sequelizejs.com
-    #     skip_cleanup: true
-    #     on: v4
+      script:
+        - npm run semantic-release
+      before_deploy:
+        - npm run docs
+      deploy:
+        provider: surge
+        project: ./esdoc/
+        domain: docs.sequelizejs.com
+        skip_cleanup: true
 
 stages:
   - test
-  # - name: release
-  #   if: branch = master AND type = push AND fork = false
+  - name: release
+    if: branch = master AND type = push AND fork = false

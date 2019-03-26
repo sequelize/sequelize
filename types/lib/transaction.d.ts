@@ -59,14 +59,14 @@ export namespace Transaction {
    * });
    * ```
    */
-  const enum ISOLATION_LEVELS {
+  enum ISOLATION_LEVELS {
     READ_UNCOMMITTED = 'READ UNCOMMITTED',
     READ_COMMITTED = 'READ COMMITTED',
     REPEATABLE_READ = 'REPEATABLE READ',
     SERIALIZABLE = 'SERIALIZABLE',
   }
 
-  const enum TYPES {
+  enum TYPES {
     DEFERRED = 'DEFERRED',
     IMMEDIATE = 'IMMEDIATE',
     EXCLUSIVE = 'EXCLUSIVE',
@@ -107,7 +107,7 @@ export namespace Transaction {
    * ```
    * UserModel will be locked but TaskModel won't!
    */
-  const enum LOCK {
+  enum LOCK {
     UPDATE = 'UPDATE',
     SHARE = 'SHARE',
     /**

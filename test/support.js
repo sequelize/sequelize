@@ -1,18 +1,20 @@
 'use strict';
 
-const fs = require('fs'),
-  path = require('path'),
-  _ = require('lodash'),
-  Sequelize = require('../index'),
-  DataTypes = require('../lib/data-types'),
-  Config = require('./config/config'),
-  supportShim = require('./supportShim'),
-  chai = require('chai'),
-  expect = chai.expect,
-  AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator'),
-  QuoteHelper = require('../lib/dialects/abstract/query-generator/helpers/quote');
-
+const fs = require('fs');
+const path = require('path');
+const _ = require('lodash');
+const Sequelize = require('../index');
+const DataTypes = require('../lib/data-types');
+const Config = require('./config/config');
+const chai = require('chai');
+const expect = chai.expect;
+const AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+const QuoteHelper = require('../lib/dialects/abstract/query-generator/helpers/quote');
 const { Composition } = require('../lib/dialects/abstract/query-generator/composition');
+
+const sinon = require('sinon');
+
+sinon.usingPromise(require('bluebird'));
 
 chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));
@@ -22,7 +24,7 @@ chai.config.includeStack = true;
 chai.should();
 
 const bindReplace = {
-  'mssql': (match, key) => `@${Number.parseInt(key)-1}`,
+  'mssql': (match, key) => `@${Number.parseInt(key, 10)-1}`,
   'sqlite': '?$1',
   'mysql': '?',
   'mariadb': '?'
@@ -38,10 +40,6 @@ Sequelize.Promise.onPossiblyUnhandledRejection(e => {
   throw e;
 });
 Sequelize.Promise.longStackTraces();
-
-// shim all Sequelize methods for testing for correct `options.logging` passing
-// and no modification of `options` objects
-if (!process.env.COVERAGE && process.env.SHIM) supportShim(Sequelize);
 
 const Support = {
   Sequelize,
@@ -243,8 +241,7 @@ const Support = {
         credentials += `:${dbConfig.password}`;
       }
 
-      url = `${config.dialect}://${credentials
-      }@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`;
+      url = `${config.dialect}://${credentials}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`;
     }
     return url;
   },
