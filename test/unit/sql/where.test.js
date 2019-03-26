@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       mssql: '[deleted] IS NULL'
     });
 
-    describe('$in', () => {
+    describe('Op.in', () => {
       testsql('equipment', {
         [Op.in]: [1, 3]
       }, {
@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$not', () => {
+    describe('Op.not', () => {
       testsql('deleted', {
         [Op.not]: true
       }, {
@@ -178,7 +178,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$notIn', () => {
+    describe('Op.notIn', () => {
       testsql('equipment', {
         [Op.notIn]: []
       }, {
@@ -200,7 +200,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$ne', () => {
+    describe('Op.ne', () => {
       testsql('email', {
         [Op.ne]: 'jack.bauer@gmail.com'
       }, {
@@ -209,8 +209,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$and/$or/$not', () => {
-      describe('$or', () => {
+    describe('Op.and/Op.or/Op.not', () => {
+      describe('Op.or', () => {
         testsql('email', {
           [Op.or]: ['maker@mhansen.io', 'janzeh@gmail.com']
         }, {
@@ -292,7 +292,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      describe('$and', () => {
+      describe('Op.and', () => {
         testsql(Op.and, {
           [Op.or]: {
             group_id: 1,
@@ -345,7 +345,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      describe('$not', () => {
+      describe('Op.not', () => {
         testsql(Op.not, {
           [Op.or]: {
             group_id: 1,
@@ -366,7 +366,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$col', () => {
+    describe('Op.col', () => {
       testsql('userId', {
         [Op.col]: 'user.id'
       }, {
@@ -409,7 +409,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$gt', () => {
+    describe('Op.gt', () => {
       testsql('rank', {
         [Op.gt]: 2
       }, {
@@ -425,7 +425,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$like', () => {
+    describe('Op.like', () => {
       testsql('username', {
         [Op.like]: '%swagger'
       }, {
@@ -434,7 +434,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$startsWith', () => {
+    describe('Op.startsWith', () => {
       testsql('username', {
         [Op.startsWith]: 'swagger'
       }, {
@@ -443,7 +443,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$endsWith', () => {
+    describe('Op.endsWith', () => {
       testsql('username', {
         [Op.endsWith]: 'swagger'
       }, {
@@ -452,7 +452,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$substring', () => {
+    describe('Op.substring', () => {
       testsql('username', {
         [Op.substring]: 'swagger'
       }, {
@@ -461,12 +461,36 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$between', () => {
+    describe('Op.between', () => {
       testsql('date', {
         [Op.between]: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] BETWEEN '2013-01-01' AND '2013-01-11'",
         mssql: "[date] BETWEEN N'2013-01-01' AND N'2013-01-11'"
+      });
+
+      testsql('date', {
+        [Op.between]: [new Date('2013-01-01'), new Date('2013-01-11')]
+      }, {
+        default: "[date] BETWEEN '2013-01-01 00:00:00.000 +00:00' AND '2013-01-11 00:00:00.000 +00:00'",
+        mysql: "`date` BETWEEN '2013-01-01 00:00:00' AND '2013-01-11 00:00:00'",
+        mariadb: "`date` BETWEEN '2013-01-01 00:00:00.000' AND '2013-01-11 00:00:00.000'"
+      });
+
+      testsql('date', {
+        [Op.between]: [1356998400000, 1357862400000]
+      }, {
+        model: {
+          rawAttributes: {
+            date: {
+              type: new DataTypes.DATE()
+            }
+          }
+        }
+      },
+      {
+        default: "[date] BETWEEN '2013-01-01 00:00:00.000 +00:00' AND '2013-01-11 00:00:00.000 +00:00'",
+        mssql: "[date] BETWEEN N'2013-01-01 00:00:00.000 +00:00' AND N'2013-01-11 00:00:00.000 +00:00'"
       });
 
       testsql('date', {
@@ -478,7 +502,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$notBetween', () => {
+    describe('Op.notBetween', () => {
       testsql('date', {
         [Op.notBetween]: ['2013-01-01', '2013-01-11']
       }, {
@@ -489,7 +513,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     if (current.dialect.supports.ARRAY) {
       describe('ARRAY', () => {
-        describe('$contains', () => {
+        describe('Op.contains', () => {
           testsql('muscles', {
             [Op.contains]: [2, 3]
           }, {
@@ -513,7 +537,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$overlap', () => {
+        describe('Op.overlap', () => {
           testsql('muscles', {
             [Op.overlap]: [3, 11]
           }, {
@@ -521,7 +545,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$any', () => {
+        describe('Op.any', () => {
           testsql('userId', {
             [Op.any]: [4, 5, 6]
           }, {
@@ -538,7 +562,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: '"userId" = ANY (ARRAY[2,5]::INTEGER[])'
           });
 
-          describe('$values', () => {
+          describe('Op.values', () => {
             testsql('userId', {
               [Op.any]: {
                 [Op.values]: [4, 5, 6]
@@ -561,7 +585,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$all', () => {
+        describe('Op.all', () => {
           testsql('userId', {
             [Op.all]: [4, 5, 6]
           }, {
@@ -578,7 +602,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: '"userId" = ALL (ARRAY[2,5]::INTEGER[])'
           });
 
-          describe('$values', () => {
+          describe('Op.values', () => {
             testsql('userId', {
               [Op.all]: {
                 [Op.values]: [4, 5, 6]
@@ -601,7 +625,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$like', () => {
+        describe('Op.like', () => {
           testsql('userId', {
             [Op.like]: {
               [Op.any]: ['foo', 'bar', 'baz']
@@ -1064,7 +1088,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }
 
     if (current.dialect.supports.REGEXP) {
-      describe('$regexp', () => {
+      describe('Op.regexp', () => {
         testsql('username', {
           [Op.regexp]: '^sw.*r$'
         }, {
@@ -1074,7 +1098,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      describe('$regexp', () => {
+      describe('Op.regexp', () => {
         testsql('newline', {
           [Op.regexp]: '^new\nline$'
         }, {
@@ -1084,7 +1108,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      describe('$notRegexp', () => {
+      describe('Op.notRegexp', () => {
         testsql('username', {
           [Op.notRegexp]: '^sw.*r$'
         }, {
@@ -1094,7 +1118,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      describe('$notRegexp', () => {
+      describe('Op.notRegexp', () => {
         testsql('newline', {
           [Op.notRegexp]: '^new\nline$'
         }, {
@@ -1105,7 +1129,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       if (current.dialect.name === 'postgres') {
-        describe('$iRegexp', () => {
+        describe('Op.iRegexp', () => {
           testsql('username', {
             [Op.iRegexp]: '^sw.*r$'
           }, {
@@ -1113,7 +1137,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$iRegexp', () => {
+        describe('Op.iRegexp', () => {
           testsql('newline', {
             [Op.iRegexp]: '^new\nline$'
           }, {
@@ -1121,7 +1145,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$notIRegexp', () => {
+        describe('Op.notIRegexp', () => {
           testsql('username', {
             [Op.notIRegexp]: '^sw.*r$'
           }, {
@@ -1129,7 +1153,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$notIRegexp', () => {
+        describe('Op.notIRegexp', () => {
           testsql('newline', {
             [Op.notIRegexp]: '^new\nline$'
           }, {
