@@ -18,7 +18,7 @@ install:
   - |-
     if [ "$TSC" = true ]; then npm run test-typings; fi
   - |-
-    if [ "$DIALECT" = "postgres-native" ]; then yarn add pg-native; fi
+    if [ "$DIALECT" = "postgres-native" ]; then npm install pg-native; fi
 
 env:
   global:
