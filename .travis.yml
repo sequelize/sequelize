@@ -13,6 +13,7 @@ branches:
 cache: npm
 
 install:
+  - npm install -g npm@latest
   - npm install
   - |-
     if [ "$TSC" = true ]; then npm run test-typings; fi
