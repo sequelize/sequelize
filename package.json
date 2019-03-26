@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "5.1.1",
+  "version": "0.0.0-development",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     "Sascha Depold <sascha@depold.com>",
@@ -82,7 +82,8 @@
     "sinon-chai": "^3.2.0",
     "sqlite3": "^4.0.6",
     "tedious": "^6.0.0",
-    "typescript": "^3.3.3333"
+    "typescript": "^3.3.3333",
+    "semantic-release": "^15.13.3"
   },
   "keywords": [
     "mysql",
@@ -156,6 +157,7 @@
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
     "sscce-mssql": "cross-env DIALECT=mssql npm run sscce",
-    "setup-mssql": "env-cmd $npm_package_options_env_cmd ./scripts/setup-mssql"
+    "setup-mssql": "env-cmd $npm_package_options_env_cmd ./scripts/setup-mssql",
+    "semantic-release": "semantic-release"
   }
 }

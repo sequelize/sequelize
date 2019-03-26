@@ -74,9 +74,9 @@ jobs:
     - stage: release
       node_js: '8'
       script:
+        - npm run semantic-release
+      before_deploy:
         - npm run docs
-      # before_deploy:
-      #   - npm run docs
       deploy:
         provider: surge
         project: ./esdoc/
