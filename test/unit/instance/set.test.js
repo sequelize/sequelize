@@ -98,7 +98,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             }
             if (typeof val === 'string') {
               // Canonicalize phone number
-              val = val.replace(/^\+/, '00').replace(/\(0\)|[\s+\/.\-\(\)]/g, '');
+              val = val.replace(/^\+/, '00').replace(/\(0\)|[\s+/.\-()]/g, '');
             }
             this.setDataValue('phoneNumber', val);
           }

@@ -586,9 +586,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('create', () => {
-    it('works with non-integer primary keys with a default value', function() {
+    it('works with multiple non-integer primary keys with a default value', function() {
       const User = this.sequelize.define('User', {
-        'id': {
+        'id1': {
+          primaryKey: true,
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4
+        },
+        'id2': {
           primaryKey: true,
           type: DataTypes.UUID,
           defaultValue: DataTypes.UUIDV4
@@ -602,7 +607,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.sequelize.sync({ force: true }).then(() => {
         return User.create({}).then(user => {
           expect(user).to.be.ok;
-          expect(user.id).to.be.ok;
+          expect(user.id1).to.be.ok;
+          expect(user.id2).to.be.ok;
         });
       });
     });

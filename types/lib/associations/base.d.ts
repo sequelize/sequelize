@@ -1,9 +1,9 @@
-import { ColumnOptions, Model } from '../model';
+import { ColumnOptions, Model, ModelCtor } from '../model';
 
-export abstract class Association {
+export abstract class Association<S extends Model = Model, T extends Model = Model> {
   public associationType: string;
-  public source: typeof Model;
-  public target: typeof Model;
+  public source: ModelCtor<S>;
+  public target: ModelCtor<T>;
   public isSelfAssociation: boolean;
   public isSingleAssociation: boolean;
   public isMultiAssociation: boolean;

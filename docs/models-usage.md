@@ -2,7 +2,7 @@
 
 ## Data retrieval / Finders
 
-Finder methods are intended to query data from the database. They do *not* return plain objects but instead return model instances. Because finder methods return model instances you can call any model instance member on the result as described in the documentation for [*instances*](/manual/tutorial/instances.html).
+Finder methods are intended to query data from the database. They do *not* return plain objects but instead return model instances. Because finder methods return model instances you can call any model instance member on the result as described in the documentation for [*instances*](/manual/instances.html).
 
 In this document we'll explore what finder methods can do:
 
@@ -25,7 +25,7 @@ Project.findOne({
   attributes: ['id', ['name', 'title']]
 }).then(project => {
   // project will be the first entry of the Projects table with the title 'aProject' || null
-  // project.title will contain the name of the project
+  // project.get('title') will contain the name of the project
 })
 ```
 
@@ -45,7 +45,8 @@ User
     console.log(created)
 
     /*
-     findOrCreate returns an array containing the object that was found or created and a boolean that will be true if a new object was created and false if not, like so:
+     findOrCreate returns an array containing the object that was found or created and a boolean that
+     will be true if a new object was created and false if not, like so:
 
     [ {
         username: 'sdepold',
@@ -56,7 +57,10 @@ User
       },
       true ]
 
- In the example above, the array spread on line 3 divides the array into its 2 parts and passes them as arguments to the callback function defined beginning at line 39, which treats them as "user" and "created" in this case. (So "user" will be the object from index 0 of the returned array and "created" will equal "true".)
+ In the example above, the array spread on line 3 divides the array into its 2 parts and passes them
+  as arguments to the callback function defined beginning at line 39, which treats them as "user" and
+  "created" in this case. (So "user" will be the object from index 0 of the returned array and
+  "created" will equal "true".)
     */
   })
 ```
@@ -82,7 +86,10 @@ User.create({ username: 'fnord', job: 'omnomnom' })
       },
       false
     ]
-    The array returned by findOrCreate gets spread into its 2 parts by the array spread on line 3, and the parts will be passed as 2 arguments to the callback function beginning on line 69, which will then treat them as "user" and "created" in this case. (So "user" will be the object from index 0 of the returned array and "created" will equal "false".)
+    The array returned by findOrCreate gets spread into its 2 parts by the array spread on line 3, and
+    the parts will be passed as 2 arguments to the callback function beginning on line 69, which will
+    then treat them as "user" and "created" in this case. (So "user" will be the object from index 0
+    of the returned array and "created" will equal "false".)
     */
   })
 ```
@@ -403,9 +410,12 @@ Project.sum('age', { where: { age: { [Op.gt]: 5 } } }).then(sum => {
 When you are retrieving data from the database there is a fair chance that you also want to get associations with the same query - this is called eager loading. The basic idea behind that, is the use of the attribute `include` when you are calling `find` or `findAll`. Lets assume the following setup:
 
 ```js
-const User = sequelize.define('user', { name: Sequelize.STRING })
-const Task = sequelize.define('task', { name: Sequelize.STRING })
-const Tool = sequelize.define('tool', { name: Sequelize.STRING })
+class User extends Model {}
+User.init({ name: Sequelize.STRING }, { sequelize })
+class Task extends Model {}
+Task.init({ name: Sequelize.STRING }, { sequelize })
+class Tool extends Model {}
+Tool.init({ name: Sequelize.STRING }, { sequelize })
 
 Task.belongsTo(User)
 User.hasMany(Task)

@@ -16,7 +16,7 @@ import { sequelize } from '../connection';
 
 export class UserGroup extends Model {
     public static associations: {
-        users: HasMany
+        users: HasMany<UserGroup, User>
     };
 
     public id: number;

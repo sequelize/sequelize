@@ -6,12 +6,13 @@ import {
   DataTypes,
   FindOptions,
   Model,
+  ModelCtor
 } from 'sequelize';
 import { sequelize } from '../connection';
 
 export class User extends Model {
   public static associations: {
-    group: BelongsTo
+    group: BelongsTo<User, UserGroup>;
   };
 
   public id: number;
@@ -68,7 +69,12 @@ User.afterFind((users, options) => {
 User.addHook('beforeFind', 'test', (options: FindOptions) => {
   return undefined;
 });
+
 // associate
 // it is important to import _after_ the model above is already exported so the circular reference works.
 import { UserGroup } from './UserGroup';
 export const Group = User.belongsTo(UserGroup, { as: 'group', foreignKey: 'groupId' });
+
+// associations refer to their Model
+const userType: ModelCtor<User> = User.associations.group.source;
+const groupType: ModelCtor<UserGroup> = User.associations.group.target;

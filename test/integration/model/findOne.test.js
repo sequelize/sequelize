@@ -110,7 +110,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: { 'specialkey': 'awesome' },
           logging(sql) {
             test = true;
-            expect(sql).to.match(/WHERE ["|`|\[]UserPrimary["|`|\]]\.["|`|\[]specialkey["|`|\]] = N?'awesome'/);
+            expect(sql).to.match(/WHERE ["|`|[]UserPrimary["|`|\]]\.["|`|[]specialkey["|`|\]] = N?'awesome'/);
           }
         }).then(() => {
           expect(test).to.be.true;

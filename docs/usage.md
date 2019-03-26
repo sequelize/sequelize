@@ -94,7 +94,8 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   // The following example:
   //   define: { timestamps: false }
   // is basically the same as:
-  //   sequelize.define(name, attributes, { timestamps: false })
+  //   Model.init(attributes, { timestamps: false });
+  //   sequelize.define(name, attributes, { timestamps: false });
   // so defining the timestamps for each model will be not necessary
   define: {
     underscored: false,
@@ -275,7 +276,7 @@ sequelize
 sequelize
   .query('SELECT 1', {
     // A function (or false) for logging your queries
-    // Will get called for every SQL query that gets send
+    // Will get called for every SQL query that gets sent
     // to the server.
     logging: console.log,
 
@@ -349,9 +350,9 @@ sequelize.query('select 1 as `foo.bar.baz`').then(rows => {
 ```
 
 
-[0]: /manual/installation/usage.html#options
-[1]: /manual/tutorial/models-definition.html#configuration
+[0]: /manual/usage.html#options
+[1]: /manual/models-definition.html#configuration
 [2]: /class/lib/sequelize.js~Sequelize.html
-[3]: /manual/tutorial/transactions.html
+[3]: /manual/transactions.html
 [4]: /variable/index.html#static-variable-QueryTypes
 [5]: /class/lib/sequelize.js~Sequelize.html#instance-method-query

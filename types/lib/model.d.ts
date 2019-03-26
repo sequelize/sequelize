@@ -11,7 +11,7 @@ import {
 } from './associations/index';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
-import { AllModelHooks, HookReturn, Hooks, ModelHookOptions } from './hooks';
+import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { ModelManager } from './model-manager';
 import Op = require('./operators');
@@ -379,15 +379,21 @@ export type OrderItem =
   | [typeof Model, typeof Model, string, string];
 export type Order = string | Fn | Col | Literal | OrderItem[];
 
+/**
+ * Please note if this is used the aliased property will not be available on the model instance
+ * as a property but only via `instance.get('alias')`.
+ */
+export type ProjectionAlias = [string | Literal | Fn, string];
+
 export type FindAttributeOptions =
-  | (string | [string | Literal | Fn, string])[]
+  | (string | ProjectionAlias)[]
   | {
       exclude: string[];
-      include?: (string | [string | Literal | Fn, string])[];
+      include?: (string | ProjectionAlias)[];
     }
   | {
       exclude?: string[];
-      include: (string | [string | Literal | Fn, string])[];
+      include: (string | ProjectionAlias)[];
     };
 
 /**
@@ -1101,6 +1107,7 @@ export interface ColumnOptions {
   /**
    * If false, the column will have a NOT NULL constraint, and a not null validation will be run before an
    * instance is saved.
+   * @default true
    */
   allowNull?: boolean;
 
@@ -1201,12 +1208,13 @@ export interface ModelAttributeColumnOptions extends ColumnOptions {
    * Usage in object notation
    *
    * ```js
-   * sequelize.define('model', {
-   *     states: {
-   *       type:   Sequelize.ENUM,
-   *       values: ['active', 'pending', 'deleted']
-   *     }
-   *   })
+   * class MyModel extends Model {}
+   * MyModel.init({
+   *   states: {
+   *     type:   Sequelize.ENUM,
+   *     values: ['active', 'pending', 'deleted']
+   *   }
+   * }, { sequelize })
    * ```
    */
   values?: string[];
@@ -1348,7 +1356,7 @@ export interface ModelOptions<M extends Model = Model> {
    * See Hooks for more information about hook
    * functions and their signatures. Each property can either be a function, or an array of functions.
    */
-  hooks?: Partial<ModelHookOptions<M>>;
+  hooks?: Partial<ModelHooks<M>>;
 
   /**
    * An object of model wide validations. Validations have access to all model values via `this`. If the
@@ -1516,7 +1524,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   /**
    * Apply a scope created in `define` to the model. First let's look at how to create scopes:
    * ```js
-   * var Model = sequelize.define('model', attributes, {
+   * class MyModel extends Model {}
+   * MyModel.init(attributes, {
    *   defaultScope: {
    *     where: {
    *       username: 'dan'
@@ -1529,7 +1538,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *         stuff: 'cake'
    *       }
    *     },
-   *     complexFunction: function(email, accessLevel) {
+   *     complexFunction(email, accessLevel) {
    *       return {
    *         where: {
    *           email: {
@@ -1541,7 +1550,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *         }
    *       }
    *     }
-   *   }
+   *   },
+   *   sequelize,
    * })
    * ```
    * Now, since you defined a default scope, every time you do Model.find, the default scope is appended to
@@ -1688,7 +1698,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *   where: ...,
    *   limit: 12,
    *   offset: 12
-   * }).then(function (result) {
+   * }).then(result => {
    *   ...
    * })
    * ```
@@ -1776,7 +1786,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
-   * The successfull result of the promise will be (instance, initialized) - Make sure to use .spread()
+   * The successfull result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
    */
   public static findOrBuild<M extends Model>(
     this: { new (): M } & typeof Model,
@@ -1785,7 +1795,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
   /**
    * Find a row that matches the query, or build and save the row if none is found
-   * The successful result of the promise will be (instance, created) - Make sure to use .spread()
+   * The successful result of the promise will be (instance, created) - Make sure to use `.then(([...]))`
    *
    * If no transaction is passed in the `options` object, a new transaction will be created internally, to
    * prevent the race condition where a matching row is created by another connection after the find but
@@ -2156,49 +2166,6 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): void;
 
   /**
-   * A hook that is run before a define call
-   *
-   * @param name
-   * @param fn   A callback function that is called with attributes, options
-   */
-  public static beforeDefine<M extends Model>(
-    this: { new (): M } & typeof Model,
-    name: string,
-    fn: (attributes: ModelAttributes, options: ModelOptions<M>) => void
-  ): void;
-  public static beforeDefine<M extends Model>(
-    this: { new (): M } & typeof Model,
-    fn: (attributes: ModelAttributes, options: ModelOptions<M>) => void
-  ): void;
-
-  /**
-   * A hook that is run after a define call
-   *
-   * @param name
-   * @param fn   A callback function that is called with factory
-   */
-  public static afterDefine(name: string, fn: (model: typeof Model) => void): void;
-  public static afterDefine(fn: (model: typeof Model) => void): void;
-
-  /**
-   * A hook that is run before Sequelize() call
-   *
-   * @param name
-   * @param fn   A callback function that is called with config, options
-   */
-  public static beforeInit(name: string, fn: (config: Config, options: Options) => void): void;
-  public static beforeInit(fn: (config: Config, options: Options) => void): void;
-
-  /**
-   * A hook that is run after Sequelize() call
-   *
-   * @param name
-   * @param fn   A callback function that is called with sequelize
-   */
-  public static afterInit(name: string, fn: (sequelize: Sequelize) => void): void;
-  public static afterInit(fn: (sequelize: Sequelize) => void): void;
-
-  /**
    * A hook that is run before sequelize.sync call
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
@@ -2235,7 +2202,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static hasOne(target: typeof Model, options?: HasOneOptions): HasOne;
+  public static hasOne<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: HasOneOptions
+  ): HasOne<M, T>;
 
   /**
    * Creates an association between this (the source) and the provided target. The foreign key is added on the
@@ -2246,7 +2215,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static belongsTo(target: typeof Model, options?: BelongsToOptions): BelongsTo;
+  public static belongsTo<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: BelongsToOptions
+  ): BelongsTo<M, T>;
 
   /**
    * Create an association that is either 1:m or n:m.
@@ -2266,9 +2237,10 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * ways. Consider users and projects from before with a join table that stores whether the project has been
    * started yet:
    * ```js
-   * var UserProjects = sequelize.define('userprojects', {
+   * class UserProjects extends Model {}
+   * UserProjects.init({
    *   started: Sequelize.BOOLEAN
-   * })
+   * }, { sequelize })
    * User.hasMany(Project, { through: UserProjects })
    * Project.hasMany(User, { through: UserProjects })
    * ```
@@ -2291,8 +2263,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Similarily, when fetching through a join table with custom attributes, these attributes will be
    * available as an object with the name of the through model.
    * ```js
-   * user.getProjects().then(function (projects) {
-   *   var p1 = projects[0]
+   * user.getProjects().then(projects => {
+   *   const p1 = projects[0]
    *   p1.userprojects.started // Is this project started yet?
    * })
    * ```
@@ -2300,7 +2272,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param target The model that will be associated with hasOne relationship
    * @param options Options for the association
    */
-  public static hasMany(target: typeof Model, options?: HasManyOptions): HasMany;
+  public static hasMany<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options?: HasManyOptions
+  ): HasMany<M, T>;
 
   /**
    * Create an N:M association with a join table
@@ -2316,9 +2290,10 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * associations in two ways. Consider users and projects from before with a join table that stores whether
    * the project has been started yet:
    * ```js
-   * var UserProjects = sequelize.define('userprojects', {
+   * class UserProjects extends Model {}
+   * UserProjects.init({
    *   started: Sequelize.BOOLEAN
-   * })
+   * }, { sequelize });
    * User.belongsToMany(Project, { through: UserProjects })
    * Project.belongsToMany(User, { through: UserProjects })
    * ```
@@ -2340,8 +2315,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Similarily, when fetching through a join table with custom attributes, these attributes will be
    * available as an object with the name of the through model.
    * ```js
-   * user.getProjects().then(function (projects) {
-   *   var p1 = projects[0]
+   * user.getProjects().then(projects => {
+   *   const p1 = projects[0]
    *   p1.userprojects.started // Is this project started yet?
    * })
    * ```
@@ -2350,7 +2325,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options Options for the association
    *
    */
-  public static belongsToMany(target: typeof Model, options: BelongsToManyOptions): BelongsToMany;
+  public static belongsToMany<M extends Model, T extends Model>(
+    this: ModelCtor<M>, target: ModelCtor<T>, options: BelongsToManyOptions
+  ): BelongsToMany<M, T>;
 
   /**
    * Returns true if this instance has not yet been persisted to the database
@@ -2553,5 +2530,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public toJSON(): object;
 }
+
+export type ModelType = typeof Model;
+
+export type ModelCtor<M extends Model> = { new (): M } & ModelType;
 
 export default Model;

@@ -261,8 +261,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return User.sync({ force: true, logging: _.after(2, _.once(sql => {
         if (dialect === 'mssql') {
-          expect(sql).to.match(/CONSTRAINT\s*([`"\[]?user_and_email[`"\]]?)?\s*UNIQUE\s*\([`"\[]?username[`"\]]?, [`"\[]?email[`"\]]?\)/);
-          expect(sql).to.match(/CONSTRAINT\s*([`"\[]?a_and_b[`"\]]?)?\s*UNIQUE\s*\([`"\[]?aCol[`"\]]?, [`"\[]?bCol[`"\]]?\)/);
+          expect(sql).to.match(/CONSTRAINT\s*([`"[]?user_and_email[`"\]]?)?\s*UNIQUE\s*\([`"[]?username[`"\]]?, [`"[]?email[`"\]]?\)/);
+          expect(sql).to.match(/CONSTRAINT\s*([`"[]?a_and_b[`"\]]?)?\s*UNIQUE\s*\([`"[]?aCol[`"\]]?, [`"[]?bCol[`"\]]?\)/);
         } else {
           expect(sql).to.match(/UNIQUE\s*([`"]?user_and_email[`"]?)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/);
           expect(sql).to.match(/UNIQUE\s*([`"]?a_and_b[`"]?)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/);
@@ -2517,7 +2517,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           if (semver.gte(current.options.databaseVersion, '5.6.0')) {
             expect(err.message).to.match(/Cannot add foreign key constraint/);
           } else {
-            expect(err.message).to.match(/Can\'t create table/);
+            expect(err.message).to.match(/Can't create table/);
           }
         } else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above

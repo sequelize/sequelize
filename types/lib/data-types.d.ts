@@ -1,9 +1,8 @@
 /**
- * The datatypes are used when defining a new model using `Sequelize.define`, like this:
+ * The datatypes are used when defining a new model using `Model.init`, like this:
  * ```js
- * sequelize.define('model', {
- *   column: DataTypes.INTEGER
- * })
+ * class MyModel extends MyModel {}
+ * MyModel.init({ column: DataTypes.INTEGER }, { sequelize });
  * ```
  * When defining a model you can just as easily pass a string as type, but often using the types defined here is beneficial. For example, using `DataTypes.BLOB`, mean
  * that that column will be returned as an instance of `Buffer` when being fetched by sequelize.
@@ -17,27 +16,29 @@
  * Three of the values provided here (`NOW`, `UUIDV1` and `UUIDV4`) are special default values, that should not be used to define types. Instead they are used as shorthands for
  * defining default values. For example, to get a uuid field with a default value generated following v1 of the UUID standard:
  * ```js
- * sequelize.define('model', {
+ * class MyModel extends Model {}
+ * MyModel.init({
  *   uuid: {
- *   type: DataTypes.UUID,
- *   defaultValue: DataTypes.UUIDV1,
- *   primaryKey: true
+ *     type: DataTypes.UUID,
+ *     defaultValue: DataTypes.UUIDV1,
+ *     primaryKey: true
  *   }
- * })
+ * }, { sequelize })
  * ```
  * There may be times when you want to generate your own UUID conforming to some other algorithm. This is accomplised
  * using the defaultValue property as well, but instead of specifying one of the supplied UUID types, you return a value
  * from a function.
  * ```js
- * sequelize.define('model', {
+ * class MyModel extends Model {}
+ * MyModel.init({
  *   uuid: {
- *   type: DataTypes.UUID,
- *   defaultValue: function() {
- *     return generateMyId()
- *   },
- *   primaryKey: true
- *   }
- * })
+ *     type: DataTypes.UUID,
+ *     defaultValue() {
+ *       return generateMyId()
+ *     },
+ *     primaryKey: true
+ *    }
+ * }, { sequelize })
  * ```
  */
 
@@ -63,8 +64,6 @@ export interface AbstractDataType {
 
 /**
  * A variable length string. Default length 255
- *
- * Available properties: `BINARY`
  */
 export const STRING: StringDataTypeConstructor;
 
@@ -88,9 +87,6 @@ export interface StringDataTypeOptions {
 
 /**
  * A fixed length string. Default length 255
- *
- * Available properties: `BINARY`
- *
  */
 export const CHAR: CharDataTypeConstructor;
 
@@ -144,20 +140,61 @@ export interface NumberDataType extends AbstractDataType {
   validate(value: unknown): boolean;
 }
 
-export interface NumberDataTypeOptions {
+export interface IntegerDataTypeOptions {
   length?: number;
   zerofill?: boolean;
+  unsigned?: boolean;
+}
+export interface NumberDataTypeOptions extends IntegerDataTypeOptions {
   decimals?: number;
   precision?: number;
   scale?: number;
-  unsigned?: boolean;
+}
+
+/**
+ * A 8 bit integer.
+ */
+export const TINYINT: TinyIntegerDataTypeConstructor;
+
+interface TinyIntegerDataTypeConstructor extends NumberDataTypeConstructor {
+  new (options?: IntegerDataTypeOptions): TinyIntegerDataType;
+  (options?: IntegerDataTypeOptions): TinyIntegerDataType;
+}
+
+export interface TinyIntegerDataType extends NumberDataType {
+  options: IntegerDataTypeOptions;
+}
+
+/**
+ * A 16 bit integer.
+ */
+export const SMALLINT: SmallIntegerDataTypeConstructor;
+
+interface SmallIntegerDataTypeConstructor extends NumberDataTypeConstructor {
+  new (options?: IntegerDataTypeOptions): SmallIntegerDataType;
+  (options?: IntegerDataTypeOptions): SmallIntegerDataType;
+}
+
+export interface SmallIntegerDataType extends NumberDataType {
+  options: IntegerDataTypeOptions;
+}
+
+/**
+ * A 24 bit integer.
+ */
+export const MEDIUMINT: MediumIntegerDataTypeConstructor;
+
+interface MediumIntegerDataTypeConstructor extends NumberDataTypeConstructor {
+  new (options?: IntegerDataTypeOptions): MediumIntegerDataType;
+  (options?: IntegerDataTypeOptions): MediumIntegerDataType;
+}
+
+export interface MediumIntegerDataType extends NumberDataType {
+  options: IntegerDataTypeOptions;
 }
 
 /**
  * A 32 bit integer.
- *
- * Available properties: `UNSIGNED`, `ZEROFILL`
- *
  */
 export const INTEGER: IntegerDataTypeConstructor;
 
@@ -170,10 +207,6 @@ export interface IntegerDataType extends NumberDataType {
   options: NumberDataTypeOptions;
 }
 
-export interface IntegerDataTypeOptions {
-  length?: number;
-}
-
 /**
  * A 64 bit integer.
  *
@@ -183,16 +216,12 @@ export interface IntegerDataTypeOptions {
 export const BIGINT: BigIntDataTypeConstructor;
 
 interface BigIntDataTypeConstructor extends NumberDataTypeConstructor {
-  new (options?: BigIntDataTypeOptions): BigIntDataType;
-  (options?: BigIntDataTypeOptions): BigIntDataType;
+  new (options?: IntegerDataTypeOptions): BigIntDataType;
+  (options?: IntegerDataTypeOptions): BigIntDataType;
 }
 
 export interface BigIntDataType extends NumberDataType {
-  options: BigIntDataTypeOptions;
-}
-
-export interface BigIntDataTypeOptions {
-  length?: number;
+  options: IntegerDataTypeOptions;
 }
 
 /**
@@ -424,23 +453,24 @@ export const UUIDV4: AbstractDataTypeConstructor;
  *
  * You could also use it to validate a value before permuting and storing it. Checking password length before hashing it for example:
  * ```js
- * sequelize.define('user', {
+ * class User extends Model {}
+ * User.init({
  *   password_hash: DataTypes.STRING,
  *   password: {
- *   type: DataTypes.VIRTUAL,
- *   set: function (val) {
- *     this.setDataValue('password', val); // Remember to set the data value, otherwise it won't be validated
- *     this.setDataValue('password_hash', this.salt + val);
- *   },
- *   validate: {
- *     isLongEnough: function (val) {
- *     if (val.length < 7) {
- *       throw new Error("Please choose a longer password")
- *     }
- *     }
+ *    type: DataTypes.VIRTUAL,
+ *    set (val) {
+ *      this.setDataValue('password', val); // Remember to set the data value, otherwise it won't be validated
+ *      this.setDataValue('password_hash', this.salt + val);
+ *    },
+ *    validate: {
+ *      isLongEnough (val) {
+ *        if (val.length < 7) {
+ *          throw new Error("Please choose a longer password")
+ *        }
+ *      }
+ *    }
  *   }
- *   }
- * })
+ * }, { sequelize });
  * ```
  *
  * VIRTUAL also takes a return type and dependency fields as arguments
@@ -450,7 +480,7 @@ export const UUIDV4: AbstractDataTypeConstructor;
  * {
  *   active: {
  *   type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt']),
- *   get: function() {
+ *   get() {
  *     return this.get('createdAt') > Date.now() - (7 * 24 * 60 * 60 * 1000)
  *   }
  *   }
@@ -573,7 +603,6 @@ export const MACADDR: AbstractDataTypeConstructor;
  * Case incenstive text
  */
 export const CITEXT: AbstractDataTypeConstructor;
-
 
 // umzug compatibility
 export type DataTypeAbstract = AbstractDataTypeConstructor;

@@ -1,14 +1,17 @@
 'use strict';
 
-const fs = require('fs'),
-  path = require('path'),
-  _ = require('lodash'),
-  Sequelize = require('../index'),
-  DataTypes = require('../lib/data-types'),
-  Config = require('./config/config'),
-  chai = require('chai'),
-  expect = chai.expect,
-  AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+const fs = require('fs');
+const path = require('path');
+const _ = require('lodash');
+const Sequelize = require('../index');
+const DataTypes = require('../lib/data-types');
+const Config = require('./config/config');
+const chai = require('chai');
+const expect = chai.expect;
+const AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+const sinon = require('sinon');
+
+sinon.usingPromise(require('bluebird'));
 
 chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));

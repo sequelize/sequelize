@@ -143,6 +143,11 @@ export interface Config {
 
 export type Dialect =  'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'mariadb';
 
+export interface RetryOptions {
+  match?: (RegExp | string | Function)[];
+  max?: number;
+}
+
 /**
  * Options for the constructor of Sequelize main class
  */
@@ -307,7 +312,9 @@ export interface Options extends Logging {
   /**
    * Sets global permanent hooks.
    */
-  hooks?: Partial<SequelizeHooks>
+  hooks?: Partial<SequelizeHooks>;
+
+  retry?: RetryOptions;
 }
 
 export interface QueryOptionsTransactionRequired {}
@@ -317,7 +324,7 @@ export interface QueryOptionsTransactionRequired {}
  * import sequelize:
  *
  * ```js
- * var Sequelize = require('sequelize');
+ * const Sequelize = require('sequelize');
  * ```
  *
  * In addition to sequelize, the connection library for the dialect you want to use
@@ -548,6 +555,24 @@ export class Sequelize extends Hooks {
   public static beforeFind(fn: (options: FindOptions) => void): void;
 
   /**
+   * A hook that is run before a connection is established
+   *
+   * @param name
+   * @param fn   A callback function that is called with options
+   */
+  public static beforeConnect(name: string, fn: (options: Config) => void): void;
+  public static beforeConnect(fn: (options: Config) => void): void;
+
+  /**
+   * A hook that is run after a connection is established
+   *
+   * @param name
+   * @param fn   A callback function that is called with options
+   */
+  public static afterConnect(name: string, fn: (connection: unknown, options: Config) => void): void;
+  public static afterConnect(fn: (connection: unknown, options: Config) => void): void;
+
+  /**
    * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
    *
    * @param name
@@ -669,19 +694,19 @@ export class Sequelize extends Hooks {
    *
    * ```javascript
    * // without password and options
-   * var sequelize = new Sequelize('database', 'username')
+   * const sequelize = new Sequelize('database', 'username')
    *
    * // without options
-   * var sequelize = new Sequelize('database', 'username', 'password')
+   * const sequelize = new Sequelize('database', 'username', 'password')
    *
    * // without password / with blank password
-   * var sequelize = new Sequelize('database', 'username', null, {})
+   * const sequelize = new Sequelize('database', 'username', null, {})
    *
    * // with password and options
-   * var sequelize = new Sequelize('my_database', 'john', 'doe', {})
+   * const sequelize = new Sequelize('my_database', 'john', 'doe', {})
    *
    * // with uri (see below)
-   * var sequelize = new Sequelize('mysql://localhost:3306/database', {})
+   * const sequelize = new Sequelize('mysql://localhost:3306/database', {})
    * ```
    *
    * @param database The name of the database
@@ -949,7 +974,8 @@ export class Sequelize extends Hooks {
    * represents a column. A short table definition might look like this:
    *
    * ```js
-   * sequelize.define('modelName', {
+   * class MyModel extends Model {}
+   * MyModel.init({
    *   columnA: {
    *     type: Sequelize.BOOLEAN,
    *     validate: {
@@ -965,7 +991,7 @@ export class Sequelize extends Hooks {
    *   },
    *   columnB: Sequelize.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
-   * })
+   * }, { sequelize })
    *
    * sequelize.models.modelName // The model will now be available in models under the name given to define
    * ```
@@ -1034,17 +1060,17 @@ export class Sequelize extends Hooks {
    * Execute a query on the DB, with the posibility to bypass all the sequelize goodness.
    *
    * By default, the function will return two arguments: an array of results, and a metadata object,
-   * containing number of affected rows etc. Use `.spread` to access the results.
+   * containing number of affected rows etc. Use `.then(([...]))` to access the results.
    *
    * If you are running a type of query where you don't need the metadata, for example a `SELECT` query, you
    * can pass in a query type to make sequelize format the results:
    *
    * ```js
-   * sequelize.query('SELECT...').spread(function (results, metadata) {
+   * sequelize.query('SELECT...').then(([results, metadata]) {
    *   // Raw query - use spread
    * });
    *
-   * sequelize.query('SELECT...', { type: sequelize.QueryTypes.SELECT }).then(function (results) {
+   * sequelize.query('SELECT...', { type: sequelize.QueryTypes.SELECT }).then(results => {
    *   // SELECT query - use then
    * })
    * ```
@@ -1175,8 +1201,8 @@ export class Sequelize extends Hooks {
    * in order for the query to happen under that transaction
    *
    * ```js
-   * sequelize.transaction().then(function (t) {
-   *   return User.findOne(..., { transaction: t}).then(function (user) {
+   * sequelize.transaction().then(t => {
+   *   return User.findOne(..., { transaction: t}).then(user => {
    *   return user.update(..., { transaction: t});
    *   })
    *   .then(t.commit.bind(t))
@@ -1188,13 +1214,13 @@ export class Sequelize extends Hooks {
    * supported:
    *
    * ```js
-   * sequelize.transaction(function (t) { // Note that we use a callback rather than a promise.then()
-   *   return User.findOne(..., { transaction: t}).then(function (user) {
-   *   return user.update(..., { transaction: t});
+   * sequelize.transaction(t => { // Note that we use a callback rather than a promise.then()
+   *   return User.findOne(..., { transaction: t}).then(user => {
+   *    return user.update(..., { transaction: t});
    *   });
-   * }).then(function () {
+   * }).then(() => {
    *   // Commited
-   * }).catch(function (err) {
+   * }).catch(err => {
    *   // Rolled back
    *   console.error(err);
    * });
@@ -1205,9 +1231,9 @@ export class Sequelize extends Hooks {
    * project, create a namespace and set it on the sequelize constructor:
    *
    * ```js
-   * var cls = require('continuation-local-storage'),
+   * const cls = require('continuation-local-storage'),
    *   ns = cls.createNamespace('....');
-   * var Sequelize = require('sequelize');
+   * const Sequelize = require('sequelize');
    * Sequelize.cls = ns;
    * ```
    * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace

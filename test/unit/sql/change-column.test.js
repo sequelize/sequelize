@@ -1,8 +1,6 @@
 'use strict';
 
 const sinon = require('sinon'),
-  Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
   expectsql = Support.expectsql,
@@ -24,10 +22,7 @@ if (current.dialect.name !== 'sqlite') {
       }, { timestamps: false });
 
       before(function() {
-
-        this.stub = sinon.stub(current, 'query').callsFake(sql => {
-          return Promise.resolve(sql);
-        });
+        this.stub = sinon.stub(current, 'query').resolvesArg(0);
       });
 
       beforeEach(function() {
