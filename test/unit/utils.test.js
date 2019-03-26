@@ -5,7 +5,7 @@ const expect = chai.expect;
 const Support = require('./support');
 const DataTypes = require('../../lib/data-types');
 const Utils = require('../../lib/utils');
-const logger = require('../../lib/utils/logger').getLogger();
+const { Logger } = require('../../lib/utils/logger');
 const Op = Support.Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
@@ -270,9 +270,11 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   });
 
   describe('Logger', () => {
+    const logger = Logger.getLogger();
+
     it('debug', () => {
-      expect(logger.debug).to.be.a('function');
-      logger.debug('test debug');
+      expect(logger.debugContext).to.be.a('function');
+      logger.debugContext().log('test debug');
     });
 
     it('warn', () => {
@@ -282,10 +284,10 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     it('debugContext',  () => {
       expect(logger.debugContext).to.be.a('function');
-      const testLogger = logger.debugContext('test');
+      const testLogger = logger.debugContext().extend('test');
 
-      expect(testLogger).to.be.a('function');
-      expect(testLogger.namespace).to.be.eql('sequelize:test');
+      expect(testLogger.log).to.be.a('function');
+      expect(testLogger.name).to.be.eql('sequelize:test');
     });
   });
 });
