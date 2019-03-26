@@ -504,7 +504,7 @@ export interface VirtualDataType<T extends AbstractDataTypeConstructor | Abstrac
 }
 
 /**
- * An enumeration. `DataTypes.ENUM('value', 'another value')`.
+ * An enumeration. `new DataTypes.ENUM('value', 'another value')`.
  */
 export const ENUM: EnumDataTypeConstructor;
 
@@ -525,7 +525,7 @@ export interface EnumDataTypeOptions<T extends string> {
 }
 
 /**
- * An array of `type`, e.g. `DataTypes.ARRAY(DataTypes.DECIMAL)`. Only available in postgres.
+ * An array of `type`, e.g. `new DataTypes.ARRAY(DataTypes.DECIMAL)`. Only available in postgres.
  */
 export const ARRAY: ArrayDataTypeConstructor;
 

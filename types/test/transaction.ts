@@ -20,7 +20,7 @@ async function trans() {
 
 async function transact() {
     const t = await sequelize.transaction({
-        deferrable: Deferrable.SET_DEFERRED(['test']),
+        deferrable: new Deferrable.SET_DEFERRED(['test']),
         isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED,
         type: Transaction.TYPES.DEFERRED,
     });

@@ -19,9 +19,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
   describe('findAndCountAll', () => {
     it('should be able to include two required models with a limit. Result rows should match limit.', function() {
-      const Project = this.sequelize.define('Project', { id: { type: DataTypes.INTEGER, primaryKey: true }, name: DataTypes.STRING(40) }),
-        Task = this.sequelize.define('Task', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER }),
-        Employee = this.sequelize.define('Employee', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });
+      const Project = this.sequelize.define('Project', { id: { type: DataTypes.INTEGER, primaryKey: true }, name: new DataTypes.STRING(40) }),
+        Task = this.sequelize.define('Task', { name: new DataTypes.STRING(40), fk: DataTypes.INTEGER }),
+        Employee = this.sequelize.define('Employee', { name: new DataTypes.STRING(40), fk: DataTypes.INTEGER });
 
       Project.hasMany(Task, { foreignKey: 'fk', constraints: false  });
       Project.hasMany(Employee, { foreignKey: 'fk', constraints: false  });
@@ -74,15 +74,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
     it('should be able to include a required model. Result rows should match count', function() {
-      const User = this.sequelize.define('User', { name: DataTypes.STRING(40) }, { paranoid: true }),
+      const User = this.sequelize.define('User', { name: new DataTypes.STRING(40) }, { paranoid: true }),
         SomeConnection = this.sequelize.define('SomeConnection', {
-          m: DataTypes.STRING(40),
+          m: new DataTypes.STRING(40),
           fk: DataTypes.INTEGER,
           u: DataTypes.INTEGER
         }, { paranoid: true }),
-        A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }),
-        B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }),
-        C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true });
+        A = this.sequelize.define('A', { name: new DataTypes.STRING(40) }, { paranoid: true }),
+        B = this.sequelize.define('B', { name: new DataTypes.STRING(40) }, { paranoid: true }),
+        C = this.sequelize.define('C', { name: new DataTypes.STRING(40) }, { paranoid: true });
 
       // Associate them
       User.hasMany(SomeConnection, { foreignKey: 'u', constraints: false });
@@ -249,7 +249,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should return the correct count and rows when using a required belongsTo with a where condition and a limit', function() {
       const Foo = this.sequelize.define('Foo', {}),
-        Bar = this.sequelize.define('Bar', { m: DataTypes.STRING(40) });
+        Bar = this.sequelize.define('Bar', { m: new DataTypes.STRING(40) });
 
       Foo.hasMany(Bar);
       Bar.belongsTo(Foo);

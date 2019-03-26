@@ -1202,7 +1202,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('define', () => {
     [
       { type: DataTypes.ENUM, values: ['scheduled', 'active', 'finished'] },
-      DataTypes.ENUM('scheduled', 'active', 'finished')
+      new DataTypes.ENUM('scheduled', 'active', 'finished')
     ].forEach(status => {
       describe('enum', () => {
         beforeEach(function() {
@@ -1258,7 +1258,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             Object.keys(customAttributes).forEach(attribute => {
               Object.keys(customAttributes[attribute]).forEach(option => {
                 const optionValue = customAttributes[attribute][option];
-                if (typeof optionValue === 'function' && optionValue() instanceof DataTypes.ABSTRACT) {
+                // eslint-disable-next-line new-cap
+                if (typeof optionValue === 'function' && new optionValue() instanceof DataTypes.ABSTRACT) {
                   expect(Picture.rawAttributes[attribute][option] instanceof optionValue).to.be.ok;
                 } else {
                   expect(Picture.rawAttributes[attribute][option]).to.be.equal(optionValue);

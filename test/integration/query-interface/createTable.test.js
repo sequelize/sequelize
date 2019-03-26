@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     it('should work with enums (1)', function() {
       return this.queryInterface.createTable('SomeTable', {
-        someEnum: DataTypes.ENUM('value1', 'value2', 'value3')
+        someEnum: new DataTypes.ENUM('value1', 'value2', 'value3')
       });
     });
 
@@ -132,7 +132,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('should work with enums (5)', function() {
       return this.queryInterface.createTable('SomeTable', {
         someEnum: {
-          type: DataTypes.ENUM(['COMMENT']),
+          type: new DataTypes.ENUM(['COMMENT']),
           comment: 'special enum col'
         }
       });

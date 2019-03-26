@@ -11,10 +11,10 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findOne', () => {
     it('should include a non required model, with conditions and two includes N:M 1:M', function( ) {
-      const A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }),
-        B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }),
-        C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true }),
-        D = this.sequelize.define('D', { name: DataTypes.STRING(40) }, { paranoid: true });
+      const A = this.sequelize.define('A', { name: new DataTypes.STRING(40) }, { paranoid: true }),
+        B = this.sequelize.define('B', { name: new DataTypes.STRING(40) }, { paranoid: true }),
+        C = this.sequelize.define('C', { name: new DataTypes.STRING(40) }, { paranoid: true }),
+        D = this.sequelize.define('D', { name: new DataTypes.STRING(40) }, { paranoid: true });
 
       // Associations
       A.hasMany(B);
@@ -139,7 +139,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         B = this.sequelize.define('b', {}),
         AB = this.sequelize.define('a_b', {
           name: {
-            type: DataTypes.STRING(40),
+            type: new DataTypes.STRING(40),
             field: 'name_id',
             primaryKey: true
           }
@@ -175,10 +175,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should still pull the main record when an included model is not required and has where restrictions without matches', function() {
       const A = this.sequelize.define('a', {
-          name: DataTypes.STRING(40)
+          name: new DataTypes.STRING(40)
         }),
         B = this.sequelize.define('b', {
-          name: DataTypes.STRING(40)
+          name: new DataTypes.STRING(40)
         });
 
       A.belongsToMany(B, { through: 'a_b' });

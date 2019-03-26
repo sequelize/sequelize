@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           username: DataTypes.STRING,
           updatedBy: DataTypes.INTEGER,
           virtualField: {
-            type: DataTypes.VIRTUAL(DataTypes.INTEGER, ['updatedBy']),
+            type: new DataTypes.VIRTUAL(DataTypes.INTEGER, ['updatedBy']),
             get() {
               return this.updatedBy - 1;
             }

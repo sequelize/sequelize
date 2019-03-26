@@ -338,7 +338,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           title: {
             allowNull: false,
-            type: Sequelize.STRING(255),
+            type: new Sequelize.STRING(255),
             field: 'test_title'
           }
         }, {

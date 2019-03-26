@@ -940,7 +940,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('works from model options', () => {
         const Model = current.define('Test', {
-          username: Sequelize.STRING(100)
+          username: new Sequelize.STRING(100)
         }, {
           rejectOnEmpty: true
         });
@@ -957,7 +957,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('override model options', () => {
         const Model = current.define('Test', {
-          username: Sequelize.STRING(100)
+          username: new Sequelize.STRING(100)
         }, {
           rejectOnEmpty: true
         });
@@ -975,7 +975,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('resolve null when disabled', () => {
         const Model = current.define('Test', {
-          username: Sequelize.STRING(100)
+          username: new Sequelize.STRING(100)
         });
 
         return Model.sync({ force: true })

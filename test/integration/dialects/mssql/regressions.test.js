@@ -33,7 +33,7 @@ if (dialect.match(/^mssql/)) {
         },
         UserName: {
           field: 'username',
-          type: Sequelize.STRING(50),
+          type: new Sequelize.STRING(50),
           allowNull: false
         }
       });
@@ -85,7 +85,7 @@ if (dialect.match(/^mssql/)) {
 
   it('sets the varchar(max) length correctly on describeTable', function() {
     const Users = this.sequelize.define('_Users', {
-      username: Sequelize.STRING('MAX')
+      username: new Sequelize.STRING('MAX')
     }, { freezeTableName: true });
 
     return Users.sync({ force: true }).then(() => {

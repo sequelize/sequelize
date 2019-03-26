@@ -215,7 +215,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const titleSetter = sinon.spy(),
         Task = this.sequelize.define('TaskBuild', {
           title: {
-            type: Sequelize.STRING(50),
+            type: new Sequelize.STRING(50),
             allowNull: false,
             defaultValue: ''
           }
@@ -815,7 +815,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('save', () => {
     it('should mapping the correct fields when saving instance. see #10589', function() {
-      const User = this.sequelize.define('User', { 
+      const User = this.sequelize.define('User', {
         id3: {
           field: 'id',
           type: Sequelize.INTEGER,
@@ -862,7 +862,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should mapping the correct fields when updating instance. see #10589', function() {
-      const User = this.sequelize.define('User', { 
+      const User = this.sequelize.define('User', {
         id3: {
           field: 'id',
           type: Sequelize.INTEGER,
@@ -2012,7 +2012,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       this.UserWithDec = this.sequelize.define('UserWithDec', {
-        value: Sequelize.DECIMAL(10, 3)
+        value: new Sequelize.DECIMAL(10, 3)
       });
 
       return this.UserWithAge.sync({ force: true }).then(() => {
@@ -2097,7 +2097,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       this.UserWithDec = this.sequelize.define('UserWithDec', {
-        value: Sequelize.DECIMAL(10, 3)
+        value: new Sequelize.DECIMAL(10, 3)
       });
 
       return this.UserWithAge.sync({ force: true }).then(() => {
@@ -2190,11 +2190,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.UserWithAge = this.sequelize.define('UserWithAge', {
         age: Sequelize.INTEGER,
         order: Sequelize.INTEGER,
-        gender: Sequelize.ENUM('male', 'female')
+        gender: new Sequelize.ENUM('male', 'female')
       });
 
       this.UserWithDec = this.sequelize.define('UserWithDec', {
-        value: Sequelize.DECIMAL(10, 3)
+        value: new Sequelize.DECIMAL(10, 3)
       });
 
       this.UserWithFields = this.sequelize.define('UserWithFields', {
@@ -2204,7 +2204,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
         order: Sequelize.INTEGER,
         gender: {
-          type: Sequelize.ENUM('male', 'female'),
+          type: new Sequelize.ENUM('male', 'female'),
           field: 'male_female'
         }
       });

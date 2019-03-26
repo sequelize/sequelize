@@ -209,7 +209,7 @@ sequelize.transaction({
   deferrable: Sequelize.Deferrable.SET_DEFERRED,
 
   // to defer a specific constraint:
-  deferrable: Sequelize.Deferrable.SET_DEFERRED(['some_constraint']),
+  deferrable: new Sequelize.Deferrable.SET_DEFERRED(['some_constraint']),
 
   // to not defer constraints:
   deferrable: Sequelize.Deferrable.SET_IMMEDIATE

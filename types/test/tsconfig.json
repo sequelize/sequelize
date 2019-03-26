@@ -10,7 +10,6 @@
     "baseUrl": ".",
     "paths": {
       "sequelize": ["../"],
-      "sequelize/*": ["../"]
     },
     "types": ["node"],
     "lib": ["es2016"]

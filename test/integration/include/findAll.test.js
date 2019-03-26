@@ -1517,7 +1517,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           autoIncrement: true
         },
         title: {
-          type: Sequelize.STRING(25),
+          type: new Sequelize.STRING(25),
           allowNull: false
         }
       });
@@ -1650,8 +1650,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should still pull the main record(s) when an included model is not required and has where restrictions without matches', function() {
-      const A = this.sequelize.define('a', { name: DataTypes.STRING(40) }),
-        B = this.sequelize.define('b', { name: DataTypes.STRING(40) });
+      const A = this.sequelize.define('a', { name: new DataTypes.STRING(40) }),
+        B = this.sequelize.define('b', { name: new DataTypes.STRING(40) });
 
       A.belongsToMany(B, { through: 'a_b' });
       B.belongsToMany(A, { through: 'a_b' });

@@ -12,7 +12,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     before(function() {
       this.Model = current.define('model', {
         accountId: {
-          type: DataTypes.INTEGER(11).UNSIGNED,
+          type: new DataTypes.INTEGER(11).UNSIGNED,
           allowNull: false,
           field: 'account_id'
         }

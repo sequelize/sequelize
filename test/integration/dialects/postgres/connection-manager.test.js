@@ -73,7 +73,7 @@ if (dialect.match(/^postgres/)) {
 
       // Force start of connection manager to reload dynamic OIDs
       const User = sequelize.define('User', {
-        perms: DataTypes.ENUM(['foo', 'bar'])
+        perms: new DataTypes.ENUM(['foo', 'bar'])
       });
 
       return User.sync({ force: true });

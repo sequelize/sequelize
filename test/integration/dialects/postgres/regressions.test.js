@@ -19,7 +19,7 @@ if (dialect.match(/^postgres/)) {
        * We are testing that OID refresh keep base type intact
        */
       const Media = this.sequelize.define('Media', {
-        type: Sequelize.ENUM([
+        type: new Sequelize.ENUM([
           'image', 'video', 'audio'
         ])
       });

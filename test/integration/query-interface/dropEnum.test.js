@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     beforeEach(function() {
       return this.queryInterface.createTable('menus',  {
         structuretype: {
-          type: DataTypes.ENUM('menus', 'submenu', 'routine'),
+          type: new DataTypes.ENUM('menus', 'submenu', 'routine'),
           allowNull: true
         },
         sequence: {

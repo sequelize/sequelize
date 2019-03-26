@@ -12,13 +12,13 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
       this.A = this.sequelize.define('A', {
         id: {
-          type: DataTypes.CHAR(20),
+          type: new DataTypes.CHAR(20),
           primaryKey: true
         }
       });
       this.B = this.sequelize.define('B', {
         id: {
-          type: Sequelize.CHAR(20),
+          type: new Sequelize.CHAR(20),
           primaryKey: true
         }
       });

@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { tableName: 'restaurants' });
         this.Location = current.define('location', {
           name: DataTypes.STRING,
-          type: DataTypes.ENUM('a', 'b')
+          type: new DataTypes.ENUM('a', 'b')
         },
         { tableName: 'locations' });
         this.Employee = current.define('employee', {

@@ -144,8 +144,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING,
-        createdAt: { type: DataTypes.DATE(6), allowNull: false },
-        updatedAt: { type: DataTypes.DATE(6), allowNull: false }
+        createdAt: { type: new DataTypes.DATE(6), allowNull: false },
+        updatedAt: { type: new DataTypes.DATE(6), allowNull: false }
       }, {
         timestamps: true
       });

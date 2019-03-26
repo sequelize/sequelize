@@ -530,7 +530,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             [Op.contains]: [2, 5]
           }, {
             field: {
-              type: DataTypes.ARRAY(DataTypes.INTEGER)
+              type: new DataTypes.ARRAY(DataTypes.INTEGER)
             }
           }, {
             postgres: '"muscles" @> ARRAY[2,5]::INTEGER[]'
@@ -556,7 +556,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             [Op.any]: [2, 5]
           }, {
             field: {
-              type: DataTypes.ARRAY(DataTypes.INTEGER)
+              type: new DataTypes.ARRAY(DataTypes.INTEGER)
             }
           }, {
             postgres: '"userId" = ANY (ARRAY[2,5]::INTEGER[])'
@@ -577,7 +577,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               }
             }, {
               field: {
-                type: DataTypes.ARRAY(DataTypes.INTEGER)
+                type: new DataTypes.ARRAY(DataTypes.INTEGER)
               }
             }, {
               postgres: '"userId" = ANY (VALUES (2), (5))'
@@ -596,7 +596,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             [Op.all]: [2, 5]
           }, {
             field: {
-              type: DataTypes.ARRAY(DataTypes.INTEGER)
+              type: new DataTypes.ARRAY(DataTypes.INTEGER)
             }
           }, {
             postgres: '"userId" = ALL (ARRAY[2,5]::INTEGER[])'
@@ -617,7 +617,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               }
             }, {
               field: {
-                type: DataTypes.ARRAY(DataTypes.INTEGER)
+                type: new DataTypes.ARRAY(DataTypes.INTEGER)
               }
             }, {
               postgres: '"userId" = ALL (VALUES (2), (5))'

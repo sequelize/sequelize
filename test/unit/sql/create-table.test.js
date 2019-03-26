@@ -10,7 +10,7 @@ const Support   = require('../support'),
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('createTable', () => {
     const FooUser = current.define('user', {
-      mood: DataTypes.ENUM('happy', 'sad')
+      mood: new DataTypes.ENUM('happy', 'sad')
     }, {
       schema: 'foo',
       timestamps: false

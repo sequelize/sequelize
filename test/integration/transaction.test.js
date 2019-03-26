@@ -111,7 +111,7 @@ if (current.dialect.supports.transactions) {
         it('do not rollback if already committed', function() {
           const SumSumSum = this.sequelize.define('transaction', {
               value: {
-                type: Support.Sequelize.DECIMAL(10, 3),
+                type: new Support.Sequelize.DECIMAL(10, 3),
                 field: 'value'
               }
             }),

@@ -928,8 +928,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (dialect === 'postgres') {
       it('does not cast arrays for postgresql insert', function() {
         const User = this.sequelize.define('UserWithArray', {
-          myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
-          mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
+          myvals: { type: new Sequelize.ARRAY(Sequelize.INTEGER) },
+          mystr: { type: new Sequelize.ARRAY(Sequelize.STRING) }
         });
 
         let test = false;
@@ -947,8 +947,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('does not cast arrays for postgres update', function() {
         const User = this.sequelize.define('UserWithArray', {
-          myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
-          mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
+          myvals: { type: new Sequelize.ARRAY(Sequelize.INTEGER) },
+          mystr: { type: new Sequelize.ARRAY(Sequelize.STRING) }
         });
         let test = false;
 
@@ -1357,7 +1357,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('when defined via { field: Sequelize.ENUM }', () => {
         it('allows values passed as parameters', function() {
           const Enum = this.sequelize.define('Enum', {
-            state: Sequelize.ENUM('happy', 'sad')
+            state: new Sequelize.ENUM('happy', 'sad')
           });
 
           return Enum.sync({ force: true }).then(() => {
@@ -1367,7 +1367,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('allows values passed as an array', function() {
           const Enum = this.sequelize.define('Enum', {
-            state: Sequelize.ENUM(['happy', 'sad'])
+            state: new Sequelize.ENUM(['happy', 'sad'])
           });
 
           return Enum.sync({ force: true }).then(() => {
@@ -1380,7 +1380,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('allows values passed as parameters', function() {
           const Enum = this.sequelize.define('Enum', {
             state: {
-              type: Sequelize.ENUM('happy', 'sad')
+              type: new Sequelize.ENUM('happy', 'sad')
             }
           });
 
@@ -1392,7 +1392,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('allows values passed as an array', function() {
           const Enum = this.sequelize.define('Enum', {
             state: {
-              type: Sequelize.ENUM(['happy', 'sad'])
+              type: new Sequelize.ENUM(['happy', 'sad'])
             }
           });
 
