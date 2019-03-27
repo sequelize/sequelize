@@ -1,15 +1,14 @@
 'use strict';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  expect = chai.expect,
-  Support = require('../support'),
-  dialect = Support.getTestDialect();
+const { expect } = require('chai');
+const { stub, spy, match } = require('sinon');
+const Support = require('../support');
+const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('log', () => {
     beforeEach(function() {
-      this.spy = sinon.spy(console, 'log');
+      this.stub = stub(console, 'log');
     });
 
     afterEach(() => {
@@ -23,7 +22,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('does not call the log method of the logger', function() {
         this.sequelize.log();
-        expect(this.spy.calledOnce).to.be.false;
+        expect(this.stub.calledOnce).to.be.false;
       });
     });
 
@@ -61,7 +60,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     describe('with a custom function for logging', () => {
       beforeEach(function() {
-        this.spy = sinon.spy();
+        this.spy = spy();
         this.sequelize = new Support.Sequelize('db', 'user', 'pw', { dialect, logging: this.spy });
       });
 
@@ -78,6 +77,35 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         expect(this.spy.withArgs(message, timeTaken, options).calledOnce).to.be.true;
       });
 
+    });
+  });
+
+  describe('logQuery', () => {
+    beforeEach(function() {
+      this.spy = spy();
+      this.sequelize = new Support.Sequelize('db', 'user', 'pw', { dialect, logging: this.spy });
+    });
+
+    it('logs before and after', function() {
+      const debugStub = stub();
+      const complete = this.sequelize.logQuery({ uuid: 'test' }, 'SELECT 1', {}, false, { log: debugStub });
+      complete();
+      expect(this.spy).to.have.been.calledOnce;
+      expect(this.spy).to.have.been.calledWithMatch('Executing (test): SELECT 1', {});
+
+      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1');
+      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1');
+    });
+
+    it('logs before and after with benchmark', function() {
+      const debugStub = stub();
+      const complete = this.sequelize.logQuery({ uuid: 'test' }, 'SELECT 1', {}, true, { log: debugStub });
+      complete();
+      expect(this.spy).to.have.been.calledOnce;
+      expect(this.spy).to.have.been.calledWithMatch('Executed (test): SELECT 1', match.number, {});
+
+      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1');
+      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1');
     });
   });
 });
