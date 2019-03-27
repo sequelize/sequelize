@@ -34,26 +34,26 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       describe('called with no arguments', () => {
         it('calls the log method', function() {
           this.sequelize.log();
-          expect(this.spy.calledOnce).to.be.true;
+          expect(this.stub.calledOnce).to.be.true;
         });
 
         it('logs an empty string as info event', function() {
           this.sequelize.log('');
-          expect(this.spy.calledOnce).to.be.true;
+          expect(this.stub.calledOnce).to.be.true;
         });
       });
 
       describe('called with one argument', () => {
         it('logs the passed string as info event', function() {
           this.sequelize.log('my message');
-          expect(this.spy.withArgs('my message').calledOnce).to.be.true;
+          expect(this.stub.withArgs('my message').calledOnce).to.be.true;
         });
       });
 
       describe('called with more than two arguments', () => {
         it('passes the arguments to the logger', function() {
           this.sequelize.log('error', 'my message', 1, { a: 1 });
-          expect(this.spy.withArgs('error', 'my message', 1, { a: 1 }).calledOnce).to.be.true;
+          expect(this.stub.withArgs('error', 'my message', 1, { a: 1 }).calledOnce).to.be.true;
         });
       });
     });
