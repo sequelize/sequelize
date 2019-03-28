@@ -15,6 +15,7 @@ import {
   Model,
   ModelAttributeColumnOptions,
   ModelAttributes,
+  ModelCtor,
   ModelOptions,
   OrOperator,
   UpdateOptions,
@@ -1020,8 +1021,8 @@ export class Sequelize extends Hooks {
    * @param options  These options are merged with the default define options provided to the Sequelize
    *           constructor
    */
-  public define<A extends ModelAttributes>(modelName: string, attributes: A, options?: ModelOptions): { new (...args: any[]): Model & AttributesTypes<A> } & typeof Model;
-
+  public define<A extends ModelAttributes, TInstance = AttributesTypes<A>>(modelName: string, attributes: A, options?: ModelOptions): ModelCtor<Model<TInstance>>;
+  
   /**
    * Fetch a Model which is already defined
    *

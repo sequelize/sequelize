@@ -1396,6 +1396,8 @@ export interface AddScopeOptions {
   override: boolean;
 }
 
+type ModelInstance<M> = M extends Model<infer I, any>? M & I : M;
+
 export abstract class Model<T = any, T2 = any> extends Hooks {
   /** The name of the database table */
   public static readonly tableName: string;
@@ -1469,7 +1471,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *  string or a type-description object, with the properties described below:
    * @param options These options are merged with the default define options provided to the Sequelize constructor
    */
-  public static init<A extends ModelAttributes>(attributes: A, options: InitOptions): { new (...args: any[]): Model & AttributesTypes<A> } & typeof Model;
+  public static init<A extends ModelAttributes, TInstance = AttributesTypes<A>>(attributes: A, options: InitOptions): ModelCtor<Model<TInstance>>;
 
   /**
    * Remove attribute from model definition
@@ -1639,7 +1641,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *
    * @see {Sequelize#query}
    */
-  public static findAll<M extends Model>(this: { new (): M } & typeof Model, options?: FindOptions): Promise<M[]>;
+  public static findAll<M extends Model>(this: { new (): M } & typeof Model, options?: FindOptions): Promise<ModelInstance<M>[]>;
 
   /**
    * Search for a single instance by its primary key. This applies LIMIT 1, so the listener will
@@ -1649,12 +1651,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M } & typeof Model,
     identifier?: Identifier,
     options?: FindOptions
-  ): Promise<M | null>;
+  ): Promise<ModelInstance<M> | null>;
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
     identifier: Identifier,
     options: NonNullFindOptions
-  ): Promise<M>;
+  ): Promise<ModelInstance<M>>;
 
   /**
    * Search for a single instance. This applies LIMIT 1, so the listener will always be called with a single
@@ -1663,8 +1665,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static findOne<M extends Model>(
     this: { new (): M } & typeof Model,
     options?: FindOptions
-  ): Promise<M | null>;
-  public static findOne<M extends Model>(this: { new (): M } & typeof Model, options: NonNullFindOptions): Promise<M>;
+  ): Promise<ModelInstance<M> | null>;
+  public static findOne<M extends Model>(this: { new (): M } & typeof Model , options: NonNullFindOptions): Promise<ModelInstance<M>>;
 
   /**
    * Run an aggregation method on the specified field
@@ -1772,7 +1774,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M } & typeof Model,
     records: object[],
     options?: BuildOptions
-  ): M[];
+  ): ModelInstance<M>[];
 
   /**
    * Builds a new model instance and calls save on it.
@@ -1781,7 +1783,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M } & typeof Model,
     values?: object,
     options?: CreateOptions
-  ): Promise<M>;
+  ): Promise<ModelInstance<M>>;
   public static create(values: object, options: CreateOptions & { returning: false }): Promise<void>;
 
   /**
@@ -1849,7 +1851,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M } & typeof Model,
     records: object[],
     options?: BulkCreateOptions
-  ): Promise<M[]>;
+  ): Promise<ModelInstance<M>[]>;
 
   /**
    * Truncate all instances of the model. This is a convenient method for Model.destroy({ truncate: true }).
@@ -1886,7 +1888,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M },
     field: K,
     options: IncrementDecrementOptionsWithBy
-  ): Promise<M>;
+  ): Promise<ModelInstance<M>>;
 
   /**
    * Increments multiple fields by the same value.
@@ -1895,7 +1897,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M },
     fields: K[],
     options: IncrementDecrementOptionsWithBy
-  ): Promise<M>;
+  ): Promise<ModelInstance<M>>;
 
   /**
    * Increments multiple fields by different values.
@@ -1904,7 +1906,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M },
     fields: { [key in K]?: number },
     options: IncrementDecrementOptions
-  ): Promise<M>;
+  ): Promise<ModelInstance<M>>;
 
   /**
    * Run a describe query on the table. The result will be return to the listener as a hash of attributes and
@@ -2203,7 +2205,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options Options for the association
    */
   public static hasOne<M extends Model, T extends Model>(
-    this: ModelCtor<M>, target: ModelCtor<T>, options?: HasOneOptions
+    this: { new (): M } & typeof Model, target: ModelCtor<T>, options?: HasOneOptions
   ): HasOne<M, T>;
 
   /**
@@ -2216,7 +2218,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options Options for the association
    */
   public static belongsTo<M extends Model, T extends Model>(
-    this: ModelCtor<M>, target: ModelCtor<T>, options?: BelongsToOptions
+    this: { new (): M } & typeof Model, target: ModelCtor<T>, options?: BelongsToOptions
   ): BelongsTo<M, T>;
 
   /**
@@ -2273,7 +2275,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options Options for the association
    */
   public static hasMany<M extends Model, T extends Model>(
-    this: ModelCtor<M>, target: ModelCtor<T>, options?: HasManyOptions
+    this: { new (): M } & typeof Model, target: ModelCtor<T>, options?: HasManyOptions
   ): HasMany<M, T>;
 
   /**
@@ -2326,7 +2328,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *
    */
   public static belongsToMany<M extends Model, T extends Model>(
-    this: ModelCtor<M>, target: ModelCtor<T>, options: BelongsToManyOptions
+    this: { new (): M } & typeof Model, target: ModelCtor<T>, options: BelongsToManyOptions
   ): BelongsToMany<M, T>;
 
   /**
@@ -2369,9 +2371,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options.plain If set to true, included instances will be returned as plain objects
    */
   public get(options?: { plain?: boolean; clone?: boolean }): object;
+  public get<K extends keyof this>(key: K, options?: { plain?: boolean; clone?: boolean }): Exclude<this[K], undefined>;
   public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
-  public get<K extends keyof this>(key: K, options?: { plain?: boolean; clone?: boolean }): this[K];
-
+  
   /**
    * Set is used to update values on the instance (the sequelize representation of the instance that is,
    * remember that nothing will be persisted before you actually call `save`). In its most basic form `set`
@@ -2531,27 +2533,39 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public toJSON(): object;
 }
 
-/**
- * Simple shorthand to use typeof Model
- */
-export type ModelType = typeof Model;
 
 /**
  * Constructor type of Model
  * To get ModelType from a generic Model
  */
-export type ModelCtor<M extends Model> = { new (): M } & ModelType;
+export type ModelCtor<M extends Model> = { new (): M & ModelInstance<M> }& typeof Model;
+
+type NonNullable = {allowNull: false};
+
+type PickType<Base, Condition> = Pick<Base, {
+  [Key in keyof Base]: Base[Key] extends Condition ? Key : never
+}[keyof Base]>;
+
+type ExcludeType<Base, Condition> = Pick<Base, {
+  [Key in keyof Base]: Base[Key] extends Condition ? never : Key
+}[keyof Base]>;
+
+
+type RequiredAttributes<T extends ModelAttributes> = PickType<T, NonNullable>;
+
+type OptionalAttributes<T extends ModelAttributes> = ExcludeType<T, NonNullable>;
 
 /**
  * Conditional type mapper
- * Get DataType from a generic ModelAttributes value T
+ * Get "basic type"  from a generic ModelAttribute value T
  * if T is a ModelAttributeColumnOptions, DataType is ModelAttributeColumnOptions["type"]
  */
-type ExtractAttributeDataType<T extends DataType | ModelAttributeColumnOptions> = 
+type ExtractBaseType<T> = 
   T extends DataType
-  ? T :
+  ? CastDataType<T> :
   T extends ModelAttributeColumnOptions
-  ? T["type"] :
+  ? CastDataType<T["type"]> :
+  T extends never ? never :
   any;
 
 /**
@@ -2566,18 +2580,20 @@ type ExtractAttributeDataType<T extends DataType | ModelAttributeColumnOptions> 
  *  instock: DataTypes.BOOLEAN,
  *  label: {
  *     type: DataTypes.STRING(100),
- *     allowNull: true
+ *     allowNull: false
  * };
  * type TProduct = AttributesTypes<typeof productAttributes>;
  * // {
- * //   sku: string;
- * //   qty: number;
- * //   instock: boolean;
+ * //   sku?: string;
+ * //   qty?: number;
+ * //   instock?: boolean;
  * //   label: string;
  * // }
  * ```
  */
-export type AttributesTypes<T extends ModelAttributes> = { [P in keyof T]: CastDataType<ExtractAttributeDataType<T[P]>> };
+export type AttributesTypes<T extends ModelAttributes, R = RequiredAttributes<T>, O = OptionalAttributes<T>> = 
+  { [P in keyof R]: ExtractBaseType<R[P]> } & Partial<{ [P in keyof O]: ExtractBaseType<O[P]> }>;
+
 
 export default Model;
 
