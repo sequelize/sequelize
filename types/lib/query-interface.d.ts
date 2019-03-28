@@ -345,7 +345,7 @@ export class QueryInterface {
   public addConstraint(
     tableName: string,
     attributes: string[],
-    options?: AddConstraintOptions | QueryInterfaceOptions
+    options?: AddConstraintOptions & QueryInterfaceOptions
   ): Promise<void>;
 
   /**
