@@ -383,7 +383,7 @@ export type Order = string | Fn | Col | Literal | OrderItem[];
  * Please note if this is used the aliased property will not be available on the model instance
  * as a property but only via `instance.get('alias')`.
  */
-export type ProjectionAlias = [string | Literal | Fn, string];
+export type ProjectionAlias = [string | Literal | Fn, string | Fn];
 
 export type FindAttributeOptions =
   | (string | ProjectionAlias)[]
