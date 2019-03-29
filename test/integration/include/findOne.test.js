@@ -247,7 +247,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support a belongsTo with the targetKey option', function() {
-      const User = this.sequelize.define('User', { username: DataTypes.STRING }),
+      const User = this.sequelize.define('User', { username: { type: DataTypes.STRING, unique: true } }),
         Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       User.removeAttribute('id');
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
