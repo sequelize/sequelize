@@ -1302,6 +1302,11 @@ export interface ModelOptions<M extends Model = Model> {
   name?: ModelNameOptions;
 
   /**
+   * Set name of the model. By default its same as Class name.
+   */
+  modelName?: string;
+
+  /**
    * Indexes for the provided database table
    */
   indexes?: ModelIndexesOptions[];
