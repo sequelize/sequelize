@@ -1,10 +1,9 @@
 'use strict';
 
-const chai = require('chai'),
-  Sequelize = require('../../index'),
-  expect = chai.expect,
-  Support = require('../support'),
-  current = Support.sequelize;
+const { expect } = require('chai');
+const Sequelize = require('../../index');
+const Support = require('../support');
+const current = Support.sequelize;
 
 if (current.dialect.supports.tmpTableTrigger) {
   describe(Support.getTestDialectTeaser('Model'), () => {
@@ -33,7 +32,7 @@ if (current.dialect.supports.tmpTableTrigger) {
         });
 
         return User.sync({ force: true }).then(() => {
-          return this.sequelize.query(triggerQuery, { type: this.sequelize.QueryTypes.RAW });
+          return this.sequelize.query(triggerQuery, { type: Support.QueryTypes.RAW });
         });
       });
 

@@ -1,11 +1,11 @@
 'use strict';
 
-const chai = require('chai');
-const expect = chai.expect;
+const { expect } = require('chai');
 const Support = require('./support');
 const DataTypes = require('../../lib/data-types');
 const dialect = Support.getTestDialect();
 const Sequelize = Support.Sequelize;
+const { QueryTypes } = Sequelize;
 const current = Support.sequelize;
 const _ = require('lodash');
 
@@ -411,7 +411,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     it('should get a list of foreign keys for the table', function() {
       const sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
-      return this.sequelize.query(sql, { type: this.sequelize.QueryTypes.FOREIGNKEYS }).then(fks => {
+      return this.sequelize.query(sql, { type: QueryTypes.FOREIGNKEYS }).then(fks => {
         expect(fks).to.have.length(3);
         const keys = Object.keys(fks[0]),
           keys2 = Object.keys(fks[1]),

@@ -1,12 +1,12 @@
 'use strict';
 
-const chai      = require('chai'),
-  expect    = chai.expect,
-  Support   = require('./support'),
-  Sequelize = Support.Sequelize,
-  Promise   = Sequelize.Promise,
-  cls       = require('continuation-local-storage'),
-  current = Support.sequelize;
+const { expect } = require('chai');
+const Support = require('./support');
+const { Sequelize } = Support;
+const { QueryTypes } = Sequelize;
+const Promise = Sequelize.Promise;
+const cls = require('continuation-local-storage');
+const current = Support.sequelize;
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('Continuation local storage'), () => {
@@ -157,7 +157,7 @@ if (current.dialect.supports.transactions) {
 
     it('promises returned by sequelize.query are correctly patched', function() {
       return this.sequelize.transaction(t =>
-        this.sequelize.query('select 1', { type: Sequelize.QueryTypes.SELECT })
+        this.sequelize.query('select 1', { type: QueryTypes.SELECT })
           .then(() => expect(this.ns.get('transaction')).to.equal(t))
       );
     });

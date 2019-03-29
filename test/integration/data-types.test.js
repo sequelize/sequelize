@@ -743,13 +743,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
   it('should be able to cast buffer as boolean', function() {
     const ByteModel = this.sequelize.define('Model', {
-      byteToBool: this.sequelize.Sequelize.BLOB
+      byteToBool: DataTypes.BLOB
     }, {
       timestamps: false
     });
 
     const BoolModel = this.sequelize.define('Model', {
-      byteToBool: this.sequelize.Sequelize.BOOLEAN
+      byteToBool: DataTypes.BOOLEAN
     }, {
       timestamps: false
     });

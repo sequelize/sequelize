@@ -13,7 +13,7 @@ sequelize.query("UPDATE users SET y = 42 WHERE x = 12").then(([results, metadata
 In cases where you don't need to access the metadata you can pass in a query type to tell sequelize how to format the results. For example, for a simple select query you could do:
 
 ```js
-sequelize.query("SELECT * FROM `users`", { type: sequelize.QueryTypes.SELECT})
+sequelize.query("SELECT * FROM `users`", { type: QueryTypes.SELECT})
   .then(users => {
     // We don't need spread here, since only the results will be returned for select queries
   })
@@ -44,13 +44,13 @@ Replacements in a query can be done in two different ways, either using named pa
 
 ```js
 sequelize.query('SELECT * FROM projects WHERE status = ?',
-  { replacements: ['active'], type: sequelize.QueryTypes.SELECT }
+  { replacements: ['active'], type: QueryTypes.SELECT }
 ).then(projects => {
   console.log(projects)
 })
 
 sequelize.query('SELECT * FROM projects WHERE status = :status ',
-  { replacements: { status: 'active' }, type: sequelize.QueryTypes.SELECT }
+  { replacements: { status: 'active' }, type: QueryTypes.SELECT }
 ).then(projects => {
   console.log(projects)
 })
@@ -60,7 +60,7 @@ Array replacements will automatically be handled, the following query searches f
 
 ```js
 sequelize.query('SELECT * FROM projects WHERE status IN(:status) ',
-  { replacements: { status: ['active', 'inactive'] }, type: sequelize.QueryTypes.SELECT }
+  { replacements: { status: ['active', 'inactive'] }, type: QueryTypes.SELECT }
 ).then(projects => {
   console.log(projects)
 })
@@ -70,7 +70,7 @@ To use the wildcard operator %, append it to your replacement. The following que
 
 ```js
 sequelize.query('SELECT * FROM users WHERE name LIKE :search_name ',
-  { replacements: { search_name: 'ben%'  }, type: sequelize.QueryTypes.SELECT }
+  { replacements: { search_name: 'ben%'  }, type: QueryTypes.SELECT }
 ).then(projects => {
   console.log(projects)
 })
@@ -90,13 +90,13 @@ The database may add further restrictions to this. Bind parameters cannot be SQL
 
 ```js
 sequelize.query('SELECT *, "text with literal $$1 and literal $$status" as t FROM projects WHERE status = $1',
-  { bind: ['active'], type: sequelize.QueryTypes.SELECT }
+  { bind: ['active'], type: sequelize.SELECT }
 ).then(projects => {
   console.log(projects)
 })
 
 sequelize.query('SELECT *, "text with literal $$1 and literal $$status" as t FROM projects WHERE status = $status',
-  { bind: { status: 'active' }, type: sequelize.QueryTypes.SELECT }
+  { bind: { status: 'active' }, type: sequelize.SELECT }
 ).then(projects => {
   console.log(projects)
 })

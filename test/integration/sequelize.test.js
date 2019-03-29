@@ -10,7 +10,8 @@ const config = require('../config/config');
 const moment = require('moment');
 const Transaction = require('../../lib/transaction');
 const sinon = require('sinon');
-const current = Support.sequelize;
+const { sequelize: current } = Support;
+const { QueryTypes } = Support.Sequelize;
 
 const qq = str => {
   if (dialect === 'postgres' || dialect === 'mssql') {
@@ -257,7 +258,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         ]]
       })
         .then(() => this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
-          type: this.sequelize.QueryTypes.SELECT
+          type: QueryTypes.SELECT
         }))
         .then(rows => {
           expect(rows).to.be.lengthOf(2);
@@ -479,7 +480,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         query: 'select ? as number, ? as date,? as string,? as boolean,? as buffer',
         values: [number, date, string, boolean, buffer]
       }, {
-        type: this.sequelize.QueryTypes.SELECT,
+        type: QueryTypes.SELECT,
         logging(s) {
           logSql = s;
         }
@@ -511,7 +512,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           return 'select ? as foo, ? as bar';
         }
       }
-      return this.sequelize.query(new SQLStatement(), { type: this.sequelize.QueryTypes.SELECT, logging: s => logSql = s } ).then(result => {
+      return this.sequelize.query(new SQLStatement(), { type: QueryTypes.SELECT, logging: s => logSql = s } ).then(result => {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
         expect(logSql).to.not.include('?');
       });
@@ -519,7 +520,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('uses properties `query` and `values` if query is tagged', function() {
       let logSql;
-      return this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } }).then(result => {
+      return this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { type: QueryTypes.SELECT, logging(s) { logSql = s; } }).then(result => {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
         expect(logSql).to.not.include('?');
       });
@@ -528,7 +529,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('uses properties `query` and `bind` if query is tagged', function() {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
-      return this.sequelize.query({ query: `select $1${typeCast} as foo, $2${typeCast} as bar`, bind: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } }).then(result => {
+      return this.sequelize.query({ query: `select $1${typeCast} as foo, $2${typeCast} as bar`, bind: [1, 2] }, { type: QueryTypes.SELECT, logging(s) { logSql = s; } }).then(result => {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
         if (dialect === 'postgres' || dialect === 'sqlite') {
           expect(logSql).to.include('$1');
@@ -559,7 +560,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('replaces token with the passed array', function() {
-      return this.sequelize.query('select ? as foo, ? as bar', { type: this.sequelize.QueryTypes.SELECT, replacements: [1, 2] }).then(result => {
+      return this.sequelize.query('select ? as foo, ? as bar', { type: QueryTypes.SELECT, replacements: [1, 2] }).then(result => {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
       });
     });
@@ -612,7 +613,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds token with the passed array', function() {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
-      return this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) { logSql = s;} }).then(result => {
+      return this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { type: QueryTypes.SELECT, bind: [1, 2], logging(s) { logSql = s;} }).then(result => {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
         if (dialect === 'postgres' || dialect === 'sqlite') {
           expect(logSql).to.include('$1');
@@ -758,7 +759,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     if (Support.getTestDialect() === 'sqlite') {
       it('binds array parameters for upsert are replaced. $$ unescapes only once', function() {
         let logSql;
-        return this.sequelize.query('select $1 as foo, $2 as bar, \'$$$$\' as baz', { type: this.sequelize.QueryTypes.UPSERT, bind: [1, 2], logging(s) { logSql = s; } }).then(() => {
+        return this.sequelize.query('select $1 as foo, $2 as bar, \'$$$$\' as baz', { type: QueryTypes.UPSERT, bind: [1, 2], logging(s) { logSql = s; } }).then(() => {
           // sqlite.exec does not return a result
           expect(logSql).to.not.include('$one');
           expect(logSql).to.include('\'$$\'');
@@ -767,7 +768,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('binds named parameters for upsert are replaced. $$ unescapes only once', function() {
         let logSql;
-        return this.sequelize.query('select $one as foo, $two as bar, \'$$$$\' as baz', { type: this.sequelize.QueryTypes.UPSERT, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } }).then(() => {
+        return this.sequelize.query('select $one as foo, $two as bar, \'$$$$\' as baz', { type: QueryTypes.UPSERT, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } }).then(() => {
           // sqlite.exec does not return a result
           expect(logSql).to.not.include('$one');
           expect(logSql).to.include('\'$$\'');
@@ -1201,6 +1202,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             Object.keys(customAttributes).forEach(attribute => {
               Object.keys(customAttributes[attribute]).forEach(option => {
                 const optionValue = customAttributes[attribute][option];
+                // eslint-disable-next-line new-cap
                 if (typeof optionValue === 'function' && new optionValue() instanceof DataTypes.ABSTRACT) {
                   expect(Picture.rawAttributes[attribute][option] instanceof optionValue).to.be.ok;
                 } else {

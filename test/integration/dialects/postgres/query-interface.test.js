@@ -3,10 +3,9 @@
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
+const { QueryTypes } = Support.Sequelize;
 const dialect = Support.getTestDialect();
 const DataTypes = require('../../../../lib/data-types');
-const _ = require('lodash');
-
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] QueryInterface', () => {
@@ -27,7 +26,7 @@ if (dialect.match(/^postgres/)) {
             SELECT schema_name
             FROM information_schema.schemata
             WHERE schema_name = 'testschema';
-          `, { type: this.sequelize.QueryTypes.SELECT }))
+          `, { type: QueryTypes.SELECT }))
           .then(res => {
             expect(res, 'query results').to.not.be.empty;
             expect(res[0].schema_name).to.be.equal('testschema');
@@ -41,7 +40,7 @@ if (dialect.match(/^postgres/)) {
             SELECT schema_name
             FROM information_schema.schemata
             WHERE schema_name = 'testschema';
-          `, { type: this.sequelize.QueryTypes.SELECT }))
+          `, { type: QueryTypes.SELECT }))
           .then(res => {
             expect(res, 'query results').to.not.be.empty;
             expect(res[0].schema_name).to.be.equal('testschema');
@@ -72,7 +71,7 @@ if (dialect.match(/^postgres/)) {
 
       it('renames a function', function() {
         return this.queryInterface.renameFunction('rftest1', [], 'rftest2')
-          .then(() => this.sequelize.query('select rftest2();', { type: this.sequelize.QueryTypes.SELECT }))
+          .then(() => this.sequelize.query('select rftest2();', { type: QueryTypes.SELECT }))
           .then(res => {
             expect(res[0].rftest2).to.be.eql('testreturn');
           });
@@ -104,7 +103,7 @@ if (dialect.match(/^postgres/)) {
         // make our call to create a function
         return this.queryInterface.createFunction('create_job', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', body, options)
           // validate
-          .then(() => this.sequelize.query('select create_job(\'test\');', { type: this.sequelize.QueryTypes.SELECT }))
+          .then(() => this.sequelize.query('select create_job(\'test\');', { type: QueryTypes.SELECT }))
           .then(res => {
             expect(res[0].create_job).to.be.eql('test');
           });
@@ -116,7 +115,7 @@ if (dialect.match(/^postgres/)) {
         // run with null options parameter
         return this.queryInterface.createFunction('create_job', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', body, null)
           // validate
-          .then(() => this.sequelize.query('select create_job(\'test\');', { type: this.sequelize.QueryTypes.SELECT }))
+          .then(() => this.sequelize.query('select create_job(\'test\');', { type: QueryTypes.SELECT }))
           .then(res => {
             expect(res[0].create_job).to.be.eql('test');
           });
@@ -178,7 +177,7 @@ if (dialect.match(/^postgres/)) {
             // now call the function we attempted to drop.. if dropFunction worked as expect it should produce an error.
             .then(() => {
               // call the function we attempted to drop.. if it is still there then throw an error informing that the expected behavior is not met.
-              return this.sequelize.query('select droptest(\'test\');', { type: this.sequelize.QueryTypes.SELECT });
+              return this.sequelize.query('select droptest(\'test\');', { type: QueryTypes.SELECT });
             })
         // test that we did get the expected error indicating that droptest was properly removed.
         ).to.be.rejectedWith(/.*function droptest.* does not exist/);
@@ -220,7 +219,7 @@ if (dialect.match(/^postgres/)) {
           )`)], { name: 'group_username_case' })
           .then(() => this.queryInterface.showIndex('Group'))
           .then(indexes => {
-            const indexColumns = _.uniq(indexes.map(index => index.name));
+            const indexColumns = indexes.map(index => index.name);
 
             expect(indexColumns).to.include('group_username_case');
           });
@@ -232,14 +231,14 @@ if (dialect.match(/^postgres/)) {
         })
           .then(() => this.queryInterface.showIndex('Group'))
           .then(indexes => {
-            const indexColumns = _.uniq(indexes.map(index => index.name));
+            const indexColumns = indexes.map(index => index.name);
 
             expect(indexColumns).to.include('group_username_lower');
           })
           .then(() => this.queryInterface.removeIndex('Group', 'group_username_lower'))
           .then(() => this.queryInterface.showIndex('Group'))
           .then(indexes => {
-            const indexColumns = _.uniq(indexes.map(index => index.name));
+            const indexColumns = indexes.map(index => index.name);
             expect(indexColumns).to.be.empty;
           });
       });

@@ -76,20 +76,20 @@ if (dialect === 'postgres') {
 
         const date = new Date();
         const User = this.sequelize.define('User', {
-          username: this.sequelize.Sequelize.STRING,
+          username: DataTypes.STRING,
           beforeTime: {
-            type: this.sequelize.Sequelize.DATE,
+            type: DataTypes.DATE,
             defaultValue: -Infinity
           },
           sometime: {
-            type: this.sequelize.Sequelize.DATE,
+            type: DataTypes.DATE,
             defaultValue: this.sequelize.fn('NOW')
           },
           anotherTime: {
-            type: this.sequelize.Sequelize.DATE
+            type: DataTypes.DATE
           },
           afterTime: {
-            type: this.sequelize.Sequelize.DATE,
+            type: DataTypes.DATE,
             defaultValue: Infinity
           }
         }, {
@@ -163,20 +163,20 @@ if (dialect === 'postgres') {
 
         const date = new Date();
         const User = this.sequelize.define('User', {
-          username: this.sequelize.Sequelize.STRING,
+          username: DataTypes.STRING,
           beforeTime: {
-            type: this.sequelize.Sequelize.DATEONLY,
+            type: DataTypes.DATEONLY,
             defaultValue: -Infinity
           },
           sometime: {
-            type: this.sequelize.Sequelize.DATEONLY,
+            type: DataTypes.DATEONLY,
             defaultValue: this.sequelize.fn('NOW')
           },
           anotherTime: {
-            type: this.sequelize.Sequelize.DATEONLY
+            type: DataTypes.DATEONLY
           },
           afterTime: {
-            type: this.sequelize.Sequelize.DATEONLY,
+            type: DataTypes.DATEONLY,
             defaultValue: Infinity
           }
         }, {

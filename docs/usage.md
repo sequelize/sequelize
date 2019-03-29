@@ -290,7 +290,7 @@ sequelize
     raw: false,
 
     // The type of query you are executing. The query type affects how results are formatted before they are passed back.
-    type: Sequelize.QueryTypes.SELECT
+    type: QueryTypes.SELECT
   })
 
 // Note the second argument being null!

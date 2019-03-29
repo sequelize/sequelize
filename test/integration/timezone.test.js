@@ -1,11 +1,11 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('./support'),
-  dialect = Support.getTestDialect(),
-  Sequelize = require('../../index'),
-  Promise = Sequelize.Promise;
+const { expect } = require('chai');
+const Support = require('./support');
+const { QueryTypes } = Support.Sequelize;
+const dialect = Support.getTestDialect();
+const Sequelize = require('../../index');
+const Promise = Sequelize.Promise;
 
 if (dialect !== 'sqlite') {
   // Sqlite does not support setting timezone
@@ -30,8 +30,8 @@ if (dialect !== 'sqlite') {
 
       const query = `SELECT ${now} as now`;
       return Promise.all([
-        this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
-        this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT })
+        this.sequelize.query(query, { type: QueryTypes.SELECT }),
+        this.sequelizeWithTimezone.query(query, { type: QueryTypes.SELECT })
       ]).then(([now1, now2]) => {
         const elapsedQueryTime = Date.now() - startQueryTime + 1001;
         expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
