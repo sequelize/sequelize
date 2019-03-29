@@ -4,7 +4,7 @@ const path = require('path');
 const Query = require(path.resolve('./lib/dialects/abstract/query.js'));
 const Support = require(path.join(__dirname, './../../support'));
 const chai = require('chai');
-
+const { stub, match } = require('sinon');
 const current = Support.sequelize;
 const expect = chai.expect;
 
@@ -470,6 +470,43 @@ describe('[ABSTRACT]', () => {
           'lastModified': new Date('2017-08-22T11:16:44.000Z')
         }
       ]);
+    });
+  });
+
+  describe('_logQuery', () => {
+    beforeEach(function() {
+      this.cls = class MyQuery extends Query { };
+      this.sequelizeStub = {
+        log: stub(),
+        options: {}
+      };
+      this.connectionStub = {
+        uuid: 'test'
+      };
+    });
+
+    it('logs before and after', function() {
+      const debugStub = stub();
+      const qry = new this.cls(this.connectionStub, this.sequelizeStub, {});
+      const complete = qry._logQuery('SELECT 1', debugStub);
+      complete();
+      expect(this.sequelizeStub.log).to.have.been.calledOnce;
+      expect(this.sequelizeStub.log).to.have.been.calledWithMatch('Executing (test): SELECT 1');
+
+      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1');
+      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1');
+    });
+
+    it('logs before and after with benchmark', function() {
+      const debugStub = stub();
+      const qry = new this.cls(this.connectionStub, this.sequelizeStub, { benchmark: true });
+      const complete = qry._logQuery('SELECT 1', debugStub);
+      complete();
+      expect(this.sequelizeStub.log).to.have.been.calledOnce;
+      expect(this.sequelizeStub.log).to.have.been.calledWithMatch('Executed (test): SELECT 1', match.number, { benchmark: true });
+
+      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1');
+      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1');
     });
   });
 });

@@ -274,7 +274,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     it('debug', () => {
       expect(logger.debugContext).to.be.a('function');
-      logger.debugContext().log('test debug');
+      logger.debugContext('test debug');
     });
 
     it('warn', () => {
@@ -284,10 +284,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     it('debugContext',  () => {
       expect(logger.debugContext).to.be.a('function');
-      const testLogger = logger.debugContext().extend('test');
+      const testLogger = logger.debugContext('test');
 
-      expect(testLogger.log).to.be.a('function');
-      expect(testLogger.name).to.be.eql('sequelize:test');
+      expect(testLogger).to.be.a('function');
     });
   });
 });
