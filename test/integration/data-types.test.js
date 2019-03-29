@@ -248,6 +248,43 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   });
 
+  if (dialect === 'mysql') {
+    it('should handle TINYINT booleans', function() {
+      const User = this.sequelize.define('user', {
+        id: { type: Sequelize.TINYINT, primaryKey: true },
+        isRegistered: Sequelize.TINYINT
+      });
+
+      return User.sync({ force: true }).then(() => {
+        return User.create({ id: 1, isRegistered: true });
+      }).then(registeredUser => {
+        expect(registeredUser.isRegistered).to.equal(true);
+        return User.findOne({
+          where: {
+            id: 1,
+            isRegistered: true
+          }
+        });
+      }).then(registeredUser => {
+        expect(registeredUser).to.be.ok;
+        expect(registeredUser.isRegistered).to.equal(1);
+
+        return User.create({ id: 2, isRegistered: false });
+      }).then(unregisteredUser => {
+        expect(unregisteredUser.isRegistered).to.equal(false);
+        return User.findOne({
+          where: {
+            id: 2,
+            isRegistered: false
+          }
+        });
+      }).then(unregisteredUser => {
+        expect(unregisteredUser).to.be.ok;
+        expect(unregisteredUser.isRegistered).to.equal(0);
+      });
+    });
+  }
+
   it('calls parse and bindParam for DOUBLE', () => {
     const Type = new Sequelize.DOUBLE();
 

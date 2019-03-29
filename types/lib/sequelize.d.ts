@@ -1252,7 +1252,7 @@ export class Sequelize extends Hooks {
    * Normally this is done on process exit, so you only need to call this method if you are creating multiple
    * instances, and want to garbage collect some of them.
    */
-  public close(): void;
+  public close(): Promise<void>;
 
   /**
    * Returns the database version

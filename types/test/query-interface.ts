@@ -142,10 +142,11 @@ queryInterface.removeIndex('Person', 'SuperDuperIndex');
 
 queryInterface.removeIndex('Person', ['firstname', 'lastname']);
 
-queryInterface.addConstraint('Person', ['firstname', 'lastname'], {
+queryInterface.sequelize.transaction(trx => queryInterface.addConstraint('Person', ['firstname', 'lastname'], {
   name: 'firstnamexlastname',
   type: 'unique',
-});
+  transaction: trx,
+}))
 
 queryInterface.removeConstraint('Person', 'firstnamexlastname');
 
