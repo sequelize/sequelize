@@ -1,7 +1,15 @@
 // This file is used as example.
 
-import { Sequelize, Model, DataTypes, BuildOptions } from 'sequelize';
-import { HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyHasAssociationMixin, Association, HasManyCountAssociationsMixin, HasManyCreateAssociationMixin } from '../../lib/associations';
+import {BuildOptions, DataTypes, Model, Sequelize} from 'sequelize';
+import {
+  Association,
+  HasManyAddAssociationMixin,
+  HasManyCountAssociationsMixin,
+  HasManyCreateAssociationMixin,
+  HasManyGetAssociationsMixin,
+  HasManyHasAssociationMixin
+} from '../../lib/associations';
+import QueryTypes = require("../../lib/query-types");
 
 class User extends Model {
   public id!: number; // Note that the `null assertion` `!` is required in strict mode.
@@ -37,6 +45,14 @@ class Project extends Model {
   public id!: number;
   public ownerId!: number;
   public name!: string;
+
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+class Address extends Model {
+  public userId!: number;
+  public address!: string;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -80,11 +96,27 @@ User.init({
   sequelize: sequelize, // this bit is important
 });
 
+Address.init({
+  userId: {
+    type: new DataTypes.INTEGER.UNSIGNED(),
+  },
+  address: {
+    type: new DataTypes.STRING(128),
+    allowNull: false,
+  }
+}, {
+  tableName: 'users',
+  sequelize: sequelize, // this bit is important
+});
+
 // Here we associate which actually populates out pre-declared `association` static and other methods.
 User.hasMany(Project, {
   foreignKey: 'ownerId',
   as: 'projects' // this determines the name in `associations`!
 });
+
+Address.belongsTo(User, {targetKey: 'id'});
+User.hasOne(Address,{sourceKey: 'id'});
 
 async function stuff() {
   // Please note that when using async/await you lose the `bluebird` promise context
@@ -105,6 +137,15 @@ async function stuff() {
   });
   console.log(ourUser.projects![0].name); // Note the `!` null assertion since TS can't know if we included
                                           // the model or not
+
+  const user = await sequelize.query('SELECT * FROM users WHERE name = :userName',{
+    type: QueryTypes.SELECT,
+    replacements: {
+      userName: 'Johnny'
+    },
+    mapToModel: true,
+    model: User
+  })
 }
 
 // Legacy models
