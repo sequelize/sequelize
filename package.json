@@ -159,5 +159,8 @@
       "@semantic-release/npm",
       "@semantic-release/github"
     ]
+  },
+  "publishConfig": {
+    "tag": "v4"
   }
 }

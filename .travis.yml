@@ -67,14 +67,14 @@ jobs:
       node_js: '8'
       script:
         - npm run semantic-release
-      before_deploy:
-        - npm run docs
-      deploy:
-        provider: surge
-        project: ./esdoc/
-        domain: v4.sequelizejs.com
-        skip_cleanup: true
-        on: v4
+      # before_deploy:
+      #   - npm run docs
+      # deploy:
+      #   provider: surge
+      #   project: ./esdoc/
+      #   domain: docs.sequelizejs.com
+      #   skip_cleanup: true
+      #   on: v4
 
 stages:
   - test
