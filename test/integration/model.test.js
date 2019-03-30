@@ -1914,6 +1914,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    describe('aggregate', () => {
+      if (dialect === 'mssql') {
+        return;
+      }
+      it('allows grouping by aliased attribute', function() {
+        return this.User.aggregate('id', 'count', {
+          attributes: [['id', 'id2']],
+          group: ['id2'],
+          logging: true
+        });
+      });
+    });
+
     describe('options sent to aggregate', () => {
       let options, aggregateSpy;
 
