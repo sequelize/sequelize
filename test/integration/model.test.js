@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(User.tableName).to.equal('SuperUsers');
     });
 
-    it('uses checks to make sure dao factory isnt leaking on multiple define', function() {
+    it('uses checks to make sure dao factory is not leaking on multiple define', function() {
       this.sequelize.define('SuperUser', {}, { freezeTableName: false });
       const factorySize = this.sequelize.modelManager.all.length;
 
@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(factorySize).to.equal(factorySize2);
     });
 
-    it('allows us us to predefine the ID column with our own specs', function() {
+    it('allows us to predefine the ID column with our own specs', function() {
       const User = this.sequelize.define('UserCol', {
         id: {
           type: Sequelize.STRING,
