@@ -7,16 +7,21 @@ import {
   Model,
   ModelCtor,
   Transactionable,
-  WhereOptions,
 } from '../model';
 import { Promise } from '../promise';
-import { Transaction } from '../transaction';
 import { Association, ManyToManyOptions, MultiAssociationAccessors } from './base';
 
 /**
  * Options provided when associating models with hasMany relationship
  */
 export interface HasManyOptions extends ManyToManyOptions {
+
+  /**
+   * The name of the field to use as the key for the association in the source table. Defaults to the primary
+   * key of the source table
+   */
+  sourceKey?: string;
+
   /**
    * A string or a data type to represent the identifier in the table
    */

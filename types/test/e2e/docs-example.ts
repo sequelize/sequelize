@@ -111,6 +111,7 @@ Address.init({
 
 // Here we associate which actually populates out pre-declared `association` static and other methods.
 User.hasMany(Project, {
+  sourceKey: 'id',
   foreignKey: 'ownerId',
   as: 'projects' // this determines the name in `associations`!
 });
