@@ -1,5 +1,5 @@
 <!-- 
-Thanks for wanting to fix something on Sequelize - we already love you long time!
+Thanks for wanting to fix something on Sequelize - we already love you!
 Please fill in the template below.
 If unsure about something, just do as best as you're able.
 
