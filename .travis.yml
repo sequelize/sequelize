@@ -72,7 +72,7 @@ jobs:
       deploy:
         provider: surge
         project: ./esdoc/
-        domain: docs.sequelizejs.com
+        domain: v4.sequelizejs.com
         skip_cleanup: true
         on: v4
 
