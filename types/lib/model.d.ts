@@ -559,14 +559,24 @@ export interface FindOrCreateOptions extends Logging, Transactionable {
  */
 export interface UpsertOptions extends Logging, Transactionable, SearchPathable {
   /**
-   * Run validations before the row is inserted
-   */
-  validate?: boolean;
-
-  /**
    * The fields to insert / update. Defaults to all fields
    */
   fields?: string[];
+
+  /**
+   * Run before / after bulk create hooks?
+   */
+  hooks?: boolean;
+
+  /**
+   * Return the affected rows (only for postgres)
+   */
+  returning?: boolean;
+
+  /**
+   * Run validations before the row is inserted
+   */
+  validate?: boolean;
 }
 
 /**
