@@ -217,7 +217,7 @@ export interface Options extends Logging {
   protocol?: string;
 
   /**
-   * Default options for model definitions. See sequelize.define for options
+   * Default options for model definitions. See Model.init.
    */
   define?: ModelOptions;
 
