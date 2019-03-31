@@ -1425,7 +1425,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       // User not to clash with the beforeEach definition
-      const Users = this.sequelize.define('User', {
+      const Users = this.sequelize.define('Usar', {
         name: {
           type: DataTypes.STRING
         }
