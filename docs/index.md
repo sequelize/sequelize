@@ -31,6 +31,7 @@ You are currently looking at the **Tutorials and Guides** for Sequelize. You mig
 
 ```js
 const Sequelize = require('sequelize');
+// const { Sequelize, Model } = require('sequelize'); // This would also work
 const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 
 class User extends Sequelize.Model {}
