@@ -57,7 +57,8 @@ If you have any security issue to report, contact project maintainers privately.
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/sequelize.js)
 
 ### Tools
-- [Sequelize & TypeScript](https://github.com/RobinBuschmann/sequelize-typescript)
+- [Sequelize & TypeScript](http://docs.sequelizejs.com/manual/typescript.html)
+- [Enhanced TypeScript with decorators](https://github.com/RobinBuschmann/sequelize-typescript)
 - [Sequelize & GraphQL](https://github.com/mickhansen/graphql-sequelize)
 - [Add-ons & Plugins](http://docs.sequelizejs.com/manual/resources.html)
 - [Sequelize CLI](https://github.com/sequelize/cli)

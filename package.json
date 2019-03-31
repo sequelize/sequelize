@@ -51,7 +51,7 @@
     "@commitlint/config-angular": "^7.3.1",
     "@types/bluebird": "^3.5.26",
     "@types/node": "^10.12.27",
-    "@types/validator": "^10.9.0",
+    "@types/validator": "^10.11.0",
     "big-integer": "^1.6.42",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
@@ -84,6 +84,11 @@
     "tedious": "^6.0.0",
     "typescript": "^3.3.3333",
     "semantic-release": "^15.13.3"
+  },
+  "peerDependencies": {
+    "@types/node": ">=6.14.3",
+    "@types/validator": "^10.11.0",
+    "@types/bluebird": "^3.5.26"
   },
   "keywords": [
     "mysql",
