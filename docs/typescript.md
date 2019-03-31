@@ -1,19 +1,15 @@
 # TypeScript
 
-Since v5 Sequelize provides it's own TypeScript definitions.
-Please note that only TS >= 3.1 is supported.
+Since v5, Sequelize provides its own TypeScript definitions. Please note that only TS >= 3.1 is supported.
 
-## Installation:
+As Sequelize heavily relies on runtime property assignments, TypeScript won't be very useful out of the box. A decent amount of manual type declarations are needed to make models workable.
 
-In order to avoid installation bloat for non TS users you must install the following packages manually:
- - `@types/node` this is universally required
+## Installation
+
+In order to avoid installation bloat for non TS users, you must install the following typing packages manually:
+ - `@types/node` (this is universally required)
  - `@types/validator`
  - `@types/bluebird`
-
- ## Note
-
-As Sequelize heavily relies on runtime property assignments, TypeScript won't be very useful out of the box.
-A decent amount of manual type declarations are needed to make models workable.
 
 ## Usage
 
@@ -131,7 +127,7 @@ async function stuff() {
 ## Legacy `.define` usage
 
 TypeScript doesn't know how to generate a `class` definition when we use the legacy `.define`,
-therefor we need to do some manual work and declare an interface and a type and eventually cast 
+therefore we need to do some manual work and declare an interface and a type and eventually cast 
 the result of `.define` to the _static_ type.
 
 ```ts
@@ -146,7 +142,7 @@ type MyModelStatic = typeof Model & {
   new (values?: object, options?: BuildOptions): MyModel;
 }
 
-// TS can't derive a proper class definition from a `.define` call, therefor we need to cast here.
+// TS can't derive a proper class definition from a `.define` call, therefore we need to cast here.
 const MyDefineModel = <MyModelStatic>sequelize.define('MyDefineModel', {
   id: {
     primaryKey: true,
