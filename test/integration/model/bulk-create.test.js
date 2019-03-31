@@ -356,7 +356,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should allow blank arrays (return immediatly)', function() {
+    it('should allow blank arrays (return immediately)', function() {
       const Worker = this.sequelize.define('Worker', {});
       return Worker.sync().then(() => {
         return Worker.bulkCreate([]).then(workers => {
@@ -718,7 +718,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
       });
 
-      it('shold not validate', function() {
+      it('should not validate', function() {
         return this.User
           .sync({ force: true })
           .then(() => this.User.bulkCreate([

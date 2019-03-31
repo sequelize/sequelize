@@ -48,7 +48,7 @@ export interface SyncOptions extends Logging {
   match?: RegExp;
 
   /**
-   * The schema that the tables should be created in. This can be overriden for each table in sequelize.define
+   * The schema that the tables should be created in. This can be overridden for each table in sequelize.define
    */
   schema?: string;
 }
