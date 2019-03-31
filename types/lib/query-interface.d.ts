@@ -56,6 +56,12 @@ export interface QueryOptions extends Logging, Transactionable {
    */
   instance?: Model;
 
+  /**
+   * Map returned fields to model's fields if `options.model` or `options.instance` is present.
+   * Mapping will occur before building the model instance.
+   */
+  mapToModel?: boolean;
+
   retry?: RetryOptions;
 }
 
