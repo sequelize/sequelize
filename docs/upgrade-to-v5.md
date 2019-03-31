@@ -154,7 +154,7 @@ Model.findAll({
 
 Model.findAll({
   where: {
-    [Sequelize.Op.and]: [ // Dont use sequelize.Op, use Sequelize.Op instead
+    [Sequelize.Op.and]: [ // Don't use sequelize.Op, use Sequelize.Op instead
       {
         name: "Abc"
       },

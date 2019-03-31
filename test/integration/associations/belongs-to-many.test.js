@@ -1424,8 +1424,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }
       });
 
-      // Usar not to clash with the beforEach definition
-      const Users = this.sequelize.define('Usar', {
+      // User not to clash with the beforeEach definition
+      const Users = this.sequelize.define('User', {
         name: {
           type: DataTypes.STRING
         }
@@ -2541,7 +2541,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('should setup correct foreign keys', function() {
-      /* camcelCase */
+      /* camelCase */
       let Person = this.sequelize.define('Person'),
         PersonChildren = this.sequelize.define('PersonChildren'),
         Children;
