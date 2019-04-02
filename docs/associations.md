@@ -998,10 +998,10 @@ A new `Product`, `User`, and one or more `Address` can be created in one step in
 ```js
 return Product.create({
   title: 'Chair',
-  user: {
+  User: {
     firstName: 'Mick',
     lastName: 'Broadstone',
-    addresses: [{
+    Addresses: [{
       type: 'home',
       line1: '100 Main St.',
       city: 'Austin',
@@ -1024,11 +1024,11 @@ Here, our user model is called `user`, with a lowercase u - This means that the 
 The previous example can be extended to support an association alias.
 
 ```js
-const Creator = Product.belongsTo(User, { as: 'creator' });
+const Creator = Product.belongsTo(User, { as: 'Creator' });
 
 return Product.create({
   title: 'Chair',
-  creator: {
+  Creator: {
     firstName: 'Matt',
     lastName: 'Hansen'
   }
@@ -1057,7 +1057,7 @@ Now we can create a product with multiple tags in the following way:
 Product.create({
   id: 1,
   title: 'Chair',
-  tags: [
+  Tags: [
     { name: 'Alpha'},
     { name: 'Beta'}
   ]
@@ -1069,19 +1069,19 @@ Product.create({
 And, we can modify this example to support an alias as well:
 
 ```js
-const Categories = Product.hasMany(Tag, { as: 'categories' });
+const Categories = Product.hasMany(Tag, { as: 'Categories' });
 
 Product.create({
   id: 1,
   title: 'Chair',
-  categories: [
+  Categories: [
     { id: 1, name: 'Alpha' },
     { id: 2, name: 'Beta' }
   ]
 }, {
   include: [{
     association: Categories,
-    as: 'categories'
+    as: 'Categories'
   }]
 })
 ```
