@@ -92,9 +92,10 @@ Sequelize will keep the connection open by default, and use the same connection 
 
 
 
-Models are defined with `Model.init(attributes, options)`:
+Models are defined with `Sequelize.Model.init(attributes, options)`:
 
 ```js
+const Model = Sequelize.Model;
 class User extends Model {}
 User.init({
   // attributes

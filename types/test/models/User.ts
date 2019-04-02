@@ -37,6 +37,7 @@ User.init(
     username: DataTypes.STRING,
   },
   {
+    version: true,
     getterMethods: {
     a() {
       return 1;
