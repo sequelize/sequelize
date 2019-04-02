@@ -5,7 +5,7 @@ const expect = chai.expect;
 const Support = require('./support');
 const DataTypes = require('../../lib/data-types');
 const Utils = require('../../lib/utils');
-const { Logger } = require('../../lib/utils/logger');
+const { logger } = require('../../lib/utils/logger');
 const Op = Support.Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
@@ -270,8 +270,6 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   });
 
   describe('Logger', () => {
-    const logger = Logger.getLogger();
-
     it('debug', () => {
       expect(logger.debugContext).to.be.a('function');
       logger.debugContext('test debug');
