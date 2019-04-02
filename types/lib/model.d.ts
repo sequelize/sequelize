@@ -1029,7 +1029,7 @@ export interface ModelValidateOptions {
 }
 
 /**
- * Interface for indexes property in DefineOptions
+ * Interface for indexes property in InitOptions
  */
 export interface ModelIndexesOptions {
   /**
@@ -1072,7 +1072,7 @@ export interface ModelIndexesOptions {
 }
 
 /**
- * Interface for name property in DefineOptions
+ * Interface for name property in InitOptions
  */
 export interface ModelNameOptions {
   /**
@@ -1087,14 +1087,14 @@ export interface ModelNameOptions {
 }
 
 /**
- * Interface for getterMethods in DefineOptions
+ * Interface for getterMethods in InitOptions
  */
 export interface ModelGetterOptions {
   [name: string]: (this: Model) => unknown;
 }
 
 /**
- * Interface for setterMethods in DefineOptions
+ * Interface for setterMethods in InitOptions
  */
 export interface ModelSetterOptions {
   [name: string]: (this: Model, val: any) => void;
@@ -1389,6 +1389,16 @@ export interface ModelOptions<M extends Model = Model> {
    * Allows defining additional getters that will be available on model instances.
    */
   getterMethods?: ModelGetterOptions;
+
+  /**
+   * Enable optimistic locking.
+   * When enabled, sequelize will add a version count attribute to the model and throw an
+   * OptimisticLockingError error when stale instances are saved.
+   * - If string: Uses the named attribute.
+   * - If boolean: Uses `version`.
+   * @default false
+   */
+  version?: boolean | string;
 }
 
 /**
