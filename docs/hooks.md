@@ -188,7 +188,7 @@ new Sequelize(..., {
 
 Sequelize provides two hooks that are executed immediately before and after a database connection is obtained:
 
-```js
+```text
 beforeConnect(config)
 afterConnect(connection, config)
 ```
