@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(User.tableName).to.equal('SuperUsers');
     });
 
-    it('uses checks to make sure dao factory isnt leaking on multiple define', function() {
+    it('uses checks to make sure dao factory is not leaking on multiple define', function() {
       this.sequelize.define('SuperUser', {}, { freezeTableName: false });
       const factorySize = this.sequelize.modelManager.all.length;
 
@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(factorySize).to.equal(factorySize2);
     });
 
-    it('allows us us to predefine the ID column with our own specs', function() {
+    it('allows us to predefine the ID column with our own specs', function() {
       const User = this.sequelize.define('UserCol', {
         id: {
           type: Sequelize.STRING,
@@ -813,6 +813,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
   });
 
+  describe('save', () => {
+    it('should mapping the correct fields when saving instance. see #10589', function() {
+      const User = this.sequelize.define('User', { 
+        id3: {
+          field: 'id',
+          type: Sequelize.INTEGER,
+          primaryKey: true
+        },
+        id: {
+          field: 'id2',
+          type: Sequelize.INTEGER,
+          allowNull: false
+        },
+        id2: {
+          field: 'id3',
+          type: Sequelize.INTEGER,
+          allowNull: false
+        }
+      });
+
+      // Setup
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({ id3: 94, id: 87, id2: 943 });
+      })
+        // Test
+        .then(() => User.findByPk(94))
+        .then(user => user.set('id2', 8877))
+        .then(user => user.save({ id2: 8877 }))
+        // Validate
+        .then(() => User.findByPk(94))
+        .then(user => expect(user.id2).to.equal(8877));
+    });
+  });
+
   describe('update', () => {
     it('throws an error if no where clause is given', function() {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
@@ -825,6 +859,39 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(err).to.be.an.instanceof(Error);
         expect(err.message).to.equal('Missing where attribute in the options parameter');
       });
+    });
+
+    it('should mapping the correct fields when updating instance. see #10589', function() {
+      const User = this.sequelize.define('User', { 
+        id3: {
+          field: 'id',
+          type: Sequelize.INTEGER,
+          primaryKey: true
+        },
+        id: {
+          field: 'id2',
+          type: Sequelize.INTEGER,
+          allowNull: false
+        },
+        id2: {
+          field: 'id3',
+          type: Sequelize.INTEGER,
+          allowNull: false
+        }
+      });
+
+      // Setup
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({ id3: 94, id: 87, id2: 943 });
+      })
+        // Test
+        .then(() => User.findByPk(94))
+        .then(user => {
+          return user.update({ id2: 8877 });
+        })
+        // Validate
+        .then(() => User.findByPk(94))
+        .then(user => expect(user.id2).to.equal(8877));
     });
 
     if (current.dialect.supports.transactions) {
