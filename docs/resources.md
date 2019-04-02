@@ -14,7 +14,7 @@
 * [sequelizer](https://github.com/andyforever/sequelizer) - A GUI Desktop App for generating Sequelize models. Support for Mysql, Mariadb, Postgres, Sqlite, Mssql.
 * [sequelize-auto](https://github.com/sequelize/sequelize-auto) Generating models for SequelizeJS via the command line is another choice.
 * [pg-generator](http://www.pg-generator.com/builtin-templates/sequelize/) - Auto generate/scaffold Sequelize models for PostgreSQL database.
-* [seqelizejs-decorators](https://www.npmjs.com/package/sequelizejs-decorators) decorators for composing sequelize models
+* [sequelizejs-decorators](https://www.npmjs.com/package/sequelizejs-decorators) decorators for composing sequelize models
 
 ### Autoloader
 
