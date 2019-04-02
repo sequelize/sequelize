@@ -6,7 +6,7 @@ For a full list of hooks, see [Hooks file](https://github.com/sequelize/sequeliz
 
 ## Order of Operations
 
-```
+```text
 (1)
   beforeBulkCreate(instances, options)
   beforeBulkDestroy(options)
@@ -42,6 +42,7 @@ For a full list of hooks, see [Hooks file](https://github.com/sequelize/sequeliz
 ```
 
 ## Declaring Hooks
+
 Arguments to hooks are passed by reference. This means, that you can change the values, and this will be reflected in the insert / update statement. A hook may contain async actions - in this case the hook function should return a promise.
 
 There are currently three ways to programmatically add hooks:
@@ -108,9 +109,11 @@ Book.removeHook('afterCreate', 'notifyUsers');
 You can have many hooks with same name. Calling `.removeHook()` will remove all of them.
 
 ## Global / universal hooks
+
 Global hooks are hooks which are run for all models. They can define behaviours that you want for all your models, and are especially useful for plugins. They can be defined in two ways, which have slightly different semantics:
 
 ### Default Hooks (Sequelize.options.define)
+
 ```js
 const sequelize = new Sequelize(..., {
     define: {
@@ -143,6 +146,7 @@ Project.create() // Runs its own hook (because the global hook is overwritten)
 ```
 
 ### Permanent Hooks (Sequelize.addHook)
+
 ```js
 sequelize.addHook('beforeCreate', () => {
     // Do stuff
@@ -184,7 +188,7 @@ new Sequelize(..., {
 
 Sequelize provides two hooks that are executed immediately before and after a database connection is obtained:
 
-```
+```js
 beforeConnect(config)
 afterConnect(connection, config)
 ```
@@ -208,7 +212,7 @@ These hooks may _only_ be declared as a permanent global hook, as the connection
 
 The following hooks will emit whenever you're editing a single object
 
-```
+```text
 beforeValidate
 afterValidate or validationFailed
 beforeCreate / beforeUpdate  / beforeDestroy
@@ -244,7 +248,7 @@ User.create({username: 'Boss', accessLevel: 20}).then(user => {
 
 Sometimes you'll be editing more than one record at a time by utilizing the `bulkCreate, update, destroy` methods on the model. The following will emit whenever you're using one of those methods:
 
-```
+```js
 beforeBulkCreate(instances, options)
 beforeBulkUpdate(options)
 beforeBulkDestroy(options)
@@ -352,7 +356,6 @@ However, adding `hooks: true` explicitly tells Sequelize that optimization is no
 If your association is of type `n:m`, you may be interested in firing hooks on the through model when using the `remove` call. Internally, sequelize is using `Model.destroy` resulting in calling the `bulkDestroy` instead of the `before/afterDestroy` hooks on each through instance.
 
 This can be simply solved by passing `{individualHooks: true}` to the `remove` call, resulting on each hook to be called on each removed through instance object.
-
 
 ## A Note About Transactions
 

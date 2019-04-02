@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS "versions" (
 
 Sometimes you may want to reference another table, without adding any constraints, or associations. In that case you can manually add the reference attributes to your schema definition, and mark the relations between them.
 
-```js 
+```js
 class Trainer extends Model {}
 Trainer.init({
   firstName: Sequelize.STRING,
@@ -243,6 +243,7 @@ Trainer.hasMany(Series);
 ```
 
 ## One-To-One associations
+
 One-To-One associations are associations between exactly two models connected by a single foreign key.
 
 ### BelongsTo
@@ -334,7 +335,7 @@ class User extends Model {}
 User.init({/* ... */}, { sequelize })
 class Project extends Model {}
 Project.init({/* ... */}, { sequelize })
- 
+
 // One-way associations
 Project.hasOne(User)
 
@@ -349,32 +350,32 @@ Project.hasOne(User)
   You can also define the foreign key, e.g. if you already have an existing
   database and want to work on it:
 */
- 
+
 Project.hasOne(User, { foreignKey: 'initiator_id' })
- 
+
 /*
   Because Sequelize will use the model's name (first parameter of define) for
   the accessor methods, it is also possible to pass a special option to hasOne:
 */
- 
+
 Project.hasOne(User, { as: 'Initiator' })
 // Now you will get Project.getInitiator and Project.setInitiator
- 
+
 // Or let's define some self references
 class Person extends Model {}
 Person.init({ /* ... */}, { sequelize })
- 
+
 Person.hasOne(Person, {as: 'Father'})
 // this will add the attribute FatherId to Person
- 
+
 // also possible:
 Person.hasOne(Person, {as: 'Father', foreignKey: 'DadId'})
 // this will add the attribute DadId to Person
- 
+
 // In both cases you will be able to do:
 Person.setFather
 Person.getFather
- 
+
 // If you need to join a table twice you can double join the same table
 Team.hasOne(Game, {as: 'HomeTeam', foreignKey : 'homeTeamId'});
 Team.hasOne(Game, {as: 'AwayTeam', foreignKey : 'awayTeamId'});
@@ -415,6 +416,7 @@ Team.init({/* attributes */}, { sequelize });
 When we link two models in Sequelize we can refer them as pairs of **source** and **target** models. Like this
 
 Having **Player** as the **source** and **Team** as the **target**
+
 ```js
 Player.belongsTo(Team);
 //Or
@@ -422,6 +424,7 @@ Player.hasOne(Team);
 ```
 
 Having **Team** as the **source** and **Player** as the **target**
+
 ```js
 Team.belongsTo(Player);
 //Or
@@ -458,12 +461,13 @@ Coach.hasOne(Team)  // `coachId` will be added on Team / Target model
 ## One-To-Many associations (hasMany)
 
 One-To-Many associations are connecting one source with multiple targets. The targets however are again connected to exactly one specific source.
+
 ```js
 class User extends Model {}
 User.init({/* ... */}, { sequelize })
 class Project extends Model {}
 Project.init({/* ... */}, { sequelize })
- 
+
 // OK. Now things get more complicated (not really visible to the user :)).
 // First let's define a hasMany association
 Project.hasMany(User, {as: 'Workers'})
@@ -502,6 +506,7 @@ Defining `through` is **required**. Sequelize would previously attempt to autoge
 This will add methods `getUsers`, `setUsers`, `addUser`,`addUsers` to `Project`, and `getProjects`, `setProjects`, `addProject`, and `addProjects` to `User`.
 
 Sometimes you may want to rename your models when using them in associations. Let's define users as workers and projects as tasks by using the alias (`as`) option. We will also manually define the foreign keys to use:
+
 ```js
 User.belongsToMany(Project, { as: 'Tasks', through: 'worker_tasks', foreignKey: 'userId' })
 Project.belongsToMany(User, { as: 'Workers', through: 'worker_tasks', foreignKey: 'projectId' })
@@ -521,6 +526,7 @@ Person.belongsToMany(Person, { as: 'Children', through: 'PersonChildren' })
 // This will create the table PersonChildren which stores the ids of the objects.
 
 ```
+
 If you want additional attributes in your join table, you can define a model for the join table in sequelize, before you define the association, and then tell sequelize that it should use that model for joining, instead of creating a new one:
 
 ```js
@@ -532,7 +538,7 @@ class UserProjects extends Model {}
 UserProjects.init({
   status: DataTypes.STRING
 }, { sequelize })
- 
+
 User.belongsToMany(Project, { through: UserProjects })
 Project.belongsToMany(User, { through: UserProjects })
 ```
@@ -556,6 +562,7 @@ UserProjects.init({
   status: DataTypes.STRING
 }, { sequelize })
 ```
+
 With Belongs-To-Many you can query based on **through** relation and select specific attributes. For example using `findAll` with **through**
 
 ```js
@@ -569,6 +576,7 @@ User.findAll({
   }]
 });
 ```
+
 Belongs-To-Many creates a unique key when primary key is not present on through model. This unique key name can be overridden using **uniqueKey** option.
 
 ```js
@@ -579,7 +587,7 @@ Project.belongsToMany(User, { through: UserProjects, uniqueKey: 'my_custom_uniqu
 
 By default sequelize will use the model name (the name passed to `sequelize.define`) to figure out the name of the model when used in associations. For example, a model named `user` will add the functions `get/set/add User` to instances of the associated model, and a property named `.user` in eager loading, while a model named `User` will add the same functions, but a property named `.User` (notice the upper case U) in eager loading.
 
-As we've already seen, you can alias models in associations using `as`. In single associations (has one and belongs to), the alias should be singular, while for many associations (has many) it should be plural. Sequelize then uses the [inflection ][0]library to convert the alias to its singular form. However, this might not always work for irregular or non-english words. In this case, you can provide both the plural and the singular form of the alias:
+As we've already seen, you can alias models in associations using `as`. In single associations (has one and belongs to), the alias should be singular, while for many associations (has many) it should be plural. Sequelize then uses the [inflection][0] library to convert the alias to its singular form. However, this might not always work for irregular or non-english words. In this case, you can provide both the plural and the singular form of the alias:
 
 ```js
 User.belongsToMany(Project, { as: { singular: 'task', plural: 'tasks' }})
@@ -597,7 +605,7 @@ Project.init(attributes, {
   },
   sequelize,
 })
- 
+
 User.belongsToMany(Project);
 ```
 
@@ -624,27 +632,27 @@ Because Sequelize is doing a lot of magic, you have to call `Sequelize.sync` aft
 ```js
 Project.hasMany(Task)
 Task.belongsTo(Project)
- 
+
 Project.create()...
 Task.create()...
 Task.create()...
- 
+
 // save them... and then:
 project.setTasks([task1, task2]).then(() => {
   // saved!
 })
- 
+
 // ok, now they are saved... how do I get them later on?
 project.getTasks().then(associatedTasks => {
   // associatedTasks is an array of tasks
 })
- 
+
 // You can also pass filters to the getter method.
 // They are equal to the options you can pass to a usual finder method.
 project.getTasks({ where: 'id > 10' }).then(tasks => {
   // tasks with an id greater than 10 :)
 })
- 
+
 // You can also only retrieve certain fields of a associated object.
 project.getTasks({attributes: ['title']}).then(tasks => {
   // retrieve tasks with the attributes "title" and "id"
@@ -658,17 +666,17 @@ To remove created associations you can just call the set method without a specif
 project.setTasks([task2]).then(associatedTasks => {
   // you will get task2 only
 })
- 
+
 // remove 'em all
 project.setTasks([]).then(associatedTasks => {
   // you will get an empty array
 })
- 
+
 // or remove 'em more directly
 project.removeTask(task1).then(() => {
   // it's gone
 })
- 
+
 // and add 'em again
 project.addTask(task1).then(() => {
   // it's back again
@@ -699,17 +707,17 @@ project.UserProjects = {
   status: 'active'
 }
 u.addProject(project)
- 
+
 // Or by providing a second options.through argument when adding the association, containing the data that should go in the join table
 u.addProject(project, { through: { status: 'active' }})
- 
- 
+
+
 // When associating multiple objects, you can combine the two options above. In this case the second argument
 // will be treated as a defaults object, that will be used if no data is provided
 project1.UserProjects = {
     status: 'inactive'
 }
- 
+
 u.setProjects([project1, project2], { through: { status: 'active' }})
 // The code above will record inactive for project one, and active for project two in the join table
 ```
@@ -719,10 +727,10 @@ When getting data on an association that has a custom join table, the data from 
 ```js
 u.getProjects().then(projects => {
   const project = projects[0]
- 
+
   if (project.UserProjects.status === 'active') {
     // .. do magic
- 
+
     // since this is a real DAO instance, you can save it directly after you are done doing magic
     return project.UserProjects.save()
   }
@@ -737,6 +745,7 @@ user.getProjects({ attributes: ['name'], joinTableAttributes: ['status']})
 ```
 
 ## Check associations
+
 You can also check if an object is already associated with another one (N:M only). Here is how you'd do it:
 
 ```js
@@ -753,7 +762,7 @@ Project.create({ /* */ }).then(project => {
     })
   })
 })
- 
+
 // check if all associated objects are as expected:
 // let's assume we have already a project and two users
 project.setUsers([user1, user2]).then(() => {
@@ -765,14 +774,17 @@ project.setUsers([user1, user2]).then(() => {
   // result would be true
 })
 ```
+
 ## Advance Concepts
 
 ### Scopes
+
 This section concerns association scopes. For a definition of association scopes vs. scopes on associated models, see [Scopes](/manual/scopes.html).
 
 Association scopes allow you to place a scope (a set of default attributes for `get` and `create`) on the association. Scopes can be placed both on the associated model (the target of the association), and on the through table for n:m relations.
 
 #### 1:n
+
 Assume we have models Comment, Post, and Image. A comment can be associated to either an image or a post via `commentableId` and `commentable` - we say that Post and Image are `Commentable`
 
 ```js
@@ -858,6 +870,7 @@ image.addComment(comment);
 The `getItem` utility function on `Comment` completes the picture - it simply converts the `commentable` string into a call to either `getImage` or `getPost`, providing an abstraction over whether a comment belongs to a post or an image. You can pass a normal options object as a parameter to `getItem(options)` to specify any where conditions or includes.
 
 #### n:m
+
 Continuing with the idea of a polymorphic model, consider a tag table - an item can have multiple tags, and a tag can be related to several items.
 
 For brevity, the example only shows a Post model, but in reality Tag would be related to several other models.
@@ -936,6 +949,7 @@ Post.belongsToMany(Tag, {
 
 post.getPendingTags();
 ```
+
 ```sql
 SELECT
   "tag"."id",
