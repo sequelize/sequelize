@@ -248,7 +248,7 @@ User.create({username: 'Boss', accessLevel: 20}).then(user => {
 
 Sometimes you'll be editing more than one record at a time by utilizing the `bulkCreate, update, destroy` methods on the model. The following will emit whenever you're using one of those methods:
 
-```js
+```text
 beforeBulkCreate(instances, options)
 beforeBulkUpdate(options)
 beforeBulkDestroy(options)
