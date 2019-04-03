@@ -9,6 +9,45 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
+    describe('simple merge', () => {
+      beforeEach(function() {
+
+        this.Foo = this.sequelize.define('foo', { name: Sequelize.STRING }, { timestamps: false });
+        this.Bar = this.sequelize.define('bar', { name: Sequelize.STRING }, { timestamps: false });
+        this.Baz = this.sequelize.define('baz', { name: Sequelize.STRING }, { timestamps: false });
+
+        this.Foo.belongsTo(this.Baz, { foreignKey: 'bazId' });
+        this.Foo.hasOne(this.Bar, { foreignKey: 'fooId' });
+
+        this.createEntries = () => {
+          return this.Baz.create({ name: 'The Baz' })
+            .then(baz => this.Foo.create({ name: 'The Foo', bazId: baz.id }))
+            .then(foo => this.Bar.create({ name: 'The Bar', fooId: foo.id }));
+        };
+
+        this.scopes = {
+          includeBar: { include: this.Bar },
+          includeBaz: { include: this.Baz }
+        };
+
+        this.Foo.addScope('includeBar', this.scopes.includeBar);
+        this.Foo.addScope('includeBaz', this.scopes.includeBaz);
+
+        return this.sequelize.sync({ force: true }).then(this.createEntries);
+
+      });
+
+      it('should merge simple scopes correctly', function() {
+        return this.Foo.scope('includeBar', 'includeBaz').findOne().then(result => {
+          const json = result.toJSON();
+          expect(json.bar).to.be.ok;
+          expect(json.baz).to.be.ok;
+          expect(json.bar.name).to.equal('The Bar');
+          expect(json.baz.name).to.equal('The Baz');
+        });
+      });
+
+    });
     describe('complex merge', () => {
       beforeEach(function() {
 
