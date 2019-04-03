@@ -2,7 +2,7 @@
   <div class="center logo">
     ![logo](/manual/asset/logo-small.png)
   </div>
-  <div class="center sequelize">Sequelize</span>
+  <div class="center sequelize">Sequelize</div>
 </div>
 
 [![npm version](https://badgen.net/npm/v/sequelize)](https://www.npmjs.com/package/sequelize)
