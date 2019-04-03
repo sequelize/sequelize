@@ -147,7 +147,7 @@ range // [{ value: Date, inclusive: false }, { value: Date, inclusive: true }]
 
 You will need to call reload after updating an instance with a range type or use `returning: true` option.
 
-**Special Cases**
+#### Special Cases
 
 ```js
 // empty range:
@@ -296,7 +296,6 @@ After a new range type has been [defined in postgres](https://www.postgresql.org
 
 In this example the name of the postgres range type is `newtype_range` and the name of the underlying postgres datatype is `pg_new_type`. The key of `subtypes` and `castTypes` is the key of the Sequelize datatype `DataTypes.NEWTYPE.key`, in lower case.
 
-
 ```js
 // myproject/lib/sequelize-additions.js
 
@@ -328,4 +327,3 @@ modules.exports = function sequelizeAdditions(Sequelize) {
 ```
 
 The new range can be used in model definitions as `Sequelize.RANGE(Sequelize.NEWTYPE)` or `DataTypes.RANGE(DataTypes.NEWTYPE)`.
-

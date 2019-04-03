@@ -36,6 +36,7 @@ sequelize
 ```
 
 ## Replacements
+
 Replacements in a query can be done in two different ways, either using named parameters (starting with `:`), or unnamed, represented by a `?`. Replacements are passed in the options object.
 
 * If an array is passed, `?` will be replaced in the order that they appear in the array
@@ -76,6 +77,7 @@ sequelize.query('SELECT * FROM users WHERE name LIKE :search_name ',
 ```
 
 ## Bind Parameter
+
 Bind parameters are like replacements. Except replacements are escaped and inserted into the query by sequelize before the query is sent to the database, while bind parameters are sent to the database outside the SQL query text. A query can have either bind parameters or replacements. Bind parameters are referred to by either $1, $2, ... (numeric) or $key (alpha-numeric). This is independent of the dialect.
 
 * If an array is passed, `$1` is bound to the 1st element in the array (`bind[0]`)
@@ -99,4 +101,3 @@ sequelize.query('SELECT *, "text with literal $$1 and literal $$status" as t FRO
   console.log(projects)
 })
 ```
-

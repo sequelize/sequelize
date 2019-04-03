@@ -3,14 +3,15 @@
 Since v5 Sequelize provides it's own TypeScript definitions.
 Please note that only TS >= 3.1 is supported.
 
-## Installation:
+## Installation
 
 In order to avoid installation bloat for non TS users you must install the following packages manually:
- - `@types/node` this is universally required
- - `@types/validator`
- - `@types/bluebird`
 
- ## Note
+- `@types/node` this is universally required
+- `@types/validator`
+- `@types/bluebird`
+
+## Note
 
 As Sequelize heavily relies on runtime property assignments, TypeScript won't be very useful out of the box.
 A decent amount of manual type declarations are needed to make models workable.
@@ -131,7 +132,7 @@ async function stuff() {
 ## Legacy `.define` usage
 
 TypeScript doesn't know how to generate a `class` definition when we use the legacy `.define`,
-therefor we need to do some manual work and declare an interface and a type and eventually cast 
+therefor we need to do some manual work and declare an interface and a type and eventually cast
 the result of `.define` to the _static_ type.
 
 ```ts

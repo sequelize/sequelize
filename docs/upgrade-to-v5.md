@@ -12,7 +12,7 @@ Sequelize v5 will only support Node 6 and up [#9015](https://github.com/sequeliz
 
 With v4 you started to get a deprecation warning `String based operators are now deprecated`. Also concept of operators was introduced. These operators are Symbols which prevent hash injection attacks.
 
-http://docs.sequelizejs.com/manual/querying.html#operators-security
+[http://docs.sequelizejs.com/manual/querying.html#operators-security](http://docs.sequelizejs.com/manual/querying.html#operators-security)
 
 **With v5**
 
@@ -48,7 +48,6 @@ With v5 if `deletedAt` is set, record will be considered as deleted. `paranoid` 
 
 `updateOnDuplicate` option which used to accept boolean and array, now only accepts non-empty array of attributes. [#9288](https://github.com/sequelize/sequelize/issues/9288)
 
-
 **Underscored Mode**
 
 Implementation of `Model.options.underscored` is changed. You can find full specifications [here](https://github.com/sequelize/sequelize/issues/6423#issuecomment-379472035).
@@ -72,7 +71,7 @@ Many model based aliases has been removed [#9372](https://github.com/sequelize/s
 | findAndCount | findAndCountAll |
 | findOrInitialize | findOrBuild |
 | updateAttributes | update |
-| findById, findByPrimary	| findByPk |
+| findById, findByPrimary | findByPk |
 | all | findAll |
 | hook | addHook |
 
@@ -110,14 +109,14 @@ Prototype references for many constants, objects and classes has been removed [#
 
 | Removed in v5 | Official Alternative |
 | :------ | :------ |
-| Sequelize.prototype.Utils	| Sequelize.Utils	|
-| Sequelize.prototype.Promise	| Sequelize.Promise	|
-| Sequelize.prototype.TableHints | Sequelize.TableHints	|
-| Sequelize.prototype.Op | Sequelize.Op	|
-| Sequelize.prototype.Transaction	| Sequelize.Transaction	|
-| Sequelize.prototype.Model	| Sequelize.Model	|
-| Sequelize.prototype.Deferrable | Sequelize.Deferrable	|
-| Sequelize.prototype.Error	| Sequelize.Error	|
+| Sequelize.prototype.Utils | Sequelize.Utils |
+| Sequelize.prototype.Promise | Sequelize.Promise |
+| Sequelize.prototype.TableHints | Sequelize.TableHints |
+| Sequelize.prototype.Op | Sequelize.Op |
+| Sequelize.prototype.Transaction | Sequelize.Transaction |
+| Sequelize.prototype.Model | Sequelize.Model |
+| Sequelize.prototype.Deferrable | Sequelize.Deferrable |
+| Sequelize.prototype.Error | Sequelize.Error |
 | Sequelize.prototype[error] | Sequelize[error] |
 
 ```js
@@ -276,8 +275,6 @@ dialectOptions: {
 - refactor: optimize memoize use, misc cases [#10122](https://github.com/sequelize/sequelize/pull/10122)
 - chore(lint): enforce consistent spacing [#10193](https://github.com/sequelize/sequelize/pull/10193)
 
-
-
 ### 5.0.0-beta.14
 
 - fix(query): correctly quote identifier for attributes (#9964) [#10118](https://github.com/sequelize/sequelize/pull/10118)
@@ -303,7 +300,7 @@ dialectOptions: {
 - fix: throw on undefined where parameters [#10048](https://github.com/sequelize/sequelize/pull/10048)
 - fix(model): improve wrong alias error message [#10041](https://github.com/sequelize/sequelize/pull/10041)
 - feat(sqlite): CITEXT datatype [#10036](https://github.com/sequelize/sequelize/pull/10036)
--  fix(postgres): remove if not exists and cascade from create/drop database queries [#10033](https://github.com/sequelize/sequelize/pull/10033)
+- fix(postgres): remove if not exists and cascade from create/drop database queries [#10033](https://github.com/sequelize/sequelize/pull/10033)
 - fix(syntax): correct parentheses around union [#10003](https://github.com/sequelize/sequelize/pull/10003)
 - feat(query-interface): createDatabase / dropDatabase support [#10027](https://github.com/sequelize/sequelize/pull/10027)
 - feat(postgres): CITEXT datatype [#10024](https://github.com/sequelize/sequelize/pull/10024)
@@ -356,7 +353,6 @@ dialectOptions: {
 - fix(destroy): attributes updated in a beforeDestroy hook are now persisted on soft delete [#9319](https://github.com/sequelize/sequelize/pull/9319)
 - fix(addScope): only throw when defaultScope is defined [#9703](https://github.com/sequelize/sequelize/pull/9703)
 
-
 ### 5.0.0-beta.10
 
 - fix(belongsToMany): association.add returns array of array of through records [#9700](https://github.com/sequelize/sequelize/pull/9700)
@@ -372,7 +368,6 @@ dialectOptions: {
 - fix(reload): instance.changed() remains unaffected [#9615](https://github.com/sequelize/sequelize/pull/9615)
 - feat(model): column level comments [#9573](https://github.com/sequelize/sequelize/pull/9573)
 - docs: cleanup / correct jsdoc references [#9702](https://github.com/sequelize/sequelize/pull/9702)
-
 
 ### 5.0.0-beta.9
 

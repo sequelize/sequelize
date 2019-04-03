@@ -90,8 +90,6 @@ Sequelize will keep the connection open by default, and use the same connection 
 
 ## Modeling a table
 
-
-
 Models are defined with `Sequelize.Model.init(attributes, options)`:
 
 ```js
@@ -142,7 +140,7 @@ The Sequelize constructor takes a `define` option which will change the default 
 ```js
 const sequelize = new Sequelize(connectionURI, {
   define: {
-    // The `timestamps` field specify whether or not the `createdAt` and `updatedAt` fields will be created. 
+    // The `timestamps` field specify whether or not the `createdAt` and `updatedAt` fields will be created.
     // This was true by default, but now is false by default
     timestamps: false
   }
