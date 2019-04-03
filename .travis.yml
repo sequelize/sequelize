@@ -16,8 +16,6 @@ install:
   - npm install -g npm@latest
   - npm install
   - |-
-    if [ "$TSC" = true ]; then npm run test-typings; fi
-  - |-
     if [ "$DIALECT" = "postgres-native" ]; then npm install pg-native; fi
 
 env:
@@ -37,15 +35,17 @@ before_script:
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
 
 script:
-  - npm run lint
-  - npm run lint-docs
   - |-
     if [ "$COVERAGE" = true ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi
-  - |-
-    if [ "$TSC" = true ]; then npm run test-typings; fi
 
 jobs:
   include:
+  - stage: lint
+      node_js: '6'
+      script:
+        - npm run lint
+        - npm run lint-docs
+        - npm run test-typings
     - stage: test
       node_js: '6'
       env: DIALECT=sqlite TSC=true
