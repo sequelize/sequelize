@@ -9,14 +9,10 @@ export interface LoggerConfig {
   debug?: boolean;
 }
 
-export interface DebugContext {
-
-}
-
 export class Logger {
-  static getLogger(): Logger;
-  static warn(message: string): void;
   constructor(config: LoggerConfig)
   public debug(message: string): void;
-  public debugContext(): DebugContext;
+  public warn(message: string): void;
 }
+
+export const logger: Logger;
