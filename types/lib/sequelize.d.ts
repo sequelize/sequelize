@@ -674,6 +674,15 @@ export class Sequelize extends Hooks {
   public static afterSync(fn: (options: SyncOptions) => HookReturn): void;
 
   /**
+   * Use CLS with Sequelize.
+   * CLS namespace provided is stored as `Sequelize._cls`
+   * and bluebird Promise is patched to use the namespace, using `cls-bluebird` module.
+   *
+   * @param namespace
+   */
+  public static useCLS(namespace: object): typeof Sequelize;
+
+  /**
    * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
    */
   public Sequelize: typeof Sequelize;
