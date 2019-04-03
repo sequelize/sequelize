@@ -7,6 +7,7 @@ Finder methods are intended to query data from the database. They do *not* retur
 In this document we'll explore what finder methods can do:
 
 ### `find` - Search for one specific element in the database
+
 ```js
 // search for known ids
 Project.findByPk(123).then(project => {
@@ -66,6 +67,7 @@ User
 ```
 
 The code created a new instance. So when we already have an instance ...
+
 ```js
 User.create({ username: 'fnord', job: 'omnomnom' })
   .then(() => User.findOrCreate({where: {username: 'fnord'}, defaults: {job: 'something else'}}))
@@ -125,6 +127,7 @@ Project
 It support includes. Only the includes that are marked as `required` will be added to the count part:
 
 Suppose you want to find all users who have a profile attached:
+
 ```js
 User.findAndCountAll({
   include: [
@@ -147,10 +150,10 @@ User.findAndCountAll({
 
 The query above will only count users who have an active profile, because `required` is implicitly set to true when you add a where clause to the include.
 
-
 The options object that you pass to `findAndCountAll` is the same as for `findAll` (described below).
 
 ### `findAll` - Search for multiple elements in the database
+
 ```js
 // find multiple entries
 Project.findAll().then(projects => {
@@ -478,7 +481,6 @@ User.findAll({ include: [ Task ] }).then(users => {
 
 Notice that the accessor (the `Tasks` property in the resulting instance) is plural because the association is many-to-something.
 
-
 If an association is aliased (using the `as` option), you must specify this alias when including the model. Notice how the user's `Tool`s are aliased as `Instruments` above. In order to get that right you have to specify the model you want to load, as well as the alias:
 
 ```js
@@ -694,6 +696,7 @@ Company.findAll({
 ```
 
 ### Nested eager loading
+
 You can use nested eager loading to load all related models of a related model:
 
 ```js

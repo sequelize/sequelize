@@ -9,7 +9,7 @@ const project = Project.build({
   title: 'my awesome project',
   description: 'woot woot. this will make me a rich man'
 })
- 
+
 const task = Task.build({
   title: 'specify the project idea',
   description: 'bla',
@@ -26,10 +26,10 @@ Task.init({
   title: Sequelize.STRING,
   rating: { type: Sequelize.TINYINT, defaultValue: 3 }
 }, { sequelize });
- 
+  
 // now instantiate an object
 const task = Task.build({title: 'very important task'})
- 
+
 task.title  // ==> 'very important task'
 task.rating // ==> 3
 ```
@@ -40,11 +40,11 @@ To get it stored in the database&comma; use the `save`-method and catch the even
 project.save().then(() => {
   // my nice callback stuff
 })
- 
+
 task.save().catch(error => {
   // mhhh, wth!
 })
- 
+
 // you can also build, save and access the object with chaining:
 Task
   .build({ title: 'foo', description: 'bar', deadline: new Date() })
@@ -86,7 +86,7 @@ Now lets change some values and save changes to the database&period;&period;&per
 // way 1
 task.title = 'a very different title now'
 task.save().then(() => {})
- 
+
 // way 2
 task.update({
   title: 'a very different title now'
@@ -101,7 +101,7 @@ task.description = 'baaaaaar'
 task.save({fields: ['title']}).then(() => {
  // title will now be 'foooo' but description is the very same as before
 })
- 
+
 // The equivalent call using update looks like this:
 task.update({ title: 'foooo', description: 'baaaaaar'}, {fields: ['title']}).then(() => {
  // title will now be 'foooo' but description is the very same as before
@@ -243,7 +243,7 @@ Tasks.init({
     }
   }
 }, { sequelize })
- 
+
 Tasks.bulkCreate([
   {name: 'foo', code: '123'},
   {code: '1234'},
@@ -285,9 +285,9 @@ Person.create({
     plain: true
   }))
 })
- 
+
 // result:
- 
+
 // { name: 'Rambow',
 //   firstname: 'John',
 //   id: 1,
@@ -306,7 +306,7 @@ If you need to get your instance in sync&comma; you can use the method`reload`&p
 Person.findOne({ where: { name: 'john' } }).then(person => {
   person.name = 'jane'
   console.log(person.name) // 'jane'
- 
+
   person.reload().then(() => {
     console.log(person.name) // 'john'
   })

@@ -126,8 +126,7 @@ async function stuff() {
 
 ## Usage of `sequelize.define`
 
-TypeScript doesn't know how to generate a `class` definition when we use the `sequelize.define` method to define a Model. Therefore, we need to do some manual work and declare an interface and a type, and eventually cast 
-the result of `.define` to the _static_ type.
+TypeScript doesn't know how to generate a `class` definition when we use the `sequelize.define` method to define a Model. Therefore, we need to do some manual work and declare an interface and a type, and eventually cast the result of `.define` to the _static_ type.
 
 ```ts
 // We need to declare an interface for our model that is basically what our class would be

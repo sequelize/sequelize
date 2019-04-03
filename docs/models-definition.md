@@ -110,8 +110,7 @@ module.exports = {
 
 ```
 
-If you do not want timestamps on your models, only want some timestamps, or you are working with an existing database where the columns are named something else, jump straight on to [configuration ][0]to see how to do that.
-
+If you do not want timestamps on your models, only want some timestamps, or you are working with an existing database where the columns are named something else, jump straight on to [configuration][0] to see how to do that.
 
 ## Deferrable
 
@@ -222,7 +221,6 @@ sequelize.define('Foo', {
   }
 });
 ```
-
 
 ### Helper functions for use inside getter and setter definitions
 
@@ -563,7 +561,7 @@ sequelize.import('project', (sequelize, DataTypes) => {
 
 This extra capability is useful when, for example, `Error: Cannot find module` is thrown even though `/path/to/models/project` seems to be correct.  Some frameworks, such as Meteor, overload `require`, and spit out "surprise" results like :
 
-```
+```text
 Error: Cannot find module '/home/you/meteorApp/.meteor/local/build/programs/server/app/path/to/models/project.js'
 ```
 
@@ -572,13 +570,12 @@ This is solved by passing in Meteor's version of `require`. So, while this proba
 ```js
 const AuthorModel = db.import('./path/to/models/project');
 ```
+
 ... this should succeed ...
 
 ```js
 const AuthorModel = db.import('project', require('./path/to/models/project'));
 ```
-
-
 
 ## Optimistic Locking
 
@@ -674,6 +671,7 @@ User.build({ firstname: 'foo', lastname: 'bar' }).getFullname() // 'foo bar'
 ```
 
 ### Indexes
+
 Sequelize supports adding indexes to the model definition which will be created during `Model.sync()` or `sequelize.sync`.
 
 ```js
@@ -713,7 +711,6 @@ User.init({}, {
   sequelize
 });
 ```
-
 
 [0]: /manual/models-definition.html#configuration
 [1]: /manual/data-types.html
