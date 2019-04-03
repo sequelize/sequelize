@@ -78,6 +78,7 @@ jobs:
         skip_cleanup: true
 
 stages:
+  - lint
   - test
   - name: release
     if: branch = master AND type = push AND fork = false
