@@ -1,20 +1,15 @@
 # TypeScript
 
-Since v5 Sequelize provides it's own TypeScript definitions.
-Please note that only TS >= 3.1 is supported.
+Since v5, Sequelize provides its own TypeScript definitions. Please note that only TS >= 3.1 is supported.
+
+As Sequelize heavily relies on runtime property assignments, TypeScript won't be very useful out of the box. A decent amount of manual type declarations are needed to make models workable.
 
 ## Installation
 
-In order to avoid installation bloat for non TS users you must install the following packages manually:
-
-- `@types/node` this is universally required
-- `@types/validator`
-- `@types/bluebird`
-
-## Note
-
-As Sequelize heavily relies on runtime property assignments, TypeScript won't be very useful out of the box.
-A decent amount of manual type declarations are needed to make models workable.
+In order to avoid installation bloat for non TS users, you must install the following typing packages manually:
+ - `@types/node` (this is universally required)
+ - `@types/validator`
+ - `@types/bluebird`
 
 ## Usage
 
@@ -129,11 +124,9 @@ async function stuff() {
 }
 ```
 
-## Legacy `.define` usage
+## Usage of `sequelize.define`
 
-TypeScript doesn't know how to generate a `class` definition when we use the legacy `.define`,
-therefor we need to do some manual work and declare an interface and a type and eventually cast
-the result of `.define` to the _static_ type.
+TypeScript doesn't know how to generate a `class` definition when we use the `sequelize.define` method to define a Model. Therefore, we need to do some manual work and declare an interface and a type, and eventually cast the result of `.define` to the _static_ type.
 
 ```ts
 // We need to declare an interface for our model that is basically what our class would be
@@ -147,7 +140,7 @@ type MyModelStatic = typeof Model & {
   new (values?: object, options?: BuildOptions): MyModel;
 }
 
-// TS can't derive a proper class definition from a `.define` call, therefor we need to cast here.
+// TS can't derive a proper class definition from a `.define` call, therefore we need to cast here.
 const MyDefineModel = <MyModelStatic>sequelize.define('MyDefineModel', {
   id: {
     primaryKey: true,

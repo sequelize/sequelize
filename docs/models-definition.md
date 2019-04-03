@@ -200,7 +200,7 @@ Foo.init({
   sequelize,
 });
 
-// legacy with `sequelize.define`
+// Or with `sequelize.define`
 sequelize.define('Foo', {
   firstname: Sequelize.STRING,
   lastname: Sequelize.STRING
@@ -219,7 +219,7 @@ sequelize.define('Foo', {
       this.setDataValue('lastname', names.slice(-1).join(' '));
     }
   }
-} );
+});
 ```
 
 ### Helper functions for use inside getter and setter definitions

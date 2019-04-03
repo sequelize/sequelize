@@ -90,7 +90,7 @@ Sequelize will keep the connection open by default, and use the same connection 
 
 ## Modeling a table
 
-Models are defined with `Sequelize.Model.init(attributes, options)`:
+A model is a class that extends `Sequelize.Model`. Models can be defined in two equivalent ways. The first, with `Sequelize.Model.init(attributes, options)`:
 
 ```js
 const Model = Sequelize.Model;
@@ -111,7 +111,7 @@ User.init({
 });
 ```
 
-Alternatively (legacy):
+Alternatively, using `sequelize.define`:
 
 ```js
 const User = sequelize.define('User', {
@@ -129,7 +129,9 @@ const User = sequelize.define('User', {
 });
 ```
 
-The above code tells Sequelize to expect a table named `users` in the database with the fields `firstName` and `lastName`. The table name is automatically pluralized by default (a library called [inflection](https://www.npmjs.com/package/inflection) is used under the hood to do this). This behavior can be stopped for a specific model by using the `freezeTableName: true` option, or for all models by using the `define` option from the Sequelize constructor.
+Internally, `sequelize.define` calls `Model.init`.
+
+The above code tells Sequelize to expect a table named `users` in the database with the fields `firstName` and `lastName`. The table name is automatically pluralized by default (a library called [inflection](https://www.npmjs.com/package/inflection) is used under the hood to do this). This behavior can be stopped for a specific model by using the `freezeTableName: true` option, or for all models by using the `define` option from the [Sequelize constructor](http://docs.sequelizejs.com/class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor).
 
 Sequelize also defines by default the fields `id` (primary key), `createdAt` and `updatedAt` to every model. This behavior can also be changed, of course (check the API Reference to learn more about the available options).
 
@@ -155,7 +157,7 @@ class Bar extends Model {}
 Bar.init({ /* ... */ }, { sequelize, timestamps: true });
 ```
 
-You can read more about creating models in the [define API Reference](/class/lib/sequelize.js~Sequelize.html#instance-method-define) and the [Model API reference](/class/lib/model.js~Model.html).
+You can read more about creating models in the [Model.init API Reference](/class/lib/model.js~Model.html#static-method-init), or in the [sequelize.define API reference](/class/lib/sequelize.js~Sequelize.html#instance-method-define).
 
 ## Synchronizing the model with the database
 
