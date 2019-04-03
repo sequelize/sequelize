@@ -38,6 +38,7 @@ before_script:
 
 script:
   - npm run lint
+  - npm run lint-docs
   - |-
     if [ "$COVERAGE" = true ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi
   - |-

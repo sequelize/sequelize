@@ -7,9 +7,10 @@ As Sequelize heavily relies on runtime property assignments, TypeScript won't be
 ## Installation
 
 In order to avoid installation bloat for non TS users, you must install the following typing packages manually:
- - `@types/node` (this is universally required)
- - `@types/validator`
- - `@types/bluebird`
+
+- `@types/node` (this is universally required)
+- `@types/validator`
+- `@types/bluebird`
 
 ## Usage
 
