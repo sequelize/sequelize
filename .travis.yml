@@ -40,7 +40,7 @@ script:
 
 jobs:
   include:
-  - stage: lint
+    - stage: lint
       node_js: '6'
       script:
         - npm run lint
