@@ -71,6 +71,7 @@
     "lcov-result-merger": "^3.0.0",
     "lint-staged": "^8.1.5",
     "mariadb": "^2.0.3",
+    "markdownlint-cli": "^0.14.1",
     "mocha": "^6.0.2",
     "mysql2": "^1.6.5",
     "nyc": "^13.3.0",
@@ -78,12 +79,12 @@
     "pg-hstore": "^2.x",
     "pg-types": "^2.0.0",
     "rimraf": "^2.6.3",
+    "semantic-release": "^15.13.3",
     "sinon": "^7.2.6",
     "sinon-chai": "^3.2.0",
     "sqlite3": "^4.0.6",
     "tedious": "^6.0.0",
-    "typescript": "^3.3.3333",
-    "semantic-release": "^15.13.3"
+    "typescript": "^3.3.3333"
   },
   "keywords": [
     "mysql",
