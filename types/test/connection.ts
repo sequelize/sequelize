@@ -35,4 +35,12 @@ sequelize.transaction<void>(async transaction => {
       transaction,
       logging: true,
     })
-})
+});
+
+sequelize.query('SELECT * FROM `user` WHERE status = $1',
+  { bind: ['active'], type: QueryTypes.SELECT }
+);
+
+sequelize.query('SELECT * FROM `user` WHERE status = $status',
+  { bind: { status: 'active' }, type: QueryTypes.SELECT }
+);
