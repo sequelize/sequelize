@@ -187,17 +187,23 @@ Model.findAll({
 - Sequelize now works with `tedious >= 6.0.0`. Old `dialectOptions` has to be updated to match their new format. Please refer to tedious [documentation](http://tediousjs.github.io/tedious/api-connection.html#function_newConnection). An example of new `dialectOptions` is given below
 
 ```json
-dialectOptions: {
-  authentication: {
-    domain: 'my-domain'
-  },
-  options: {
-    requestTimeout: 60000,
-    cryptoCredentialsDetails: {
-      ciphers: "RC4-MD5"
-    }
-  }
-}
+database: 'DB_NAME',
+    host: 'DB_HOST',
+    dialect: 'mssql',
+    dialectOptions: {
+      authentication: {
+        type: 'ntlm',
+        options: {
+          userName: 'DB_USER',
+          password: 'DB_PASS',
+          domain: 'MY_COMPANY_DOMAIN',
+        },
+      },
+      options: {
+        port: 1433,
+        requestTimeout: 60000,
+      },
+    },
 ```
 
 #### MySQL
