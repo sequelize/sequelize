@@ -9,6 +9,7 @@ Model.findAll({
   attributes: ['foo', 'bar']
 });
 ```
+
 ```sql
 SELECT foo, bar ...
 ```
@@ -20,6 +21,7 @@ Model.findAll({
   attributes: ['foo', ['bar', 'baz']]
 });
 ```
+
 ```sql
 SELECT foo, bar AS baz ...
 ```
@@ -31,6 +33,7 @@ Model.findAll({
   attributes: [[sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']]
 });
 ```
+
 ```sql
 SELECT COUNT(hats) AS no_hats ...
 ```
@@ -50,6 +53,7 @@ Model.findAll({
   attributes: { include: [[sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']] }
 });
 ```
+
 ```sql
 SELECT id, foo, bar, baz, quz, COUNT(hats) AS no_hats ...
 ```
@@ -61,10 +65,10 @@ Model.findAll({
   attributes: { exclude: ['baz'] }
 });
 ```
+
 ```sql
 SELECT id, foo, bar, quz ...
 ```
-
 
 ## Where
 
@@ -75,6 +79,7 @@ Whether you are querying with findAll/find or doing bulk updates/destroys you ca
 It's also possible to generate complex AND/OR conditions by nesting sets of `or` and `and` `Operators`.
 
 ### Basics
+
 ```js
 const Op = Sequelize.Op;
 
@@ -136,6 +141,7 @@ Post.findAll({
 ### Operators
 
 Sequelize exposes symbol operators that can be used for to create more complex comparisons -
+
 ```js
 const Op = Sequelize.Op
 
@@ -196,6 +202,7 @@ as well.
 ```
 
 #### Combinations
+
 ```js
 const Op = Sequelize.Op;
 
@@ -351,6 +358,7 @@ User.findAll({
 JSONB can be queried in three different ways.
 
 #### Nested object
+
 ```js
 {
   meta: {
@@ -364,6 +372,7 @@ JSONB can be queried in three different ways.
 ```
 
 #### Nested key
+
 ```js
 {
   "meta.audio.length": {
@@ -373,6 +382,7 @@ JSONB can be queried in three different ways.
 ```
 
 #### Containment
+
 ```js
 {
   "meta": {
@@ -386,6 +396,7 @@ JSONB can be queried in three different ways.
 ```
 
 ### Relations / Associations
+
 ```js
 // Find all projects with a least one task where task.state === project.state
 Project.findAll({

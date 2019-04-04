@@ -5,6 +5,7 @@ const Query = require(path.resolve('./lib/dialects/abstract/query.js'));
 const Support = require(path.join(__dirname, './../../support'));
 const chai = require('chai');
 const dialect = Support.getTestDialect();
+const { stub, match } = require('sinon');
 
 const current = Support.sequelize;
 const expect = chai.expect;
@@ -476,7 +477,7 @@ describe('[ABSTRACT]', () => {
 
   describe('formatBindParameters', () => {
     function createReplacementFunc(array) {
-      return function replacementFunc(match, key, values) {
+      return function replacementFunc(matchStr, key, values) {
         if (values[key] !== undefined) {
           array.push(values[key]);
           return `@${key}`;
@@ -547,4 +548,53 @@ describe('[ABSTRACT]', () => {
     });
   });
 
+  describe('_logQuery', () => {
+    beforeEach(function() {
+      this.cls = class MyQuery extends Query { };
+      this.sequelizeStub = {
+        log: stub(),
+        options: {}
+      };
+      this.connectionStub = {
+        uuid: 'test'
+      };
+    });
+
+    it('logs before and after', function() {
+      const debugStub = stub();
+      const qry = new this.cls(this.connectionStub, this.sequelizeStub, {});
+      const complete = qry._logQuery('SELECT 1', undefined, debugStub);
+      complete();
+      expect(this.sequelizeStub.log).to.have.been.calledOnce;
+      expect(this.sequelizeStub.log).to.have.been.calledWithMatch('Executing (test): SELECT 1 with parameters undefined');
+
+      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1 with parameters %O', undefined);
+      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1 with parameters %O', undefined);
+    });
+
+    it('logs with parameters', function() {
+      const debugStub = stub();
+      const qry = new this.cls(this.connectionStub, this.sequelizeStub, {});
+      const params = ['abc'];
+      const complete = qry._logQuery('SELECT ?', params, debugStub);
+      complete();
+      expect(this.sequelizeStub.log).to.have.been.calledOnce;
+      expect(this.sequelizeStub.log).to.have.been.calledWithMatch("Executing (test): SELECT ? with parameters [ 'abc' ]");
+
+      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT ? with parameters %O', params);
+      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT ? with parameters %O', params);
+    });
+
+    it('logs before and after with benchmark', function() {
+      const debugStub = stub();
+      const qry = new this.cls(this.connectionStub, this.sequelizeStub, { benchmark: true });
+      const complete = qry._logQuery('SELECT 1', undefined, debugStub);
+      complete();
+      expect(this.sequelizeStub.log).to.have.been.calledOnce;
+      expect(this.sequelizeStub.log).to.have.been.calledWithMatch('Executed (test): SELECT 1 with parameters undefined', match.number, { benchmark: true });
+
+      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1 with parameters %O', undefined);
+      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1 with parameters %O', undefined);
+    });
+  });
 });

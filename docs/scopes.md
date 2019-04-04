@@ -61,6 +61,7 @@ The default scope can be removed by calling `.unscoped()`, `.scope(null)`, or by
 ```js
 Project.scope('deleted').findAll(); // Removes the default scope
 ```
+
 ```sql
 SELECT * FROM projects WHERE deleted = true
 ```
@@ -77,6 +78,7 @@ activeUsers: {
 ```
 
 ## Usage
+
 Scopes are applied by calling `.scope` on the model definition, passing the name of one or more scopes. `.scope` returns a fully functional model instance with all the regular methods: `.findAll`, `.update`, `.count`, `.destroy` etc. You can save this model instance and reuse it later:
 
 ```js
@@ -96,11 +98,13 @@ Scopes which are functions can be invoked in two ways. If the scope does not tak
 ```js
 Project.scope('random', { method: ['accessLevel', 19]}).findAll();
 ```
+
 ```sql
 SELECT * FROM projects WHERE someNumber = 42 AND accessLevel >= 19
 ```
 
 ## Merging
+
 Several scopes can be applied simultaneously by passing an array of scopes to `.scope`, or by passing the scopes as consecutive arguments.
 
 ```js
@@ -108,6 +112,7 @@ Several scopes can be applied simultaneously by passing an array of scopes to `.
 Project.scope('deleted', 'activeUsers').findAll();
 Project.scope(['deleted', 'activeUsers']).findAll();
 ```
+
 ```sql
 SELECT * FROM projects
 INNER JOIN users ON projects.userId = users.id
@@ -119,6 +124,7 @@ If you want to apply another scope alongside the default scope, pass the key `de
 ```js
 Project.scope('defaultScope', 'deleted').findAll();
 ```
+
 ```sql
 SELECT * FROM projects WHERE active = true AND deleted = true
 ```
@@ -164,6 +170,7 @@ Project.scope('deleted').findAll({
   }
 })
 ```
+
 ```sql
 WHERE deleted = true AND firstName = 'john'
 ```
@@ -258,6 +265,7 @@ The merge illustrated above works in the exact same way regardless of the order 
 This merge strategy also works in the exact same way with options passed to `.findAll`, `.findOne` and the like.
 
 ## Associations
+
 Sequelize has two different but related scope concepts in relation to associations. The difference is subtle but important:
 
 * **Association scopes** Allow you to specify default attributes when getting and setting associations - useful when implementing polymorphic associations. This scope is only invoked on the association between the two models, when using the `get`, `set`, `add` and `create` associated model functions
@@ -281,6 +289,7 @@ When calling `post.getComments()`, this will automatically add `WHERE commentabl
 Consider then, that Post has a default scope which only shows active posts: `where: { active: true }`. This scope lives on the associated model (Post), and not on the association like the `commentable` scope did. Just like the default scope is applied when calling `Post.findAll()`, it is also applied when calling `User.getPosts()` - this will only return the active posts for that user.
 
 To disable the default scope, pass `scope: null` to the getter: `User.getPosts({ scope: null })`. Similarly, if you want to apply other scopes, pass an array like you would to `.scope`:
+
 ```js
 User.getPosts({ scope: ['scope1', 'scope2']});
 ```

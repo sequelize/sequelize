@@ -1024,7 +1024,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    it('raises an error if created object breaks definition contraints', function() {
+    it('raises an error if created object breaks definition constraints', function() {
       const UserNull = this.sequelize.define('UserWithNonNullSmth', {
         username: { type: Sequelize.STRING, unique: true },
         smth: { type: Sequelize.STRING, allowNull: false }
@@ -1043,7 +1043,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
     });
-    it('raises an error if created object breaks definition contraints', function() {
+    it('raises an error if created object breaks definition constraints', function() {
       const UserNull = this.sequelize.define('UserWithNonNullSmth', {
         username: { type: Sequelize.STRING, unique: true },
         smth: { type: Sequelize.STRING, allowNull: false }

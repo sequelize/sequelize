@@ -3,6 +3,7 @@
 While out of the box Sequelize will seem a bit opinionated it's easy to work legacy tables and forward proof your application by defining (otherwise generated) table and field names.
 
 ## Tables
+
 ```js
 class User extends Model {}
 User.init({
@@ -14,6 +15,7 @@ User.init({
 ```
 
 ## Fields
+
 ```js
 class MyModel extends Model {}
 MyModel.init({
@@ -25,6 +27,7 @@ MyModel.init({
 ```
 
 ## Primary keys
+
 Sequelize will assume your table has a `id` primary key property by default.
 
 To define your own primary key:
@@ -51,6 +54,7 @@ Collection.init({
 And if your model has no primary key at all you can use `Model.removeAttribute('id');`
 
 ## Foreign keys
+
 ```js
 // 1:1
 Organization.belongsTo(User, { foreignKey: 'owner_id' });

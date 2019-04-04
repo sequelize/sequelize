@@ -48,7 +48,7 @@ export interface SyncOptions extends Logging {
   match?: RegExp;
 
   /**
-   * The schema that the tables should be created in. This can be overriden for each table in sequelize.define
+   * The schema that the tables should be created in. This can be overridden for each table in sequelize.define
    */
   schema?: string;
 }
@@ -217,7 +217,7 @@ export interface Options extends Logging {
   protocol?: string;
 
   /**
-   * Default options for model definitions. See sequelize.define for options
+   * Default options for model definitions. See Model.init.
    */
   define?: ModelOptions;
 
@@ -672,6 +672,15 @@ export class Sequelize extends Hooks {
    */
   public static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
   public static afterSync(fn: (options: SyncOptions) => HookReturn): void;
+
+  /**
+   * Use CLS with Sequelize.
+   * CLS namespace provided is stored as `Sequelize._cls`
+   * and bluebird Promise is patched to use the namespace, using `cls-bluebird` module.
+   *
+   * @param namespace
+   */
+  public static useCLS(namespace: object): typeof Sequelize;
 
   /**
    * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
@@ -1252,7 +1261,7 @@ export class Sequelize extends Hooks {
    * Normally this is done on process exit, so you only need to call this method if you are creating multiple
    * instances, and want to garbage collect some of them.
    */
-  public close(): void;
+  public close(): Promise<void>;
 
   /**
    * Returns the database version

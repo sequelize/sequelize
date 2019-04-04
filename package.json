@@ -36,6 +36,7 @@
     "dottie": "^2.0.0",
     "inflection": "1.12.0",
     "lodash": "^4.17.11",
+    "markdownlint": "^0.13.0",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.21",
     "retry-as-promised": "^3.1.0",
@@ -51,7 +52,7 @@
     "@commitlint/config-angular": "^7.3.1",
     "@types/bluebird": "^3.5.26",
     "@types/node": "^10.12.27",
-    "@types/validator": "^10.9.0",
+    "@types/validator": "^10.11.0",
     "big-integer": "^1.6.42",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
@@ -71,6 +72,7 @@
     "lcov-result-merger": "^3.0.0",
     "lint-staged": "^8.1.5",
     "mariadb": "^2.0.3",
+    "markdownlint-cli": "^0.14.1",
     "mocha": "^6.0.2",
     "mysql2": "^1.6.5",
     "nyc": "^13.3.0",
@@ -78,12 +80,12 @@
     "pg-hstore": "^2.x",
     "pg-types": "^2.0.0",
     "rimraf": "^2.6.3",
+    "semantic-release": "^15.13.3",
     "sinon": "^7.2.6",
     "sinon-chai": "^3.2.0",
     "sqlite3": "^4.0.6",
     "tedious": "^6.0.0",
-    "typescript": "^3.3.3333",
-    "semantic-release": "^15.13.3"
+    "typescript": "^3.3.3333"
   },
   "keywords": [
     "mysql",
@@ -115,6 +117,7 @@
   },
   "scripts": {
     "lint": "eslint lib test --quiet",
+    "lint-docs": "markdownlint docs",
     "test": "npm run teaser && npm run test-unit && npm run test-integration",
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
     "test-docker-unit": "npm run test-unit",

@@ -1416,21 +1416,36 @@ if (dialect.startsWith('postgres')) {
       createTrigger: [
         {
           arguments: ['myTable', 'myTrigger', 'after', ['insert'],  'myFunction', [], []],
-          expectation: 'CREATE TRIGGER myTrigger AFTER INSERT ON myTable EXECUTE PROCEDURE myFunction();'
+          expectation: 'CREATE TRIGGER "myTrigger" AFTER INSERT ON "myTable" EXECUTE PROCEDURE myFunction();'
         },
         {
           arguments: ['myTable', 'myTrigger', 'before', ['insert', 'update'],  'myFunction', [{ name: 'bar', type: 'INTEGER' }], []],
-          expectation: 'CREATE TRIGGER myTrigger BEFORE INSERT OR UPDATE ON myTable EXECUTE PROCEDURE myFunction(bar INTEGER);'
+          expectation: 'CREATE TRIGGER "myTrigger" BEFORE INSERT OR UPDATE ON "myTable" EXECUTE PROCEDURE myFunction(bar INTEGER);'
         },
         {
           arguments: ['myTable', 'myTrigger', 'instead_of', ['insert', 'update'],  'myFunction', [], ['FOR EACH ROW']],
-          expectation: 'CREATE TRIGGER myTrigger INSTEAD OF INSERT OR UPDATE ON myTable FOR EACH ROW EXECUTE PROCEDURE myFunction();'
+          expectation: 'CREATE TRIGGER "myTrigger" INSTEAD OF INSERT OR UPDATE ON "myTable" FOR EACH ROW EXECUTE PROCEDURE myFunction();'
         },
         {
           arguments: ['myTable', 'myTrigger', 'after_constraint', ['insert', 'update'],  'myFunction', [{ name: 'bar', type: 'INTEGER' }], ['FOR EACH ROW']],
-          expectation: 'CREATE CONSTRAINT TRIGGER myTrigger AFTER INSERT OR UPDATE ON myTable FOR EACH ROW EXECUTE PROCEDURE myFunction(bar INTEGER);'
+          expectation: 'CREATE CONSTRAINT TRIGGER "myTrigger" AFTER INSERT OR UPDATE ON "myTable" FOR EACH ROW EXECUTE PROCEDURE myFunction(bar INTEGER);'
         }
       ],
+
+      dropTrigger: [
+        {
+          arguments: ['myTable', 'myTrigger'],
+          expectation: 'DROP TRIGGER "myTrigger" ON "myTable" RESTRICT;'
+        }
+      ],
+
+      renameTrigger: [
+        {
+          arguments: ['myTable', 'oldTrigger', 'newTrigger'],
+          expectation: 'ALTER TRIGGER "oldTrigger" ON "myTable" RENAME TO "newTrigger";'
+        }
+      ],
+
       getForeignKeyReferenceQuery: [
         {
           arguments: ['myTable', 'myColumn'],

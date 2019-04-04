@@ -10,7 +10,6 @@ export * from './lib/query-interface';
 export * from './lib/data-types';
 export * from './lib/model';
 export * from './lib/transaction';
-export * from './lib/model';
 export * from './lib/associations/index';
 export * from './lib/errors';
 export { BaseError as Error } from './lib/errors';

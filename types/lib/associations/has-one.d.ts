@@ -7,6 +7,13 @@ import { Association, AssociationOptions, SingleAssociationAccessors } from './b
  * Options provided when associating models with hasOne relationship
  */
 export interface HasOneOptions extends AssociationOptions {
+
+  /**
+   * The name of the field to use as the key for the association in the source table. Defaults to the primary
+   * key of the source table
+   */
+  sourceKey?: string;
+
   /**
    * A string or a data type to represent the identifier in the table
    */

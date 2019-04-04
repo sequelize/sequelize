@@ -311,7 +311,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     describe('logging', () => {
       it('executes a query with global benchmarking option and default logger', () => {
-        const logger = sinon.spy(console, 'log');
+        const logger = sinon.stub(console, 'log');
         const sequelize = Support.createSequelizeInstance({
           logging: logger,
           benchmark: true
@@ -338,7 +338,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('executes a query with benchmarking option and default logger', function() {
-        const logger = sinon.spy(console, 'log');
+        const logger = sinon.stub(console, 'log');
         return this.sequelize.query('select 1;', {
           logging: logger,
           benchmark: true

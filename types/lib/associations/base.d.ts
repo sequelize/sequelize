@@ -57,7 +57,7 @@ export interface AssociationOptions {
    * The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If
    * you create multiple associations between the same tables, you should provide an alias to be able to
    * distinguish between them. If you provide an alias when creating the assocition, you should provide the
-   * same alias when eager loading and when getting assocated models. Defaults to the singularized name of
+   * same alias when eager loading and when getting associated models. Defaults to the singularized name of
    * target
    */
   as?: string | { singular: string; plural: string };
