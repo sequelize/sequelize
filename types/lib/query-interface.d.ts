@@ -5,6 +5,8 @@ import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
 
+type BindOrReplacements = { [key: string]: unknown } | unknown[];
+
 /**
  * Interface for query options
  */
@@ -40,9 +42,13 @@ export interface QueryOptions extends Logging, Transactionable {
    * Either an object of named parameter replacements in the format `:param` or an array of unnamed
    * replacements to replace `?` in your SQL.
    */
-  replacements?: {
-    [key: string]: string | number | string[] | number[];
-  } | string[];
+  replacements?: BindOrReplacements;
+
+  /**
+   * Either an object of named parameter bindings in the format `$param` or an array of unnamed
+   * values to bind to `$1`, `$2`, etc in your SQL.
+   */
+  bind?: BindOrReplacements;
 
   /**
    * Force the query to use the write pool, regardless of the query type.
