@@ -9,6 +9,7 @@ const Config = require('./config/config');
 const chai = require('chai');
 const expect = chai.expect;
 const AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+const { Composition } = require('../lib/dialects/abstract/query-generator/composition');
 const sinon = require('sinon');
 
 sinon.usingPromise(require('bluebird'));
@@ -247,15 +248,22 @@ const Support = {
       }
     }
 
+    if (query instanceof Composition) {
+      query = Support.sequelize.dialect.QueryGenerator.composeQuery(query);
+    }
+
     if (query instanceof Error) {
       expect(query.message).to.equal(expectation.message);
     } else {
       expect(query.query || query).to.equal(expectation);
-    }
 
-    if (assertions.bind) {
-      const bind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind['default'] || assertions.bind;
-      expect(query.bind).to.deep.equal(bind);
+      if (assertions.bind) {
+        let bind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind['default'] || assertions.bind;
+        if (Support.sequelize.dialect.name === 'mssql' && Array.isArray(bind)) {
+          bind = Support.sequelize.dialect.QueryGenerator.outputBind(bind);
+        }
+        expect(query.bind).to.deep.equal(bind);
+      }
     }
   }
 };
