@@ -6,6 +6,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   Config = require('../../../config/config'),
   ConnectionManager = require('../../../../lib/dialects/abstract/connection-manager'),
+  AbstractDialect = require('../../../../lib/dialects/abstract/index'),
   Pool = require('sequelize-pool').Pool,
   _ = require('lodash');
 
@@ -33,7 +34,7 @@ describe('Connection Manager', () => {
       replication: null
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    const connectionManager = new ConnectionManager(new AbstractDialect(), sequelize);
 
     connectionManager.initPools();
     expect(connectionManager.pool).to.be.instanceOf(Pool);
@@ -49,7 +50,7 @@ describe('Connection Manager', () => {
       }
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    const connectionManager = new ConnectionManager(new AbstractDialect(), sequelize);
 
     connectionManager.initPools();
     expect(connectionManager.pool.read).to.be.instanceOf(Pool);
@@ -73,7 +74,7 @@ describe('Connection Manager', () => {
       }
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    const connectionManager = new ConnectionManager(new AbstractDialect(), sequelize);
 
     const res = {
       queryType: 'read'
@@ -117,7 +118,7 @@ describe('Connection Manager', () => {
       }
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    const connectionManager = new ConnectionManager(new AbstractDialect(), sequelize);
 
     const res = {
       queryType: 'read'
@@ -146,7 +147,7 @@ describe('Connection Manager', () => {
       replication: null
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    const connectionManager = new ConnectionManager(new AbstractDialect(), sequelize);
 
     connectionManager.initPools();
 

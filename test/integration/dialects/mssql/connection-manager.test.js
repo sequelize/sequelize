@@ -1,7 +1,6 @@
 'use strict';
 
-const chai = require('chai');
-const expect = chai.expect;
+const { expect } = require('chai');
 const Support = require('../../support');
 const Sequelize = Support.Sequelize;
 const dialect = Support.getTestDialect();
@@ -29,5 +28,6 @@ if (dialect.match(/^mssql/)) {
         return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
       });
     });
+
   });
 }

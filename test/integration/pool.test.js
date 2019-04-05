@@ -240,7 +240,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
     it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', function() {
       this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
-        databaseVersion: '1.2.3',
+        databaseVersion: '9999.2.3',
         pool: {
           acquire: 10
         }
@@ -256,7 +256,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
     it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', function() {
       this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
-        databaseVersion: '1.2.3',
+        databaseVersion: '9999.2.3',
         pool: {
           acquire: 10,
           max: 1

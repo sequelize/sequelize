@@ -14,7 +14,8 @@ describe('connection manager', () => {
       this.dialect = {
         connectionManager: {
           connect: sinon.stub().resolves(this.connection)
-        }
+        },
+        supports: {}
       };
 
       this.sequelize = Support.createSequelizeInstance();
