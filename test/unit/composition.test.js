@@ -1,10 +1,9 @@
 'use strict';
 
-const Support = require('../support'),
-  chai = require('chai'),
-  expect = chai.expect,
-  Sequelize = Support.Sequelize,
-  expectsql = Support.expectsql;
+const Support = require('../support');
+const { expect } = require('chai');
+const Sequelize = Support.Sequelize;
+const expectsql = Support.expectsql;
 
 const {
   Slot,
@@ -25,10 +24,14 @@ describe('Composition', () => {
   it('validates input', () => {
     expect(() => new Composition('foo ', new Slot(new Date(), { type: Sequelize.DATE }), ' bar')).to.not.throw();
     expect(() => new Composition('bar', new Placeholder())).to.not.throw();
-    expect(() => new Composition('numbers not allowed', 8008)).to.throw('Invalid query item: 8008');
-    expect(() => new Composition('Only allows strings, slots and placholders', new Date(Date.UTC(2000, 0, 1)))).to.throw('Invalid query item: 2000-01-01T00:00:00.000Z');
-    expect(() => new Composition('Otherwise, throw', {})).to.throw('Invalid query item: {}');
-    expect(() => new Composition('bad', [])).to.throw('Invalid query item: []');
+    expect(() => new Composition('numbers not allowed', 8008)).to.throw('Invalid query item').with.property('item', 8008);
+    const date = new Date(Date.UTC(2000, 0, 1));
+    expect(() => new Composition('Only allows strings, slots and placholders', date))
+      .to.throw('Invalid query item').with.property('item', date);
+    const object = {};
+    expect(() => new Composition('Otherwise, throw', object)).to.throw('Invalid query item').with.property('item', object);
+    const array = [];
+    expect(() => new Composition('bad', array)).to.throw('Invalid query item').with.property('item', array);
   });
 
   it('should have *set* method', () => {
@@ -45,7 +48,7 @@ describe('Composition', () => {
     expect(composition).to.deep.equal(new Composition(...items));
 
     // *set* returns same object
-    expect(composition === composition.set(...items)).to.be.ok;
+    expect(composition).to.equal(composition.set(...items));
   });
 
   it('should have *add* method', () => {
@@ -56,13 +59,13 @@ describe('Composition', () => {
 
     // *add* puts items towards the end
     const composition = new Composition('start ');
-    expect(composition.add(...items).items).to.deep.equal(['start '].concat(items));
+    expect(composition.add(...items).items).to.deep.equal(['start ', ...items]);
 
     // *add* modifies instace without need to reassign
-    expect(composition.items).to.deep.equal(['start '].concat(items));
+    expect(composition.items).to.deep.equal(['start ', ...items]);
 
     // *add* returns same object
-    expect(composition === composition.add(...items)).to.be.ok;
+    expect(composition).to.equal(composition.add(...items));
   });
 
   it('should have *prepend* method', () => {
@@ -73,13 +76,13 @@ describe('Composition', () => {
 
     // *prepend* puts items towards the beginning
     const composition = new Composition(' end');
-    expect(composition.prepend(...items).items).to.deep.equal(items.concat([' end']));
+    expect(composition.prepend(...items).items).to.deep.equal([...items, ' end']);
 
     // *prepend* modifies instace without need to reassign
-    expect(composition.items).to.deep.equal(items.concat([' end']));
+    expect(composition.items).to.deep.equal([...items, ' end']);
 
     // *prepend* returns same object
-    expect(composition === composition.prepend(...items)).to.be.ok;
+    expect(composition).to.equal(composition.prepend(...items));
   });
 
   it('should have *clone* method', () => {
@@ -87,7 +90,7 @@ describe('Composition', () => {
     const originalComposition = new Composition(...items);
 
     // *clone* should return a different object
-    expect(originalComposition.clone() === originalComposition).to.not.be.ok;
+    expect(originalComposition.clone()).to.not.equal(originalComposition);
 
     // But the returned object must have the same items
     expect(originalComposition.clone().items).to.deep.equal(items);
@@ -127,7 +130,7 @@ describe('Composition Group', () => {
     expect(group).to.deep.equal(new CompositionGroup('start ', ...compositions));
 
     // *add* returns same object
-    expect(group === group.add(...compositions)).to.be.ok;
+    expect(group).to.equal(group.add(...compositions));
   });
 
   it('should have *space* method', () => {
@@ -143,7 +146,7 @@ describe('Composition Group', () => {
 
     // *space* returns same object
     const group2 = CompositionGroup.from(compositions);
-    expect(group2 === group2.space(', ')).to.be.ok;
+    expect(group2).to.equal(group2.space(', '));
   });
 
   it('should have *merge* method', () => {
@@ -154,9 +157,9 @@ describe('Composition Group', () => {
       new Slot(5), ' bar', new Composition('oof',
         new Slot(5), 'rab')]);
 
-    // *merge* should return a different object
-    expect(group1.merge(group2) === group1).to.be.ok;
-    expect(group1.merge(group2) === group2).to.not.be.ok;
+    // *merge* should return same object
+    expect(group1.merge(group2)).to.equal(group1);
+    expect(group1.merge(group2)).to.not.equal(group2);
   });
 
   it('should have *slice* method', () => {
@@ -166,7 +169,7 @@ describe('Composition Group', () => {
     expect(group.slice(1, 3).compositions).to.deep.equal([new Slot(5), ' bar']);
 
     // *slice* should return a different object
-    expect(group.slice() === group).to.not.be.ok;
+    expect(group.slice()).to.not.equal(group);
   });
 
   it('should have *toComposition* method', () => {
@@ -175,7 +178,6 @@ describe('Composition Group', () => {
 
     expect(group.toComposition() instanceof Composition).to.be.ok;
 
-    // *toComposition* should return a different object
     expect(group.toComposition().items).to.deep.equal(['foo ', new Slot(5),
       'oof', 'rab', ' bar']);
 
@@ -239,7 +241,7 @@ describe('Query proto', () => {
     });
 
     // *set* returns same object
-    expect(testProto === testProto.set(originalTestProto)).to.be.ok;
+    expect(testProto).to.equal(testProto.set(originalTestProto));
   });
 
   it('should have *clone* method', () => {
@@ -249,7 +251,7 @@ describe('Query proto', () => {
     testProto.bar.add('def');
 
     // *clone* should return a different object
-    expect(testProto.clone() === testProto).to.not.be.ok;
+    expect(testProto.clone()).to.not.equal(testProto);
 
     // But the returned object must have the same items
     expect(testProto.clone()).to.deep.equal({

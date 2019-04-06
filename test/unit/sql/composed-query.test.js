@@ -1,14 +1,10 @@
 'use strict';
 
-const Support = require('../support'),
-  util = require('util'),
-  _ = require('lodash'),
-  chai = require('chai'),
-  expect = chai.expect,
-  Sequelize = Support.Sequelize,
-  expectsql = Support.expectsql,
-  current = Support.sequelize,
-  QG = current.dialect.QueryGenerator;
+const { Sequelize, expectsql, sequelize: current } = require('../support');
+const util = require('util');
+const _ = require('lodash');
+const { expect } = require('chai');
+const QG = current.dialect.QueryGenerator;
 
 const {
   Composition,
@@ -37,13 +33,16 @@ describe('Composed queries', () => {
   });
 
   describe('composeQuery method disallows unreplaced placeholders', () => {
-    testsql(current.composition('SELECT ', current.slot(5, Sequelize.INTEGER), ', ', current.placeholder()), {
-      default: new Error('Query item is not a slot or a string:\nPlaceholder { name: undefined }')
+    const placeholderFromMethod = current.placeholder();
+    testsql(current.composition('SELECT ', current.slot(5, Sequelize.INTEGER), ', ', placeholderFromMethod), {
+      default: new Sequelize.CompositionError('Item to be composed is not a slot or a string', placeholderFromMethod.val.items[0])
     });
   });
 
   describe('composeString method disallows unreplaced placeholders', () => {
-    expect(() => QG.composeString(new Composition('SELECT ', QG.handleSequelizeMethod(current.placeholder())))).to.throw('Query item is not a slot or a string:\nPlaceholder { name: undefined }');
+    const placeholderCompositon = QG.handleSequelizeMethod(current.placeholder());
+    expect(() => QG.composeString(new Composition('SELECT ', placeholderCompositon)))
+      .to.throw(Sequelize.CompositionError).with.property('item', placeholderCompositon.items[0]);
   });
 
   describe('handle Slot as a sequelize method', () => {

@@ -1,11 +1,10 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('./support'),
-  DataTypes = require('../../lib/data-types'),
-  sequelize = Support.sequelize,
-  dialect = Support.getTestDialect();
+const { expect } = require('chai');
+const Support = require('./support');
+const DataTypes = require('../../lib/data-types');
+const sequelize = Support.sequelize;
+const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Custom Queries'), () => {
 
@@ -57,7 +56,7 @@ describe(Support.getTestDialectTeaser('Custom Queries'), () => {
           replacements: ['abc\'"\n\r\b\t\\\x1a']
         });
       }).then(instances => {
-        expect(instances.length).to.equal(1);
+        expect(instances).to.have.lengthOf(1);
         expect(instances[0].get({ plain: true })).to.deep.equal({
           id: 20,
           name: 'abc\'"\n\r\b\t\\\x1a'
@@ -91,7 +90,7 @@ describe(Support.getTestDialectTeaser('Custom Queries'), () => {
           }
         });
       }).then(instances => {
-        expect(instances.length).to.equal(1);
+        expect(instances).to.have.lengthOf(1);
         expect(instances[0].get({ plain: true })).to.deep.equal({
           id: 20,
           name: 'abc\'"\n\r\b\t\\\x1a'
@@ -125,7 +124,7 @@ describe(Support.getTestDialectTeaser('Custom Queries'), () => {
           bind: ['abc\'"\n\r\b\t\\\x1a']
         });
       }).then(instances => {
-        expect(instances.length).to.equal(1);
+        expect(instances).to.have.lengthOf(1);
         expect(instances[0].get({ plain: true })).to.deep.equal({
           id: 20,
           name: 'abc\'"\n\r\b\t\\\x1a'
@@ -159,7 +158,7 @@ describe(Support.getTestDialectTeaser('Custom Queries'), () => {
           }
         });
       }).then(instances => {
-        expect(instances.length).to.equal(1);
+        expect(instances).to.have.lengthOf(1);
         expect(instances[0].get({ plain: true })).to.deep.equal({
           id: 20,
           name: 'abc\'"\n\r\b\t\\\x1a'
@@ -192,7 +191,7 @@ describe(Support.getTestDialectTeaser('Custom Queries'), () => {
           }
         });
       }).then(instances => {
-        expect(instances.length).to.equal(1);
+        expect(instances).to.have.lengthOf(1);
         expect(instances[0].get({ plain: true })).to.deep.equal({
           id: 20,
           name: 'abc$'
@@ -225,7 +224,7 @@ describe(Support.getTestDialectTeaser('Custom Queries'), () => {
           type: sequelize.QueryTypes.SELECT
         });
       }).then(instances => {
-        expect(instances.length).to.equal(1);
+        expect(instances).to.have.lengthOf(1);
         expect(instances[0].get({ plain: true })).to.deep.equal({
           id: 20,
           name: 'abc\'"\n\r\b\t\\\x1a'
@@ -253,7 +252,7 @@ describe(Support.getTestDialectTeaser('Custom Queries'), () => {
           type: sequelize.QueryTypes.SELECT
         });
       }).then(instances => {
-        expect(instances.length).to.equal(1);
+        expect(instances).to.have.lengthOf(1);
         expect(instances[0].get({ plain: true })).to.deep.equal({
           id: 20,
           name: 'abc$'
