@@ -35,13 +35,13 @@ describe('Composed queries', () => {
   describe('composeQuery method disallows unreplaced placeholders', () => {
     const placeholderFromMethod = current.placeholder();
     testsql(current.composition('SELECT ', current.slot(5, Sequelize.INTEGER), ', ', placeholderFromMethod), {
-      default: new Sequelize.CompositionError('Item to be composed is not a slot or a string', placeholderFromMethod.val.items[0])
+      default: new Sequelize.CompositionError('Item to be composed is not a slot or a string', placeholderFromMethod.items[0])
     });
   });
 
   describe('composeString method disallows unreplaced placeholders', () => {
-    const placeholderCompositon = QG.handleSequelizeMethod(current.placeholder());
-    expect(() => QG.composeString(new Composition('SELECT ', placeholderCompositon)))
+    const placeholderCompositon = current.placeholder();
+    expect(() => QG.composeString(QG.handleSequelizeMethod(current.composition('SELECT ', placeholderCompositon))))
       .to.throw(Sequelize.CompositionError).with.property('item', placeholderCompositon.items[0]);
   });
 
