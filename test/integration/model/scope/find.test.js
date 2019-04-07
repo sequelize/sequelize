@@ -47,7 +47,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       this.DefaultScopeExclude = this.sequelize.define('DefaultScopeExclude', {
-        name: Sequelize.STRING
+        name: Sequelize.STRING,
+        other_value: {
+          type: Sequelize.STRING,
+          field: 'otherValue'
+        }
       }, {
         defaultScope: {
           attributes: {
