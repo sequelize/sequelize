@@ -34,75 +34,75 @@ describe('Composition', () => {
     expect(() => new Composition('bad', array)).to.throw('Invalid query item').with.property('item', array);
   });
 
-  it('should have *set* method', () => {
+  it('should have set method', () => {
     const items = ['foo ', new Slot(5), ' bar'];
 
     const compositionEmpty = new Composition();
     expect(compositionEmpty.set(...items)).to.deep.equal(new Composition(...items));
 
-    // *set* cleans previous values
+    // set cleans previous values
     const composition = new Composition('start ');
     expect(composition.set(...items)).to.deep.equal(new Composition(...items));
 
-    // *set* modifies instace without need to reassign
+    // set modifies instace without need to reassign
     expect(composition).to.deep.equal(new Composition(...items));
 
-    // *set* returns same object
+    // set returns same object
     expect(composition).to.equal(composition.set(...items));
   });
 
-  it('should have *add* method', () => {
+  it('should have add method', () => {
     const items = ['foo ', new Slot(5), ' bar'];
 
     const compositionEmpty = new Composition();
     expect(compositionEmpty.add(...items)).to.deep.equal(new Composition(...items));
 
-    // *add* puts items towards the end
+    // add puts items towards the end
     const composition = new Composition('start ');
     expect(composition.add(...items).items).to.deep.equal(['start ', ...items]);
 
-    // *add* modifies instace without need to reassign
+    // add modifies instace without need to reassign
     expect(composition.items).to.deep.equal(['start ', ...items]);
 
-    // *add* returns same object
+    // add returns same object
     expect(composition).to.equal(composition.add(...items));
   });
 
-  it('should have *prepend* method', () => {
+  it('should have prepend method', () => {
     const items = ['foo ', new Slot(5), ' bar'];
 
     const compositionEmpty = new Composition();
     expect(compositionEmpty.prepend(...items)).to.deep.equal(new Composition(...items));
 
-    // *prepend* puts items towards the beginning
+    // prepend puts items towards the beginning
     const composition = new Composition(' end');
     expect(composition.prepend(...items).items).to.deep.equal([...items, ' end']);
 
-    // *prepend* modifies instace without need to reassign
+    // prepend modifies instace without need to reassign
     expect(composition.items).to.deep.equal([...items, ' end']);
 
-    // *prepend* returns same object
+    // prepend returns same object
     expect(composition).to.equal(composition.prepend(...items));
   });
 
-  it('should have *clone* method', () => {
+  it('should have clone method', () => {
     const items = ['foo ', new Slot(5), ' bar'];
     const originalComposition = new Composition(...items);
 
-    // *clone* should return a different object
+    // clone should return a different object
     expect(originalComposition.clone()).to.not.equal(originalComposition);
 
     // But the returned object must have the same items
     expect(originalComposition.clone().items).to.deep.equal(items);
   });
 
-  it('should have *from* method', () => {
+  it('should have from method', () => {
     const items = ['foo ', new Slot(5), ' bar'];
     const composition = Composition.from(items);
 
     expect(composition.items).to.deep.equal(['foo ', new Slot(5), ' bar']);
 
-    // *from* should create a *Composition* instance
+    // from should create a Composition instance
     expect(composition instanceof Composition).to.be.ok;
   });
 
@@ -116,40 +116,40 @@ describe('Composition Group', () => {
     // validation is done when using method toComposiiton()
   });
 
-  it('should have *add* method', () => {
+  it('should have add method', () => {
     const compositions = ['foo ', new Slot(5), ' bar', new Composition()];
 
     const groupEmpty = new CompositionGroup();
     expect(groupEmpty.add(...compositions)).to.deep.equal(CompositionGroup.from(compositions));
 
-    // *add* puts compositions towards the end
+    // add puts compositions towards the end
     const group = new CompositionGroup('start ');
     expect(group.add(...compositions)).to.deep.equal(new CompositionGroup('start ', ...compositions));
 
-    // *add* modifies instace without need to reassign
+    // add modifies instace without need to reassign
     expect(group).to.deep.equal(new CompositionGroup('start ', ...compositions));
 
-    // *add* returns same object
+    // add returns same object
     expect(group).to.equal(group.add(...compositions));
   });
 
-  it('should have *space* method', () => {
+  it('should have space method', () => {
     const compositions = ['foo ', new Slot(5), ' bar', new Composition()];
 
     const group = CompositionGroup.from(compositions);
     expect(group.space(', ').compositions).to.deep.equal(['foo ', ', ',
       new Slot(5), ', ', ' bar', ', ', new Composition()]);
 
-    // *space* modifies instace without need to reassign
+    // space modifies instace without need to reassign
     expect(group.compositions).to.deep.equal(['foo ', ', ',
       new Slot(5), ', ', ' bar', ', ', new Composition()]);
 
-    // *space* returns same object
+    // space returns same object
     const group2 = CompositionGroup.from(compositions);
     expect(group2).to.equal(group2.space(', '));
   });
 
-  it('should have *merge* method', () => {
+  it('should have merge method', () => {
     const group1 = new CompositionGroup('foo ', new Slot(5), ' bar');
     const group2 = new CompositionGroup(new Composition('oof', new Slot(5), 'rab'));
 
@@ -157,22 +157,22 @@ describe('Composition Group', () => {
       new Slot(5), ' bar', new Composition('oof',
         new Slot(5), 'rab')]);
 
-    // *merge* should return same object
+    // merge should return same object
     expect(group1.merge(group2)).to.equal(group1);
     expect(group1.merge(group2)).to.not.equal(group2);
   });
 
-  it('should have *slice* method', () => {
+  it('should have slice method', () => {
     const group = new CompositionGroup('foo ', new Slot(5), ' bar',
       new Composition('oof', new Slot(5), 'rab'), 'end');
 
     expect(group.slice(1, 3).compositions).to.deep.equal([new Slot(5), ' bar']);
 
-    // *slice* should return a different object
+    // slice should return a different object
     expect(group.slice()).to.not.equal(group);
   });
 
-  it('should have *toComposition* method', () => {
+  it('should have toComposition method', () => {
     const group = new CompositionGroup('foo ', new Slot(5),
       new Composition('oof', 'rab'), ' bar');
 
@@ -183,7 +183,7 @@ describe('Composition Group', () => {
 
   });
 
-  it('should have *from* method', () => {
+  it('should have from method', () => {
     const compositions = ['foo ', new Slot(5), ' bar',
       new Composition('oof', new Slot(5), 'rab')];
     const group = CompositionGroup.from(compositions);
@@ -192,7 +192,7 @@ describe('Composition Group', () => {
       'foo ', new Slot(5), ' bar', new Composition('oof', new Slot(5), 'rab')
     ]);
 
-    // *from* should create a *CompositionGroup* instance
+    // from should create a CompositionGroup instance
     expect(group instanceof CompositionGroup).to.be.ok;
   });
 
@@ -210,7 +210,7 @@ describe('Query proto', () => {
     const testProto = new TestProto(similar);
     const otherTestProto = new TestProto(testProto);
 
-    // *foo* should have been copied, but not *extrange*
+    // foo should have been copied, but not extrange
     expect(testProto).to.deep.equal({ foo: { items: ['abc'] }, bar: { items: [] } });
     expect(otherTestProto).to.deep.equal({ foo: { items: ['abc'] }, bar: { items: [] } });
 
@@ -219,7 +219,7 @@ describe('Query proto', () => {
     expect(testProto.foo !== otherTestProto.foo).to.be.ok;
   });
 
-  it('should have *set* method', () => {
+  it('should have set method', () => {
     const originalTestProto = new TestProto();
     const testProto = new TestProto();
 
@@ -228,29 +228,29 @@ describe('Query proto', () => {
 
     testProto.foo.add('bar');
 
-    // *set* cleans previous values
+    // set cleans previous values
     expect(testProto.set(originalTestProto)).to.deep.equal({
       foo: { items: ['abc', new Slot(5)] },
       bar: { items: ['def'] }
     });
 
-    // *set* modifies instace without need to reassign
+    // set modifies instace without need to reassign
     expect(testProto).to.deep.equal({
       foo: { items: ['abc', new Slot(5)] },
       bar: { items: ['def'] }
     });
 
-    // *set* returns same object
+    // set returns same object
     expect(testProto).to.equal(testProto.set(originalTestProto));
   });
 
-  it('should have *clone* method', () => {
+  it('should have clone method', () => {
     const testProto = new TestProto();
 
     testProto.foo.add('abc', new Slot(5));
     testProto.bar.add('def');
 
-    // *clone* should return a different object
+    // clone should return a different object
     expect(testProto.clone()).to.not.equal(testProto);
 
     // But the returned object must have the same items

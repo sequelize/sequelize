@@ -258,11 +258,9 @@ const Support = {
       expect(query.query || query).to.equal(expectation);
 
       if (assertions.bind) {
-        let bind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind['default'] || assertions.bind;
-        if (Support.sequelize.dialect.name === 'mssql' && Array.isArray(bind)) {
-          bind = Support.sequelize.dialect.QueryGenerator.outputBind(bind);
-        }
-        expect(query.bind).to.deep.equal(bind);
+        const stdBind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind['default'] || assertions.bind;
+        const dialectBind = Support.sequelize.dialect.QueryGenerator.outputBind(stdBind);
+        expect(query.bind).to.deep.equal(dialectBind);
       }
     }
   }
