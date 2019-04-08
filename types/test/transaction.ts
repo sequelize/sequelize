@@ -29,3 +29,10 @@ async function transact() {
 }
 
 transact();
+
+async function nestedTransact() {
+  const tr = await sequelize.transaction({
+    transaction: await sequelize.transaction(),
+  });
+  await tr.commit();
+}

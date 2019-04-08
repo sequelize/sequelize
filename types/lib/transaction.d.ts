@@ -129,6 +129,10 @@ export interface TransactionOptions extends Logging {
   isolationLevel?: Transaction.ISOLATION_LEVELS;
   type?: Transaction.TYPES;
   deferrable?: string | Deferrable;
+  /**
+   * Parent transaction.
+   */
+  transaction?: Transaction;
 }
 
 export default Transaction;
