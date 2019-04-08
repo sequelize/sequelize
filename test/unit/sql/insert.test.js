@@ -98,6 +98,32 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
   });
 
+  describe('strings', () => {
+    it('formats null characters correctly when inserting', () => {
+      const User = Support.sequelize.define('user', {
+        username: {
+          type: DataTypes.STRING,
+          field: 'user_name'
+        }
+      }, {
+        timestamps: false
+      });
+
+      expectsql(sql.insertQuery(User.tableName, { user_name: 'null\0test' }, User.rawAttributes),
+        {
+          query: {
+            postgres: 'INSERT INTO "users" ("user_name") VALUES ($1);',
+            mssql: 'INSERT INTO [users] ([user_name]) VALUES ($1);',
+            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
+          },
+          bind: {
+            postgres: ['null\u0000test'],
+            default: ['null\0test']
+          }
+        });
+    });
+  });
+
   describe('bulkCreate', () => {
     it('bulk create with onDuplicateKeyUpdate', () => {
       const User = Support.sequelize.define('user', {
