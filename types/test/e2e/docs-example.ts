@@ -133,7 +133,7 @@ async function stuff() {
   });
 
   const ourUser = await User.findByPk(1, {
-    include: [User.associations.Project],
+    include: [User.associations.projects],
     rejectOnEmpty: true, // Specifying true here removes `null` from the return type!
   });
   console.log(ourUser.projects![0].name); // Note the `!` null assertion since TS can't know if we included
