@@ -9,6 +9,7 @@ class User extends Model {}
 User.init({
   // ...
 }, {
+  modelName: 'user',
   tableName: 'users',
   sequelize,
 });
