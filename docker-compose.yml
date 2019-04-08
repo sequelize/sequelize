@@ -6,7 +6,6 @@ services:
     links:
      - mysql-57
      - postgres-95
-     - postgres-10
     volumes:
       - .:/sequelize
     environment:
@@ -21,8 +20,6 @@ services:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
       POSTGRES_DB: sequelize_test
-    volumes:
-      - /mnt/sequelize-postgres-95-ramdisk:/var/lib/postgresql/data
     ports:
       - "8990:5432"
     container_name: postgres-95
@@ -33,8 +30,6 @@ services:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
       POSTGRES_DB: sequelize_test
-    volumes:
-    - /mnt/sequelize-postgres-10-ramdisk:/var/lib/postgresql/data
     ports:
     - "8991:5432"
     container_name: postgres-10
@@ -48,7 +43,6 @@ services:
       MYSQL_USER: sequelize_test
       MYSQL_PASSWORD: sequelize_test
     volumes:
-    - /mnt/sequelize-mariadb-103-ramdisk:/var/lib/mysql
     - $MARIADB_ENTRYPOINT:/docker-entrypoint-initdb.d
     ports:
     - "8960:3306"
@@ -62,8 +56,6 @@ services:
       MYSQL_DATABASE: sequelize_test
       MYSQL_USER: sequelize_test
       MYSQL_PASSWORD: sequelize_test
-    volumes:
-      - /mnt/sequelize-mysql-57-ramdisk:/var/lib/mysql
     ports:
       - "8980:3306"
     container_name: mysql-57
