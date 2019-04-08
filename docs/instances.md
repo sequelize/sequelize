@@ -25,8 +25,8 @@ class Task extends Model {}
 Task.init({
   title: Sequelize.STRING,
   rating: { type: Sequelize.TINYINT, defaultValue: 3 }
-}, { sequelize });
-  
+}, { sequelize, modelName: 'task' });
+
 // now instantiate an object
 const task = Task.build({title: 'very important task'})
 
@@ -242,7 +242,7 @@ Tasks.init({
       len: [3, 10]
     }
   }
-}, { sequelize })
+}, { sequelize, modelName: 'tasks' })
 
 Tasks.bulkCreate([
   {name: 'foo', code: '123'},

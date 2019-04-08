@@ -94,6 +94,7 @@ User.init({
   }
 }, {
   tableName: 'users',
+  modelName: 'user',
   sequelize: sequelize, // this bit is important
 });
 

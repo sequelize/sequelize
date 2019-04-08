@@ -21,6 +21,7 @@ User.init({
   email: Sequelize.STRING
 }, {
   sequelize,
+  modelName: 'user'
 });
 
 class Project extends Model {}
@@ -28,6 +29,7 @@ Project.init({
   name: Sequelize.STRING
 }, {
   sequelize,
+  modelName: 'project'
 });
 
 User.hasOne(Project);
@@ -41,9 +43,9 @@ When you create associations between your models in sequelize, foreign key refer
 
 ```js
 class Task extends Model {}
-Task.init({ title: Sequelize.STRING }, { sequelize });
+Task.init({ title: Sequelize.STRING }, { sequelize, modelName: 'task' });
 class User extends Model {}
-User.init({ username: Sequelize.STRING }, { sequelize });
+User.init({ username: Sequelize.STRING }, { sequelize, modelName: 'user' });
 
 User.hasMany(Task); // Will add userId to Task model
 Task.belongsTo(User); // Will also add userId to Task model
@@ -91,6 +93,7 @@ Task.init({
 }, {
   underscored: true,
   sequelize,
+  modelName: 'task'
 });
 
 class User extends Model {}
@@ -99,6 +102,7 @@ User.init({
 }, {
   underscored: true,
   sequelize,
+  modelName: 'user'
 });
 
 // Will add userId to Task model, but field will be set to `user_id`
@@ -143,11 +147,11 @@ Adding constraints between tables means that tables must be created in the datab
 class Document extends Model {}
 Document.init({
   author: Sequelize.STRING
-}, { sequelize });
+}, { sequelize, modelName: 'document' });
 class Version extends Model {}
 Version.init({
   timestamp: Sequelize.DATE
-}, { sequelize });
+}, { sequelize, modelName: 'version' });
 
 Document.hasMany(Version); // This adds documentId attribute to version
 Document.belongsTo(Version, {
@@ -202,7 +206,7 @@ class Trainer extends Model {}
 Trainer.init({
   firstName: Sequelize.STRING,
   lastName: Sequelize.STRING
-}, { sequelize });
+}, { sequelize, modelName: 'trainer' });
 
 // Series will have a trainerId = Trainer.id foreign reference key
 // after we call Trainer.hasMany(series)
@@ -219,7 +223,7 @@ Series.init({
       key: 'id'
     }
   }
-}, { sequelize });
+}, { sequelize, modelName: 'series' });
 
 // Video will have seriesId = Series.id foreign reference key
 // after we call Series.hasOne(Video)
@@ -236,7 +240,7 @@ Video.init({
       key: 'id'
     }
   }
-}, { sequelize });
+}, { sequelize, modelName: 'video' });
 
 Series.hasOne(Video);
 Trainer.hasMany(Series);
@@ -254,9 +258,9 @@ A simple example would be a **Player** being part of a **Team** with the foreign
 
 ```js
 class Player extends Model {}
-Player.init({/* attributes */}, { sequelize });
+Player.init({/* attributes */}, { sequelize, modelName: 'player' });
 class Team extends Model {}
-Team.init({/* attributes */}, { sequelize });
+Team.init({/* attributes */}, { sequelize, modelName: 'team' });
 
 Player.belongsTo(Team); // Will add a teamId attribute to Player to hold the primary key value for Team
 ```
@@ -269,22 +273,22 @@ The default casing is `camelCase`. If the source model is configured with `under
 
 ```js
 class User extends Model {}
-User.init({/* attributes */}, { sequelize })
+User.init({/* attributes */}, { sequelize, modelName: 'user' })
 class Company extends Model {}
-Company.init({/* attributes */}, { sequelize });
+Company.init({/* attributes */}, { sequelize, modelName: 'company' });
 
 // will add companyId to user
 User.belongsTo(Company);
 
 class User extends Model {}
-User.init({/* attributes */}, {underscored: true, sequelize})
+User.init({/* attributes */}, { underscored: true, sequelize, modelName: 'user' })
 class Company extends Model {}
 Company.init({
   uuid: {
     type: Sequelize.UUID,
     primaryKey: true
   }
-}, { sequelize });
+}, { sequelize, modelName: 'company' });
 
 // will add companyUuid to user with field company_uuid
 User.belongsTo(Company);
@@ -294,9 +298,9 @@ In cases where `as` has been defined it will be used in place of the target mode
 
 ```js
 class User extends Model {}
-User.init({/* attributes */}, { sequelize })
+User.init({/* attributes */}, { sequelize, modelName: 'user' })
 class UserRole extends Model {}
-UserRole.init({/* attributes */}, { sequelize });
+UserRole.init({/* attributes */}, { sequelize, modelName: 'userRole' });
 
 User.belongsTo(UserRole, {as: 'role'}); // Adds roleId to user rather than userRoleId
 ```
@@ -306,9 +310,9 @@ When the foreign key option is used, Sequelize will use it as-is:
 
 ```js
 class User extends Model {}
-User.init({/* attributes */}, { sequelize })
+User.init({/* attributes */}, { sequelize, modelName: 'user' })
 class Company extends Model {}
-Company.init({/* attributes */}, { sequelize });
+Company.init({/* attributes */}, { sequelize, modelName: 'company' });
 
 User.belongsTo(Company, {foreignKey: 'fk_company'}); // Adds fk_company to User
 ```
@@ -319,9 +323,9 @@ The target key is the column on the target model that the foreign key column on 
 
 ```js
 class User extends Model {}
-User.init({/* attributes */}, { sequelize })
+User.init({/* attributes */}, { sequelize, modelName: 'user' })
 class Company extends Model {}
-Company.init({/* attributes */}, { sequelize });
+Company.init({/* attributes */}, { sequelize, modelName: 'company' });
 
 User.belongsTo(Company, {foreignKey: 'fk_companyname', targetKey: 'name'}); // Adds fk_companyname to User
 ```
@@ -332,9 +336,9 @@ HasOne associations are associations where the foreign key for the one-to-one re
 
 ```js
 class User extends Model {}
-User.init({/* ... */}, { sequelize })
+User.init({/* ... */}, { sequelize, modelName: 'user' })
 class Project extends Model {}
-Project.init({/* ... */}, { sequelize })
+Project.init({/* ... */}, { sequelize, modelName: 'project' })
 
 // One-way associations
 Project.hasOne(User)
@@ -363,7 +367,7 @@ Project.hasOne(User, { as: 'Initiator' })
 
 // Or let's define some self references
 class Person extends Model {}
-Person.init({ /* ... */}, { sequelize })
+Person.init({ /* ... */}, { sequelize, modelName: 'person' })
 
 Person.hasOne(Person, {as: 'Father'})
 // this will add the attribute FatherId to Person
@@ -391,9 +395,9 @@ The source key is the attribute on the source model that the foreign key attribu
 
 ```js
 class User extends Model {}
-User.init({/* attributes */}, { sequelize })
+User.init({/* attributes */}, { sequelize, modelName: 'user' })
 class Company extends Model {}
-Company.init({/* attributes */}, { sequelize });
+Company.init({/* attributes */}, { sequelize, modelName: 'company' });
 
 // Adds companyName attribute to User
 // Use name attribute from Company as source attribute
@@ -408,9 +412,9 @@ Suppose we have two tables to link **Player** and **Team**. Lets define their mo
 
 ```js
 class Player extends Model {}
-Player.init({/* attributes */}, { sequelize })
+Player.init({/* attributes */}, { sequelize, modelName: 'player' })
 class Team extends Model {}
-Team.init({/* attributes */}, { sequelize });
+Team.init({/* attributes */}, { sequelize, modelName: 'team' });
 ```
 
 When we link two models in Sequelize we can refer them as pairs of **source** and **target** models. Like this
@@ -437,11 +441,11 @@ Here is an example demonstrating use cases of BelongsTo and HasOne.
 
 ```js
 class Player extends Model {}
-Player.init({/* attributes */}, { sequelize })
+Player.init({/* attributes */}, { sequelize, modelName: 'player' })
 class Coach extends Model {}
-Coach.init({/* attributes */}, { sequelize })
+Coach.init({/* attributes */}, { sequelize, modelName: 'coach' })
 class Team extends Model {}
-Team.init({/* attributes */}, { sequelize });
+Team.init({/* attributes */}, { sequelize, modelName: 'team' });
 ```
 
 Suppose our `Player` model has information about its team as `teamId` column. Information about each Team's `Coach` is stored in the `Team` model as `coachId` column. These both scenarios requires different kind of 1:1 relation because foreign key relation is present on different models each time.
@@ -464,9 +468,9 @@ One-To-Many associations are connecting one source with multiple targets. The ta
 
 ```js
 class User extends Model {}
-User.init({/* ... */}, { sequelize })
+User.init({/* ... */}, { sequelize, modelName: 'user' })
 class Project extends Model {}
-Project.init({/* ... */}, { sequelize })
+Project.init({/* ... */}, { sequelize, modelName: 'project' })
 
 // OK. Now things get more complicated (not really visible to the user :)).
 // First let's define a hasMany association
@@ -479,9 +483,9 @@ Sometimes you may need to associate records on different columns, you may use `s
 
 ```js
 class City extends Model {}
-City.init({ countryCode: Sequelize.STRING }, { sequelize });
+City.init({ countryCode: Sequelize.STRING }, { sequelize, modelName: 'city' });
 class Country extends Model {}
-Country.init({ isoCode: Sequelize.STRING }, { sequelize });
+Country.init({ isoCode: Sequelize.STRING }, { sequelize, modelName: 'country' });
 
 // Here we can connect countries and cities base on country code
 Country.hasMany(City, {foreignKey: 'countryCode', sourceKey: 'isoCode'});
@@ -531,13 +535,13 @@ If you want additional attributes in your join table, you can define a model for
 
 ```js
 class User extends Model {}
-User.init({}, { sequelize })
+User.init({}, { sequelize, modelName: 'user' })
 class Project extends Model {}
-Project.init({}, { sequelize })
+Project.init({}, { sequelize, modelName: 'project' })
 class UserProjects extends Model {}
 UserProjects.init({
   status: DataTypes.STRING
-}, { sequelize })
+}, { sequelize, modelName: 'userProjects' })
 
 User.belongsToMany(Project, { through: UserProjects })
 Project.belongsToMany(User, { through: UserProjects })
@@ -560,7 +564,7 @@ UserProjects.init({
     autoIncrement: true
   },
   status: DataTypes.STRING
-}, { sequelize })
+}, { sequelize, modelName: 'userProjects' })
 ```
 
 With Belongs-To-Many you can query based on **through** relation and select specific attributes. For example using `findAll` with **through**
@@ -604,6 +608,7 @@ Project.init(attributes, {
     plural: 'tasks',
   },
   sequelize,
+  modelName: 'project'
 })
 
 User.belongsToMany(Project);
@@ -792,20 +797,20 @@ class Post extends Model {}
 Post.init({
   title: Sequelize.STRING,
   text: Sequelize.STRING
-}, { sequelize });
+}, { sequelize, modelName: 'post' });
 
 class Image extends Model {}
 Image.init({
   title: Sequelize.STRING,
   link: Sequelize.STRING
-}, { sequelize });
+}, { sequelize, modelName: 'image' });
 
 class Comment extends Model {}
 Comment.init({
   title: Sequelize.STRING,
   commentable: Sequelize.STRING,
   commentableId: Sequelize.INTEGER
-}, { sequelize });
+}, { sequelize, modelName: 'comment' });
 
 Comment.prototype.getItem = function(options) {
   return this[
@@ -896,13 +901,13 @@ ItemTag.init({
     unique: 'item_tag_taggable',
     references: null
   }
-}, { sequelize });
+}, { sequelize, modelName: 'item_tag' });
 
 class Tag extends Model {}
 Tag.init({
   name: Sequelize.STRING,
   status: Sequelize.STRING
-}, { sequelize });
+}, { sequelize, modelName: 'tag' });
 
 Post.belongsToMany(Tag, {
   through: {
@@ -986,12 +991,12 @@ Consider the following models:
 class Product extends Model {}
 Product.init({
   title: Sequelize.STRING
-}, { sequelize });
+}, { sequelize, modelName: 'product' });
 class User extends Model {}
 User.init({
   firstName: Sequelize.STRING,
   lastName: Sequelize.STRING
-}, { sequelize });
+}, { sequelize, modelName: 'user' });
 class Address extends Model {}
 Address.init({
   type: Sequelize.STRING,
@@ -1000,7 +1005,7 @@ Address.init({
   city: Sequelize.STRING,
   state: Sequelize.STRING,
   zip: Sequelize.STRING,
-}, { sequelize });
+}, { sequelize, modelName: 'address' });
 
 Product.User = Product.belongsTo(User);
 User.Addresses = User.hasMany(Address);
@@ -1059,7 +1064,7 @@ Let's introduce the ability to associate a product with many tags. Setting up th
 class Tag extends Model {}
 Tag.init({
   name: Sequelize.STRING
-}, { sequelize });
+}, { sequelize, modelName: 'tag' });
 
 Product.hasMany(Tag);
 // Also works for `belongsToMany`.
