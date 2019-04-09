@@ -447,9 +447,9 @@ export interface FindOptions extends Logging, Transactionable, Filterable, Proje
   raw?: boolean;
 
   /**
-   * having ?!?
+   * Select group rows after groups and aggregates are computed.
    */
-  having?: WhereAttributeHash;
+  having?: WhereOptions;
 
   /**
    * Use sub queries (internal)
