@@ -256,3 +256,8 @@ where = {
 where = whereFn('test', {
   [Op.gt]: new Date(),
 });
+
+// Where as having option
+MyModel.findAll({
+  having: where
+});
