@@ -1,5 +1,5 @@
 {
-  "name": "sequelize-native-promises",
+  "name": "@abeai/sequelize-native-promises",
   "description": "Fork of sequelize that supports native promises giving it 200% increased speed",
   "version": "1.0.0",
   "author": "Sascha Depold <sascha@depold.com>",
