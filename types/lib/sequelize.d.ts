@@ -86,25 +86,21 @@ export interface PoolOptions {
   validate?(client?: unknown): boolean;
 }
 
+export interface ConnectionOptions {
+  host?: string;
+  port?: string | number;
+  username?: string;
+  password?: string;
+  database?: string;
+}
+
 /**
  * Interface for replication Options in the sequelize constructor
  */
 export interface ReplicationOptions {
-  read?: {
-    host?: string;
-    port?: string | number;
-    username?: string;
-    password?: string;
-    database?: string;
-  };
+  read: ConnectionOptions[];
 
-  write?: {
-    host?: string;
-    port?: string | number;
-    username?: string;
-    password?: string;
-    database?: string;
-  };
+  write: ConnectionOptions;
 }
 
 /**
