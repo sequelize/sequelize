@@ -697,6 +697,13 @@ export class Sequelize extends Hooks {
   public readonly connectionManager: ConnectionManager;
 
   /**
+   * Dictionary of all models linked with this instance.
+   */
+  public readonly models: {
+    [key: string]: typeof Model;
+  };
+
+  /**
    * Instantiate sequelize with name of database, username and password
    *
    * #### Example usage
