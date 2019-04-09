@@ -29,6 +29,7 @@ You can find the upgrade guide and changelog [here](http://docs.sequelizejs.com/
 - [Documentation](#documentation)
 - [Responsible disclosure](#responsible-disclosure)
 - [Resources](#resources)
+- [Known issues](#known-issues)
 
 ## Installation
 
@@ -57,6 +58,13 @@ If you have any security issue to report, contact project maintainers privately.
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Slack](http://sequelize-slack.herokuapp.com/)
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/sequelize.js)
+
+## Known issues
+
+### Using Postgres may silently return truncated data
+Postgres has a hard limit of 63 characters for field names, and due to the way sequelize aliases fields in SELECT queries, you can hit this limit unexpectedly. Field aliases are generated based on the table name, the related entity names, and the property names that are being queried, with each level of relationship adding more characters, so when joining entities more than 4-5 levels deep, there is a danger you hit this limit.
+
+The symptom will be that the object keys on your models will be truncated. There is no known fix at the time, but in some cases `include.separate` might help. Progress is being tracked at [issue #2084](https://github.com/sequelize/sequelize/issues/2084).
 
 ### Tools
 - [Sequelize & TypeScript](http://docs.sequelizejs.com/manual/typescript.html)
