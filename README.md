@@ -6,5 +6,11 @@ Sequelize Native Promises is a fork from Sequelize giving native promises suppor
 ## Installation
 
 ```bash
-$ npm install --save sequelize-native-promises
+$ npm install --save @abeai/sequelize-native-promises
+```
+
+## Useage 
+
+```js
+const Sequelize = require('@abeai/sequelize-native-promises');
 ```
