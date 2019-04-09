@@ -1,21 +1,22 @@
 {
-  "name": "sequelize",
-  "description": "Multi dialect ORM for Node.JS",
-  "version": "0.0.0-development",
+  "name": "@abeai/sequelize-native-promises",
+  "description": "Fork of sequelize that supports native promises giving it 200% increased speed",
+  "version": "1.0.0",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     "Sascha Depold <sascha@depold.com>",
     "Jan Aagaard Meier <janzeh@gmail.com>",
     "Daniel Durante <me@danieldurante.com>",
     "Mick Hansen <mick.kasper.hansen@gmail.com>",
-    "Sushant Dhiman <sushantdhiman@outlook.com>"
+    "Sushant Dhiman <sushantdhiman@outlook.com>",
+    "Jt Whissel <jtwhissel@gmail.com>"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/sequelize/sequelize.git"
+    "url": "https://github.com/abeai/sequelize-native-promises"
   },
   "bugs": {
-    "url": "https://github.com/sequelize/sequelize/issues"
+    "url": "https://github.com/abeai/sequelize-native-promisesissues"
   },
   "homepage": "http://docs.sequelizejs.com/",
   "main": "index.js",
