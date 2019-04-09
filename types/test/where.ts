@@ -41,6 +41,10 @@ let operators: WhereOperators = {
     [Op.contains]: [1, 2], // @> [1, 2] (PG array contains operator)
     [Op.contained]: [1, 2], // <@ [1, 2] (PG array contained by operator)
     [Op.any]: [2, 3], // ANY ARRAY[2, 3]::INTEGER (PG only)
+    [Op.regexp]: '^[h|a|t]', // REGEXP/~ '^[h|a|t]' (MySQL/PG only)
+    [Op.notRegexp]: '^[h|a|t]', // NOT REGEXP/!~ '^[h|a|t]' (MySQL/PG only)
+    [Op.iRegexp]: '^[h|a|t]',    // ~* '^[h|a|t]' (PG only)
+    [Op.notIRegexp]: '^[h|a|t]' // !~* '^[h|a|t]' (PG only)
 };
 
 operators = {

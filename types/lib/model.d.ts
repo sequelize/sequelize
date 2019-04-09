@@ -236,6 +236,42 @@ export interface WhereOperators {
    * String contains value.
    */
   [Op.substring]?: string;
+
+  /**
+   * MySQL/PG only
+   * 
+   * Matches regular expression, case sensitive
+   * 
+   * Example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
+   */
+  [Op.regexp]?: string;
+
+  /**
+   * MySQL/PG only
+   * 
+   * Does not match regular expression, case sensitive
+   * 
+   * Example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
+   */
+  [Op.notRegexp]?: string;
+  
+  /**
+   * PG only
+   * 
+   * Matches regular expression, case insensitive
+   * 
+   * Example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
+   */
+  [Op.iRegexp]?: string;
+
+  /**
+   * PG only
+   * 
+   * Does not match regular expression, case insensitive
+   * 
+   * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
+   */
+  [Op.notIRegexp]?: string;
 }
 
 /** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
