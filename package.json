@@ -1,7 +1,7 @@
 {
   "name": "@abeai/sequelize-native-promises",
   "description": "Fork of sequelize that supports native promises giving it 200% increased speed",
-  "version": "1.0.1-v4",
+  "version": "1.0.2-v4",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     "Sascha Depold <sascha@depold.com>",
@@ -93,7 +93,6 @@
     "nodejs",
     "object relational mapper"
   ],
-  "main": "index",
   "options": {
     "env_cmd": "./test/config/.docker.env",
     "mocha": "--globals setImmediate,clearImmediate --ui tdd --exit --check-leaks --colors -t 30000 --reporter spec"
