@@ -524,4 +524,4 @@ SELECT * FROM Project USE INDEX (index_project_on_name) WHERE name LIKE 'FOO %' 
 
 `Sequelize.IndexHints` includes `USE`, `FORCE`, and `IGNORE`.
 
-See https://github.com/sequelize/sequelize/issues/9421 for the original API proposal.
+See [Issue #9421](https://github.com/sequelize/sequelize/issues/9421) for the original API proposal.
