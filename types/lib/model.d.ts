@@ -527,6 +527,18 @@ export interface CountOptions extends Logging, Transactionable, Filterable, Proj
   col?: string;
 }
 
+/**
+ * Options for Model.count when GROUP BY is used
+ */
+export interface CountWithOptions extends CountOptions {
+  /**
+   * GROUP BY in sql
+   * Used in conjunction with `attributes`.
+   * @see Projectable
+   */
+  group: GroupOption;
+}
+
 export interface FindAndCountOptions extends CountOptions, FindOptions {}
 
 /**
@@ -1749,6 +1761,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * If you provide an `include` option, the number of matching associations will be counted instead.
    */
   public static count(options?: CountOptions): Promise<number>;
+
+  /**
+   * Count number of records if group by is used
+   */
+  public static count(options: CountWithOptions): Promise<{ [key: string]: number }>;
 
   /**
    * Find all the rows matching your query, within a specified offset / limit, and get the total number of
