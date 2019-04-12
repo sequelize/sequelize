@@ -230,10 +230,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               comment: 'FooBar'
             });
           }).then( () => {
-            return this.queryInterface.describeTable({ tableName: 'users' })
-              .then( describedTable2 => {
-                expect(describedTable2.level_id.comment).to.be.equal('FooBar');
-              });
+            return this.queryInterface.describeTable({ tableName: 'users' });
+          }).then( describedTable2 => {
+            expect(describedTable2.level_id.comment).to.be.equal('FooBar');
           });
         });
       });
