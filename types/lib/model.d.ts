@@ -1756,16 +1756,16 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): Promise<T>;
 
   /**
+   * Count number of records if group by is used
+   */
+  public static count(options: CountWithOptions): Promise<{ [key: string]: number }>;
+
+  /**
    * Count the number of records matching the provided where clause.
    *
    * If you provide an `include` option, the number of matching associations will be counted instead.
    */
   public static count(options?: CountOptions): Promise<number>;
-
-  /**
-   * Count number of records if group by is used
-   */
-  public static count(options: CountWithOptions): Promise<{ [key: string]: number }>;
 
   /**
    * Find all the rows matching your query, within a specified offset / limit, and get the total number of
