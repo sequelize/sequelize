@@ -437,7 +437,7 @@ export type FindAttributeOptions =
  *
  * A hash of options to describe the scope of the search
  */
-export interface FindOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid {
+export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid {
   /**
    * A list of associations to eagerly load using a left join. Supported is either
    * `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
