@@ -9,6 +9,48 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
+    describe('overwrite attributes', () => {
+      beforeEach(function() {
+        this.User = this.sequelize.define('user', {
+          name: Sequelize.STRING,
+          password: Sequelize.STRING,
+          active: Sequelize.BOOLEAN
+        });
+        this.User.addScope('defaultScope', {
+          where: {
+            active: true
+          },
+          attributes: {
+            include: ['name'],
+            exclude: ['password']
+          }
+        });
+        this.User.addScope('withPassword', {
+          where: {
+            name: 'Foo'
+          },
+          attributes: {
+            include: ['password'],
+            exclude: ['active']
+          }
+        });
+        return this.sequelize.sync({ force: true })
+          .then(() => {
+            return Promise.all([
+              this.User.create({ name: 'Foo', password: 'pass1', active: true }),
+              this.User.create({ name: 'Bar', password: 'pass2', active: false }),
+              this.User.create({ name: 'FooBar', password: 'pass3', active: true })
+            ]);
+          });
+      });
+      it('simple exclude merge', function() {
+        const scope = this.User.scope('defaultScope', 'withPassword')._scope;
+        expect(scope.attributes.include).to.not.contain('name');
+        expect(scope.attributes.include).to.not.contain('active');
+        expect(scope.where.active).to.equal(true);
+        expect(scope.where.name).to.equal('Foo');
+      });
+    });
     describe('simple merge', () => {
       beforeEach(function() {
 
