@@ -527,6 +527,18 @@ export interface CountOptions extends Logging, Transactionable, Filterable, Proj
   col?: string;
 }
 
+/**
+ * Options for Model.count when GROUP BY is used
+ */
+export interface CountWithOptions extends CountOptions {
+  /**
+   * GROUP BY in sql
+   * Used in conjunction with `attributes`.
+   * @see Projectable
+   */
+  group: GroupOption;
+}
+
 export interface FindAndCountOptions extends CountOptions, FindOptions {}
 
 /**
@@ -1742,6 +1754,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     aggregateFunction: string,
     options?: AggregateOptions<T>
   ): Promise<T>;
+
+  /**
+   * Count number of records if group by is used
+   */
+  public static count(options: CountWithOptions): Promise<{ [key: string]: number }>;
 
   /**
    * Count the number of records matching the provided where clause.
