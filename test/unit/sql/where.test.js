@@ -438,8 +438,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('username', {
         [Op.startsWith]: 'swagger'
       }, {
-        default: "[username] LIKE '%swagger'",
-        mssql: "[username] LIKE N'%swagger'"
+        default: "[username] LIKE 'swagger%'",
+        mssql: "[username] LIKE N'swagger%'"
       });
     });
 
@@ -447,8 +447,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('username', {
         [Op.endsWith]: 'swagger'
       }, {
-        default: "[username] LIKE 'swagger%'",
-        mssql: "[username] LIKE N'swagger%'"
+        default: "[username] LIKE '%swagger'",
+        mssql: "[username] LIKE N'%swagger'"
       });
     });
 

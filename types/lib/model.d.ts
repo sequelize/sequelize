@@ -437,7 +437,7 @@ export type FindAttributeOptions =
  *
  * A hash of options to describe the scope of the search
  */
-export interface FindOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid {
+export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid {
   /**
    * A list of associations to eagerly load using a left join. Supported is either
    * `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
@@ -525,6 +525,18 @@ export interface CountOptions extends Logging, Transactionable, Filterable, Proj
    * The column to aggregate on.
    */
   col?: string;
+}
+
+/**
+ * Options for Model.count when GROUP BY is used
+ */
+export interface CountWithOptions extends CountOptions {
+  /**
+   * GROUP BY in sql
+   * Used in conjunction with `attributes`.
+   * @see Projectable
+   */
+  group: GroupOption;
 }
 
 export interface FindAndCountOptions extends CountOptions, FindOptions {}
@@ -1742,6 +1754,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     aggregateFunction: string,
     options?: AggregateOptions<T>
   ): Promise<T>;
+
+  /**
+   * Count number of records if group by is used
+   */
+  public static count(options: CountWithOptions): Promise<{ [key: string]: number }>;
 
   /**
    * Count the number of records matching the provided where clause.
