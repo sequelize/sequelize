@@ -219,7 +219,22 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             expect(describedTable.level_id.allowNull).to.be.equal(true);
           });
         });
-        
+
+        it('should change the comment of column', function() {
+          return this.queryInterface.describeTable({
+            tableName: 'users'
+          }).then(describedTable => {
+            expect(describedTable.level_id.comment).to.be.equal(null);
+            return this.queryInterface.changeColumn('users', 'level_id', {
+              type: DataTypes.INTEGER,
+              comment: 'FooBar'
+            });
+          }).then(() => {
+            return this.queryInterface.describeTable({ tableName: 'users' });
+          }).then(describedTable2 => {
+            expect(describedTable2.level_id.comment).to.be.equal('FooBar');
+          });
+        });
       });
     }
   });
