@@ -259,7 +259,7 @@ This is a special configuration file. It lets you specify various options that y
 
 And a whole lot more. Let's see how you can use this file for custom configuration.
 
-For starters, let's create an empty file in root directory of your project.
+For starters, let's create an empty file in the root directory of your project.
 
 ```bash
 $ touch .sequelizerc
@@ -291,7 +291,7 @@ Configuration file is by default a JSON file called `config.json`. But sometimes
 
 Sequelize CLI can read from both `JSON` and `JS` files. This can be setup with `.sequelizerc` file. Let see how
 
-First you need to create a `.sequelizerc` file in root folder of your project. This file should override config path to a `JS` file. Like this
+First you need to create a `.sequelizerc` file in the root folder of your project. This file should override config path to a `JS` file. Like this
 
 ```js
 const path = require('path');
