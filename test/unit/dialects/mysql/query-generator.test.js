@@ -6,7 +6,7 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
   Op = require('../../../../lib/operators'),
-  { IndexHints } = require('../../../../lib/index-hints'),
+  IndexHints = require('../../../../lib/index-hints'),
   QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
 if (dialect === 'mysql') {
