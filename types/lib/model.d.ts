@@ -239,36 +239,36 @@ export interface WhereOperators {
 
   /**
    * MySQL/PG only
-   * 
+   *
    * Matches regular expression, case sensitive
-   * 
+   *
    * Example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
   [Op.regexp]?: string;
 
   /**
    * MySQL/PG only
-   * 
+   *
    * Does not match regular expression, case sensitive
-   * 
+   *
    * Example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
    */
   [Op.notRegexp]?: string;
-  
+
   /**
    * PG only
-   * 
+   *
    * Matches regular expression, case insensitive
-   * 
+   *
    * Example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
    */
   [Op.iRegexp]?: string;
 
   /**
    * PG only
-   * 
+   *
    * Does not match regular expression, case insensitive
-   * 
+   *
    * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
    */
   [Op.notIRegexp]?: string;
@@ -1758,7 +1758,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   /**
    * Count number of records if group by is used
    */
-  public static count(options: CountWithOptions): Promise<{ [key: string]: number }>;
+  public static count(options: CountWithOptions): Promise<{ [key: string]: string }>;
 
   /**
    * Count the number of records matching the provided where clause.
