@@ -209,7 +209,7 @@ export interface WhereOperators {
   [Op.contained]?: [number, number] | [Date, Date];
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
-  [Op.gt]?: number | string | Date;
+  [Op.gt]?: number | string | Date | Literal;
 
   /**
    * PG only
