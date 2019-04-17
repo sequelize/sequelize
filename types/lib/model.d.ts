@@ -141,19 +141,19 @@ export interface WhereOperators {
   [Op.any]?: (string | number)[];
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
-  [Op.gte]?: number | string | Date;
+  [Op.gte]?: number | string | Date | Literal;
 
   /** Example: `[Op.lt]: 10,` becomes `< 10` */
-  [Op.lt]?: number | string | Date;
+  [Op.lt]?: number | string | Date | Literal;
 
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
-  [Op.lte]?: number | string | Date;
+  [Op.lte]?: number | string | Date | Literal;
 
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
-  [Op.ne]?: string | number | WhereOperators;
+  [Op.ne]?: string | number | WhereOperators | Literal;
 
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
-  [Op.not]?: boolean | string | number | WhereOperators;
+  [Op.not]?: boolean | string | number | WhereOperators | Literal;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
   [Op.between]?: [number, number];
