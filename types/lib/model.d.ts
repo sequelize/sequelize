@@ -138,45 +138,45 @@ export interface WhereOperators {
    *
    * _PG only_
    */
-  [Op.any]?: (string | number)[];
+  [Op.any]?: (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
-  [Op.gte]?: number | string | Date;
+  [Op.gte]?: number | string | Date | Literal;
 
   /** Example: `[Op.lt]: 10,` becomes `< 10` */
-  [Op.lt]?: number | string | Date;
+  [Op.lt]?: number | string | Date | Literal;
 
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
-  [Op.lte]?: number | string | Date;
+  [Op.lte]?: number | string | Date | Literal;
 
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
-  [Op.ne]?: string | number | WhereOperators;
+  [Op.ne]?: string | number | Literal | WhereOperators;
 
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
-  [Op.not]?: boolean | string | number | WhereOperators;
+  [Op.not]?: boolean | string | number |  Literal | WhereOperators;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
   [Op.between]?: [number, number];
 
   /** Example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
-  [Op.in]?: (string | number)[] | Literal;
+  [Op.in]?: (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.notIn]: [1, 2],` becomes `NOT IN [1, 2]` */
-  [Op.notIn]?: (string | number)[] | Literal;
+  [Op.notIn]?: (string | number | Literal)[] | Literal;
 
   /**
    * Examples:
    *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
    *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.like]?: string | AnyOperator | AllOperator;
+  [Op.like]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * Examples:
    *  - `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
    *  - `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notLike]?: string | AnyOperator | AllOperator;
+  [Op.notLike]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * case insensitive PG only
@@ -185,31 +185,31 @@ export interface WhereOperators {
    *  - `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
    *  - `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.iLike]?: string | AnyOperator | AllOperator;
+  [Op.iLike]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * PG array overlap operator
    *
    * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
    */
-  [Op.overlap]?: [number, number];
+  [Op.overlap]?: [number, number] | Literal;
 
   /**
    * PG array contains operator
    *
    * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  [Op.contains]?: [number, number] | [Date, Date];
+  [Op.contains]?: [number, number] | [Date, Date] | Literal;
 
   /**
    * PG array contained by operator
    *
    * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?: [number, number] | [Date, Date];
+  [Op.contained]?: [number, number] | [Date, Date] | Literal;
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
-  [Op.gt]?: number | string | Date;
+  [Op.gt]?: number | string | Date | Literal;
 
   /**
    * PG only
@@ -218,7 +218,7 @@ export interface WhereOperators {
    *  - `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
    *  - `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notILike]?: string | AnyOperator | AllOperator;
+  [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
 
   /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
   [Op.notBetween]?: [number, number];
