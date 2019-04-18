@@ -1,6 +1,7 @@
-import { Association, HasOne, Model, Sequelize, DataTypes } from 'sequelize';
+import { Association, HasOne, Model, Sequelize } from 'sequelize';
 
 class MyModel extends Model {
+  public num: number;
   public static associations: {
     other: HasOne;
   };
@@ -10,6 +11,9 @@ class MyModel extends Model {
 }
 
 const assoc: Association = MyModel.associations.other;
+
+const Instance: MyModel = new MyModel({ int: 10 });
+const num: number = Instance.get('num');
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
