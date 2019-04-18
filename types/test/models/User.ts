@@ -57,6 +57,22 @@ User.init(
         };
       }
     },
+    indexes: [
+      {
+        name: 'super_index',
+        index: 'UNIQUE',
+        fields: [ 'firstName' ]
+      },
+      {
+        fields: [ 'firstName', 'lastName' ],
+        unique: true
+      },
+      {
+        fields: [ 'username' ],
+        using: 'gin',
+        concurrently: false
+      }
+    ],
     sequelize,
   }
 );
