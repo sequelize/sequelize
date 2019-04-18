@@ -265,3 +265,29 @@ where = whereFn('test', {
 MyModel.findAll({
   having: where
 });
+
+where = {
+    [Op.lt]: Sequelize.literal('SOME_STRING')
+}
+
+Sequelize.where(
+    Sequelize.cast(Sequelize.col('SOME_COL'), 'INTEGER'), {
+        [Op.lt]: Sequelize.literal('LIT'),
+        [Op.any]: Sequelize.literal('LIT'),
+        [Op.gte]: Sequelize.literal('LIT'),
+        [Op.lt]: Sequelize.literal('LIT'),
+        [Op.lte]: Sequelize.literal('LIT'),
+        [Op.ne]: Sequelize.literal('LIT'),
+        [Op.not]: Sequelize.literal('LIT'),
+        [Op.in]: Sequelize.literal('LIT'),
+        [Op.notIn]: Sequelize.literal('LIT'),
+        [Op.like]: Sequelize.literal('LIT'),
+        [Op.notLike]: Sequelize.literal('LIT'),
+        [Op.iLike]: Sequelize.literal('LIT'),
+        [Op.overlap]: Sequelize.literal('LIT'),
+        [Op.contains]: Sequelize.literal('LIT'),
+        [Op.contained]: Sequelize.literal('LIT'),
+        [Op.gt]: Sequelize.literal('LIT'),
+        [Op.notILike]: Sequelize.literal('LIT')
+    }
+)
