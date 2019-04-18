@@ -239,36 +239,36 @@ export interface WhereOperators {
 
   /**
    * MySQL/PG only
-   * 
+   *
    * Matches regular expression, case sensitive
-   * 
+   *
    * Example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
   [Op.regexp]?: string;
 
   /**
    * MySQL/PG only
-   * 
+   *
    * Does not match regular expression, case sensitive
-   * 
+   *
    * Example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
    */
   [Op.notRegexp]?: string;
-  
+
   /**
    * PG only
-   * 
+   *
    * Matches regular expression, case insensitive
-   * 
+   *
    * Example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
    */
   [Op.iRegexp]?: string;
 
   /**
    * PG only
-   * 
+   *
    * Does not match regular expression, case insensitive
-   * 
+   *
    * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
    */
   [Op.notIRegexp]?: string;
@@ -1909,8 +1909,14 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static upsert<M extends Model>(
     this: { new (): M } & typeof Model,
     values: object,
-    options?: UpsertOptions
+    options?: UpsertOptions & { returning?: false | undefined }
   ): Promise<boolean>;
+
+  public static upsert<M extends Model> (
+    this: { new (): M } & typeof Model,
+    values: object,
+    options?: UpsertOptions & { returning: true }
+  ): Promise<[ M, boolean ]>;
 
   /**
    * Create and insert multiple instances in bulk.
