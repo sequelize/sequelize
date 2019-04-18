@@ -9,4 +9,12 @@ class MyModel extends Model {
   }
 }
 
+class OtherModel extends Model {}
+
 const assoc: Association = MyModel.associations.other;
+
+MyModel.findOne({
+  include: [
+    { model: OtherModel, paranoid: true }
+  ]
+});
