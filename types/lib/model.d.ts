@@ -1117,6 +1117,16 @@ export interface ModelIndexesOptions {
    * should be sorted in), `collate` (the collation (sort order) for the column)
    */
   fields?: (string | { attribute: string; length: number; order: string; collate: string })[];
+
+  /**
+   * Type of search index. Postgres only
+   */
+  using?: string;
+
+  /**
+   * Index operator type. Postgres only
+   */
+  operator?: string;
 }
 
 /**
