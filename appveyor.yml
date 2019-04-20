@@ -39,6 +39,7 @@ after_test:
 
 branches:
   only:
+    - v6
     - master
     - v6
     - /^greenkeeper/.*$/
