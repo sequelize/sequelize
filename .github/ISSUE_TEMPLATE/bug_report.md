@@ -42,6 +42,9 @@ Dialect:
 Dialect **library** version: XXX
 Database version: XXX
 Sequelize version: XXX
+Node Version: XXX
+OS: XXX
+If TypeScript related: TypeScript version: XXX
 Tested with latest release:
 - [ ] No
 - [ ] Yes, specify that version: 
