@@ -7,14 +7,14 @@ class Project extends Model {}
 Project.init({
   title: Sequelize.STRING,
   description: Sequelize.TEXT
-}, { sequelize });
+}, { sequelize, modelName: 'project' });
 
 class Task extends Model {}
 Task.init({
   title: Sequelize.STRING,
   description: Sequelize.TEXT,
   deadline: Sequelize.DATE
-}, { sequelize })
+}, { sequelize, modelName: 'task' })
 ```
 
 Apart from [datatypes][1], there are plenty of options that you can set on each column.
@@ -77,7 +77,10 @@ Foo.init({
 
    comment: 'This is a column name that has a comment'
  }
-}, { sequelize });
+}, {
+  sequelize,
+  modelName: 'foo'
+});
 ```
 
 The comment option can also be used on a table, see [model configuration][0].
@@ -163,7 +166,7 @@ Employee.init({
       this.setDataValue('title', val.toUpperCase());
     }
   }
-}, { sequelize });
+}, { sequelize, modelName: 'employee' });
 
 Employee
   .create({ name: 'John Doe', title: 'senior engineer' })
@@ -198,6 +201,7 @@ Foo.init({
   lastname: Sequelize.STRING
 }, {
   sequelize,
+  modelName: 'foo'
 });
 
 // Or with `sequelize.define`
@@ -449,6 +453,11 @@ You can also influence the way Sequelize handles your column names:
 ```js
 class Bar extends Model {}
 Bar.init({ /* bla */ }, {
+  // The name of the model. The model will be stored in `sequelize.models` under this name.
+  // This defaults to class name i.e. Bar in this case. This will control name of auto-generated
+  // foreignKey and association naming
+  modelName: 'bar',
+
   // don't add the timestamp attributes (updatedAt, createdAt)
   timestamps: false,
 

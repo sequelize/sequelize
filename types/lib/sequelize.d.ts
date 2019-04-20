@@ -86,25 +86,21 @@ export interface PoolOptions {
   validate?(client?: unknown): boolean;
 }
 
+export interface ConnectionOptions {
+  host?: string;
+  port?: string | number;
+  username?: string;
+  password?: string;
+  database?: string;
+}
+
 /**
  * Interface for replication Options in the sequelize constructor
  */
 export interface ReplicationOptions {
-  read?: {
-    host?: string;
-    port?: string | number;
-    username?: string;
-    password?: string;
-    database?: string;
-  };
+  read: ConnectionOptions[];
 
-  write?: {
-    host?: string;
-    port?: string | number;
-    username?: string;
-    password?: string;
-    database?: string;
-  };
+  write: ConnectionOptions;
 }
 
 /**
@@ -695,6 +691,13 @@ export class Sequelize extends Hooks {
   public readonly modelManager: ModelManager;
 
   public readonly connectionManager: ConnectionManager;
+
+  /**
+   * Dictionary of all models linked with this instance.
+   */
+  public readonly models: {
+    [key: string]: typeof Model;
+  };
 
   /**
    * Instantiate sequelize with name of database, username and password
@@ -1336,7 +1339,7 @@ export function or(...args: (WhereOperators | WhereAttributeHash | Where)[]): Or
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
 export type AttributeType = Fn | Col | Literal | ModelAttributeColumnOptions | string;
-export type LogicType = Fn | Col | Literal | OrOperator | AndOperator | string;
+export type LogicType = Fn | Col | Literal | OrOperator | AndOperator | WhereOperators | string;
 
 /**
  * A way of specifying attr = condition.

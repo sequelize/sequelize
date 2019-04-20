@@ -594,6 +594,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       return this.ParanoidUser.sync({ force: true });
     });
 
+    it('should return false when model is just created', function() {
+      return this.ParanoidUser.create({ username: 'foo' }).then(user => {
+        expect(user.isSoftDeleted()).to.be.false;
+      });
+    });
+
     it('returns false if user is not soft deleted', function() {
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
         return this.ParanoidUser.findAll().then(users => {

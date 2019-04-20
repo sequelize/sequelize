@@ -107,6 +107,7 @@ User.init({
   }
 }, {
   sequelize,
+  modelName: 'user'
   // options
 });
 ```
@@ -114,7 +115,7 @@ User.init({
 Alternatively, using `sequelize.define`:
 
 ```js
-const User = sequelize.define('User', {
+const User = sequelize.define('user', {
   // attributes
   firstName: {
     type: Sequelize.STRING,

@@ -43,7 +43,7 @@ class User extends Model {
   // actively include a relation.
   public readonly projects?: Project[];
 
-  public static associtations: {
+  public static associations: {
     projects: Association<User, Project>;
   };
 }
@@ -94,6 +94,7 @@ User.init({
   }
 }, {
   tableName: 'users',
+  modelName: 'user',
   sequelize: sequelize, // this bit is important
 });
 

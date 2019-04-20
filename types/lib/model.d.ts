@@ -138,45 +138,45 @@ export interface WhereOperators {
    *
    * _PG only_
    */
-  [Op.any]?: (string | number)[];
+  [Op.any]?: (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
-  [Op.gte]?: number | string | Date;
+  [Op.gte]?: number | string | Date | Literal;
 
   /** Example: `[Op.lt]: 10,` becomes `< 10` */
-  [Op.lt]?: number | string | Date;
+  [Op.lt]?: number | string | Date | Literal;
 
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
-  [Op.lte]?: number | string | Date;
+  [Op.lte]?: number | string | Date | Literal;
 
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
-  [Op.ne]?: string | number | WhereOperators;
+  [Op.ne]?: string | number | Literal | WhereOperators;
 
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
-  [Op.not]?: boolean | string | number | WhereOperators;
+  [Op.not]?: boolean | string | number |  Literal | WhereOperators;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
   [Op.between]?: [number, number];
 
   /** Example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
-  [Op.in]?: (string | number)[] | Literal;
+  [Op.in]?: (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.notIn]: [1, 2],` becomes `NOT IN [1, 2]` */
-  [Op.notIn]?: (string | number)[] | Literal;
+  [Op.notIn]?: (string | number | Literal)[] | Literal;
 
   /**
    * Examples:
    *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
    *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.like]?: string | AnyOperator | AllOperator;
+  [Op.like]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * Examples:
    *  - `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
    *  - `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notLike]?: string | AnyOperator | AllOperator;
+  [Op.notLike]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * case insensitive PG only
@@ -185,31 +185,31 @@ export interface WhereOperators {
    *  - `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
    *  - `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.iLike]?: string | AnyOperator | AllOperator;
+  [Op.iLike]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * PG array overlap operator
    *
    * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
    */
-  [Op.overlap]?: [number, number];
+  [Op.overlap]?: [number, number] | Literal;
 
   /**
    * PG array contains operator
    *
    * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  [Op.contains]?: [number, number] | [Date, Date];
+  [Op.contains]?: [number, number] | [Date, Date] | Literal;
 
   /**
    * PG array contained by operator
    *
    * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?: [number, number] | [Date, Date];
+  [Op.contained]?: [number, number] | [Date, Date] | Literal;
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
-  [Op.gt]?: number | string | Date;
+  [Op.gt]?: number | string | Date | Literal;
 
   /**
    * PG only
@@ -218,7 +218,7 @@ export interface WhereOperators {
    *  - `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
    *  - `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notILike]?: string | AnyOperator | AllOperator;
+  [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
 
   /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
   [Op.notBetween]?: [number, number];
@@ -236,6 +236,42 @@ export interface WhereOperators {
    * String contains value.
    */
   [Op.substring]?: string;
+
+  /**
+   * MySQL/PG only
+   *
+   * Matches regular expression, case sensitive
+   *
+   * Example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
+   */
+  [Op.regexp]?: string;
+
+  /**
+   * MySQL/PG only
+   *
+   * Does not match regular expression, case sensitive
+   *
+   * Example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
+   */
+  [Op.notRegexp]?: string;
+
+  /**
+   * PG only
+   *
+   * Matches regular expression, case insensitive
+   *
+   * Example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
+   */
+  [Op.iRegexp]?: string;
+
+  /**
+   * PG only
+   *
+   * Does not match regular expression, case insensitive
+   *
+   * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
+   */
+  [Op.notIRegexp]?: string;
 }
 
 /** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
@@ -401,7 +437,7 @@ export type FindAttributeOptions =
  *
  * A hash of options to describe the scope of the search
  */
-export interface FindOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid {
+export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid {
   /**
    * A list of associations to eagerly load using a left join. Supported is either
    * `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
@@ -447,9 +483,9 @@ export interface FindOptions extends Logging, Transactionable, Filterable, Proje
   raw?: boolean;
 
   /**
-   * having ?!?
+   * Select group rows after groups and aggregates are computed.
    */
-  having?: WhereAttributeHash;
+  having?: WhereOptions;
 
   /**
    * Use sub queries (internal)
@@ -489,6 +525,18 @@ export interface CountOptions extends Logging, Transactionable, Filterable, Proj
    * The column to aggregate on.
    */
   col?: string;
+}
+
+/**
+ * Options for Model.count when GROUP BY is used
+ */
+export interface CountWithOptions extends CountOptions {
+  /**
+   * GROUP BY in sql
+   * Used in conjunction with `attributes`.
+   * @see Projectable
+   */
+  group: GroupOption;
 }
 
 export interface FindAndCountOptions extends CountOptions, FindOptions {}
@@ -1069,6 +1117,16 @@ export interface ModelIndexesOptions {
    * should be sorted in), `collate` (the collation (sort order) for the column)
    */
   fields?: (string | { attribute: string; length: number; order: string; collate: string })[];
+
+  /**
+   * Type of search index. Postgres only
+   */
+  using?: string;
+
+  /**
+   * Index operator type. Postgres only
+   */
+  operator?: string;
 }
 
 /**
@@ -1597,7 +1655,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static scope<M extends { new (): Model }>(
     this: M,
-    options?: string | string[] | ScopeOptions | WhereAttributeHash
+    options?: string | ScopeOptions | (string | ScopeOptions)[] | WhereAttributeHash
   ): M;
 
   public static addScope(name: string, scope: FindOptions, options?: AddScopeOptions): void;
@@ -1706,6 +1764,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     aggregateFunction: string,
     options?: AggregateOptions<T>
   ): Promise<T>;
+
+  /**
+   * Count number of records if group by is used
+   */
+  public static count(options: CountWithOptions): Promise<{ [key: string]: number }>;
 
   /**
    * Count the number of records matching the provided where clause.

@@ -130,6 +130,13 @@ export class ExclusionConstraintError extends DatabaseError {
 }
 
 /**
+ * Thrown when attempting to update a stale model instance
+ */
+export class OptimisticLockError extends BaseError {
+  constructor(options: { message?: string, modelName?: string, values?: { [key: string]: any }, where?: { [key: string]: any } });
+}
+
+/**
  * A base class for all connection related errors.
  */
 export class ConnectionError extends BaseError {

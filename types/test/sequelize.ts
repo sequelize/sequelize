@@ -1,4 +1,4 @@
-import { Config, Sequelize } from 'sequelize';
+import { Config, Sequelize, Model } from 'sequelize';
 
 Sequelize.useCLS({
 });
@@ -45,3 +45,4 @@ Sequelize.afterConnect(() => {
 
 });
 
+const myModel: typeof Model = sequelize.models.asd;

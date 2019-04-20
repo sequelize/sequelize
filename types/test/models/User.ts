@@ -55,6 +55,9 @@ User.init(
             firstName: a,
           },
         };
+      },
+      custom2() {
+        return {}
       }
     },
     sequelize,
@@ -79,3 +82,8 @@ export const Group = User.belongsTo(UserGroup, { as: 'group', foreignKey: 'group
 // associations refer to their Model
 const userType: ModelCtor<User> = User.associations.group.source;
 const groupType: ModelCtor<UserGroup> = User.associations.group.target;
+
+User.scope([
+  'custom2',
+  { method: [ 'custom', 32 ] }
+])

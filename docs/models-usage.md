@@ -414,11 +414,11 @@ When you are retrieving data from the database there is a fair chance that you a
 
 ```js
 class User extends Model {}
-User.init({ name: Sequelize.STRING }, { sequelize })
+User.init({ name: Sequelize.STRING }, { sequelize, modelName: 'user' })
 class Task extends Model {}
-Task.init({ name: Sequelize.STRING }, { sequelize })
+Task.init({ name: Sequelize.STRING }, { sequelize, modelName: 'task' })
 class Tool extends Model {}
-Tool.init({ name: Sequelize.STRING }, { sequelize })
+Tool.init({ name: Sequelize.STRING }, { sequelize, modelName: 'tool' })
 
 Task.belongsTo(User)
 User.hasMany(Task)
