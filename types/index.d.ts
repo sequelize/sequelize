@@ -3,6 +3,7 @@ import Deferrable = require('./lib/deferrable');
 import Op = require('./lib/operators');
 import QueryTypes = require('./lib/query-types');
 import TableHints = require('./lib/table-hints');
+import IndexHints = require('./lib/index-hints');
 import Utils = require('./lib/utils');
 
 export * from './lib/sequelize';
@@ -15,5 +16,5 @@ export * from './lib/errors';
 export { BaseError as Error } from './lib/errors';
 export { useInflection } from './lib/utils';
 export { Promise } from './lib/promise';
-export { Utils, QueryTypes, Op, TableHints, DataTypes, Deferrable };
+export { Utils, QueryTypes, Op, TableHints, IndexHints, DataTypes, Deferrable };
 export { Validator as validator } from './lib/utils/validator-extras';
