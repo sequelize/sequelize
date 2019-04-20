@@ -47,6 +47,26 @@ if (dialect.match(/^postgres/)) {
           expect(result[0].client_min_messages).to.equal('notice');
         });
     });
+
+    // This was added for redshift. Redshift is based on a version of postgres that doesn't have the
+    // standard_conforming_strings option
+    it('should not set standard_conforming_strings if standardConformingStrings is false', () => {
+      const sequelize = Support.createSequelizeInstance({ standardConformingStrings: false });
+      return sequelize.query('SHOW standard_conforming_strings')
+        .then(result => {
+          // `notice` is Postgres's default
+          expect(result[0].standard_conforming_strings).to.equal('off');
+        });
+    });
+
+    it('should set standard_conforming_strings by default', () => {
+      const sequelize = Support.createSequelizeInstance({});
+      return sequelize.query('SHOW standard_conforming_strings')
+        .then(result => {
+          // `notice` is Postgres's default
+          expect(result[0].standard_conforming_strings).to.equal('on');
+        });
+    });
   });
 
   describe('Dynamic OIDs', () => {
