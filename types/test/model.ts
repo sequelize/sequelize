@@ -1,4 +1,4 @@
-import { Association, HasOne, Model } from 'sequelize';
+import { Association, HasOne, Model, Sequelize, DataTypes } from 'sequelize';
 
 class MyModel extends Model {
   public static associations: {
@@ -17,4 +17,18 @@ MyModel.findOne({
   include: [
     { model: OtherModel, paranoid: true }
   ]
+});
+
+const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
+
+MyModel.init({}, {
+  indexes: [
+    {
+      fields: ['foo'],
+      using: 'gin',
+      operator: 'jsonb_path_ops',
+    }
+  ],
+  sequelize,
+  tableName: 'my_model'
 });
