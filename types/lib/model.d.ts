@@ -20,6 +20,7 @@ import { QueryOptions } from './query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
 import { Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
+import { IndexHints } from '..';
 
 export interface Logging {
   /**
@@ -239,36 +240,36 @@ export interface WhereOperators {
 
   /**
    * MySQL/PG only
-   * 
+   *
    * Matches regular expression, case sensitive
-   * 
+   *
    * Example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
   [Op.regexp]?: string;
 
   /**
    * MySQL/PG only
-   * 
+   *
    * Does not match regular expression, case sensitive
-   * 
+   *
    * Example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
    */
   [Op.notRegexp]?: string;
-  
+
   /**
    * PG only
-   * 
+   *
    * Matches regular expression, case insensitive
-   * 
+   *
    * Example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
    */
   [Op.iRegexp]?: string;
 
   /**
    * PG only
-   * 
+   *
    * Does not match regular expression, case insensitive
-   * 
+   *
    * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
    */
   [Op.notIRegexp]?: string;
@@ -340,7 +341,7 @@ export type Includeable = typeof Model | Association | IncludeOptions | { all: t
 /**
  * Complex include options
  */
-export interface IncludeOptions extends Filterable, Projectable {
+export interface IncludeOptions extends Filterable, Projectable, Paranoid {
   /**
    * The model you want to eagerly load
    */
@@ -432,12 +433,24 @@ export type FindAttributeOptions =
       include: (string | ProjectionAlias)[];
     };
 
+export interface IndexHint {
+  type: IndexHints;
+  value: string[];
+}
+
+export interface IndexHintable {
+  /**
+   * MySQL only.
+   */
+  indexHints?: IndexHint[];
+}
+
 /**
  * Options that are passed to any model creating a SELECT query
  *
  * A hash of options to describe the scope of the search
  */
-export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid {
+export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid, IndexHintable {
   /**
    * A list of associations to eagerly load using a left join. Supported is either
    * `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
@@ -1117,6 +1130,16 @@ export interface ModelIndexesOptions {
    * should be sorted in), `collate` (the collation (sort order) for the column)
    */
   fields?: (string | { attribute: string; length: number; order: string; collate: string })[];
+
+  /**
+   * Type of search index. Postgres only
+   */
+  using?: string;
+
+  /**
+   * Index operator type. Postgres only
+   */
+  operator?: string;
 }
 
 /**
@@ -1645,7 +1668,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static scope<M extends { new (): Model }>(
     this: M,
-    options?: string | string[] | ScopeOptions | WhereAttributeHash
+    options?: string | ScopeOptions | (string | ScopeOptions)[] | WhereAttributeHash
   ): M;
 
   public static addScope(name: string, scope: FindOptions, options?: AddScopeOptions): void;
@@ -1909,8 +1932,14 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static upsert<M extends Model>(
     this: { new (): M } & typeof Model,
     values: object,
-    options?: UpsertOptions
+    options?: UpsertOptions & { returning?: false | undefined }
   ): Promise<boolean>;
+
+  public static upsert<M extends Model> (
+    this: { new (): M } & typeof Model,
+    values: object,
+    options?: UpsertOptions & { returning: true }
+  ): Promise<[ M, boolean ]>;
 
   /**
    * Create and insert multiple instances in bulk.
