@@ -20,6 +20,7 @@ import { QueryOptions } from './query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
 import { Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
+import { IndexHints } from '..';
 
 export interface Logging {
   /**
@@ -432,12 +433,24 @@ export type FindAttributeOptions =
       include: (string | ProjectionAlias)[];
     };
 
+export interface IndexHint {
+  type: IndexHints;
+  value: string[];
+}
+
+export interface IndexHintable {
+  /**
+   * MySQL only.
+   */
+  indexHints?: IndexHint[];
+}
+
 /**
  * Options that are passed to any model creating a SELECT query
  *
  * A hash of options to describe the scope of the search
  */
-export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid {
+export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid, IndexHintable {
   /**
    * A list of associations to eagerly load using a left join. Supported is either
    * `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
