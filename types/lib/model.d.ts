@@ -20,6 +20,7 @@ import { QueryOptions } from './query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
 import { Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
+import { IndexHints } from '..';
 
 export interface Logging {
   /**
@@ -340,7 +341,7 @@ export type Includeable = typeof Model | Association | IncludeOptions | { all: t
 /**
  * Complex include options
  */
-export interface IncludeOptions extends Filterable, Projectable {
+export interface IncludeOptions extends Filterable, Projectable, Paranoid {
   /**
    * The model you want to eagerly load
    */
@@ -432,12 +433,24 @@ export type FindAttributeOptions =
       include: (string | ProjectionAlias)[];
     };
 
+export interface IndexHint {
+  type: IndexHints;
+  value: string[];
+}
+
+export interface IndexHintable {
+  /**
+   * MySQL only.
+   */
+  indexHints?: IndexHint[];
+}
+
 /**
  * Options that are passed to any model creating a SELECT query
  *
  * A hash of options to describe the scope of the search
  */
-export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid {
+export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid, IndexHintable {
   /**
    * A list of associations to eagerly load using a left join. Supported is either
    * `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
@@ -1919,8 +1932,14 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static upsert<M extends Model>(
     this: { new (): M } & typeof Model,
     values: object,
-    options?: UpsertOptions
+    options?: UpsertOptions & { returning?: false | undefined }
   ): Promise<boolean>;
+
+  public static upsert<M extends Model> (
+    this: { new (): M } & typeof Model,
+    values: object,
+    options?: UpsertOptions & { returning: true }
+  ): Promise<[ M, boolean ]>;
 
   /**
    * Create and insert multiple instances in bulk.
