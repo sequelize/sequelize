@@ -303,7 +303,16 @@ export interface Options extends Logging {
    *
    * @default all aliases
    */
-  operatorsAliases?: OperatorsAliases | false;
+  operatorsAliases?: OperatorsAliases;
+
+
+  /**
+   * The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option.
+   * WARNING: Setting this to false may expose vulnerabilities and is not recommended!
+   *
+   * @default true
+   */
+  standardConformingStrings?: boolean;
 
   /**
    * Sets global permanent hooks.
