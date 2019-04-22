@@ -18,6 +18,7 @@ declare const Op: {
   readonly in: unique symbol;
   readonly iRegexp: unique symbol;
   readonly is: unique symbol;
+  readonly join: unique symbol;
   readonly like: unique symbol;
   readonly lt: unique symbol;
   readonly lte: unique symbol;
@@ -39,5 +40,6 @@ declare const Op: {
   readonly strictLeft: unique symbol;
   readonly strictRight: unique symbol;
   readonly substring: unique symbol;
+  readonly values: unique symbol;
 };
 export = Op;
