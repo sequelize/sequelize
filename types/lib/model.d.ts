@@ -340,7 +340,7 @@ export type Includeable = typeof Model | Association | IncludeOptions | { all: t
 /**
  * Complex include options
  */
-export interface IncludeOptions extends Filterable, Projectable {
+export interface IncludeOptions extends Filterable, Projectable, Paranoid {
   /**
    * The model you want to eagerly load
    */
