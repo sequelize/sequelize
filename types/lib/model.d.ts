@@ -341,7 +341,7 @@ export type Includeable = typeof Model | Association | IncludeOptions | { all: t
 /**
  * Complex include options
  */
-export interface IncludeOptions extends Filterable, Projectable {
+export interface IncludeOptions extends Filterable, Projectable, Paranoid {
   /**
    * The model you want to eagerly load
    */
@@ -439,6 +439,9 @@ export interface IndexHint {
 }
 
 export interface IndexHintable {
+  /**
+   * MySQL only.
+   */
   indexHints?: IndexHint[];
 }
 
@@ -1929,8 +1932,14 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static upsert<M extends Model>(
     this: { new (): M } & typeof Model,
     values: object,
-    options?: UpsertOptions
+    options?: UpsertOptions & { returning?: false | undefined }
   ): Promise<boolean>;
+
+  public static upsert<M extends Model> (
+    this: { new (): M } & typeof Model,
+    values: object,
+    options?: UpsertOptions & { returning: true }
+  ): Promise<[ M, boolean ]>;
 
   /**
    * Create and insert multiple instances in bulk.

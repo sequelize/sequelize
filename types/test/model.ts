@@ -9,7 +9,15 @@ class MyModel extends Model {
   }
 }
 
+class OtherModel extends Model {}
+
 const assoc: Association = MyModel.associations.other;
+
+MyModel.findOne({
+  include: [
+    { model: OtherModel, paranoid: true }
+  ]
+});
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
