@@ -1919,8 +1919,14 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static upsert<M extends Model>(
     this: { new (): M } & typeof Model,
     values: object,
-    options?: UpsertOptions
+    options?: UpsertOptions & { returning?: false | undefined }
   ): Promise<boolean>;
+
+  public static upsert<M extends Model> (
+    this: { new (): M } & typeof Model,
+    values: object,
+    options?: UpsertOptions & { returning: true }
+  ): Promise<[ M, boolean ]>;
 
   /**
    * Create and insert multiple instances in bulk.
