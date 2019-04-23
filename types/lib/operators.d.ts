@@ -18,7 +18,6 @@ declare const Op: {
   readonly in: unique symbol;
   readonly iRegexp: unique symbol;
   readonly is: unique symbol;
-  readonly join: unique symbol;
   readonly like: unique symbol;
   readonly lt: unique symbol;
   readonly lte: unique symbol;
