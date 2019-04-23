@@ -52,7 +52,7 @@ Before continuing further we will need to tell CLI how to connect to database. T
   "production": {
     "username": "root",
     "password": null,
-    "database": "database_test",
+    "database": "database_production",
     "host": "127.0.0.1",
     "dialect": "mysql"
   }
