@@ -128,6 +128,11 @@ export interface AllOperator {
   [Op.all]: (string | number)[];
 }
 
+/** Undocumented? */
+export interface ValuesOperator {
+  [Op.values]: (string | number)[];
+}
+
 /**
  * Operators that can be used in WhereOptions
  *
@@ -170,14 +175,14 @@ export interface WhereOperators {
    *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
    *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.like]?: string | Literal | AnyOperator | AllOperator;
+  [Op.like]?: string | Literal | AnyOperator | AllOperator | ValuesOperator;
 
   /**
    * Examples:
    *  - `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
    *  - `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notLike]?: string | Literal | AnyOperator | AllOperator;
+  [Op.notLike]?: string | Literal | AnyOperator | AllOperator | ValuesOperator;
 
   /**
    * case insensitive PG only
@@ -186,7 +191,7 @@ export interface WhereOperators {
    *  - `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
    *  - `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.iLike]?: string | Literal | AnyOperator | AllOperator;
+  [Op.iLike]?: string | Literal | AnyOperator | AllOperator | ValuesOperator;
 
   /**
    * PG array overlap operator
@@ -219,7 +224,7 @@ export interface WhereOperators {
    *  - `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
    *  - `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
+  [Op.notILike]?: string | Literal | AnyOperator | AllOperator | ValuesOperator;
 
   /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
   [Op.notBetween]?: [number, number];
