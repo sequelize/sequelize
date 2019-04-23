@@ -1124,6 +1124,11 @@ export class Sequelize extends Hooks {
   public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<unknown[]>;
 
   /**
+   * Get the fn for random based on the dialect
+   */
+  public random(): Fn;
+
+  /**
    * Execute a query which would set an environment or user variable. The variables are set per connection,
    * so this function needs a transaction.
    *
