@@ -43,50 +43,6 @@ describe('QueryGenerator', () => {
         .to.throw('Invalid value { \'$in\': [ 4 ] }');
     });
 
-    it('should parse set aliases strings as operators', function() {
-      const QG = getAbstractQueryGenerator(this.sequelize),
-        aliases = {
-          OR: Op.or,
-          '!': Op.not,
-          '^^': Op.gt
-        };
-
-      QG.setOperatorsAliases(aliases);
-
-      QG.whereItemQuery('OR', [{ test: { '^^': 5 } }, { test: { '!': 3 } }, { test: { [Op.in]: [4] } }])
-        .should.be.equal('(test > 5 OR test != 3 OR test IN (4))');
-
-      QG.whereItemQuery(Op.and, [{ test: { [Op.between]: [2, 5] } }, { test: { '!': 3 } }, { test: { '^^': 4 } }])
-        .should.be.equal('(test BETWEEN 2 AND 5 AND test != 3 AND test > 4)');
-
-      expect(() => QG.whereItemQuery('OR', [{ test: { '^^': 5 } }, { test: { $not: 3 } }, { test: { [Op.in]: [4] } }]))
-        .to.throw('Invalid value { \'$not\': 3 }');
-
-      expect(() => QG.whereItemQuery('OR', [{ test: { $gt: 5 } }, { test: { '!': 3 } }, { test: { [Op.in]: [4] } }]))
-        .to.throw('Invalid value { \'$gt\': 5 }');
-
-      expect(() => QG.whereItemQuery('$or', [{ test: 5 }, { test: 3 }]))
-        .to.throw('Invalid value { test: 5 }');
-
-      expect(() => QG.whereItemQuery('$and', [{ test: 5 }, { test: 3 }]))
-        .to.throw('Invalid value { test: 5 }');
-
-      expect(() => QG.whereItemQuery('test', { $gt: 5 }))
-        .to.throw('Invalid value { \'$gt\': 5 }');
-
-      expect(() => QG.whereItemQuery('test', { $between: [2, 5] }))
-        .to.throw('Invalid value { \'$between\': [ 2, 5 ] }');
-
-      expect(() => QG.whereItemQuery('test', { $ne: 3 }))
-        .to.throw('Invalid value { \'$ne\': 3 }');
-
-      expect(() => QG.whereItemQuery('test', { $not: 3 }))
-        .to.throw('Invalid value { \'$not\': 3 }');
-
-      expect(() => QG.whereItemQuery('test', { $in: [4] }))
-        .to.throw('Invalid value { \'$in\': [ 4 ] }');
-    });
-
     it('should correctly parse sequelize.where with .fn as logic', function() {
       const QG = getAbstractQueryGenerator(this.sequelize);
       QG.handleSequelizeMethod(this.sequelize.where(this.sequelize.col('foo'), 'LIKE', this.sequelize.col('bar')))
