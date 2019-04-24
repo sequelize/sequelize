@@ -2476,8 +2476,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options.plain If set to true, included instances will be returned as plain objects
    */
   public get(options?: { plain?: boolean; clone?: boolean }): object;
-  public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
   public get<K extends keyof this>(key: K, options?: { plain?: boolean; clone?: boolean }): this[K];
+  public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
 
   /**
    * Set is used to update values on the instance (the sequelize representation of the instance that is,
