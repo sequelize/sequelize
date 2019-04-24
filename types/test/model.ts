@@ -31,6 +31,11 @@ MyModel.init({}, {
       fields: ['foo'],
       using: 'gin',
       operator: 'jsonb_path_ops',
+    },
+    {
+      fields: ['bar'],
+      index: 'FULLTEXT',
+      parser: 'NGRAM'
     }
   ],
   sequelize,
