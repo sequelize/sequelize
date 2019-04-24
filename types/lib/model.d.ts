@@ -1101,7 +1101,7 @@ export interface ModelIndexesOptions {
   /**
    * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
    */
-  index?: string;
+  type?: string;
 
   /**
    * The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and
