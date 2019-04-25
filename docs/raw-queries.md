@@ -76,6 +76,18 @@ sequelize.query('SELECT * FROM users WHERE name LIKE :search_name ',
 })
 ```
 
+### Liberal replacement
+
+There can be used character `:` as a valid part of the query data. Default replacement behaviour throws an Error for missing replacement key. In this case there is a possibility to ignore missing replace key in replacements object via query option `liberalReplace` that returns back original value to the query.
+
+```js
+sequelize.query('SELECT * FROM user:roles WHERE status = :status ',
+  { replacements: { status: 'active' }, type: sequelize.QueryTypes.SELECT, liberalReplace: true }
+).then(projects => {
+  console.log(projects)
+})
+```
+
 ## Bind Parameter
 
 Bind parameters are like replacements. Except replacements are escaped and inserted into the query by sequelize before the query is sent to the database, while bind parameters are sent to the database outside the SQL query text. A query can have either bind parameters or replacements. Bind parameters are referred to by either $1, $2, ... (numeric) or $key (alpha-numeric). This is independent of the dialect.

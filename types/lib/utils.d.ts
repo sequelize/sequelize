@@ -21,7 +21,7 @@ export function camelize(str: string): string;
 export function format(arr: string[], dialect: string): string;
 export function formatNamedParameters(sql: string, parameters: {
   [key: string]: string | number | boolean;
-}, dialect: string): string;
+}, dialect: string, liberalReplace?: boolean): string;
 export function cloneDeep<T>(obj: T, fn?: (el: unknown) => unknown): T;
 
 export interface OptionsForMapping {
