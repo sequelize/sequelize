@@ -6,7 +6,8 @@ import {
   DataTypes,
   FindOptions,
   Model,
-  ModelCtor
+  ModelCtor,
+  Op
 } from 'sequelize';
 import { sequelize } from '../connection';
 
@@ -73,6 +74,22 @@ User.afterFind((users, options) => {
 User.addHook('beforeFind', 'test', (options: FindOptions) => {
   return undefined;
 });
+
+// Model#addScope
+User.addScope('withoutFirstName', {
+  where: {
+    firstName: {
+      [Op.is]: null,
+    },
+  },
+});
+
+User.addScope(
+  'withFirstName',
+  (firstName: string) => ({
+    where: { firstName },
+  }),
+);
 
 // associate
 // it is important to import _after_ the model above is already exported so the circular reference works.
