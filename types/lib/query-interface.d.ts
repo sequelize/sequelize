@@ -124,16 +124,16 @@ export interface QueryInterfaceDropAllTablesOptions extends QueryInterfaceOption
 }
 
 export interface QueryInterfaceIndexOptions extends QueryInterfaceOptions {
-  indicesType?: 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
+  type?: 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
 
   /** The name of the index. Default is __ */
-  indexName?: string;
+  name?: string;
 
   /** For FULLTEXT columns set your parser */
   parser?: string;
 
   /** Set a type for the index, e.g. BTREE. See the documentation of the used dialect */
-  indexType?: string;
+  using?: string;
 }
 
 export interface AddUniqueConstraintOptions {
