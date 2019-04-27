@@ -556,6 +556,93 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         });
       });
     });
+
+    it('answers true for labels that have been assigned multitple times', function() {
+      this.ArticleLabel = this.sequelize.define('ArticleLabel', {
+        id: {
+          primaryKey: true,
+          type: DataTypes.INTEGER,
+          autoIncrement: true
+        },
+        relevance: {
+          type: DataTypes.DECIMAL,
+          validate: {
+            min: 0,
+            max: 1
+          }
+        }
+      });
+      this.Article.belongsToMany(this.Label, { through: { model: this.ArticleLabel, unique: false } });
+      this.Label.belongsToMany(this.Article, { through: { model: this.ArticleLabel, unique: false } });
+
+      return this.sequelize.sync({ force: true })
+        .then(() => Promise.all([
+          this.Article.create({ title: 'Article' }),
+          this.Label.create({ text: 'Awesomeness' }),
+          this.Label.create({ text: 'Epicness' })
+        ]))
+        .then(([article, label1, label2]) => Promise.all([
+          article,
+          label1,
+          label2,
+          article.addLabel(label1, {
+            through: { relevance: 1 }
+          }),
+          article.addLabel(label2, {
+            through: { relevance: .54 }
+          }),
+          article.addLabel(label2, {
+            through: { relevance: .99 }
+          })
+        ]))
+        .then(([article, label1, label2]) => article.hasLabels([label1, label2]))
+        .then(result => expect(result).to.be.true);
+    });
+
+    it('answers true for labels that have been assigned multitple times when passing a primary key instead of an object', function() {
+      this.ArticleLabel = this.sequelize.define('ArticleLabel', {
+        id: {
+          primaryKey: true,
+          type: DataTypes.INTEGER,
+          autoIncrement: true
+        },
+        relevance: {
+          type: DataTypes.DECIMAL,
+          validate: {
+            min: 0,
+            max: 1
+          }
+        }
+      });
+      this.Article.belongsToMany(this.Label, { through: { model: this.ArticleLabel, unique: false } });
+      this.Label.belongsToMany(this.Article, { through: { model: this.ArticleLabel, unique: false } });
+
+      return this.sequelize.sync({ force: true })
+        .then(() => Promise.all([
+          this.Article.create({ title: 'Article' }),
+          this.Label.create({ text: 'Awesomeness' }),
+          this.Label.create({ text: 'Epicness' })
+        ]))
+        .then(([article, label1, label2]) => Promise.all([
+          article,
+          label1,
+          label2,
+          article.addLabel(label1, {
+            through: { relevance: 1 }
+          }),
+          article.addLabel(label2, {
+            through: { relevance: .54 }
+          }),
+          article.addLabel(label2, {
+            through: { relevance: .99 }
+          })
+        ]))
+        .then(([article, label1, label2]) => article.hasLabels([
+          label1[this.Label.primaryKeyAttribute],
+          label2[this.Label.primaryKeyAttribute]
+        ]))
+        .then(result => expect(result).to.be.true);
+    });
   });
 
   describe('countAssociations', () => {
