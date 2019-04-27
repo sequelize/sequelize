@@ -162,6 +162,8 @@ WHERE firstName = 'bob' AND age > 30 LIMIT 10
 
 Note how `limit` and `age` are overwritten by `scope2`, while `firstName` is preserved. The `limit`, `offset`, `order`, `paranoid`, `lock` and `raw` fields are overwritten, while `where` is shallowly merged (meaning that identical keys will be overwritten). The merge strategy for `include` will be discussed later on.
 
+Note that `attributes` keys of multiple applied scopes are merged in such a way that `attributes.exclude` are always preserved. This allows merging several scopes and never leaking sensitive fields in final scope.
+
 The same merge logic applies when passing a find object directly to `findAll` (and similar finders) on a scoped model:
 
 ```js

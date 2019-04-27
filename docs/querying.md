@@ -493,3 +493,35 @@ Project.findAll({
   // this will generate the SQL 'WITH (NOLOCK)'
 })
 ```
+
+## Index Hints
+
+`indexHints` can be used to optionally pass index hints when using mysql. The hint type must be a value from `Sequelize.IndexHints` and the values should reference existing indexes.
+
+Index hints [override the default behavior of the mysql query optimizer](https://dev.mysql.com/doc/refman/5.7/en/index-hints.html).
+
+```js
+Project.findAll({
+  indexHints: [
+    { type: IndexHints.USE, values: ['index_project_on_name'] }
+  ],
+  where: {
+    id: {
+      [Op.gt]: 623
+    },
+    name: {
+      [Op.like]: 'Foo %'
+    }
+  }
+})
+```
+
+Will generate a mysql query that looks like this:
+
+```sql
+SELECT * FROM Project USE INDEX (index_project_on_name) WHERE name LIKE 'FOO %' AND id > 623;
+```
+
+`Sequelize.IndexHints` includes `USE`, `FORCE`, and `IGNORE`.
+
+See [Issue #9421](https://github.com/sequelize/sequelize/issues/9421) for the original API proposal.

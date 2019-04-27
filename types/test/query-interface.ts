@@ -132,8 +132,8 @@ queryInterface.addIndex('Person', ['firstname', 'lastname']);
 // - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect
 // - logging: A function that receives the sql query, e.g. console.log
 queryInterface.addIndex('Person', ['firstname', 'lastname'], {
-  indexName: 'SuperDuperIndex',
-  indicesType: 'UNIQUE',
+  name: 'SuperDuperIndex',
+  type: 'UNIQUE',
 });
 
 queryInterface.removeIndex('Person', 'SuperDuperIndex');
