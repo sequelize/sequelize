@@ -2,7 +2,7 @@ import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, Wher
 import Transaction from '../lib/transaction';
 
 class MyModel extends Model {
-    public hi: number;
+    public hi!: number;
 }
 
 let where: WhereOptions;

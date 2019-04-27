@@ -172,6 +172,10 @@ Model.findAll({
 ### Query Interface
 
 - `changeColumn` no longer generates constraint with `_idx` suffix. Now Sequelize does not specify any name for constraints thus defaulting to database engine naming. This aligns behavior of `sync`, `createTable` and `changeColumn`.
+- `addIndex` aliases options aliases have been removed, use the following instead.
+  - `indexName` => `name`
+  - `indicesType` => `type`
+  - `indexType`/`method` => `using`
 
 ### Others
 

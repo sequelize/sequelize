@@ -1,7 +1,7 @@
 import { Association, HasOne, Model, Sequelize } from 'sequelize';
 
 class MyModel extends Model {
-  public num: number;
+  public num!: number;
   public static associations: {
     other: HasOne;
   };

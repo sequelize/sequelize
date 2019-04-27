@@ -19,20 +19,20 @@ export class UserGroup extends Model {
         users: HasMany<UserGroup, User>
     };
 
-    public id: number;
-    public name: string;
+    public id!: number;
+    public name!: string;
 
     // mixins for association (optional)
-    public users: User[];
-    public getUsers: HasManyGetAssociationsMixin<User>;
-    public setUsers: HasManySetAssociationsMixin<User, number>;
-    public addUser: HasManyAddAssociationMixin<User, number>;
-    public addUsers: HasManyAddAssociationsMixin<User, number>;
-    public createUser: HasManyCreateAssociationMixin<number>;
-    public countUsers: HasManyCountAssociationsMixin;
-    public hasUser: HasManyHasAssociationMixin<User, number>;
-    public removeUser: HasManyRemoveAssociationMixin<User, number>;
-    public removeUsers: HasManyRemoveAssociationsMixin<User, number>;
+    public users!: User[];
+    public getUsers!: HasManyGetAssociationsMixin<User>;
+    public setUsers!: HasManySetAssociationsMixin<User, number>;
+    public addUser!: HasManyAddAssociationMixin<User, number>;
+    public addUsers!: HasManyAddAssociationsMixin<User, number>;
+    public createUser!: HasManyCreateAssociationMixin<number>;
+    public countUsers!: HasManyCountAssociationsMixin;
+    public hasUser!: HasManyHasAssociationMixin<User, number>;
+    public removeUser!: HasManyRemoveAssociationMixin<User, number>;
+    public removeUsers!: HasManyRemoveAssociationsMixin<User, number>;
 }
 
 // attach all the metadata to the model

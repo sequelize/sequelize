@@ -24,15 +24,15 @@ class User extends Model {
   // we have to declare them here purely virtually
   // these will not exist until `Model.init` was called.
 
-  public getProjects: HasManyGetAssociationsMixin<Project>;
-  public addProject: HasManyAddAssociationMixin<Project, number>;
-  public hasProject: HasManyHasAssociationMixin<Project, number>;
-  public countProjects: HasManyCountAssociationsMixin;
-  public createProject: HasManyCreateAssociationMixin<Project>;
+  public getProjects!: HasManyGetAssociationsMixin<Project>; // Note the null assertions!
+  public addProject!: HasManyAddAssociationMixin<Project, number>;
+  public hasProject!: HasManyHasAssociationMixin<Project, number>;
+  public countProjects!: HasManyCountAssociationsMixin;
+  public createProject!: HasManyCreateAssociationMixin<Project>;
 
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
-  public readonly projects?: Project[];
+  public readonly projects?: Project[]; // Note this is optional since it's only populated when explicitly requested in code
 
   public static associations: {
     projects: Association<User, Project>;
@@ -60,12 +60,12 @@ class Address extends Model {
 
 Project.init({
   id: {
-    type: new DataTypes.INTEGER.UNSIGNED(), // you can omit the `new` but this is discouraged
+    type: DataTypes.INTEGER.UNSIGNED, // you can omit the `new` but this is discouraged
     autoIncrement: true,
     primaryKey: true,
   },
   ownerId: {
-    type: new DataTypes.INTEGER.UNSIGNED(),
+    type: DataTypes.INTEGER.UNSIGNED,
     allowNull: false,
   },
   name: {
@@ -79,7 +79,7 @@ Project.init({
 
 User.init({
   id: {
-    type: new DataTypes.INTEGER.UNSIGNED(),
+    type: DataTypes.INTEGER.UNSIGNED,
     autoIncrement: true,
     primaryKey: true,
   },
@@ -98,7 +98,7 @@ User.init({
 
 Address.init({
   userId: {
-    type: new DataTypes.INTEGER.UNSIGNED(),
+    type: DataTypes.INTEGER.UNSIGNED,
   },
   address: {
     type: new DataTypes.STRING(128),
