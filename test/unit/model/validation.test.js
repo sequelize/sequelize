@@ -196,7 +196,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             }
           });
 
-          const failingUser = UserFail.build({ name: failingValue });
+          const failingUser = new UserFail({ name: failingValue });
 
           return expect(failingUser.validate()).to.be.rejected.then(_errors => {
             expect(_errors.get('name')[0].message).to.equal(message);
@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
               validate: validations
             }
           });
-          const successfulUser = UserSuccess.build({ name: succeedingValue });
+          const successfulUser = new UserSuccess({ name: succeedingValue });
           return expect(successfulUser.validate()).not.to.be.rejected;
         });
       };
@@ -273,7 +273,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     before(function() {
-      this.stub = sinon.stub(current, 'query').callsFake(() => new Promise.resolve([User.build({}), 1]));
+      this.stub = sinon.stub(current, 'query').callsFake(() => new Promise.resolve([new User({}), 1]));
     });
 
     after(function() {
@@ -480,7 +480,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     before(function() {
-      this.stub = sinon.stub(current, 'query').resolves([User.build(), 1]);
+      this.stub = sinon.stub(current, 'query').resolves([new User(), 1]);
     });
 
     after(function() {
@@ -555,7 +555,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     before(function() {
-      this.stub = sinon.stub(current, 'query').resolves([User.build(), 1]);
+      this.stub = sinon.stub(current, 'query').resolves([new User(), 1]);
     });
 
     after(function() {
@@ -624,7 +624,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           }
         });
 
-        this.stub = sinon.stub(current, 'query').resolves([this.User.build(), 1]);
+        this.stub = sinon.stub(current, 'query').resolves([new this.User(), 1]);
       });
 
       after(function() {
@@ -693,7 +693,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           }
         });
 
-        this.stub = sinon.stub(current, 'query').resolves([this.User.build(), 1]);
+        this.stub = sinon.stub(current, 'query').resolves([new this.User(), 1]);
       });
 
       after(function() {

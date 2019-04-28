@@ -5,12 +5,12 @@
 In order to create instances of defined classes just do as follows&period; You might recognize the syntax if you coded Ruby in the past&period; Using the `build`-method will return an unsaved object&comma; which you explicitly have to save&period;
 
 ```js
-const project = Project.build({
+const project = new Project({
   title: 'my awesome project',
   description: 'woot woot. this will make me a rich man'
 })
 
-const task = Task.build({
+const task = new Task({
   title: 'specify the project idea',
   description: 'bla',
   deadline: new Date()
@@ -28,7 +28,7 @@ Task.init({
 }, { sequelize, modelName: 'task' });
 
 // now instantiate an object
-const task = Task.build({title: 'very important task'})
+const task = new Task({title: 'very important task'})
 
 task.title  // ==> 'very important task'
 task.rating // ==> 3
@@ -46,8 +46,7 @@ task.save().catch(error => {
 })
 
 // you can also build, save and access the object with chaining:
-Task
-  .build({ title: 'foo', description: 'bar', deadline: new Date() })
+new Task({ title: 'foo', description: 'bar', deadline: new Date() })
   .save()
   .then(anotherTask => {
     // you can now access the currently saved task with the variable anotherTask... nice!
@@ -59,7 +58,7 @@ Task
 
 ## Creating persistent instances
 
-While an instance created with `.build()` requires an explicit `.save()` call to be stored in the database&comma; `.create()` omits that requirement altogether and automatically stores your instance's data once called.
+While an instance created with `new` requires an explicit `.save()` call to be stored in the database&comma; `.create()` omits that requirement altogether and automatically stores your instance's data once called.
 
 ```js
 Task.create({ title: 'foo', description: 'bar', deadline: new Date() }).then(task => {

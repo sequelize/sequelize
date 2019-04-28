@@ -33,7 +33,7 @@ if (dialect === 'sqlite') {
 
     describe('findAll', () => {
       it('handles dates correctly', function() {
-        const user = this.User.build({ username: 'user' });
+        const user = new this.User({ username: 'user' });
 
         user.dataValues.createdAt = new Date(2011, 4, 4);
 

@@ -2206,8 +2206,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       it('correctly uses bId in A', function() {
-        const a1 = this.A.build({ name: 'a1' }),
-          b1 = this.B.build({ name: 'b1' });
+        const a1 = new this.A({ name: 'a1' }),
+          b1 = new this.B({ name: 'b1' });
 
         return a1
           .save()
@@ -2230,8 +2230,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       it('correctly uses bId in A', function() {
-        const a1 = this.A.build({ name: 'a1' }),
-          b1 = this.B.build({ name: 'b1' });
+        const a1 = new this.A({ name: 'a1' }),
+          b1 = new this.B({ name: 'b1' });
 
         return a1
           .save()
@@ -2328,9 +2328,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       it('correctly sets user and owner', function() {
-        const p1 = this.Project.build({ projectName: 'p1' }),
-          u1 = this.User.build({ name: 'u1' }),
-          u2 = this.User.build({ name: 'u2' });
+        const p1 = new this.Project({ projectName: 'p1' }),
+          u1 = new this.User({ name: 'u1' }),
+          u2 = new this.User({ name: 'u2' });
 
         return p1
           .save()

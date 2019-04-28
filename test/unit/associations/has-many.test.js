@@ -27,13 +27,13 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
     User.hasMany(Task);
 
-    const user = User.build({
+    const user = new User({
         id: 42
       }),
-      task1 = Task.build({
+      task1 = new Task({
         id: 15
       }),
-      task2 = Task.build({
+      task2 = new Task({
         id: 16
       });
 
@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
       User.hasMany(Task, { as: 'task' });
 
-      const user = User.build();
+      const user = new User();
 
       _.each(methods, (alias, method) => {
         expect(user[method]()).to.be.a('function');
@@ -130,7 +130,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
       Project.hasMany(Task);
 
-      const company = Project.build();
+      const company = new Project();
 
       expect(company.hasTasks).not.to.be.a('function');
     });
@@ -146,12 +146,12 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
     it('should fetch associations for a single instance', () => {
       const findAll = stub(Task, 'findAll').resolves([
-        Task.build({}),
-        Task.build({})
+        new Task({}),
+        new Task({})
       ]);
 
       User.Tasks = User.hasMany(Task, { foreignKey });
-      const actual = User.Tasks.get(User.build({ id: idA }));
+      const actual = User.Tasks.get(new User({ id: idA }));
 
       const where = {
         [foreignKey]: idA
@@ -171,25 +171,25 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
     it('should fetch associations for multiple source instances', () => {
       const findAll = stub(Task, 'findAll').returns(
         Promise.resolve([
-          Task.build({
+          new Task({
             'user_id': idA
           }),
-          Task.build({
+          new Task({
             'user_id': idA
           }),
-          Task.build({
+          new Task({
             'user_id': idA
           }),
-          Task.build({
+          new Task({
             'user_id': idB
           })
         ]));
 
       User.Tasks = User.hasMany(Task, { foreignKey });
       const actual = User.Tasks.get([
-        User.build({ id: idA }),
-        User.build({ id: idB }),
-        User.build({ id: idC })
+        new User({ id: idA }),
+        new User({ id: idB }),
+        new User({ id: idC })
       ]);
 
       expect(findAll).to.have.been.calledOnce;

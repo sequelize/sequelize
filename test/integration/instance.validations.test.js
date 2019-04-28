@@ -279,8 +279,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           });
         });
 
-        it('should emit an error when we try to enter in a string for an auto increment key through .build().validate()', function() {
-          const user = this.User.build({ id: 'helloworld' });
+        it('should emit an error when we try to enter in a string for an auto increment key through new Model().validate()', function() {
+          const user = new this.User({ id: 'helloworld' });
 
           return expect(user.validate()).to.be.rejected.then(err => {
             expect(err.get('id')[0].message).to.equal('ID must be an integer!');
@@ -288,7 +288,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
 
         it('should emit an error when we try to .save()', function() {
-          const user = this.User.build({ id: 'helloworld' });
+          const user = new this.User({ id: 'helloworld' });
           return user.save().catch(err => {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.get('id')[0].message).to.equal('ID must be an integer!');
@@ -395,13 +395,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    const failingUser = User.build({ name: '3' });
+    const failingUser = new User({ name: '3' });
 
     return expect(failingUser.validate()).to.be.rejected.then(error => {
       expect(error).to.be.an.instanceOf(Error);
       expect(error.get('name')[0].message).to.equal("name should equal '2'");
 
-      const successfulUser = User.build({ name: '2' });
+      const successfulUser = new User({ name: '2' });
       return expect(successfulUser.validate()).not.to.be.rejected;
     });
   });
@@ -424,11 +424,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     return User.sync().then(() => {
-      return expect(User.build({ name: 'error' }).validate()).to.be.rejected.then(error => {
+      return expect(new User({ name: 'error' }).validate()).to.be.rejected.then(error => {
         expect(error).to.be.instanceof(Sequelize.ValidationError);
         expect(error.get('name')[0].message).to.equal('Invalid username');
 
-        return expect(User.build({ name: 'no error' }).validate()).not.to.be.rejected;
+        return expect(new User({ name: 'no error' }).validate()).not.to.be.rejected;
       });
     });
   });
@@ -444,8 +444,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    return expect(User
-      .build({ age: -1 })
+    return expect(new User({ age: -1 })
       .validate())
       .to.be.rejected
       .then(error => {
@@ -473,15 +472,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    return expect(Foo
-      .build({ field1: null, field2: null })
+    return expect(new Foo({ field1: null, field2: null })
       .validate())
       .to.be.rejected
       .then(error => {
         expect(error.get('xnor')[0].message).to.equal('xnor failed');
 
-        return expect(Foo
-          .build({ field1: 33, field2: null })
+        return expect(new Foo({ field1: 33, field2: null })
           .validate())
           .not.to.be.rejected;
       });
@@ -496,7 +493,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           }
         }
       }),
-      foo = Foo.build({ bar: 'a' });
+      foo = new Foo({ bar: 'a' });
     return expect(foo.validate()).not.to.be.rejected.then(() => {
       return expect(foo.validate()).not.to.be.rejected;
     });
@@ -515,7 +512,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    const failingBar = Bar.build({ field: 'value3' });
+    const failingBar = new Bar({ field: 'value3' });
 
     return expect(failingBar.validate()).to.be.rejected.then(errors => {
       expect(errors.get('field')).to.have.length(1);
@@ -536,7 +533,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    const failingBar = Bar.build({ field: 'value3' });
+    const failingBar = new Bar({ field: 'value3' });
 
     return expect(failingBar.validate({ skip: ['field'] })).not.to.be.rejected;
   });
@@ -554,7 +551,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    const failingBar = Bar.build({ field: this.sequelize.literal('5 + 1') });
+    const failingBar = new Bar({ field: this.sequelize.literal('5 + 1') });
 
     return expect(failingBar.validate()).not.to.be.rejected;
   });
@@ -590,7 +587,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    const user = User.build({ name: 'RedCat' });
+    const user = new User({ name: 'RedCat' });
     expect(user.getDataValue('name')).to.equal('RedCat');
 
     user.setDataValue('name', 'YellowCat');
@@ -604,7 +601,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    return expect(User.build({
+    return expect(new User({
       email: ['iama', 'dummy.com']
     }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
@@ -616,7 +613,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    return expect(User.build({
+    return expect(new User({
       email: ['iama', 'dummy.com']
     }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
@@ -628,7 +625,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    return expect(User.build({
+    return expect(new User({
       email: ['iama', 'dummy.com']
     }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
@@ -640,7 +637,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    return expect(User.build({
+    return expect(new User({
       email: { lol: true }
     }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
@@ -652,7 +649,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    return expect(User.build({
+    return expect(new User({
       email: { lol: true }
     }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
@@ -664,7 +661,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    return expect(User.build({
+    return expect(new User({
       email: { lol: true }
     }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
@@ -676,7 +673,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    return expect(User.build({
+    return expect(new User({
       email: null
     }).validate()).not.to.be.rejected;
   });
@@ -702,13 +699,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     return Sequelize.Promise.all([
-      expect(User.build({
+      expect(new User({
         password: 'short',
         salt: '42'
       }).validate()).to.be.rejected.then(errors => {
         expect(errors.get('password')[0].message).to.equal('Please choose a longer password');
       }),
-      expect(User.build({
+      expect(new User({
         password: 'loooooooong',
         salt: '42'
       }).validate()).not.to.be.rejected
@@ -729,10 +726,10 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    return expect(User.build({
+    return expect(new User({
       name: 'abcdefg'
     }).validate()).not.to.be.rejected.then(() => {
-      return expect(User.build({
+      return expect(new User({
         name: 'a'
       }).validate()).to.be.rejected;
     }).then(errors => {

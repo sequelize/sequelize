@@ -255,20 +255,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should be able to insert data into both schemas using instance.save and retrieve/count it', function() {
           //building and saving in random order to make sure calling
           // .schema doesn't impact model prototype
-          let restaurauntModel = this.RestaurantOne.build({ bar: 'one.1' });
+          let restaurauntModel = new this.RestaurantOne({ bar: 'one.1' });
 
           return restaurauntModel.save()
             .then(() => {
-              restaurauntModel = this.RestaurantTwo.build({ bar: 'two.1' });
+              restaurauntModel = new this.RestaurantTwo({ bar: 'two.1' });
               return restaurauntModel.save();
             }).then(() => {
-              restaurauntModel = this.RestaurantOne.build({ bar: 'one.2' });
+              restaurauntModel = new this.RestaurantOne({ bar: 'one.2' });
               return restaurauntModel.save();
             }).then(() => {
-              restaurauntModel = this.RestaurantTwo.build({ bar: 'two.2' });
+              restaurauntModel = new this.RestaurantTwo({ bar: 'two.2' });
               return restaurauntModel.save();
             }).then(() => {
-              restaurauntModel = this.RestaurantTwo.build({ bar: 'two.3' });
+              restaurauntModel = new this.RestaurantTwo({ bar: 'two.3' });
               return restaurauntModel.save();
             }).then(() => {
               return this.RestaurantOne.findAll();
@@ -483,12 +483,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should build and persist instances to 2 schemas concurrently in any order', function() {
           const Restaurant = this.Restaurant;
 
-          let restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({ bar: 'one.1' });
-          const restaurauntModelSchema2 = Restaurant.schema(SCHEMA_TWO).build({ bar: 'two.1' });
+          let restaurauntModelSchema1 = new (Restaurant.schema(SCHEMA_ONE))({ bar: 'one.1' });
+          const restaurauntModelSchema2 = new (Restaurant.schema(SCHEMA_TWO))({ bar: 'two.1' });
 
           return restaurauntModelSchema1.save()
             .then(() => {
-              restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({ bar: 'one.2' });
+              restaurauntModelSchema1 = new (Restaurant.schema(SCHEMA_ONE))({ bar: 'one.2' });
               return restaurauntModelSchema2.save();
             }).then(() => {
               return restaurauntModelSchema1.save();

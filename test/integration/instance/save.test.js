@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING });
           return User.sync({ force: true }).then(() => {
             return sequelize.transaction().then(t => {
-              return User.build({ username: 'foo' }).save({ transaction: t }).then(() => {
+              return new User({ username: 'foo' }).save({ transaction: t }).then(() => {
                 return User.count().then(count1 => {
                   return User.count({ transaction: t }).then(count2 => {
                     expect(count1).to.equal(0);
@@ -130,7 +130,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('only validates fields in passed array', function() {
-      return this.User.build({
+      return new this.User({
         validateTest: 'cake', // invalid, but not saved
         validateCustom: '1'
       }).save({
@@ -273,7 +273,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('stores an entry in the database', function() {
       const username = 'user',
         User = this.User,
-        user = this.User.build({
+        user = new this.User({
           username,
           touchedAt: new Date(1984, 8, 23)
         });
@@ -327,7 +327,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const now = new Date();
       now.setMilliseconds(0);
 
-      const user = this.User.build({ username: 'user' });
+      const user = new this.User({ username: 'user' });
       this.clock.tick(1000);
 
       return user.save().then(savedUser => {
@@ -520,7 +520,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should fail a validation upon building', function() {
-      return this.User.build({ aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa' }).save()
+      return new this.User({ aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa' }).save()
         .catch(err => {
           expect(err).to.exist;
           expect(err).to.be.instanceof(Object);
@@ -545,7 +545,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('takes zero into account', function() {
-      return this.User.build({ aNumber: 0 }).save({
+      return new this.User({ aNumber: 0 }).save({
         fields: ['aNumber']
       }).then(user => {
         expect(user.aNumber).to.equal(0);

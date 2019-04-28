@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should allow decrements even if options are not given', () => {
-        instance = Model.build({ id: 3 }, { isNewRecord: false });
+        instance = new Model({ id: 3 }, { isNewRecord: false });
         expect(() => {
           instance.decrement(['id']);
         }).to.not.throw();

@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should not be ignored in dataValues get', function() {
-          const user = this.User.build({
+          const user = new this.User({
             field1: 'field1_value',
             field2: 'field2_value'
           });
