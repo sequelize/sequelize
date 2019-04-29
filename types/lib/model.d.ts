@@ -1678,8 +1678,6 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * include is not available at the time this model is defined. By default this will throw an
    * error if a scope with that name already exists. Pass `override: true` in the options
    * object to silence this error.
-   *
-   * @param name The name of the scope to adds
    */
   public static addScope(name: string, scope: FindOptions, options?: AddScopeOptions): void;
   public static addScope(name: string, scope: (...args: any[]) => FindOptions, options?: AddScopeOptions): void;
