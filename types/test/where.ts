@@ -2,7 +2,7 @@ import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, Wher
 import Transaction from '../lib/transaction';
 
 class MyModel extends Model {
-    public hi: number;
+    public hi!: number;
 }
 
 let where: WhereOptions;
@@ -170,7 +170,6 @@ MyModel.findAll({ lock: { level: Transaction.LOCK.KEY_SHARE, of: MyModel} }).the
 
 MyModel.findAll({
     where: {
-        // tslint:disable-next-line:no-object-literal-type-assertion
         id: {
             // casting here to check a missing operator is not accepted as field name
             [Op.and]: { a: 5 }, // AND (a = 5)
@@ -192,6 +191,12 @@ MyModel.findAll({
             [Op.contains]: [1, 2], // @> [1, 2] (PG array contains operator)
             [Op.contained]: [1, 2], // <@ [1, 2] (PG array contained by operator)
             [Op.any]: [2, 3], // ANY ARRAY[2, 3]::INTEGER (PG only)
+            [Op.adjacent]: [1, 2],
+            [Op.strictLeft]: [1, 2],
+            [Op.strictRight]: [1, 2],
+            [Op.noExtendLeft]: [1, 2],
+            [Op.noExtendRight]: [1, 2],
+            [Op.values]: [1, 2],
         } as WhereOperators,
         status: {
             [Op.not]: false, // status NOT FALSE

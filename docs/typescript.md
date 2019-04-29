@@ -33,15 +33,15 @@ class User extends Model {
   // we have to declare them here purely virtually
   // these will not exist until `Model.init` was called.
 
-  public getProjects: HasManyGetAssociationsMixin<Project>;
-  public addProject: HasManyAddAssociationMixin<Project, number>;
-  public hasProject: HasManyHasAssociationMixin<Project, number>;
-  public countProjects: HasManyCountAssociationsMixin;
-  public createProject: HasManyCreateAssociationMixin<Project>;
+  public getProjects!: HasManyGetAssociationsMixin<Project>; // Note the null assertions!
+  public addProject!: HasManyAddAssociationMixin<Project, number>;
+  public hasProject!: HasManyHasAssociationMixin<Project, number>;
+  public countProjects!: HasManyCountAssociationsMixin;
+  public createProject!: HasManyCreateAssociationMixin<Project>;
 
   // You can also pre-declare possible inclusions, these will only be populated if you
   // actively include a relation.
-  public readonly projects?: Project[];
+  public readonly projects?: Project[]; // Note this is optional since it's only populated when explicitly requested in code
 
   public static associations: {
     projects: Association<User, Project>;
@@ -59,14 +59,22 @@ class Project extends Model {
   public readonly updatedAt!: Date;
 }
 
+class Address extends Model {
+  public userId!: number;
+  public address!: string;
+
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
 Project.init({
   id: {
-    type: new DataTypes.INTEGER.UNSIGNED(), // you can omit the `new` but this is discouraged
+    type: DataTypes.INTEGER.UNSIGNED, // you can omit the `new` but this is discouraged
     autoIncrement: true,
     primaryKey: true,
   },
   ownerId: {
-    type: new DataTypes.INTEGER.UNSIGNED(),
+    type: DataTypes.INTEGER.UNSIGNED,
     allowNull: false,
   },
   name: {
@@ -80,7 +88,7 @@ Project.init({
 
 User.init({
   id: {
-    type: new DataTypes.INTEGER.UNSIGNED(),
+    type: DataTypes.INTEGER.UNSIGNED,
     autoIncrement: true,
     primaryKey: true,
   },
@@ -94,15 +102,31 @@ User.init({
   }
 }, {
   tableName: 'users',
-  modelName: 'user',
+  sequelize: sequelize, // this bit is important
+});
+
+Address.init({
+  userId: {
+    type: DataTypes.INTEGER.UNSIGNED,
+  },
+  address: {
+    type: new DataTypes.STRING(128),
+    allowNull: false,
+  }
+}, {
+  tableName: 'users',
   sequelize: sequelize, // this bit is important
 });
 
 // Here we associate which actually populates out pre-declared `association` static and other methods.
 User.hasMany(Project, {
+  sourceKey: 'id',
   foreignKey: 'ownerId',
   as: 'projects' // this determines the name in `associations`!
 });
+
+Address.belongsTo(User, {targetKey: 'id'});
+User.hasOne(Address,{sourceKey: 'id'});
 
 async function stuff() {
   // Please note that when using async/await you lose the `bluebird` promise context
@@ -118,7 +142,7 @@ async function stuff() {
   });
 
   const ourUser = await User.findByPk(1, {
-    include: [User.associations.Project],
+    include: [User.associations.projects],
     rejectOnEmpty: true, // Specifying true here removes `null` from the return type!
   });
   console.log(ourUser.projects![0].name); // Note the `!` null assertion since TS can't know if we included
@@ -137,12 +161,11 @@ interface MyModel extends Model {
 }
 
 // Need to declare the static model so `findOne` etc. use correct types.
-// You can also declare all your association stuff in here
 type MyModelStatic = typeof Model & {
   new (values?: object, options?: BuildOptions): MyModel;
 }
 
-// TS can't derive a proper class definition from a `.define` call, therefore we need to cast here.
+// TS can't derive a proper class definition from a `.define` call, therefor we need to cast here.
 const MyDefineModel = <MyModelStatic>sequelize.define('MyDefineModel', {
   id: {
     primaryKey: true,
@@ -158,4 +181,5 @@ function stuffTwo() {
     console.log(myModel.id);
   });
 }
+
 ```

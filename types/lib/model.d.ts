@@ -125,8 +125,10 @@ export interface AnyOperator {
 
 /** Undocumented? */
 export interface AllOperator {
-  [Op.all]: (string | number)[];
+  [Op.all]: (string | number | Date | Literal)[];
 }
+
+export type Rangable = [number, number] | [Date, Date] | Literal;
 
 /**
  * Operators that can be used in WhereOptions
@@ -193,21 +195,21 @@ export interface WhereOperators {
    *
    * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
    */
-  [Op.overlap]?: [number, number] | Literal;
+  [Op.overlap]?: Rangable;
 
   /**
    * PG array contains operator
    *
    * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  [Op.contains]?: [number, number] | [Date, Date] | Literal;
+  [Op.contains]?: Rangable;
 
   /**
    * PG array contained by operator
    *
    * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?: [number, number] | [Date, Date] | Literal;
+  [Op.contained]?: Rangable;
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
   [Op.gt]?: number | string | Date | Literal;
@@ -273,6 +275,35 @@ export interface WhereOperators {
    * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
    */
   [Op.notIRegexp]?: string;
+
+  /**
+   * PG only
+   *
+   * Forces the operator to be strictly left eg. `<< [a, b)`
+   */
+  [Op.strictLeft]?: Rangable;
+
+  /**
+   * PG only
+   *
+   * Forces the operator to be strictly right eg. `>> [a, b)`
+   */
+  [Op.strictRight]?: Rangable;
+
+  /**
+   * PG only
+   *
+   * Forces the operator to not extend the left eg. `&> [1, 2)`
+   */
+  [Op.noExtendLeft]?: Rangable;
+
+  /**
+   * PG only
+   *
+   * Forces the operator to not extend the left eg. `&< [1, 2)`
+   */
+  [Op.noExtendRight]?: Rangable;
+
 }
 
 /** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
@@ -2485,8 +2516,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options.plain If set to true, included instances will be returned as plain objects
    */
   public get(options?: { plain?: boolean; clone?: boolean }): object;
-  public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
   public get<K extends keyof this>(key: K, options?: { plain?: boolean; clone?: boolean }): this[K];
+  public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
 
   /**
    * Set is used to update values on the instance (the sequelize representation of the instance that is,

@@ -16,19 +16,19 @@ export class User extends Model {
     group: BelongsTo<User, UserGroup>;
   };
 
-  public id: number;
-  public username: string;
-  public firstName: string;
-  public lastName: string;
-  public createdAt: Date;
-  public updatedAt: Date;
+  public id!: number;
+  public username!: string;
+  public firstName!: string;
+  public lastName!: string;
+  public createdAt!: Date;
+  public updatedAt!: Date;
 
   // mixins for association (optional)
-  public groupId: number;
-  public group: UserGroup;
-  public getGroup: BelongsToGetAssociationMixin<UserGroup>;
-  public setGroup: BelongsToSetAssociationMixin<UserGroup, number>;
-  public createGroup: BelongsToCreateAssociationMixin<UserGroup>;
+  public groupId!: number;
+  public group?: UserGroup;
+  public getGroup!: BelongsToGetAssociationMixin<UserGroup>;
+  public setGroup!: BelongsToSetAssociationMixin<UserGroup, number>;
+  public createGroup!: BelongsToCreateAssociationMixin<UserGroup>;
 }
 
 User.init(
