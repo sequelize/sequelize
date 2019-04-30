@@ -1120,6 +1120,20 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
+    it('handles alter: true with underscore correctly', function() {
+      this.sequelize.define('access_metric', {
+        user_id: {
+          type: DataTypes.INTEGER
+        }
+      }, {
+        underscored: true
+      });
+
+      return this.sequelize.sync({
+        alter: true
+      });
+    });
+
     describe("doesn't emit logging when explicitly saying not to", () => {
       afterEach(function() {
         this.sequelize.options.logging = false;
