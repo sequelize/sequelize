@@ -1,4 +1,5 @@
 import { Config, Sequelize, Model } from 'sequelize';
+import { Fn } from '../lib/utils';
 
 Sequelize.useCLS({
 });
@@ -45,5 +46,7 @@ Sequelize.beforeConnect(() => {
 Sequelize.afterConnect(() => {
 
 });
+
+const rnd: Fn = sequelize.random();
 
 const myModel: typeof Model = sequelize.models.asd;
