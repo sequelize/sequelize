@@ -1713,7 +1713,16 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     options?: string | ScopeOptions | (string | ScopeOptions)[] | WhereAttributeHash
   ): M;
 
+  /**
+   * Add a new scope to the model
+   *
+   * This is especially useful for adding scopes with includes, when the model you want to
+   * include is not available at the time this model is defined. By default this will throw an
+   * error if a scope with that name already exists. Pass `override: true` in the options
+   * object to silence this error.
+   */
   public static addScope(name: string, scope: FindOptions, options?: AddScopeOptions): void;
+  public static addScope(name: string, scope: (...args: any[]) => FindOptions, options?: AddScopeOptions): void;
 
   /**
    * Search for multiple instances.
