@@ -115,6 +115,7 @@ export interface OperatorsAliases {
  */
 export interface Config {
   readonly database: string;
+  readonly dialectModule?: object;
   readonly host?: string;
   readonly port?: string;
   readonly username: string;
@@ -154,6 +155,15 @@ export interface Options extends Logging {
    * @default 'mysql'
    */
   dialect?: Dialect;
+
+  /**
+   * If specified, will use the provided module as the dialect.
+   *
+   * @example
+   * `dialectModule: require('@myorg/tedious'),`
+   */
+  dialectModule?: object;
+
 
   /**
    * If specified, load the dialect library from this path. For example, if you want to use pg.js instead of

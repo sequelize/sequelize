@@ -12,7 +12,8 @@ export const sequelize = new Sequelize({
   retry: {
     max: 123,
     match: ['hurr'],
-  }
+  },
+  dialectModule: {},
 });
 
 const conn = sequelize.connectionManager;
