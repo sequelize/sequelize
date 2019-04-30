@@ -629,6 +629,13 @@ export interface CreateOptions extends BuildOptions, Logging, Silent, Transactio
    * On Duplicate
    */
   onDuplicate?: string;
+
+  /**
+   * If false, validations won't be run.
+   *
+   * @default true
+   */
+  validate?: boolean;
 }
 
 /**
