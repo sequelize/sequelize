@@ -374,6 +374,10 @@ export type Includeable = typeof Model | Association | IncludeOptions | { all: t
  */
 export interface IncludeOptions extends Filterable, Projectable, Paranoid {
   /**
+   * Mark the include as duplicating, will prevent a subquery from being used.
+   */
+  duplicating?: boolean;
+  /**
    * The model you want to eagerly load
    */
   model?: typeof Model;
