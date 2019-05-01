@@ -551,7 +551,7 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     description: DataTypes.TEXT
   }, { sequelize });
-  return Projectl
+  return Project;
 }
 ```
 
