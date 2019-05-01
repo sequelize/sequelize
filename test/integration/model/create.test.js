@@ -454,7 +454,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        User.beforeCreate(instance => {
+        User.addHook('beforeCreate', instance => {
           instance.set('username', instance.get('username').trim());
         });
 

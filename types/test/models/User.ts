@@ -71,19 +71,23 @@ User.init(
   }
 );
 
-User.afterSync(() => {
+User.addHook('afterSync', () => {
   sequelize.getQueryInterface().addIndex(User.tableName, {
-      fields: ['lastName'],
-      using: 'BTREE',
-      name: 'lastNameIdx',
-      concurrently: true,
+    fields: ['lastName'],
+    using: 'BTREE',
+    name: 'lastNameIdx',
+    concurrently: true,
   })
 })
 
 // Hooks
-User.afterFind((users, options) => {
+User.addHook('afterFind', (users: User[], options: FindOptions) => {
   console.log('found');
 });
+
+User.addHook('afterBulkCreate', (users: User[]) => {
+
+})
 
 // TODO: VSCode shows the typing being correctly narrowed but doesn't do it correctly
 User.addHook('beforeFind', 'test', (options: FindOptions) => {

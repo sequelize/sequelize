@@ -38,8 +38,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.ParanoidUser.beforeRestore(beforeHook);
-        this.ParanoidUser.afterRestore(afterHook);
+        this.ParanoidUser.addHook('beforeRestore', beforeHook);
+        this.ParanoidUser.addHook('afterRestore', afterHook);
 
         return this.ParanoidUser.create({ username: 'Toni', mood: 'happy' }).then(user => {
           return user.destroy().then(() => {
@@ -57,11 +57,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.ParanoidUser.beforeRestore(() => {
+        this.ParanoidUser.addHook('beforeRestore', () => {
           beforeHook();
           throw new Error('Whoops!');
         });
-        this.ParanoidUser.afterRestore(afterHook);
+        this.ParanoidUser.addHook('afterRestore', afterHook);
 
         return this.ParanoidUser.create({ username: 'Toni', mood: 'happy' }).then(user => {
           return user.destroy().then(() => {
@@ -77,8 +77,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.ParanoidUser.beforeRestore(beforeHook);
-        this.ParanoidUser.afterRestore(() => {
+        this.ParanoidUser.addHook('beforeRestore', beforeHook);
+        this.ParanoidUser.addHook('afterRestore', () => {
           afterHook();
           throw new Error('Whoops!');
         });

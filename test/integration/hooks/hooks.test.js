@@ -236,8 +236,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeSync(beforeHook);
-        this.User.afterSync(afterHook);
+        this.User.addHook('beforeSync', beforeHook);
+        this.User.addHook('afterSync', afterHook);
 
         return this.User.sync().then(() => {
           expect(beforeHook).to.have.been.calledOnce;
@@ -249,8 +249,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeSync(beforeHook);
-        this.User.afterSync(afterHook);
+        this.User.addHook('beforeSync', beforeHook);
+        this.User.addHook('afterSync', afterHook);
 
         return this.User.sync({ hooks: false }).then(() => {
           expect(beforeHook).to.not.have.been.called;
@@ -265,11 +265,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeSync(() => {
+        this.User.addHook('beforeSync', () => {
           beforeHook();
           throw new Error('Whoops!');
         });
-        this.User.afterSync(afterHook);
+        this.User.addHook('afterSync', afterHook);
 
         return expect(this.User.sync()).to.be.rejected.then(() => {
           expect(beforeHook).to.have.been.calledOnce;
@@ -281,8 +281,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeSync(beforeHook);
-        this.User.afterSync(() => {
+        this.User.addHook('beforeSync', beforeHook);
+        this.User.addHook('afterSync', () => {
           afterHook();
           throw new Error('Whoops!');
         });
@@ -303,10 +303,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           modelBeforeHook = sinon.spy(),
           modelAfterHook = sinon.spy();
 
-        this.sequelize.beforeBulkSync(beforeHook);
-        this.User.beforeSync(modelBeforeHook);
-        this.User.afterSync(modelAfterHook);
-        this.sequelize.afterBulkSync(afterHook);
+        this.sequelize.addHook('beforeBulkSync', beforeHook);
+        this.User.addHook('beforeSync', modelBeforeHook);
+        this.User.addHook('afterSync', modelAfterHook);
+        this.sequelize.addHook('afterBulkSync', afterHook);
 
         return this.sequelize.sync().then(() => {
           expect(beforeHook).to.have.been.calledOnce;
@@ -322,10 +322,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           modelBeforeHook = sinon.spy(),
           modelAfterHook = sinon.spy();
 
-        this.sequelize.beforeBulkSync(beforeHook);
-        this.User.beforeSync(modelBeforeHook);
-        this.User.afterSync(modelAfterHook);
-        this.sequelize.afterBulkSync(afterHook);
+        this.sequelize.addHook('beforeBulkSync', beforeHook);
+        this.User.addHook('beforeSync', modelBeforeHook);
+        this.User.addHook('afterSync', modelAfterHook);
+        this.sequelize.addHook('afterBulkSync', afterHook);
 
         return this.sequelize.sync({ hooks: false }).then(() => {
           expect(beforeHook).to.not.have.been.called;
@@ -346,11 +346,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should return an error from before', function() {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
-        this.sequelize.beforeBulkSync(() => {
+        this.sequelize.addHook('beforeBulkSync', () => {
           beforeHook();
           throw new Error('Whoops!');
         });
-        this.sequelize.afterBulkSync(afterHook);
+        this.sequelize.addHook('afterBulkSync', afterHook);
 
         return expect(this.sequelize.sync()).to.be.rejected.then(() => {
           expect(beforeHook).to.have.been.calledOnce;
@@ -362,8 +362,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.sequelize.beforeBulkSync(beforeHook);
-        this.sequelize.afterBulkSync(() => {
+        this.sequelize.addHook('beforeBulkSync', beforeHook);
+        this.sequelize.addHook('afterBulkSync', () => {
           afterHook();
           throw new Error('Whoops!');
         });

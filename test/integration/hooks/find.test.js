@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     it('allow changing attributes via beforeFind #5675', function() {
-      this.User.beforeFind(options => {
+      this.User.addHook('beforeFind', options => {
         options.attributes = {
           include: ['id']
         };
@@ -45,19 +45,19 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           beforeHook3 = false,
           afterHook = false;
 
-        this.User.beforeFind(() => {
+        this.User.addHook('beforeFind', () => {
           beforeHook = true;
         });
 
-        this.User.beforeFindAfterExpandIncludeAll(() => {
+        this.User.addHook('beforeFindAfterExpandIncludeAll', () => {
           beforeHook2 = true;
         });
 
-        this.User.beforeFindAfterOptions(() => {
+        this.User.addHook('beforeFindAfterOptions', () => {
           beforeHook3 = true;
         });
 
-        this.User.afterFind(() => {
+        this.User.addHook('afterFind', () => {
           afterHook = true;
         });
 
@@ -71,7 +71,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeFind hook can change options', function() {
-        this.User.beforeFind(options => {
+        this.User.addHook('beforeFind', options => {
           options.where.username = 'joe';
         });
 
@@ -81,7 +81,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeFindAfterExpandIncludeAll hook can change options', function() {
-        this.User.beforeFindAfterExpandIncludeAll(options => {
+        this.User.addHook('beforeFindAfterExpandIncludeAll', options => {
           options.where.username = 'joe';
         });
 
@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeFindAfterOptions hook can change options', function() {
-        this.User.beforeFindAfterOptions(options => {
+        this.User.addHook('beforeFindAfterOptions', options => {
           options.where.username = 'joe';
         });
 
@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('afterFind hook can change results', function() {
-        this.User.afterFind(user => {
+        this.User.addHook('afterFind', user => {
           user.mood = 'sad';
         });
 
@@ -113,7 +113,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('in beforeFind hook returns error', function() {
-        this.User.beforeFind(() => {
+        this.User.addHook('beforeFind', () => {
           throw new Error('Oops!');
         });
 
@@ -123,7 +123,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('in beforeFindAfterExpandIncludeAll hook returns error', function() {
-        this.User.beforeFindAfterExpandIncludeAll(() => {
+        this.User.addHook('beforeFindAfterExpandIncludeAll', () => {
           throw new Error('Oops!');
         });
 
@@ -133,7 +133,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('in beforeFindAfterOptions hook returns error', function() {
-        this.User.beforeFindAfterOptions(() => {
+        this.User.addHook('beforeFindAfterOptions', () => {
           throw new Error('Oops!');
         });
 
@@ -143,7 +143,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('in afterFind hook returns error', function() {
-        this.User.afterFind(() => {
+        this.User.addHook('afterFind', () => {
           throw new Error('Oops!');
         });
 

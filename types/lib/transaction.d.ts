@@ -25,7 +25,7 @@ export class Transaction {
   /**
    * Adds hook that is run after a transaction is committed
    */
-  public afterCommit(fn: (transaction: this) => void | Promise<void>): void;
+  public addHook(name: 'afterCommit', fn: (transaction: this) => void | Promise<void>): void;
 }
 
 // tslint:disable-next-line no-namespace

@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
     describe('beforeHasOneAssociate', () => {
       it('should trigger', function() {
         const beforeAssociate = sinon.spy();
-        this.Projects.beforeAssociate(beforeAssociate);
+        this.Projects.addHook('beforeAssociate', beforeAssociate);
         this.Projects.hasOne(this.Tasks, { hooks: true });
 
         const beforeAssociateArgs = beforeAssociate.getCall(0).args;
@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
       });
       it('should not trigger association hooks', function() {
         const beforeAssociate = sinon.spy();
-        this.Projects.beforeAssociate(beforeAssociate);
+        this.Projects.addHook('beforeAssociate', beforeAssociate);
         this.Projects.hasOne(this.Tasks, { hooks: false });
         expect(beforeAssociate).to.not.have.been.called;
       });
@@ -96,7 +96,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
     describe('afterHasOneAssociate', () => {
       it('should trigger', function() {
         const afterAssociate = sinon.spy();
-        this.Projects.afterAssociate(afterAssociate);
+        this.Projects.addHook('afterAssociate', afterAssociate);
         this.Projects.hasOne(this.Tasks, { hooks: true });
 
         const afterAssociateArgs = afterAssociate.getCall(0).args;
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
       });
       it('should not trigger association hooks', function() {
         const afterAssociate = sinon.spy();
-        this.Projects.afterAssociate(afterAssociate);
+        this.Projects.addHook('afterAssociate', afterAssociate);
         this.Projects.hasOne(this.Tasks, { hooks: false });
         expect(afterAssociate).to.not.have.been.called;
       });

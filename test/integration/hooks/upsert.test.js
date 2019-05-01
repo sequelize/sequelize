@@ -29,8 +29,8 @@ if (Support.sequelize.dialect.supports.upserts) {
           const beforeHook = sinon.spy(),
             afterHook = sinon.spy();
 
-          this.User.beforeUpsert(beforeHook);
-          this.User.afterUpsert(afterHook);
+          this.User.addHook('beforeUpsert', beforeHook);
+          this.User.addHook('afterUpsert', afterHook);
 
           return this.User.upsert({ username: 'Toni', mood: 'happy' }).then(() => {
             expect(beforeHook).to.have.been.calledOnce;
@@ -44,11 +44,11 @@ if (Support.sequelize.dialect.supports.upserts) {
           const beforeHook = sinon.spy(),
             afterHook = sinon.spy();
 
-          this.User.beforeUpsert(() => {
+          this.User.addHook('beforeUpsert', () => {
             beforeHook();
             throw new Error('Whoops!');
           });
-          this.User.afterUpsert(afterHook);
+          this.User.addHook('afterUpsert', afterHook);
 
           return expect(this.User.upsert({ username: 'Toni', mood: 'happy' })).to.be.rejected.then(() => {
             expect(beforeHook).to.have.been.calledOnce;
@@ -60,8 +60,8 @@ if (Support.sequelize.dialect.supports.upserts) {
           const beforeHook = sinon.spy(),
             afterHook = sinon.spy();
 
-          this.User.beforeUpsert(beforeHook);
-          this.User.afterUpsert(() => {
+          this.User.addHook('beforeUpsert', beforeHook);
+          this.User.addHook('afterUpsert', () => {
             afterHook();
             throw new Error('Whoops!');
           });
@@ -78,7 +78,7 @@ if (Support.sequelize.dialect.supports.upserts) {
           let hookCalled = 0;
           const valuesOriginal = { mood: 'sad', username: 'leafninja' };
 
-          this.User.beforeUpsert(values => {
+          this.User.addHook('beforeUpsert', values => {
             values.mood = 'happy';
             hookCalled++;
           });

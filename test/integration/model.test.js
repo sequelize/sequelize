@@ -1142,7 +1142,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should properly set data when individualHooks are true', function() {
-      this.User.beforeUpdate(instance => {
+      this.User.addHook('beforeUpdate', instance => {
         instance.set('intVal', 1);
       });
 

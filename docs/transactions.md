@@ -178,13 +178,13 @@ An `afterCommit` hook can be added to both managed and unmanaged transaction obj
 
 ```js
 sequelize.transaction(t => {
-  t.afterCommit((transaction) => {
+  t.addHook('afterCommit', (transaction) => {
     // Your logic
   });
 });
 
 sequelize.transaction().then(t => {
-  t.afterCommit((transaction) => {
+  t.addHook('afterCommit', (transaction) => {
     // Your logic
   });
 
@@ -203,11 +203,11 @@ You can use the `afterCommit` hook in conjunction with model hooks to know when 
 of a transaction
 
 ```js
-model.afterSave((instance, options) => {
+model.addHook('afterSave', (instance, options) => {
   if (options.transaction) {
     // Save done within a transaction, wait until transaction is committed to
     // notify listeners the instance has been saved
-    options.transaction.afterCommit(() => /* Notify */)
+    options.transaction.addHook('afterCommit', () => /* Notify */)
     return;
   }
   // Save done outside a transaction, safe for callers to fetch the updated model

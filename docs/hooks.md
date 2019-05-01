@@ -76,17 +76,6 @@ User.addHook('beforeValidate', (user, options) => {
 User.addHook('afterValidate', 'someCustomName', (user, options) => {
   return Promise.reject(new Error("I'm afraid I can't let you do that!"));
 });
-
-// Method 3 via the direct method
-User.beforeCreate((user, options) => {
-  return hashPassword(user.password).then(hashedPw => {
-    user.password = hashedPw;
-  });
-});
-
-User.afterValidate('myHookAfter', (user, options) => {
-  user.username = 'Toni';
-});
 ```
 
 ## Removing hooks
@@ -198,7 +187,7 @@ These hooks can be useful if you need to asynchronously obtain database credenti
 For example, we can asynchronously obtain a database password from a rotating token store, and mutate Sequelize's configuration object with the new credentials:
 
 ```js
-sequelize.beforeConnect((config) => {
+sequelize.addHook('beforeConnect', (config) => {
     return getAuthToken()
         .then((token) => {
              config.password = token;
@@ -221,7 +210,7 @@ afterCreate / afterUpdate / afterSave / afterDestroy
 
 ```js
 // ...define ...
-User.beforeCreate(user => {
+User.addHook('beforeCreate', user => {
   if (user.accessLevel > 10 && user.username !== "Boss") {
     throw new Error("You can't grant this user an access level above 10!")
   }
@@ -273,7 +262,7 @@ The `options` argument of hook method would be the second argument provided to t
 cloned and extended version.
 
 ```js
-Model.beforeBulkCreate((records, {fields}) => {
+Model.addHook('beforeBulkCreate', (records, {fields}) => {
   // records = the first argument sent to .bulkCreate
   // fields = one of the second argument fields sent to .bulkCreate
 })
@@ -284,14 +273,14 @@ Model.bulkCreate([
   ], {fields: ['username']} // options parameter
 )
 
-Model.beforeBulkUpdate(({attributes, where}) => {
+Model.addHook('beforeBulkUpdate', ({attributes, where}) => {
   // where - in one of the fields of the clone of second argument sent to .update
   // attributes - is one of the fields that the clone of second argument of .update would be extended with
 })
 
 Model.update({gender: 'Male'} /*attributes argument*/, { where: {username: 'Tom'}} /*where argument*/)
 
-Model.beforeBulkDestroy(({where, individualHooks}) => {
+Model.addHook('beforeBulkDestroy', ({where, individualHooks}) => {
   // individualHooks - default of overridden value of extended clone of second argument sent to Model.destroy
   // where - in one of the fields of the clone of second argument sent to Model.destroy
 })
@@ -310,7 +299,7 @@ Users.bulkCreate([
   updateOnDuplicate: ['isMember']
 });
 
-User.beforeBulkCreate((users, options) => {
+User.addHook('beforeBulkCreate', (users, options) => {
   for (const user of users) {
     if (user.isMember) {
       user.memberSince = new Date();

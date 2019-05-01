@@ -3,7 +3,7 @@ import { User } from 'models/User';
 
 export const sequelize = new Sequelize('uri');
 
-sequelize.afterBulkSync((options: SyncOptions) => {
+sequelize.addHook('afterBulkSync', (options: SyncOptions) => {
   console.log('synced');
 });
 

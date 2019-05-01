@@ -15,8 +15,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   });
 
   it('does not expose non-model hooks', function() {
-    for (const badHook of ['beforeDefine', 'afterDefine', 'beforeConnect', 'afterConnect', 'beforeInit', 'afterInit']) {
-      expect(this.Model).to.not.have.property(badHook);
+    for (const badHook of ['beforeDefine', 'afterDefine', 'beforeConnect', 'afterConnect', 'beforeInit', 'afterInit', 'beforeBulkSync', 'afterBulkSync']) {
+      expect(() => this.Model.addHook(badHook, () => {})).to.throw(/is only applicable/);
     }
   });
 
@@ -136,14 +136,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         return this.Model.runHooks('beforeCreate');
       });
 
-      it('using function', function() {
-        this.Model.beforeCreate(this.hook1);
-        this.Model.beforeCreate(this.hook2);
-        this.Model.beforeCreate(this.hook3);
-
-        return this.Model.runHooks('beforeCreate');
-      });
-
       it('using define', function() {
         return current.define('M', {}, {
           hooks: {
@@ -158,7 +150,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             beforeCreate: this.hook1
           }
         });
-        Model.beforeCreate(this.hook2);
+        Model.addHook('beforeCreate', this.hook2);
         Model.addHook('beforeCreate', this.hook3);
 
         return Model.runHooks('beforeCreate');
@@ -166,12 +158,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     it('stops execution when a hook throws', function() {
-      this.Model.beforeCreate(() => {
+      this.Model.addHook('beforeCreate', () => {
         this.hook1();
 
         throw new Error('No!');
       });
-      this.Model.beforeCreate(this.hook2);
+      this.Model.addHook('beforeCreate', this.hook2);
 
       return expect(this.Model.runHooks('beforeCreate')).to.be.rejected.then(() => {
         expect(this.hook1).to.have.been.calledOnce;
@@ -180,12 +172,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     it('stops execution when a hook rejects', function() {
-      this.Model.beforeCreate(() => {
+      this.Model.addHook('beforeCreate', () => {
         this.hook1();
 
         return Promise.reject(new Error('No!'));
       });
-      this.Model.beforeCreate(this.hook2);
+      this.Model.addHook('beforeCreate', this.hook2);
 
       return expect(this.Model.runHooks('beforeCreate')).to.be.rejected.then(() => {
         expect(this.hook1).to.have.been.calledOnce;
@@ -279,17 +271,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         hook2 = sinon.spy();
 
       this.Model.addHook('beforeCreate', 'myHook', hook1);
-      this.Model.beforeCreate('myHook2', hook2);
 
       return this.Model.runHooks('beforeCreate').then(() => {
         expect(hook1).to.have.been.calledOnce;
-        expect(hook2).to.have.been.calledOnce;
 
         hook1.resetHistory();
-        hook2.resetHistory();
 
         this.Model.removeHook('beforeCreate', 'myHook');
-        this.Model.removeHook('beforeCreate', 'myHook2');
 
         return this.Model.runHooks('beforeCreate');
       }).then(() => {
@@ -306,8 +294,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       this.Model.addHook('beforeCreate', hook1);
       this.Model.addHook('beforeCreate', 'myHook', hook2);
-      this.Model.beforeCreate('myHook2', hook3);
-      this.Model.beforeCreate(hook4);
+      this.Model.addHook('beforeCreate', 'myHook2', hook3);
+      this.Model.addHook('beforeCreate', hook4);
 
       return this.Model.runHooks('beforeCreate').then(() => {
         expect(hook1).to.have.been.calledOnce;
@@ -352,7 +340,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('promises', () => {
     it('can return a promise', function() {
-      this.Model.beforeBulkCreate(() => {
+      this.Model.addHook('beforeBulkCreate', () => {
         return Sequelize.Promise.resolve();
       });
 
@@ -360,7 +348,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     it('can return undefined', function() {
-      this.Model.beforeBulkCreate(() => {
+      this.Model.addHook('beforeBulkCreate', () => {
         // This space intentionally left blank
       });
 
@@ -368,7 +356,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     it('can return an error by rejecting', function() {
-      this.Model.beforeCreate(() => {
+      this.Model.addHook('beforeCreate', () => {
         return Promise.reject(new Error('Forbidden'));
       });
 
@@ -376,7 +364,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     it('can return an error by throwing', function() {
-      this.Model.beforeCreate(() => {
+      this.Model.addHook('beforeCreate', () => {
         throw new Error('Forbidden');
       });
 

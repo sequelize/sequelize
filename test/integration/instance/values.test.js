@@ -489,7 +489,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         });
         let changed;
 
-        User.afterUpdate(instance => {
+        User.addHook('afterUpdate', instance => {
           changed = instance.changed();
           return;
         });
