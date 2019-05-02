@@ -61,9 +61,24 @@ User.init(
         return {}
       }
     },
+    indexes: [{
+      fields: ['firstName'],
+      using: 'BTREE',
+      name: 'firstNameIdx',
+      concurrently: true,
+    }],
     sequelize,
   }
 );
+
+User.afterSync(() => {
+  sequelize.getQueryInterface().addIndex(User.tableName, {
+      fields: ['lastName'],
+      using: 'BTREE',
+      name: 'lastNameIdx',
+      concurrently: true,
+  })
+})
 
 // Hooks
 User.afterFind((users, options) => {
