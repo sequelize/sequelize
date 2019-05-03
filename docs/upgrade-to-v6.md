@@ -13,3 +13,8 @@ Sequelize v6 will only support Node 8 and up
 Operator aliases were soft deprecated via the `opt-in` option `operatorAlises` in v5 they have been entirely removed.
 
 Please refer to previous changelogs for the migration guide.
+
+### Renamed operator symbols
+
+If you have relied on accessing sequelize operators via `Symbol.for('gt')` etc. you must now prefix them with `sequelize.operator` eg.
+`Symbol.for('sequelize.operator.gt')`
