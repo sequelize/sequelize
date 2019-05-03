@@ -372,6 +372,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should be able to merge scope and having', () => {
+      Sequelize.Model._scope = {
+        having: {
+          something: true,
+          somethingElse: 42
+        },
+        limit: 15,
+        offset: 3
+      };
+
+      const options = {
+        having: {
+          something: false
+        },
+        limit: 9
+      };
+
+      Sequelize.Model._injectScope(options);
+
+      expect(options).to.deep.equal({
+        having: {
+          something: false,
+          somethingElse: 42
+        },
+        limit: 9,
+        offset: 3
+      });
+    });
+
+
     it('should be able to merge scopes with the same include', () => {
       Sequelize.Model._scope = {
         include: [
