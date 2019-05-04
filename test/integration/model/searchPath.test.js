@@ -156,20 +156,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should be able to insert data into both schemas using instance.save and retrieve it via findAll', function() {
           const Restaurant = this.Restaurant;
 
-          let restaurauntModel = Restaurant.build({ bar: 'one.1' });
+          let restaurauntModel = new Restaurant({ bar: 'one.1' });
 
           return restaurauntModel.save({ searchPath: SEARCH_PATH_ONE })
             .then(() => {
-              restaurauntModel = Restaurant.build({ bar: 'one.2' });
+              restaurauntModel = new Restaurant({ bar: 'one.2' });
               return restaurauntModel.save({ searchPath: SEARCH_PATH_ONE });
             }).then(() => {
-              restaurauntModel = Restaurant.build({ bar: 'two.1' });
+              restaurauntModel = new Restaurant({ bar: 'two.1' });
               return restaurauntModel.save({ searchPath: SEARCH_PATH_TWO });
             }).then(() => {
-              restaurauntModel = Restaurant.build({ bar: 'two.2' });
+              restaurauntModel = new Restaurant({ bar: 'two.2' });
               return restaurauntModel.save({ searchPath: SEARCH_PATH_TWO });
             }).then(() => {
-              restaurauntModel = Restaurant.build({ bar: 'two.3' });
+              restaurauntModel = new Restaurant({ bar: 'two.3' });
               return restaurauntModel.save({ searchPath: SEARCH_PATH_TWO });
             }).then(() => {
               return Restaurant.findAll({ searchPath: SEARCH_PATH_ONE });
@@ -210,19 +210,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should be able to insert data into both schemas using instance.save count it and retrieve it via findAll with where', function() {
           const Restaurant = this.Restaurant;
 
-          let restaurauntModel = Restaurant.build({ bar: 'one.1' });
+          let restaurauntModel = new Restaurant({ bar: 'one.1' });
 
           return restaurauntModel.save({ searchPath: SEARCH_PATH_ONE }).then(() => {
-            restaurauntModel = Restaurant.build({ bar: 'one.2' });
+            restaurauntModel = new Restaurant({ bar: 'one.2' });
             return restaurauntModel.save({ searchPath: SEARCH_PATH_ONE });
           }).then(() => {
-            restaurauntModel = Restaurant.build({ bar: 'two.1' });
+            restaurauntModel = new Restaurant({ bar: 'two.1' });
             return restaurauntModel.save({ searchPath: SEARCH_PATH_TWO });
           }).then(() => {
-            restaurauntModel = Restaurant.build({ bar: 'two.2' });
+            restaurauntModel = new Restaurant({ bar: 'two.2' });
             return restaurauntModel.save({ searchPath: SEARCH_PATH_TWO });
           }).then(() => {
-            restaurauntModel = Restaurant.build({ bar: 'two.3' });
+            restaurauntModel = new Restaurant({ bar: 'two.3' });
             return restaurauntModel.save({ searchPath: SEARCH_PATH_TWO });
           }).then(() => {
             return Restaurant.findAll({
@@ -440,12 +440,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should build and persist instances to 2 schemas concurrently in any order', function() {
           const Restaurant = this.Restaurant;
 
-          let restaurauntModelSchema1 = Restaurant.build({ bar: 'one.1' });
-          const restaurauntModelSchema2 = Restaurant.build({ bar: 'two.1' });
+          let restaurauntModelSchema1 = new Restaurant({ bar: 'one.1' });
+          const restaurauntModelSchema2 = new Restaurant({ bar: 'two.1' });
 
           return restaurauntModelSchema1.save({ searchPath: SEARCH_PATH_ONE })
             .then(() => {
-              restaurauntModelSchema1 = Restaurant.build({ bar: 'one.2' });
+              restaurauntModelSchema1 = new Restaurant({ bar: 'one.2' });
               return restaurauntModelSchema2.save({ searchPath: SEARCH_PATH_TWO });
             }).then(() => {
               return restaurauntModelSchema1.save({ searchPath: SEARCH_PATH_ONE });

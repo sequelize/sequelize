@@ -90,7 +90,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
     User.belongsToMany(Task, { through: 'UserTasks', as: 'task' });
 
-    const user = User.build();
+    const user = new User();
 
     _.each(methods, (alias, method) => {
       expect(user[method]()).to.be.a('function');
@@ -158,13 +158,13 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     User.belongsToMany(Task, { through: UserTasks });
     Task.belongsToMany(User, { through: UserTasks });
 
-    const user =User.build({
+    const user = new User({
         id: 42
       }),
-      task1 = Task.build({
+      task1 = new Task({
         id: 15
       }),
-      task2 = Task.build({
+      task2 = new Task({
         id: 16
       });
 

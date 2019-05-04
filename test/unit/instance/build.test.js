@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         }, {
           timestamp: false
         }),
-        instance = Model.build({ ip: '127.0.0.1', ip2: '0.0.0.0' });
+        instance = new Model({ ip: '127.0.0.1', ip2: '0.0.0.0' });
 
       expect(instance.get('created_time')).to.be.ok;
       expect(instance.get('created_time')).to.be.an.instanceof(Date);
@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             defaultValue: DataTypes.UUIDV4
           }
         }),
-        instance  = Model.build({
+        instance  = new Model({
           id: undefined
         });
 
@@ -76,7 +76,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             defaultValue: 2
           }
         }),
-        instance = Model.build({
+        instance = new Model({
           number1: undefined
         });
 
@@ -93,11 +93,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             defaultValue: { foo: 'bar' }
           }
         }),
-        instance = Model.build();
+        instance = new Model();
       instance.data.foo = 'biz';
 
       expect(instance.get('data')).to.eql({ foo: 'biz' });
-      expect(Model.build().get('data')).to.eql({ foo: 'bar' });
+      expect(new Model().get('data')).to.eql({ foo: 'bar' });
     });
   });
 });

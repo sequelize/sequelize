@@ -12,7 +12,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {
         name: DataTypes.STRING
       });
-      const user = User.build({ name: 'my-name' });
+      const user = new User({ name: 'my-name' });
       const json1 = user.toJSON();
       expect(json1).to.have.property('name').and.be.equal('my-name');
 
@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         name: DataTypes.STRING,
         permissions: DataTypes.JSON
       });
-      const user = User.build({ name: 'my-name', permissions: { admin: true, special: 'foobar' } });
+      const user = new User({ name: 'my-name', permissions: { admin: true, special: 'foobar' } });
       const json = user.toJSON();
 
       expect(json)

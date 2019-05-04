@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should allow increments even if options are not given', () => {
-        instance = Model.build({ id: 1 }, { isNewRecord: false });
+        instance = new Model({ id: 1 }, { isNewRecord: false });
         expect(() => {
           instance.increment(['id']);
         }).to.not.throw();

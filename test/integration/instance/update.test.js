@@ -169,7 +169,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should only save passed attributes', function() {
-      const user = this.User.build();
+      const user = new this.User();
       return user.save().then(() => {
         user.set('validateTest', 5);
         expect(user.changed('validateTest')).to.be.ok;
@@ -187,7 +187,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should save attributes affected by setters', function() {
-      const user = this.User.build();
+      const user = new this.User();
       return user.update({ validateSideEffect: 5 }).then(() => {
         expect(user.validateSideEffect).to.be.equal(5);
       }).then(() => {

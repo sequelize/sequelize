@@ -15,9 +15,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {
         meta: DataTypes.JSONB
       });
-      const user = User.build({
+      const user = new User({
         meta: {
-          location: 'Stockhollm'
+          location: 'Stockholm'
         }
       }, {
         isNewRecord: false,
@@ -41,9 +41,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           defaultValue: {}
         }
       });
-      const user1 = User.build({});
-      user1.set('meta.location', 'Stockhollm');
-      const user2 = User.build({});
+      const user1 = new User({});
+      user1.set('meta.location', 'Stockholm');
+      const user2 = new User({});
       expect(user2.get('meta')).to.deep.equal({});
     });
 
@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           allowNull: true
         }
       });
-      const user1 = User.build({
+      const user1 = new User({
         date: null
       });
       user1.set('date', '1970-01-01');
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {
         date: DataTypes.DATE
       });
-      const user = User.build({
+      const user = new User({
         date: ' '
       }, {
         isNewRecord: false,
@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('does not set field to changed if field is set to the same value with custom setter using primitive value', () => {
-        const user = User.build({
+        const user = new User({
           phoneNumber: '+1 234 567'
         });
         return user.save().then(() => {
@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('sets field to changed if field is set to the another value with custom setter using primitive value', () => {
-        const user = User.build({
+        const user = new User({
           phoneNumber: '+1 234 567'
         });
         return user.save().then(() => {
@@ -130,7 +130,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('does not set field to changed if field is set to the same value with custom setter using object', () => {
-        const user = User.build({
+        const user = new User({
           phoneNumber: '+1 234 567'
         });
         return user.save().then(() => {
@@ -142,7 +142,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('sets field to changed if field is set to the another value with custom setter using object', () => {
-        const user = User.build({
+        const user = new User({
           phoneNumber: '+1 234 567'
         });
         return user.save().then(() => {

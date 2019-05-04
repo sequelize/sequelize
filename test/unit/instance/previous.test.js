@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         }
       });
 
-      const instance = Model.build({ text: 'a', textCustom: 'abc' });
+      const instance = new Model({ text: 'a', textCustom: 'abc' });
       expect(instance.previous('text')).to.be.not.ok;
       expect(instance.previous('textCustom')).to.be.not.ok;
 

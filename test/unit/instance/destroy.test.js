@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should allow destroies even if options are not given', () => {
-        instance = Model.build({ id: 1 }, { isNewRecord: false });
+        instance = new Model({ id: 1 }, { isNewRecord: false });
         expect(() => {
           instance.destroy();
         }).to.not.throw();

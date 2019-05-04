@@ -20,13 +20,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('invokes getter if raw: false', function() {
-      this.User.build().get('name');
+      new this.User().get('name');
 
       expect(this.getSpy).to.have.been.called;
     });
 
     it('does not invoke getter if raw: true', function() {
-      this.User.build().get('name', { raw: true });
+      new this.User().get('name', { raw: true });
 
       expect(this.getSpy).not.to.have.been.called;
     });
