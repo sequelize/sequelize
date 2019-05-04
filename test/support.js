@@ -51,7 +51,7 @@ const Support = {
     });
   },
 
-  prepareTransactionTest(sequelize, callback) {
+  prepareTransactionTest(sequelize) {
     const dialect = Support.getTestDialect();
 
     if (dialect === 'sqlite') {
@@ -68,18 +68,10 @@ const Support = {
         const options = Object.assign({}, sequelize.options, { storage: p }),
           _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
-        if (callback) {
-          _sequelize.sync({ force: true }).then(() => { callback(_sequelize); });
-        } else {
-          return _sequelize.sync({ force: true }).return(_sequelize);
-        }
+        return _sequelize.sync({ force: true }).return(_sequelize);
       });
     }
-    if (callback) {
-      callback(sequelize);
-    } else {
-      return Sequelize.Promise.resolve(sequelize);
-    }
+    return Sequelize.Promise.resolve(sequelize);
   },
 
   createSequelizeInstance(options = {}) {
