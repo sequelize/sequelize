@@ -124,16 +124,7 @@ if (current.dialect.supports.transactions) {
             };
           // Attention: this test is a bit racy. If you find a nicer way to test this: go ahead
           return SumSumSum.sync({ force: true }).then(() => {
-            return expect(Promise.join(transTest(80), transTest(80), transTest(80))).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions');
-          }).delay(100).then(() => {
-            if (this.sequelize.test.$runningQueries !== 0) {
-              return Promise.delay(200);
-            }
-            return void 0;
-          }).then(() => {
-            if (this.sequelize.test.$runningQueries !== 0) {
-              return Promise.delay(500);
-            }
+            return expect(Promise.all([transTest(80), transTest(80), transTest(80)])).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions');
           });
         });
       }
