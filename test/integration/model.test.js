@@ -226,7 +226,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
       return Task.sync({ force: true }).then(() => {
-        return Task.build().save().then(record => {
+        return new Task().save().then(record => {
           expect(record.title).to.be.a('string');
           expect(record.title).to.equal('');
           expect(titleSetter.notCalled).to.be.ok; // The setter method should not be invoked for default values
@@ -463,9 +463,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
   });
 
-  describe('build', () => {
+  describe('constructor', () => {
     it("doesn't create database entries", function() {
-      this.User.build({ username: 'John Wayne' });
+      new this.User({ username: 'John Wayne' });
       return this.User.findAll().then(users => {
         expect(users).to.have.length(0);
       });
@@ -480,11 +480,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         flag: { type: Sequelize.BOOLEAN, defaultValue: false }
       });
 
-      expect(Task.build().title).to.equal('a task!');
-      expect(Task.build().foo).to.equal(2);
-      expect(Task.build().bar).to.not.be.ok;
-      expect(Task.build().foobar).to.equal('asd');
-      expect(Task.build().flag).to.be.false;
+      expect(new Task().title).to.equal('a task!');
+      expect(new Task().foo).to.equal(2);
+      expect(new Task().bar).to.not.be.ok;
+      expect(new Task().foobar).to.equal('asd');
+      expect(new Task().flag).to.be.false;
     });
 
     it('fills the objects with default values', function() {
@@ -495,11 +495,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         foobar: { type: Sequelize.TEXT, defaultValue: 'asd' },
         flag: { type: Sequelize.BOOLEAN, defaultValue: false }
       }, { timestamps: false });
-      expect(Task.build().title).to.equal('a task!');
-      expect(Task.build().foo).to.equal(2);
-      expect(Task.build().bar).to.not.be.ok;
-      expect(Task.build().foobar).to.equal('asd');
-      expect(Task.build().flag).to.be.false;
+      expect(new Task().title).to.equal('a task!');
+      expect(new Task().foo).to.equal(2);
+      expect(new Task().bar).to.not.be.ok;
+      expect(new Task().foobar).to.equal('asd');
+      expect(new Task().flag).to.be.false;
     });
 
     it('attaches getter and setter methods from attribute definition', function() {
@@ -515,9 +515,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      expect(Product.build({ price: 42 }).price).to.equal('answer = 84');
+      expect(new Product({ price: 42 }).price).to.equal('answer = 84');
 
-      const p = Product.build({ price: 1 });
+      const p = new Product({ price: 1 });
       expect(p.price).to.equal('answer = 43');
 
       p.price = 0;
@@ -544,8 +544,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      expect(Product.build({ price: 20 }).priceInCents).to.equal(20 * 100);
-      expect(Product.build({ priceInCents: 30 * 100 }).price).to.equal(`$${30}`);
+      expect(new Product({ price: 20 }).priceInCents).to.equal(20 * 100);
+      expect(new Product({ priceInCents: 30 * 100 }).price).to.equal(`$${30}`);
     });
 
     it('attaches getter and setter methods from options only if not defined in attribute', function() {
@@ -567,7 +567,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      const p = Product.build({ price1: 1, price2: 2 });
+      const p = new Product({ price1: 1, price2: 2 });
 
       expect(p.price1).to.equal(10);
       expect(p.price2).to.equal(20);
@@ -589,7 +589,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         Product.hasMany(Tag);
         Product.belongsTo(User);
 
-        const product = Product.build({
+        const product = new Product({
           id: 1,
           title: 'Chair',
           Tags: [
@@ -631,7 +631,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         Product.belongsToMany(User, { as: 'followers', through: 'product_followers' });
         User.belongsToMany(Product, { as: 'following', through: 'product_followers' });
 
-        const product = Product.build({
+        const product = new Product({
           id: 1,
           title: 'Chair',
           categories: [

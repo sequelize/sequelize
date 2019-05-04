@@ -72,13 +72,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('isNewRecord', () => {
     it('returns true for non-saved objects', function() {
-      const user = this.User.build({ username: 'user' });
+      const user = new this.User({ username: 'user' });
       expect(user.id).to.be.null;
       expect(user.isNewRecord).to.be.ok;
     });
 
     it('returns false for saved objects', function() {
-      return this.User.build({ username: 'user' }).save().then(user => {
+      return new this.User({ username: 'user' }).save().then(user => {
         expect(user.isNewRecord).to.not.be.ok;
       });
     });
@@ -119,19 +119,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('default values', () => {
     describe('uuid', () => {
       it('should store a string in uuidv1 and uuidv4', function() {
-        const user = this.User.build({ username: 'a user' });
+        const user = new this.User({ username: 'a user' });
         expect(user.uuidv1).to.be.a('string');
         expect(user.uuidv4).to.be.a('string');
       });
 
       it('should store a string of length 36 in uuidv1 and uuidv4', function() {
-        const user = this.User.build({ username: 'a user' });
+        const user = new this.User({ username: 'a user' });
         expect(user.uuidv1).to.have.length(36);
         expect(user.uuidv4).to.have.length(36);
       });
 
       it('should store a valid uuid in uuidv1 and uuidv4 that conforms to the UUID v1 and v4 specifications', function() {
-        const user = this.User.build({ username: 'a user' });
+        const user = new this.User({ username: 'a user' });
         expect(isUUID(user.uuidv1)).to.be.true;
         expect(isUUID(user.uuidv4, 4)).to.be.true;
       });
@@ -150,7 +150,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           }
         });
 
-        const person = Person.build({});
+        const person = new Person({});
         expect(person.id1).to.be.ok;
         expect(person.id1).to.have.length(36);
 
@@ -160,14 +160,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
     describe('current date', () => {
       it('should store a date in touchedAt', function() {
-        const user = this.User.build({ username: 'a user' });
+        const user = new this.User({ username: 'a user' });
         expect(user.touchedAt).to.be.instanceof(Date);
       });
 
       it('should store the current date in touchedAt', function() {
         const clock = sinon.useFakeTimers();
         clock.tick(5000);
-        const user = this.User.build({ username: 'a user' });
+        const user = new this.User({ username: 'a user' });
         clock.restore();
         expect(+user.touchedAt).to.be.equal(5000);
       });
@@ -175,7 +175,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('allowNull date', () => {
       it('should be just "null" and not Date with Invalid Date', function() {
-        return this.User.build({ username: 'a user' }).save().then(() => {
+        return new this.User({ username: 'a user' }).save().then(() => {
           return this.User.findOne({ where: { username: 'a user' } }).then(user => {
             expect(user.dateAllowNullTrue).to.be.null;
           });
@@ -184,7 +184,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('should be the same valid date when saving the date', function() {
         const date = new Date();
-        return this.User.build({ username: 'a user', dateAllowNullTrue: date }).save().then(() => {
+        return new this.User({ username: 'a user', dateAllowNullTrue: date }).save().then(() => {
           return this.User.findOne({ where: { username: 'a user' } }).then(user => {
             expect(user.dateAllowNullTrue.toString()).to.equal(date.toString());
           });
@@ -194,7 +194,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('super user boolean', () => {
       it('should default to false', function() {
-        return this.User.build({
+        return new this.User({
           username: 'a user'
         })
           .save()
@@ -211,7 +211,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should override default when given truthy boolean', function() {
-        return this.User.build({
+        return new this.User({
           username: 'a user',
           isSuperUser: true
         })
@@ -229,7 +229,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should override default when given truthy boolean-string ("true")', function() {
-        return this.User.build({
+        return new this.User({
           username: 'a user',
           isSuperUser: 'true'
         })
@@ -247,7 +247,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should override default when given truthy boolean-int (1)', function() {
-        return this.User.build({
+        return new this.User({
           username: 'a user',
           isSuperUser: 1
         })
@@ -267,7 +267,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('should throw error when given value of incorrect type', function() {
         let callCount = 0;
 
-        return this.User.build({
+        return new this.User({
           username: 'a user',
           isSuperUser: 'INCORRECT_VALUE_TYPE'
         })
@@ -579,7 +579,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       }, { timestamps: false, logging: false });
 
       return User.sync().then(() => {
-        const user = User.build({ username: 'foo' });
+        const user = new User({ username: 'foo' });
         expect(user.get({ plain: true })).to.deep.equal({ username: 'foo', id: null });
       });
     });

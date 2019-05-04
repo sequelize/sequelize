@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
   describe('validate', () => {
     it('runs the validation sequence and hooks when the hooks option is true', function() {
-      const instanceValidator = new InstanceValidator(this.User.build(), { hooks: true });
+      const instanceValidator = new InstanceValidator(new this.User(), { hooks: true });
       const _validate = sinon.spy(instanceValidator, '_validate');
       const _validateAndRunHooks = sinon.spy(instanceValidator, '_validateAndRunHooks');
 
@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     it('runs the validation sequence but skips hooks if the hooks option is false', function() {
-      const instanceValidator = new InstanceValidator(this.User.build(), { hooks: false });
+      const instanceValidator = new InstanceValidator(new this.User(), { hooks: false });
       const _validate = sinon.spy(instanceValidator, '_validate');
       const _validateAndRunHooks = sinon.spy(instanceValidator, '_validateAndRunHooks');
 
@@ -52,14 +52,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     it('fulfills when validation is successful', function() {
-      const instanceValidator = new InstanceValidator(this.User.build());
+      const instanceValidator = new InstanceValidator(new this.User());
       const result = instanceValidator.validate();
 
       return expect(result).to.be.fulfilled;
     });
 
     it('rejects with a validation error when validation fails', function() {
-      const instanceValidator = new InstanceValidator(this.User.build({ fails: true }));
+      const instanceValidator = new InstanceValidator(new this.User({ fails: true }));
       const result = instanceValidator.validate();
 
       return expect(result).to.be.rejectedWith(SequelizeValidationError);
@@ -73,7 +73,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         }
       });
 
-      const instanceValidator = new InstanceValidator(User.build());
+      const instanceValidator = new InstanceValidator(new User());
       const result = instanceValidator.validate();
 
       return expect(result).to.be.rejectedWith(SequelizeValidationError, /user\.name cannot be null/);
@@ -82,7 +82,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
   describe('_validateAndRunHooks', () => {
     beforeEach(function() {
-      this.successfulInstanceValidator = new InstanceValidator(this.User.build());
+      this.successfulInstanceValidator = new InstanceValidator(new this.User());
       sinon.stub(this.successfulInstanceValidator, '_validate').resolves();
     });
 
@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     it('should run beforeValidate hook but not afterValidate hook when _validate is unsuccessful', function() {
-      const failingInstanceValidator = new InstanceValidator(this.User.build());
+      const failingInstanceValidator = new InstanceValidator(new this.User());
       sinon.stub(failingInstanceValidator, '_validate').rejects(new Error());
       const beforeValidate = sinon.spy();
       const afterValidate = sinon.spy();
@@ -122,7 +122,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     describe('validatedFailed hook', () => {
       it('should call validationFailed hook when validation fails', function() {
-        const failingInstanceValidator = new InstanceValidator(this.User.build());
+        const failingInstanceValidator = new InstanceValidator(new this.User());
         sinon.stub(failingInstanceValidator, '_validate').rejects(new Error());
         const validationFailedHook = sinon.spy();
         this.User.validationFailed(validationFailedHook);
@@ -133,7 +133,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
 
       it('should not replace the validation error in validationFailed hook by default', function() {
-        const failingInstanceValidator = new InstanceValidator(this.User.build());
+        const failingInstanceValidator = new InstanceValidator(new this.User());
         sinon.stub(failingInstanceValidator, '_validate').rejects(new SequelizeValidationError());
         const validationFailedHook = sinon.stub().resolves();
         this.User.validationFailed(validationFailedHook);
@@ -144,7 +144,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
 
       it('should replace the validation error if validationFailed hook creates a new error', function() {
-        const failingInstanceValidator = new InstanceValidator(this.User.build());
+        const failingInstanceValidator = new InstanceValidator(new this.User());
         sinon.stub(failingInstanceValidator, '_validate').rejects(new SequelizeValidationError());
         const validationFailedHook = sinon.stub().throws(new Error('validation failed hook error'));
         this.User.validationFailed(validationFailedHook);

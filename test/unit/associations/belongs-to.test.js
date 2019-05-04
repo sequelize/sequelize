@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
     User.belongsTo(Task, { as: 'task' });
 
-    const user = User.build();
+    const user = new User();
 
     _.each(methods, (alias, method) => {
       expect(user[method]()).to.be.a('function');

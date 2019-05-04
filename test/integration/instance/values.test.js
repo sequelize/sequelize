@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           name: { type: DataTypes.STRING }
         });
 
-        const user = User.build({ id: 1, name: 'Mick' });
+        const user = new User({ id: 1, name: 'Mick' });
 
         expect(user.get('id')).to.equal(1);
         expect(user.get('name')).to.equal('Mick');
@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           identifier: { type: DataTypes.STRING, primaryKey: true }
         });
 
-        const user = User.build({ identifier: 'identifier' });
+        const user = new User({ identifier: 'identifier' });
 
         expect(user.get('identifier')).to.equal('identifier');
         user.set('identifier', 'another identifier');
@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           identifier: { type: DataTypes.STRING, primaryKey: true }
         });
 
-        const user = User.build({}, {
+        const user = new User({}, {
           isNewRecord: false
         });
 
@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           underscored: true
         });
 
-        const user = User.build({}, {
+        const user = new User({}, {
           isNewRecord: false
         });
 
@@ -89,7 +89,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           }
         });
 
-        const user = User.build();
+        const user = new User();
 
         user.set({
           name: 'antonio banderaz',
@@ -157,7 +157,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           Product.hasMany(Tag);
           Product.belongsTo(User);
 
-          const product = Product.build({}, {
+          const product = new Product({}, {
             include: [
               User,
               Tag
@@ -200,7 +200,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           Product.hasMany(Tag);
           Product.belongsTo(User);
 
-          const product = Product.build({}, {
+          const product = new Product({}, {
             include: [
               User,
               Tag
@@ -241,7 +241,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           }
         });
 
-        const product = Product.build({
+        const product = new Product({
           price: 10
         });
         expect(product.get('price')).to.equal(1000);
@@ -260,7 +260,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           }
         });
 
-        const product = Product.build({
+        const product = new Product({
           priceInCents: 1000
         });
         expect(product.get('price')).to.equal(10);
@@ -282,7 +282,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           }
         });
 
-        const product = Product.build({
+        const product = new Product({
           price: 10
         });
         expect(product.toJSON()).to.deep.equal({ withTaxes: 1250, price: 1000, id: null });
@@ -305,7 +305,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         });
 
         return this.sequelize.sync().then(() => {
-          const contact = Contact.build({
+          const contact = new Contact({
             first: 'My',
             last: 'Name',
             tags: ['yes', 'no']
@@ -330,7 +330,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
           Product.belongsTo(User);
 
-          const product = Product.build({}, {
+          const product = new Product({}, {
             include: [
               User
             ]
@@ -357,7 +357,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
             title: Sequelize.STRING
           });
 
-          const product = Product.build({
+          const product = new Product({
             id: 1,
             title: 'Chair'
           }, { raw: true });
@@ -401,7 +401,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
         Product.belongsTo(User);
 
-        const product = Product.build({}, {
+        const product = new Product({}, {
           include: [
             User
           ]
@@ -455,7 +455,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           name: { type: DataTypes.STRING }
         });
 
-        const user = User.build({
+        const user = new User({
           name: 'Jan Meier'
         });
         user.set('name', 'Mick Hansen');
@@ -469,7 +469,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         });
 
         return User.sync().then(() => {
-          const user = User.build({
+          const user = new User({
             name: 'Jan Meier'
           });
           user.set('name', 'Mick Hansen');
@@ -518,7 +518,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           title: { type: DataTypes.STRING }
         });
 
-        const user = User.build({
+        const user = new User({
           name: 'Jan Meier',
           title: 'Mr'
         });
@@ -534,7 +534,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           name: { type: DataTypes.STRING }
         });
 
-        const user = User.build({
+        const user = new User({
           name: 'Jan Meier'
         });
         user.set('name', 'Mick Hansen');

@@ -152,7 +152,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
         return this.sequelize.sync({ force: true })
           .then(() => {
-            return Date.build({ date: Infinity })
+            return new Date({ date: Infinity })
               .save()
               .then(date => {
                 return date.destroy();

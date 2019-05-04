@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           })
             .then(() => {
               return Promise.join(
-                this.Student.build({ no: 1 }).getCourses({ where: { no: 100 } }),
+                new this.Student({ no: 1 }).getCourses({ where: { no: 100 } }),
                 this.Score.findOne({ where: { StudentId: 1, CourseId: 100 } })
               );
             })
