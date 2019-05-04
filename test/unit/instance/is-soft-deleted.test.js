@@ -31,14 +31,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         paranoid: true
       });
 
-      this.paranoidUser = ParanoidUser.build({
+      this.paranoidUser = new ParanoidUser({
         name: 'a'
       }, {
         isNewRecord: false,
         raw: true
       });
 
-      this.user = User.build({
+      this.user = new User({
         name: 'a'
       }, {
         isNewRecord: false,

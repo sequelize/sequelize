@@ -67,9 +67,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
     });
 
-    describe('build', () => {
+    describe('constructor', () => {
       it('returns an object containing all values', function() {
-        const user = this.User.build({
+        const user = new this.User({
           username: 'Adam',
           age: 22,
           level: -1,
@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('returns a response that can be stringified', function() {
-        const user = this.User.build({
+        const user = new this.User({
           username: 'test.user',
           age: 99,
           isAdmin: true,
@@ -98,7 +98,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('returns a response that can be stringified and then parsed', function() {
-        const user = this.User.build({ username: 'test.user', age: 99, isAdmin: true });
+        const user = new this.User({ username: 'test.user', age: 99, isAdmin: true });
         expect(JSON.parse(JSON.stringify(user))).to.deep.equal({ username: 'test.user', age: 99, isAdmin: true, isUser: false, id: null });
       });
     });

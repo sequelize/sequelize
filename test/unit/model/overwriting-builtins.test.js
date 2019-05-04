@@ -13,7 +13,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         set: DataTypes.STRING
       });
 
-      const user = User.build({ set: 'A' });
+      const user = new User({ set: 'A' });
       expect(user.get('set')).to.equal('A');
       user.set('set', 'B');
       expect(user.get('set')).to.equal('B');

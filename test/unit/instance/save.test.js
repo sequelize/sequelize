@@ -13,7 +13,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const Model = current.define('User', {
 
         }),
-        instance = Model.build({}, { isNewRecord: false });
+        instance = new Model({}, { isNewRecord: false });
 
       expect(() => {
         instance.save();
@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should allow saves even if options are not given', () => {
-        instance = Model.build({});
+        instance = new Model({});
         expect(() => {
           instance.save();
         }).to.not.throw();

@@ -590,7 +590,7 @@ export interface CountWithOptions extends CountOptions {
 export interface FindAndCountOptions extends CountOptions, FindOptions {}
 
 /**
- * Options for Model.build method
+ * Options for Model constructor
  */
 export interface BuildOptions {
   /**
@@ -1861,16 +1861,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): Promise<number>;
 
   /**
-   * Builds a new model instance. Values is an object of key value pairs, must be defined but can be empty.
-   */
-  public static build<M extends Model>(
-    this: { new (): M } & typeof Model,
-    record?: object,
-    options?: BuildOptions
-  ): M;
-
-  /**
-   * Undocumented bulkBuild
+   * Builds multiple model instances in one go.
    */
   public static bulkBuild<M extends Model>(
     this: { new (): M } & typeof Model,
@@ -2497,7 +2488,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *
    * Set can also be used to build instances for associations, if you have values for those.
    * When using set with associations you need to make sure the property key matches the alias of the
-   * association while also making sure that the proper include options have been set (from .build() or
+   * association while also making sure that the proper include options have been set (from the constructor or
    * .findOne())
    *
    * If called with a dot.seperated key on a JSON/JSONB attribute it will set the value nested and flag the

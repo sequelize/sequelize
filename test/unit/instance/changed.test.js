@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should return true for changed primitive', function() {
-      const user = this.User.build({
+      const user = new this.User({
         name: 'a'
       }, {
         isNewRecord: false,
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should return falsy for unchanged primitive', function() {
-      const user = this.User.build({
+      const user = new this.User({
         name: 'a',
         meta: null
       }, {
@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should return true for multiple changed values', function() {
-      const user = this.User.build({
+      const user = new this.User({
         name: 'a',
         birthday: new Date(new Date() - 10)
       }, {
@@ -67,7 +67,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const firstDate = new Date(milliseconds);
       const secondDate = new Date(milliseconds);
 
-      const user = this.User.build({
+      const user = new this.User({
         birthday: firstDate
       }, {
         isNewRecord: false,
@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should return true for changed JSON with same object', function() {
-      const user = this.User.build({
+      const user = new this.User({
         meta: {
           city: 'Copenhagen'
         }
@@ -96,7 +96,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should return true for JSON dot.separated key with changed values', function() {
-      const user = this.User.build({
+      const user = new this.User({
         meta: {
           city: 'Stockholm'
         }
@@ -110,7 +110,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should return false for JSON dot.separated key with same value', function() {
-      const user = this.User.build({
+      const user = new this.User({
         meta: {
           city: 'Gothenburg'
         }
@@ -124,7 +124,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should return true for JSON dot.separated key with object', function() {
-      const user = this.User.build({
+      const user = new this.User({
         meta: {
           address: { street: 'Main street', number: '40' }
         }
@@ -138,7 +138,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should return false for JSON dot.separated key with same object', function() {
-      const user = this.User.build({
+      const user = new this.User({
         meta: {
           address: { street: 'Main street', number: '40' }
         }
@@ -157,7 +157,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         attributes[attr] = null;
       }
 
-      const user = this.User.build(attributes, {
+      const user = new this.User(attributes, {
         isNewRecord: false,
         raw: true
       });
@@ -173,7 +173,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('setDataValue', () => {
       it('should return falsy for unchanged primitive', function() {
-        const user = this.User.build({
+        const user = new this.User({
           name: 'a',
           meta: null
         }, {
