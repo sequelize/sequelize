@@ -74,6 +74,7 @@ sequelize.query('select 1 as `foo.bar.baz`').then(rows => {
   console.log(JSON.stringify(rows))
 })
 ```
+
 ```json
 [{
   "foo": {
