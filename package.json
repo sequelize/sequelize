@@ -31,7 +31,6 @@
   "license": "MIT",
   "dependencies": {
     "bluebird": "^3.5.0",
-    "cls-bluebird": "^2.1.0",
     "debug": "^4.1.1",
     "dottie": "^2.0.0",
     "inflection": "1.12.0",
@@ -57,7 +56,6 @@
     "chai-as-promised": "^7.x",
     "chai-datetime": "^1.x",
     "chai-spies": "^1.x",
-    "continuation-local-storage": "^3.x",
     "cross-env": "^5.2.0",
     "env-cmd": "^8.0.0",
     "esdoc": "^1.1.0",

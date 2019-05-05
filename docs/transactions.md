@@ -52,68 +52,16 @@ return sequelize.transaction(t => {
 });
 ```
 
-### Automatically pass transactions to all queries
-
-In the examples above, the transaction is still manually passed, by passing `{ transaction: t }` as the second argument. To automatically pass the transaction to all queries you must install the [continuation local storage](https://github.com/othiym23/node-continuation-local-storage) (CLS) module and instantiate a namespace in your own code:
-
-```js
-const cls = require('continuation-local-storage'),
-    namespace = cls.createNamespace('my-very-own-namespace');
-```
-
-To enable CLS you must tell sequelize which namespace to use by using a static method of the sequelize constructor:
-
-```js
-const Sequelize = require('sequelize');
-Sequelize.useCLS(namespace);
-
-new Sequelize(....);
-```
-
-Notice, that the `useCLS()` method is on the *constructor*, not on an instance of sequelize. This means that all instances will share the same namespace, and that CLS is all-or-nothing - you cannot enable it only for some instances.
-
-CLS works like a thread-local storage for callbacks. What this means in practice is that different callback chains can access local variables by using the CLS namespace. When CLS is enabled sequelize will set the `transaction` property on the namespace when a new transaction is created. Since variables set within a callback chain are private to that chain several concurrent transactions can exist at the same time:
-
-```js
-sequelize.transaction((t1) => {
-  namespace.get('transaction') === t1; // true
-});
-
-sequelize.transaction((t2) => {
-  namespace.get('transaction') === t2; // true
-});
-```
-
-In most case you won't need to access `namespace.get('transaction')` directly, since all queries will automatically look for a transaction on the namespace:
-
-```js
-sequelize.transaction((t1) => {
-  // With CLS enabled, the user will be created inside the transaction
-  return User.create({ name: 'Alice' });
-});
-```
-
-After you've used `Sequelize.useCLS()` all promises returned from sequelize will be patched to maintain CLS context. CLS is a complicated subject - more details in the docs for [cls-bluebird](https://www.npmjs.com/package/cls-bluebird), the patch used to make bluebird promises work with CLS.
-
-**Note:** _[CLS only supports async/await, at the moment, when using cls-hooked package](https://github.com/othiym23/node-continuation-local-storage/issues/98#issuecomment-323503807). Although, [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked/blob/master/README.md) relies on *experimental API* [async_hooks](https://github.com/nodejs/node/blob/master/doc/api/async_hooks.md)_
-
-## Concurrent/Partial transactions
-
-You can have concurrent transactions within a sequence of queries or have some of them excluded from any transactions. Use the `{transaction: }` option to control which transaction a query belong to:
-
-**Warning:** _SQLite does not support more than one transaction at the same time._
-
-### Without CLS enabled
+### Example
 
 ```js
 sequelize.transaction((t1) => {
   return sequelize.transaction((t2) => {
-    // With CLS enable, queries here will by default use t2
     // Pass in the `transaction` option to define/alter the transaction they belong to.
     return Promise.all([
         User.create({ name: 'Bob' }, { transaction: null }),
         User.create({ name: 'Mallory' }, { transaction: t1 }),
-        User.create({ name: 'John' }) // this would default to t2
+        User.create({ name: 'John' }) // No transaction
     ]);
   });
 });

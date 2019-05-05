@@ -1,9 +1,6 @@
 import { Config, Sequelize, Model } from 'sequelize';
 import { Fn } from '../lib/utils';
 
-Sequelize.useCLS({
-});
-
 export const sequelize = new Sequelize({
   hooks: {
     afterConnect: (connection, config: Config) => {
