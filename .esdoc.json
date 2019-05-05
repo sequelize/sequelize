@@ -59,6 +59,9 @@
           ]
         }
       }
+    },
+    {
+      "name": "./docs/plugins/group-data-types"
     }
   ]
 }
