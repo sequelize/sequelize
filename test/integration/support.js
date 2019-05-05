@@ -2,18 +2,26 @@
 
 const Support = require('../support');
 
+const runningQueries = new Set();
+
+before(function() {
+  this.sequelize.addHook('beforeQuery', (options, query) => {
+    runningQueries.add(query);
+  });
+  this.sequelize.addHook('afterQuery', (options, query) => {
+    runningQueries.delete(query);
+  });
+});
+
 beforeEach(function() {
-  this.sequelize.test.trackRunningQueries();
   return Support.clearDatabase(this.sequelize);
 });
 
 afterEach(function() {
-  try {
-    this.sequelize.test.verifyNoRunningQueries();
-  } catch (err) {
-    err.message += ` in ${this.currentTest.fullTitle()}`;
-    throw err;
+  if (runningQueries.size === 0) {
+    return;
   }
+  throw new Error(`Expected 0 running queries. ${runningQueries.size} queries still running in ${this.currentTest.fullTitle()}`);
 });
 
 module.exports = Support;
