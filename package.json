@@ -19,7 +19,7 @@
   },
   "homepage": "http://docs.sequelizejs.com/",
   "main": "index.js",
-  "types": "types",
+  "types": "types/index.d.ts",
   "engines": {
     "node": ">=6.0.0"
   },

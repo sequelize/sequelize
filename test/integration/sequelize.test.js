@@ -1172,28 +1172,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
   });
 
-  describe('import', () => {
-    it('imports a dao definition from a file absolute path', function() {
-      const Project = this.sequelize.import('assets/project');
-      expect(Project).to.exist;
-    });
-
-    it('imports a dao definition with a default export', function() {
-      const Project = this.sequelize.import('assets/es6project');
-      expect(Project).to.exist;
-    });
-
-    it('imports a dao definition from a function', function() {
-      const Project = this.sequelize.import('Project', (sequelize, DataTypes) => {
-        return sequelize.define(`Project${parseInt(Math.random() * 9999999999999999, 10)}`, {
-          name: DataTypes.STRING
-        });
-      });
-
-      expect(Project).to.exist;
-    });
-  });
-
   describe('define', () => {
     it('raises an error if no values are defined', function() {
       expect(() => {

@@ -535,57 +535,6 @@ Person.init({ /* attributes */ }, {
 })
 ```
 
-## Import
-
-You can also store your model definitions in a single file using the `import` method. The returned object is exactly the same as defined in the imported file's function. Since `v1:5.0` of Sequelize the import is cached, so you won't run into troubles when calling the import of a file twice or more often.
-
-```js
-// in your server file - e.g. app.js
-const Project = sequelize.import(__dirname + "/path/to/models/project")
-
-// The model definition is done in /path/to/models/project.js
-// As you might notice, the DataTypes are the very same as explained above
-module.exports = (sequelize, DataTypes) => {
-  class Project extends sequelize.Model { }
-  Project.init({
-    name: DataTypes.STRING,
-    description: DataTypes.TEXT
-  }, { sequelize });
-  return Project;
-}
-```
-
-The `import` method can also accept a callback as an argument.
-
-```js
-sequelize.import('project', (sequelize, DataTypes) => {
-  class Project extends sequelize.Model {}
-  Project.init({
-    name: DataTypes.STRING,
-    description: DataTypes.TEXT
-  }, { sequelize })
-  return Project;
-})
-```
-
-This extra capability is useful when, for example, `Error: Cannot find module` is thrown even though `/path/to/models/project` seems to be correct.  Some frameworks, such as Meteor, overload `require`, and spit out "surprise" results like :
-
-```text
-Error: Cannot find module '/home/you/meteorApp/.meteor/local/build/programs/server/app/path/to/models/project.js'
-```
-
-This is solved by passing in Meteor's version of `require`. So, while this probably fails ...
-
-```js
-const AuthorModel = db.import('./path/to/models/project');
-```
-
-... this should succeed ...
-
-```js
-const AuthorModel = db.import('project', require('./path/to/models/project'));
-```
-
 ## Optimistic Locking
 
 Sequelize has built-in support for optimistic locking through a model instance version count.
