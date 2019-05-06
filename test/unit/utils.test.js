@@ -250,6 +250,27 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
+  describe('Interleave', () => {
+    it('interleaves',  () => {
+      expect(Utils.interleave(['a', 'b', 'c'], ',')).to.deep.equal(['a', ',', 'b', ',', 'c']);
+    });
+
+    it('returns new array', () => {
+      const arr = ['a', 'b', 'c'];
+      expect(Utils.interleave(arr, ',')).not.to.equal(arr);
+    });
+
+    it('works for input length of 0 and 1', () => {
+      const arr0 = [];
+      expect(Utils.interleave(arr0, ',')).to.deep.equal(arr0);
+      expect(Utils.interleave(arr0, ',')).to.not.equal(arr0);
+
+      const arr1 = ['a'];
+      expect(Utils.interleave(arr1, ',')).to.deep.equal(arr1);
+      expect(Utils.interleave(arr1, ',')).to.not.equal(arr1);
+    });
+  });
+
   describe('Sequelize.cast', () => {
     const sql = Support.sequelize;
     const generator = sql.queryInterface.QueryGenerator;
