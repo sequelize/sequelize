@@ -10,7 +10,7 @@ Sequelize is available via [npm](https://www.npmjs.com/package/sequelize) (or [y
 npm install --save sequelize
 ```
 
-You also have to install manually the driver for the database of your choice:
+You'll also have to manually install the driver for your database of choice:
 
 ```sh
 # One of the following:
