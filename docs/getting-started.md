@@ -34,7 +34,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   dialect: /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */
 });
 
-// Option 2: Using a connection URI
+// Option 2: Passing a connection URI
 const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 ```
 
