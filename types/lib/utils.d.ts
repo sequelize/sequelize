@@ -1,3 +1,4 @@
+import { Composable, Placeholder, Slot } from './composition'
 import { DataType } from './data-types';
 import { Model, WhereOptions } from './model';
 
@@ -99,6 +100,19 @@ export class Cast extends SequelizeMethod {
 export class Literal extends SequelizeMethod {
   public val: unknown;
   constructor(val: unknown);
+}
+
+export class CompositionMethod implements Composable<CompositionMethod> {
+    private _isSequelizeMethod: boolean
+
+    public items: (string | Slot | Placeholder)[]
+    public length(): number
+    public add(...items: (string | Slot | Placeholder | CompositionMethod)[]): this
+    public prepend(...items: (string | Slot | Placeholder | CompositionMethod)[]): this
+    public set(...items: (string | Slot | Placeholder | CompositionMethod)[]): this
+    public clone(): CompositionMethod
+
+    constructor(...items: (string | Slot | Placeholder | CompositionMethod)[])
 }
 
 export class Json extends SequelizeMethod {

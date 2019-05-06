@@ -1,3 +1,4 @@
+import { Composition } from './composition'
 import * as DataTypes from './data-types';
 import * as Deferrable from './deferrable';
 import { HookReturn, Hooks, SequelizeHooks } from './hooks';
@@ -26,7 +27,7 @@ import { Promise } from './promise';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType } from './query-interface';
 import QueryTypes = require('./query-types');
 import { Transaction, TransactionOptions } from './transaction';
-import { Cast, Col, Fn, Json, Literal, Where } from './utils';
+import { Cast, Col, CompositionMethod, Fn, Json, Literal, Where } from './utils';
 // tslint:disable-next-line:no-duplicate-imports
 import * as Utils from './utils';
 import { validator } from './utils/validator-extras';
@@ -374,6 +375,31 @@ export class Sequelize extends Hooks {
    * @param val
    */
   public static literal: typeof literal;
+
+  /**
+   * Creates an object representing sql strings and slots. Slots are values
+   * that will be binded or escaped. Strings and slots will be joined without
+   * spaces.
+   *
+   * @param items String or slot to be part of the query
+   */
+  public static composition: typeof composition
+
+  /**
+   * Slot to be included into a composition
+   *
+   * @param value Value
+   * @param [field] Model field or data type
+   * @param [options] Options
+   */
+  public slot: typeof slot
+
+  /**
+   * Returns a placeholder as a SequelizeMethod.
+   *
+ * @param [name] Name for placeholder
+   */
+  public static placeholder: typeof placeholder
 
   /**
    * An AND query
@@ -1087,14 +1113,14 @@ export class Sequelize extends Hooks {
    * @param sql
    * @param options Query options
    */
-  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
-  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
-  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
-  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
-  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<void>;
-  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
-  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SHOWTABLES>): Promise<string[]>;
-  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<{
+  public query(sql: string | { query: string; values: unknown[] } | Composition | CompositionMethod, options: QueryOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
+  public query(sql: string | { query: string; values: unknown[] } | Composition | CompositionMethod, options: QueryOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
+  public query(sql: string | { query: string; values: unknown[] } | Composition | CompositionMethod, options: QueryOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
+  public query(sql: string | { query: string; values: unknown[] } | Composition | CompositionMethod, options: QueryOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
+  public query(sql: string | { query: string; values: unknown[] } | Composition | CompositionMethod, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<void>;
+  public query(sql: string | { query: string; values: unknown[] } | Composition | CompositionMethod, options: QueryOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
+  public query(sql: string | { query: string; values: unknown[] } | Composition | CompositionMethod, options: QueryOptionsWithType<QueryTypes.SHOWTABLES>): Promise<string[]>;
+  public query(sql: string | { query: string; values: unknown[] } | Composition | CompositionMethod, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<{
     [key: string]: {
       type: string;
       allowNull: boolean;
@@ -1105,11 +1131,11 @@ export class Sequelize extends Hooks {
     }
   }>;
   public query<M extends Model>(
-    sql: string | { query: string; values: unknown[] },
+    sql: string | { query: string; values: unknown[] } | Composition | CompositionMethod,
     options: QueryOptionsWithModel
   ): Promise<M[]>;
-  public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
-  public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<unknown[]>;
+  public query<T extends object>(sql: string | { query: string; values: unknown[] } | Composition | CompositionMethod, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
+  public query(sql: string | { query: string; values: unknown[] } | Composition | CompositionMethod, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<unknown[]>;
 
   /**
    * Execute a query which would set an environment or user variable. The variables are set per connection,
@@ -1310,6 +1336,31 @@ export function cast(val: unknown, type: string): Cast;
  * @param val
  */
 export function literal(val: string): Literal;
+
+/**
+ * Creates an object representing sql strings and slots. Slots are values
+ * that will be binded or escaped. Strings and slots will be joined without
+ * spaces.
+ *
+ * @param items String or slot to be part of the query
+ */
+export function composition(...items: (string | CompositionMethod)[]): CompositionMethod
+
+/**
+ * Slot to be included into a composition
+ *
+ * @param value Value
+ * @param [field] Model field or data type
+ * @param [options] Options
+ */
+ export function slot<D extends DataTypes.AbstractDataType, DC extends DataTypes.AbstractDataTypeConstructor>(value: any, field?: D | DC, options?: object): CompositionMethod
+
+/**
+ * Returns a placeholder as a SequelizeMethod.
+ *
+ * @param [name] Name for placeholder
+ */
+export function placeholder(name?: string): CompositionMethod
 
 /**
  * An AND query
