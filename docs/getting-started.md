@@ -23,7 +23,7 @@ $ npm install --save tedious # Microsoft SQL Server
 
 ## Setting up a connection
 
-To connect to the database, you must create a Sequelize instance. This can be done by passing the connection parameters separately to the Sequelize constructor or by passing a single connection URI directly:
+To connect to the database, you must create a Sequelize instance. This can be done by either passing the connection parameters separately to the Sequelize constructor or by passing a single connection URI:
 
 ```js
 const Sequelize = require('sequelize');
