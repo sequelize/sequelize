@@ -38,6 +38,7 @@
     "lodash": "^4.17.11",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.21",
+    "odbc": "^2.0.0-beta.1",
     "retry-as-promised": "^3.1.0",
     "semver": "^5.6.0",
     "sequelize-pool": "^1.0.2",
