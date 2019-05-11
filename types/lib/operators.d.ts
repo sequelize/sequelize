@@ -39,5 +39,6 @@ declare const Op: {
   readonly strictLeft: unique symbol;
   readonly strictRight: unique symbol;
   readonly substring: unique symbol;
+  readonly values: unique symbol;
 };
 export = Op;

@@ -1,4 +1,5 @@
 import { Config, Sequelize, Model } from 'sequelize';
+import { Fn } from '../lib/utils';
 
 Sequelize.useCLS({
 });
@@ -12,7 +13,8 @@ export const sequelize = new Sequelize({
   retry: {
     max: 123,
     match: ['hurr'],
-  }
+  },
+  dialectModule: {},
 });
 
 const conn = sequelize.connectionManager;
@@ -44,5 +46,7 @@ Sequelize.beforeConnect(() => {
 Sequelize.afterConnect(() => {
 
 });
+
+const rnd: Fn = sequelize.random();
 
 const myModel: typeof Model = sequelize.models.asd;

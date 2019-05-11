@@ -38,7 +38,7 @@
           "asset": "./docs/images",
           "files": [
             "./docs/getting-started.md",
-            "./docs/usage.md",
+            "./docs/dialects.md",
             "./docs/data-types.md",
             "./docs/models-definition.md",
             "./docs/models-usage.md",
@@ -49,6 +49,7 @@
             "./docs/transactions.md",
             "./docs/scopes.md",
             "./docs/raw-queries.md",
+            "./docs/read-replication.md",
             "./docs/migrations.md",
             "./docs/resources.md",
             "./docs/typescript.md",
@@ -59,6 +60,9 @@
           ]
         }
       }
+    },
+    {
+      "name": "./docs/plugins/group-data-types"
     }
   ]
 }

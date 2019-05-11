@@ -551,7 +551,7 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     description: DataTypes.TEXT
   }, { sequelize });
-  return Projectl
+  return Project;
 }
 ```
 
@@ -651,29 +651,29 @@ sequelize.sync({ force: true, match: /_test$/ });
 Sequelize Models are ES6 classes. You can very easily add custom instance or class level methods.
 
 ```js
-class User extends Model {}
+class User extends Model {
+  // Adding a class level method
+  static classLevelMethod() {
+    return 'foo';
+  }
+
+  // Adding an instance level method
+  instanceLevelMethod() {
+    return 'bar';
+  }
+}
 User.init({ firstname: Sequelize.STRING }, { sequelize });
-
-// Adding a class level method
-User.classLevelMethod = function() {
-  return 'foo';
-};
-
-// Adding an instance level method
-User.prototype.instanceLevelMethod = function() {
-  return 'bar';
-};
 ```
 
 Of course you can also access the instance's data and generate virtual getters:
 
 ```js
-class User extends Model {}
+class User extends Model {
+  getFullname() {
+    return [this.firstname, this.lastname].join(' ');
+  }
+}
 User.init({ firstname: Sequelize.STRING, lastname: Sequelize.STRING }, { sequelize });
-
-User.prototype.getFullname = function() {
-  return [this.firstname, this.lastname].join(' ');
-};
 
 // Example:
 User.build({ firstname: 'foo', lastname: 'bar' }).getFullname() // 'foo bar'

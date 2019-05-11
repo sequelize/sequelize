@@ -6,7 +6,8 @@ import {
   DataTypes,
   FindOptions,
   Model,
-  ModelCtor
+  ModelCtor,
+  Op
 } from 'sequelize';
 import { sequelize } from '../connection';
 
@@ -15,19 +16,19 @@ export class User extends Model {
     group: BelongsTo<User, UserGroup>;
   };
 
-  public id: number;
-  public username: string;
-  public firstName: string;
-  public lastName: string;
-  public createdAt: Date;
-  public updatedAt: Date;
+  public id!: number;
+  public username!: string;
+  public firstName!: string;
+  public lastName!: string;
+  public createdAt!: Date;
+  public updatedAt!: Date;
 
   // mixins for association (optional)
-  public groupId: number;
-  public group: UserGroup;
-  public getGroup: BelongsToGetAssociationMixin<UserGroup>;
-  public setGroup: BelongsToSetAssociationMixin<UserGroup, number>;
-  public createGroup: BelongsToCreateAssociationMixin<UserGroup>;
+  public groupId!: number;
+  public group?: UserGroup;
+  public getGroup!: BelongsToGetAssociationMixin<UserGroup>;
+  public setGroup!: BelongsToSetAssociationMixin<UserGroup, number>;
+  public createGroup!: BelongsToCreateAssociationMixin<UserGroup>;
 }
 
 User.init(
@@ -55,11 +56,29 @@ User.init(
             firstName: a,
           },
         };
+      },
+      custom2() {
+        return {}
       }
     },
+    indexes: [{
+      fields: ['firstName'],
+      using: 'BTREE',
+      name: 'firstNameIdx',
+      concurrently: true,
+    }],
     sequelize,
   }
 );
+
+User.afterSync(() => {
+  sequelize.getQueryInterface().addIndex(User.tableName, {
+      fields: ['lastName'],
+      using: 'BTREE',
+      name: 'lastNameIdx',
+      concurrently: true,
+  })
+})
 
 // Hooks
 User.afterFind((users, options) => {
@@ -71,6 +90,22 @@ User.addHook('beforeFind', 'test', (options: FindOptions) => {
   return undefined;
 });
 
+// Model#addScope
+User.addScope('withoutFirstName', {
+  where: {
+    firstName: {
+      [Op.is]: null,
+    },
+  },
+});
+
+User.addScope(
+  'withFirstName',
+  (firstName: string) => ({
+    where: { firstName },
+  }),
+);
+
 // associate
 // it is important to import _after_ the model above is already exported so the circular reference works.
 import { UserGroup } from './UserGroup';
@@ -79,3 +114,8 @@ export const Group = User.belongsTo(UserGroup, { as: 'group', foreignKey: 'group
 // associations refer to their Model
 const userType: ModelCtor<User> = User.associations.group.source;
 const groupType: ModelCtor<UserGroup> = User.associations.group.target;
+
+User.scope([
+  'custom2',
+  { method: [ 'custom', 32 ] }
+])

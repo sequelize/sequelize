@@ -10,7 +10,7 @@ Sequelize is available via [npm](https://www.npmjs.com/package/sequelize) (or [y
 npm install --save sequelize
 ```
 
-You also have to install manually the driver for the database of your choice:
+You'll also have to manually install the driver for your database of choice:
 
 ```sh
 # One of the following:
@@ -23,7 +23,7 @@ $ npm install --save tedious # Microsoft SQL Server
 
 ## Setting up a connection
 
-To connect to the database, you must create a Sequelize instance. This can be done by passing the connection parameters separately to the Sequelize constructor or by passing a single connection URI directly:
+To connect to the database, you must create a Sequelize instance. This can be done by either passing the connection parameters separately to the Sequelize constructor or by passing a single connection URI:
 
 ```js
 const Sequelize = require('sequelize');
@@ -34,7 +34,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   dialect: /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */
 });
 
-// Option 2: Using a connection URI
+// Option 2: Passing a connection URI
 const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 ```
 
@@ -53,7 +53,7 @@ const sequelize = new Sequelize({
 
 ### Note: connection pool (production)
 
-If you're connecting to the database from a single process, you should create only one Sequelize instance. Sequelize will setup a connection pool on initialization. This connection pool can be configured with the construction options (using `options.pool`). Example:
+If you're connecting to the database from a single process, you should create only one Sequelize instance. Sequelize will set up a connection pool on initialization. This connection pool can be configured through the constructor's `options` parameter (using `options.pool`), as is shown in the following example:
 
 ```js
 const sequelize = new Sequelize(/* ... */, {

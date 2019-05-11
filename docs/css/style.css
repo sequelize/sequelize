@@ -38,3 +38,9 @@ a[href^="file/lib/"] {
   box-shadow: none !important;
   max-width: 300px;
 }
+
+.navigation {
+  margin-top: 40px !important;
+  padding-top: 0;
+  height: calc(100% - 40px);
+}

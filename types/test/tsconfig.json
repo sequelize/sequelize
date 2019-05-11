@@ -3,10 +3,7 @@
     "module": "commonjs",
     "target": "es6",
     "noEmit": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
+    "strict": true,
     "baseUrl": ".",
     "paths": {
       "sequelize": ["../"],
