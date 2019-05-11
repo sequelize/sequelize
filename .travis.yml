@@ -70,6 +70,8 @@ jobs:
       node_js: '10'
       script:
         - npm run semantic-release
+    - stage: docs
+      node_js: '10'
       before_deploy:
         - npm run docs
       deploy:
@@ -82,4 +84,6 @@ stages:
   - lint
   - test
   - name: release
+    if: (branch = master OR branch = beta) AND type = push AND fork = false
+  - name: docs
     if: branch = master AND type = push AND fork = false
