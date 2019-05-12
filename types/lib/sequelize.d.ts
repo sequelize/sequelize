@@ -42,6 +42,11 @@ export interface SyncOptions extends Logging {
   force?: boolean;
 
   /**
+   * If alter is true, each DAO will do ALTER TABLE ... CHANGE ...
+   */
+  alter?: boolean;
+
+  /**
    * Match a regex against the database name before syncing, a safety check for cases where force: true is
    * used in tests but not live code
    */
