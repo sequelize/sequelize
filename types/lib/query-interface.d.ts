@@ -1,5 +1,5 @@
 import { DataType } from './data-types';
-import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable } from './model';
+import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable, Poolable } from './model';
 import { Promise } from './promise';
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
@@ -10,7 +10,7 @@ type BindOrReplacements = { [key: string]: unknown } | unknown[];
 /**
  * Interface for query options
  */
-export interface QueryOptions extends Logging, Transactionable {
+export interface QueryOptions extends Logging, Transactionable, Poolable {
   /**
    * If true, sequelize will not try to format the results of the query, or build an instance of a model from
    * the result
@@ -49,13 +49,6 @@ export interface QueryOptions extends Logging, Transactionable {
    * values to bind to `$1`, `$2`, etc in your SQL.
    */
   bind?: BindOrReplacements;
-
-  /**
-   * Force the query to use the write pool, regardless of the query type.
-   *
-   * @default false
-   */
-  useMaster?: boolean;
 
   /**
    * A sequelize instance used to build the return instance

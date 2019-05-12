@@ -34,6 +34,15 @@ export interface Logging {
   benchmark?: boolean;
 }
 
+export interface Poolable {
+  /**
+   * Force the query to use the write pool, regardless of the query type.
+   *
+   * @default false
+   */
+  useMaster?: boolean;
+}
+
 export interface Transactionable {
   /**
    * Transaction to run query under
@@ -551,7 +560,7 @@ export interface NonNullFindOptions extends FindOptions {
 /**
  * Options for Model.count method
  */
-export interface CountOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid {
+export interface CountOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid, Poolable {
   /**
    * Include options. See `find` for details
    */
