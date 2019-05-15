@@ -50,6 +50,8 @@ Sequelize.CIDR                        // CIDR datatype for PostgreSQL
 Sequelize.INET                        // INET datatype for PostgreSQL
 Sequelize.MACADDR                     // MACADDR datatype for PostgreSQL
 
+Sequelize.TSVECTOR                    // TSVECTOR datatype for PostgreSQL
+
 Sequelize.RANGE(Sequelize.INTEGER)    // Defines int4range range. PostgreSQL only.
 Sequelize.RANGE(Sequelize.BIGINT)     // Defined int8range range. PostgreSQL only.
 Sequelize.RANGE(Sequelize.DATE)       // Defines tstzrange range. PostgreSQL only.
