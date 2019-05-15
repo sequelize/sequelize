@@ -40,7 +40,8 @@ const OperatorHelpers = {
     [Op.and]: ' AND ',
     [Op.or]: ' OR ',
     [Op.col]: 'COL',
-    [Op.placeholder]: '$$PLACEHOLDER$$'
+    [Op.placeholder]: '$$PLACEHOLDER$$',
+    [Op.match]: '@@'
   },
 
   OperatorsAliasMap: {},
