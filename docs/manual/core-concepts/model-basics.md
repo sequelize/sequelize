@@ -270,6 +270,7 @@ DataTypes.STRING.BINARY      // VARCHAR BINARY
 DataTypes.TEXT               // TEXT
 DataTypes.TEXT('tiny')       // TINYTEXT
 DataTypes.CITEXT             // CITEXT          PostgreSQL and SQLite only.
+DataTypes.TSVECTOR           // CITEXT          PostgreSQL only.
 ```
 
 ### Boolean
