@@ -467,6 +467,7 @@ declare const Op: {
    * ```
    */
   readonly values: unique symbol;
+  readonly match: unique symbol;
 };
 
 export = Op;
