@@ -850,6 +850,9 @@ if (dialect.startsWith('postgres')) {
         }, {
           arguments: [{ schema: 'mySchema', tableName: 'myTable' }, [{ name: "foo';DROP TABLE mySchema.myTable;" }, { name: 'bar' }]],
           expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'';DROP TABLE mySchema.myTable;'),('bar');"
+        }, {
+          arguments: [{ schema: 'mySchema', tableName: 'myTable' }, [{ name: 'foo' }, { name: 'bar' }], { updateOnDuplicate: ['name'], upsertKeys: ['name'] }],
+          expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'),('bar') ON CONFLICT (\"name\") DO UPDATE SET \"name\"=EXCLUDED.\"name\";"
         },
 
         // Variants when quoteIdentifiers is false

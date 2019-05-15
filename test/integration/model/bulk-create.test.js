@@ -480,6 +480,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        it('should support the updateOnDuplicate option with primary keys', function() {
+          const data = [
+            { no: 1, name: 'Peter' },
+            { no: 2, name: 'Paul' }
+          ];
+
+          return this.Student.bulkCreate(data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
+            const new_data = [
+              { no: 1, name: 'Peterson' },
+              { no: 2, name: 'Paulson' },
+              { no: 3, name: 'Michael' }
+            ];
+            return this.Student.bulkCreate(new_data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
+              return this.Student.findAll({ order: ['no'] }).then(students => {
+                expect(students.length).to.equal(3);
+                expect(students[0].name).to.equal('Peterson');
+                expect(students[0].no).to.equal(1);
+                expect(students[1].name).to.equal('Paulson');
+                expect(students[1].no).to.equal(2);
+                expect(students[2].name).to.equal('Michael');
+                expect(students[2].no).to.equal(3);
+              });
+            });
+          });
+        });
+
         it('should reject for non array updateOnDuplicate option', function() {
           const data = [
             { uniqueName: 'Peter', secretValue: '42' },

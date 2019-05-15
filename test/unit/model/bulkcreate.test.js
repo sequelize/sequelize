@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.Model.bulkCreate([
           { accountId: 42 }
         ], { validate: true }).then(() => {
-          expect(this.stub.getCall(0).args[1]).to.deep.equal([
+          expect(this.stub.getCall(0).args[2]).to.deep.equal([
             { account_id: 42, id: null }
           ]);
         });
