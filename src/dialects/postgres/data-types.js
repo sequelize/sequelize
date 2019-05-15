@@ -36,6 +36,7 @@ module.exports = BaseTypes => {
   BaseTypes.CIDR.types.postgres = ['cidr'];
   BaseTypes.INET.types.postgres = ['inet'];
   BaseTypes.MACADDR.types.postgres = ['macaddr'];
+  BaseTypes.TSVECTOR.types.postgres = ['tsvector'];
   BaseTypes.JSON.types.postgres = ['json'];
   BaseTypes.JSONB.types.postgres = ['jsonb'];
   BaseTypes.TIME.types.postgres = ['time'];
