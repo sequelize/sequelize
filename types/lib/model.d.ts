@@ -16,7 +16,7 @@ import { ValidationOptions } from './instance-validator';
 import { ModelManager } from './model-manager';
 import Op = require('./operators');
 import { Promise } from './promise';
-import { QueryOptions } from './query-interface';
+import { QueryOptions, IndexesOptions } from './query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
 import { Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
@@ -32,6 +32,15 @@ export interface Logging {
    * Pass query execution time in milliseconds as second argument to logging function (options.logging).
    */
   benchmark?: boolean;
+}
+
+export interface Poolable {
+  /**
+   * Force the query to use the write pool, regardless of the query type.
+   *
+   * @default false
+   */
+  useMaster?: boolean;
 }
 
 export interface Transactionable {
@@ -551,7 +560,7 @@ export interface NonNullFindOptions extends FindOptions {
 /**
  * Options for Model.count method
  */
-export interface CountOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid {
+export interface CountOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid, Poolable {
   /**
    * Include options. See `find` for details
    */
@@ -1134,55 +1143,7 @@ export interface ModelValidateOptions {
 /**
  * Interface for indexes property in InitOptions
  */
-export interface ModelIndexesOptions {
-  /**
-   * The name of the index. Defaults to model name + _ + fields concatenated
-   */
-  name?: string;
-
-  /**
-   * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
-   */
-  index?: string;
-
-  /**
-   * The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and
-   * postgres, and postgres additionally supports GIST and GIN.
-   */
-  method?: string;
-
-  /**
-   * Should the index by unique? Can also be triggered by setting type to `UNIQUE`
-   *
-   * @default false
-   */
-  unique?: boolean;
-
-  /**
-   * PostgreSQL will build the index without taking any write locks. Postgres only
-   *
-   * @default false
-   */
-  concurrently?: boolean;
-
-  /**
-   * An array of the fields to index. Each field can either be a string containing the name of the field,
-   * a sequelize object (e.g `sequelize.fn`), or an object with the following attributes: `attribute`
-   * (field name), `length` (create a prefix index of length chars), `order` (the direction the column
-   * should be sorted in), `collate` (the collation (sort order) for the column)
-   */
-  fields?: (string | { attribute: string; length: number; order: string; collate: string })[];
-
-  /**
-   * Type of search index. Postgres only
-   */
-  using?: string;
-
-  /**
-   * Index operator type. Postgres only
-   */
-  operator?: string;
-}
+export type ModelIndexesOptions = IndexesOptions
 
 /**
  * Interface for name property in InitOptions
