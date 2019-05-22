@@ -51,6 +51,21 @@ export interface SyncOptions extends Logging {
    * The schema that the tables should be created in. This can be overridden for each table in sequelize.define
    */
   schema?: string;
+  
+   /**
+   * An optional parameter to specify the schema search_path (Postgres only)
+   */
+  searchPath?: string;
+  
+   /**
+   * If hooks is true then beforeSync, afterSync, beforeBulkSync, afterBulkSync hooks will be called
+   */
+  hooks?: boolean;
+  
+   /**
+   * Alters tables to fit models. Not recommended for production use. Deletes data in columns that were removed or had their type changed in the model.
+   */
+  alter?: boolean;
 }
 
 export interface DefaultSetOptions {}
