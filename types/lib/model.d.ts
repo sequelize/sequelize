@@ -2165,6 +2165,38 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): void;
 
   /**
+   * A hook that is run before creating or updating a single instance, It proxies `beforeCreate` and `beforeUpdate`
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static beforeSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    name: string,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+  public static beforeSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+
+  /**
+   * A hook that is run after creating or updating a single instance, It proxies `afterCreate` and `afterUpdate`
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static afterSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    name: string,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+  public static afterSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+
+  /**
    * A hook that is run before creating instances in bulk
    *
    * @param name
