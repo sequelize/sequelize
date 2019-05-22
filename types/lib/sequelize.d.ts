@@ -507,6 +507,24 @@ export class Sequelize extends Hooks {
   public static afterUpdate(fn: (instance: Model, options: UpdateOptions) => void): void;
 
   /**
+   * A hook that is run before creating or updating a single instance, It proxies `beforeCreate` and `beforeUpdate`
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static beforeSave(name: string, fn: (instance: Model, options: UpdateOptions | CreateOptions) => void): void;
+  public static beforeSave(fn: (instance: Model, options: UpdateOptions | CreateOptions) => void): void;
+
+  /**
+   * A hook that is run after creating or updating a single instance, It proxies `afterCreate` and `afterUpdate`
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static afterSave(name: string, fn: (instance: Model, options: UpdateOptions | CreateOptions) => void): void;
+  public static afterSave(fn: (instance: Model, options: UpdateOptions | CreateOptions) => void): void;
+
+  /**
    * A hook that is run before creating instances in bulk
    *
    * @param name
