@@ -121,7 +121,7 @@ export interface ScopeOptions {
 /**
  * The type accepted by every `where` option
  */
-export type WhereOptions = WhereAttributeHash | AndOperator | OrOperator | Where;
+export type WhereOptions = WhereAttributeHash | AndOperator | OrOperator | Literal | Where;
 
 /**
  * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
