@@ -4,9 +4,9 @@ const chai = require('chai'),
   expect = chai.expect,
   Sequelize = require('../../../index'),
   Op = Sequelize.Op,
-  Support   = require('../support'),
+  Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  current   = Support.sequelize;
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   const Project = current.define('project'),
@@ -87,19 +87,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         value: DataTypes.INTEGER,
         name: DataTypes.STRING
       }, {
-        defaultScope: {
-          attributes: {
-            exclude: ['password']
-          }
-        },
-        scopes: {
-          aScope: {
+          defaultScope: {
             attributes: {
-              exclude: ['value']
+              exclude: ['password']
+            }
+          },
+          scopes: {
+            aScope: {
+              attributes: {
+                exclude: ['value']
+              }
             }
           }
-        }
-      });
+        });
 
       it('should not expand attributes', () => {
         expect(User._scope.attributes).to.deep.equal({ exclude: ['password'] });
@@ -401,6 +401,39 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should be able to merge scope and using custom whereMerge function', () => {
+      const test = current.define('user', {}, {
+        whereMerge: (where1, where2) => {
+          return { [Sequelize.Op.and]: [where1, where2] };
+        }
+      });
+      test._scope = {
+        where: {
+          age: 5,
+        }
+      };
+
+      const options = {
+        where: {
+          age: 6
+        }
+      };
+
+      test._injectScope(options);
+
+      expect(options).to.deep.equal({
+        where: {
+          [Sequelize.Op.and]: [
+            {
+              age: 5
+            },
+            {
+              age: 6
+            }
+          ]
+        }
+      });
+    });
 
     it('should be able to merge scopes with the same include', () => {
       Sequelize.Model._scope = {
