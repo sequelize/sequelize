@@ -1,5 +1,5 @@
 import { DataType } from './data-types';
-import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable } from './model';
+import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable, Poolable } from './model';
 import { Promise } from './promise';
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
@@ -10,7 +10,7 @@ type BindOrReplacements = { [key: string]: unknown } | unknown[];
 /**
  * Interface for query options
  */
-export interface QueryOptions extends Logging, Transactionable {
+export interface QueryOptions extends Logging, Transactionable, Poolable {
   /**
    * If true, sequelize will not try to format the results of the query, or build an instance of a model from
    * the result
@@ -49,13 +49,6 @@ export interface QueryOptions extends Logging, Transactionable {
    * values to bind to `$1`, `$2`, etc in your SQL.
    */
   bind?: BindOrReplacements;
-
-  /**
-   * Force the query to use the write pool, regardless of the query type.
-   *
-   * @default false
-   */
-  useMaster?: boolean;
 
   /**
    * A sequelize instance used to build the return instance
@@ -123,18 +116,68 @@ export interface QueryInterfaceDropAllTablesOptions extends QueryInterfaceOption
   skip?: string[];
 }
 
-export interface QueryInterfaceIndexOptions extends QueryInterfaceOptions {
-  type?: 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
+export type IndexType = 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
+export type IndexMethod = 'BTREE' | 'HASH' | 'GIST' | 'SPGIST' | 'GIN' | 'BRIN' | string;
 
-  /** The name of the index. Default is __ */
+export interface IndexesOptions {
+  /**
+   * The name of the index. Defaults to model name + _ + fields concatenated
+   */
   name?: string;
 
   /** For FULLTEXT columns set your parser */
-  parser?: string;
+  parser?: string | null;
 
-  /** Set a type for the index, e.g. BTREE. See the documentation of the used dialect */
-  using?: string;
+  /**
+   * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
+   */
+  type?: IndexType;
+
+  /**
+   * Should the index by unique? Can also be triggered by setting type to `UNIQUE`
+   *
+   * @default false
+   */
+  unique?: boolean;
+
+  /**
+   * PostgreSQL will build the index without taking any write locks. Postgres only
+   *
+   * @default false
+   */
+  concurrently?: boolean;
+
+  /**
+   * An array of the fields to index. Each field can either be a string containing the name of the field,
+   * a sequelize object (e.g `sequelize.fn`), or an object with the following attributes: `name`
+   * (field name), `length` (create a prefix index of length chars), `order` (the direction the column
+   * should be sorted in), `collate` (the collation (sort order) for the column)
+   */
+  fields?: (string | { name: string; length?: number; order?: 'ASC' | 'DESC'; collate?: string })[];
+
+  /**
+   * The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and
+   * postgres, and postgres additionally supports GIST, SPGIST, BRIN and GIN.
+   */
+  using?: IndexMethod;
+
+  /**
+   * Index operator type. Postgres only
+   */
+  operator?: string;
+
+  /**
+   * Optional where parameter for index. Can be used to limit the index to certain rows.
+   */
+  where?: WhereOptions;
+
+  /**
+   * Prefix to append to the index name.
+   */
+  prefix?: string;
 }
+
+export interface QueryInterfaceIndexOptions extends IndexesOptions, QueryInterfaceOptions {}
 
 export interface AddUniqueConstraintOptions {
   type: 'unique';
