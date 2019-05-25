@@ -2496,6 +2496,19 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   constructor(values?: object, options?: BuildOptions);
 
+   /**
+   * A function where asociations between different models are defined.
+   * For example:
+   * ```js
+   *  Post.associate = function(models) {
+    *    Post.belongsTo(models.Blog)
+    *    Post.hasMany(models.Comments)
+    *  }
+    * ```
+    * @param models a dictionary of models
+    */
+   public static associate(models: { [key: string]: typeof Model }): void;
+
   /**
    * Get an object representing the query for this instance, use with `options.where`
    */
