@@ -376,7 +376,7 @@ export interface IncludeThroughOptions extends Filterable, Projectable {}
 /**
  * Options for eager-loading associated models, also allowing for all associations to be loaded at once
  */
-export type Includeable = typeof Model | Association | IncludeOptions | { all: true };
+export type Includeable = typeof Model | Association | IncludeOptions | { all: true } | string;
 
 /**
  * Complex include options
