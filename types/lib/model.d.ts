@@ -479,7 +479,7 @@ export type FindAttributeOptions =
 
 export interface IndexHint {
   type: IndexHints;
-  value: string[];
+  values: string[];
 }
 
 export interface IndexHintable {
