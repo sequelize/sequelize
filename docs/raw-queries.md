@@ -35,7 +35,7 @@ sequelize
   })
 ```
 
-See more options in the [query API reference](class/lib/sequelize.js~Sequelize.html#instance-method-query). Some examples below:
+See more options in the [query API reference](/class/lib/sequelize.js~Sequelize.html#instance-method-query). Some examples below:
 
 ```js
 sequelize.query('SELECT 1', {
