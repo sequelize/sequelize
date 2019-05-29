@@ -215,8 +215,8 @@ The following hooks will emit whenever you're editing a single object
 ```text
 beforeValidate
 afterValidate or validationFailed
-beforeCreate / beforeUpdate  / beforeDestroy
-afterCreate / afterUpdate / afterDestroy
+beforeCreate / beforeUpdate / beforeSave  / beforeDestroy
+afterCreate / afterUpdate / afterSave / afterDestroy
 ```
 
 ```js
