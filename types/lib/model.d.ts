@@ -489,6 +489,8 @@ export interface IndexHintable {
   indexHints?: IndexHint[];
 }
 
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+
 /**
  * Options that are passed to any model creating a SELECT query
  *
@@ -1756,12 +1758,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
     identifier?: Identifier,
-    options?: FindOptions
+    options?: Omit<FindOptions, 'where'>
   ): Promise<M | null>;
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
     identifier: Identifier,
-    options: NonNullFindOptions
+    options: Omit<NonNullFindOptions, 'where'>
   ): Promise<M>;
 
   /**

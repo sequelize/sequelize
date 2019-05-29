@@ -43,6 +43,7 @@ export interface SyncOptions extends Logging {
 
   /**
    * If alter is true, each DAO will do ALTER TABLE ... CHANGE ...
+   * Alters tables to fit models. Not recommended for production use. Deletes data in columns that were removed or had their type changed in the model.
    */
   alter?: boolean;
 
@@ -66,11 +67,6 @@ export interface SyncOptions extends Logging {
    * If hooks is true then beforeSync, afterSync, beforeBulkSync, afterBulkSync hooks will be called
    */
   hooks?: boolean;
-  
-   /**
-   * Alters tables to fit models. Not recommended for production use. Deletes data in columns that were removed or had their type changed in the model.
-   */
-  alter?: boolean;
 }
 
 export interface DefaultSetOptions {}
