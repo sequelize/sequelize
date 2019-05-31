@@ -361,6 +361,18 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
   });
 
+  if (current.dialect.supports.TSVECTOR) {
+    it('calls parse and stringify for TSVECTOR', () => {
+      const Type = new Sequelize.TSVECTOR();
+
+      if (['postgres'].includes(dialect)) {
+        return testSuccess(Type, 'swagger');
+      }
+      testFailure(Type);
+
+    });
+  }
+
   it('calls parse and stringify for ENUM', () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 

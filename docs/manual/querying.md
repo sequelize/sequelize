@@ -176,7 +176,7 @@ const Op = Sequelize.Op
 [Op.contains]: [1, 2]      // @> [1, 2] (PG array contains operator)
 [Op.contained]: [1, 2]     // <@ [1, 2] (PG array contained by operator)
 [Op.any]: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
-[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat') // math text search for strings 'fat' and 'rat'
+[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat') // match text search for strings 'fat' and 'rat'
 
 [Op.col]: 'user.organization_id' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
 [Op.gt]: { [Op.all]: literal('SELECT 1') }

@@ -195,7 +195,7 @@ Project.findAll({
       [Op.contains]: [1, 2],      // @> [1, 2] (PG array contains operator)
       [Op.contained]: [1, 2],     // <@ [1, 2] (PG array contained by operator)
       [Op.any]: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
-      [Op.match]: Sequelize.fn('to_tsquery', 'fat & rat') // math text search for strings 'fat' and 'rat'
+      [Op.match]: Sequelize.fn('to_tsquery', 'fat & rat') // match text search for strings 'fat' and 'rat'
     },
     status: {
       [Op.not]: false           // status NOT FALSE
