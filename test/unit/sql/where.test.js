@@ -1206,6 +1206,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }
     }
 
+    if (current.dialect.supports.TSVESCTOR) { 
+      describe('Op.match', () => {
+        testsql('username', {
+          [Op.match]: Support.sequelize.fn('to_tsvector', 'swagger')
+        }, {
+          postgres: "[username] @@ to_tsvector('swagger')"
+        });
+      });
+    }
+
     describe('fn', () => {
       it('{name: this.sequelize.fn(\'LOWER\', \'DERP\')}', function() {
         expectsql(sql.whereQuery({ name: this.sequelize.fn('LOWER', 'DERP') }), {
