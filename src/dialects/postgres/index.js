@@ -55,6 +55,7 @@ PostgresDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototy
   JSON: true,
   JSONB: true,
   HSTORE: true,
+  TSVECTOR: true,
   deferrableConstraints: true,
   searchPath: true
 });
