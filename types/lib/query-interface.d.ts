@@ -1,5 +1,16 @@
 import { DataType } from './data-types';
-import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable, Poolable, BulkCreateOptions} from './model';
+import {
+  Logging,
+  Model,
+  ModelAttributeColumnOptions,
+  ModelAttributes,
+  Transactionable,
+  WhereOptions,
+  Filterable,
+  Poolable,
+  BulkCreateOptions,
+  UpsertOptions, UpdateOptions, DestroyOptions
+} from './model';
 import { Promise } from './promise';
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
@@ -436,7 +447,7 @@ export class QueryInterface {
     values: object,
     updateValues: object,
     model: typeof Model,
-    options?: QueryOptions
+    options?: UpsertOptions
   ): Promise<object>;
 
   /**
@@ -457,7 +468,7 @@ export class QueryInterface {
     tableName: string,
     values: object,
     identifier: WhereOptions,
-    options?: QueryOptions
+    options?: UpdateOptions
   ): Promise<object>;
 
   /**
@@ -467,7 +478,7 @@ export class QueryInterface {
     tableName: string,
     values: object,
     identifier: WhereOptions,
-    options?: QueryOptions,
+    options?: BulkCreateOptions,
     attributes?: string[] | string
   ): Promise<object>;
 
