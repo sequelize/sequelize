@@ -1,5 +1,5 @@
 import { DataType } from './data-types';
-import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable, Poolable } from './model';
+import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable, Poolable, BulkCreateOptions} from './model';
 import { Promise } from './promise';
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
@@ -445,7 +445,7 @@ export class QueryInterface {
   public bulkInsert(
     tableName: string,
     records: object[],
-    options?: QueryOptions,
+    options?: BulkCreateOptions,
     attributes?: string[] | string
   ): Promise<object>;
 
