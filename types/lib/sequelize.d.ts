@@ -647,10 +647,10 @@ export class Sequelize extends Hooks {
    */
   public static afterFind(
     name: string,
-    fn: (instancesOrInstance: Model[] | Model, options: FindOptions) => void
+    fn: (instancesOrInstance: Model[] | Model | null, options: FindOptions) => void
   ): void;
   public static afterFind(
-    fn: (instancesOrInstance: Model[] | Model, options: FindOptions) => void
+    fn: (instancesOrInstance: Model[] | Model | null, options: FindOptions) => void
   ): void;
 
   /**
@@ -953,9 +953,9 @@ export class Sequelize extends Hooks {
    */
   public afterFind(
     name: string,
-    fn: (instancesOrInstance: Model[] | Model, options: FindOptions) => void
+    fn: (instancesOrInstance: Model[] | Model | null, options: FindOptions) => void
   ): void;
-  public afterFind(fn: (instancesOrInstance: Model[] | Model, options: FindOptions) => void): void;
+  public afterFind(fn: (instancesOrInstance: Model[] | Model | null, options: FindOptions) => void): void;
 
   /**
    * A hook that is run before a define call

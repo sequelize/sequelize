@@ -2311,11 +2311,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static afterFind<M extends Model>(
     this: { new (): M } & typeof Model,
     name: string,
-    fn: (instancesOrInstance: M[] | M, options: FindOptions) => HookReturn
+    fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
   public static afterFind<M extends Model>(
     this: { new (): M } & typeof Model,
-    fn: (instancesOrInstance: M[] | M, options: FindOptions) => HookReturn
+    fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
 
   /**

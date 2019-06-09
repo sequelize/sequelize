@@ -40,7 +40,7 @@ export interface ModelHooks<M extends Model = Model> {
   beforeCount(options: CountOptions): HookReturn;
   beforeFindAfterExpandIncludeAll(options: FindOptions): HookReturn;
   beforeFindAfterOptions(options: FindOptions): HookReturn;
-  afterFind(instancesOrInstance: M[] | M, options: FindOptions): HookReturn;
+  afterFind(instancesOrInstance: M[] | M | null, options: FindOptions): HookReturn;
   beforeSync(options: SyncOptions): HookReturn;
   afterSync(options: SyncOptions): HookReturn;
   beforeBulkSync(options: SyncOptions): HookReturn;
