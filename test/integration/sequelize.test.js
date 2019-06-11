@@ -294,19 +294,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     describe('logging', () => {
-      it('executes a query with global benchmarking option and default logger', () => {
-        const logger = sinon.stub(console, 'log');
-        const sequelize = Support.createSequelizeInstance({
-          logging: logger,
-          benchmark: true
-        });
-
-        return sequelize.query('select 1;').then(() => {
-          expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; Elapsed time: \d+ms/);
-        });
-      });
-
       it('executes a query with global benchmarking option and custom logger', () => {
         const logger = sinon.spy();
         const sequelize = Support.createSequelizeInstance({
@@ -318,17 +305,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           expect(logger.calledOnce).to.be.true;
           expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1/);
           expect(typeof logger.args[0][1] === 'number').to.be.true;
-        });
-      });
-
-      it('executes a query with benchmarking option and default logger', function() {
-        const logger = sinon.stub(console, 'log');
-        return this.sequelize.query('select 1;', {
-          logging: logger,
-          benchmark: true
-        }).then(() => {
-          expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; Elapsed time: \d+ms/);
         });
       });
 
