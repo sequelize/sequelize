@@ -96,19 +96,15 @@ export interface SequelizeHooks extends ModelHooks {
  * Virtual class for deduplication
  */
 export class Hooks<H extends object> {
-    /**
+  /**
    * Add a hook to the model
-   *
-   * @param name Provide a name for the hook function. It can be used to remove the hook later or to order
-   *   hooks based on some sort of priority system in the future.
    */
-  add<K extends keyof H>(hookType: K, name: string, fn: H[K]): this;
   add<K extends keyof H>(hookType: K, fn: H[K]): this;
 
   /**
    * Remove hook from the model
    */
-  remove<K extends keyof H>(hookType: K, name: string): this;
+  remove<K extends keyof H>(hookType: K, fn: Function): this;
 
   /**
    * Check whether the mode has any hooks of this type

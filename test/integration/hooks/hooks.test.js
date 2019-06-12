@@ -382,24 +382,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   });
 
   describe('#removal', () => {
-    it('should be able to remove by name', function() {
-      const sasukeHook = sinon.spy(),
-        narutoHook = sinon.spy();
-
-      this.User.hooks.add('beforeCreate', 'sasuke', sasukeHook);
-      this.User.hooks.add('beforeCreate', 'naruto', narutoHook);
-
-      return this.User.create({ username: 'makunouchi' }).then(() => {
-        expect(sasukeHook).to.have.been.calledOnce;
-        expect(narutoHook).to.have.been.calledOnce;
-        this.User.hooks.remove('beforeCreate', 'sasuke');
-        return this.User.create({ username: 'sendo' });
-      }).then(() => {
-        expect(sasukeHook).to.have.been.calledOnce;
-        expect(narutoHook).to.have.been.calledTwice;
-      });
-    });
-
     it('should be able to remove by reference', function() {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();

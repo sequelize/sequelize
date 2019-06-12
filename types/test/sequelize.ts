@@ -18,7 +18,7 @@ const conn = sequelize.connectionManager;
 
 // hooks
 
-sequelize.hooks.add('beforeCreate', 'test', () => {
+sequelize.hooks.add('beforeCreate', () => {
     // noop
 });
 

@@ -90,7 +90,7 @@ User.hooks.add('afterBulkCreate', (users: User[]) => {
 })
 
 // TODO: VSCode shows the typing being correctly narrowed but doesn't do it correctly
-User.hooks.add('beforeFind', 'test', (options: FindOptions) => {
+User.hooks.add('beforeFind', (options: FindOptions) => {
   return undefined;
 });
 

@@ -8,7 +8,7 @@ import { ModelHooks } from "../lib/hooks";
 Sequelize.hooks.add('beforeSave', (t: TestModel, options: SaveOptions) => {});
 Sequelize.hooks.add('afterSave', (t: TestModel, options: SaveOptions) => {});
 Sequelize.hooks.add('afterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => {});
-Sequelize.hooks.add('afterFind', 'namedAfterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => {});
+Sequelize.hooks.add('afterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => {});
 
 Sequelize.hooks.add('beforeSave', m => {
 
