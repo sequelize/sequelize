@@ -7,6 +7,7 @@ branches:
   only:
     - master
     - v6
+    - beta
     - /^greenkeeper/.*$/
   except:
     - /^v\d+\.\d+\.\d+$/
