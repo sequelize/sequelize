@@ -72,9 +72,6 @@ export interface ModelHooks<M extends Model = Model> {
   beforeBulkSync(options: SyncOptions): HookReturn;
   afterBulkSync(options: SyncOptions): HookReturn;
 
-  beforeSave(instance: M, options: SaveOptions): HookReturn;
-  afterSave(instance: M, options: SaveOptions): HookReturn;
-
   beforeUpsert(values: object, options: UpsertOptions): HookReturn;
   afterUpsert(instance: M, options: UpsertOptions): HookReturn;
 
@@ -95,109 +92,26 @@ export interface SequelizeHooks extends ModelHooks {
   afterConnect(connection: unknown, config: Config): HookReturn;
 }
 
-export interface HooksBase<H extends object> {
-
-}
-
-export interface SequelizeHooksBase extends HooksBase<SequelizeHooks> {
-
-}
 /**
  * Virtual class for deduplication
  */
-export class SequelizeHooksBase {
+export class Hooks<H extends object> {
     /**
    * Add a hook to the model
    *
    * @param name Provide a name for the hook function. It can be used to remove the hook later or to order
    *   hooks based on some sort of priority system in the future.
    */
-  addHook<K extends keyof SequelizeHooks>(hookType: K, name: string, fn: SequelizeHooks[K]): this;
-  addHook<K extends keyof SequelizeHooks>(hookType: K, fn: SequelizeHooks[K]): this;
+  add<K extends keyof H>(hookType: K, name: string, fn: H[K]): this;
+  add<K extends keyof H>(hookType: K, fn: H[K]): this;
 
   /**
    * Remove hook from the model
    */
-  removeHook<K extends keyof SequelizeHooks>(hookType: K, name: string): this;
+  remove<K extends keyof H>(hookType: K, name: string): this;
 
   /**
    * Check whether the mode has any hooks of this type
    */
-  hasHook<K extends keyof SequelizeHooks>(hookType: K): boolean;
-  hasHooks<K extends keyof SequelizeHooks>(hookType: K): boolean;
-
-  /**
-   * Add a hook to the model
-   *
-   * @param name Provide a name for the hook function. It can be used to remove the hook later or to order
-   *   hooks based on some sort of priority system in the future.
-   */
-  public static addHook<C extends typeof SequelizeHooksBase, K extends keyof SequelizeHooks>(
-    hookType: K,
-    name: string,
-    fn: SequelizeHooks[K]
-  ): C;
-  public static addHook<C extends typeof SequelizeHooksBase, K extends keyof SequelizeHooks>(
-    hookType: K,
-    fn: SequelizeHooks[K]
-  ): C;
-
-  /**
-   * Remove hook from the model
-   */
-  public static removeHook<C extends typeof SequelizeHooksBase, K extends keyof SequelizeHooks>(hookType: K, name: string): C;
-
-  /**
-   * Check whether the mode has any hooks of this type
-   */
-  public static hasHook<K extends keyof SequelizeHooks>(hookType: K): boolean;
-  public static hasHooks<K extends keyof SequelizeHooks>(hookType: K): boolean;
-}
-
-
-export interface ModelHooksBase extends HooksBase<ModelHooks> {
-
-}
-/**
- * Virtual class for deduplication
- */
-export class ModelHooksBase {
-  /**
-   * Add a hook to the model
-   *
-   * @param name Provide a name for the hook function. It can be used to remove the hook later or to order
-   *   hooks based on some sort of priority system in the future.
-   */
-  public static addHook<M extends Model, C extends typeof ModelHooksBase, K extends keyof ModelHooks<M>>(
-    this: { new (): M } & typeof Model,
-    hookType: K,
-    name: string,
-    fn: ModelHooks<M>[K]
-  ): C;
-  public static addHook<M extends Model, C extends typeof ModelHooksBase, K extends keyof ModelHooks<M>>(
-    this: { new (): M } & typeof Model,
-    hookType: K,
-    fn: ModelHooks<M>[K]
-  ): C;
-
-  /**
-   * Remove hook from the model
-   */
-  public static removeHook<M extends Model, C extends typeof ModelHooksBase, K extends keyof ModelHooks>(
-    this: { new (): M } & typeof Model,
-    hookType: K,
-    name: string
-  ): C;
-
-  /**
-   * Check whether the mode has any hooks of this type
-   */
-  public static hasHook<M extends Model, K extends keyof ModelHooksBase>(
-    this: { new (): M } & typeof Model,
-    hookType: K,
-  ): boolean;
-  public static hasHooks<M extends Model, K extends keyof ModelHooksBase>(
-    this: { new (): M } & typeof Model,
-    hookType: K
-  ): boolean;
+  has<K extends keyof H>(hookType: K): boolean;
 }

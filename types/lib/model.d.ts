@@ -11,7 +11,7 @@ import {
 } from './associations/index';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
-import { HookReturn, SequelizeHooks, ModelHooks, ModelHooksBase } from './hooks';
+import { HookReturn, SequelizeHooks, ModelHooks, Hooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import { ModelManager } from './model-manager';
 import Op = require('./operators');
@@ -1497,7 +1497,7 @@ export interface AddScopeOptions {
   override: boolean;
 }
 
-export abstract class Model<T = any, T2 = any> extends ModelHooksBase {
+export abstract class Model<T = any, T2 = any>  {
   /** The name of the database table */
   public static readonly tableName: string;
 
@@ -1527,6 +1527,8 @@ export abstract class Model<T = any, T2 = any> extends ModelHooksBase {
    * Reference to the sequelize instance the model was initialized with
    */
   public static readonly sequelize?: Sequelize;
+
+  public static readonly hooks: Hooks<ModelHooks>;
 
   /**
    * Initialize a model, representing a table in the DB, with attributes and options.

@@ -37,7 +37,7 @@ describe('connection manager', () => {
       const username = Math.random().toString(),
         password = Math.random().toString();
 
-      this.sequelize.addHook('beforeConnect', config => {
+      this.sequelize.hooks.add('beforeConnect', config => {
         config.username = username;
         config.password = password;
         return config;
@@ -55,7 +55,7 @@ describe('connection manager', () => {
 
     it('should call afterConnect', function() {
       const spy = sinon.spy();
-      this.sequelize.addHook('afterConnect', spy);
+      this.sequelize.hooks.add('afterConnect', spy);
 
       const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
 

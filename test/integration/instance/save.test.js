@@ -146,7 +146,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: DataTypes.STRING
         });
 
-        User.addHook('beforeUpdate', instance => {
+        User.hooks.add('beforeUpdate', instance => {
           instance.set('email', 'B');
         });
 
@@ -177,7 +177,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: DataTypes.STRING
         });
 
-        User.addHook('beforeUpdate', instance => {
+        User.hooks.add('beforeUpdate', instance => {
           instance.set('email', 'C');
         });
 
@@ -214,7 +214,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           }
         });
 
-        User.addHook('beforeUpdate', instance => {
+        User.hooks.add('beforeUpdate', instance => {
           instance.set('email', 'B');
         });
 
@@ -247,7 +247,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           }
         });
 
-        User.addHook('beforeUpdate', instance => {
+        User.hooks.add('beforeUpdate', instance => {
           instance.set('email', 'B');
         });
 

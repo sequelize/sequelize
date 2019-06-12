@@ -68,12 +68,12 @@ User.init({
   sequelize
 });
 
-// Method 2 via the .addHook() method
-User.addHook('beforeValidate', (user, options) => {
+// Method 2 via the .hooks.add() method
+User.hooks.add('beforeValidate', (user, options) => {
   user.mood = 'happy';
 });
 
-User.addHook('afterValidate', 'someCustomName', (user, options) => {
+User.hooks.add('afterValidate', 'someCustomName', (user, options) => {
   return Promise.reject(new Error("I'm afraid I can't let you do that!"));
 });
 ```
@@ -88,14 +88,14 @@ Book.init({
   title: DataTypes.STRING
 }, { sequelize });
 
-Book.addHook('afterCreate', 'notifyUsers', (book, options) => {
+Book.hooks.add('afterCreate', 'notifyUsers', (book, options) => {
   // ...
 });
 
-Book.removeHook('afterCreate', 'notifyUsers');
+Book.hooks.remove(('afterCreate', 'notifyUsers');
 ```
 
-You can have many hooks with same name. Calling `.removeHook()` will remove all of them.
+You can have many hooks with same name. Calling `.hooks.remove(()` will remove all of them.
 
 ## Global / universal hooks
 
@@ -134,10 +134,10 @@ User.create() // Runs the global hook
 Project.create() // Runs its own hook (because the global hook is overwritten)
 ```
 
-### Permanent Hooks (Sequelize.addHook)
+### Permanent Hooks (Sequelize.hooks.add)
 
 ```js
-sequelize.addHook('beforeCreate', () => {
+sequelize.hooks.add('beforeCreate', () => {
     // Do stuff
 });
 ```
@@ -187,7 +187,7 @@ These hooks can be useful if you need to asynchronously obtain database credenti
 For example, we can asynchronously obtain a database password from a rotating token store, and mutate Sequelize's configuration object with the new credentials:
 
 ```js
-sequelize.addHook('beforeConnect', (config) => {
+sequelize.hooks.add('beforeConnect', (config) => {
     return getAuthToken()
         .then((token) => {
              config.password = token;
@@ -210,7 +210,7 @@ afterCreate / afterUpdate / afterSave / afterDestroy
 
 ```js
 // ...define ...
-User.addHook('beforeCreate', user => {
+User.hooks.add('beforeCreate', user => {
   if (user.accessLevel > 10 && user.username !== "Boss") {
     throw new Error("You can't grant this user an access level above 10!")
   }
@@ -262,7 +262,7 @@ The `options` argument of hook method would be the second argument provided to t
 cloned and extended version.
 
 ```js
-Model.addHook('beforeBulkCreate', (records, {fields}) => {
+Model.hooks.add('beforeBulkCreate', (records, {fields}) => {
   // records = the first argument sent to .bulkCreate
   // fields = one of the second argument fields sent to .bulkCreate
 })
@@ -273,14 +273,14 @@ Model.bulkCreate([
   ], {fields: ['username']} // options parameter
 )
 
-Model.addHook('beforeBulkUpdate', ({attributes, where}) => {
+Model.hooks.add('beforeBulkUpdate', ({attributes, where}) => {
   // where - in one of the fields of the clone of second argument sent to .update
   // attributes - is one of the fields that the clone of second argument of .update would be extended with
 })
 
 Model.update({gender: 'Male'} /*attributes argument*/, { where: {username: 'Tom'}} /*where argument*/)
 
-Model.addHook('beforeBulkDestroy', ({where, individualHooks}) => {
+Model.hooks.add('beforeBulkDestroy', ({where, individualHooks}) => {
   // individualHooks - default of overridden value of extended clone of second argument sent to Model.destroy
   // where - in one of the fields of the clone of second argument sent to Model.destroy
 })
@@ -299,7 +299,7 @@ Users.bulkCreate([
   updateOnDuplicate: ['isMember']
 });
 
-User.addHook('beforeBulkCreate', (users, options) => {
+User.hooks.add('beforeBulkCreate', (users, options) => {
   for (const user of users) {
     if (user.isMember) {
       user.memberSince = new Date();
@@ -353,7 +353,7 @@ Note that many model operations in Sequelize allow you to specify a transaction 
 ```js
 // Here we use the promise-style of async hooks rather than
 // the callback.
-User.addHook('afterCreate', (user, options) => {
+User.hooks.add('afterCreate', (user, options) => {
   // 'transaction' will be available in options.transaction
 
   // This operation will be part of the same transaction as the

@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('hook runs', function() {
         let beforeHook = false;
 
-        this.User.addHook('beforeCount', () => {
+        this.User.hooks.add('beforeCount', () => {
           beforeHook = true;
         });
 
@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeCount hook can change options', function() {
-        this.User.addHook('beforeCount', options => {
+        this.User.hooks.add('beforeCount', options => {
           options.where.username = 'adam';
         });
 
@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('in beforeCount hook returns error', function() {
-        this.User.addHook('beforeCount', () => {
+        this.User.hooks.add('beforeCount', () => {
           throw new Error('Oops!');
         });
 

@@ -1,6 +1,6 @@
 import * as DataTypes from './data-types';
 import * as Deferrable from './deferrable';
-import { HookReturn, SequelizeHooks, SequelizeHooksBase } from './hooks';
+import { HookReturn, SequelizeHooks, Hooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import {
   AndOperator,
@@ -346,7 +346,7 @@ export interface QueryOptionsTransactionRequired {}
  * should also be installed in your project. You don't need to import it however, as
  * sequelize will take care of that.
  */
-export class Sequelize extends SequelizeHooksBase {
+export class Sequelize {
 
   // -------------------- Utilities ------------------------------------------------------------------------
 
@@ -454,6 +454,9 @@ export class Sequelize extends SequelizeHooksBase {
   public readonly models: {
     [key: string]: typeof Model;
   };
+
+  public readonly hooks: Hooks<SequelizeHooks>;
+  public static readonly hooks: Hooks<SequelizeHooks>;
 
   /**
    * Instantiate sequelize with name of database, username and password

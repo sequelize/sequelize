@@ -58,14 +58,14 @@ db.transaction(async transaction => {
 });
 ```
 
-### Removed method aliases for hooks
+### Removed method aliases for hooks and moved hooks into it's own object
 
 In order to streamlike API all method style add hook functions have been removed.
 
 Before: `MyModel.beforeCreate(...)`
-After: `MyModel.addHook('beforeCreate', ...)`
+After: `MyModel.hooks.add('beforeCreate', ...)`
 
 This also affects the `Transaction.afterCommit` method.
 
 Before: `transaction.afterCommit(...)`
-After: `transaction.addHook(...)`
+After: `transaction.hooks.add(...)`

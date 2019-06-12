@@ -29,10 +29,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           beforeSave = sinon.spy(),
           afterSave = sinon.spy();
 
-        this.User.addHook('beforeUpdate', beforeHook);
-        this.User.addHook('afterUpdate', afterHook);
-        this.User.addHook('beforeSave', beforeSave);
-        this.User.addHook('afterSave', afterSave);
+        this.User.hooks.add('beforeUpdate', beforeHook);
+        this.User.hooks.add('afterUpdate', afterHook);
+        this.User.hooks.add('beforeSave', beforeSave);
+        this.User.hooks.add('afterSave', afterSave);
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then(user => {
           return user.update({ username: 'Chong' }).then(user => {
@@ -53,13 +53,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           beforeSave = sinon.spy(),
           afterSave = sinon.spy();
 
-        this.User.addHook('beforeUpdate', () => {
+        this.User.hooks.add('beforeUpdate', () => {
           beforeHook();
           throw new Error('Whoops!');
         });
-        this.User.addHook('afterUpdate', afterHook);
-        this.User.addHook('beforeSave', beforeSave);
-        this.User.addHook('afterSave', afterSave);
+        this.User.hooks.add('afterUpdate', afterHook);
+        this.User.hooks.add('beforeSave', beforeSave);
+        this.User.hooks.add('afterSave', afterSave);
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then(user => {
           return expect(user.update({ username: 'Chong' })).to.be.rejected.then(() => {
@@ -77,13 +77,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           beforeSave = sinon.spy(),
           afterSave = sinon.spy();
 
-        this.User.addHook('beforeUpdate', beforeHook);
-        this.User.addHook('afterUpdate', () => {
+        this.User.hooks.add('beforeUpdate', beforeHook);
+        this.User.hooks.add('afterUpdate', () => {
           afterHook();
           throw new Error('Whoops!');
         });
-        this.User.addHook('beforeSave', beforeSave);
-        this.User.addHook('afterSave', afterSave);
+        this.User.hooks.add('beforeSave', beforeSave);
+        this.User.hooks.add('afterSave', afterSave);
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then(user => {
           return expect(user.update({ username: 'Chong' })).to.be.rejected.then(() => {
@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     describe('preserves changes to instance', () => {
       it('beforeValidate', function() {
 
-        this.User.addHook('beforeValidate', user => {
+        this.User.hooks.add('beforeValidate', user => {
           user.mood = 'happy';
         });
 
@@ -113,7 +113,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       it('afterValidate', function() {
 
-        this.User.addHook('afterValidate', user => {
+        this.User.hooks.add('afterValidate', user => {
           user.mood = 'sad';
         });
 
@@ -128,7 +128,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave', function() {
         let hookCalled = 0;
 
-        this.User.addHook('beforeSave', user => {
+        this.User.hooks.add('beforeSave', user => {
           user.mood = 'happy';
           hookCalled++;
         });
@@ -145,12 +145,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave with beforeUpdate', function() {
         let hookCalled = 0;
 
-        this.User.addHook('beforeUpdate', user => {
+        this.User.hooks.add('beforeUpdate', user => {
           user.mood = 'sad';
           hookCalled++;
         });
 
-        this.User.addHook('beforeSave', user => {
+        this.User.hooks.add('beforeSave', user => {
           user.mood = 'happy';
           hookCalled++;
         });

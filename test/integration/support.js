@@ -5,10 +5,10 @@ const Support = require('../support');
 const runningQueries = new Set();
 
 before(function() {
-  this.sequelize.addHook('beforeQuery', (options, query) => {
+  this.sequelize.hooks.add('beforeQuery', (options, query) => {
     runningQueries.add(query);
   });
-  this.sequelize.addHook('afterQuery', (options, query) => {
+  this.sequelize.hooks.add('afterQuery', (options, query) => {
     runningQueries.delete(query);
   });
 });
