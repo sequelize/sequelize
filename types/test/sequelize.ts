@@ -18,29 +18,30 @@ const conn = sequelize.connectionManager;
 
 // hooks
 
-sequelize.beforeCreate('test', () => {
+sequelize.hooks.add('beforeCreate', () => {
     // noop
 });
 
 sequelize
-    .addHook('beforeConnect', (config: Config) => {
+    .hooks.add('beforeConnect', (config: Config) => {
         // noop
     })
-    .addHook('beforeBulkSync', () => {
+    .add('beforeBulkSync', () => {
         // noop
     });
 
-Sequelize.addHook('beforeCreate', () => {
+Sequelize.hooks.add('beforeCreate', () => {
     // noop
-}).addHook('beforeBulkCreate', () => {
+})
+.add('beforeBulkCreate', () => {
     // noop
 });
 
-Sequelize.beforeConnect(() => {
+Sequelize.hooks.add('beforeConnect', () => {
 
 });
 
-Sequelize.afterConnect(() => {
+Sequelize.hooks.add('afterConnect', () => {
 
 });
 

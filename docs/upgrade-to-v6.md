@@ -6,7 +6,7 @@ Sequelize v6 is the next major release after v4
 
 ### Support for Node 8 and up
 
-Sequelize v6 will only support Node 8 and up
+Sequelize v6 will only support Node 8 and up.
 
 ### Removed support for `operatorAliases`
 
@@ -57,3 +57,48 @@ db.transaction(async transaction => {
   }, { transaction });
 });
 ```
+
+### Refactored hooks
+
+In order to streamline API:
+
+- All method style add hook functions have been removed in favor of a composition based approach.
+- Hook names have been removed, you can add and remove them by function reference instead which was supported before.
+- Another notable change that `this` inside of hooks no longer refers to the the the hook subject, it should not be used.
+
+This affects `Model`, `Sequelize` and `Transaction`.
+
+#### Composition
+
+Before: `MyModel.beforeCreate(...)`
+After: `MyModel.hooks.add('beforeCreate', ...)`
+
+Before: `MyModel.addHook('beforeCreate', ...)`
+After: `MyModel.hooks.add('beforeCreate', ...)`
+
+Before: `MyModel.removeHook('beforeCreate', ...)`
+After: `MyModel.hooks.remove('beforeCreate', ...)`
+
+Before: `transaction.afterCommit(...)`
+After: `transaction.hooks.add('afterCommit', ...)`
+
+#### Names
+
+Before:
+
+```js
+MyModel.addHook('beforeCreate', 'named', fn);
+MyModel.removeHook('beforeCreate', 'named');
+```
+
+After:
+
+```js
+MyModel.hooks.add('beforeCreate', fn);
+MyModel.hooks.remove('beforeCreate', fn);
+```
+
+#### Scope
+
+Before: `MyModel.addHook('beforeCreate', function() { this.someMethod(); });`
+After: `MyModel.hooks.add('beforeCreate', () => { MyModel.someMethod(); });`

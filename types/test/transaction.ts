@@ -5,7 +5,7 @@ export const sequelize = new Sequelize('uri');
 
 async function trans() {
     const a: number = await sequelize.transaction(async transaction => {
-        transaction.afterCommit(() => console.log('transaction complete'));
+        transaction.hooks.add('afterCommit', () => console.log('transaction complete'));
         User.create(
             {
                 data: 123,

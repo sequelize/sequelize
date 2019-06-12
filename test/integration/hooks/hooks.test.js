@@ -37,13 +37,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('#define', () => {
     before(function() {
-      this.sequelize.addHook('beforeDefine', (attributes, options) => {
+      this.sequelize.hooks.add('beforeDefine', (attributes, options) => {
         options.modelName = 'bar';
         options.name.plural = 'barrs';
         attributes.type = DataTypes.STRING;
       });
 
-      this.sequelize.addHook('afterDefine', factory => {
+      this.sequelize.hooks.add('afterDefine', factory => {
         factory.options.name.singular = 'barr';
       });
 
@@ -67,19 +67,19 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     after(function() {
-      this.sequelize.options.hooks = {};
+      this.sequelize.hooks.removeAll();
       this.sequelize.modelManager.removeModel(this.model);
     });
   });
 
   describe('#init', () => {
     before(function() {
-      Sequelize.addHook('beforeInit', (config, options) => {
+      Sequelize.hooks.add('beforeInit', (config, options) => {
         config.database = 'db2';
         options.host = 'server9';
       });
 
-      Sequelize.addHook('afterInit', sequelize => {
+      Sequelize.hooks.add('afterInit', sequelize => {
         sequelize.options.protocol = 'udp';
       });
 
@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     after(() => {
-      Sequelize.options.hooks = {};
+      Sequelize.hooks.removeAll();
     });
   });
 
@@ -236,8 +236,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeSync(beforeHook);
-        this.User.afterSync(afterHook);
+        this.User.hooks.add('beforeSync', beforeHook);
+        this.User.hooks.add('afterSync', afterHook);
 
         return this.User.sync().then(() => {
           expect(beforeHook).to.have.been.calledOnce;
@@ -249,8 +249,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeSync(beforeHook);
-        this.User.afterSync(afterHook);
+        this.User.hooks.add('beforeSync', beforeHook);
+        this.User.hooks.add('afterSync', afterHook);
 
         return this.User.sync({ hooks: false }).then(() => {
           expect(beforeHook).to.not.have.been.called;
@@ -265,11 +265,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeSync(() => {
+        this.User.hooks.add('beforeSync', () => {
           beforeHook();
           throw new Error('Whoops!');
         });
-        this.User.afterSync(afterHook);
+        this.User.hooks.add('afterSync', afterHook);
 
         return expect(this.User.sync()).to.be.rejected.then(() => {
           expect(beforeHook).to.have.been.calledOnce;
@@ -281,8 +281,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeSync(beforeHook);
-        this.User.afterSync(() => {
+        this.User.hooks.add('beforeSync', beforeHook);
+        this.User.hooks.add('afterSync', () => {
           afterHook();
           throw new Error('Whoops!');
         });
@@ -303,10 +303,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           modelBeforeHook = sinon.spy(),
           modelAfterHook = sinon.spy();
 
-        this.sequelize.beforeBulkSync(beforeHook);
-        this.User.beforeSync(modelBeforeHook);
-        this.User.afterSync(modelAfterHook);
-        this.sequelize.afterBulkSync(afterHook);
+        this.sequelize.hooks.add('beforeBulkSync', beforeHook);
+        this.User.hooks.add('beforeSync', modelBeforeHook);
+        this.User.hooks.add('afterSync', modelAfterHook);
+        this.sequelize.hooks.add('afterBulkSync', afterHook);
 
         return this.sequelize.sync().then(() => {
           expect(beforeHook).to.have.been.calledOnce;
@@ -322,10 +322,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           modelBeforeHook = sinon.spy(),
           modelAfterHook = sinon.spy();
 
-        this.sequelize.beforeBulkSync(beforeHook);
-        this.User.beforeSync(modelBeforeHook);
-        this.User.afterSync(modelAfterHook);
-        this.sequelize.afterBulkSync(afterHook);
+        this.sequelize.hooks.add('beforeBulkSync', beforeHook);
+        this.User.hooks.add('beforeSync', modelBeforeHook);
+        this.User.hooks.add('afterSync', modelAfterHook);
+        this.sequelize.hooks.add('afterBulkSync', afterHook);
 
         return this.sequelize.sync({ hooks: false }).then(() => {
           expect(beforeHook).to.not.have.been.called;
@@ -336,7 +336,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       afterEach(function() {
-        this.sequelize.options.hooks = {};
+        this.sequelize.hooks.removeAll();
       });
 
     });
@@ -346,11 +346,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should return an error from before', function() {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
-        this.sequelize.beforeBulkSync(() => {
+        this.sequelize.hooks.add('beforeBulkSync', () => {
           beforeHook();
           throw new Error('Whoops!');
         });
-        this.sequelize.afterBulkSync(afterHook);
+        this.sequelize.hooks.add('afterBulkSync', afterHook);
 
         return expect(this.sequelize.sync()).to.be.rejected.then(() => {
           expect(beforeHook).to.have.been.calledOnce;
@@ -362,8 +362,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.sequelize.beforeBulkSync(beforeHook);
-        this.sequelize.afterBulkSync(() => {
+        this.sequelize.hooks.add('beforeBulkSync', beforeHook);
+        this.sequelize.hooks.add('afterBulkSync', () => {
           afterHook();
           throw new Error('Whoops!');
         });
@@ -375,42 +375,24 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       afterEach(function() {
-        this.sequelize.options.hooks = {};
+        this.sequelize.hooks.removeAll();
       });
 
     });
   });
 
   describe('#removal', () => {
-    it('should be able to remove by name', function() {
-      const sasukeHook = sinon.spy(),
-        narutoHook = sinon.spy();
-
-      this.User.addHook('beforeCreate', 'sasuke', sasukeHook);
-      this.User.addHook('beforeCreate', 'naruto', narutoHook);
-
-      return this.User.create({ username: 'makunouchi' }).then(() => {
-        expect(sasukeHook).to.have.been.calledOnce;
-        expect(narutoHook).to.have.been.calledOnce;
-        this.User.removeHook('beforeCreate', 'sasuke');
-        return this.User.create({ username: 'sendo' });
-      }).then(() => {
-        expect(sasukeHook).to.have.been.calledOnce;
-        expect(narutoHook).to.have.been.calledTwice;
-      });
-    });
-
     it('should be able to remove by reference', function() {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();
 
-      this.User.addHook('beforeCreate', sasukeHook);
-      this.User.addHook('beforeCreate', narutoHook);
+      this.User.hooks.add('beforeCreate', sasukeHook);
+      this.User.hooks.add('beforeCreate', narutoHook);
 
       return this.User.create({ username: 'makunouchi' }).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledOnce;
-        this.User.removeHook('beforeCreate', sasukeHook);
+        this.User.hooks.remove('beforeCreate', sasukeHook);
         return this.User.create({ username: 'sendo' });
       }).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
@@ -422,13 +404,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();
 
-      this.User.addHook('beforeSave', sasukeHook);
-      this.User.addHook('beforeSave', narutoHook);
+      this.User.hooks.add('beforeSave', sasukeHook);
+      this.User.hooks.add('beforeSave', narutoHook);
 
       return this.User.create({ username: 'makunouchi' }).then(user => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledOnce;
-        this.User.removeHook('beforeSave', sasukeHook);
+        this.User.hooks.remove('beforeSave', sasukeHook);
         return user.update({ username: 'sendo' });
       }).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
