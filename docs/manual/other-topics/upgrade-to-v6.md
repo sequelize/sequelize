@@ -52,6 +52,50 @@ This method now tests for equality with [`_.isEqual`](https://lodash.com/docs/4.
 
 This method now throws `Sequelize.AggregateError` instead of `Bluebird.AggregateError`. All errors are now exposed as `errors` key.
 
+### Refactored hooks
+
+In order to streamline API:
+
+- All method style add hook functions have been removed in favor of a composition based approach.
+- Hook names have been removed, you can add and remove them by function reference instead which was supported before.
+
+This affects `Model`, `Sequelize` and `Transaction`.
+
+#### Composition
+
+Before: `MyModel.beforeCreate(...)`
+After: `MyModel.hooks.add('beforeCreate', ...)`
+
+Before: `MyModel.addHook('beforeCreate', ...)`
+After: `MyModel.hooks.add('beforeCreate', ...)`
+
+Before: `MyModel.removeHook('beforeCreate', ...)`
+After: `MyModel.hooks.remove('beforeCreate', ...)`
+
+Before: `transaction.afterCommit(...)`
+After: `transaction.hooks.add('afterCommit', ...)`
+
+#### Names
+
+Before:
+
+```js
+MyModel.addHook('beforeCreate', 'named', fn);
+MyModel.removeHook('beforeCreate', 'named');
+```
+
+After:
+
+```js
+MyModel.hooks.add('beforeCreate', fn);
+MyModel.hooks.remove('beforeCreate', fn);
+```
+
+#### Scope
+
+Before: `MyModel.addHook('beforeCreate', function() { this.someMethod(); });`
+After: `MyModel.hooks.add('beforeCreate', () => { MyModel.someMethod(); });`
+
 ## Changelog
 
 ### 6.0.0-beta.5

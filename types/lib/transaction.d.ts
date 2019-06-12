@@ -1,6 +1,11 @@
 import { Deferrable } from './deferrable';
 import { Logging } from './model';
 import { Sequelize } from './sequelize';
+import { Hooks } from './hooks';
+
+export interface TransactionHooks {
+  afterCommit(): void;
+}
 
 /**
  * The transaction object is used to identify a running transaction. It is created by calling
@@ -9,6 +14,9 @@ import { Sequelize } from './sequelize';
  * To run a query under a transaction, you should pass the transaction in the options object.
  */
 export class Transaction {
+
+  public readonly hooks: Hooks<TransactionHooks>;
+
   constructor(sequelize: Sequelize, options: TransactionOptions);
 
   /**
@@ -20,11 +28,6 @@ export class Transaction {
    * Rollback (abort) the transaction
    */
   public rollback(): Promise<void>;
-
-  /**
-   * Adds hook that is run after a transaction is committed
-   */
-  public afterCommit(fn: (transaction: this) => void | Promise<void>): void;
 
   /**
    * Returns possible options for row locking

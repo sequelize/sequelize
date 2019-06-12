@@ -5,7 +5,7 @@ export const sequelize = new Sequelize('uri');
 
 async function trans() {
     const a: number = await sequelize.transaction(async transaction => {
-        transaction.afterCommit(() => console.log('transaction complete'));
+        transaction.hooks.add('afterCommit', () => console.log('transaction complete'));
         User.create(
             {
                 data: 123,
@@ -20,7 +20,7 @@ async function trans() {
 
 async function trans2() {
     return await sequelize.transaction(async transaction => {
-        transaction.afterCommit(() => console.log('transaction complete'));
+        transaction.hooks.add('afterCommit', () => console.log('transaction complete'));
         User.findAll(
             {
                 transaction,
@@ -33,7 +33,7 @@ async function trans2() {
 
 async function trans3() {
     return await sequelize.transaction(async transaction => {
-        transaction.afterCommit(() => console.log('transaction complete'));
+        transaction.hooks.add('afterCommit', () => console.log('transaction complete'));
         User.findAll(
             {
                 transaction,
@@ -46,7 +46,7 @@ async function trans3() {
 
 async function trans4() {
     return await sequelize.transaction(async transaction => {
-        transaction.afterCommit(() => console.log('transaction complete'));
+        transaction.hooks.add('afterCommit', () => console.log('transaction complete'));
         User.findAll(
             {
                 transaction,

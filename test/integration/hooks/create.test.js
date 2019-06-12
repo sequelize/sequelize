@@ -30,10 +30,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           beforeSave = sinon.spy(),
           afterSave = sinon.spy();
 
-        this.User.beforeCreate(beforeHook);
-        this.User.afterCreate(afterHook);
-        this.User.beforeSave(beforeSave);
-        this.User.afterSave(afterSave);
+        this.User.hooks.add('beforeCreate', beforeHook);
+        this.User.hooks.add('afterCreate', afterHook);
+        this.User.hooks.add('beforeSave', beforeSave);
+        this.User.hooks.add('afterSave', afterSave);
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then(() => {
           expect(beforeHook).to.have.been.calledOnce;
@@ -51,13 +51,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           afterHook = sinon.spy(),
           afterSave = sinon.spy();
 
-        this.User.beforeCreate(() => {
+        this.User.hooks.add('beforeCreate', () => {
           beforeHook();
           throw new Error('Whoops!');
         });
-        this.User.afterCreate(afterHook);
-        this.User.beforeSave(beforeSave);
-        this.User.afterSave(afterSave);
+        this.User.hooks.add('afterCreate', afterHook);
+        this.User.hooks.add('beforeSave', beforeSave);
+        this.User.hooks.add('afterSave', afterSave);
 
         return expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejected.then(() => {
           expect(beforeHook).to.have.been.calledOnce;
@@ -74,13 +74,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           afterSave = sinon.spy();
 
 
-        this.User.beforeCreate(beforeHook);
-        this.User.afterCreate(() => {
+        this.User.hooks.add('beforeCreate', beforeHook);
+        this.User.hooks.add('afterCreate', () => {
           afterHook();
           throw new Error('Whoops!');
         });
-        this.User.beforeSave(beforeSave);
-        this.User.afterSave(afterSave);
+        this.User.hooks.add('beforeSave', beforeSave);
+        this.User.hooks.add('afterSave', afterSave);
 
         return expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejected.then(() => {
           expect(beforeHook).to.have.been.calledOnce;
@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       let hookCalled = 0;
 
-      A.addHook('afterCreate', () => {
+      A.hooks.add('afterCreate', () => {
         hookCalled++;
         return Promise.resolve();
       });
@@ -125,7 +125,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeValidate', function() {
         let hookCalled = 0;
 
-        this.User.beforeValidate(user => {
+        this.User.hooks.add('beforeValidate', user => {
           user.mood = 'happy';
           hookCalled++;
         });
@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('afterValidate', function() {
         let hookCalled = 0;
 
-        this.User.afterValidate(user => {
+        this.User.hooks.add('afterValidate', user => {
           user.mood = 'neutral';
           hookCalled++;
         });
@@ -155,7 +155,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeCreate', function() {
         let hookCalled = 0;
 
-        this.User.beforeCreate(user => {
+        this.User.hooks.add('beforeCreate', user => {
           user.mood = 'happy';
           hookCalled++;
         });
@@ -170,7 +170,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave', function() {
         let hookCalled = 0;
 
-        this.User.beforeSave(user => {
+        this.User.hooks.add('beforeSave', user => {
           user.mood = 'happy';
           hookCalled++;
         });
@@ -185,12 +185,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave with beforeCreate', function() {
         let hookCalled = 0;
 
-        this.User.beforeCreate(user => {
+        this.User.hooks.add('beforeCreate', user => {
           user.mood = 'sad';
           hookCalled++;
         });
 
-        this.User.beforeSave(user => {
+        this.User.hooks.add('beforeSave', user => {
           user.mood = 'happy';
           hookCalled++;
         });
