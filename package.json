@@ -84,6 +84,15 @@
     "tedious": "^6.0.0",
     "typescript": "^3.3.3333"
   },
+  "release": {
+    "branches": [
+      "master",
+      {
+        "name": "beta",
+        "prerelease": true
+      }
+    ]
+  },
   "keywords": [
     "mysql",
     "mariadb",
