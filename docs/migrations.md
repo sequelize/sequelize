@@ -248,6 +248,40 @@ module.exports = {
         })
     }
 };
+
+```
+
+The next is an example of a migration that has a foreign key. You can use the `references` property to specify the table that has being referenced.
+
+```js
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    return queryInterface.createTable('Person', {
+      name: Sequelize.STRING,
+      isBetaMember: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
+      },
+      userId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: {
+            tableName: 'users',
+            schema: 'otherSchema'
+          }
+          key: 'id'
+        },
+        allowNull: false
+      },
+    });
+  },
+
+  down: (queryInterface, Sequelize) => {
+    return queryInterface.dropTable('Person');
+  }
+}
+
 ```
 
 ### The `.sequelizerc` File
