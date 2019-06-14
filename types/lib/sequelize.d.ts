@@ -115,6 +115,7 @@ export interface OperatorsAliases {
  */
 export interface Config {
   readonly database: string;
+  readonly dialectModule?: object;
   readonly host?: string;
   readonly port?: string;
   readonly username: string;
@@ -154,6 +155,15 @@ export interface Options extends Logging {
    * @default 'mysql'
    */
   dialect?: Dialect;
+
+  /**
+   * If specified, will use the provided module as the dialect.
+   *
+   * @example
+   * `dialectModule: require('@myorg/tedious'),`
+   */
+  dialectModule?: object;
+
 
   /**
    * If specified, load the dialect library from this path. For example, if you want to use pg.js instead of
@@ -303,7 +313,16 @@ export interface Options extends Logging {
    *
    * @default all aliases
    */
-  operatorsAliases?: OperatorsAliases | false;
+  operatorsAliases?: OperatorsAliases;
+
+
+  /**
+   * The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option.
+   * WARNING: Setting this to false may expose vulnerabilities and is not recommended!
+   *
+   * @default true
+   */
+  standardConformingStrings?: boolean;
 
   /**
    * Sets global permanent hooks.
@@ -1113,6 +1132,11 @@ export class Sequelize extends Hooks {
   ): Promise<M[]>;
   public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
   public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<unknown[]>;
+
+  /**
+   * Get the fn for random based on the dialect
+   */
+  public random(): Fn;
 
   /**
    * Execute a query which would set an environment or user variable. The variables are set per connection,

@@ -16,10 +16,11 @@ import { ValidationOptions } from './instance-validator';
 import { ModelManager } from './model-manager';
 import Op = require('./operators');
 import { Promise } from './promise';
-import { QueryOptions } from './query-interface';
+import { QueryOptions, IndexesOptions } from './query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
 import { Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
+import { IndexHints } from '..';
 
 export interface Logging {
   /**
@@ -124,8 +125,10 @@ export interface AnyOperator {
 
 /** Undocumented? */
 export interface AllOperator {
-  [Op.all]: (string | number)[];
+  [Op.all]: (string | number | Date | Literal)[];
 }
+
+export type Rangable = [number, number] | [Date, Date] | Literal;
 
 /**
  * Operators that can be used in WhereOptions
@@ -138,45 +141,45 @@ export interface WhereOperators {
    *
    * _PG only_
    */
-  [Op.any]?: (string | number)[];
+  [Op.any]?: (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
-  [Op.gte]?: number | string | Date;
+  [Op.gte]?: number | string | Date | Literal;
 
   /** Example: `[Op.lt]: 10,` becomes `< 10` */
-  [Op.lt]?: number | string | Date;
+  [Op.lt]?: number | string | Date | Literal;
 
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
-  [Op.lte]?: number | string | Date;
+  [Op.lte]?: number | string | Date | Literal;
 
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
-  [Op.ne]?: string | number | WhereOperators;
+  [Op.ne]?: string | number | Literal | WhereOperators;
 
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
-  [Op.not]?: boolean | string | number | WhereOperators;
+  [Op.not]?: boolean | string | number |  Literal | WhereOperators;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
   [Op.between]?: [number, number];
 
   /** Example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
-  [Op.in]?: (string | number)[] | Literal;
+  [Op.in]?: (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.notIn]: [1, 2],` becomes `NOT IN [1, 2]` */
-  [Op.notIn]?: (string | number)[] | Literal;
+  [Op.notIn]?: (string | number | Literal)[] | Literal;
 
   /**
    * Examples:
    *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
    *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.like]?: string | AnyOperator | AllOperator;
+  [Op.like]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * Examples:
    *  - `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
    *  - `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notLike]?: string | AnyOperator | AllOperator;
+  [Op.notLike]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * case insensitive PG only
@@ -185,31 +188,31 @@ export interface WhereOperators {
    *  - `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
    *  - `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.iLike]?: string | AnyOperator | AllOperator;
+  [Op.iLike]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * PG array overlap operator
    *
    * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
    */
-  [Op.overlap]?: [number, number];
+  [Op.overlap]?: Rangable;
 
   /**
    * PG array contains operator
    *
    * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  [Op.contains]?: [number, number] | [Date, Date];
+  [Op.contains]?: Rangable;
 
   /**
    * PG array contained by operator
    *
    * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?: [number, number] | [Date, Date];
+  [Op.contained]?: Rangable;
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
-  [Op.gt]?: number | string | Date;
+  [Op.gt]?: number | string | Date | Literal;
 
   /**
    * PG only
@@ -218,7 +221,7 @@ export interface WhereOperators {
    *  - `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
    *  - `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notILike]?: string | AnyOperator | AllOperator;
+  [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
 
   /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
   [Op.notBetween]?: [number, number];
@@ -239,39 +242,68 @@ export interface WhereOperators {
 
   /**
    * MySQL/PG only
-   * 
+   *
    * Matches regular expression, case sensitive
-   * 
+   *
    * Example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
   [Op.regexp]?: string;
 
   /**
    * MySQL/PG only
-   * 
+   *
    * Does not match regular expression, case sensitive
-   * 
+   *
    * Example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
    */
   [Op.notRegexp]?: string;
-  
+
   /**
    * PG only
-   * 
+   *
    * Matches regular expression, case insensitive
-   * 
+   *
    * Example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
    */
   [Op.iRegexp]?: string;
 
   /**
    * PG only
-   * 
+   *
    * Does not match regular expression, case insensitive
-   * 
+   *
    * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
    */
   [Op.notIRegexp]?: string;
+
+  /**
+   * PG only
+   *
+   * Forces the operator to be strictly left eg. `<< [a, b)`
+   */
+  [Op.strictLeft]?: Rangable;
+
+  /**
+   * PG only
+   *
+   * Forces the operator to be strictly right eg. `>> [a, b)`
+   */
+  [Op.strictRight]?: Rangable;
+
+  /**
+   * PG only
+   *
+   * Forces the operator to not extend the left eg. `&> [1, 2)`
+   */
+  [Op.noExtendLeft]?: Rangable;
+
+  /**
+   * PG only
+   *
+   * Forces the operator to not extend the left eg. `&< [1, 2)`
+   */
+  [Op.noExtendRight]?: Rangable;
+
 }
 
 /** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
@@ -340,7 +372,11 @@ export type Includeable = typeof Model | Association | IncludeOptions | { all: t
 /**
  * Complex include options
  */
-export interface IncludeOptions extends Filterable, Projectable {
+export interface IncludeOptions extends Filterable, Projectable, Paranoid {
+  /**
+   * Mark the include as duplicating, will prevent a subquery from being used.
+   */
+  duplicating?: boolean;
   /**
    * The model you want to eagerly load
    */
@@ -432,12 +468,24 @@ export type FindAttributeOptions =
       include: (string | ProjectionAlias)[];
     };
 
+export interface IndexHint {
+  type: IndexHints;
+  value: string[];
+}
+
+export interface IndexHintable {
+  /**
+   * MySQL only.
+   */
+  indexHints?: IndexHint[];
+}
+
 /**
  * Options that are passed to any model creating a SELECT query
  *
  * A hash of options to describe the scope of the search
  */
-export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid {
+export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid, IndexHintable {
   /**
    * A list of associations to eagerly load using a left join. Supported is either
    * `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
@@ -585,6 +633,13 @@ export interface CreateOptions extends BuildOptions, Logging, Silent, Transactio
    * On Duplicate
    */
   onDuplicate?: string;
+
+  /**
+   * If false, validations won't be run.
+   *
+   * @default true
+   */
+  validate?: boolean;
 }
 
 /**
@@ -1079,45 +1134,7 @@ export interface ModelValidateOptions {
 /**
  * Interface for indexes property in InitOptions
  */
-export interface ModelIndexesOptions {
-  /**
-   * The name of the index. Defaults to model name + _ + fields concatenated
-   */
-  name?: string;
-
-  /**
-   * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
-   */
-  index?: string;
-
-  /**
-   * The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and
-   * postgres, and postgres additionally supports GIST and GIN.
-   */
-  method?: string;
-
-  /**
-   * Should the index by unique? Can also be triggered by setting type to `UNIQUE`
-   *
-   * @default false
-   */
-  unique?: boolean;
-
-  /**
-   * PostgreSQL will build the index without taking any write locks. Postgres only
-   *
-   * @default false
-   */
-  concurrently?: boolean;
-
-  /**
-   * An array of the fields to index. Each field can either be a string containing the name of the field,
-   * a sequelize object (e.g `sequelize.fn`), or an object with the following attributes: `attribute`
-   * (field name), `length` (create a prefix index of length chars), `order` (the direction the column
-   * should be sorted in), `collate` (the collation (sort order) for the column)
-   */
-  fields?: (string | { attribute: string; length: number; order: string; collate: string })[];
-}
+export type ModelIndexesOptions = IndexesOptions
 
 /**
  * Interface for name property in InitOptions
@@ -1645,10 +1662,19 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static scope<M extends { new (): Model }>(
     this: M,
-    options?: string | string[] | ScopeOptions | WhereAttributeHash
+    options?: string | ScopeOptions | (string | ScopeOptions)[] | WhereAttributeHash
   ): M;
 
+  /**
+   * Add a new scope to the model
+   *
+   * This is especially useful for adding scopes with includes, when the model you want to
+   * include is not available at the time this model is defined. By default this will throw an
+   * error if a scope with that name already exists. Pass `override: true` in the options
+   * object to silence this error.
+   */
   public static addScope(name: string, scope: FindOptions, options?: AddScopeOptions): void;
+  public static addScope(name: string, scope: (...args: any[]) => FindOptions, options?: AddScopeOptions): void;
 
   /**
    * Search for multiple instances.
@@ -1909,8 +1935,14 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static upsert<M extends Model>(
     this: { new (): M } & typeof Model,
     values: object,
-    options?: UpsertOptions
+    options?: UpsertOptions & { returning?: false | undefined }
   ): Promise<boolean>;
+
+  public static upsert<M extends Model> (
+    this: { new (): M } & typeof Model,
+    values: object,
+    options?: UpsertOptions & { returning: true }
+  ): Promise<[ M, boolean ]>;
 
   /**
    * Create and insert multiple instances in bulk.
@@ -2447,8 +2479,8 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options.plain If set to true, included instances will be returned as plain objects
    */
   public get(options?: { plain?: boolean; clone?: boolean }): object;
-  public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
   public get<K extends keyof this>(key: K, options?: { plain?: boolean; clone?: boolean }): this[K];
+  public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
 
   /**
    * Set is used to update values on the instance (the sequelize representation of the instance that is,

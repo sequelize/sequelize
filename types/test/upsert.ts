@@ -7,7 +7,7 @@ class TestModel extends Model {
 TestModel.init({}, {sequelize})
 
 sequelize.transaction(trx => {
-  return TestModel.upsert({}, {
+  TestModel.upsert<TestModel>({}, {
     benchmark: true,
     fields: ['testField'],
     hooks: true,
@@ -16,5 +16,26 @@ sequelize.transaction(trx => {
     searchPath: 'DEFAULT',
     transaction: trx,
     validate: true,
-  })
+  }).then((res: [ TestModel, boolean ]) => {});
+
+  TestModel.upsert<TestModel>({}, {
+    benchmark: true,
+    fields: ['testField'],
+    hooks: true,
+    logging: true,
+    returning: false,
+    searchPath: 'DEFAULT',
+    transaction: trx,
+    validate: true,
+  }).then((created: boolean) => {});
+
+  return TestModel.upsert<TestModel>({}, {
+    benchmark: true,
+    fields: ['testField'],
+    hooks: true,
+    logging: true,
+    searchPath: 'DEFAULT',
+    transaction: trx,
+    validate: true,
+  }).then((created: boolean) => {});
 })

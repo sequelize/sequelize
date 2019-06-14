@@ -355,7 +355,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should allow the user to specify indexes in options', function() {
-      this.retries(3);
       const indices = [{
         name: 'a_b_uniq',
         unique: true,
@@ -815,7 +814,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('save', () => {
     it('should mapping the correct fields when saving instance. see #10589', function() {
-      const User = this.sequelize.define('User', { 
+      const User = this.sequelize.define('User', {
         id3: {
           field: 'id',
           type: Sequelize.INTEGER,
@@ -862,7 +861,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should mapping the correct fields when updating instance. see #10589', function() {
-      const User = this.sequelize.define('User', { 
+      const User = this.sequelize.define('User', {
         id3: {
           field: 'id',
           type: Sequelize.INTEGER,
@@ -1910,6 +1909,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           group: ['data']
         }).then(count => {
           expect(count.length).to.equal(2);
+        });
+      });
+    });
+
+    describe('aggregate', () => {
+      if (dialect === 'mssql') {
+        return;
+      }
+      it('allows grouping by aliased attribute', function() {
+        return this.User.aggregate('id', 'count', {
+          attributes: [['id', 'id2']],
+          group: ['id2'],
+          logging: true
         });
       });
     });

@@ -805,22 +805,23 @@ Image.init({
   link: Sequelize.STRING
 }, { sequelize, modelName: 'image' });
 
-class Comment extends Model {}
+class Comment extends Model {
+  getItem(options) {
+    return this[
+      'get' +
+        this.get('commentable')
+          [0]
+          .toUpperCase() +
+        this.get('commentable').substr(1)
+    ](options);
+  }
+}
+
 Comment.init({
   title: Sequelize.STRING,
   commentable: Sequelize.STRING,
   commentableId: Sequelize.INTEGER
 }, { sequelize, modelName: 'comment' });
-
-Comment.prototype.getItem = function(options) {
-  return this[
-    'get' +
-      this.get('commentable')
-        [0]
-        .toUpperCase() +
-      this.get('commentable').substr(1)
-  ](options);
-};
 
 Post.hasMany(Comment, {
   foreignKey: 'commentableId',

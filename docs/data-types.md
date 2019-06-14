@@ -238,8 +238,8 @@ modules.exports = function sequelizeAdditions(Sequelize) {
   //DataTypes.NEWTYPE.escape = false
 
   // For convenience
-  // `inferNew` allows you to use the datatype without `new`
-  Sequelize.NEWTYPE = Sequelize.Utils.inferNew(DataTypes.NEWTYPE)
+  // `classToInvokable` allows you to use the datatype without `new`
+  Sequelize.NEWTYPE = Sequelize.Utils.classToInvokable(DataTypes.NEWTYPE)
 
 }
 ```
