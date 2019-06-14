@@ -283,6 +283,7 @@ module.exports = {
 }
 
 ```
+
 The next is an example of a migration that has a foreign key. You can use the `references` property to specify the table that has being referenced.
 
 ```js
@@ -308,10 +309,12 @@ module.exports = {
       },
     });
   },
+
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('Person');
   }
 }
+
 ```
 
 ### The `.sequelizerc` File
