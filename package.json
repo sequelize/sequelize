@@ -1,9 +1,10 @@
 {
-  "name": "sequelize",
+  "name": "sequelize-ibmi",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "0.0.0-development",
+  "version": "0.0.0-beta.0",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
+    "Mark Irish <mirish@ibm.com>",
     "Sascha Depold <sascha@depold.com>",
     "Jan Aagaard Meier <janzeh@gmail.com>",
     "Daniel Durante <me@danieldurante.com>",
@@ -38,7 +39,7 @@
     "lodash": "^4.17.11",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.21",
-    "odbc": "^2.0.0-beta.1",
+    "odbc": "^2.0.0-3",
     "retry-as-promised": "^3.1.0",
     "semver": "^5.6.0",
     "sequelize-pool": "^1.0.2",
