@@ -1925,6 +1925,15 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): Promise<[M, boolean]>;
 
   /**
+   * A more performant findOrCreate that will not work under a transaction (at least not in postgres) 
+   * Will execute a find call, if empty then attempt to create, if unique constraint then attempt to find again
+   */
+  public static findCreateFind<M extends Model>(
+    this: { new (): M } & typeof Model,
+    options: FindOrCreateOptions
+  ): Promise<[M, boolean]>;
+
+  /**
    * Insert or update a single row. An update will be executed if a row which matches the supplied values on
    * either the primary key or a unique key is found. Note that the unique index must be defined in your
    * sequelize model and not just in the table. Otherwise you may experience a unique constraint violation,
