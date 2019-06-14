@@ -478,6 +478,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         return this.queryInterface.addConstraint('users', ['email'], {
           type: 'unique'
         })
+          .then(() => {
+            return this.queryInterface.addConstraint('users', ['username'], {
+              type: 'unique'
+            });
+          })
           .then(() => this.queryInterface.showConstraint('users'))
           .then(constraints => {
             constraints = constraints.map(constraint => constraint.constraintName);
