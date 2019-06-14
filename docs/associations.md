@@ -780,7 +780,7 @@ project.setUsers([user1, user2]).then(() => {
 })
 ```
 
-## Advance Concepts
+## Advanced Concepts
 
 ### Scopes
 

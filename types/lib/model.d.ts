@@ -34,6 +34,15 @@ export interface Logging {
   benchmark?: boolean;
 }
 
+export interface Poolable {
+  /**
+   * Force the query to use the write pool, regardless of the query type.
+   *
+   * @default false
+   */
+  useMaster?: boolean;
+}
+
 export interface Transactionable {
   /**
    * Transaction to run query under
@@ -470,7 +479,7 @@ export type FindAttributeOptions =
 
 export interface IndexHint {
   type: IndexHints;
-  value: string[];
+  values: string[];
 }
 
 export interface IndexHintable {
@@ -479,6 +488,8 @@ export interface IndexHintable {
    */
   indexHints?: IndexHint[];
 }
+
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
 /**
  * Options that are passed to any model creating a SELECT query
@@ -551,7 +562,7 @@ export interface NonNullFindOptions extends FindOptions {
 /**
  * Options for Model.count method
  */
-export interface CountOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid {
+export interface CountOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid, Poolable {
   /**
    * Include options. See `find` for details
    */
@@ -1747,12 +1758,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
     identifier?: Identifier,
-    options?: FindOptions
+    options?: Omit<FindOptions, 'where'>
   ): Promise<M | null>;
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
     identifier: Identifier,
-    options: NonNullFindOptions
+    options: Omit<NonNullFindOptions, 'where'>
   ): Promise<M>;
 
   /**
@@ -2156,6 +2167,38 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): void;
 
   /**
+   * A hook that is run before creating or updating a single instance, It proxies `beforeCreate` and `beforeUpdate`
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static beforeSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    name: string,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+  public static beforeSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+
+  /**
+   * A hook that is run after creating or updating a single instance, It proxies `afterCreate` and `afterUpdate`
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static afterSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    name: string,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+  public static afterSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+
+  /**
    * A hook that is run before creating instances in bulk
    *
    * @param name
@@ -2268,11 +2311,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static afterFind<M extends Model>(
     this: { new (): M } & typeof Model,
     name: string,
-    fn: (instancesOrInstance: M[] | M, options: FindOptions) => HookReturn
+    fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
   public static afterFind<M extends Model>(
     this: { new (): M } & typeof Model,
-    fn: (instancesOrInstance: M[] | M, options: FindOptions) => HookReturn
+    fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
 
   /**

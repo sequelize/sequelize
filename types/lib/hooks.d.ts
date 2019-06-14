@@ -28,6 +28,8 @@ export interface ModelHooks<M extends Model = Model> {
   afterDestroy(instance: M, options: InstanceDestroyOptions): HookReturn;
   beforeUpdate(instance: M, options: InstanceUpdateOptions): HookReturn;
   afterUpdate(instance: M, options: InstanceUpdateOptions): HookReturn;
+  beforeSave(instance: M, options: InstanceUpdateOptions | CreateOptions): HookReturn;
+  afterSave(instance: M, options: InstanceUpdateOptions | CreateOptions): HookReturn;
   beforeBulkCreate(instances: M[], options: BulkCreateOptions): HookReturn;
   afterBulkCreate(instances: M[], options: BulkCreateOptions): HookReturn;
   beforeBulkDestroy(options: DestroyOptions): HookReturn;
@@ -38,7 +40,7 @@ export interface ModelHooks<M extends Model = Model> {
   beforeCount(options: CountOptions): HookReturn;
   beforeFindAfterExpandIncludeAll(options: FindOptions): HookReturn;
   beforeFindAfterOptions(options: FindOptions): HookReturn;
-  afterFind(instancesOrInstance: M[] | M, options: FindOptions): HookReturn;
+  afterFind(instancesOrInstance: M[] | M | null, options: FindOptions): HookReturn;
   beforeSync(options: SyncOptions): HookReturn;
   afterSync(options: SyncOptions): HookReturn;
   beforeBulkSync(options: SyncOptions): HookReturn;

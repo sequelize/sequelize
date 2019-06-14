@@ -71,4 +71,4 @@ If you have any security issue to report, contact project maintainers privately.
 
 ### Translations
 - [English v5](http://docs.sequelizejs.com) (OFFICIAL)
-- [中文文档 v4](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)
+- [中文文档 v4/v5](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)

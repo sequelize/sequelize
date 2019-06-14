@@ -42,7 +42,7 @@
     "odbc": "^2.0.0-3",
     "retry-as-promised": "^3.1.0",
     "semver": "^5.6.0",
-    "sequelize-pool": "^1.0.2",
+    "sequelize-pool": "^2.1.0",
     "toposort-class": "^1.0.1",
     "uuid": "^3.2.1",
     "validator": "^10.11.0",
