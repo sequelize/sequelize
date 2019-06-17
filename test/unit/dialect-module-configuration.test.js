@@ -29,6 +29,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         case 'postgres': dialectPath = path.join(dialectPath, 'pg'); break;
         case 'mysql': dialectPath = path.join(dialectPath, 'mysql2'); break;
         case 'mariadb': dialectPath = path.join(dialectPath, 'mariadb'); break;
+        case 'db2': dialectPath = path.join(dialectPath, 'ibm_db'); break;
         case 'mssql': dialectPath = path.join(dialectPath, 'tedious'); break;
         case 'sqlite': dialectPath = path.join(dialectPath, 'sqlite3'); break;
         default: throw Error('Unsupported dialect');

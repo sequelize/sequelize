@@ -34,6 +34,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             })
             .then(newSchemaNames => {
               if (!current.dialect.supports.schemas) return;
+              if (dialect === 'db2') { return; }
               expect(newSchemaNames).to.have.length(schemaNames.length + 1);
               return this.queryInterface.dropSchema('newSchema');
             });
@@ -50,7 +51,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => this.queryInterface.renameTable('my_test_table', 'my_test_table_new'))
         .then(() => this.queryInterface.showAllTables())
         .then(tableNames => {
-          if (dialect === 'mssql' || dialect === 'mariadb') {
+          if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
             tableNames = tableNames.map(v => v.tableName);
           }
           expect(tableNames).to.contain('my_test_table_new');
@@ -97,7 +98,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => this.queryInterface.dropAllTables({ skip: ['skipme'] }))
         .then(() => this.queryInterface.showAllTables())
         .then(tableNames => {
-          if (dialect === 'mssql' || dialect === 'mariadb') {
+          if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
             tableNames = tableNames.map(v => v.tableName);
           }
           expect(tableNames).to.contain('skipme');
@@ -243,25 +244,27 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
-    it('renames a column primary key autoIncrement column', function() {
-      const Fruits = this.sequelize.define('Fruit', {
-        fruitId: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-          primaryKey: true,
-          autoIncrement: true
-        }
-      }, { freezeTableName: true });
+    if (dialect !== 'db2') { // Db2 does not allow rename of a primary key col
+      it('renames a column primary key autoIncrement column', function() {
+        const Fruits = this.sequelize.define('Fruit', {
+          fruitId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            primaryKey: true,
+            autoIncrement: true
+          }
+        }, { freezeTableName: true });
 
-      return Fruits.sync({ force: true }).then(() => {
-        return this.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id');
-      }).then(() => {
-        return this.queryInterface.describeTable('Fruit');
-      }).then(table => {
-        expect(table).to.have.property('fruit_id');
-        expect(table).to.not.have.property('fruitId');
+        return Fruits.sync({ force: true }).then(() => {
+          return this.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id');
+        }).then(() => {
+          return this.queryInterface.describeTable('Fruit');
+        }).then(table => {
+          expect(table).to.have.property('fruit_id');
+          expect(table).to.not.have.property('fruitId');
+        });
       });
-    });
+    }
 
     it('shows a reasonable error message when column is missing', function() {
       const Users = this.sequelize.define('_Users', {
@@ -354,16 +357,19 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
-    it('should work with enums (1)', function() {
-      return this.queryInterface.addColumn('users', 'someEnum', DataTypes.ENUM('value1', 'value2', 'value3'));
-    });
-
-    it('should work with enums (2)', function() {
-      return this.queryInterface.addColumn('users', 'someOtherEnum', {
-        type: DataTypes.ENUM,
-        values: ['value1', 'value2', 'value3']
+    // Db2 does not support enums in alter column
+    if (dialect !== 'db2') {
+      it('should work with enums (1)', function() {
+        return this.queryInterface.addColumn('users', 'someEnum', DataTypes.ENUM('value1', 'value2', 'value3'));
       });
-    });
+
+      it('should work with enums (2)', function() {
+        return this.queryInterface.addColumn('users', 'someOtherEnum', {
+          type: DataTypes.ENUM,
+          values: ['value1', 'value2', 'value3']
+        });
+      });
+    }
   });
 
   describe('describeForeignKeys', () => {
@@ -410,7 +416,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should get a list of foreign keys for the table', function() {
-      const sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
+      let sql = "";
+      if (dialect === 'db2') {
+        sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.username.toUpperCase());
+      } else {
+        sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
+      }
       return this.sequelize.query(sql, { type: this.sequelize.QueryTypes.FOREIGNKEYS }).then(fks => {
         expect(fks).to.have.length(3);
         const keys = Object.keys(fks[0]),
@@ -421,7 +432,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(keys).to.have.length(6);
           expect(keys2).to.have.length(7);
           expect(keys3).to.have.length(7);
-        } else if (dialect === 'sqlite') {
+        } else if (dialect === 'sqlite' || dialect === 'db2') {
           expect(keys).to.have.length(8);
         } else if (dialect === 'mysql' || dialect === 'mssql') {
           expect(keys).to.have.length(12);
@@ -462,7 +473,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     beforeEach(function() {
       this.User = this.sequelize.define('users', {
         username: DataTypes.STRING,
-        email: DataTypes.STRING,
+        email: {type: DataTypes.STRING, allowNull: false},
         roles: DataTypes.STRING
       });
 

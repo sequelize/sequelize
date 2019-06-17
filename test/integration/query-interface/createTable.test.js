@@ -76,6 +76,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
           case 'mariadb':
           case 'mysql':
+          case 'db2':
             // name + email
             expect(indexes[1].unique).to.be.true;
             expect(indexes[1].fields[0].attribute).to.equal('name');

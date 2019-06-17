@@ -2256,7 +2256,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       return this.sequelize.sync({ force: true }).then(() => {
         return this.sequelize.getQueryInterface().showAllTables();
       }).then(result => {
-        if (dialect === 'mssql' || dialect === 'mariadb') {
+        if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
           result = result.map(v => v.tableName);
         }
 
@@ -2275,7 +2275,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       return this.sequelize.sync({ force: true }).then(() => {
         return this.sequelize.getQueryInterface().showAllTables();
       }).then(result => {
-        if (dialect === 'mssql' || dialect === 'mariadb') {
+        if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
           result = result.map(v => v.tableName);
         }
 

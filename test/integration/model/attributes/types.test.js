@@ -104,6 +104,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
             if (dialect === 'mssql') {
               boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
+            } else if (dialect === 'db2') {
+              boolQuery = '1 AS "someBoolean"';
             }
 
             return Post.findOne({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
@@ -176,7 +178,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be able to include model with virtual attributes', function() {
-          return this.User.create({}).then(user => {
+          return this.User.create({"id":5}).then(user => {
             return user.createTask();
           }).then(() => {
             return this.Task.findAll({

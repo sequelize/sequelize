@@ -559,8 +559,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       return this.sequelize.sync({ force: true })
-        .then(() => User.create({}))
-        .then(() => Mail.create({}))
+        .then(() => User.create({id:1}))
+        .then(() => Mail.create({id:1}))
         .then(mail =>
           Entry.create({ mailId: mail.id, ownerId: 1 })
             .then(() => Entry.create({ mailId: mail.id, ownerId: 1 }))
@@ -748,7 +748,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     }
 
     // NOTE: mssql does not support changing an autoincrement primary key
-    if (Support.getTestDialect() !== 'mssql') {
+    if (Support.getTestDialect() !== 'mssql' &&
+        Support.getTestDialect() !== 'db2') {
       it('can cascade updates', function() {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
           User = this.sequelize.define('User', { username: DataTypes.STRING });

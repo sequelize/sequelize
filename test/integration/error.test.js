@@ -4,6 +4,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
   Support = require('./support'),
+  dialect   = Support.getTestDialect(),
   Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
@@ -347,6 +348,9 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         return expect(User.create({ name: 'jan' })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
       }).then(() => {
         // And when the model is not passed at all
+        if(dialect === 'db2') {
+          return expect(this.sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+        }
         return expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
       });
     });
