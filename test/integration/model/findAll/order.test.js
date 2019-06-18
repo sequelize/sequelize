@@ -95,13 +95,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 ['id', this.sequelize.literal('ASC, "name" DESC')]
               ]
             });
-          } else {
-            return this.User.findAll({
-              order: [
-                ['id', this.sequelize.literal('ASC, name DESC')]
-              ]
-            });
           }
+          return this.User.findAll({
+            order: [
+              ['id', this.sequelize.literal('ASC, name DESC')]
+            ]
+          });
         });
 
         it('should not throw with include when last order argument is a field', function() {

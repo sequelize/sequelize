@@ -81,7 +81,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       postgres: " LIMIT 10 OFFSET ''';DELETE FROM user'",
       mariadb: " LIMIT '\\';DELETE FROM user', 10",
       mysql: " LIMIT '\\';DELETE FROM user', 10",
-      db2: " FETCH NEXT 10 ROWS ONLY",
+      db2: ' FETCH NEXT 10 ROWS ONLY',
       mssql: " OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY"
     });
   });

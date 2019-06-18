@@ -68,12 +68,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           return this.queryInterface.changeColumn('users', 'currency', {
             type: DataTypes.FLOAT
           });
-        } else {
-          return this.queryInterface.changeColumn('users', 'currency', {
-            type: DataTypes.FLOAT,
-            allowNull: true
-          });
         }
+        return this.queryInterface.changeColumn('users', 'currency', {
+          type: DataTypes.FLOAT,
+          allowNull: true
+        });
       }).then(() => {
         return this.queryInterface.describeTable({
           tableName: 'users'

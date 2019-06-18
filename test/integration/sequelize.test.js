@@ -12,7 +12,7 @@ const Transaction = require('../../lib/transaction');
 const sinon = require('sinon');
 const current = Support.sequelize;
 
-const typeCast = (dialect === 'postgres' || dialect === 'db2') ? '::int' : '';
+const typeCast = dialect === 'postgres' || dialect === 'db2' ? '::int' : '';
 const qq = str => {
   if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'db2') {
     return `"${str}"`;
@@ -240,9 +240,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       }) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
       if (dialect === 'db2') {
         this.insertQuery = `INSERT INTO ${qq(this.User.tableName)}
-          ("username", "email_address", ${ qq('createdAt')  }, ${qq('updatedAt')
-          }) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', 
-          '2012-01-01 10:10:10')`;
+          ("username", "email_address", ${ qq('createdAt') }, ${qq('updatedAt')
+}) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
       }
 
       return this.User.sync({ force: true });
@@ -393,7 +392,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         return self.sequelize.query(this.insertQuery).then(() => {
           return self.sequelize.query('DROP PROCEDURE foo').then(() => {
             return self.sequelize.query(
-              'CREATE PROCEDURE foo() DYNAMIC RESULT SETS 1 LANGUAGE SQL BEGIN DECLARE cr1 CURSOR WITH RETURN FOR SELECT * FROM ' + qq(self.User.tableName) + '; OPEN cr1; END'
+              `CREATE PROCEDURE foo() DYNAMIC RESULT SETS 1 LANGUAGE SQL BEGIN DECLARE cr1 CURSOR WITH RETURN FOR SELECT * FROM ${  qq(self.User.tableName)  }; OPEN cr1; END`
             ).then(() => {
               return self.sequelize.query('CALL foo()').then(users => {
                 expect(users.map(u => { return u.username; })).to.include('john');
@@ -517,9 +516,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         get query() {
           if (dialect === 'db2') {
             return 'select ? as "foo", ? as "bar"';
-          } else {
-            return 'select ? as foo, ? as bar';
           }
+          return 'select ? as foo, ? as bar';
         }
       }
       return this.sequelize.query(new SQLStatement(), { type: this.sequelize.QueryTypes.SELECT, logging: s => logSql = s } ).then(result => {
@@ -580,22 +578,22 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('replaces named parameters with the passed object', function() {
-      return expect(this.sequelize.query('select :one as FOO, :two as BAR', { raw: true, replacements: { one: 1, two: 2 }}).get(0))
+      return expect(this.sequelize.query('select :one as FOO, :two as BAR', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
         .to.eventually.deep.equal([{ FOO: 1, BAR: 2 }]);
     });
 
     it('replaces named parameters with the passed object and ignore those which does not qualify', function() {
-      return expect(this.sequelize.query('select :one as FOO, :two as BAR, \'00:00\' as BAZ', { raw: true, replacements: { one: 1, two: 2 }}).get(0))
+      return expect(this.sequelize.query('select :one as FOO, :two as BAR, \'00:00\' as BAZ', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
         .to.eventually.deep.equal([{ FOO: 1, BAR: 2, BAZ: '00:00' }]);
     });
 
     it('replaces named parameters with the passed object using the same key twice', function() {
-      return expect(this.sequelize.query('select :one as FOO, :two as BAR, :one as BAZ', { raw: true, replacements: { one: 1, two: 2 }}).get(0))
+      return expect(this.sequelize.query('select :one as FOO, :two as BAR, :one as BAZ', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
         .to.eventually.deep.equal([{ FOO: 1, BAR: 2, BAZ: 1 }]);
     });
 
     it('replaces named parameters with the passed object having a null property', function() {
-      return expect(this.sequelize.query('select :one as FOO, :two as BAR', { raw: true, replacements: { one: 1, two: null }}).get(0))
+      return expect(this.sequelize.query('select :one as FOO, :two as BAR', { raw: true, replacements: { one: 1, two: null } }).get(0))
         .to.eventually.deep.equal([{ FOO: 1, BAR: null }]);
     });
 

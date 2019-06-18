@@ -416,7 +416,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should get a list of foreign keys for the table', function() {
-      let sql = "";
+      let sql = '';
       if (dialect === 'db2') {
         sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.username.toUpperCase());
       } else {
@@ -473,7 +473,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     beforeEach(function() {
       this.User = this.sequelize.define('users', {
         username: DataTypes.STRING,
-        email: {type: DataTypes.STRING, allowNull: false},
+        email: { type: DataTypes.STRING, allowNull: false },
         roles: DataTypes.STRING
       });
 

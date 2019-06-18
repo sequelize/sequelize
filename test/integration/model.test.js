@@ -416,8 +416,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           idx1 = args[1];
 
           expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined},
-            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined}
+            { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
+            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined }
           ]);
         } else if (dialect === 'postgres') {
           // Postgres returns indexes in alphabetical order
@@ -1699,29 +1699,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).then(tobi => {
         return tobi.destroy();
       }).then(() => {
-        if(dialect === 'db2') {
-          return this.sequelize.query('SELECT * FROM "paranoidusers" WHERE "username"=\'Tobi\'', { plain: true});
-        } else {
-          return this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', { plain: true});
+        if (dialect === 'db2') {
+          return this.sequelize.query('SELECT * FROM "paranoidusers" WHERE "username"=\'Tobi\'', { plain: true });
         }
+        return this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tobi\'', { plain: true });
       }).then(result => {
         expect(result.username).to.equal('Tobi');
         return User.destroy({ where: { username: 'Tony' } });
       }).then(() => {
-        if(dialect === 'db2') {
-          return this.sequelize.query('SELECT * FROM "paranoidusers" WHERE "username"=\'Tony\'', { plain: true});
-        } else {
-          return this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', { plain: true});
+        if (dialect === 'db2') {
+          return this.sequelize.query('SELECT * FROM "paranoidusers" WHERE "username"=\'Tony\'', { plain: true });
         }
+        return this.sequelize.query('SELECT * FROM paranoidusers WHERE username=\'Tony\'', { plain: true });
       }).then(result => {
         expect(result.username).to.equal('Tony');
         return User.destroy({ where: { username: ['Tony', 'Max'] }, force: true });
       }).then(() => {
-        if(dialect === 'db2') {
-          return this.sequelize.query('SELECT * FROM "paranoidusers"', {raw: true});
-        } else {
-          return this.sequelize.query('SELECT * FROM paranoidusers', {raw: true});
+        if (dialect === 'db2') {
+          return this.sequelize.query('SELECT * FROM "paranoidusers"', { raw: true });
         }
+        return this.sequelize.query('SELECT * FROM paranoidusers', { raw: true });
       }).then(([users]) => {
         expect(users).to.have.length(1);
         expect(users[0].username).to.equal('Tobi');
