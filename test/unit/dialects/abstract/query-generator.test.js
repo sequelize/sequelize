@@ -125,7 +125,7 @@ describe('QueryGenerator', () => {
 
       const queryStub = sinon.stub(this.sequelize, 'query');
 
-      const date = moment('2019-05-27');
+      const date = moment.utc('2019-05-26T23:00:00.000Z');
 
       return Foo.findAll({
         include: [
