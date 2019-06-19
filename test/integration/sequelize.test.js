@@ -654,7 +654,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         } else {
           expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
         }
-        if (['postgres', 'sqlite', 'db2'].includes(dialect)) {
+        if (dialect === 'postgres' || dialect === 'sqlite') {
           expect(logSql).to.include('$1');
         }
       });
@@ -668,7 +668,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         } else {
           expect(result[0]).to.deep.equal([{ foo: 1, bar: 2 }]);
         }
-        if (dialect === 'postgres' || dialect === 'db2') {
+        if (dialect === 'postgres') {
           expect(logSql).to.include('$1');
         }
         if (dialect === 'sqlite') {
@@ -693,12 +693,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     }
 
     it('binds named parameters with the passed object having a null property', function() {
-      if (dialect === 'db2') {
-        return this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar`, { raw: true, bind: { one: 1, two: null } }).then(result => {
-          expect(result[0]).to.deep.equal([{ FOO: 1, BAR: null }]);
-      }
       return this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar`, { raw: true, bind: { one: 1, two: null } }).then(result => {
-        expect(result[0]).to.deep.equal([{ foo: 1, bar: null }]);
+        if (dialect === 'db2') {
+          expect(result[0]).to.deep.equal([{ FOO: 1, BAR: null }]);
+        } else {
+          expect(result[0]).to.deep.equal([{ foo: 1, bar: null }]);
+        }
       });
     });
 
