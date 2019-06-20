@@ -81,7 +81,7 @@
     "rimraf": "^2.6.3",
     "semantic-release": "^15.13.3",
     "sinon": "^7.2.6",
-    "sinon-chai": "^3.2.0",
+    "sinon-chai": "3.2.0",
     "sqlite3": "^4.0.6",
     "tedious": "^6.0.0",
     "typescript": "^3.3.3333"
