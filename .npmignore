@@ -1,9 +1,0 @@
-docs
-esdoc
-examples
-test
-README.md
-.watchr.js
-changelog.md
-Makefile
-coverage*

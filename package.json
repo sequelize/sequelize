@@ -31,6 +31,10 @@
   "bugs": {
     "url": "https://github.com/sequelize/sequelize/issues"
   },
+  "files": [
+    "lib",
+    "index.js"
+  ],
   "dependencies": {
     "bluebird": "^3.3.4",
     "depd": "^1.1.0",
