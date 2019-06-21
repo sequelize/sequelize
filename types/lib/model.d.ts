@@ -479,7 +479,7 @@ export type FindAttributeOptions =
 
 export interface IndexHint {
   type: IndexHints;
-  value: string[];
+  values: string[];
 }
 
 export interface IndexHintable {
@@ -488,6 +488,8 @@ export interface IndexHintable {
    */
   indexHints?: IndexHint[];
 }
+
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
 /**
  * Options that are passed to any model creating a SELECT query
@@ -1756,12 +1758,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
     identifier?: Identifier,
-    options?: FindOptions
+    options?: Omit<FindOptions, 'where'>
   ): Promise<M | null>;
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
     identifier: Identifier,
-    options: NonNullFindOptions
+    options: Omit<NonNullFindOptions, 'where'>
   ): Promise<M>;
 
   /**
@@ -1918,6 +1920,15 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * will be created instead, and any unique constraint violation will be handled internally.
    */
   public static findOrCreate<M extends Model>(
+    this: { new (): M } & typeof Model,
+    options: FindOrCreateOptions
+  ): Promise<[M, boolean]>;
+
+  /**
+   * A more performant findOrCreate that will not work under a transaction (at least not in postgres) 
+   * Will execute a find call, if empty then attempt to create, if unique constraint then attempt to find again
+   */
+  public static findCreateFind<M extends Model>(
     this: { new (): M } & typeof Model,
     options: FindOrCreateOptions
   ): Promise<[M, boolean]>;
@@ -2309,11 +2320,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static afterFind<M extends Model>(
     this: { new (): M } & typeof Model,
     name: string,
-    fn: (instancesOrInstance: M[] | M, options: FindOptions) => HookReturn
+    fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
   public static afterFind<M extends Model>(
     this: { new (): M } & typeof Model,
-    fn: (instancesOrInstance: M[] | M, options: FindOptions) => HookReturn
+    fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
 
   /**
