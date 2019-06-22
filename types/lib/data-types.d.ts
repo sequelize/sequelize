@@ -109,7 +109,7 @@ export interface CharDataTypeOptions extends StringDataTypeOptions {}
 export const TEXT: TextDataTypeConstructor;
 
 interface TextDataTypeConstructor extends AbstractDataTypeConstructor {
-  new (length?: number): TextDataType;
+  new (length?: ('tiny' | 'medium' | 'long')): TextDataType;
   (options?: TextDataTypeOptions): TextDataType;
 }
 
@@ -119,7 +119,7 @@ export interface TextDataType extends AbstractDataType {
 }
 
 export interface TextDataTypeOptions {
-  length?: number;
+  length?: ('tiny' | 'medium' | 'long');
 }
 
 export const NUMBER: NumberDataTypeConstructor;
