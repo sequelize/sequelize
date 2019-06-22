@@ -71,7 +71,7 @@
     "lcov-result-merger": "^3.0.0",
     "lint-staged": "^8.1.5",
     "mariadb": "^2.0.3",
-    "markdownlint-cli": "^0.16.0",
+    "markdownlint-cli": "^0.14.1",
     "mocha": "^6.1.4",
     "mysql2": "^1.6.5",
     "nyc": "^14.1.1",
