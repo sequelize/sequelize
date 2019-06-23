@@ -856,7 +856,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'User'
         }, {
           mariadb: "json_unquote(json_extract(`User`.`data`,'$.nested.attribute')) = 'value'",
-          mysql: "(`User`.`data`->>'$.\"nested\".\"attribute\"') = 'value'",
+          mysql: "(`User`.`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') = 'value'",
           postgres: "(\"User\".\"data\"#>>'{nested,attribute}') = 'value'",
           sqlite: "json_extract(`User`.`data`, '$.nested.attribute') = 'value'"
         });
@@ -871,7 +871,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested')) AS DECIMAL) IN (1, 2)",
-          mysql: "CAST((`data`->>'$.\"nested\"') AS DECIMAL) IN (1, 2)",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\"') AS DECIMAL) IN (1, 2)",
           postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) IN (1, 2)",
           sqlite: "CAST(json_extract(`data`, '$.nested') AS DOUBLE PRECISION) IN (1, 2)"
         });
@@ -886,7 +886,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested')) AS DECIMAL) BETWEEN 1 AND 2",
-          mysql: "CAST((`data`->>'$.\"nested\"') AS DECIMAL) BETWEEN 1 AND 2",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\"') AS DECIMAL) BETWEEN 1 AND 2",
           postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) BETWEEN 1 AND 2",
           sqlite: "CAST(json_extract(`data`, '$.nested') AS DOUBLE PRECISION) BETWEEN 1 AND 2"
         });
@@ -905,7 +905,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, { tableName: 'User' }))
         }, {
           mariadb: "(json_unquote(json_extract(`User`.`data`,'$.nested.attribute')) = 'value' AND json_unquote(json_extract(`User`.`data`,'$.nested.prop')) != 'None')",
-          mysql: "((`User`.`data`->>'$.\"nested\".\"attribute\"') = 'value' AND (`User`.`data`->>'$.\"nested\".\"prop\"') != 'None')",
+          mysql: "((`User`.`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') = 'value' AND (`User`.`data`->>'$.\\\"nested\\\".\\\"prop\\\"') != 'None')",
           postgres: "((\"User\".\"data\"#>>'{nested,attribute}') = 'value' AND (\"User\".\"data\"#>>'{nested,prop}') != 'None')",
           sqlite: "(json_extract(`User`.`data`, '$.nested.attribute') = 'value' AND json_extract(`User`.`data`, '$.nested.prop') != 'None')"
         });
@@ -924,7 +924,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           prefix: 'User'
         }, {
           mariadb: "(json_unquote(json_extract(`User`.`data`,'$.name.last')) = 'Simpson' AND json_unquote(json_extract(`User`.`data`,'$.employment')) != 'None')",
-          mysql: "((`User`.`data`->>'$.\"name\".\"last\"') = 'Simpson' AND (`User`.`data`->>'$.\"employment\"') != 'None')",
+          mysql: "((`User`.`data`->>'$.\\\"name\\\".\\\"last\\\"') = 'Simpson' AND (`User`.`data`->>'$.\\\"employment\\\"') != 'None')",
           postgres: "((\"User\".\"data\"#>>'{name,last}') = 'Simpson' AND (\"User\".\"data\"#>>'{employment}') != 'None')",
           sqlite: "(json_extract(`User`.`data`, '$.name.last') = 'Simpson' AND json_extract(`User`.`data`, '$.employment') != 'None')"
         });
@@ -938,7 +938,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           mariadb: "(CAST(json_unquote(json_extract(`data`,'$.price')) AS DECIMAL) = 5 AND json_unquote(json_extract(`data`,'$.name')) = 'Product')",
-          mysql: "(CAST((`data`->>'$.\"price\"') AS DECIMAL) = 5 AND (`data`->>'$.\"name\"') = 'Product')",
+          mysql: "(CAST((`data`->>'$.\\\"price\\\"') AS DECIMAL) = 5 AND (`data`->>'$.\\\"name\\\"') = 'Product')",
           postgres: "(CAST((\"data\"#>>'{price}') AS DOUBLE PRECISION) = 5 AND (\"data\"#>>'{name}') = 'Product')",
           sqlite: "(CAST(json_extract(`data`, '$.price') AS DOUBLE PRECISION) = 5 AND json_extract(`data`, '$.name') = 'Product')"
         });
@@ -953,7 +953,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           mariadb: "json_unquote(json_extract(`data`,'$.nested.attribute')) = 'value'",
-          mysql: "(`data`->>'$.\"nested\".\"attribute\"') = 'value'",
+          mysql: "(`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') = 'value'",
           postgres: "(\"data\"#>>'{nested,attribute}') = 'value'",
           sqlite: "json_extract(`data`, '$.nested.attribute') = 'value'"
         });
@@ -968,7 +968,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) = 4",
-          mysql: "CAST((`data`->>'$.\"nested\".\"attribute\"') AS DECIMAL) = 4",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') AS DECIMAL) = 4",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) = 4",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) = 4"
         });
@@ -985,7 +985,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) IN (3, 7)",
-          mysql: "CAST((`data`->>'$.\"nested\".\"attribute\"') AS DECIMAL) IN (3, 7)",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') AS DECIMAL) IN (3, 7)",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) IN (3, 7)",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) IN (3, 7)"
         });
@@ -1002,7 +1002,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) > 2",
-          mysql: "CAST((`data`->>'$.\"nested\".\"attribute\"') AS DECIMAL) > 2",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') AS DECIMAL) > 2",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) > 2",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) > 2"
         });
@@ -1019,7 +1019,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) > 2",
-          mysql: "CAST((`data`->>'$.\"nested\".\"attribute\"') AS DECIMAL) > 2",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') AS DECIMAL) > 2",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS INTEGER) > 2",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS INTEGER) > 2"
         });
@@ -1037,7 +1037,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           mariadb: `CAST(json_unquote(json_extract(\`data\`,'$.nested.attribute')) AS DATETIME) > ${sql.escape(dt)}`,
-          mysql: `CAST((\`data\`->>'$."nested"."attribute"') AS DATETIME) > ${sql.escape(dt)}`,
+          mysql: `CAST((\`data\`->>'$.\\"nested\\".\\"attribute\\"') AS DATETIME) > ${sql.escape(dt)}`,
           postgres: `CAST(("data"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
           sqlite: `json_extract(\`data\`, '$.nested.attribute') > ${sql.escape(dt.toISOString())}`
         });
@@ -1052,7 +1052,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           mariadb: "json_unquote(json_extract(`data`,'$.nested.attribute')) = 'true'",
-          mysql: "(`data`->>'$.\"nested\".\"attribute\"') = 'true'",
+          mysql: "(`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') = 'true'",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS BOOLEAN) = true",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS BOOLEAN) = 1"
         });
@@ -1069,7 +1069,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }, {
           mariadb: "json_unquote(json_extract(`meta_data`,'$.nested.attribute')) = 'value'",
-          mysql: "(`meta_data`->>'$.\"nested\".\"attribute\"') = 'value'",
+          mysql: "(`meta_data`->>'$.\\\"nested\\\".\\\"attribute\\\"') = 'value'",
           postgres: "(\"meta_data\"#>>'{nested,attribute}') = 'value'",
           sqlite: "json_extract(`meta_data`, '$.nested.attribute') = 'value'"
         });
