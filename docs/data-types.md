@@ -179,7 +179,7 @@ const sequelizeConfig = require('../config/sequelize')
 const sequelizeAdditions = require('./sequelize-additions')
 
 // Function that adds new datatypes
-sequelizeAdditions(Sequelize.DataTypes)
+sequelizeAdditions(Sequelize)
 
 // In this exmaple a Sequelize instance is created and exported
 const sequelize = new Sequelize(sequelizeConfig)
@@ -282,7 +282,7 @@ modules.exports = function sequelizeAdditions(Sequelize) {
 
   // Mandatory, create, override or reassign a postgres-specific parser
   //PgTypes.NEWTYPE.parse = value => value;
-  PgTypes.NEWTYPE.parse = BaseTypes.NEWTYPE.parse;
+  PgTypes.NEWTYPE.parse = DataTypes.NEWTYPE.parse;
 
   // Optional, add or override methods of the postgres-specific datatype
   // like toSql, escape, validate, _stringify, _sanitize...
