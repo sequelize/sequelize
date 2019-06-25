@@ -36,7 +36,7 @@ The method `findOrCreate` can be used to check if a certain element already exis
 
 Let's assume we have an empty database with a `User` model which has a `username` and a `job`.
 
-*Note:* `where` option will be appended to `defaults` if create query runs.
+`where` option will be appended to `defaults` for create case. 
 
 ```js
 User
