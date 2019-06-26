@@ -54,6 +54,8 @@ export interface SequelizeHooks extends ModelHooks {
   afterInit(sequelize: Sequelize): void;
   beforeConnect(config: Config): HookReturn;
   afterConnect(connection: unknown, config: Config): HookReturn;
+  beforeDisconnect(connection: unknown): HookReturn;
+  afterDisconnect(connection: unknown): HookReturn;
 }
 
 /**
