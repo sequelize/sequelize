@@ -1,7 +1,7 @@
 {
   "name": "sequelize-ibmi",
-  "description": "Multi dialect ORM for Node.JS",
-  "version": "0.0.0-beta.0",
+  "description": "IBM i fork of the Sequelize package. Targeting parity and eventual reintegration with upstream branch.",
+  "version": "0.0.0-beta.1",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     "Mark Irish <mirish@ibm.com>",
@@ -13,10 +13,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/sequelize/sequelize.git"
+    "url": "https://github.com/markdirish/sequelize-ibmi"
   },
   "bugs": {
-    "url": "https://github.com/sequelize/sequelize/issues"
+    "url": "https://github.com/markdirish/sequelize-ibmi/issues"
   },
   "homepage": "http://docs.sequelizejs.com/",
   "main": "index.js",
@@ -39,7 +39,6 @@
     "lodash": "^4.17.11",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.21",
-    "odbc": "^2.0.0-3",
     "retry-as-promised": "^3.1.0",
     "semver": "^6.1.1",
     "sequelize-pool": "^2.2.0",
@@ -77,6 +76,7 @@
     "mocha": "^6.1.4",
     "mysql2": "^1.6.5",
     "nyc": "^14.1.1",
+    "odbc": "^2.0.0-4",
     "pg": "^7.8.1",
     "pg-hstore": "^2.x",
     "pg-types": "^2.0.0",
@@ -95,6 +95,8 @@
     "postgresql",
     "postgres",
     "mssql",
+    "ibmi",
+    "odbc",
     "orm",
     "nodejs",
     "object relational mapper"
