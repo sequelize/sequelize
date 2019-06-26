@@ -179,7 +179,7 @@ const sequelizeConfig = require('../config/sequelize')
 const sequelizeAdditions = require('./sequelize-additions')
 
 // Function that adds new datatypes
-sequelizeAdditions(Sequelize.DataTypes)
+sequelizeAdditions(Sequelize)
 
 // In this exmaple a Sequelize instance is created and exported
 const sequelize = new Sequelize(sequelizeConfig)
@@ -229,13 +229,14 @@ modules.exports = function sequelizeAdditions(Sequelize) {
     }
   }
 
+  DataTypes.NEWTYPE = NEWTYPE;
+
   // Mandatory, set key
   DataTypes.NEWTYPE.prototype.key = DataTypes.NEWTYPE.key = 'NEWTYPE'
 
-
   // Optional, disable escaping after stringifier. Not recommended.
   // Warning: disables Sequelize protection against SQL injections
-  //DataTypes.NEWTYPE.escape = false
+  // DataTypes.NEWTYPE.escape = false
 
   // For convenience
   // `classToInvokable` allows you to use the datatype without `new`
@@ -282,7 +283,7 @@ modules.exports = function sequelizeAdditions(Sequelize) {
 
   // Mandatory, create, override or reassign a postgres-specific parser
   //PgTypes.NEWTYPE.parse = value => value;
-  PgTypes.NEWTYPE.parse = BaseTypes.NEWTYPE.parse;
+  PgTypes.NEWTYPE.parse = DataTypes.NEWTYPE.parse;
 
   // Optional, add or override methods of the postgres-specific datatype
   // like toSql, escape, validate, _stringify, _sanitize...

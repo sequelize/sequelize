@@ -41,14 +41,14 @@ script:
 jobs:
   include:
     - stage: lint
-      node_js: '6'
+      node_js: '8'
       script:
         - npm run lint
         - npm run lint-docs
         - npm run test-typings
     - stage: test
       node_js: '6'
-      env: DIALECT=sqlite TSC=true
+      env: DIALECT=sqlite
     - stage: test
       node_js: '6'
       sudo: required
