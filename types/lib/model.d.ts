@@ -863,6 +863,11 @@ export interface UpdateOptions extends Logging, Transactionable {
    * How many rows to update (only for mysql and mariadb)
    */
   limit?: number;
+  
+  /**
+   * If true, the updatedAt timestamp will not be updated.
+   */
+  silent?: boolean;
 }
 
 /**
