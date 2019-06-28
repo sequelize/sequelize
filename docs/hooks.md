@@ -186,11 +186,13 @@ new Sequelize(..., {
 
 ### Connection Hooks
 
-Sequelize provides two hooks that are executed immediately before and after a database connection is obtained:
+Sequelize provides four hooks that are executed immediately before and after a database connection is obtained or released:
 
 ```text
 beforeConnect(config)
 afterConnect(connection, config)
+beforeDisconnect(connection)
+afterDisconnect(connection)
 ```
 
 These hooks can be useful if you need to asynchronously obtain database credentials, or need to directly access the low-level database connection after it has been created.
