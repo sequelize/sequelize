@@ -57,12 +57,12 @@ export interface SyncOptions extends Logging {
    * The schema that the tables should be created in. This can be overridden for each table in sequelize.define
    */
   schema?: string;
-  
+
    /**
    * An optional parameter to specify the schema search_path (Postgres only)
    */
   searchPath?: string;
-  
+
    /**
    * If hooks is true then beforeSync, afterSync, beforeBulkSync, afterBulkSync hooks will be called
    */
@@ -620,6 +620,24 @@ export class Sequelize extends Hooks {
    */
   public static afterConnect(name: string, fn: (connection: unknown, options: Config) => void): void;
   public static afterConnect(fn: (connection: unknown, options: Config) => void): void;
+
+  /**
+   * A hook that is run before a connection is released
+   *
+   * @param name
+   * @param fn   A callback function that is called with options
+   */
+  public static beforeDisconnect(name: string, fn: (connection: unknown) => void): void;
+  public static beforeDisconnect(fn: (connection: unknown) => void): void;
+
+  /**
+   * A hook that is run after a connection is released
+   *
+   * @param name
+   * @param fn   A callback function that is called with options
+   */
+  public static afterDisconnect(name: string, fn: (connection: unknown) => void): void;
+  public static afterDisconnect(fn: (connection: unknown) => void): void;
 
   /**
    * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
