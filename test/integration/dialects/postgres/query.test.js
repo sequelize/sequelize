@@ -14,7 +14,7 @@ if (dialect.match(/^postgres/)) {
     const executeTest = (options, test) => {
       const sequelize = Support.createSequelizeInstance(options);
 
-      const User = sequelize.define('User', { name: DataTypes.STRING });
+      const User = sequelize.define('User', { name: DataTypes.STRING, updatedAt: DataTypes.DATE }, { underscored: true });
       const Task = sequelize.define('Task', { title: DataTypes.STRING });
 
       User.belongsTo(Task, { as: alias, foreignKey: 'taskId' });
@@ -22,7 +22,7 @@ if (dialect.match(/^postgres/)) {
 
       return sequelize.sync({ force: true }).then(() => {
         return Task.create({ title: 'SuperTask' }).then(task => {
-          return User.create({ name: 'test', taskId: task.id }).then(() => {
+          return User.create({ name: 'test', taskId: task.id, updatedAt: new Date() }).then(() => {
             return User.findOne({
               include: {
                 model: Task,
