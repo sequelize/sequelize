@@ -99,6 +99,10 @@
     "object relational mapper"
   ],
   "main": "index",
+  "files": [
+    "lib",
+    "index.js"
+  ],
   "options": {
     "env_cmd": "./test/config/.docker.env",
     "mocha": "--globals setImmediate,clearImmediate --ui tdd --exit --check-leaks --colors -t 30000 --reporter spec"
