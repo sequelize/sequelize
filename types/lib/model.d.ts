@@ -16,7 +16,7 @@ import { ValidationOptions } from './instance-validator';
 import { ModelManager } from './model-manager';
 import Op = require('./operators');
 import { Promise } from './promise';
-import { QueryOptions } from './query-interface';
+import { QueryOptions, IndexesOptions } from './query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
 import { Transaction } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
@@ -32,6 +32,15 @@ export interface Logging {
    * Pass query execution time in milliseconds as second argument to logging function (options.logging).
    */
   benchmark?: boolean;
+}
+
+export interface Poolable {
+  /**
+   * Force the query to use the write pool, regardless of the query type.
+   *
+   * @default false
+   */
+  useMaster?: boolean;
 }
 
 export interface Transactionable {
@@ -367,12 +376,16 @@ export interface IncludeThroughOptions extends Filterable, Projectable {}
 /**
  * Options for eager-loading associated models, also allowing for all associations to be loaded at once
  */
-export type Includeable = typeof Model | Association | IncludeOptions | { all: true };
+export type Includeable = typeof Model | Association | IncludeOptions | { all: true } | string;
 
 /**
  * Complex include options
  */
 export interface IncludeOptions extends Filterable, Projectable, Paranoid {
+  /**
+   * Mark the include as duplicating, will prevent a subquery from being used.
+   */
+  duplicating?: boolean;
   /**
    * The model you want to eagerly load
    */
@@ -466,7 +479,7 @@ export type FindAttributeOptions =
 
 export interface IndexHint {
   type: IndexHints;
-  value: string[];
+  values: string[];
 }
 
 export interface IndexHintable {
@@ -475,6 +488,8 @@ export interface IndexHintable {
    */
   indexHints?: IndexHint[];
 }
+
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
 /**
  * Options that are passed to any model creating a SELECT query
@@ -547,7 +562,7 @@ export interface NonNullFindOptions extends FindOptions {
 /**
  * Options for Model.count method
  */
-export interface CountOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid {
+export interface CountOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid, Poolable {
   /**
    * Include options. See `find` for details
    */
@@ -629,6 +644,13 @@ export interface CreateOptions extends BuildOptions, Logging, Silent, Transactio
    * On Duplicate
    */
   onDuplicate?: string;
+
+  /**
+   * If false, validations won't be run.
+   *
+   * @default true
+   */
+  validate?: boolean;
 }
 
 /**
@@ -841,6 +863,11 @@ export interface UpdateOptions extends Logging, Transactionable {
    * How many rows to update (only for mysql and mariadb)
    */
   limit?: number;
+  
+  /**
+   * If true, the updatedAt timestamp will not be updated.
+   */
+  silent?: boolean;
 }
 
 /**
@@ -1123,55 +1150,7 @@ export interface ModelValidateOptions {
 /**
  * Interface for indexes property in InitOptions
  */
-export interface ModelIndexesOptions {
-  /**
-   * The name of the index. Defaults to model name + _ + fields concatenated
-   */
-  name?: string;
-
-  /**
-   * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
-   */
-  index?: string;
-
-  /**
-   * The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and
-   * postgres, and postgres additionally supports GIST and GIN.
-   */
-  method?: string;
-
-  /**
-   * Should the index by unique? Can also be triggered by setting type to `UNIQUE`
-   *
-   * @default false
-   */
-  unique?: boolean;
-
-  /**
-   * PostgreSQL will build the index without taking any write locks. Postgres only
-   *
-   * @default false
-   */
-  concurrently?: boolean;
-
-  /**
-   * An array of the fields to index. Each field can either be a string containing the name of the field,
-   * a sequelize object (e.g `sequelize.fn`), or an object with the following attributes: `attribute`
-   * (field name), `length` (create a prefix index of length chars), `order` (the direction the column
-   * should be sorted in), `collate` (the collation (sort order) for the column)
-   */
-  fields?: (string | { attribute: string; length: number; order: string; collate: string })[];
-
-  /**
-   * Type of search index. Postgres only
-   */
-  using?: string;
-
-  /**
-   * Index operator type. Postgres only
-   */
-  operator?: string;
-}
+export type ModelIndexesOptions = IndexesOptions
 
 /**
  * Interface for name property in InitOptions
@@ -1702,7 +1681,16 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     options?: string | ScopeOptions | (string | ScopeOptions)[] | WhereAttributeHash
   ): M;
 
+  /**
+   * Add a new scope to the model
+   *
+   * This is especially useful for adding scopes with includes, when the model you want to
+   * include is not available at the time this model is defined. By default this will throw an
+   * error if a scope with that name already exists. Pass `override: true` in the options
+   * object to silence this error.
+   */
   public static addScope(name: string, scope: FindOptions, options?: AddScopeOptions): void;
+  public static addScope(name: string, scope: (...args: any[]) => FindOptions, options?: AddScopeOptions): void;
 
   /**
    * Search for multiple instances.
@@ -1775,12 +1763,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
     identifier?: Identifier,
-    options?: FindOptions
+    options?: Omit<FindOptions, 'where'>
   ): Promise<M | null>;
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
     identifier: Identifier,
-    options: NonNullFindOptions
+    options: Omit<NonNullFindOptions, 'where'>
   ): Promise<M>;
 
   /**
@@ -1937,6 +1925,15 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * will be created instead, and any unique constraint violation will be handled internally.
    */
   public static findOrCreate<M extends Model>(
+    this: { new (): M } & typeof Model,
+    options: FindOrCreateOptions
+  ): Promise<[M, boolean]>;
+
+  /**
+   * A more performant findOrCreate that will not work under a transaction (at least not in postgres) 
+   * Will execute a find call, if empty then attempt to create, if unique constraint then attempt to find again
+   */
+  public static findCreateFind<M extends Model>(
     this: { new (): M } & typeof Model,
     options: FindOrCreateOptions
   ): Promise<[M, boolean]>;
@@ -2184,6 +2181,38 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): void;
 
   /**
+   * A hook that is run before creating or updating a single instance, It proxies `beforeCreate` and `beforeUpdate`
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static beforeSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    name: string,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+  public static beforeSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+
+  /**
+   * A hook that is run after creating or updating a single instance, It proxies `afterCreate` and `afterUpdate`
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static afterSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    name: string,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+  public static afterSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+
+  /**
    * A hook that is run before creating instances in bulk
    *
    * @param name
@@ -2296,11 +2325,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static afterFind<M extends Model>(
     this: { new (): M } & typeof Model,
     name: string,
-    fn: (instancesOrInstance: M[] | M, options: FindOptions) => HookReturn
+    fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
   public static afterFind<M extends Model>(
     this: { new (): M } & typeof Model,
-    fn: (instancesOrInstance: M[] | M, options: FindOptions) => HookReturn
+    fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
 
   /**

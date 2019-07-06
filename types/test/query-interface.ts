@@ -126,7 +126,6 @@ queryInterface.addIndex('Person', ['firstname', 'lastname']);
 
 // This example will create a unique index with the name SuperDuperIndex using the optional 'options' field.
 // Possible options:
-// - indicesType: UNIQUE|FULLTEXT|SPATIAL
 // - indexName: The name of the index. Default is __
 // - parser: For FULLTEXT columns set your parser
 // - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect

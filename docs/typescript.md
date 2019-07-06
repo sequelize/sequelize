@@ -18,7 +18,7 @@ Example of a minimal TypeScript project:
 
 ```ts
 import { Sequelize, Model, DataTypes, BuildOptions } from 'sequelize';
-import { HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyHasAssociationMixin, Association, HasManyCountAssociationsMixin, HasManyCreateAssociationMixin } from '../../lib/associations';
+import { HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyHasAssociationMixin, Association, HasManyCountAssociationsMixin, HasManyCreateAssociationMixin } from 'sequelize';
 
 class User extends Model {
   public id!: number; // Note that the `null assertion` `!` is required in strict mode.
@@ -114,7 +114,7 @@ Address.init({
     allowNull: false,
   }
 }, {
-  tableName: 'users',
+  tableName: 'address',
   sequelize: sequelize, // this bit is important
 });
 
