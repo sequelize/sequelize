@@ -450,14 +450,22 @@ export interface IncludeOptions extends Filterable, Projectable, Paranoid {
   subQuery?: boolean;
 }
 
+type OrderItemModel = typeof Model | { model: typeof Model; as: string } | string
+type OrderItemColumn = string | Col | Fn | Literal
 export type OrderItem =
   | string
   | Fn
   | Col
   | Literal
-  | [string | Col | Fn | Literal, string]
-  | [typeof Model | { model: typeof Model; as: string }, string, string]
-  | [typeof Model, typeof Model, string, string];
+  | [OrderItemColumn, string]
+  | [OrderItemModel, OrderItemColumn]
+  | [OrderItemModel, OrderItemColumn, string]
+  | [OrderItemModel, OrderItemModel, OrderItemColumn]
+  | [OrderItemModel, OrderItemModel, OrderItemColumn, string]
+  | [OrderItemModel, OrderItemModel, OrderItemModel, OrderItemColumn]
+  | [OrderItemModel, OrderItemModel, OrderItemModel, OrderItemColumn, string]
+  | [OrderItemModel, OrderItemModel, OrderItemModel, OrderItemModel, OrderItemColumn]
+  | [OrderItemModel, OrderItemModel, OrderItemModel, OrderItemModel, OrderItemColumn, string]
 export type Order = string | Fn | Col | Literal | OrderItem[];
 
 /**
