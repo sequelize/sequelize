@@ -43,7 +43,7 @@ describe('model', () => {
             if (dialect === 'mysql') {
               expect(sql).to.not.include('?');
             } else if (dialect === 'mariadb') {
-              expect(sql).to.include('$1');
+              expect(sql).to.include('?');
             } else {
               expect(sql).to.include('$1');
             }
