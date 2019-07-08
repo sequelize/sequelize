@@ -933,8 +933,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               test = true;
               if (dialect === 'mssql') {
                 expect(sql).to.not.contain('createdAt');
-              } else {
+              } else if (dialect === 'mysql') {
                 expect(sql).to.match(/UPDATE\s+`User1s`\s+SET\s+`secretValue`='43',`updatedAt`='[0-9]{4}-[0-9]{2}-[0-9]{2}\s+[0-9]{2}:[0-9]{2}:[0-9]{2}'\s+WHERE\s+`id`\s+=\s+1/);
+              } else {
+                expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]=(\$1|\?),[`"]+updatedAt[`"]+=(\$2|\?)\s+WHERE [`"]+id[`"]+\s=\s(\$3|\?)/);
               }
             }
           });
