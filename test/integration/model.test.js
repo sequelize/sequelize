@@ -934,7 +934,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               if (dialect === 'mssql') {
                 expect(sql).to.not.contain('createdAt');
               } else {
-                expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]=(\$1|\?),[`"]+updatedAt[`"]+=(\$2|\?)\s+WHERE [`"]+id[`"]+\s=\s(\$3|\?)/);
+                expect(sql).to.match(/UPDATE\s+`User1s`\s+SET\s+`secretValue`='43',`updatedAt`='[0-9]{4}-[0-9]{2}-[0-9]{2}\s+[0-9]{2}:[0-9]{2}:[0-9]{2}'\s+WHERE\s+`id`\s+=\s+1/);
               }
             }
           });

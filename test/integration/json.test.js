@@ -40,8 +40,10 @@ describe('model', () => {
         }, {
           fields: ['id', 'username', 'document', 'emergency_contact'],
           logging: sql => {
-            if (dialect.match(/^mysql|mariadb/)) {
-              expect(sql).to.include('?');
+            if (dialect === 'mysql') {
+              expect(sql).to.not.include('?');
+            } else if (dialect === 'mariadb') {
+              expect(sql).to.include('$1');
             } else {
               expect(sql).to.include('$1');
             }

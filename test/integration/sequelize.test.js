@@ -513,7 +513,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           expect(logSql).to.include('@0');
           expect(logSql).to.include('@1');
         } else if (dialect === 'mysql') {
-          expect(logSql.match(/\?/g).length).to.equal(2);
+          expect(logSql).to.not.include('?');
         }
       });
     });
