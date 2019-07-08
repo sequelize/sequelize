@@ -58,12 +58,12 @@ export interface SyncOptions extends Logging {
    */
   schema?: string;
 
-   /**
+  /**
    * An optional parameter to specify the schema search_path (Postgres only)
    */
   searchPath?: string;
 
-   /**
+  /**
    * If hooks is true then beforeSync, afterSync, beforeBulkSync, afterBulkSync hooks will be called
    */
   hooks?: boolean;
