@@ -229,13 +229,14 @@ modules.exports = function sequelizeAdditions(Sequelize) {
     }
   }
 
+  DataTypes.NEWTYPE = NEWTYPE;
+
   // Mandatory, set key
   DataTypes.NEWTYPE.prototype.key = DataTypes.NEWTYPE.key = 'NEWTYPE'
 
-
   // Optional, disable escaping after stringifier. Not recommended.
   // Warning: disables Sequelize protection against SQL injections
-  //DataTypes.NEWTYPE.escape = false
+  // DataTypes.NEWTYPE.escape = false
 
   // For convenience
   // `classToInvokable` allows you to use the datatype without `new`
