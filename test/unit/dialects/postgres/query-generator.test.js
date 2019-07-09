@@ -1231,8 +1231,6 @@ if (dialect.startsWith('postgres')) {
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
         beforeEach(function() {
-          console.log(suiteTitle);
-
           this.queryGenerator = new QueryGenerator({
             sequelize: this.sequelize,
             _dialect: this.sequelize.dialect
