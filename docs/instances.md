@@ -170,7 +170,7 @@ User.bulkCreate([
 })
 ```
 
-Insert several rows and returns all columns:
+Insert several rows and return all columns:
 
 ```js
 User.bulkCreate([
@@ -183,7 +183,7 @@ User.bulkCreate([
 });
 ```
 
-Insert several rows and returns specific columns:
+Insert several rows and return specific columns:
 
 ```js
 User.bulkCreate([
