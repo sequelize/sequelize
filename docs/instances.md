@@ -190,7 +190,7 @@ User.bulkCreate([
   { username: 'barfooz', isAdmin: true },
   { username: 'foo', isAdmin: true },
   { username: 'bar', isAdmin: false }
-], { returning: ['username'] }) // will return all columns for each row inserted
+], { returning: ['username'] }) // will return only the specified columns for each row inserted
 .then((result) => {
   console.log(result);
 });
