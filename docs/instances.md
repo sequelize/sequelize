@@ -178,11 +178,9 @@ User.bulkCreate([
   { username: 'foo', isAdmin: true },
   { username: 'bar', isAdmin: false }
 ], { returning: true }) // will return all columns for each row inserted
-.then(() => { // Notice: There are no arguments here, as of right now you'll have to...
-  return User.findAll();
-}).then(users => {
-  console.log(users) // ... in order to get the array of user objects
-})
+.then((result) => {
+  console.log(result);
+});
 ```
 
 Insert several rows and returns all columns:
@@ -192,12 +190,10 @@ User.bulkCreate([
   { username: 'barfooz', isAdmin: true },
   { username: 'foo', isAdmin: true },
   { username: 'bar', isAdmin: false }
-], { returning: ['username'] }) // will return only the specified columns for each row inserted
-.then(() => { // Notice: There are no arguments here, as of right now you'll have to...
-  return User.findAll();
-}).then(users => {
-  console.log(users) // ... in order to get the array of user objects
-})
+], { returning: ['username'] }) // will return all columns for each row inserted
+.then((result) => {
+  console.log(result);
+});
 ```
 
 To update several rows at once:
