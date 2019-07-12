@@ -743,7 +743,7 @@ export interface BulkCreateOptions extends Logging, Transactionable {
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean;
+  returning?: boolean | Array<string>;
 }
 
 /**
@@ -871,7 +871,7 @@ export interface UpdateOptions extends Logging, Transactionable {
    * How many rows to update (only for mysql and mariadb)
    */
   limit?: number;
-  
+
   /**
    * If true, the updatedAt timestamp will not be updated.
    */
@@ -1938,7 +1938,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): Promise<[M, boolean]>;
 
   /**
-   * A more performant findOrCreate that will not work under a transaction (at least not in postgres) 
+   * A more performant findOrCreate that will not work under a transaction (at least not in postgres)
    * Will execute a find call, if empty then attempt to create, if unique constraint then attempt to find again
    */
   public static findCreateFind<M extends Model>(
