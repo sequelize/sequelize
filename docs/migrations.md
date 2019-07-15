@@ -59,7 +59,7 @@ Before continuing further we will need to tell CLI how to connect to database. T
 }
 ```
 
-Now edit this file and set correct database credentials and dialect.
+Now edit this file and set correct database credentials and dialect. The keys of the objects(ex. "development") are used on `model/index.js` for matching `process.env.NODE_ENV` (When undefined, "development" is a default value.).
 
 **Note:** _If your database doesn't exists yet, you can just call `db:create` command. With proper access it will create that database for you._
 
