@@ -1,7 +1,7 @@
 {
   "name": "sequelize-ibmi",
   "description": "IBM i fork of the Sequelize package. Targeting parity and eventual reintegration with upstream branch.",
-  "version": "0.0.0-beta.1",
+  "version": "0.0.0-beta.2",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     "Mark Irish <mirish@ibm.com>",
@@ -36,7 +36,7 @@
     "debug": "^4.1.1",
     "dottie": "^2.0.0",
     "inflection": "1.12.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.14",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.21",
     "retry-as-promised": "^3.1.0",
