@@ -366,6 +366,68 @@ if (current.dialect.supports.transactions) {
       });
     });
 
+    if (dialect === 'mysql' || dialect === 'mariadb') {
+      describe('deadlock handling', () => {
+        it('should treat deadlocked transaction as rollback', function() {
+          const Task = this.sequelize.define('task', {
+            id: {
+              type: Sequelize.INTEGER,
+              primaryKey: true
+            }
+          });
+
+          // This gets called twice simultaneously, and we expect at least one of the calls to encounter a
+          // deadlock (which effectively rolls back the active transaction).
+          // We only expect createTask() to insert rows if a transaction is active.  If deadlocks are handled
+          // properly, it should only execute a query if we're actually inside a real transaction.  If it does
+          // execute a query, we expect the newly-created rows to be destroyed when we forcibly rollback by
+          // throwing an error.
+          // tl;dr; This test is designed to ensure that this function never inserts and commits a new row.
+          const update = (from, to) => this.sequelize.transaction(transaction => {
+            return Task.findAll({
+              where: {
+                id: {
+                  [Sequelize.Op.eq]: from
+                }
+              },
+              lock: 'UPDATE',
+              transaction
+            })
+              .then(() => Promise.delay(10))
+              .then(() => {
+                return Task.update({ id: to }, {
+                  where: {
+                    id: {
+                      [Sequelize.Op.ne]: to
+                    }
+                  },
+                  lock: transaction.LOCK.UPDATE,
+                  transaction
+                });
+              })
+              .catch(e => { console.log(e.message); })
+              .then(() => Task.create({ id: 2 }, { transaction }))
+              .catch(e => { console.log(e.message); })
+              .then(() => { throw new Error('Rollback!'); });
+          }).catch(() => {});
+
+          return this.sequelize.sync({ force: true })
+            .then(() => Task.create({ id: 0 }))
+            .then(() => Task.create({ id: 1 }))
+            .then(() => Promise.all([
+              update(1, 0),
+              update(0, 1)
+            ]))
+            .then(() => {
+              return Task.count().then(count => {
+                // If we were actually inside a transaction when we called `Task.create({ id: 2 })`, no new rows should be added.
+                expect(count).to.equal(2, 'transactions were fully rolled-back, and no new rows were added');
+              });
+            });
+        });
+      });
+    }
+
     if (dialect === 'sqlite') {
       it('provides persistent transactions', () => {
         const sequelize = new Support.Sequelize('database', 'username', 'password', { dialect: 'sqlite' }),

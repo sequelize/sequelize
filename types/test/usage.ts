@@ -15,6 +15,15 @@ async function test(): Promise<void> {
 
     user = await User.findOne();
 
+    if (!user) {
+      return;
+    }
+
+    user.update({}, {});
+    user.update({}, {
+      silent: true
+    });
+
     const user2 = await User.create({ firstName: 'John', groupId: 1 });
     await User.findAndCountAll({ distinct: true });
 

@@ -23,6 +23,10 @@ MyModel.findOne({
   ]
 });
 
+MyModel.hasOne(OtherModel, { as: 'OtherModelAlias' });
+
+MyModel.findOne({ include: ['OtherModelAlias'] });
+
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
 MyModel.init({}, {
