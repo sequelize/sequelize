@@ -1,5 +1,5 @@
 import { DataType } from './data-types';
-import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable } from './model';
+import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable, Poolable } from './model';
 import { Promise } from './promise';
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
@@ -10,7 +10,7 @@ type BindOrReplacements = { [key: string]: unknown } | unknown[];
 /**
  * Interface for query options
  */
-export interface QueryOptions extends Logging, Transactionable {
+export interface QueryOptions extends Logging, Transactionable, Poolable {
   /**
    * If true, sequelize will not try to format the results of the query, or build an instance of a model from
    * the result
@@ -51,13 +51,6 @@ export interface QueryOptions extends Logging, Transactionable {
   bind?: BindOrReplacements;
 
   /**
-   * Force the query to use the write pool, regardless of the query type.
-   *
-   * @default false
-   */
-  useMaster?: boolean;
-
-  /**
    * A sequelize instance used to build the return instance
    */
   instance?: Model;
@@ -88,6 +81,10 @@ export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions
    * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
    */
   type: T;
+}
+
+export interface QueryOptionsWithForce extends QueryOptions {
+  force?: boolean;
 }
 
 /**
@@ -560,7 +557,8 @@ export class QueryInterface {
     returnType: string,
     language: string,
     body: string,
-    options?: QueryOptions
+    optionsArray?: string[],
+    options?: QueryOptionsWithForce
   ): Promise<void>;
 
   /**

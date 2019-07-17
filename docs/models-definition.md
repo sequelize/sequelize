@@ -71,7 +71,7 @@ Foo.init({
    }
  },
 
- // It is possible to add coments on columns for MySQL, PostgreSQL and MSSQL only
+ // It is possible to add comments on columns for MySQL, PostgreSQL and MSSQL only
  commentMe: {
    type: Sequelize.INTEGER,
 
@@ -710,10 +710,10 @@ User.init({}, {
       }
     },
 
-    // A BTREE index with a ordered field
+    // A BTREE index with an ordered field
     {
       name: 'title_index',
-      method: 'BTREE',
+      using: 'BTREE',
       fields: ['author', {attribute: 'title', collate: 'en_US', order: 'DESC', length: 5}]
     }
   ],

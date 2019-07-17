@@ -1,4 +1,4 @@
-import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, WhereOptions, where as whereFn } from 'sequelize';
+import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, WhereOptions, literal, where as whereFn } from 'sequelize';
 import Transaction from '../lib/transaction';
 
 class MyModel extends Model {
@@ -265,6 +265,13 @@ where = {
 where = whereFn('test', {
   [Op.gt]: new Date(),
 });
+
+// Literal as where
+where = literal('true')
+
+MyModel.findAll({
+    where: literal('true')
+})
 
 // Where as having option
 MyModel.findAll({

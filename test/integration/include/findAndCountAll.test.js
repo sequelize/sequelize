@@ -73,6 +73,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
       });
     });
+
     it('should be able to include a required model. Result rows should match count', function() {
       const User = this.sequelize.define('User', { name: DataTypes.STRING(40) }, { paranoid: true }),
         SomeConnection = this.sequelize.define('SomeConnection', {

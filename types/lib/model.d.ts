@@ -34,6 +34,15 @@ export interface Logging {
   benchmark?: boolean;
 }
 
+export interface Poolable {
+  /**
+   * Force the query to use the write pool, regardless of the query type.
+   *
+   * @default false
+   */
+  useMaster?: boolean;
+}
+
 export interface Transactionable {
   /**
    * Transaction to run query under
@@ -112,7 +121,7 @@ export interface ScopeOptions {
 /**
  * The type accepted by every `where` option
  */
-export type WhereOptions = WhereAttributeHash | AndOperator | OrOperator | Where;
+export type WhereOptions = WhereAttributeHash | AndOperator | OrOperator | Literal | Where;
 
 /**
  * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
@@ -367,7 +376,7 @@ export interface IncludeThroughOptions extends Filterable, Projectable {}
 /**
  * Options for eager-loading associated models, also allowing for all associations to be loaded at once
  */
-export type Includeable = typeof Model | Association | IncludeOptions | { all: true };
+export type Includeable = typeof Model | Association | IncludeOptions | { all: true } | string;
 
 /**
  * Complex include options
@@ -441,14 +450,22 @@ export interface IncludeOptions extends Filterable, Projectable, Paranoid {
   subQuery?: boolean;
 }
 
+type OrderItemModel = typeof Model | { model: typeof Model; as: string } | string
+type OrderItemColumn = string | Col | Fn | Literal
 export type OrderItem =
   | string
   | Fn
   | Col
   | Literal
-  | [string | Col | Fn | Literal, string]
-  | [typeof Model | { model: typeof Model; as: string }, string, string]
-  | [typeof Model, typeof Model, string, string];
+  | [OrderItemColumn, string]
+  | [OrderItemModel, OrderItemColumn]
+  | [OrderItemModel, OrderItemColumn, string]
+  | [OrderItemModel, OrderItemModel, OrderItemColumn]
+  | [OrderItemModel, OrderItemModel, OrderItemColumn, string]
+  | [OrderItemModel, OrderItemModel, OrderItemModel, OrderItemColumn]
+  | [OrderItemModel, OrderItemModel, OrderItemModel, OrderItemColumn, string]
+  | [OrderItemModel, OrderItemModel, OrderItemModel, OrderItemModel, OrderItemColumn]
+  | [OrderItemModel, OrderItemModel, OrderItemModel, OrderItemModel, OrderItemColumn, string]
 export type Order = string | Fn | Col | Literal | OrderItem[];
 
 /**
@@ -470,7 +487,7 @@ export type FindAttributeOptions =
 
 export interface IndexHint {
   type: IndexHints;
-  value: string[];
+  values: string[];
 }
 
 export interface IndexHintable {
@@ -479,6 +496,8 @@ export interface IndexHintable {
    */
   indexHints?: IndexHint[];
 }
+
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
 /**
  * Options that are passed to any model creating a SELECT query
@@ -551,7 +570,7 @@ export interface NonNullFindOptions extends FindOptions {
 /**
  * Options for Model.count method
  */
-export interface CountOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid {
+export interface CountOptions extends Logging, Transactionable, Filterable, Projectable, Paranoid, Poolable {
   /**
    * Include options. See `find` for details
    */
@@ -852,6 +871,11 @@ export interface UpdateOptions extends Logging, Transactionable {
    * How many rows to update (only for mysql and mariadb)
    */
   limit?: number;
+  
+  /**
+   * If true, the updatedAt timestamp will not be updated.
+   */
+  silent?: boolean;
 }
 
 /**
@@ -1747,12 +1771,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
     identifier?: Identifier,
-    options?: FindOptions
+    options?: Omit<FindOptions, 'where'>
   ): Promise<M | null>;
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
     identifier: Identifier,
-    options: NonNullFindOptions
+    options: Omit<NonNullFindOptions, 'where'>
   ): Promise<M>;
 
   /**
@@ -1909,6 +1933,15 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * will be created instead, and any unique constraint violation will be handled internally.
    */
   public static findOrCreate<M extends Model>(
+    this: { new (): M } & typeof Model,
+    options: FindOrCreateOptions
+  ): Promise<[M, boolean]>;
+
+  /**
+   * A more performant findOrCreate that will not work under a transaction (at least not in postgres) 
+   * Will execute a find call, if empty then attempt to create, if unique constraint then attempt to find again
+   */
+  public static findCreateFind<M extends Model>(
     this: { new (): M } & typeof Model,
     options: FindOrCreateOptions
   ): Promise<[M, boolean]>;
@@ -2156,6 +2189,38 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): void;
 
   /**
+   * A hook that is run before creating or updating a single instance, It proxies `beforeCreate` and `beforeUpdate`
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static beforeSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    name: string,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+  public static beforeSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+
+  /**
+   * A hook that is run after creating or updating a single instance, It proxies `afterCreate` and `afterUpdate`
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static afterSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    name: string,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+  public static afterSave<M extends Model>(
+    this: { new (): M } & typeof Model,
+    fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
+  ): void;
+
+  /**
    * A hook that is run before creating instances in bulk
    *
    * @param name
@@ -2268,11 +2333,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static afterFind<M extends Model>(
     this: { new (): M } & typeof Model,
     name: string,
-    fn: (instancesOrInstance: M[] | M, options: FindOptions) => HookReturn
+    fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
   public static afterFind<M extends Model>(
     this: { new (): M } & typeof Model,
-    fn: (instancesOrInstance: M[] | M, options: FindOptions) => HookReturn
+    fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
 
   /**

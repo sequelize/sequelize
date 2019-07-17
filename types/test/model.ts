@@ -1,4 +1,4 @@
-import { Association, HasOne, Model, Sequelize } from 'sequelize';
+import { Association, HasOne, Model, Sequelize, DataTypes } from 'sequelize';
 
 class MyModel extends Model {
   public num!: number;
@@ -23,6 +23,10 @@ MyModel.findOne({
   ]
 });
 
+MyModel.hasOne(OtherModel, { as: 'OtherModelAlias' });
+
+MyModel.findOne({ include: ['OtherModelAlias'] });
+
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
 MyModel.init({}, {
@@ -36,3 +40,25 @@ MyModel.init({}, {
   sequelize,
   tableName: 'my_model'
 });
+
+/**
+ * Tests for findCreateFind() type. 
+ */
+class UserModel extends Model {}
+
+UserModel.init({
+  username: { type: DataTypes.STRING, allowNull: false },
+  beta_user: { type: DataTypes.BOOLEAN, allowNull: false }
+}, {
+  sequelize: sequelize
+})
+
+UserModel.findCreateFind({
+  where: {
+    username: "new user username"
+  }, 
+  defaults: {
+    beta_user: true 
+  }
+})
+

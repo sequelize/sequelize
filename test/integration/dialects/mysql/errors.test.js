@@ -70,7 +70,6 @@ if (dialect === 'mysql') {
             reltype: 'child'
           }));
       });
-
     });
   });
 }
