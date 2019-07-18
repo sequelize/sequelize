@@ -13,7 +13,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 ```
 
 **Note:** You can pass options directly to dialect library by setting the
-`dialectOptions` parameter. See [Options](/manual/usage.html#options).
+`dialectOptions` parameter.
 
 ## MariaDB
 
