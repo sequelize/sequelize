@@ -86,6 +86,39 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     Company.Employees = Company.hasMany(User, { as: 'Employees', foreignKey: 'companyId' });
     Company.Owner = Company.belongsTo(User, { as: 'Owner', foreignKey: 'ownerId' });
 
+    it('sql include', async () => {
+
+      const joinSql = '(SELECT * FROM Company)';
+      let options = {
+        model: User,
+        include: [
+          {
+            sql: Sequelize.literal(joinSql),
+            as: 'Company',
+            on: {
+              id: {
+                [Sequelize.Op.eq]: Sequelize.col('User.CompanyId')
+              }
+            }
+          }
+        ]
+      };
+  
+      Sequelize.Model._conformIncludes(options);
+      options = Sequelize.Model._validateIncludedElements(options);
+  
+      const include = options.include[0];
+      const join = sql.generateJoin(include,
+        {
+          options
+        }
+      );
+
+      return expectsql(`${join.join} ${join.body} ON ${join.condition}`, {
+        default: `LEFT OUTER JOIN ${joinSql} AS \`Company\` ON ${join.condition}`
+      });
+    });
+
     /*
      * BelongsTo
      */
@@ -332,4 +365,5 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     );
 
   });
+
 });

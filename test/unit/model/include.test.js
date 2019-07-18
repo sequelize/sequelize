@@ -506,6 +506,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(options.subQuery).to.equal(false);
         expect(options.include[0].subQuery).to.equal(false);
       });
+
+      it('should be able to add custom query as join', function() {
+        const options = Sequelize.Model._validateIncludedElements({
+          model: this.User,
+          include: [
+            { sql: Sequelize.literal(`SELECT * FROM Company`), as: 'Company', on: { CompanyId: Sequelize.literal('Company.id') } },
+          ],
+          limit: 3
+        });
+
+        expect(options.subQuery).to.equal(false);
+        expect(options.include[0].subQuery).to.equal(false);
+      });
     });
   });
 });
