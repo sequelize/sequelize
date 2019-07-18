@@ -140,8 +140,8 @@ module.exports = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'demo@demo.com',
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+        createdAt: new Date(),
+        updatedAt: new Date()
       }], {});
   },
 
