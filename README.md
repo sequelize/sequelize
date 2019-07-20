@@ -45,8 +45,8 @@ $ npm install --save tedious # Microsoft SQL Server
 
 ## Documentation
 - [v5 Documentation](http://docs.sequelizejs.com)
-- [v4 Documentation](https://github.com/sequelize/sequelize/blob/v4/docs)
-- [v3 Documentation](https://sequelize.readthedocs.io/en/v3/)
+- [v4 Documentation](https://sequelize.github.io/v4/)
+- [v3 Documentation](https://sequelize.github.io/v3/index.html)
 - [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 
 ## Responsible disclosure
