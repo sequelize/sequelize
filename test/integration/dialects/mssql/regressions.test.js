@@ -95,7 +95,7 @@ if (dialect.match(/^mssql/)) {
       });
     });
   });
-  
+
   it('not returning in update when table include a trigger', function() {
     const TriggerTable = this.sequelize.define('TriggerTable', {
       ID: {
@@ -113,7 +113,7 @@ if (dialect.match(/^mssql/)) {
     return TriggerTable.sync({ force: true }).then(() => {
       const TriggerForTable = `
       CREATE TRIGGER [SIMPLE_TRIGGER_UPDATE] ON [TriggerTable] AFTER UPDATE
-      AS 
+      AS
       BEGIN
         -- SET NOCOUNT ON added to prevent extra result sets from
         SET NOCOUNT ON;
@@ -130,13 +130,7 @@ if (dialect.match(/^mssql/)) {
             ID: 1
           },
           returning: false
-        }).then(() => {
-          return true;
-        }).catch(error => {
-          return error.message;
         });
-      }).then(BoolUpdate => {
-        expect(BoolUpdate).to.equals(true);
       });
     });
   });
