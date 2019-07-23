@@ -53,7 +53,7 @@ export interface BelongsToGetAssociationMixinOptions extends FindOptions {
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/belongs-to/
+ * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
  * @see Instance
  */
 export type BelongsToGetAssociationMixin<TModel> = (options?: BelongsToGetAssociationMixinOptions) => Promise<TModel>;
@@ -84,7 +84,7 @@ export interface BelongsToSetAssociationMixinOptions extends SaveOptions {
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/belongs-to/
+ * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
  * @see Instance
  */
 export type BelongsToSetAssociationMixin<TModel, TPrimaryKey> = (
@@ -113,7 +113,7 @@ export interface BelongsToCreateAssociationMixinOptions extends CreateOptions, B
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/belongs-to/
+ * @see https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
  * @see Instance
  */
 export type BelongsToCreateAssociationMixin<TModel> = (
