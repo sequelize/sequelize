@@ -3,11 +3,11 @@
 
 # Number of days of inactivity before an issue becomes stale
 # daysUntilStale: 90
-daysUntilStale: 900000 # Temporarilty disable probot-stale
+daysUntilStale: 900000 # Temporarily disable
 
 # Number of days of inactivity before a stale issue is closed
 # daysUntilClose: 7
-daysUntilClose: 70000 # Temporarilty disable probot-stale
+daysUntilClose: 70000 # Temporarily disable
 
 # Issues with these labels will never be considered stale
 exemptLabels:
