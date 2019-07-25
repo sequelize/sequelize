@@ -499,7 +499,23 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }))
           .then(() => this.queryInterface.showConstraint('users'))
           .then(constraints => {
-            expect(constraints).to.have.length(2);
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.include('users_email_uk');
+            expect(constraints).to.include('users_username_uk');
+            return this.queryInterface.removeConstraint('users', 'users_email_uk');
+          })
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('users_email_uk');
+            expect(constraints).to.include('users_username_uk');
+            return this.queryInterface.removeConstraint('users', 'users_username_uk');
+          })
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('users_email_uk');
+            expect(constraints).to.not.include('users_username_uk');
           });
       });
     });
