@@ -598,4 +598,4 @@ Using `queryInterface` object described before you can change database schema. T
 
 [0]: https://github.com/sequelize/cli
 [1]: https://github.com/sequelize/umzug
-[2]: /class/lib/query-interface.js~QueryInterface.html
+[2]: ../class/lib/query-interface.js~QueryInterface.html

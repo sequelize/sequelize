@@ -288,7 +288,7 @@ this.Post.hasMany(this.Comment, {
 });
 ```
 
-When calling `post.getComments()`, this will automatically add `WHERE commentable = 'post'`. Similarly, when adding new comments to a post, `commentable` will automagically be set to `'post'`. The association scope is meant to live in the background without the programmer having to worry about it - it cannot be disabled. For a more complete polymorphic example, see [Association scopes](/manual/associations.html#scopes)
+When calling `post.getComments()`, this will automatically add `WHERE commentable = 'post'`. Similarly, when adding new comments to a post, `commentable` will automagically be set to `'post'`. The association scope is meant to live in the background without the programmer having to worry about it - it cannot be disabled. For a more complete polymorphic example, see [Association scopes](associations.html#scopes)
 
 Consider then, that Post has a default scope which only shows active posts: `where: { active: true }`. This scope lives on the associated model (Post), and not on the association like the `commentable` scope did. Just like the default scope is applied when calling `Post.findAll()`, it is also applied when calling `User.getPosts()` - this will only return the active posts for that user.
 
