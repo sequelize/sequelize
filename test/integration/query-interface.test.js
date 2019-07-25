@@ -478,11 +478,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         return this.queryInterface.addConstraint('users', ['email'], {
           type: 'unique'
         })
-          .then(() => {
-            return this.queryInterface.addConstraint('users', ['username'], {
-              type: 'unique'
-            });
-          })
           .then(() => this.queryInterface.showConstraint('users'))
           .then(constraints => {
             constraints = constraints.map(constraint => constraint.constraintName);
@@ -493,6 +488,18 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           .then(constraints => {
             constraints = constraints.map(constraint => constraint.constraintName);
             expect(constraints).to.not.include('users_email_uk');
+          });
+      });
+
+      it('should add a constraint after another', function() {
+        return this.queryInterface.addConstraint('users', ['username'], {
+          type: 'unique'
+        }).then(() => this.queryInterface.addConstraint('users', ['email'], {
+          type: 'unique'
+        }))
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            expect(constraints).to.have.length(2);
           });
       });
     });
