@@ -102,6 +102,8 @@ export interface CharDataType extends StringDataType {
 }
 
 export interface CharDataTypeOptions extends StringDataTypeOptions {}
+   
+export type TextLength = 'tiny' | 'medium' | 'long';
 
 /**
  * An (un)limited length text column. Available lengths: `tiny`, `medium`, `long`
@@ -109,7 +111,7 @@ export interface CharDataTypeOptions extends StringDataTypeOptions {}
 export const TEXT: TextDataTypeConstructor;
 
 interface TextDataTypeConstructor extends AbstractDataTypeConstructor {
-  new (length?: number): TextDataType;
+  new (length?: TextLength): TextDataType;
   (options?: TextDataTypeOptions): TextDataType;
 }
 
@@ -119,7 +121,7 @@ export interface TextDataType extends AbstractDataType {
 }
 
 export interface TextDataTypeOptions {
-  length?: number;
+  length?: TextLength;
 }
 
 export const NUMBER: NumberDataTypeConstructor;

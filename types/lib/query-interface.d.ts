@@ -83,6 +83,10 @@ export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions
   type: T;
 }
 
+export interface QueryOptionsWithForce extends QueryOptions {
+  force?: boolean;
+}
+
 /**
 * Most of the methods accept options and use only the logger property of the options. That's why the most used
 * interface type for options in a method is separated here as another interface.
@@ -553,7 +557,8 @@ export class QueryInterface {
     returnType: string,
     language: string,
     body: string,
-    options?: QueryOptions
+    optionsArray?: string[],
+    options?: QueryOptionsWithForce
   ): Promise<void>;
 
   /**
