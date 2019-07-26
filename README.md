@@ -64,6 +64,7 @@ If you have any security issue to report, contact project maintainers privately.
 - [Sequelize & GraphQL](https://github.com/mickhansen/graphql-sequelize)
 - [Add-ons & Plugins](https://sequelize.org/master/manual/resources.html)
 - [Sequelize CLI](https://github.com/sequelize/cli)
+- [Sequelize & CockroachDB](https://github.com/cockroachdb/sequelize-cockroachdb)
 
 ### Learning
 - [Getting Started](https://sequelize.org/master/manual/getting-started)
