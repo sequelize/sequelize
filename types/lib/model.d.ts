@@ -735,8 +735,8 @@ export interface BulkCreateOptions extends Logging, Transactionable {
   ignoreDuplicates?: boolean;
 
   /**
-   * Fields to update if row key already exists (on duplicate key update)? (only supported by mysql &
-   * mariadb). By default, all fields are updated.
+   * Fields to update if row key already exists (on duplicate key update)? (only supported by MySQL,
+   * MariaDB & Postgres 9.5). By default, all fields are updated.
    */
   updateOnDuplicate?: string[];
 
@@ -871,7 +871,7 @@ export interface UpdateOptions extends Logging, Transactionable {
    * How many rows to update (only for mysql and mariadb)
    */
   limit?: number;
-  
+
   /**
    * If true, the updatedAt timestamp will not be updated.
    */
@@ -1938,7 +1938,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): Promise<[M, boolean]>;
 
   /**
-   * A more performant findOrCreate that will not work under a transaction (at least not in postgres) 
+   * A more performant findOrCreate that will not work under a transaction (at least not in postgres)
    * Will execute a find call, if empty then attempt to create, if unique constraint then attempt to find again
    */
   public static findCreateFind<M extends Model>(
