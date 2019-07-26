@@ -285,6 +285,57 @@ module.exports = {
 
 ```
 
+The next is an example of a migration that has uses async/await where you create an unique index on a new column:
+
+```js
+module.exports = {
+  up: async(queryInterface, Sequelize) => {
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+       await queryInterface.addColumn(
+         'Person', 
+         'petName', 
+         {
+           type: Sequelize.STRING
+         }, 
+         { transaction }
+       );
+       await queryInterface.addIndex(
+         'Person', 
+         'petName', 
+         {
+           fields: 'petName', 
+           unique: true
+         }, 
+         { transaction }
+       );            
+       await transaction.commit();
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+  },
+
+  down: (queryInterface, Sequelize) => {
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+       await queryInterface.removeColumn(
+         'Person', 
+         'petName', 
+         {
+           type: Sequelize.STRING
+         }, 
+         { transaction }
+       );       
+       await transaction.commit();
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+  }
+}
+```
+
 ### The `.sequelizerc` File
 
 This is a special configuration file. It lets you specify various options that you would usually pass as arguments to CLI. Some scenarios where you can use it.
