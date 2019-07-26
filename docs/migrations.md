@@ -289,7 +289,7 @@ The next is an example of a migration that has uses async/await where you create
 
 ```js
 module.exports = {
-async up(queryInterface, Sequelize) {
+  async up(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
        await queryInterface.addColumn(
@@ -316,7 +316,7 @@ async up(queryInterface, Sequelize) {
     }
   },
 
-  down: async(queryInterface, Sequelize) => {
+  async down(queryInterface, Sequelize) => {
     const transaction = await queryInterface.sequelize.transaction();
     try {
        await queryInterface.removeColumn(
