@@ -70,7 +70,8 @@ jobs:
       script:
         - npm run semantic-release
       before_deploy:
-        - npm run docs
+        - mkdir esdoc
+        - npm run docs-routing
       deploy:
         provider: surge
         project: ./esdoc/
