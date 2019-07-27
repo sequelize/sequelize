@@ -735,8 +735,8 @@ export interface BulkCreateOptions extends Logging, Transactionable {
   ignoreDuplicates?: boolean;
 
   /**
-   * Fields to update if row key already exists (on duplicate key update)? (only supported by mysql &
-   * mariadb). By default, all fields are updated.
+   * Fields to update if row key already exists (on duplicate key update)? (only supported by MySQL,
+   * MariaDB & Postgres >= 9.5). By default, all fields are updated.
    */
   updateOnDuplicate?: string[];
 
