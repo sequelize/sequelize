@@ -28,4 +28,9 @@
 301 /manual/faq/:section.html https://sequelize.org/master/manual/:section.html
 301 /manual/advanced/:section.html https://sequelize.org/master/manual/:section.html
 
-302 / https://sequelize.org/
+301 /:foo https://sequelize.org/master/:foo
+301 /:foo/:bar https://sequelize.org/master/:foo/:bar
+301 /:foo/:bar/:baz https://sequelize.org/master/:foo/:bar/:baz
+301 /:foo/:bar/:baz/:quz https://sequelize.org/master/:foo/:bar/:baz/:quz
+
+301 / https://sequelize.org/
