@@ -95,4 +95,17 @@ if (dialect.match(/^mssql/)) {
       });
     });
   });
+
+  it('sets the char(10) length correctly on describeTable', function() {
+    const Users = this.sequelize.define('_Users', {
+      username: Sequelize.CHAR(10)
+    }, { freezeTableName: true });
+
+    return Users.sync({ force: true }).then(() => {
+      return this.sequelize.getQueryInterface().describeTable('_Users').then(metadata => {
+        const username = metadata.username;
+        expect(username.type).to.include('(10)');
+      });
+    });
+  });
 }

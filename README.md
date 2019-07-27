@@ -18,11 +18,11 @@ Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite an
 
 Sequelize follows [SEMVER](http://semver.org). Supports Node v6 and above to use ES6 features.
 
-New to Sequelize? Take a look at the [Tutorials and Guides](http://docs.sequelizejs.com/). You might also be interested in the [API Reference](http://docs.sequelizejs.com/identifiers).
+New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.org/master). You might also be interested in the [API Reference](https://sequelize.org/master/identifiers).
 
 ## v5 Release
 
-You can find the upgrade guide and changelog [here](http://docs.sequelizejs.com/manual/upgrade-to-v5.html).
+You can find the upgrade guide and changelog [here](https://sequelize.org/master/manual/upgrade-to-v5.html).
 
 ## Table of Contents
 - [Installation](#installation)
@@ -44,9 +44,9 @@ $ npm install --save tedious # Microsoft SQL Server
 ```
 
 ## Documentation
-- [v5 Documentation](http://docs.sequelizejs.com)
-- [v4 Documentation](https://github.com/sequelize/sequelize/blob/v4/docs)
-- [v3 Documentation](https://sequelize.readthedocs.io/en/v3/)
+- [v5 Documentation](https://sequelize.org/master)
+- [v4 Documentation](https://sequelize.org/v4)
+- [v3 Documentation](https://sequelize.org/v3)
 - [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 
 ## Responsible disclosure
@@ -59,16 +59,17 @@ If you have any security issue to report, contact project maintainers privately.
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/sequelize.js)
 
 ### Tools
-- [Sequelize & TypeScript](http://docs.sequelizejs.com/manual/typescript.html)
+- [Sequelize & TypeScript](https://sequelize.org/master/manual/typescript.html)
 - [Enhanced TypeScript with decorators](https://github.com/RobinBuschmann/sequelize-typescript)
 - [Sequelize & GraphQL](https://github.com/mickhansen/graphql-sequelize)
-- [Add-ons & Plugins](http://docs.sequelizejs.com/manual/resources.html)
+- [Add-ons & Plugins](https://sequelize.org/master/manual/resources.html)
 - [Sequelize CLI](https://github.com/sequelize/cli)
+- [Sequelize & CockroachDB](https://github.com/cockroachdb/sequelize-cockroachdb)
 
 ### Learning
-- [Getting Started](http://docs.sequelizejs.com/manual/getting-started)
+- [Getting Started](https://sequelize.org/master/manual/getting-started)
 - [Express Example](https://github.com/sequelize/express-example)
 
 ### Translations
-- [English v5](http://docs.sequelizejs.com) (OFFICIAL)
+- [English v5](https://sequelize.org/master) (OFFICIAL)
 - [中文文档 v4/v5](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)

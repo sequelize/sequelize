@@ -51,7 +51,7 @@ export interface HasOneGetAssociationMixinOptions extends FindOptions {
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-one/
+ * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
  * @see Instance
  */
 export type HasOneGetAssociationMixin<TModel> = (options?: HasOneGetAssociationMixinOptions) => Promise<TModel>;
@@ -82,7 +82,7 @@ export interface HasOneSetAssociationMixinOptions extends HasOneGetAssociationMi
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-one/
+ * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
  * @see Instance
  */
 export type HasOneSetAssociationMixin<TModel, TModelPrimaryKey> = (
@@ -111,7 +111,7 @@ export interface HasOneCreateAssociationMixinOptions extends HasOneSetAssociatio
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-one/
+ * @see https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
  * @see Instance
  */
 export type HasOneCreateAssociationMixin<TModel> = (

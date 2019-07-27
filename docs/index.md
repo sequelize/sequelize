@@ -1,6 +1,6 @@
 <div>
   <div class="center logo">
-    ![logo](/manual/asset/logo-small.png)
+    ![logo](manual/asset/logo-small.png)
   </div>
   <div class="center sequelize">Sequelize</div>
 </div>

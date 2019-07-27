@@ -7,7 +7,7 @@ class MyModel extends Model {
 
 let where: WhereOptions;
 
-// From http://docs.sequelizejs.com/en/v4/docs/querying/
+// From https://sequelize.org/master/en/v4/docs/querying/
 
 // Operators
 
@@ -140,7 +140,7 @@ MyModel.findOne({
 MyModel.destroy({ where });
 MyModel.update({ hi: 1 }, { where });
 
-// From http://docs.sequelizejs.com/en/v4/docs/models-usage/
+// From https://sequelize.org/master/en/v4/docs/models-usage/
 
 // find multiple entries
 MyModel.findAll().then(projects => {
