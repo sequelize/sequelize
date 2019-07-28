@@ -964,7 +964,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return user.save({
               logging(sql) {
                 test = true;
-                expect(sql).to.contain('UPDATE "UserWithArrays" SET "myvals"=$1,"mystr"=$2,"updatedAt"=$3 WHERE "id" = $4');
+                expect(sql).to.not.include('$');
               }
             });
           });
