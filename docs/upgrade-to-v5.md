@@ -12,7 +12,7 @@ Sequelize v5 will only support Node 6 and up [#9015](https://github.com/sequeliz
 
 With v4 you started to get a deprecation warning `String based operators are now deprecated`. Also concept of operators was introduced. These operators are Symbols which prevent hash injection attacks.
 
-[http://docs.sequelizejs.com/manual/querying.html#operators-security](http://docs.sequelizejs.com/manual/querying.html#operators-security)
+[operators-security](querying.html#operators-security)
 
 **With v5**
 

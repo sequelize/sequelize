@@ -490,6 +490,34 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             expect(constraints).to.not.include('users_email_uk');
           });
       });
+
+      it('should add a constraint after another', function() {
+        return this.queryInterface.addConstraint('users', ['username'], {
+          type: 'unique'
+        }).then(() => this.queryInterface.addConstraint('users', ['email'], {
+          type: 'unique'
+        }))
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.include('users_email_uk');
+            expect(constraints).to.include('users_username_uk');
+            return this.queryInterface.removeConstraint('users', 'users_email_uk');
+          })
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('users_email_uk');
+            expect(constraints).to.include('users_username_uk');
+            return this.queryInterface.removeConstraint('users', 'users_username_uk');
+          })
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('users_email_uk');
+            expect(constraints).to.not.include('users_username_uk');
+          });
+      });
     });
 
     if (current.dialect.supports.constraints.check) {

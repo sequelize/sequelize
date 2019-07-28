@@ -30,7 +30,7 @@
           "title": "Sequelize",
           "description": "Node.js ORM for PostgreSQL, MySQL, SQLite and MSSQL",
           "repository": "https://github.com/sequelize/sequelize",
-          "site": "http://docs.sequelizejs.com/"
+          "site": "https://sequelize.org/master/"
         },
         "manual": {
           "index": "./docs/index.md",
