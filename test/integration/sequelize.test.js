@@ -506,15 +506,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let logSql;
       return this.sequelize.query({ query: `select $1${typeCast} as foo, $2${typeCast} as bar`, bind: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } }).then(result => {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
-        if (dialect === 'postgres' || dialect === 'sqlite') {
-          expect(logSql).to.include('$1');
-          expect(logSql).to.include('$2');
-        } else if (dialect === 'mssql') {
-          expect(logSql).to.include('@0');
-          expect(logSql).to.include('@1');
-        } else if (dialect === 'mysql') {
-          expect(logSql.match(/\?/g).length).to.equal(2);
-        }
+        expect(logSql).to.not.include('$1');
+        expect(logSql).to.not.include('?');
+        expect(logSql).to.not.include('@0');
       });
     });
 
@@ -590,9 +584,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let logSql;
       return this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) { logSql = s;} }).then(result => {
         expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
-        if (dialect === 'postgres' || dialect === 'sqlite') {
-          expect(logSql).to.include('$1');
-        }
+        expect(logSql).to.not.include('$1');
       });
     });
 
@@ -601,12 +593,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let logSql;
       return this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar`, { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } }).then(result => {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: 2 }]);
-        if (dialect === 'postgres') {
-          expect(logSql).to.include('$1');
-        }
-        if (dialect === 'sqlite') {
-          expect(logSql).to.include('$one');
-        }
+        expect(logSql).to.not.include('$1');
+        expect(logSql).to.not.include('$one');
       });
     });
 
@@ -615,11 +603,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let logSql;
       return this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $one${typeCast} as baz`, { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } }).then(result => {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
-        if (dialect === 'postgres') {
-          expect(logSql).to.include('$1');
-          expect(logSql).to.include('$2');
-          expect(logSql).to.not.include('$3');
-        }
+        expect(logSql).to.not.include('$1');
+        expect(logSql).to.not.include('$2');
+        expect(logSql).to.not.include('$3');
       });
     });
 
@@ -646,6 +632,24 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       return this.sequelize.query(`select $one${typeCast} as foo, '$$ / $$one' as bar`, { raw: true, bind: { one: 1 } }).then(result => {
         expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $one' }]);
       });
+    });
+    
+    it('sql log not include binds parameters', function() {
+      const User = this.sequelize.define('User', {
+        username: {
+          type: DataTypes.STRING
+        }
+      });
+      let createSql, updateSql;
+      return User.sync({ force: true })
+        .then(()=>User.create({ username: 'john' }, { logging: sql => createSql = sql }))
+        .then(()=>User.update({ username: 'li' }, { where: { username: 'john' }, logging: sql => updateSql = sql }))
+        .then(()=>{
+          expect(createSql).to.not.include('?');
+          expect(createSql).to.not.include('$');
+          expect(updateSql).to.not.include('?');
+          expect(updateSql).to.not.include('$');
+        });
     });
 
     if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
