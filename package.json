@@ -41,6 +41,7 @@
     "retry-as-promised": "^3.1.0",
     "semver": "^6.1.1",
     "sequelize-pool": "^2.3.0",
+    "sqlstring": "^2.3.1",
     "toposort-class": "^1.0.1",
     "uuid": "^3.2.1",
     "validator": "^10.11.0",
