@@ -170,7 +170,7 @@ User.bulkCreate([
 })
 ```
 
-Insert several rows and return all columns:
+Insert several rows and return all columns (Postgres only):
 
 ```js
 User.bulkCreate([
