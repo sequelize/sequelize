@@ -931,7 +931,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     if (dialect === 'postgres') {
-      it('does not cast arrays for postgresql insert', function() {
+      it('create empty arrays for postgresql', function() {
+        const User = this.sequelize.define('UserWithArray', {
+          myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
+          mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
+        });
+
+        let test = false;
+        return User.sync({ force: true }).then(() => {
+          return User.create({ myvals: [1, 2, 3], mystr: ['One', 'Two'] }, {
+            logging(sql) {
+              test = true;
+              expect(sql).to.contain('INSERT INTO "UserWithArrays" ("id","myvals","mystr","createdAt","updatedAt") VALUES (DEFAULT,ARRAY[1,2,3],ARRAY[\'One\',\'Two\']');
+            }
+          });
+        }).then(() => {
+          expect(test).to.be.true;
+        });
+      });
+
+      it('insert empty arrays for postgresql', function() {
         const User = this.sequelize.define('UserWithArray', {
           myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
           mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
@@ -942,7 +961,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.create({ myvals: [], mystr: [] }, {
             logging(sql) {
               test = true;
-              expect(sql).to.contain('INSERT INTO "UserWithArrays" ("id","myvals","mystr","createdAt","updatedAt") VALUES (DEFAULT,$1,$2,$3,$4)');
+              expect(sql).to.contain('INSERT INTO "UserWithArrays" ("id","myvals","mystr","createdAt","updatedAt") VALUES (DEFAULT,\'{}\',\'{}\'');
             }
           });
         }).then(() => {
@@ -950,7 +969,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('does not cast arrays for postgres update', function() {
+      it('update empty arrays for postgresql', function() {
         const User = this.sequelize.define('UserWithArray', {
           myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
           mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
@@ -964,7 +983,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return user.save({
               logging(sql) {
                 test = true;
-                expect(sql).to.not.include('$');
+                expect(sql).to.contain('UPDATE "UserWithArrays" SET "myvals"=\'{}\',"mystr"=\'{}\'');
               }
             });
           });
