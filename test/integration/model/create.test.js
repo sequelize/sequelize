@@ -931,7 +931,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     if (dialect === 'postgres') {
-      it('create empty arrays for postgresql', function() {
+      it('create arrays for postgresql', function() {
         const User = this.sequelize.define('UserWithArray', {
           myvals: { type: Sequelize.ARRAY(Sequelize.INTEGER) },
           mystr: { type: Sequelize.ARRAY(Sequelize.STRING) }
