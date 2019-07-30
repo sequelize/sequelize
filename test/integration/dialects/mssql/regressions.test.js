@@ -108,4 +108,33 @@ if (dialect.match(/^mssql/)) {
       });
     });
   });
+
+  it('saves value bigger than 2147483647, #11245', function() {
+    const BigIntTable =  this.sequelize.define('BigIntTable', {
+      business_id: {
+        type: Sequelize.BIGINT,
+        allowNull: false
+      }
+    }, {
+      freezeTableName: true
+    });
+
+    const bigIntValue = 2147483648;
+
+    return BigIntTable.sync({ force: true })
+      .then(() => {
+        return BigIntTable.create({
+          business_id: bigIntValue
+        });
+      })
+      .then(() => {
+        return BigIntTable.findAll({
+          where: {}
+        });
+      })
+      .then(records => {
+        expect(records).to.have.lengthOf(1);
+        expect(Number(records[0].business_id)).to.equals(bigIntValue);
+      });
+  });
 }
