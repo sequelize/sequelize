@@ -60,7 +60,8 @@ if (current.dialect.supports.JSON) {
               43,
               'joe'
             ], { type: DataTypes.ARRAY(DataTypes.JSON) }), {
-              postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]'
+              postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]',
+              sqlite: '[{"some":"nested","more":{"nested":true},"answer":42}, 43, \'joe\']'
             });
           });
 

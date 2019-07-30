@@ -1346,60 +1346,74 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     if (current.dialect.supports.ARRAY) {
       describe('ARRAY', () => {
         testsql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
-          postgres: 'VARCHAR(255)[]'
+          postgres: 'VARCHAR(255)[]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(VARCHAR(100))', DataTypes.ARRAY(DataTypes.STRING(100)), {
-          postgres: 'VARCHAR(100)[]'
+          postgres: 'VARCHAR(100)[]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(INTEGER)', DataTypes.ARRAY(DataTypes.INTEGER), {
-          postgres: 'INTEGER[]'
+          postgres: 'INTEGER[]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(HSTORE)', DataTypes.ARRAY(DataTypes.HSTORE), {
-          postgres: 'HSTORE[]'
+          postgres: 'HSTORE[]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(ARRAY(VARCHAR(255)))', DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.STRING)), {
-          postgres: 'VARCHAR(255)[][]'
+          postgres: 'VARCHAR(255)[][]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(TEXT)', DataTypes.ARRAY(DataTypes.TEXT), {
-          postgres: 'TEXT[]'
+          postgres: 'TEXT[]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(DATE)', DataTypes.ARRAY(DataTypes.DATE), {
-          postgres: 'TIMESTAMP WITH TIME ZONE[]'
+          postgres: 'TIMESTAMP WITH TIME ZONE[]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(BOOLEAN)', DataTypes.ARRAY(DataTypes.BOOLEAN), {
-          postgres: 'BOOLEAN[]'
+          postgres: 'BOOLEAN[]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(DECIMAL)', DataTypes.ARRAY(DataTypes.DECIMAL), {
-          postgres: 'DECIMAL[]'
+          postgres: 'DECIMAL[]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(DECIMAL(6))', DataTypes.ARRAY(DataTypes.DECIMAL(6)), {
-          postgres: 'DECIMAL(6)[]'
+          postgres: 'DECIMAL(6)[]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(DECIMAL(6,4))', DataTypes.ARRAY(DataTypes.DECIMAL(6, 4)), {
-          postgres: 'DECIMAL(6,4)[]'
+          postgres: 'DECIMAL(6,4)[]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(DOUBLE)', DataTypes.ARRAY(DataTypes.DOUBLE), {
-          postgres: 'DOUBLE PRECISION[]'
+          postgres: 'DOUBLE PRECISION[]',
+          sqlite: 'JSON'
         });
 
         testsql('ARRAY(REAL))', DataTypes.ARRAY(DataTypes.REAL), {
-          postgres: 'REAL[]'
+          postgres: 'REAL[]',
+          sqlite: 'JSON'
         });
 
         if (current.dialect.supports.JSON) {
           testsql('ARRAY(JSON)', DataTypes.ARRAY(DataTypes.JSON), {
-            postgres: 'JSON[]'
+            postgres: 'JSON[]',
+            sqlite: 'JSON'
           });
         }
 
