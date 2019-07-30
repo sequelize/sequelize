@@ -685,5 +685,109 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(user.username).to.equal('Peter');
       });
     });
+
+    it('supports custom deletedAt field', function() {
+      const ParanoidUser = this.sequelize.define('ParanoidUser', {
+        username: DataTypes.STRING,
+        destroyTime: DataTypes.DATE
+      }, { paranoid: true, deletedAt: 'destroyTime' });
+
+      return ParanoidUser.sync({ force: true }).then(() => {
+        return ParanoidUser.create({
+          username: 'username'
+        });
+      }).then(user => {
+        return user.destroy();
+      }).then(user => {
+        expect(user.destroyTime).to.be.ok;
+        expect(user.deletedAt).to.not.be.ok;
+        return user.restore();
+      }).then(user => {
+        expect(user.destroyTime).to.not.be.ok;
+        return ParanoidUser.findOne({ where: { username: 'username' } });
+      }).then(user => {
+        expect(user).to.be.ok;
+        expect(user.destroyTime).to.not.be.ok;
+        expect(user.deletedAt).to.not.be.ok;
+      });
+    });
+
+    it('supports custom deletedAt field name', function() {
+      const ParanoidUser = this.sequelize.define('ParanoidUser', {
+        username: DataTypes.STRING,
+        deletedAt: { type: DataTypes.DATE, field: 'deleted_at' }
+      }, { paranoid: true });
+
+      return ParanoidUser.sync({ force: true }).then(() => {
+        return ParanoidUser.create({
+          username: 'username'
+        });
+      }).then(user => {
+        return user.destroy();
+      }).then(user => {
+        expect(user.dataValues.deletedAt).to.be.ok;
+        expect(user.dataValues.deleted_at).to.not.be.ok;
+        return user.restore();
+      }).then(user => {
+        expect(user.dataValues.deletedAt).to.not.be.ok;
+        expect(user.dataValues.deleted_at).to.not.be.ok;
+        return ParanoidUser.findOne({ where: { username: 'username' } });
+      }).then(user => {
+        expect(user).to.be.ok;
+        expect(user.deletedAt).to.not.be.ok;
+        expect(user.deleted_at).to.not.be.ok;
+      });
+    });
+
+    it('supports custom deletedAt field and database column', function() {
+      const ParanoidUser = this.sequelize.define('ParanoidUser', {
+        username: DataTypes.STRING,
+        destroyTime: { type: DataTypes.DATE, field: 'destroy_time' }
+      }, { paranoid: true, deletedAt: 'destroyTime' });
+
+      return ParanoidUser.sync({ force: true }).then(() => {
+        return ParanoidUser.create({
+          username: 'username'
+        });
+      }).then(user => {
+        return user.destroy();
+      }).then(user => {
+        expect(user.dataValues.destroyTime).to.be.ok;
+        expect(user.dataValues.deletedAt).to.not.be.ok;
+        expect(user.dataValues.destroy_time).to.not.be.ok;
+        return user.restore();
+      }).then(user => {
+        expect(user.dataValues.destroyTime).to.not.be.ok;
+        expect(user.dataValues.destroy_time).to.not.be.ok;
+        return ParanoidUser.findOne({ where: { username: 'username' } });
+      }).then(user => {
+        expect(user).to.be.ok;
+        expect(user.destroyTime).to.not.be.ok;
+        expect(user.destroy_time).to.not.be.ok;
+      });
+    });
+
+    it('supports custom default value', function() {
+      const ParanoidUser = this.sequelize.define('ParanoidUser', {
+        username: DataTypes.STRING,
+        deletedAt: { type: DataTypes.DATE, defaultValue: new Date(0) }
+      }, { paranoid: true });
+
+      return ParanoidUser.sync({ force: true }).then(() => {
+        return ParanoidUser.create({
+          username: 'username'
+        });
+      }).then(user => {
+        return user.destroy();
+      }).then(user => {
+        return user.restore();
+      }).then(user => {
+        expect(user.dataValues.deletedAt.toISOString()).to.equal(new Date(0).toISOString());
+        return ParanoidUser.findOne({ where: { username: 'username' } });
+      }).then(user => {
+        expect(user).to.be.ok;
+        expect(user.deletedAt.toISOString()).to.equal(new Date(0).toISOString());
+      });
+    });
   });
 });
