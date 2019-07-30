@@ -127,14 +127,9 @@ if (dialect.match(/^mssql/)) {
           business_id: bigIntValue
         });
       })
-      .then(() => {
-        return BigIntTable.findAll({
-          where: {}
-        });
-      })
-      .then(records => {
-        expect(records).to.have.lengthOf(1);
-        expect(Number(records[0].business_id)).to.equals(bigIntValue);
+      .then(() => BigIntTable.findOne())
+      .then(record => {
+        expect(Number(record.business_id)).to.equals(bigIntValue);
       });
   });
 }
