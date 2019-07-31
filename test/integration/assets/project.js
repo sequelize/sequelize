@@ -1,7 +1,12 @@
 'use strict';
 
-module.exports = function(sequelize, DataTypes) {
-  return sequelize.define(`Project${parseInt(Math.random() * 9999999999999999, 10)}`, {
-    name: DataTypes.STRING
-  });
+module.exports = (sequelize, DataTypes) => {
+  class Project extends sequelize.Model { }
+
+  Project.init({
+    name: DataTypes.STRING,
+    description: DataTypes.TEXT
+  }, { sequelize, modelName: `Project${parseInt(Math.random() * 9999999999999999, 10)}` });
+
+  return Project;
 };
