@@ -102,7 +102,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           last_name: Sequelize.STRING
         });
 
-        const Creator = Product.belongsTo(User, {as: 'creator'});
+        const Creator = Product.belongsTo(User, { as: 'creator' });
 
         return this.sequelize.sync({ force: true }).then(() => {
           return Product.create({
@@ -156,8 +156,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             id: 1,
             title: 'Chair',
             Tags: [
-              {id: 1, name: 'Alpha'},
-              {id: 2, name: 'Beta'}
+              { id: 1, name: 'Alpha' },
+              { id: 2, name: 'Beta' }
             ]
           }, {
             include: [{
@@ -189,15 +189,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           name: Sequelize.STRING
         });
 
-        const Categories = Product.hasMany(Tag, {as: 'categories'});
+        const Categories = Product.hasMany(Tag, { as: 'categories' });
 
         return this.sequelize.sync({ force: true }).then(() => {
           return Product.create({
             id: 1,
             title: 'Chair',
             categories: [
-              {id: 1, name: 'Alpha'},
-              {id: 2, name: 'Beta'}
+              { id: 1, name: 'Alpha' },
+              { id: 2, name: 'Beta' }
             ]
           }, {
             include: [Categories]
@@ -252,7 +252,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           title: Sequelize.STRING
         });
 
-        const Job = User.hasOne(Task, {as: 'job'});
+        const Job = User.hasOne(Task, { as: 'job' });
 
 
         return this.sequelize.sync({ force: true }).then(() => {
@@ -299,8 +299,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        User.belongsToMany(Task, {through: 'user_task'});
-        Task.belongsToMany(User, {through: 'user_task'});
+        User.belongsToMany(Task, { through: 'user_task' });
+        Task.belongsToMany(User, { through: 'user_task' });
 
         return this.sequelize.sync({ force: true }).then(() => {
           return User.create({
@@ -441,8 +441,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           active: DataTypes.BOOLEAN
         });
 
-        const Jobs = User.belongsToMany(Task, {through: 'user_job', as: 'jobs'});
-        Task.belongsToMany(User, {through: 'user_job'});
+        const Jobs = User.belongsToMany(Task, { through: 'user_job', as: 'jobs' });
+        Task.belongsToMany(User, { through: 'user_job' });
 
         return this.sequelize.sync({ force: true }).then(() => {
           return User.create({

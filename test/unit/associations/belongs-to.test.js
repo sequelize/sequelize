@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
       it('should trigger', function() {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
-        this.Projects.belongsTo(this.Tasks, {hooks: true});
+        this.Projects.belongsTo(this.Tasks, { hooks: true });
 
         const beforeAssociateArgs = beforeAssociate.getCall(0).args;
 
@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
       it('should not trigger association hooks', function() {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
-        this.Projects.belongsTo(this.Tasks, {hooks: false});
+        this.Projects.belongsTo(this.Tasks, { hooks: false });
         expect(beforeAssociate).to.not.have.been.called;
       });
     });
@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
       it('should trigger', function() {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
-        this.Projects.belongsTo(this.Tasks, {hooks: true});
+        this.Projects.belongsTo(this.Tasks, { hooks: true });
 
         const afterAssociateArgs = afterAssociate.getCall(0).args;
 
@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
       it('should not trigger association hooks', function() {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
-        this.Projects.belongsTo(this.Tasks, {hooks: false});
+        this.Projects.belongsTo(this.Tasks, { hooks: false });
         expect(afterAssociate).to.not.have.been.called;
       });
     });

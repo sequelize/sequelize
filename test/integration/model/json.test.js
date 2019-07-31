@@ -282,7 +282,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.Event.findAll({
               where: {
                 json: {
-                  lastLogin: {[Op.between]: [before, after]}
+                  lastLogin: { [Op.between]: [before, after] }
                 }
               }
             }).then(events => {
@@ -325,7 +325,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.Event.findAll({
               where: {
                 json: {
-                  active: {[Op.in]: [true, false]}
+                  active: { [Op.in]: [true, false] }
                 }
               }
             }).then(events => {
@@ -685,6 +685,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        it('should properly escape path keys', function() {
+          return this.Model.findAll({
+            raw: true,
+            attributes: ['id'],
+            where: {
+              data: {
+                "a')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ": 1
+              }
+            }
+          });
+        });
+
         it('should properly escape the single quotes in array', function() {
           return this.Model.create({
             data: {
@@ -776,7 +788,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   employment: 'Nuclear Safety Inspector'
                 });
               });
-            } else if (current.options.dialect === 'postgres') {
+            }
+            if (current.options.dialect === 'postgres') {
               return expect(this.Event.findAll({
                 where: {
                   data: {

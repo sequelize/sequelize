@@ -17,7 +17,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = (options, expectation) => {
       const model = options.model;
 
-      it(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.selectQuery(
             options.table || model && model.getTableName(),
@@ -352,6 +352,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       ]
     }, {
       mssql: 'SELECT [id], [name] FROM [subtask] AS [Subtask] ORDER BY RAND();',
+      mariadb: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
       mysql: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
       postgres: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
       sqlite: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();'

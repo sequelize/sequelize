@@ -26,7 +26,10 @@ describe('model', () => {
       it('should tell me that a column is json', function() {
         return this.sequelize.queryInterface.describeTable('Users')
           .then(table => {
-            expect(table.emergency_contact.type).to.equal('JSON');
+            // expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
+            if (dialect !== 'mariadb') {
+              expect(table.emergency_contact.type).to.equal('JSON');
+            }
           });
       });
 
@@ -37,7 +40,7 @@ describe('model', () => {
         }, {
           fields: ['id', 'username', 'document', 'emergency_contact'],
           logging: sql => {
-            if (dialect.match(/^mysql/)) {
+            if (dialect.match(/^mysql|mariadb/)) {
               expect(sql).to.include('?');
             } else {
               expect(sql).to.include('$1');
@@ -100,7 +103,7 @@ describe('model', () => {
             });
           })
           .then(user => {
-            expect(parseInt(user.getDataValue('firstEmergencyNumber'))).to.equal(42);
+            expect(parseInt(user.getDataValue('firstEmergencyNumber'), 10)).to.equal(42);
           });
       });
 
@@ -116,7 +119,7 @@ describe('model', () => {
             });
           })
           .then(user => {
-            expect(parseInt(user.getDataValue('katesNumber'))).to.equal(1337);
+            expect(parseInt(user.getDataValue('katesNumber'), 10)).to.equal(1337);
           });
       });
 
@@ -138,7 +141,7 @@ describe('model', () => {
               attributes: [[Sequelize.json('emergency_contact.kate.phones[1]'), 'katesFirstPhone']]
             });
           }).then(user => {
-            expect(parseInt(user.getDataValue('katesFirstPhone'))).to.equal(42);
+            expect(parseInt(user.getDataValue('katesFirstPhone'), 10)).to.equal(42);
           });
       });
 
@@ -250,9 +253,9 @@ describe('model', () => {
             username: 'swen123',
             emergency_contact: 'Unknown'
           }).then(() => {
-            return this.User.findOne({where: {
+            return this.User.findOne({ where: {
               emergency_contact: 'Unknown'
-            }});
+            } });
           }).then(user => {
             expect(user.username).to.equal('swen123');
           });

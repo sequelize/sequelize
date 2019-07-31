@@ -13,12 +13,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('returns true if a model has an association with the specified alias', function() {
-      this.Task.belongsTo(this.User, { as: 'owner'});
+      this.Task.belongsTo(this.User, { as: 'owner' });
       expect(this.Task.hasAlias('owner')).to.equal(true);
     });
 
     it('returns false if a model does not have an association with the specified alias', function() {
-      this.Task.belongsTo(this.User, { as: 'owner'});
+      this.Task.belongsTo(this.User, { as: 'owner' });
       expect(this.Task.hasAlias('notOwner')).to.equal(false);
     });
   });

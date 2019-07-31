@@ -31,17 +31,17 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         validateTest: {
           type: DataTypes.INTEGER,
           allowNull: true,
-          validate: {isInt: true}
+          validate: { isInt: true }
         },
         validateCustom: {
           type: DataTypes.STRING,
           allowNull: true,
-          validate: {len: {msg: 'Length failed.', args: [1, 20]}}
+          validate: { len: { msg: 'Length failed.', args: [1, 20] } }
         },
         validateSideEffect: {
           type: DataTypes.VIRTUAL,
           allowNull: true,
-          validate: {isInt: true},
+          validate: { isInt: true },
           set(val) {
             this.setDataValue('validateSideEffect', val);
             this.setDataValue('validateSideAffected', val*2);
@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         validateSideAffected: {
           type: DataTypes.INTEGER,
           allowNull: true,
-          validate: {isInt: true}
+          validate: { isInt: true }
         },
 
         dateAllowNullTrue: {
@@ -92,14 +92,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         email: DataTypes.STRING
       });
 
-      return User.sync({force: true}).then(() => {
+      return User.sync({ force: true }).then(() => {
         return User.create({
           name: 'snafu',
           email: 'email'
         }, {
           fields: ['name', 'email']
         }).then(user => {
-          return user.update({bio: 'swag'});
+          return user.update({ bio: 'swag' });
         }).then(user => {
           return user.reload();
         }).then(user => {
@@ -119,7 +119,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         timestamps: false
       });
 
-      return User.sync({force: true}).then(() => {
+      return User.sync({ force: true }).then(() => {
         return User.create({
           name: 'snafu',
           email: 'email'
@@ -144,15 +144,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING,
-        createdAt: {type: DataTypes.DATE(6), allowNull: false},
-        updatedAt: {type: DataTypes.DATE(6), allowNull: false}
+        createdAt: { type: DataTypes.DATE(6), allowNull: false },
+        updatedAt: { type: DataTypes.DATE(6), allowNull: false }
       }, {
         timestamps: true
       });
 
       this.clock.tick(2100); //move the clock forward 2100 ms.
 
-      return User.sync({force: true}).then(() => {
+      return User.sync({ force: true }).then(() => {
         return User.create({
           name: 'snafu',
           email: 'email'
@@ -188,7 +188,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should save attributes affected by setters', function() {
       const user = this.User.build();
-      return user.update({validateSideEffect: 5}).then(() => {
+      return user.update({ validateSideEffect: 5 }).then(() => {
         expect(user.validateSideEffect).to.be.equal(5);
       }).then(() => {
         return user.reload();
@@ -210,7 +210,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           instance.set('email', 'B');
         });
 
-        return User.sync({force: true}).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create({
             name: 'A',
             bio: 'A',
@@ -241,7 +241,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           instance.set('email', 'C');
         });
 
-        return User.sync({force: true}).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create({
             name: 'A',
             bio: 'A',
@@ -278,7 +278,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           instance.set('email', 'B');
         });
 
-        return User.sync({force: true}).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create({
             name: 'A',
             bio: 'A',
@@ -311,7 +311,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           instance.set('email', 'B');
         });
 
-        return User.sync({force: true}).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create({
             name: 'A',
             bio: 'A',
@@ -337,7 +337,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         email: DataTypes.STRING
       });
 
-      return User.sync({force: true}).then(() => {
+      return User.sync({ force: true }).then(() => {
         return User.create({
           name: 'snafu',
           email: 'email'
@@ -367,7 +367,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('ignores unknown attributes', function() {
       return this.User.create({ username: 'user' }).then(user => {
-        return user.update({ username: 'person', foo: 'bar'}).then(user => {
+        return user.update({ username: 'person', foo: 'bar' }).then(user => {
           expect(user.username).to.equal('person');
           expect(user.foo).not.to.exist;
         });
@@ -375,7 +375,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('ignores undefined attributes', function() {
-      return this.User.sync({force: true}).then(() => {
+      return this.User.sync({ force: true }).then(() => {
         return this.User.create({ username: 'user' }).then(user => {
           return user.update({ username: undefined }).then(user => {
             expect(user.username).to.equal('user');
@@ -388,7 +388,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = this.sequelize.define(`User${  config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
-        identifier: {type: DataTypes.STRING, primaryKey: true}
+        identifier: { type: DataTypes.STRING, primaryKey: true }
       });
 
       return User.sync({ force: true }).then(() => {
@@ -437,7 +437,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             expect(download.finishedAt).to.not.be.ok;
 
             return Download.findAll({
-              where: {finishedAt: null}
+              where: { finishedAt: null }
             }).then(downloads => {
               downloads.forEach(download => {
                 expect(download.startedAt instanceof Date).to.be.true;
@@ -454,7 +454,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const spy = sinon.spy();
 
       return this.User.create({}).then(user => {
-        return user.update({username: 'yolo'}, {logging: spy}).then(() => {
+        return user.update({ username: 'yolo' }, { logging: spy }).then(() => {
           expect(spy.called).to.be.ok;
         });
       });

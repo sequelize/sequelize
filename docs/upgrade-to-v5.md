@@ -1,4 +1,4 @@
-# Upgrade to v5-beta
+# Upgrade to v5
 
 Sequelize v5 is the next major release after v4
 
@@ -12,7 +12,7 @@ Sequelize v5 will only support Node 6 and up [#9015](https://github.com/sequeliz
 
 With v4 you started to get a deprecation warning `String based operators are now deprecated`. Also concept of operators was introduced. These operators are Symbols which prevent hash injection attacks.
 
-http://docs.sequelizejs.com/manual/tutorial/querying.html#operators-security
+[operators-security](querying.html#operators-security)
 
 **With v5**
 
@@ -20,11 +20,19 @@ http://docs.sequelizejs.com/manual/tutorial/querying.html#operators-security
 - You can still use string operators by passing an operators map in `operatorsAliases`, but that will give you deprecation warning.
 - Op.$raw is removed
 
+### Typescript Support
+
+Sequelize now ship official typings [#10287](https://github.com/sequelize/sequelize/pull/10287). You can consider migrating away from external typings which may get out of sync.
+
 ### Pooling
 
 With v5 Sequelize now use `sequelize-pool` which is a modernized fork of `generic-pool@2.5`. You no longer need to call `sequelize.close` to shutdown pool, this helps with lambda executions. [#8468](https://github.com/sequelize/sequelize/issues/8468)
 
 ### Model
+
+**Validators**
+
+Custom validators defined per attribute (as opposed to the custom validators defined in the model's options) now run when the attribute's value is `null` and `allowNull` is `true` (while previously they didn't run and the validation succeeded immediately). To avoid problems when upgrading, please check all your custom validators defined per attribute, where `allowNull` is `true`, and make sure all these validators behave correctly when the value is `null`. See [#9143](https://github.com/sequelize/sequelize/issues/9143).
 
 **Attributes**
 
@@ -39,7 +47,6 @@ With v5 if `deletedAt` is set, record will be considered as deleted. `paranoid` 
 **Model.bulkCreate**
 
 `updateOnDuplicate` option which used to accept boolean and array, now only accepts non-empty array of attributes. [#9288](https://github.com/sequelize/sequelize/issues/9288)
-
 
 **Underscored Mode**
 
@@ -64,7 +71,7 @@ Many model based aliases has been removed [#9372](https://github.com/sequelize/s
 | findAndCount | findAndCountAll |
 | findOrInitialize | findOrBuild |
 | updateAttributes | update |
-| findById, findByPrimary	| findByPk |
+| findById, findByPrimary | findByPk |
 | all | findAll |
 | hook | addHook |
 
@@ -73,10 +80,6 @@ Many model based aliases has been removed [#9372](https://github.com/sequelize/s
 **Range**
 
 Now supports only one standard format `[{ value: 1, inclusive: true }, { value: 20, inclusive: false }]` [#9364](https://github.com/sequelize/sequelize/pull/9364)
-
-**Network types**
-
-Added support for `CIDR`, `INET` and `MACADDR` for Postgres
 
 **Case insensitive text**
 
@@ -106,14 +109,14 @@ Prototype references for many constants, objects and classes has been removed [#
 
 | Removed in v5 | Official Alternative |
 | :------ | :------ |
-| Sequelize.prototype.Utils	| Sequelize.Utils	|
-| Sequelize.prototype.Promise	| Sequelize.Promise	|
-| Sequelize.prototype.TableHints | Sequelize.TableHints	|
-| Sequelize.prototype.Op | Sequelize.Op	|
-| Sequelize.prototype.Transaction	| Sequelize.Transaction	|
-| Sequelize.prototype.Model	| Sequelize.Model	|
-| Sequelize.prototype.Deferrable | Sequelize.Deferrable	|
-| Sequelize.prototype.Error	| Sequelize.Error	|
+| Sequelize.prototype.Utils | Sequelize.Utils |
+| Sequelize.prototype.Promise | Sequelize.Promise |
+| Sequelize.prototype.TableHints | Sequelize.TableHints |
+| Sequelize.prototype.Op | Sequelize.Op |
+| Sequelize.prototype.Transaction | Sequelize.Transaction |
+| Sequelize.prototype.Model | Sequelize.Model |
+| Sequelize.prototype.Deferrable | Sequelize.Deferrable |
+| Sequelize.prototype.Error | Sequelize.Error |
 | Sequelize.prototype[error] | Sequelize[error] |
 
 ```js
@@ -150,7 +153,7 @@ Model.findAll({
 
 Model.findAll({
   where: {
-    [Sequelize.Op.and]: [ // Dont use sequelize.Op, use Sequelize.Op instead
+    [Sequelize.Op.and]: [ // Don't use sequelize.Op, use Sequelize.Op instead
       {
         name: "Abc"
       },
@@ -169,6 +172,10 @@ Model.findAll({
 ### Query Interface
 
 - `changeColumn` no longer generates constraint with `_idx` suffix. Now Sequelize does not specify any name for constraints thus defaulting to database engine naming. This aligns behavior of `sync`, `createTable` and `changeColumn`.
+- `addIndex` aliases options aliases have been removed, use the following instead.
+  - `indexName` => `name`
+  - `indicesType` => `type`
+  - `indexType`/`method` => `using`
 
 ### Others
 
@@ -177,15 +184,100 @@ Model.findAll({
 - [retry-as-promised](https://github.com/mickhansen/retry-as-promised) has been updated to `3.1.0`, which use [any-promise](https://github.com/kevinbeaty/any-promise). This module repeat all `sequelize.query` operations. You can configure `any-promise` to use `bluebird` for better performance on Node 4 or 6
 - Sequelize will throw for all `undefined` keys in `where` options, In past versions `undefined` was converted to `null`.
 
+### Dialect Specific
+
+#### MSSQL
+
+- Sequelize now works with `tedious >= 6.0.0`. Old `dialectOptions` has to be updated to match their new format. Please refer to tedious [documentation](http://tediousjs.github.io/tedious/api-connection.html#function_newConnection). An example of new `dialectOptions` is given below
+
+```javascript
+dialectOptions: {
+  authentication: {
+    domain: 'my-domain'
+  },
+  options: {
+    requestTimeout: 60000,
+    cryptoCredentialsDetails: {
+      ciphers: "RC4-MD5"
+    }
+  }
+}
+```
+
+#### MySQL
+
+- Requires `mysql2 >= 1.5.2` for prepared statements
+
+#### MariaDB
+
+- `dialect: 'mariadb'` is now [supported](https://github.com/sequelize/sequelize/pull/10192) with `mariadb` package
 
 ### Packages
 
 - removed: terraformer-wkt-parser [#9545](https://github.com/sequelize/sequelize/pull/9545)
-- mysql2: use `1.5.2` or above to support prepared statements
-- updated: retry-as-promised: `3.1.0`
-- change: `generic-pool` to `sequelize-pool`
+- removed: `generic-pool`
+- added: `sequelize-pool`
 
 ## Changelog
+
+### 5.0.0-beta.17
+
+- fix(build): default null for multiple primary keys
+- fix(util): improve performance of classToInvokable [#10534](https://github.com/sequelize/sequelize/pull/10534)
+- fix(model/update): propagate paranoid to individualHooks query [#10369](https://github.com/sequelize/sequelize/pull/10369)
+- fix(association): use minimal select for hasAssociation [#10529](https://github.com/sequelize/sequelize/pull/10529)
+- fix(query-interface): reject with error for describeTable [#10528](https://github.com/sequelize/sequelize/pull/10528)
+- fix(model): throw for invalid include type [#10527](https://github.com/sequelize/sequelize/pull/10527)
+- fix(types): additional options for db.query and add missing retry [#10512](https://github.com/sequelize/sequelize/pull/10512)
+- fix(query): don't prepare options & sql for every retry [#10498](https://github.com/sequelize/sequelize/pull/10498)
+- feat: expose Sequelize.BaseError
+- feat: upgrade to tedious@6.0.0 [#10494](https://github.com/sequelize/sequelize/pull/10494)
+- feat(sqlite/query-generator): support restart identity for truncate-table [#10522](https://github.com/sequelize/sequelize/pull/10522)
+- feat(data-types): handle numbers passed as objects [#10492](https://github.com/sequelize/sequelize/pull/10492)
+- feat(types): enabled string association [#10481](https://github.com/sequelize/sequelize/pull/10481)
+- feat(postgres): allow customizing client_min_messages [#10448](https://github.com/sequelize/sequelize/pull/10448)
+- refactor(data-types): move to classes [#10495](https://github.com/sequelize/sequelize/pull/10495)
+- docs(legacy): fix N:M example [#10509](https://github.com/sequelize/sequelize/pull/10509)
+- docs(migrations): use migrationStorageTableSchema [#10417](https://github.com/sequelize/sequelize/pull/10417)
+- docs(hooks): add documentation for connection hooks [#10410](https://github.com/sequelize/sequelize/pull/10410)
+- docs(addIndex): concurrently option [#10409](https://github.com/sequelize/sequelize/pull/10409)
+- docs(model): fix typo [#10405](https://github.com/sequelize/sequelize/pull/10405)
+- docs(usage): fix broken link on Basic Usage [#10381](https://github.com/sequelize/sequelize/pull/10381)
+- docs(package.json): add homepage [#10372](https://github.com/sequelize/sequelize/pull/10372)
+
+### 5.0.0-beta.16
+
+- feat: add typescript typings [#10287](https://github.com/sequelize/sequelize/pull/10117)
+- fix(mysql): match with newlines in error message [#10320](https://github.com/sequelize/sequelize/pull/10320)
+- fix(update): skips update when nothing to update [#10248](https://github.com/sequelize/sequelize/pull/10248)
+- fix(utils): flattenObject for null values [#10293](https://github.com/sequelize/sequelize/pull/10293)
+- fix(instance-validator): don't skip custom validators on null [#9143](https://github.com/sequelize/sequelize/pull/9143)
+- docs(transaction): after save example [#10280](https://github.com/sequelize/sequelize/pull/10280)
+- docs(query-generator): typo [#10277](https://github.com/sequelize/sequelize/pull/10277)
+- refactor(errors): restructure [#10355](https://github.com/sequelize/sequelize/pull/10355)
+- refactor(scope): documentation #9087 [#10312](https://github.com/sequelize/sequelize/pull/10312)
+- refactor: cleanup association and spread use [#10276](https://github.com/sequelize/sequelize/pull/10276)
+
+### 5.0.0-beta.15
+
+- fix(query-generator): fix addColumn create comment [#10117](https://github.com/sequelize/sequelize/pull/10117)
+- fix(sync): throw when no models defined [#10175](https://github.com/sequelize/sequelize/pull/10175)
+- fix(association): enable eager load with include all(#9928) [#10173](https://github.com/sequelize/sequelize/pull/10173)
+- fix(sqlite): simplify connection error handling
+- fix(model): prevent version number from being incremented as string [#10217](https://github.com/sequelize/sequelize/pull/10217)
+- feat(dialect): mariadb [#10192](https://github.com/sequelize/sequelize/pull/10192)
+- docs(migrations): improve dialect options docs
+- docs: fix favicon [#10242](https://github.com/sequelize/sequelize/pull/10242)
+- docs(model.init): `attribute.column.validate` option [#10237](https://github.com/sequelize/sequelize/pull/10237)
+- docs(bulk-create): update support information about ignoreDuplicates
+- docs: explain custom/new data types [#10170](https://github.com/sequelize/sequelize/pull/10170)
+- docs(migrations): Simplify CLI Call [#10201](https://github.com/sequelize/sequelize/pull/10201)
+- docs(migrations): added advanced skeleton example [#10190](https://github.com/sequelize/sequelize/pull/10190)
+- docs(transaction): default isolation level [#10111](https://github.com/sequelize/sequelize/pull/10111)
+- docs: typo in associations.md [#10157](https://github.com/sequelize/sequelize/pull/10157)
+- refactor: reduce code complexity [#10120](https://github.com/sequelize/sequelize/pull/10120)
+- refactor: optimize memoize use, misc cases [#10122](https://github.com/sequelize/sequelize/pull/10122)
+- chore(lint): enforce consistent spacing [#10193](https://github.com/sequelize/sequelize/pull/10193)
 
 ### 5.0.0-beta.14
 
@@ -212,7 +304,7 @@ Model.findAll({
 - fix: throw on undefined where parameters [#10048](https://github.com/sequelize/sequelize/pull/10048)
 - fix(model): improve wrong alias error message [#10041](https://github.com/sequelize/sequelize/pull/10041)
 - feat(sqlite): CITEXT datatype [#10036](https://github.com/sequelize/sequelize/pull/10036)
--  fix(postgres): remove if not exists and cascade from create/drop database queries [#10033](https://github.com/sequelize/sequelize/pull/10033)
+- fix(postgres): remove if not exists and cascade from create/drop database queries [#10033](https://github.com/sequelize/sequelize/pull/10033)
 - fix(syntax): correct parentheses around union [#10003](https://github.com/sequelize/sequelize/pull/10003)
 - feat(query-interface): createDatabase / dropDatabase support [#10027](https://github.com/sequelize/sequelize/pull/10027)
 - feat(postgres): CITEXT datatype [#10024](https://github.com/sequelize/sequelize/pull/10024)
@@ -265,7 +357,6 @@ Model.findAll({
 - fix(destroy): attributes updated in a beforeDestroy hook are now persisted on soft delete [#9319](https://github.com/sequelize/sequelize/pull/9319)
 - fix(addScope): only throw when defaultScope is defined [#9703](https://github.com/sequelize/sequelize/pull/9703)
 
-
 ### 5.0.0-beta.10
 
 - fix(belongsToMany): association.add returns array of array of through records [#9700](https://github.com/sequelize/sequelize/pull/9700)
@@ -281,7 +372,6 @@ Model.findAll({
 - fix(reload): instance.changed() remains unaffected [#9615](https://github.com/sequelize/sequelize/pull/9615)
 - feat(model): column level comments [#9573](https://github.com/sequelize/sequelize/pull/9573)
 - docs: cleanup / correct jsdoc references [#9702](https://github.com/sequelize/sequelize/pull/9702)
-
 
 ### 5.0.0-beta.9
 

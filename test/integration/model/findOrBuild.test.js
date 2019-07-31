@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     this.User.hasMany(this.Project);
     this.Project.belongsTo(this.User);
 
-    return this.sequelize.sync({force: true});
+    return this.sequelize.sync({ force: true });
   });
 
 

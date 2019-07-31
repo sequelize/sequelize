@@ -20,11 +20,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       before(() => {
-        stub = sinon.stub(current, 'query').returns(
-          Sequelize.Promise.resolve({
-            _previousDataValues: {id: 3},
-            dataValues: {id: 1}
-          })
+        stub = sinon.stub(current, 'query').resolves(
+          {
+            _previousDataValues: { id: 3 },
+            dataValues: { id: 1 }
+          }
         );
       });
 
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should allow decrements even if options are not given', () => {
-        instance = Model.build({id: 3}, {isNewRecord: false});
+        instance = Model.build({ id: 3 }, { isNewRecord: false });
         expect(() => {
           instance.decrement(['id']);
         }).to.not.throw();

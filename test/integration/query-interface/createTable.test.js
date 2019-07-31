@@ -13,7 +13,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   afterEach(function() {
-    return this.sequelize.dropAllSchemas();
+    return Support.dropTestSchemas(this.sequelize);
   });
 
   // FIXME: These tests should make assertions against the created table using describeTable
@@ -74,6 +74,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             expect(indexes[1].fields[0].attribute).to.equal('name');
             break;
 
+          case 'mariadb':
           case 'mysql':
             // name + email
             expect(indexes[1].unique).to.be.true;

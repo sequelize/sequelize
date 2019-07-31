@@ -40,12 +40,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        return this.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           const records = [
-            {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7},
-            {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11},
-            {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10},
-            {username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7}
+            { username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7 },
+            { username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11 },
+            { username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10 },
+            { username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7 }
           ];
           return this.ScopeMe.bulkCreate(records);
         });
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to override default scope', function() {
-        return this.ScopeMe.findAndCountAll({ where: { access_level: { [Op.gt]: 5 }}})
+        return this.ScopeMe.findAndCountAll({ where: { access_level: { [Op.gt]: 5 } } })
           .then(result => {
             expect(result.count).to.equal(1);
             expect(result.rows.length).to.equal(1);
@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to merge scopes with where', function() {
         return this.ScopeMe.scope('lowAccess')
-          .findAndCountAll({ where: { username: 'dan'}}).then(result => {
+          .findAndCountAll({ where: { username: 'dan' } }).then(result => {
             expect(result.count).to.equal(1);
           });
       });

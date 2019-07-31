@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     });
 
     Group.belongsTo(Group, { as: 'Parent', foreignKey: 'parent_id' });
-    return Group.sync({force: true}).then(() => {
+    return Group.sync({ force: true }).then(() => {
       return Group.findAll({
         include: [{
           model: Group,
@@ -31,11 +31,11 @@ describe(Support.getTestDialectTeaser('Self'), () => {
   it('can handle 1:m associations', function() {
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
-    Person.hasMany(Person, { as: 'Children', foreignKey: 'parent_id'});
+    Person.hasMany(Person, { as: 'Children', foreignKey: 'parent_id' });
 
     expect(Person.rawAttributes.parent_id).to.be.ok;
 
-    return this.sequelize.sync({force: true}).then(() => {
+    return this.sequelize.sync({ force: true }).then(() => {
       return Promise.all([
         Person.create({ name: 'Mary' }),
         Person.create({ name: 'John' }),

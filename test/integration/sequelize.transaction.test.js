@@ -5,19 +5,11 @@ const chai = require('chai'),
   Support = require('./support'),
   Promise = require('../../lib/promise'),
   Transaction = require('../../lib/transaction'),
-  sinon = require('sinon'),
   current = Support.sequelize;
 
 if (current.dialect.supports.transactions) {
 
   describe(Support.getTestDialectTeaser('Sequelize#transaction'), () => {
-    beforeEach(function() {
-      this.sinon = sinon.createSandbox();
-    });
-
-    afterEach(function() {
-      this.sinon.restore();
-    });
 
     describe('then', () => {
       it('gets triggered once a transaction has been successfully committed', function() {
@@ -98,7 +90,7 @@ if (current.dialect.supports.transactions) {
       it('works with promise syntax', function() {
         return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const Test = sequelize.define('Test', {
-            id: { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true},
+            id: { type: Support.Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
             name: { type: Support.Sequelize.STRING }
           });
 

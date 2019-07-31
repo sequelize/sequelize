@@ -186,7 +186,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should handle native postgres timestamp format', () => {
         // Make sure nameOidMap is loaded
-        Support.sequelize.connectionManager.getConnection().then(connection => {
+        return Support.sequelize.connectionManager.getConnection().then(connection => {
           Support.sequelize.connectionManager.releaseConnection(connection);
 
           const tsName = DataTypes.postgres.DATE.types.postgres[0],
@@ -205,7 +205,7 @@ if (dialect.match(/^postgres/)) {
         let stringified = Range.stringify(testRange, {});
         stringified = stringified.substr(1, stringified.length - 2); // Remove the escaping ticks
 
-        expect(DataTypes.postgres.RANGE.parse(stringified, {parser: DataTypes.postgres.INTEGER.parse})).to.deep.equal(testRange);
+        expect(DataTypes.postgres.RANGE.parse(stringified, { parser: DataTypes.postgres.INTEGER.parse })).to.deep.equal(testRange);
       });
     });
   });

@@ -252,8 +252,8 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         version: true
       });
 
-      return Account.sync({force: true}).then(() => {
-        const result = Account.create({number: 1}).then(accountA => {
+      return Account.sync({ force: true }).then(() => {
+        const result = Account.create({ number: 1 }).then(accountA => {
           return Account.findByPk(accountA.id).then(accountB => {
             accountA.number += 1;
             return accountA.save().then(() => { return accountB; });

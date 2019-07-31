@@ -40,8 +40,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Project = this.sequelize.define('project', {});
 
           this.Task.belongsTo(this.User);
-          this.Project.belongsToMany(this.User, {through: 'project_user'});
-          this.User.belongsToMany(this.Project, {through: 'project_user'});
+          this.User.hasMany(this.Task);
+          this.Project.belongsToMany(this.User, { through: 'project_user' });
+          this.User.belongsToMany(this.Project, { through: 'project_user' });
 
           this.sqlAssert = function(sql) {
             expect(sql).to.not.include('field1');
@@ -97,7 +98,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
 
-          return this.sequelize.sync({ force: true}).then(() => {
+          return this.sequelize.sync({ force: true }).then(() => {
             return Post.bulkCreate([{ text: 'text1' }, { text: 'text2' }]);
           }).then(() => {
             let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
@@ -171,6 +172,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(user.storage).to.equal('something');
             expect(user).not.to.include.all.keys(['field1']);
             expect(user).to.include.all.keys(['field2']);
+          });
+        });
+
+        it('should be able to include model with virtual attributes', function() {
+          return this.User.create({}).then(user => {
+            return user.createTask();
+          }).then(() => {
+            return this.Task.findAll({
+              include: [{
+                attributes: ['field2', 'id'],
+                model: this.User
+              }]
+            });
+          }).then(tasks => {
+            const user = tasks[0].user.get();
+
+            expect(user.field2).to.equal(42);
           });
         });
       });

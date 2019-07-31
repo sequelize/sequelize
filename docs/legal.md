@@ -4,7 +4,7 @@
 
 Sequelize library is distributed with MIT license. You can find original license [here.](https://github.com/sequelize/sequelize/blob/master/LICENSE)
 
-```
+```text
 MIT License
 
 Copyright (c) 2014-present Sequelize contributors
@@ -30,7 +30,7 @@ SOFTWARE.
 
 ## AUTHOR(S)
 
-```
+```text
 Main author:
 
 Sascha Depold
@@ -43,7 +43,7 @@ sascha [at] depold [dot] com
 
 ## INHALTLICHE VERANTWORTUNG
 
-```
+```text
 Ich übernehme keine Haftung für ausgehende Links.
 Daher musst du dich bei Problemen an deren Betreiber wenden!
 ```

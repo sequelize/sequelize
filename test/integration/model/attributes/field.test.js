@@ -214,8 +214,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('field and attribute name is the same', () => {
         beforeEach(function() {
           return this.Comment.bulkCreate([
-            { notes: 'Number one'},
-            { notes: 'Number two'}
+            { notes: 'Number one' },
+            { notes: 'Number two' }
           ]);
         });
 
@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('find with where should work', function() {
-          return this.Comment.findAll({ where: { notes: 'Number one' }}).then(comments => {
+          return this.Comment.findAll({ where: { notes: 'Number one' } }).then(comments => {
             expect(comments).to.have.length(1);
             expect(comments[0].notes).to.equal('Number one');
           });
@@ -303,15 +303,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should bulk update', function() {
         const Entity = this.sequelize.define('Entity', {
-          strField: {type: Sequelize.STRING, field: 'str_field'}
+          strField: { type: Sequelize.STRING, field: 'str_field' }
         });
 
-        return this.sequelize.sync({force: true}).then(() => {
-          return Entity.create({strField: 'foo'});
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Entity.create({ strField: 'foo' });
         }).then(() => {
           return Entity.update(
-            {strField: 'bar'},
-            {where: {strField: 'foo'}}
+            { strField: 'bar' },
+            { where: { strField: 'foo' } }
           );
         }).then(() => {
           return Entity.findOne({
@@ -347,8 +347,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           freezeTableName: true
         });
 
-        return Model.sync({force: true}).then(() => {
-          return Model.create({title: 'test'}).then(data => {
+        return Model.sync({ force: true }).then(() => {
+          return Model.create({ title: 'test' }).then(data => {
             expect(data.get('test_title')).to.be.an('undefined');
             expect(data.get('test_id')).to.be.an('undefined');
           });
@@ -377,10 +377,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }).then(() => {
           return this.Task.findOne({
             include: [
-              {model: this.Comment},
-              {model: this.User}
+              { model: this.Comment },
+              { model: this.User }
             ],
-            where: {title: 'DatDo'}
+            where: { title: 'DatDo' }
           });
         }).then(task => {
           expect(task.get('title')).to.equal('DatDo');
@@ -403,9 +403,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }).then(() => {
           return this.User.findAll({
             include: [
-              {model: this.Task, where: {title: 'DoDat'}, include: [
-                {model: this.Comment}
-              ]}
+              { model: this.Task, where: { title: 'DoDat' }, include: [
+                { model: this.Comment }
+              ] }
             ]
           });
         }).then(users => {
@@ -569,7 +569,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           paranoid: true
         });
 
-        return User.sync({force: true})
+        return User.sync({ force: true })
           .then(() => {
             return User.create();
           })
@@ -596,9 +596,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           paranoid: true
         });
 
-        return User.sync({force: true}).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create().then(user => {
-            return User.destroy({where: {id: user.get('id')}});
+            return User.destroy({ where: { id: user.get('id') } });
           }).then(() => {
             return User.findAll().then(users => {
               expect(users.length).to.equal(0);

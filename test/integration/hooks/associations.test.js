@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             title: DataTypes.STRING
           });
 
-          this.Projects.hasOne(this.Tasks, {onUpdate: 'cascade', hooks: true});
+          this.Projects.hasOne(this.Tasks, { onUpdate: 'cascade', hooks: true });
           this.Tasks.belongsTo(this.Projects);
 
           return this.Projects.sync({ force: true }).then(() => {
@@ -70,10 +70,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             return Promise.resolve();
           });
 
-          return this.Projects.create({title: 'New Project'}).then(project => {
-            return this.Tasks.create({title: 'New Task'}).then(task => {
+          return this.Projects.create({ title: 'New Project' }).then(project => {
+            return this.Tasks.create({ title: 'New Task' }).then(task => {
               return project.setTask(task).then(() => {
-                return project.update({id: 2}).then(() => {
+                return project.update({ id: 2 }).then(() => {
                   expect(beforeHook).to.be.true;
                   expect(afterHook).to.be.true;
                 });
@@ -87,8 +87,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             return Promise.reject(new Error('Whoops!'));
           });
 
-          return this.Projects.create({title: 'New Project'}).then(project => {
-            return this.Tasks.create({title: 'New Task'}).then(task => {
+          return this.Projects.create({ title: 'New Project' }).then(project => {
+            return this.Tasks.create({ title: 'New Task' }).then(task => {
               return project.setTask(task).catch(err => {
                 expect(err).to.be.instanceOf(Error);
               });
@@ -107,7 +107,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             title: DataTypes.STRING
           });
 
-          this.Projects.hasOne(this.Tasks, {onDelete: 'CASCADE', hooks: true});
+          this.Projects.hasOne(this.Tasks, { onDelete: 'CASCADE', hooks: true });
           this.Tasks.belongsTo(this.Projects);
 
           return this.sequelize.sync({ force: true });
@@ -125,8 +125,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeDestroy(beforeTask);
             this.Tasks.afterDestroy(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.setTask(task).then(() => {
                   return project.destroy().then(() => {
                     expect(beforeProject).to.have.been.calledOnce;
@@ -166,8 +166,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return Promise.resolve();
             });
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.setTask(task).then(() => {
                   return expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText).then(() => {
                     expect(beforeProject).to.be.true;
@@ -207,10 +207,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           this.Tasks.beforeUpdate(beforeHook);
           this.Tasks.afterUpdate(afterHook);
 
-          return this.Projects.create({title: 'New Project'}).then(project => {
-            return this.Tasks.create({title: 'New Task'}).then(task => {
+          return this.Projects.create({ title: 'New Project' }).then(project => {
+            return this.Tasks.create({ title: 'New Task' }).then(task => {
               return project.setTask(task).then(() => {
-                return project.update({id: 2}).then(() => {
+                return project.update({ id: 2 }).then(() => {
                   expect(beforeHook).to.have.been.calledOnce;
                   expect(afterHook).to.have.been.calledOnce;
                 });
@@ -224,8 +224,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             throw new Error('Whoops!');
           });
 
-          return this.Projects.create({title: 'New Project'}).then(project => {
-            return this.Tasks.create({title: 'New Task'}).then(task => {
+          return this.Projects.create({ title: 'New Project' }).then(project => {
+            return this.Tasks.create({ title: 'New Task' }).then(task => {
               return expect(project.setTask(task)).to.be.rejected;
             });
           });
@@ -262,8 +262,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeUpdate(beforeTask);
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.addTask(task).then(() => {
                   return project.removeTask(task).then(() => {
                     expect(beforeProject).to.have.been.called;
@@ -290,8 +290,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             });
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.addTask(task).catch(err => {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeProject).to.have.been.calledOnce;
@@ -317,8 +317,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             title: DataTypes.STRING
           });
 
-          this.Projects.hasMany(this.Tasks, {onDelete: 'cascade', hooks: true});
-          this.Tasks.belongsTo(this.Projects, {hooks: true});
+          this.Projects.hasMany(this.Tasks, { onDelete: 'cascade', hooks: true });
+          this.Tasks.belongsTo(this.Projects, { hooks: true });
 
           return this.Projects.sync({ force: true }).then(() => {
             return this.Tasks.sync({ force: true });
@@ -337,8 +337,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeDestroy(beforeTask);
             this.Tasks.afterDestroy(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.addTask(task).then(() => {
                   return project.destroy().then(() => {
                     expect(beforeProject).to.have.been.calledOnce;
@@ -377,8 +377,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return Promise.resolve();
             });
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.addTask(task).then(() => {
                   return project.destroy().catch(err => {
                     expect(err).to.be.instanceOf(Error);
@@ -422,8 +422,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeUpdate(beforeTask);
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.addTask(task).then(() => {
                   return project.removeTask(task).then(() => {
                     expect(beforeProject).to.have.been.called;
@@ -462,8 +462,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return Promise.resolve();
             });
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.addTask(task).catch(err => {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeProject).to.be.true;
@@ -489,8 +489,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             title: DataTypes.STRING
           });
 
-          this.Projects.belongsToMany(this.Tasks, {cascade: 'onDelete', through: 'projects_and_tasks', hooks: true});
-          this.Tasks.belongsToMany(this.Projects, {cascade: 'onDelete', through: 'projects_and_tasks', hooks: true});
+          this.Projects.belongsToMany(this.Tasks, { cascade: 'onDelete', through: 'projects_and_tasks', hooks: true });
+          this.Tasks.belongsToMany(this.Projects, { cascade: 'onDelete', through: 'projects_and_tasks', hooks: true });
 
           return this.sequelize.sync({ force: true });
         });
@@ -507,8 +507,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeDestroy(beforeTask);
             this.Tasks.afterDestroy(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.addTask(task).then(() => {
                   return project.destroy().then(() => {
                     expect(beforeProject).to.have.been.calledOnce;
@@ -548,8 +548,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return Promise.resolve();
             });
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.addTask(task).then(() => {
                   return project.destroy().then(() => {
                     expect(beforeProject).to.be.true;
@@ -574,8 +574,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             title: DataTypes.STRING
           });
 
-          this.Projects.belongsToMany(this.Tasks, {hooks: true, through: 'project_tasks'});
-          this.Tasks.belongsToMany(this.Projects, {hooks: true, through: 'project_tasks'});
+          this.Projects.belongsToMany(this.Tasks, { hooks: true, through: 'project_tasks' });
+          this.Tasks.belongsToMany(this.Projects, { hooks: true, through: 'project_tasks' });
 
           return this.sequelize.sync({ force: true });
         });
@@ -592,8 +592,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeUpdate(beforeTask);
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.addTask(task).then(() => {
                   return project.removeTask(task).then(() => {
                     expect(beforeProject).to.have.been.calledOnce;
@@ -632,8 +632,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return Promise.resolve();
             });
 
-            return this.Projects.create({title: 'New Project'}).then(project => {
-              return this.Tasks.create({title: 'New Task'}).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then(project => {
+              return this.Tasks.create({ title: 'New Task' }).then(task => {
                 return project.addTask(task).then(() => {
                   expect(beforeProject).to.be.true;
                   expect(afterProject).to.be.true;
@@ -665,16 +665,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               mini_title: DataTypes.STRING
             });
 
-            this.Projects.hasMany(this.Tasks, {onDelete: 'cascade', hooks: true});
-            this.Projects.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
+            this.Projects.hasMany(this.Tasks, { onDelete: 'cascade', hooks: true });
+            this.Projects.hasMany(this.MiniTasks, { onDelete: 'cascade', hooks: true });
 
-            this.Tasks.belongsTo(this.Projects, {hooks: true});
-            this.Tasks.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
+            this.Tasks.belongsTo(this.Projects, { hooks: true });
+            this.Tasks.hasMany(this.MiniTasks, { onDelete: 'cascade', hooks: true });
 
-            this.MiniTasks.belongsTo(this.Projects, {hooks: true});
-            this.MiniTasks.belongsTo(this.Tasks, {hooks: true});
+            this.MiniTasks.belongsTo(this.Projects, { hooks: true });
+            this.MiniTasks.belongsTo(this.Tasks, { hooks: true });
 
-            return this.sequelize.sync({force: true});
+            return this.sequelize.sync({ force: true });
           });
 
           describe('#remove', () => {
@@ -717,8 +717,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               });
 
               return Sequelize.Promise.all([
-                this.Projects.create({title: 'New Project'}),
-                this.MiniTasks.create({mini_title: 'New MiniTask'})
+                this.Projects.create({ title: 'New Project' }),
+                this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ]).then(([project, minitask]) => {
                 return project.addMiniTask(minitask);
               }).then(project => {
@@ -773,8 +773,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               });
 
               return Sequelize.Promise.all([
-                this.Projects.create({title: 'New Project'}),
-                this.MiniTasks.create({mini_title: 'New MiniTask'})
+                this.Projects.create({ title: 'New Project' }),
+                this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ]).then(([project, minitask]) => {
                 return project.addMiniTask(minitask);
               }).then(project => {
@@ -807,16 +807,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               mini_title: DataTypes.STRING
             });
 
-            this.Projects.hasMany(this.Tasks, {onDelete: 'cascade', hooks: true});
-            this.Projects.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
+            this.Projects.hasMany(this.Tasks, { onDelete: 'cascade', hooks: true });
+            this.Projects.hasMany(this.MiniTasks, { onDelete: 'cascade', hooks: true });
 
-            this.Tasks.belongsTo(this.Projects, {hooks: true});
-            this.Tasks.hasMany(this.MiniTasks, {onDelete: 'cascade', hooks: true});
+            this.Tasks.belongsTo(this.Projects, { hooks: true });
+            this.Tasks.hasMany(this.MiniTasks, { onDelete: 'cascade', hooks: true });
 
-            this.MiniTasks.belongsTo(this.Projects, {hooks: true});
-            this.MiniTasks.belongsTo(this.Tasks, {hooks: true});
+            this.MiniTasks.belongsTo(this.Projects, { hooks: true });
+            this.MiniTasks.belongsTo(this.Tasks, { hooks: true });
 
-            return this.sequelize.sync({force: true});
+            return this.sequelize.sync({ force: true });
           });
 
           describe('#remove', () => {
@@ -859,9 +859,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               });
 
               return Sequelize.Promise.all([
-                this.Projects.create({title: 'New Project'}),
-                this.Tasks.create({title: 'New Task'}),
-                this.MiniTasks.create({mini_title: 'New MiniTask'})
+                this.Projects.create({ title: 'New Project' }),
+                this.Tasks.create({ title: 'New Task' }),
+                this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ]).then(([project, task, minitask]) => {
                 return Sequelize.Promise.all([
                   task.addMiniTask(minitask),
@@ -914,9 +914,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               });
 
               return Sequelize.Promise.all([
-                this.Projects.create({title: 'New Project'}),
-                this.Tasks.create({title: 'New Task'}),
-                this.MiniTasks.create({mini_title: 'New MiniTask'})
+                this.Projects.create({ title: 'New Project' }),
+                this.Tasks.create({ title: 'New Task' }),
+                this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ]).then(([project, task, minitask]) => {
                 return Sequelize.Promise.all([
                   task.addMiniTask(minitask),

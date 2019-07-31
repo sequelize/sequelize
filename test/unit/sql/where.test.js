@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(util.inspect(params, {depth: 10})+(options && `, ${util.inspect(options)}` || ''), () => {
+      it(util.inspect(params, { depth: 10 })+(options && `, ${util.inspect(options)}` || ''), () => {
         const sqlOrError = _.attempt(sql.whereQuery.bind(sql), params, options);
         return expectsql(sqlOrError, expectation);
       });
@@ -32,32 +32,33 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     testsql([], {
       default: ''
     });
-    testsql({id: undefined}, {
+    testsql({ id: undefined }, {
       default: new Error('WHERE parameter "id" has invalid "undefined" value')
     });
-    testsql({id: 1}, {
+    testsql({ id: 1 }, {
       default: 'WHERE [id] = 1'
     });
-    testsql({id: 1, user: undefined}, {
+    testsql({ id: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
-    testsql({id: 1, user: undefined}, {type: QueryTypes.SELECT}, {
+    testsql({ id: 1, user: undefined }, { type: QueryTypes.SELECT }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
-    testsql({id: 1, user: undefined}, {type: QueryTypes.BULKDELETE}, {
+    testsql({ id: 1, user: undefined }, { type: QueryTypes.BULKDELETE }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
-    testsql({id: 1, user: undefined}, {type: QueryTypes.BULKUPDATE}, {
+    testsql({ id: 1, user: undefined }, { type: QueryTypes.BULKUPDATE }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value')
     });
-    testsql({id: 1}, {prefix: 'User'}, {
+    testsql({ id: 1 }, { prefix: 'User' }, {
       default: 'WHERE [User].[id] = 1'
     });
 
     it("{ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'})) }", () => {
-      expectsql(sql.whereQuery({id: 1}, {prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'}))}), {
+      expectsql(sql.whereQuery({ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, { schema: 'yolo', tableName: 'User' })) }), {
         default: 'WHERE [yolo.User].[id] = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
+        mariadb: 'WHERE `yolo`.`User`.`id` = 1',
         mssql: 'WHERE [yolo].[User].[id] = 1'
       });
     });
@@ -102,7 +103,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(`${String(key)}: ${util.inspect(value, {depth: 10})}${options && `, ${util.inspect(options)}` || ''}`, () => {
+      it(`${String(key)}: ${util.inspect(value, { depth: 10 })}${options && `, ${util.inspect(options)}` || ''}`, () => {
         return expectsql(sql.whereItemQuery(key, value, options), expectation);
       });
     };
@@ -117,7 +118,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       mssql: '[deleted] IS NULL'
     });
 
-    describe('$in', () => {
+    describe('Op.in', () => {
       testsql('equipment', {
         [Op.in]: [1, 3]
       }, {
@@ -149,12 +150,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('field', Buffer.from('Sequelize'), {
         postgres: '"field" = E\'\\\\x53657175656c697a65\'',
         sqlite: "`field` = X'53657175656c697a65'",
+        mariadb: "`field` = X'53657175656c697a65'",
         mysql: "`field` = X'53657175656c697a65'",
         mssql: '[field] = 0x53657175656c697a65'
       });
     });
 
-    describe('$not', () => {
+    describe('Op.not', () => {
       testsql('deleted', {
         [Op.not]: true
       }, {
@@ -176,7 +178,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$notIn', () => {
+    describe('Op.notIn', () => {
       testsql('equipment', {
         [Op.notIn]: []
       }, {
@@ -198,7 +200,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$ne', () => {
+    describe('Op.ne', () => {
       testsql('email', {
         [Op.ne]: 'jack.bauer@gmail.com'
       }, {
@@ -207,8 +209,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$and/$or/$not', () => {
-      describe('$or', () => {
+    describe('Op.and/Op.or/Op.not', () => {
+      describe('Op.or', () => {
         testsql('email', {
           [Op.or]: ['maker@mhansen.io', 'janzeh@gmail.com']
         }, {
@@ -226,8 +228,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql(Op.or, [
-          {email: 'maker@mhansen.io'},
-          {email: 'janzeh@gmail.com'}
+          { email: 'maker@mhansen.io' },
+          { email: 'janzeh@gmail.com' }
         ], {
           default: '([email] = \'maker@mhansen.io\' OR [email] = \'janzeh@gmail.com\')',
           mssql: '([email] = N\'maker@mhansen.io\' OR [email] = N\'janzeh@gmail.com\')'
@@ -263,13 +265,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         it('sequelize.or({group_id: 1}, {user_id: 2})', function() {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2})), {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({ group_id: 1 }, { user_id: 2 })), {
             default: '([group_id] = 1 OR [user_id] = 2)'
           });
         });
 
         it("sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})", function() {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({group_id: 1}, {user_id: 2, role: 'admin'})), {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.or({ group_id: 1 }, { user_id: 2, role: 'admin' })), {
             default: "([group_id] = 1 OR ([user_id] = 2 AND [role] = 'admin'))",
             mssql: "([group_id] = 1 OR ([user_id] = 2 AND [role] = N'admin'))"
           });
@@ -290,7 +292,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      describe('$and', () => {
+      describe('Op.and', () => {
         testsql(Op.and, {
           [Op.or]: {
             group_id: 1,
@@ -328,8 +330,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         testsql('name', {
           [Op.and]: [
-            {[Op.like]: '%someValue1%'},
-            {[Op.like]: '%someValue2%'}
+            { [Op.like]: '%someValue1%' },
+            { [Op.like]: '%someValue2%' }
           ]
         }, {
           default: "([name] LIKE '%someValue1%' AND [name] LIKE '%someValue2%')",
@@ -337,13 +339,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         it('sequelize.and({shared: 1, sequelize.or({group_id: 1}, {user_id: 2}))', function() {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.and({shared: 1}, this.sequelize.or({group_id: 1}, {user_id: 2}))), {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.and({ shared: 1 }, this.sequelize.or({ group_id: 1 }, { user_id: 2 }))), {
             default: '([shared] = 1 AND ([group_id] = 1 OR [user_id] = 2))'
           });
         });
       });
 
-      describe('$not', () => {
+      describe('Op.not', () => {
         testsql(Op.not, {
           [Op.or]: {
             group_id: 1,
@@ -364,7 +366,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$col', () => {
+    describe('Op.col', () => {
       testsql('userId', {
         [Op.col]: 'user.id'
       }, {
@@ -388,8 +390,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       testsql(Op.or, [
-        {'ownerId': {[Op.col]: 'user.id'}},
-        {'ownerId': {[Op.col]: 'organization.id'}}
+        { 'ownerId': { [Op.col]: 'user.id' } },
+        { 'ownerId': { [Op.col]: 'organization.id' } }
       ], {
         default: '([ownerId] = [user].[id] OR [ownerId] = [organization].[id])'
       });
@@ -407,7 +409,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$gt', () => {
+    describe('Op.gt', () => {
       testsql('rank', {
         [Op.gt]: 2
       }, {
@@ -423,7 +425,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$like', () => {
+    describe('Op.like', () => {
       testsql('username', {
         [Op.like]: '%swagger'
       }, {
@@ -432,25 +434,25 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$startsWith', () => {
+    describe('Op.startsWith', () => {
       testsql('username', {
         [Op.startsWith]: 'swagger'
-      }, {
-        default: "[username] LIKE '%swagger'",
-        mssql: "[username] LIKE N'%swagger'"
-      });
-    });
-
-    describe('$endsWith', () => {
-      testsql('username', {
-        [Op.endsWith]: 'swagger'
       }, {
         default: "[username] LIKE 'swagger%'",
         mssql: "[username] LIKE N'swagger%'"
       });
     });
 
-    describe('$substring', () => {
+    describe('Op.endsWith', () => {
+      testsql('username', {
+        [Op.endsWith]: 'swagger'
+      }, {
+        default: "[username] LIKE '%swagger'",
+        mssql: "[username] LIKE N'%swagger'"
+      });
+    });
+
+    describe('Op.substring', () => {
       testsql('username', {
         [Op.substring]: 'swagger'
       }, {
@@ -459,12 +461,36 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$between', () => {
+    describe('Op.between', () => {
       testsql('date', {
         [Op.between]: ['2013-01-01', '2013-01-11']
       }, {
         default: "[date] BETWEEN '2013-01-01' AND '2013-01-11'",
         mssql: "[date] BETWEEN N'2013-01-01' AND N'2013-01-11'"
+      });
+
+      testsql('date', {
+        [Op.between]: [new Date('2013-01-01'), new Date('2013-01-11')]
+      }, {
+        default: "[date] BETWEEN '2013-01-01 00:00:00.000 +00:00' AND '2013-01-11 00:00:00.000 +00:00'",
+        mysql: "`date` BETWEEN '2013-01-01 00:00:00' AND '2013-01-11 00:00:00'",
+        mariadb: "`date` BETWEEN '2013-01-01 00:00:00.000' AND '2013-01-11 00:00:00.000'"
+      });
+
+      testsql('date', {
+        [Op.between]: [1356998400000, 1357862400000]
+      }, {
+        model: {
+          rawAttributes: {
+            date: {
+              type: new DataTypes.DATE()
+            }
+          }
+        }
+      },
+      {
+        default: "[date] BETWEEN '2013-01-01 00:00:00.000 +00:00' AND '2013-01-11 00:00:00.000 +00:00'",
+        mssql: "[date] BETWEEN N'2013-01-01 00:00:00.000 +00:00' AND N'2013-01-11 00:00:00.000 +00:00'"
       });
 
       testsql('date', {
@@ -476,7 +502,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('$notBetween', () => {
+    describe('Op.notBetween', () => {
       testsql('date', {
         [Op.notBetween]: ['2013-01-01', '2013-01-11']
       }, {
@@ -487,7 +513,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     if (current.dialect.supports.ARRAY) {
       describe('ARRAY', () => {
-        describe('$contains', () => {
+        describe('Op.contains', () => {
           testsql('muscles', {
             [Op.contains]: [2, 3]
           }, {
@@ -511,7 +537,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$overlap', () => {
+        describe('Op.overlap', () => {
           testsql('muscles', {
             [Op.overlap]: [3, 11]
           }, {
@@ -519,7 +545,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$any', () => {
+        describe('Op.any', () => {
           testsql('userId', {
             [Op.any]: [4, 5, 6]
           }, {
@@ -536,7 +562,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: '"userId" = ANY (ARRAY[2,5]::INTEGER[])'
           });
 
-          describe('$values', () => {
+          describe('Op.values', () => {
             testsql('userId', {
               [Op.any]: {
                 [Op.values]: [4, 5, 6]
@@ -559,7 +585,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$all', () => {
+        describe('Op.all', () => {
           testsql('userId', {
             [Op.all]: [4, 5, 6]
           }, {
@@ -576,7 +602,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: '"userId" = ALL (ARRAY[2,5]::INTEGER[])'
           });
 
-          describe('$values', () => {
+          describe('Op.values', () => {
             testsql('userId', {
               [Op.all]: {
                 [Op.values]: [4, 5, 6]
@@ -599,7 +625,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$like', () => {
+        describe('Op.like', () => {
           testsql('userId', {
             [Op.like]: {
               [Op.any]: ['foo', 'bar', 'baz']
@@ -800,14 +826,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expectsql(sql.whereItemQuery(undefined, this.sequelize.json('profile.id', this.sequelize.cast('12346-78912', 'text'))), {
             postgres: "(\"profile\"#>>'{id}') = CAST('12346-78912' AS TEXT)",
             sqlite: "json_extract(`profile`, '$.id') = CAST('12346-78912' AS TEXT)",
+            mariadb: "json_unquote(json_extract(`profile`,'$.id')) = CAST('12346-78912' AS CHAR)",
             mysql: "`profile`->>'$.id' = CAST('12346-78912' AS CHAR)"
           });
         });
 
         it('sequelize.json({profile: {id: "12346-78912", name: "test"}})', function() {
-          expectsql(sql.whereItemQuery(undefined, this.sequelize.json({profile: {id: '12346-78912', name: 'test'}})), {
+          expectsql(sql.whereItemQuery(undefined, this.sequelize.json({ profile: { id: '12346-78912', name: 'test' } })), {
             postgres: "(\"profile\"#>>'{id}') = '12346-78912' AND (\"profile\"#>>'{name}') = 'test'",
             sqlite: "json_extract(`profile`, '$.id') = '12346-78912' AND json_extract(`profile`, '$.name') = 'test'",
+            mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '12346-78912' and json_unquote(json_extract(`profile`,'$.name')) = 'test'",
             mysql: "`profile`->>'$.id' = '12346-78912' and `profile`->>'$.name' = 'test'"
           });
         });
@@ -822,7 +850,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           prefix: 'User'
         }, {
-          mysql: "(`User`.`data`->>'$.\"nested\".\"attribute\"') = 'value'",
+          mariadb: "json_unquote(json_extract(`User`.`data`,'$.nested.attribute')) = 'value'",
+          mysql: "(`User`.`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') = 'value'",
           postgres: "(\"User\".\"data\"#>>'{nested,attribute}') = 'value'",
           sqlite: "json_extract(`User`.`data`, '$.nested.attribute') = 'value'"
         });
@@ -836,7 +865,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
-          mysql: "CAST((`data`->>'$.\"nested\"') AS DECIMAL) IN (1, 2)",
+          mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested')) AS DECIMAL) IN (1, 2)",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\"') AS DECIMAL) IN (1, 2)",
           postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) IN (1, 2)",
           sqlite: "CAST(json_extract(`data`, '$.nested') AS DOUBLE PRECISION) IN (1, 2)"
         });
@@ -850,7 +880,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
-          mysql: "CAST((`data`->>'$.\"nested\"') AS DECIMAL) BETWEEN 1 AND 2",
+          mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested')) AS DECIMAL) BETWEEN 1 AND 2",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\"') AS DECIMAL) BETWEEN 1 AND 2",
           postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) BETWEEN 1 AND 2",
           sqlite: "CAST(json_extract(`data`, '$.nested') AS DOUBLE PRECISION) BETWEEN 1 AND 2"
         });
@@ -866,9 +897,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           field: {
             type: new DataTypes.JSONB()
           },
-          prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {tableName: 'User'}))
+          prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, { tableName: 'User' }))
         }, {
-          mysql: "((`User`.`data`->>'$.\"nested\".\"attribute\"') = 'value' AND (`User`.`data`->>'$.\"nested\".\"prop\"') != 'None')",
+          mariadb: "(json_unquote(json_extract(`User`.`data`,'$.nested.attribute')) = 'value' AND json_unquote(json_extract(`User`.`data`,'$.nested.prop')) != 'None')",
+          mysql: "((`User`.`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') = 'value' AND (`User`.`data`->>'$.\\\"nested\\\".\\\"prop\\\"') != 'None')",
           postgres: "((\"User\".\"data\"#>>'{nested,attribute}') = 'value' AND (\"User\".\"data\"#>>'{nested,prop}') != 'None')",
           sqlite: "(json_extract(`User`.`data`, '$.nested.attribute') = 'value' AND json_extract(`User`.`data`, '$.nested.prop') != 'None')"
         });
@@ -886,7 +918,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           prefix: 'User'
         }, {
-          mysql: "((`User`.`data`->>'$.\"name\".\"last\"') = 'Simpson' AND (`User`.`data`->>'$.\"employment\"') != 'None')",
+          mariadb: "(json_unquote(json_extract(`User`.`data`,'$.name.last')) = 'Simpson' AND json_unquote(json_extract(`User`.`data`,'$.employment')) != 'None')",
+          mysql: "((`User`.`data`->>'$.\\\"name\\\".\\\"last\\\"') = 'Simpson' AND (`User`.`data`->>'$.\\\"employment\\\"') != 'None')",
           postgres: "((\"User\".\"data\"#>>'{name,last}') = 'Simpson' AND (\"User\".\"data\"#>>'{employment}') != 'None')",
           sqlite: "(json_extract(`User`.`data`, '$.name.last') = 'Simpson' AND json_extract(`User`.`data`, '$.employment') != 'None')"
         });
@@ -899,7 +932,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
-          mysql: "(CAST((`data`->>'$.\"price\"') AS DECIMAL) = 5 AND (`data`->>'$.\"name\"') = 'Product')",
+          mariadb: "(CAST(json_unquote(json_extract(`data`,'$.price')) AS DECIMAL) = 5 AND json_unquote(json_extract(`data`,'$.name')) = 'Product')",
+          mysql: "(CAST((`data`->>'$.\\\"price\\\"') AS DECIMAL) = 5 AND (`data`->>'$.\\\"name\\\"') = 'Product')",
           postgres: "(CAST((\"data\"#>>'{price}') AS DOUBLE PRECISION) = 5 AND (\"data\"#>>'{name}') = 'Product')",
           sqlite: "(CAST(json_extract(`data`, '$.price') AS DOUBLE PRECISION) = 5 AND json_extract(`data`, '$.name') = 'Product')"
         });
@@ -913,7 +947,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }, {
-          mysql: "(`data`->>'$.\"nested\".\"attribute\"') = 'value'",
+          mariadb: "json_unquote(json_extract(`data`,'$.nested.attribute')) = 'value'",
+          mysql: "(`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') = 'value'",
           postgres: "(\"data\"#>>'{nested,attribute}') = 'value'",
           sqlite: "json_extract(`data`, '$.nested.attribute') = 'value'"
         });
@@ -927,7 +962,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }, {
-          mysql: "CAST((`data`->>'$.\"nested\".\"attribute\"') AS DECIMAL) = 4",
+          mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) = 4",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') AS DECIMAL) = 4",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) = 4",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) = 4"
         });
@@ -943,7 +979,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }, {
-          mysql: "CAST((`data`->>'$.\"nested\".\"attribute\"') AS DECIMAL) IN (3, 7)",
+          mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) IN (3, 7)",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') AS DECIMAL) IN (3, 7)",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) IN (3, 7)",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) IN (3, 7)"
         });
@@ -959,7 +996,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
-          mysql: "CAST((`data`->>'$.\"nested\".\"attribute\"') AS DECIMAL) > 2",
+          mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) > 2",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') AS DECIMAL) > 2",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) > 2",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS DOUBLE PRECISION) > 2"
         });
@@ -975,7 +1013,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
-          mysql: "CAST((`data`->>'$.\"nested\".\"attribute\"') AS DECIMAL) > 2",
+          mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) > 2",
+          mysql: "CAST((`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') AS DECIMAL) > 2",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS INTEGER) > 2",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS INTEGER) > 2"
         });
@@ -992,7 +1031,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
-          mysql: `CAST((\`data\`->>'$."nested"."attribute"') AS DATETIME) > ${sql.escape(dt)}`,
+          mariadb: `CAST(json_unquote(json_extract(\`data\`,'$.nested.attribute')) AS DATETIME) > ${sql.escape(dt)}`,
+          mysql: `CAST((\`data\`->>'$.\\"nested\\".\\"attribute\\"') AS DATETIME) > ${sql.escape(dt)}`,
           postgres: `CAST(("data"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
           sqlite: `json_extract(\`data\`, '$.nested.attribute') > ${sql.escape(dt.toISOString())}`
         });
@@ -1006,7 +1046,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: new DataTypes.JSONB()
           }
         }, {
-          mysql: "(`data`->>'$.\"nested\".\"attribute\"') = 'true'",
+          mariadb: "json_unquote(json_extract(`data`,'$.nested.attribute')) = 'true'",
+          mysql: "(`data`->>'$.\\\"nested\\\".\\\"attribute\\\"') = 'true'",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS BOOLEAN) = true",
           sqlite: "CAST(json_extract(`data`, '$.nested.attribute') AS BOOLEAN) = 1"
         });
@@ -1022,7 +1063,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }, {
-          mysql: "(`meta_data`->>'$.\"nested\".\"attribute\"') = 'value'",
+          mariadb: "json_unquote(json_extract(`meta_data`,'$.nested.attribute')) = 'value'",
+          mysql: "(`meta_data`->>'$.\\\"nested\\\".\\\"attribute\\\"') = 'value'",
           postgres: "(\"meta_data\"#>>'{nested,attribute}') = 'value'",
           sqlite: "json_extract(`meta_data`, '$.nested.attribute') = 'value'"
         });
@@ -1046,44 +1088,48 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }
 
     if (current.dialect.supports.REGEXP) {
-      describe('$regexp', () => {
+      describe('Op.regexp', () => {
         testsql('username', {
           [Op.regexp]: '^sw.*r$'
         }, {
+          mariadb: "`username` REGEXP '^sw.*r$'",
           mysql: "`username` REGEXP '^sw.*r$'",
           postgres: '"username" ~ \'^sw.*r$\''
         });
       });
 
-      describe('$regexp', () => {
+      describe('Op.regexp', () => {
         testsql('newline', {
           [Op.regexp]: '^new\nline$'
         }, {
+          mariadb: "`newline` REGEXP '^new\\nline$'",
           mysql: "`newline` REGEXP '^new\\nline$'",
           postgres: '"newline" ~ \'^new\nline$\''
         });
       });
 
-      describe('$notRegexp', () => {
+      describe('Op.notRegexp', () => {
         testsql('username', {
           [Op.notRegexp]: '^sw.*r$'
         }, {
+          mariadb: "`username` NOT REGEXP '^sw.*r$'",
           mysql: "`username` NOT REGEXP '^sw.*r$'",
           postgres: '"username" !~ \'^sw.*r$\''
         });
       });
 
-      describe('$notRegexp', () => {
+      describe('Op.notRegexp', () => {
         testsql('newline', {
           [Op.notRegexp]: '^new\nline$'
         }, {
+          mariadb: "`newline` NOT REGEXP '^new\\nline$'",
           mysql: "`newline` NOT REGEXP '^new\\nline$'",
           postgres: '"newline" !~ \'^new\nline$\''
         });
       });
 
       if (current.dialect.name === 'postgres') {
-        describe('$iRegexp', () => {
+        describe('Op.iRegexp', () => {
           testsql('username', {
             [Op.iRegexp]: '^sw.*r$'
           }, {
@@ -1091,7 +1137,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$iRegexp', () => {
+        describe('Op.iRegexp', () => {
           testsql('newline', {
             [Op.iRegexp]: '^new\nline$'
           }, {
@@ -1099,7 +1145,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$notIRegexp', () => {
+        describe('Op.notIRegexp', () => {
           testsql('username', {
             [Op.notIRegexp]: '^sw.*r$'
           }, {
@@ -1107,7 +1153,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        describe('$notIRegexp', () => {
+        describe('Op.notIRegexp', () => {
           testsql('newline', {
             [Op.notIRegexp]: '^new\nline$'
           }, {
@@ -1119,7 +1165,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('fn', () => {
       it('{name: this.sequelize.fn(\'LOWER\', \'DERP\')}', function() {
-        expectsql(sql.whereQuery({name: this.sequelize.fn('LOWER', 'DERP')}), {
+        expectsql(sql.whereQuery({ name: this.sequelize.fn('LOWER', 'DERP') }), {
           default: "WHERE [name] = LOWER('DERP')",
           mssql: "WHERE [name] = LOWER(N'DERP')"
         });
@@ -1131,7 +1177,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = function(value, expectation) {
       const User = current.define('user', {});
 
-      it(util.inspect(value, {depth: 10}), () => {
+      it(util.inspect(value, { depth: 10 }), () => {
         return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
       });
     };

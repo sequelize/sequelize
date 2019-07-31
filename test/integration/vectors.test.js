@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('Vectors'), () => {
       tableName: 'student'
     });
 
-    return Student.sync({force: true}).then(() => {
+    return Student.sync({ force: true }).then(() => {
       return Student.create({
         name: 'Robert\\\'); DROP TABLE "students"; --'
       }).then(result => {

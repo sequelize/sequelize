@@ -9,6 +9,7 @@ Model.findAll({
   attributes: ['foo', 'bar']
 });
 ```
+
 ```sql
 SELECT foo, bar ...
 ```
@@ -20,6 +21,7 @@ Model.findAll({
   attributes: ['foo', ['bar', 'baz']]
 });
 ```
+
 ```sql
 SELECT foo, bar AS baz ...
 ```
@@ -31,6 +33,7 @@ Model.findAll({
   attributes: [[sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']]
 });
 ```
+
 ```sql
 SELECT COUNT(hats) AS no_hats ...
 ```
@@ -50,6 +53,7 @@ Model.findAll({
   attributes: { include: [[sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']] }
 });
 ```
+
 ```sql
 SELECT id, foo, bar, baz, quz, COUNT(hats) AS no_hats ...
 ```
@@ -61,10 +65,10 @@ Model.findAll({
   attributes: { exclude: ['baz'] }
 });
 ```
+
 ```sql
 SELECT id, foo, bar, quz ...
 ```
-
 
 ## Where
 
@@ -75,6 +79,7 @@ Whether you are querying with findAll/find or doing bulk updates/destroys you ca
 It's also possible to generate complex AND/OR conditions by nesting sets of `or` and `and` `Operators`.
 
 ### Basics
+
 ```js
 const Op = Sequelize.Op;
 
@@ -136,6 +141,7 @@ Post.findAll({
 ### Operators
 
 Sequelize exposes symbol operators that can be used for to create more complex comparisons -
+
 ```js
 const Op = Sequelize.Op
 
@@ -156,8 +162,8 @@ const Op = Sequelize.Op
 [Op.notLike]: '%hat'       // NOT LIKE '%hat'
 [Op.iLike]: '%hat'         // ILIKE '%hat' (case insensitive) (PG only)
 [Op.notILike]: '%hat'      // NOT ILIKE '%hat'  (PG only)
-[Op.startsWith]: 'hat'     // LIKE '%hat'
-[Op.endsWith]: 'hat'       // LIKE 'hat%'
+[Op.startsWith]: 'hat'     // LIKE 'hat%'
+[Op.endsWith]: 'hat'       // LIKE '%hat'
 [Op.substring]: 'hat'      // LIKE '%hat%'
 [Op.regexp]: '^[h|a|t]'    // REGEXP/~ '^[h|a|t]' (MySQL/PG only)
 [Op.notRegexp]: '^[h|a|t]' // NOT REGEXP/!~ '^[h|a|t]' (MySQL/PG only)
@@ -178,7 +184,7 @@ const Op = Sequelize.Op
 Range types can be queried with all supported operators.
 
 Keep in mind, the provided range value can
-[define the bound inclusion/exclusion](/manual/tutorial/models-definition.html#range-types)
+[define the bound inclusion/exclusion](data-types.html#range-types)
 as well.
 
 ```js
@@ -196,6 +202,7 @@ as well.
 ```
 
 #### Combinations
+
 ```js
 const Op = Sequelize.Op;
 
@@ -314,7 +321,7 @@ const connection = new Sequelize(db, user, pass, { operatorsAliases });
 
 ### JSON
 
-The JSON data type is supported by the PostgreSQL, SQLite and MySQL dialects only.
+The JSON data type is supported by the PostgreSQL, SQLite, MySQL and MariaDB dialects only.
 
 #### PostgreSQL
 
@@ -351,6 +358,7 @@ User.findAll({
 JSONB can be queried in three different ways.
 
 #### Nested object
+
 ```js
 {
   meta: {
@@ -364,6 +372,7 @@ JSONB can be queried in three different ways.
 ```
 
 #### Nested key
+
 ```js
 {
   "meta.audio.length": {
@@ -373,6 +382,7 @@ JSONB can be queried in three different ways.
 ```
 
 #### Containment
+
 ```js
 {
   "meta": {
@@ -386,6 +396,7 @@ JSONB can be queried in three different ways.
 ```
 
 ### Relations / Associations
+
 ```js
 // Find all projects with a least one task where task.state === project.state
 Project.findAll({
@@ -482,3 +493,35 @@ Project.findAll({
   // this will generate the SQL 'WITH (NOLOCK)'
 })
 ```
+
+## Index Hints
+
+`indexHints` can be used to optionally pass index hints when using mysql. The hint type must be a value from `Sequelize.IndexHints` and the values should reference existing indexes.
+
+Index hints [override the default behavior of the mysql query optimizer](https://dev.mysql.com/doc/refman/5.7/en/index-hints.html).
+
+```js
+Project.findAll({
+  indexHints: [
+    { type: IndexHints.USE, values: ['index_project_on_name'] }
+  ],
+  where: {
+    id: {
+      [Op.gt]: 623
+    },
+    name: {
+      [Op.like]: 'Foo %'
+    }
+  }
+})
+```
+
+Will generate a mysql query that looks like this:
+
+```sql
+SELECT * FROM Project USE INDEX (index_project_on_name) WHERE name LIKE 'FOO %' AND id > 623;
+```
+
+`Sequelize.IndexHints` includes `USE`, `FORCE`, and `IGNORE`.
+
+See [Issue #9421](https://github.com/sequelize/sequelize/issues/9421) for the original API proposal.

@@ -23,13 +23,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           age: DataTypes.INTEGER
         });
 
-        this.findAll = sinon.stub(this.User, 'findAll').callsFake(() => {
-          return Promise.reject(new Error());
-        });
+        this.findAll = sinon.stub(this.User, 'findAll').rejects(new Error());
 
-        this.count = sinon.stub(this.User, 'count').callsFake(() => {
-          return Promise.reject(new Error());
-        });
+        this.count = sinon.stub(this.User, 'count').rejects(new Error());
       });
 
       after(function() {

@@ -1,16 +1,16 @@
 'use strict';
 
-const fs = require('fs'),
-  path = require('path'),
-  _ = require('lodash'),
-  Sequelize = require('../index'),
-  DataTypes = require('../lib/data-types'),
-  Config = require('./config/config'),
-  supportShim = require('./supportShim'),
-  chai = require('chai'),
-  expect = chai.expect,
-  AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+const fs = require('fs');
+const path = require('path');
+const _ = require('lodash');
+const Sequelize = require('../index');
+const Config = require('./config/config');
+const chai = require('chai');
+const expect = chai.expect;
+const AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+const sinon = require('sinon');
 
+sinon.usingPromise(require('bluebird'));
 
 chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));
@@ -30,61 +30,23 @@ Sequelize.Promise.onPossiblyUnhandledRejection(e => {
 });
 Sequelize.Promise.longStackTraces();
 
-// shim all Sequelize methods for testing for correct `options.logging` passing
-// and no modification of `options` objects
-if (!process.env.COVERAGE && process.env.SHIM) supportShim(Sequelize);
-
 const Support = {
   Sequelize,
 
-  initTests(options) {
-    const sequelize = this.createSequelizeInstance(options);
-
-    this.clearDatabase(sequelize, () => {
-      if (options.context) {
-        options.context.sequelize = sequelize;
-      }
-
-      if (options.beforeComplete) {
-        options.beforeComplete(sequelize, DataTypes);
-      }
-
-      if (options.onComplete) {
-        options.onComplete(sequelize, DataTypes);
-      }
-    });
-  },
-
-  prepareTransactionTest(sequelize, callback) {
+  prepareTransactionTest(sequelize) {
     const dialect = Support.getTestDialect();
 
     if (dialect === 'sqlite') {
       const p = path.join(__dirname, 'tmp', 'db.sqlite');
-
-      return new Sequelize.Promise(resolve => {
-        // We cannot promisify exists, since exists does not follow node callback convention - first argument is a boolean, not an error / null
-        if (fs.existsSync(p)) {
-          resolve(Sequelize.Promise.promisify(fs.unlink)(p));
-        } else {
-          resolve();
-        }
-      }).then(() => {
-        const options = Object.assign({}, sequelize.options, { storage: p }),
-          _sequelize = new Sequelize(sequelize.config.database, null, null, options);
-
-        if (callback) {
-          _sequelize.sync({ force: true }).then(() => { callback(_sequelize); });
-        } else {
-          return _sequelize.sync({ force: true }).return (_sequelize);
-        }
-      });
-    } else {
-      if (callback) {
-        callback(sequelize);
-      } else {
-        return Sequelize.Promise.resolve(sequelize);
+      if (fs.existsSync(p)) {
+        fs.unlinkSync(p);
       }
+      const options = Object.assign({}, sequelize.options, { storage: p }),
+        _sequelize = new Sequelize(sequelize.config.database, null, null, options);
+
+      return _sequelize.sync({ force: true }).return(_sequelize);
     }
+    return Sequelize.Promise.resolve(sequelize);
   },
 
   createSequelizeInstance(options) {
@@ -138,20 +100,35 @@ const Support = {
         return sequelize
           .getQueryInterface()
           .dropAllEnums();
+      })
+      .then(() => {
+        return this.dropTestSchemas(sequelize);
       });
+  },
+
+  dropTestSchemas(sequelize) {
+
+    const queryInterface = sequelize.getQueryInterface();
+    if (!queryInterface.QueryGenerator._dialect.supports.schemas) {
+      return this.sequelize.drop({});
+    }
+
+    return sequelize.showAllSchemas().then(schemas => {
+      const schemasPromise = [];
+      schemas.forEach(schema => {
+        const schemaName = schema.name ? schema.name : schema;
+        if (schemaName !== sequelize.config.database) {
+          schemasPromise.push(sequelize.dropSchema(schemaName));
+        }
+      });
+      return Promise.all(schemasPromise.map(p => p.catch(e => e)))
+        .then(() => {}, () => {});
+    });
   },
 
   getSupportedDialects() {
     return fs.readdirSync(`${__dirname}/../lib/dialects`)
       .filter(file => !file.includes('.js') && !file.includes('abstract'));
-  },
-
-  checkMatchForDialects(dialect, value, expectations) {
-    if (expectations[dialect]) {
-      expect(value).to.match(expectations[dialect]);
-    } else {
-      throw new Error(`Undefined expectation for "${dialect}"!`);
-    }
   },
 
   getAbstractQueryGenerator(sequelize) {
@@ -193,25 +170,6 @@ const Support = {
     return `[${dialect.toUpperCase()}] ${moduleName}`;
   },
 
-  getTestUrl(config) {
-    let url;
-    const dbConfig = config[config.dialect];
-
-    if (config.dialect === 'sqlite') {
-      url = `sqlite://${dbConfig.storage}`;
-    } else {
-
-      let credentials = dbConfig.username;
-      if (dbConfig.password) {
-        credentials += `:${dbConfig.password}`;
-      }
-
-      url = `${config.dialect}://${credentials
-      }@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`;
-    }
-    return url;
-  },
-
   expectsql(query, assertions) {
     const expectations = assertions.query || assertions;
     let expectation = expectations[Support.sequelize.dialect.name];
@@ -229,7 +187,7 @@ const Support = {
       }
     }
 
-    if (_.isError(query)) {
+    if (query instanceof Error) {
       expect(query.message).to.equal(expectation.message);
     } else {
       expect(query.query || query).to.equal(expectation);
@@ -242,7 +200,10 @@ const Support = {
   }
 };
 
-if (typeof beforeEach !== 'undefined') {
+if (global.beforeEach) {
+  before(function() {
+    this.sequelize = Support.sequelize;
+  });
   beforeEach(function() {
     this.sequelize = Support.sequelize;
   });

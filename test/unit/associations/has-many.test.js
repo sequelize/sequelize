@@ -38,8 +38,8 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       });
 
     beforeEach(function() {
-      this.findAll = stub(Task, 'findAll').returns(Promise.resolve([]));
-      this.update = stub(Task, 'update').returns(Promise.resolve([]));
+      this.findAll = stub(Task, 'findAll').resolves([]);
+      this.update = stub(Task, 'update').resolves([]);
     });
 
     afterEach(function() {
@@ -56,11 +56,11 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
     it('uses one delete from statement', function() {
       this.findAll
-        .onFirstCall().returns(Promise.resolve([]))
-        .onSecondCall().returns(Promise.resolve([
+        .onFirstCall().resolves([])
+        .onSecondCall().resolves([
           { userId: 42, taskId: 15 },
           { userId: 42, taskId: 16 }
-        ]));
+        ]);
 
       return user.setTasks([task1, task2]).then(() => {
         this.update.resetHistory();
@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
     it('should mixin association methods', () => {
       const as = Math.random().toString(),
-        association = new HasMany(User, Task, {as}),
+        association = new HasMany(User, Task, { as }),
         obj = {};
 
       association.mixin(obj);
@@ -126,7 +126,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
     });
 
     it('should not override attributes', () => {
-      const Project = current.define('Project', {hasTasks: DataTypes.BOOLEAN});
+      const Project = current.define('Project', { hasTasks: DataTypes.BOOLEAN });
 
       Project.hasMany(Task);
 
@@ -145,16 +145,17 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       foreignKey = 'user_id';
 
     it('should fetch associations for a single instance', () => {
-      const findAll = stub(Task, 'findAll').returns(Promise.resolve([
-          Task.build({}),
-          Task.build({})
-        ])),
-        where = {};
+      const findAll = stub(Task, 'findAll').resolves([
+        Task.build({}),
+        Task.build({})
+      ]);
 
-      User.Tasks = User.hasMany(Task, {foreignKey});
-      const actual = User.Tasks.get(User.build({id: idA}));
+      User.Tasks = User.hasMany(Task, { foreignKey });
+      const actual = User.Tasks.get(User.build({ id: idA }));
 
-      where[foreignKey] = idA;
+      const where = {
+        [foreignKey]: idA
+      };
 
       expect(findAll).to.have.been.calledOnce;
       expect(findAll.firstCall.args[0].where).to.deep.equal(where);
@@ -184,11 +185,11 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
           })
         ]));
 
-      User.Tasks = User.hasMany(Task, {foreignKey});
+      User.Tasks = User.hasMany(Task, { foreignKey });
       const actual = User.Tasks.get([
-        User.build({id: idA}),
-        User.build({id: idB}),
-        User.build({id: idC})
+        User.build({ id: idA }),
+        User.build({ id: idB }),
+        User.build({ id: idC })
       ]);
 
       expect(findAll).to.have.been.calledOnce;
@@ -217,7 +218,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       it('should trigger', function() {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
-        this.Projects.hasMany(this.Tasks, {hooks: true});
+        this.Projects.hasMany(this.Tasks, { hooks: true });
 
         const beforeAssociateArgs = beforeAssociate.getCall(0).args;
 
@@ -234,7 +235,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       it('should not trigger association hooks', function() {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
-        this.Projects.hasMany(this.Tasks, {hooks: false});
+        this.Projects.hasMany(this.Tasks, { hooks: false });
         expect(beforeAssociate).to.not.have.been.called;
       });
     });
@@ -242,7 +243,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       it('should trigger', function() {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
-        this.Projects.hasMany(this.Tasks, {hooks: true});
+        this.Projects.hasMany(this.Tasks, { hooks: true });
 
         const afterAssociateArgs = afterAssociate.getCall(0).args;
 
@@ -261,7 +262,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       it('should not trigger association hooks', function() {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
-        this.Projects.hasMany(this.Tasks, {hooks: false});
+        this.Projects.hasMany(this.Tasks, { hooks: false });
         expect(afterAssociate).to.not.have.been.called;
       });
     });

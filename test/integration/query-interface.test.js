@@ -16,23 +16,45 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   afterEach(function() {
-    return this.sequelize.dropAllSchemas();
+    return Support.dropTestSchemas(this.sequelize);
+  });
+
+  describe('dropAllSchema', () => {
+    it('should drop all schema', function() {
+      return this.queryInterface.dropAllSchemas(
+        { skip: [this.sequelize.config.database] })
+        .then(() => {
+          return this.queryInterface.showAllSchemas();
+        })
+        .then(schemaNames => {
+
+          return this.queryInterface.createSchema('newSchema')
+            .then(() => {
+              return this.queryInterface.showAllSchemas();
+            })
+            .then(newSchemaNames => {
+              if (!current.dialect.supports.schemas) return;
+              expect(newSchemaNames).to.have.length(schemaNames.length + 1);
+              return this.queryInterface.dropSchema('newSchema');
+            });
+        });
+    });
   });
 
   describe('renameTable', () => {
     it('should rename table', function() {
       return this.queryInterface
-        .createTable('myTestTable', {
+        .createTable('my_test_table', {
           name: DataTypes.STRING
         })
-        .then(() => this.queryInterface.renameTable('myTestTable', 'myTestTableNew'))
+        .then(() => this.queryInterface.renameTable('my_test_table', 'my_test_table_new'))
         .then(() => this.queryInterface.showAllTables())
         .then(tableNames => {
-          if (dialect === 'mssql') {
+          if (dialect === 'mssql' || dialect === 'mariadb') {
             tableNames = tableNames.map(v => v.tableName);
           }
-          expect(tableNames).to.contain('myTestTableNew');
-          expect(tableNames).to.not.contain('myTestTable');
+          expect(tableNames).to.contain('my_test_table_new');
+          expect(tableNames).to.not.contain('my_test_table');
         });
     });
   });
@@ -40,41 +62,46 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('dropAllTables', () => {
     it('should drop all tables', function() {
       const filterMSSQLDefault = tableNames => tableNames.filter(t => t.tableName !== 'spt_values');
-      return this.queryInterface.dropAllTables().then(() => {
-        return this.queryInterface.showAllTables().then(tableNames => {
+      return this.queryInterface.dropAllTables()
+        .then(() => {
+          return this.queryInterface.showAllTables();
+        })
+        .then(tableNames => {
           // MSSQL include spt_values table which is system defined, hence cant be dropped
           tableNames = filterMSSQLDefault(tableNames);
           expect(tableNames).to.be.empty;
-          return this.queryInterface.createTable('table', { name: DataTypes.STRING }).then(() => {
-            return this.queryInterface.showAllTables().then(tableNames => {
-              tableNames = filterMSSQLDefault(tableNames);
-              expect(tableNames).to.have.length(1);
-              return this.queryInterface.dropAllTables().then(() => {
-                return this.queryInterface.showAllTables().then(tableNames => {
-                  // MSSQL include spt_values table which is system defined, hence cant be dropped
-                  tableNames = filterMSSQLDefault(tableNames);
-                  expect(tableNames).to.be.empty;
-                });
-              });
-            });
-          });
+          return this.queryInterface.createTable('table', { name: DataTypes.STRING });
+        })
+        .then(() => {
+          return this.queryInterface.showAllTables();
+        })
+        .then(tableNames => {
+          tableNames = filterMSSQLDefault(tableNames);
+          expect(tableNames).to.have.length(1);
+          return this.queryInterface.dropAllTables();
+        })
+        .then(() => {
+          return this.queryInterface.showAllTables();
+        })
+        .then(tableNames => {
+          // MSSQL include spt_values table which is system defined, hence cant be dropped
+          tableNames = filterMSSQLDefault(tableNames);
+          expect(tableNames).to.be.empty;
         });
-      });
     });
 
     it('should be able to skip given tables', function() {
       return this.queryInterface.createTable('skipme', {
         name: DataTypes.STRING
-      }).then(() => {
-        return this.queryInterface.dropAllTables({skip: ['skipme']}).then(() => {
-          return this.queryInterface.showAllTables().then(tableNames => {
-            if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-              tableNames = tableNames.map(v => v.tableName);
-            }
-            expect(tableNames).to.contain('skipme');
-          });
+      })
+        .then(() => this.queryInterface.dropAllTables({ skip: ['skipme'] }))
+        .then(() => this.queryInterface.showAllTables())
+        .then(tableNames => {
+          if (dialect === 'mssql' || dialect === 'mariadb') {
+            tableNames = tableNames.map(v => v.tableName);
+          }
+          expect(tableNames).to.contain('skipme');
         });
-      });
     });
   });
 
@@ -286,6 +313,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
+    it('addColumn expected error', function() {
+      return this.queryInterface.createTable('level2', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        }
+      }).then(() => {
+        expect(this.queryInterface.addColumn.bind(this, 'users', 'level_id')).to.throw(Error, 'addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
+        expect(this.queryInterface.addColumn.bind(this, null, 'level_id')).to.throw(Error, 'addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
+        expect(this.queryInterface.addColumn.bind(this, 'users', null, {})).to.throw(Error, 'addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
+      });
+    });
+
     it('should work with schemas', function() {
       return this.queryInterface.createTable({
         tableName: 'users',
@@ -370,7 +411,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     it('should get a list of foreign keys for the table', function() {
       const sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
-      return this.sequelize.query(sql, {type: this.sequelize.QueryTypes.FOREIGNKEYS}).then(fks => {
+      return this.sequelize.query(sql, { type: this.sequelize.QueryTypes.FOREIGNKEYS }).then(fks => {
         expect(fks).to.have.length(3);
         const keys = Object.keys(fks[0]),
           keys2 = Object.keys(fks[1]),
@@ -394,7 +435,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             this.queryInterface.QueryGenerator.getForeignKeyQuery('hosts', 'admin'),
             {}
           )
-            .spread(fk => {
+            .then(([fk]) => {
               expect(fks[0]).to.deep.eql(fk[0]);
             });
         }
@@ -449,6 +490,34 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             expect(constraints).to.not.include('users_email_uk');
           });
       });
+
+      it('should add a constraint after another', function() {
+        return this.queryInterface.addConstraint('users', ['username'], {
+          type: 'unique'
+        }).then(() => this.queryInterface.addConstraint('users', ['email'], {
+          type: 'unique'
+        }))
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.include('users_email_uk');
+            expect(constraints).to.include('users_username_uk');
+            return this.queryInterface.removeConstraint('users', 'users_email_uk');
+          })
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('users_email_uk');
+            expect(constraints).to.include('users_username_uk');
+            return this.queryInterface.removeConstraint('users', 'users_username_uk');
+          })
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('users_email_uk');
+            expect(constraints).to.not.include('users_username_uk');
+          });
+      });
     });
 
     if (current.dialect.supports.constraints.check) {
@@ -472,6 +541,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               constraints = constraints.map(constraint => constraint.constraintName);
               expect(constraints).to.not.include('check_user_roles');
             });
+        });
+
+        it('addconstraint missing type', function() {
+          expect(this.queryInterface.addConstraint.bind(this, 'users', ['roles'], {
+            where: { roles: ['user', 'admin', 'guest', 'moderator'] },
+            name: 'check_user_roles'
+          })).to.throw(Error, 'Constraint type must be specified through options.type');
         });
       });
     }
@@ -517,18 +593,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           .then(constraints => {
             constraints = constraints.map(constraint => constraint.constraintName);
             //The name of primaryKey constraint is always PRIMARY in case of mysql
-            if (dialect === 'mysql') {
+            if (dialect === 'mysql' || dialect === 'mariadb') {
               expect(constraints).to.include('PRIMARY');
               return this.queryInterface.removeConstraint('users', 'PRIMARY');
-            } else {
-              expect(constraints).to.include('users_username_pk');
-              return this.queryInterface.removeConstraint('users', 'users_username_pk');
             }
+            expect(constraints).to.include('users_username_pk');
+            return this.queryInterface.removeConstraint('users', 'users_username_pk');
           })
           .then(() => this.queryInterface.showConstraint('users'))
           .then(constraints => {
             constraints = constraints.map(constraint => constraint.constraintName);
-            expect(constraints).to.not.include('users_username_pk');
+            if (dialect === 'mysql' || dialect === 'mariadb') {
+              expect(constraints).to.not.include('PRIMARY');
+            } else {
+              expect(constraints).to.not.include('users_username_pk');
+            }
           });
       });
     });

@@ -9,7 +9,7 @@ const project = Project.build({
   title: 'my awesome project',
   description: 'woot woot. this will make me a rich man'
 })
- 
+
 const task = Task.build({
   title: 'specify the project idea',
   description: 'bla',
@@ -21,14 +21,15 @@ Built instances will automatically get default values when they were defined&col
 
 ```js
 // first define the model
-const Task = sequelize.define('task', {
+class Task extends Model {}
+Task.init({
   title: Sequelize.STRING,
   rating: { type: Sequelize.TINYINT, defaultValue: 3 }
-})
- 
+}, { sequelize, modelName: 'task' });
+
 // now instantiate an object
 const task = Task.build({title: 'very important task'})
- 
+
 task.title  // ==> 'very important task'
 task.rating // ==> 3
 ```
@@ -39,11 +40,11 @@ To get it stored in the database&comma; use the `save`-method and catch the even
 project.save().then(() => {
   // my nice callback stuff
 })
- 
+
 task.save().catch(error => {
   // mhhh, wth!
 })
- 
+
 // you can also build, save and access the object with chaining:
 Task
   .build({ title: 'foo', description: 'bar', deadline: new Date() })
@@ -85,7 +86,7 @@ Now lets change some values and save changes to the database&period;&period;&per
 // way 1
 task.title = 'a very different title now'
 task.save().then(() => {})
- 
+
 // way 2
 task.update({
   title: 'a very different title now'
@@ -100,7 +101,7 @@ task.description = 'baaaaaar'
 task.save({fields: ['title']}).then(() => {
  // title will now be 'foooo' but description is the very same as before
 })
- 
+
 // The equivalent call using update looks like this:
 task.update({ title: 'foooo', description: 'baaaaaar'}, {fields: ['title']}).then(() => {
  // title will now be 'foooo' but description is the very same as before
@@ -169,6 +170,32 @@ User.bulkCreate([
 })
 ```
 
+Insert several rows and return all columns (Postgres only):
+
+```js
+User.bulkCreate([
+  { username: 'barfooz', isAdmin: true },
+  { username: 'foo', isAdmin: true },
+  { username: 'bar', isAdmin: false }
+], { returning: true }) // will return all columns for each row inserted
+.then((result) => {
+  console.log(result);
+});
+```
+
+Insert several rows and return specific columns (Postgres only):
+
+```js
+User.bulkCreate([
+  { username: 'barfooz', isAdmin: true },
+  { username: 'foo', isAdmin: true },
+  { username: 'bar', isAdmin: false }
+], { returning: ['username'] }) // will return only the specified columns for each row inserted
+.then((result) => {
+  console.log(result);
+});
+```
+
 To update several rows at once:
 
 ```js
@@ -227,7 +254,8 @@ User.bulkCreate([
 `bulkCreate` was originally made to be a mainstream&sol;fast way of inserting records&comma; however&comma; sometimes you want the luxury of being able to insert multiple rows at once without sacrificing model validations even when you explicitly tell Sequelize which columns to sift through&period; You can do by adding a `validate: true` property to the options object.
 
 ```js
-const Tasks = sequelize.define('task', {
+class Tasks extends Model {}
+Tasks.init({
   name: {
     type: Sequelize.STRING,
     validate: {
@@ -240,8 +268,8 @@ const Tasks = sequelize.define('task', {
       len: [3, 10]
     }
   }
-})
- 
+}, { sequelize, modelName: 'tasks' })
+
 Tasks.bulkCreate([
   {name: 'foo', code: '123'},
   {code: '1234'},
@@ -283,9 +311,9 @@ Person.create({
     plain: true
   }))
 })
- 
+
 // result:
- 
+
 // { name: 'Rambow',
 //   firstname: 'John',
 //   id: 1,
@@ -304,7 +332,7 @@ If you need to get your instance in sync&comma; you can use the method`reload`&p
 Person.findOne({ where: { name: 'john' } }).then(person => {
   person.name = 'jane'
   console.log(person.name) // 'jane'
- 
+
   person.reload().then(() => {
     console.log(person.name) // 'john'
   })

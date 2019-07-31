@@ -53,14 +53,14 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   describe('cloneDeep', () => {
     it('should clone objects', () => {
-      const obj = {foo: 1},
+      const obj = { foo: 1 },
         clone = Utils.cloneDeep(obj);
 
       expect(obj).to.not.equal(clone);
     });
 
     it('should clone nested objects', () => {
-      const obj = {foo: {bar: 1}},
+      const obj = { foo: { bar: 1 } },
         clone = Utils.cloneDeep(obj);
 
       expect(obj.foo).to.not.equal(clone.foo);
@@ -179,10 +179,11 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               }
             }, type)), 'count-engines-wings']
           ]
-        }).spread(airplane => {
-          expect(parseInt(airplane.get('count'))).to.equal(3);
-          expect(parseInt(airplane.get('count-engines'))).to.equal(1);
-          expect(parseInt(airplane.get('count-engines-wings'))).to.equal(2);
+        }).then(([airplane]) => {
+          // TODO: `parseInt` should not be needed, see #10533
+          expect(parseInt(airplane.get('count'), 10)).to.equal(3);
+          expect(parseInt(airplane.get('count-engines'), 10)).to.equal(1);
+          expect(parseInt(airplane.get('count-engines-wings'), 10)).to.equal(2);
         });
       });
     }
@@ -204,12 +205,43 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               }
             }), 'count-engines-wings']
           ]
-        }).spread(airplane => {
-          expect(parseInt(airplane.get('count'))).to.equal(3);
-          expect(parseInt(airplane.get('count-engines'))).to.equal(1);
-          expect(parseInt(airplane.get('count-engines-wings'))).to.equal(2);
+        }).then(([airplane]) => {
+          // TODO: `parseInt` should not be needed, see #10533
+          expect(airplane.get('count')).to.equal(3);
+          expect(parseInt(airplane.get('count-engines'), 10)).to.equal(1);
+          expect(parseInt(airplane.get('count-engines-wings'), 10)).to.equal(2);
         });
       });
     }
+  });
+
+  describe('flattenObjectDeep', () => {
+    it('should return the value if it is not an object', () => {
+      const value = 'non-object';
+      const returnedValue = Utils.flattenObjectDeep(value);
+      expect(returnedValue).to.equal(value);
+    });
+
+    it('should return correctly if values are null', () => {
+      const value = {
+        name: 'John',
+        address: {
+          street: 'Fake St. 123',
+          city: null,
+          coordinates: {
+            longitude: 55.6779627,
+            latitude: 12.5964313
+          }
+        }
+      };
+      const returnedValue = Utils.flattenObjectDeep(value);
+      expect(returnedValue).to.deep.equal({
+        name: 'John',
+        'address.street': 'Fake St. 123',
+        'address.city': null,
+        'address.coordinates.longitude': 55.6779627,
+        'address.coordinates.latitude': 12.5964313
+      });
+    });
   });
 });

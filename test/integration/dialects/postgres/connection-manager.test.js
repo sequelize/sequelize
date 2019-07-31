@@ -13,8 +13,8 @@ if (dialect.match(/^postgres/)) {
       const sequelize = Support.createSequelizeInstance(options);
 
       const tzTable = sequelize.define('tz_table', { foo: DataTypes.STRING });
-      return tzTable.sync({force: true}).then(() => {
-        return tzTable.create({foo: 'test'}).then(row => {
+      return tzTable.sync({ force: true }).then(() => {
+        return tzTable.create({ foo: 'test' }).then(row => {
           expect(row).to.be.not.null;
         });
       });
@@ -22,6 +22,30 @@ if (dialect.match(/^postgres/)) {
 
     it('should correctly parse the moment based timezone while fetching hstore oids', function() {
       return checkTimezoneParsing(this.sequelize.options);
+    });
+
+    it('should set client_min_messages to warning by default', () => {
+      return Support.sequelize.query('SHOW client_min_messages')
+        .then(result => {
+          expect(result[0].client_min_messages).to.equal('warning');
+        });
+    });
+
+    it('should allow overriding client_min_messages', () => {
+      const sequelize = Support.createSequelizeInstance({ clientMinMessages: 'ERROR' });
+      return sequelize.query('SHOW client_min_messages')
+        .then(result => {
+          expect(result[0].client_min_messages).to.equal('error');
+        });
+    });
+
+    it('should not set client_min_messages if clientMinMessages is false', () => {
+      const sequelize = Support.createSequelizeInstance({ clientMinMessages: false });
+      return sequelize.query('SHOW client_min_messages')
+        .then(result => {
+          // `notice` is Postgres's default
+          expect(result[0].client_min_messages).to.equal('notice');
+        });
     });
   });
 
@@ -52,7 +76,7 @@ if (dialect.match(/^postgres/)) {
         perms: DataTypes.ENUM(['foo', 'bar'])
       });
 
-      return User.sync({force: true});
+      return User.sync({ force: true });
     }
 
     it('should fetch regular dynamic oids and create parsers', () => {

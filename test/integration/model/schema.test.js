@@ -51,8 +51,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return current.createSchema(SCHEMA_TWO)
           .then(() => {
             return Promise.all([
-              this.RestaurantOne.sync({force: true}),
-              this.RestaurantTwo.sync({force: true})
+              this.RestaurantOne.sync({ force: true }),
+              this.RestaurantTwo.sync({ force: true })
             ]);
           });
       });
@@ -72,13 +72,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             foo: 'one'
           }).then(() => {
             return this.RestaurantOne.findOne({
-              where: {foo: 'one'}
+              where: { foo: 'one' }
             });
           }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('one');
             return this.RestaurantTwo.findOne({
-              where: {foo: 'one'}
+              where: { foo: 'one' }
             });
           }).then(obj => {
             expect(obj).to.be.null;
@@ -90,13 +90,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             foo: 'two'
           }).then(() => {
             return this.RestaurantTwo.findOne({
-              where: {foo: 'two'}
+              where: { foo: 'two' }
             });
           }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('two');
             return this.RestaurantOne.findOne({
-              where: {foo: 'two'}
+              where: { foo: 'two' }
             });
           }).then(obj => {
             expect(obj).to.be.null;
@@ -107,17 +107,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('Get associated data in public schema via include', () => {
         beforeEach(function() {
           return Promise.all([
-            this.LocationOne.sync({force: true}),
-            this.LocationTwo.sync({force: true})
+            this.LocationOne.sync({ force: true }),
+            this.LocationTwo.sync({ force: true })
           ]).then(() => {
-            return this.LocationTwo.create({name: 'HQ'});
+            return this.LocationTwo.create({ name: 'HQ' });
           }).then(() => {
-            return this.LocationTwo.findOne({where: {name: 'HQ'}});
+            return this.LocationTwo.findOne({ where: { name: 'HQ' } });
           }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.name).to.equal('HQ');
             locationId = obj.id;
-            return this.LocationOne.findOne({where: {name: 'HQ'}});
+            return this.LocationOne.findOne({ where: { name: 'HQ' } });
           }).then(obj => {
             expect(obj).to.be.null;
           });
@@ -129,7 +129,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             location_id: locationId
           }).then(() => {
             return this.RestaurantTwo.findOne({
-              where: {foo: 'two'}, include: [{
+              where: { foo: 'two' }, include: [{
                 model: this.LocationTwo, as: 'location'
               }]
             });
@@ -138,7 +138,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(obj.foo).to.equal('two');
             expect(obj.location).to.not.be.null;
             expect(obj.location.name).to.equal('HQ');
-            return this.RestaurantOne.findOne({where: {foo: 'two'}});
+            return this.RestaurantOne.findOne({ where: { foo: 'two' } });
           }).then(obj => {
             expect(obj).to.be.null;
           });
@@ -152,16 +152,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           foo: DataTypes.STRING,
           bar: DataTypes.STRING
         },
-        {tableName: 'restaurants'});
+        { tableName: 'restaurants' });
         this.Location = current.define('location', {
           name: DataTypes.STRING
         },
-        {tableName: 'locations'});
+        { tableName: 'locations' });
         this.Employee = current.define('employee', {
           first_name: DataTypes.STRING,
           last_name: DataTypes.STRING
         },
-        {tableName: 'employees'});
+        { tableName: 'employees' });
         this.EmployeeOne = this.Employee.schema(SCHEMA_ONE);
         this.Restaurant.belongsTo(this.Location,
           {
@@ -188,8 +188,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           current.createSchema('schema_two')
         ]).then(() => {
           return Promise.all([
-            this.RestaurantOne.sync({force: true}),
-            this.RestaurantTwo.sync({force: true})
+            this.RestaurantOne.sync({ force: true }),
+            this.RestaurantTwo.sync({ force: true })
           ]);
         });
       });
@@ -210,7 +210,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             location_id: locationId
           }).then(() => {
             return this.RestaurantOne.findOne({
-              where: {foo: 'one'}
+              where: { foo: 'one' }
             });
           }).then(obj => {
             expect(obj).to.not.be.null;
@@ -220,7 +220,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('one');
-            return this.RestaurantTwo.findOne({where: {foo: 'one'}}).then(RestaurantObj => {
+            return this.RestaurantTwo.findOne({ where: { foo: 'one' } }).then(RestaurantObj => {
               expect(RestaurantObj).to.be.null;
             });
           });
@@ -234,7 +234,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             location_id: locationId
           }).then(() => {
             return this.RestaurantTwo.findOne({
-              where: {foo: 'two'}
+              where: { foo: 'two' }
             });
           }).then(obj => {
             expect(obj).to.not.be.null;
@@ -244,7 +244,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }).then(obj => {
             expect(obj).to.not.be.null;
             expect(obj.foo).to.equal('two');
-            return this.RestaurantOne.findOne({where: {foo: 'two'}}).then(RestaurantObj => {
+            return this.RestaurantOne.findOne({ where: { foo: 'two' } }).then(RestaurantObj => {
               expect(RestaurantObj).to.be.null;
             });
           });
@@ -255,20 +255,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should be able to insert data into both schemas using instance.save and retrieve/count it', function() {
           //building and saving in random order to make sure calling
           // .schema doesn't impact model prototype
-          let restaurauntModel = this.RestaurantOne.build({bar: 'one.1'});
+          let restaurauntModel = this.RestaurantOne.build({ bar: 'one.1' });
 
           return restaurauntModel.save()
             .then(() => {
-              restaurauntModel = this.RestaurantTwo.build({bar: 'two.1'});
+              restaurauntModel = this.RestaurantTwo.build({ bar: 'two.1' });
               return restaurauntModel.save();
             }).then(() => {
-              restaurauntModel = this.RestaurantOne.build({bar: 'one.2'});
+              restaurauntModel = this.RestaurantOne.build({ bar: 'one.2' });
               return restaurauntModel.save();
             }).then(() => {
-              restaurauntModel = this.RestaurantTwo.build({bar: 'two.2'});
+              restaurauntModel = this.RestaurantTwo.build({ bar: 'two.2' });
               return restaurauntModel.save();
             }).then(() => {
-              restaurauntModel = this.RestaurantTwo.build({bar: 'two.3'});
+              restaurauntModel = this.RestaurantTwo.build({ bar: 'two.3' });
               return restaurauntModel.save();
             }).then(() => {
               return this.RestaurantOne.findAll();
@@ -287,7 +287,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(restaurant.bar).to.contain('one');
               });
               return this.RestaurantOne.findAll({
-                where: {bar: {[Op.like]: '%.1'}}
+                where: { bar: { [Op.like]: '%.1' } }
               });
             }).then(restaurantsOne => {
               expect(restaurantsOne).to.not.be.null;
@@ -315,7 +315,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(restaurant.bar).to.contain('two');
               });
               return this.RestaurantTwo.findAll({
-                where: {bar: {[Op.like]: '%.3'}}
+                where: { bar: { [Op.like]: '%.3' } }
               });
             }).then(restaurantsTwo => {
               expect(restaurantsTwo).to.not.be.null;
@@ -335,10 +335,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         beforeEach(function() {
           const Location = this.Location;
 
-          return Location.sync({force: true})
+          return Location.sync({ force: true })
             .then(() => {
-              return Location.create({name: 'HQ'}).then(() => {
-                return Location.findOne({where: {name: 'HQ'}}).then(obj => {
+              return Location.create({ name: 'HQ' }).then(() => {
+                return Location.findOne({ where: { name: 'HQ' } }).then(obj => {
                   expect(obj).to.not.be.null;
                   expect(obj.name).to.equal('HQ');
                   locationId = obj.id;
@@ -356,7 +356,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             location_id: locationId
           }).then(() => {
             return this.RestaurantOne.findOne({
-              where: {foo: 'one'}, include: [{
+              where: { foo: 'one' }, include: [{
                 model: this.Location, as: 'location'
               }]
             });
@@ -374,8 +374,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         beforeEach(function() {
           const Employee = this.Employee;
           return Promise.all([
-            Employee.schema(SCHEMA_ONE).sync({force: true}),
-            Employee.schema(SCHEMA_TWO).sync({force: true})
+            Employee.schema(SCHEMA_ONE).sync({ force: true }),
+            Employee.schema(SCHEMA_TWO).sync({ force: true })
           ]);
         });
 
@@ -386,7 +386,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             foo: 'one'
           }).then(() => {
             return this.RestaurantOne.findOne({
-              where: {foo: 'one'}
+              where: { foo: 'one' }
             });
           }).then(obj => {
             expect(obj).to.not.be.null;
@@ -399,7 +399,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           }).then(() => {
             return this.RestaurantOne.findOne({
-              where: {foo: 'one'}, include: [{
+              where: { foo: 'one' }, include: [{
                 model: this.EmployeeOne, as: 'employees'
               }]
             });
@@ -408,12 +408,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(obj.employees).to.not.be.null;
             expect(obj.employees.length).to.equal(1);
             expect(obj.employees[0].last_name).to.equal('one');
-            return obj.getEmployees({schema: SCHEMA_ONE});
+            return obj.getEmployees({ schema: SCHEMA_ONE });
           }).then(employees => {
             expect(employees.length).to.equal(1);
             expect(employees[0].last_name).to.equal('one');
             return this.EmployeeOne.findOne({
-              where: {last_name: 'one'}, include: [{
+              where: { last_name: 'one' }, include: [{
                 model: this.RestaurantOne, as: 'restaurant'
               }]
             });
@@ -421,7 +421,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(obj).to.not.be.null;
             expect(obj.restaurant).to.not.be.null;
             expect(obj.restaurant.foo).to.equal('one');
-            return obj.getRestaurant({schema: SCHEMA_ONE});
+            return obj.getRestaurant({ schema: SCHEMA_ONE });
           }).then(restaurant => {
             expect(restaurant).to.not.be.null;
             expect(restaurant.foo).to.equal('one');
@@ -436,7 +436,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             foo: 'two'
           }).then(() => {
             return this.RestaurantTwo.findOne({
-              where: {foo: 'two'}
+              where: { foo: 'two' }
             });
           }).then(obj => {
             expect(obj).to.not.be.null;
@@ -449,7 +449,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           }).then(() => {
             return this.RestaurantTwo.findOne({
-              where: {foo: 'two'}, include: [{
+              where: { foo: 'two' }, include: [{
                 model: this.Employee.schema(SCHEMA_TWO), as: 'employees'
               }]
             });
@@ -458,12 +458,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(obj.employees).to.not.be.null;
             expect(obj.employees.length).to.equal(1);
             expect(obj.employees[0].last_name).to.equal('two');
-            return obj.getEmployees({schema: SCHEMA_TWO});
+            return obj.getEmployees({ schema: SCHEMA_TWO });
           }).then(employees => {
             expect(employees.length).to.equal(1);
             expect(employees[0].last_name).to.equal('two');
             return this.Employee.schema(SCHEMA_TWO).findOne({
-              where: {last_name: 'two'}, include: [{
+              where: { last_name: 'two' }, include: [{
                 model: this.RestaurantTwo, as: 'restaurant'
               }]
             });
@@ -471,7 +471,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(obj).to.not.be.null;
             expect(obj.restaurant).to.not.be.null;
             expect(obj.restaurant.foo).to.equal('two');
-            return obj.getRestaurant({schema: SCHEMA_TWO});
+            return obj.getRestaurant({ schema: SCHEMA_TWO });
           }).then(restaurant => {
             expect(restaurant).to.not.be.null;
             expect(restaurant.foo).to.equal('two');
@@ -483,12 +483,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should build and persist instances to 2 schemas concurrently in any order', function() {
           const Restaurant = this.Restaurant;
 
-          let restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({bar: 'one.1'});
-          const restaurauntModelSchema2 = Restaurant.schema(SCHEMA_TWO).build({bar: 'two.1'});
+          let restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({ bar: 'one.1' });
+          const restaurauntModelSchema2 = Restaurant.schema(SCHEMA_TWO).build({ bar: 'two.1' });
 
           return restaurauntModelSchema1.save()
             .then(() => {
-              restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({bar: 'one.2'});
+              restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({ bar: 'one.2' });
               return restaurauntModelSchema2.save();
             }).then(() => {
               return restaurauntModelSchema1.save();
