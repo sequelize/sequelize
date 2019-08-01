@@ -376,7 +376,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('add parameters in log sql when use bind value', function() {
         let logSql;
-        return this.sequelize.query('select $1 as foo, $2 as bar', { bind: ['foo', 'bar'], logging: s=>logSql=s })
+        const typeCast = dialect === 'postgres' ? '::text' : '';
+        return this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { bind: ['foo', 'bar'], logging: s=>logSql=s })
           .then(()=>{
             if (dialect==='sqlite') {
               expect(logSql).to.equal('Executing (default): select $1 as foo, $2 as bar;{"$1":"foo","$2":"bar"}');
@@ -385,7 +386,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             } else if (['mysql', 'mariadb'].includes(dialect)) {
               expect(logSql).to.equal('Executing (default): select ? as foo, ? as bar;["foo","bar"]');
             } else {
-              expect(logSql).to.equal('Executing (default): select $1 as foo, $2 as bar;["foo","bar"]');
+              expect(logSql).to.equal('Executing (default): select $1::text as foo, $2::text as bar;["foo","bar"]');
             }
           });
       });
