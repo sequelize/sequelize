@@ -294,6 +294,26 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     describe('logging', () => {
+      beforeEach(function() {
+        this.User=this.sequelize.define('User', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          username: {
+            type: DataTypes.STRING
+          },
+          emailAddress: {
+            type: DataTypes.STRING
+          }
+        }, {
+          timestamps: false
+        });
+
+        return this.User.sync({ force: true });
+      });
+
       it('executes a query with global benchmarking option and custom logger', () => {
         const logger = sinon.spy();
         const sequelize = Support.createSequelizeInstance({
@@ -319,6 +339,50 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           expect(logger.args[0][0]).to.be.match(/Executed \(\d*|default\): select 1;/);
           expect(typeof logger.args[0][1] === 'number').to.be.true;
         });
+      });
+
+      it('add parameters in log sql', function() {
+        let createSql, updateSql;
+        return this.User.create({
+          username: 'john',
+          emailAddress: 'john@gmail.com'
+        }, {
+          logging: s =>{
+            createSql = s;
+          }
+        }).then(user=>{
+          user.username='li';
+          return user.save({
+            logging: s =>{
+              updateSql = s;
+            }
+          });
+        }).then(()=>{
+          if ( ['mysql', 'mariadb'].includes(dialect)) {
+            expect(createSql).to.equal('Executing (default): INSERT INTO "Users" ("id","username","emailAddress") VALUES (DEFAULT,?,?) RETURNING *;["john","john@gmail.com"]');
+            expect(updateSql).to.equal('Executing (default): UPDATE "Users" SET "username"=? WHERE "id" = ?;["li",1]');
+          } else if ( ['postgres', 'sqlite'].includes(dialect)) {
+            expect(createSql).to.equal('Executing (default): INSERT INTO "Users" ("id","username","emailAddress") VALUES (DEFAULT,$1,$2) RETURNING *;["john","john@gmail.com"]');
+            expect(updateSql).to.equal('Executing (default): UPDATE "Users" SET "username"=$1 WHERE "id" = $2;["li",1]');
+          }
+          // else if(dialect==='sqlite'){
+          //   expect(createSql).to.equal('Executing (default): INSERT INTO "Users" ("id","username","emailAddress") VALUES (DEFAULT,$1,$2) RETURNING *;["john","john@gmail.com"]');
+          //   expect(updateSql).to.equal('Executing (default): UPDATE "Users" SET "username"=$1 WHERE "id" = $2;["li",1]');
+          // }
+          
+        });
+      });
+
+      it('add parameters in log sql when use bind value', function() {
+        let logSql;
+        return this.sequelize.query('select $1 as foo, $2 as bar', { bind: ['foo', 'bar'], logging: s=>logSql=s })
+          .then(()=>{
+            if (dialect==='sqlite') {
+              expect(logSql).to.equal('Executing (default): select $1 as foo, $2 as bar;{"$1":"foo","$2":"bar"}');
+            } else {
+              expect(logSql).to.equal('Executing (default): select $1 as foo, $2 as bar;["foo","bar"]');
+            }
+          });
       });
     });
 
