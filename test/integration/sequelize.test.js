@@ -360,7 +360,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         }).then(()=>{
           if ( ['mysql', 'mariadb'].includes(dialect)) {
             expect(createSql).to.equal('Executing (default): INSERT INTO `Users` (`id`,`username`,`emailAddress`) VALUES (DEFAULT,?,?);["john","john@gmail.com"]');
-            expect(updateSql).to.equal('Executing (default): UPDATE "Users" SET "username"=? WHERE "id" = ?;["li",1]');
+            expect(updateSql).to.equal('Executing (default): UPDATE `Users` SET `username`=? WHERE `id` = ?;["li",1]');
           } else if ( dialect === 'postgres') {
             expect(createSql).to.equal('Executing (default): INSERT INTO "Users" ("id","username","emailAddress") VALUES (DEFAULT,$1,$2) RETURNING *;["john","john@gmail.com"]');
             expect(updateSql).to.equal('Executing (default): UPDATE "Users" SET "username"=$1 WHERE "id" = $2;["li",1]');
