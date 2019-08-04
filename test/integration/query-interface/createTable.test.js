@@ -92,52 +92,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
-    it('should work with enums (1)', function() {
-      return this.queryInterface.createTable('SomeTable', {
-        someEnum: DataTypes.ENUM('value1', 'value2', 'value3')
-      });
-    });
-
-    it('should work with enums (2)', function() {
-      return this.queryInterface.createTable('SomeTable', {
-        someEnum: {
-          type: DataTypes.ENUM,
-          values: ['value1', 'value2', 'value3']
-        }
-      });
-    });
-
-    it('should work with enums (3)', function() {
-      return this.queryInterface.createTable('SomeTable', {
-        someEnum: {
-          type: DataTypes.ENUM,
-          values: ['value1', 'value2', 'value3'],
-          field: 'otherName'
-        }
-      });
-    });
-
-    it('should work with enums (4)', function() {
-      return this.queryInterface.createSchema('archive').then(() => {
-        return this.queryInterface.createTable('SomeTable', {
-          someEnum: {
-            type: DataTypes.ENUM,
-            values: ['value1', 'value2', 'value3'],
-            field: 'otherName'
-          }
-        }, { schema: 'archive' });
-      });
-    });
-
-    it('should work with enums (5)', function() {
-      return this.queryInterface.createTable('SomeTable', {
-        someEnum: {
-          type: DataTypes.ENUM(['COMMENT']),
-          comment: 'special enum col'
-        }
-      });
-    });
-
     it('should work with schemas', function() {
       return this.sequelize.createSchema('hero').then(() => {
         return this.queryInterface.createTable('User', {
@@ -146,6 +100,85 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           }
         }, {
           schema: 'hero'
+        });
+      });
+    });
+
+    describe('enums', () => {
+      it('should work with enums (1)', function() {
+        return this.queryInterface.createTable('SomeTable', {
+          someEnum: DataTypes.ENUM('value1', 'value2', 'value3')
+        }).then(() => {
+          return this.queryInterface.describeTable('SomeTable');
+        }).then(table => {
+          if (dialect.includes('postgres')) {
+            expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
+          }
+        });
+      });
+
+      it('should work with enums (2)', function() {
+        return this.queryInterface.createTable('SomeTable', {
+          someEnum: {
+            type: DataTypes.ENUM,
+            values: ['value1', 'value2', 'value3']
+          }
+        }).then(() => {
+          return this.queryInterface.describeTable('SomeTable');
+        }).then(table => {
+          if (dialect.includes('postgres')) {
+            expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
+          }
+        });
+      });
+
+      it('should work with enums (3)', function() {
+        return this.queryInterface.createTable('SomeTable', {
+          someEnum: {
+            type: DataTypes.ENUM,
+            values: ['value1', 'value2', 'value3'],
+            field: 'otherName'
+          }
+        }).then(() => {
+          return this.queryInterface.describeTable('SomeTable');
+        }).then(table => {
+          if (dialect.includes('postgres')) {
+            expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
+          }
+        });
+      });
+
+      it('should work with enums (4)', function() {
+        return this.queryInterface.createSchema('archive').then(() => {
+          return this.queryInterface.createTable('SomeTable', {
+            someEnum: {
+              type: DataTypes.ENUM,
+              values: ['value1', 'value2', 'value3'],
+              field: 'otherName'
+            }
+          }, { schema: 'archive' });
+        }).then(() => {
+          return this.queryInterface.describeTable('SomeTable', { schema: 'archive' });
+        }).then(table => {
+          if (dialect.includes('postgres')) {
+            expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
+          }
+        });
+      });
+
+      it('should work with enums (5)', function() {
+        return this.queryInterface.createTable('SomeTable', {
+          someEnum: {
+            type: DataTypes.ENUM(['COMMENT']),
+            comment: 'special enum col'
+          }
+        }).then(() => {
+          return this.queryInterface.describeTable('SomeTable');
+        }).then(table => {
+          if (dialect.includes('postgres')) {
+            expect(table.someEnum.special).to.deep.equal(['COMMENT']);
+            expect(table.someEnum.comment).to.equal('special enum col');
+          }
         });
       });
     });
