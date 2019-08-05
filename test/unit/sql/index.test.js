@@ -46,6 +46,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: 'FULLTEXT',
         concurrently: true
       }), {
+        ibmi: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
         sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
         mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
         postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
@@ -59,6 +60,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         using: 'BTREE',
         parser: 'foo'
       }), {
+        ibmi: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" COLLATE "en_US" DESC)',
         sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
         mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
         postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
@@ -103,6 +105,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: 'public'
           }
         }), {
+          ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'public\'',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'public\''
@@ -119,6 +122,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }), {
+          ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE (`type` = \'group\' OR `type` = \'private\')',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N\'group\' OR [type] = N\'private\')'
@@ -132,6 +136,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }
           }
         }), {
+          ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL',
           postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL'
@@ -176,6 +181,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('removeIndex', () => {
     it('naming', () => {
       expectsql(sql.removeIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
+        ibmi: 'BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = \'table_column1_column2\') THEN DROP INDEX "table_column1_column2"; COMMIT; END IF; END',
         mariadb: 'DROP INDEX `table_column1_column2` ON `table`',
         mysql: 'DROP INDEX `table_column1_column2` ON `table`',
         mssql: 'DROP INDEX [table_column1_column2] ON [table]',

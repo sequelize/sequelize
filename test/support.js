@@ -61,7 +61,9 @@ const Support = {
       dialect: options.dialect,
       port: options.port || process.env.SEQ_PORT || config.port,
       pool: config.pool,
-      dialectOptions: options.dialectOptions || config.dialectOptions || {}
+      dialectOptions: options.dialectOptions || config.dialectOptions || {},
+      odbcConnectionString: config.odbcConnectionString || '',
+      schema: config.schema || ''
     });
 
     if (process.env.DIALECT === 'postgres-native') {
@@ -92,11 +94,10 @@ const Support = {
   clearDatabase(sequelize) {
     return sequelize
       .getQueryInterface()
-      .dropAllTables()
+      .dropAllTables(sequelize.options)
       .then(() => {
         sequelize.modelManager.models = [];
         sequelize.models = {};
-
         return sequelize
           .getQueryInterface()
           .dropAllEnums();
@@ -109,9 +110,10 @@ const Support = {
   dropTestSchemas(sequelize) {
 
     const queryInterface = sequelize.getQueryInterface();
-    if (!queryInterface.QueryGenerator._dialect.supports.schemas) {
+    if (!queryInterface.QueryGenerator._dialect.supports.schemas || queryInterface.QueryGenerator._dialect.name === 'ibmi') {
       return this.sequelize.drop({});
     }
+
 
     return sequelize.showAllSchemas().then(schemas => {
       const schemasPromise = [];
@@ -174,7 +176,7 @@ const Support = {
     const expectations = assertions.query || assertions;
     let expectation = expectations[Support.sequelize.dialect.name];
 
-    if (!expectation) {
+    if (expectation === null || expectation === undefined) {
       if (expectations['default'] !== undefined) {
         expectation = expectations['default'];
         if (typeof expectation === 'string') {

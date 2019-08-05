@@ -9,6 +9,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('showConstraint', () => {
     it('naming', () => {
       expectsql(sql.showConstraintsQuery('myTable'), {
+        ibmi: "SELECT CONSTRAINT_NAME AS constraintName, CONSTRAINT_SCHEMA AS constraintSchema, CONSTRAINT_TYPE AS constraintType, TABLE_NAME AS tableName, TABLE_SCHEMA AS tableSchema from QSYS2.SYSCST WHERE table_name='myTable'",
         mssql: "EXEC sp_helpconstraint @objname = N'[myTable]';",
         postgres: 'SELECT constraint_catalog AS "constraintCatalog", constraint_schema AS "constraintSchema", constraint_name AS "constraintName", table_catalog AS "tableCatalog", table_schema AS "tableSchema", table_name AS "tableName", constraint_type AS "constraintType", is_deferrable AS "isDeferrable", initially_deferred AS "initiallyDeferred" from INFORMATION_SCHEMA.table_constraints WHERE table_name=\'myTable\';',
         mariadb: "SELECT CONSTRAINT_CATALOG AS constraintCatalog, CONSTRAINT_NAME AS constraintName, CONSTRAINT_SCHEMA AS constraintSchema, CONSTRAINT_TYPE AS constraintType, TABLE_NAME AS tableName, TABLE_SCHEMA AS tableSchema from INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE table_name='myTable';",
@@ -19,6 +20,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     it('should add constraint_name to where clause if passed in case of mysql', () => {
       expectsql(sql.showConstraintsQuery('myTable', 'myConstraintName'), {
+        ibmi: "SELECT CONSTRAINT_NAME AS constraintName, CONSTRAINT_SCHEMA AS constraintSchema, CONSTRAINT_TYPE AS constraintType, TABLE_NAME AS tableName, TABLE_SCHEMA AS tableSchema from QSYS2.SYSCST WHERE table_name='myTable' AND CONSTRAINT_NAME = 'myConstraintName'",
         mssql: "EXEC sp_helpconstraint @objname = N'[myTable]';",
         postgres: 'SELECT constraint_catalog AS "constraintCatalog", constraint_schema AS "constraintSchema", constraint_name AS "constraintName", table_catalog AS "tableCatalog", table_schema AS "tableSchema", table_name AS "tableName", constraint_type AS "constraintType", is_deferrable AS "isDeferrable", initially_deferred AS "initiallyDeferred" from INFORMATION_SCHEMA.table_constraints WHERE table_name=\'myTable\';',
         mariadb: "SELECT CONSTRAINT_CATALOG AS constraintCatalog, CONSTRAINT_NAME AS constraintName, CONSTRAINT_SCHEMA AS constraintSchema, CONSTRAINT_TYPE AS constraintType, TABLE_NAME AS tableName, TABLE_SCHEMA AS tableSchema from INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE table_name='myTable' AND constraint_name = 'myConstraintName';",

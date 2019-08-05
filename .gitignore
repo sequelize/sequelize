@@ -22,3 +22,4 @@ site
 .vscode/
 esdoc
 node_modules
+test.txt

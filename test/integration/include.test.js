@@ -674,7 +674,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    it('should support including date fields, with the correct timeszone', function() {
+    it('should support including date fields, with the correct timezone', function() {
       const User = this.sequelize.define('user', {
           dateField: Sequelize.DATE
         }, { timestamps: false }),

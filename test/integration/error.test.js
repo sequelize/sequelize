@@ -308,7 +308,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
     });
 
-    it('Supports newlines in keys', function() {
+    it.skip('Supports newlines in keys', function() {
       const spy = sinon.spy(),
         User = this.sequelize.define('user', {
           name: {
@@ -327,7 +327,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       });
     });
 
-    it('Works when unique keys are not defined in sequelize', function() {
+    it.skip('Works when unique keys are not defined in sequelize', function() {
       let User = this.sequelize.define('user', {
         name: {
           type: Sequelize.STRING,

@@ -216,7 +216,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(project.ProjectUsers.status).to.equal('active');
         return this.sequelize.dropSchema('acme').then(() => {
           return this.sequelize.showAllSchemas().then(schemas => {
-            if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
+            if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb' || dialect === 'ibmi') {
               expect(schemas).to.not.have.property('acme');
             }
           });
@@ -2544,7 +2544,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         const UserProjects = User.belongsToMany(Project, { foreignKey: { name: 'user_id', defaultValue: 42 }, through: 'UserProjects' });
         expect(UserProjects.through.model.rawAttributes.user_id).to.be.ok;
-        expect(UserProjects.through.model.rawAttributes.user_id.references.model).to.equal(User.getTableName());
+        expect(UserProjects.through.model.rawAttributes.user_id.references.model).to.deep.equal(User.getTableName());
         expect(UserProjects.through.model.rawAttributes.user_id.references.key).to.equal('uid');
         expect(UserProjects.through.model.rawAttributes.user_id.defaultValue).to.equal(42);
       });

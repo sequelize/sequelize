@@ -748,7 +748,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     }
 
     // NOTE: mssql does not support changing an autoincrement primary key
-    if (Support.getTestDialect() !== 'mssql') {
+    //       ibmi does not support ON UPDATE CASCADE
+    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'ibmi') {
       it('can cascade updates', function() {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
           User = this.sequelize.define('User', { username: DataTypes.STRING });

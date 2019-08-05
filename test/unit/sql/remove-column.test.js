@@ -15,6 +15,7 @@ if (current.dialect.name !== 'sqlite') {
           schema: 'archive',
           tableName: 'user'
         }, 'email'), {
+          ibmi: 'ALTER TABLE "archive"."user" DROP COLUMN "email"',
           mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
           mariadb: 'ALTER TABLE `archive`.`user` DROP `email`;',
           mysql: 'ALTER TABLE `archive.user` DROP `email`;',

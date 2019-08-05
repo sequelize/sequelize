@@ -1,7 +1,7 @@
 {
   "name": "sequelize-ibmi",
   "description": "IBM i fork of the Sequelize package. Targeting parity and eventual reintegration with upstream branch.",
-  "version": "0.0.0-beta.2",
+  "version": "0.1.0",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     "Mark Irish <mirish@ibm.com>",
@@ -76,7 +76,7 @@
     "mocha": "^6.1.4",
     "mysql2": "^1.6.5",
     "nyc": "^14.1.1",
-    "odbc": "^2.0.0-4",
+    "odbc": "^2.1.1",
     "pg": "^7.8.1",
     "pg-hstore": "^2.x",
     "pg-types": "^2.0.0",
