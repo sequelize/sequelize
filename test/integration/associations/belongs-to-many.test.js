@@ -557,23 +557,23 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
-    it('compares primary keys using attribute type info', function() {
+    it('options.raw default value can be overwritten', function() {
       return Promise.all([
         this.Article.create({ title: 'Article' }),
         this.Label.create({ text: 'Awesomeness' }),
         this.Label.create({ text: 'Epicness' })
       ]).then(([article, label1, label2]) => {
         return article.setLabels([label1, label2]).then(() => {
-          DataTypes.INTEGER.prototype._sanitize = function _sanitize(value) { return value; };
+          DataTypes.INTEGER.prototype._sanitize = DataTypes.INTEGER.prototype._sanitize || (value => value);
           sinon.spy(DataTypes.INTEGER.prototype, '_sanitize');
           this.Label.refreshAttributes();
           return article.hasLabels([
             label1[this.Label.primaryKeyAttribute],
             label2[this.Label.primaryKeyAttribute]
-          ]).then(() => {
+          ], { raw: false }).then(() => {
             expect(DataTypes.INTEGER.prototype._sanitize).calledTwice;
           }).finally(() => {
-            delete DataTypes.INTEGER.prototype._sanitize;
+            DataTypes.INTEGER.prototype._sanitize.restore();
           });
         });
       });
