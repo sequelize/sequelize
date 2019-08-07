@@ -295,7 +295,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     describe('logging', () => {
       beforeEach(function() {
-        this.User=this.sequelize.define('User', {
+        this.User = this.sequelize.define('User', {
           id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -351,43 +351,24 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             createSql = s;
           }
         }).then(user=>{
-          user.username='li';
+          user.username = 'li';
           return user.save({
             logging: s =>{
               updateSql = s;
             }
           });
         }).then(()=>{
-          if ( ['mysql', 'mariadb'].includes(dialect)) {
-            expect(createSql).to.equal('Executing (default): INSERT INTO `Users` (`id`,`username`,`emailAddress`) VALUES (DEFAULT,?,?);["john","john@gmail.com"]');
-            expect(updateSql).to.equal('Executing (default): UPDATE `Users` SET `username`=? WHERE `id` = ?;["li",1]');
-          } else if ( dialect === 'postgres') {
-            expect(createSql).to.equal('Executing (default): INSERT INTO "Users" ("id","username","emailAddress") VALUES (DEFAULT,$1,$2) RETURNING *;["john","john@gmail.com"]');
-            expect(updateSql).to.equal('Executing (default): UPDATE "Users" SET "username"=$1 WHERE "id" = $2;["li",1]');
-          } else if (dialect === 'sqlite') {
-            expect(createSql).to.equal('Executing (default): INSERT INTO `Users` (`id`,`username`,`emailAddress`) VALUES (NULL,$1,$2);{"$1":"john","$2":"john@gmail.com"}');
-            expect(updateSql).to.equal('Executing (default): UPDATE `Users` SET `username`=$1 WHERE `id` = $2;{"$1":"li","$2":1}');
-          } else if (dialect === 'mssql') {
-            expect(createSql).to.equal('Executing (default): INSERT INTO [Users] ([username],[emailAddress]) OUTPUT INSERTED.* VALUES (@0,@1);{"0":"john","1":"john@gmail.com"}');
-            expect(updateSql).to.equal('Executing (default): UPDATE [Users] SET [username]=@0 OUTPUT INSERTED.* WHERE [id] = @1;{"0":"li","1":1}');
-          }
+          expect(createSql).to.match(/; ("john", "john@gmail.com"|{"(\$1|0)":"john","(\$2|1)":"john@gmail.com"})/);
+          expect(updateSql).to.match(/; ("li", 1|{"(\$1|0)":"li","(\$2|1)":1})/);
         });
       });
 
       it('add parameters in log sql when use bind value', function() {
         let logSql;
         const typeCast = dialect === 'postgres' ? '::text' : '';
-        return this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { bind: ['foo', 'bar'], logging: s=>logSql=s })
+        return this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { bind: ['foo', 'bar'], logging: s=>logSql = s })
           .then(()=>{
-            if (dialect==='sqlite') {
-              expect(logSql).to.equal('Executing (default): select $1 as foo, $2 as bar;{"$1":"foo","$2":"bar"}');
-            } else if (dialect === 'mssql') {
-              expect(logSql).to.equal('Executing (default): select @0 as foo, @1 as bar;{"0":"foo","1":"bar"}');
-            } else if (['mysql', 'mariadb'].includes(dialect)) {
-              expect(logSql).to.equal('Executing (default): select ? as foo, ? as bar;["foo","bar"]');
-            } else {
-              expect(logSql).to.equal('Executing (default): select $1::text as foo, $2::text as bar;["foo","bar"]');
-            }
+            expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
           });
       });
     });
