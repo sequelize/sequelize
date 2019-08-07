@@ -119,7 +119,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
   describe('timestamps', () => {
     it('follows the global timestamps true option', () => {
-      const User =current.define('User', {}),
+      const User = current.define('User', {}),
         Task = current.define('Task', {});
 
       User.belongsToMany(Task, { through: 'user_task1' });
@@ -128,7 +128,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
 
     it('allows me to override the global timestamps option', () => {
-      const User =current.define('User', {}),
+      const User = current.define('User', {}),
         Task = current.define('Task', {});
 
       User.belongsToMany(Task, { through: 'user_task2', timestamps: false });
@@ -141,7 +141,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
         timestamps: false
       });
 
-      const User =current.define('User', {}),
+      const User = current.define('User', {}),
         Task = current.define('Task', {});
 
       User.belongsToMany(Task, { through: 'user_task3' });
@@ -151,14 +151,14 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
   });
 
   describe('optimizations using bulk create, destroy and update', () => {
-    const User =current.define('User', { username: DataTypes.STRING }),
+    const User = current.define('User', { username: DataTypes.STRING }),
       Task = current.define('Task', { title: DataTypes.STRING }),
       UserTasks = current.define('UserTasks', {});
 
     User.belongsToMany(Task, { through: UserTasks });
     Task.belongsToMany(User, { through: UserTasks });
 
-    const user =User.build({
+    const user = User.build({
         id: 42
       }),
       task1 = Task.build({
@@ -497,7 +497,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
   describe('self-associations', () => {
     it('does not pair multiple self associations with different through arguments', () => {
-      const User =current.define('user', {}),
+      const User = current.define('user', {}),
         UserFollowers = current.define('userFollowers', {}),
         Invite = current.define('invite', {});
 
@@ -519,7 +519,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
 
     it('correctly generates a foreign/other key when none are defined', () => {
-      const User =current.define('user', {}),
+      const User = current.define('user', {}),
         UserFollowers = current.define('userFollowers', {
           id: {
             type: DataTypes.INTEGER,
