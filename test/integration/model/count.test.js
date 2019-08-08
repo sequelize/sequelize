@@ -155,5 +155,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should work correctly with include and whichever raw option', function() {
+      const Post = this.sequelize.define('Post', {});
+      this.User.hasMany(Post);
+      return Post.sync({ force: true })
+        .then(() => Promise.all([this.User.create({}), Post.create({})]))
+        .then(([user, post]) => user.addPost(post))
+        .then(() => Promise.all([
+          this.User.count(),
+          this.User.count({ raw: undefined }),
+          this.User.count({ raw: false }),
+          this.User.count({ raw: true }),
+          this.User.count({ include: Post }),
+          this.User.count({ include: Post, raw: undefined }),
+          this.User.count({ include: Post, raw: false }),
+          this.User.count({ include: Post, raw: true })
+        ]))
+        .then(counts => {
+          expect(counts).to.deep.equal([1, 1, 1, 1, 1, 1, 1, 1]);
+        });
+    });
+
   });
 });
