@@ -224,7 +224,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
     it('should infer otherKey from paired BTM relationship with a through model defined', function() {
       const User = this.sequelize.define('User', {});
-      const Place = this.sequelize.define('User', {});
+      const Place = this.sequelize.define('Place', {});
       const UserPlace = this.sequelize.define('UserPlace', {
         id: {
           primaryKey: true,
