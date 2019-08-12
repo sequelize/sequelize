@@ -249,6 +249,51 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
   });
 
+  describe('source/target keys', () => {
+    it('should infer targetKey from paired BTM relationship with a through string defined', function() {
+      const User = this.sequelize.define('User', { user_id: DataTypes.UUID });
+      const Place = this.sequelize.define('Place', { place_id: DataTypes.UUID });
+
+      const Places = User.belongsToMany(Place, { through: 'user_places', sourceKey: 'user_id' });
+      const Users = Place.belongsToMany(User, { through: 'user_places', sourceKey: 'place_id' });
+
+      expect(Places.paired).to.equal(Users);
+      expect(Users.paired).to.equal(Places);
+
+      expect(Places.sourceKey).to.equal('user_id');
+      expect(Users.sourceKey).to.equal('place_id');
+
+      expect(Places.targetKey).to.equal('place_id');
+      expect(Users.targetKey).to.equal('user_id');
+    });
+
+    it('should infer targetKey from paired BTM relationship with a through model defined', function() {
+      const User = this.sequelize.define('User', { user_id: DataTypes.UUID });
+      const Place = this.sequelize.define('Place', { place_id: DataTypes.UUID });
+      const UserPlace = this.sequelize.define('UserPlace', {
+        id: {
+          primaryKey: true,
+          type: DataTypes.INTEGER,
+          autoIncrement: true
+        }
+      }, { timestamps: false });
+
+      const Places = User.belongsToMany(Place, { through: UserPlace, sourceKey: 'user_id' });
+      const Users = Place.belongsToMany(User, { through: UserPlace, sourceKey: 'place_id' });
+
+      expect(Places.paired).to.equal(Users);
+      expect(Users.paired).to.equal(Places);
+
+      expect(Places.sourceKey).to.equal('user_id');
+      expect(Users.sourceKey).to.equal('place_id');
+
+      expect(Places.targetKey).to.equal('place_id');
+      expect(Users.targetKey).to.equal('user_id');
+
+      expect(Object.keys(UserPlace.rawAttributes).length).to.equal(3); // Defined primary key and two foreign keys
+    });
+  });
+
   describe('pseudo associations', () => {
     it('should setup belongsTo relations to source and target from join model with defined foreign/other keys', function() {
       const Product = this.sequelize.define('Product', {
