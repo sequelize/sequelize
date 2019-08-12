@@ -173,6 +173,34 @@ if (dialect.match(/^postgres/)) {
             expect(res[0].my_func).to.be.eql('second');
           });
       });
+
+      it('produces an error when options.variables is missing expected parameters', function() {
+        const body = 'return 1;';
+        expect(() => {
+          const options = { variables: 100 };
+          return this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], options);
+        }).to.throw(/expandFunctionVariableList: function variables must be an array/);
+
+        expect(() => {
+          const options = { variables: [{ name: 'myVar' }] };
+          return this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], options);
+        }).to.throw(/function variable must have a name and type/);
+
+        expect(() => {
+          const options = { variables: [{ type: 'integer' }] };
+          return this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], options);
+        }).to.throw(/function variable must have a name and type/);
+      });
+
+      it('uses declared variables', function() {
+        const body = 'RETURN myVar + 1;';
+        const options = { variables: [{ type: 'integer', name: 'myVar', default: 100 }] };
+        return this.queryInterface.createFunction('add_one', [], 'integer', 'plpgsql', body, [], options)
+          .then(() => this.sequelize.query('select add_one();', { type: this.sequelize.QueryTypes.SELECT }))
+          .then(res => {
+            expect(res[0].add_one).to.be.eql(101);
+          });
+      });
     });
 
     describe('dropFunction', () => {

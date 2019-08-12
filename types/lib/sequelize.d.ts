@@ -19,6 +19,7 @@ import {
   UpdateOptions,
   WhereAttributeHash,
   WhereOperators,
+  ModelCtor,
 } from './model';
 import { ModelManager } from './model-manager';
 import * as Op from './operators';
@@ -775,7 +776,7 @@ export class Sequelize extends Hooks {
    * Dictionary of all models linked with this instance.
    */
   public readonly models: {
-    [key: string]: typeof Model;
+    [key: string]: ModelCtor<Model>;
   };
 
   /**
@@ -1117,7 +1118,7 @@ export class Sequelize extends Hooks {
    *
    * @param modelName The name of a model defined with Sequelize.define
    */
-  public model(modelName: string): typeof Model;
+  public model(modelName: string): ModelCtor<Model>;
 
   /**
    * Checks whether a model with the given name is defined
@@ -1148,7 +1149,7 @@ export class Sequelize extends Hooks {
   ): T;
 
   /**
-   * Execute a query on the DB, with the posibility to bypass all the sequelize goodness.
+   * Execute a query on the DB, optionally bypassing all the Sequelize goodness.
    *
    * By default, the function will return two arguments: an array of results, and a metadata object,
    * containing number of affected rows etc. Use `.then(([...]))` to access the results.

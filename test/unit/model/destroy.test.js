@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.stubDelete.restore();
     });
 
-    it('can detect complexe objects', () => {
+    it('can detect complex objects', () => {
       const Where = function() { this.secretValue = '1'; };
 
       expect(() => {

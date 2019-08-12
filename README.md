@@ -50,7 +50,7 @@ $ npm install --save tedious # Microsoft SQL Server
 - [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 
 ## Responsible disclosure
-If you have any security issue to report, contact project maintainers privately. You can find contact information in [CONTACT.md](https://github.com/sequelize/sequelize/blob/master/CONTACT.md).
+If you have security issues to report please refer to our [Responsible Disclosure Policy](./SECURITY.md) for more details.
 
 ## Resources
 
@@ -64,6 +64,7 @@ If you have any security issue to report, contact project maintainers privately.
 - [Sequelize & GraphQL](https://github.com/mickhansen/graphql-sequelize)
 - [Add-ons & Plugins](https://sequelize.org/master/manual/resources.html)
 - [Sequelize CLI](https://github.com/sequelize/cli)
+- [Sequelize & CockroachDB](https://github.com/cockroachdb/sequelize-cockroachdb)
 
 ### Learning
 - [Getting Started](https://sequelize.org/master/manual/getting-started)

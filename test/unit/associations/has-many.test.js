@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
   });
 
   describe('optimizations using bulk create, destroy and update', () => {
-    const User =current.define('User', { username: DataTypes.STRING }),
+    const User = current.define('User', { username: DataTypes.STRING }),
       Task = current.define('Task', { title: DataTypes.STRING });
 
     User.hasMany(Task);
@@ -73,7 +73,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
   });
 
   describe('mixin', () => {
-    const User =current.define('User'),
+    const User = current.define('User'),
       Task = current.define('Task');
 
     it('should mixin association methods', () => {
@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
   });
 
   describe('get', () => {
-    const User =current.define('User', {}),
+    const User = current.define('User', {}),
       Task = current.define('Task', {}),
       idA = Math.random().toString(),
       idB = Math.random().toString(),

@@ -49,4 +49,8 @@ Sequelize.afterConnect(() => {
 
 const rnd: Fn = sequelize.random();
 
-const myModel: typeof Model = sequelize.models.asd;
+class Model1 extends Model{}
+class Model2 extends Model{}
+const myModel: typeof Model1 = sequelize.models.asd;
+myModel.hasOne(Model2)
+myModel.findAll();

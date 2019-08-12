@@ -367,6 +367,25 @@ if (dialect.match(/^postgres/)) {
         });
       });
 
+      it('should be able to add multiple values with different order', function() {
+        let User = this.sequelize.define('UserEnums', {
+          priority: DataTypes.ENUM('1', '2', '6')
+        });
+
+        return User.sync({ force: true }).then(() => {
+          User = this.sequelize.define('UserEnums', {
+            priority: DataTypes.ENUM('0', '1', '2', '3', '4', '5', '6', '7')
+          });
+
+          return User.sync();
+        }).then(() => {
+          return this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
+        }).then(enums => {
+          expect(enums).to.have.length(1);
+          expect(enums[0].enum_value).to.equal('{0,1,2,3,4,5,6,7}');
+        });
+      });
+
       describe('ARRAY(ENUM)', () => {
         it('should be able to ignore enum types that already exist', function() {
           const User = this.sequelize.define('UserEnums', {
