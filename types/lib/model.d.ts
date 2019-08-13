@@ -741,6 +741,11 @@ export interface BulkCreateOptions extends Logging, Transactionable {
   updateOnDuplicate?: string[];
 
   /**
+   * Include options. See `find` for details
+   */
+  include?: Includeable[];
+
+  /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
   returning?: boolean | string[];
