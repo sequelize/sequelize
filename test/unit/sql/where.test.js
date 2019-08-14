@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(util.inspect(params, { depth: 10 })+(options && `, ${util.inspect(options)}` || ''), () => {
+      it(util.inspect(params, { depth: 10 }) + (options && `, ${util.inspect(options)}` || ''), () => {
         const sqlOrError = _.attempt(sql.whereQuery.bind(sql), params, options);
         return expectsql(sqlOrError, expectation);
       });
