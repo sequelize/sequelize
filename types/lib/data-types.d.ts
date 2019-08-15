@@ -102,7 +102,7 @@ export interface CharDataType extends StringDataType {
 }
 
 export interface CharDataTypeOptions extends StringDataTypeOptions {}
-   
+
 export type TextLength = 'tiny' | 'medium' | 'long';
 
 /**
@@ -326,6 +326,11 @@ export const TIME: AbstractDataTypeConstructor;
  * A datetime column
  */
 export const DATE: DateDataTypeConstructor;
+
+/**
+ * A smalldatetime column
+ */
+export const SMALLDATETIME: DateDataTypeConstructor;
 
 interface DateDataTypeConstructor extends AbstractDataTypeConstructor {
   new (length?: string | number): DateDataType;
