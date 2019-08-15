@@ -158,6 +158,15 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     return testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
   });
 
+  it('calls parse and stringify for SMALLDATETIME', () => {
+    const Type = new Sequelize.SMALLDATETIME();
+
+    if (['mssql'].includes(dialect)) {
+      return testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
+    }
+    testFailure(Type);
+  });
+
   it('calls parse and stringify for TIME', () => {
     const Type = new Sequelize.TIME();
 
