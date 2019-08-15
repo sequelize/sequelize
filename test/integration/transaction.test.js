@@ -635,6 +635,59 @@ if (current.dialect.supports.transactions) {
           });
         }
 
+        if (current.dialect.supports.lockAs) {
+          it('supports alias on update of table', function() {
+            const User = this.sequelize.define('User', { username: Support.Sequelize.STRING }, { tableName: 'Person' }),
+              Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN }),
+              self = this;
+
+            User.belongsToMany(Task, { through: 'UserTasks' });
+            Task.belongsToMany(User, { through: 'UserTasks' });
+
+            return this.sequelize.sync({ force: true }).then(() => {
+              return Promise.join(
+                User.create({ username: 'John'}),
+                Task.create({ title: 'Get rich', active: false}),
+                Task.create({ title: 'Die trying', active: false}),
+                (john, task1) => {
+                  return john.setTasks([task1]);
+                })
+                .then(() => {
+                  return self.sequelize.transaction(t1 => {
+                    return User.find({
+                      where: {
+                        username: 'John'
+                      },
+                      include: [Task],
+                      lock: {
+                        level: t1.LOCK.UPDATE,
+                        as: 'User'
+                      },
+                      transaction: t1
+                    }).then(t1John => {
+                      // should not be blocked by the lock of the other transaction
+                      return self.sequelize.transaction(t2 => {
+                        return Task.update({
+                          active: true
+                        }, {
+                          where: {
+                            active: false
+                          },
+                          transaction: t2
+                        });
+                      }).then(() => {
+                        return t1John.save({
+                          transaction: t1
+                        });
+                      });
+                    });
+                  });
+                });
+            });
+          });
+        }
+
+
         if (current.dialect.supports.lockKey) {
           it('supports for key share', function() {
             const User = this.sequelize.define('user', {
