@@ -164,13 +164,13 @@ if (dialect.match(/^postgres/)) {
         const second_body = 'return \'second\';';
 
         // create function
-        return this.queryInterface.createFunction('my_func', [], 'varchar', 'plpgsql', first_body, null)
+        return this.queryInterface.createFunction('create_job', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', first_body, null)
           // override
-          .then(() => this.queryInterface.createFunction('my_func', [], 'varchar', 'plpgsql', second_body, null, { force: true }))
+          .then(() => this.queryInterface.createFunction('create_job', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', second_body, null, { force: true }))
           // validate
-          .then(() => this.sequelize.query('select my_func();', { type: this.sequelize.QueryTypes.SELECT }))
+          .then(() => this.sequelize.query("select create_job('abc');", { type: this.sequelize.QueryTypes.SELECT }))
           .then(res => {
-            expect(res[0].my_func).to.be.eql('second');
+            expect(res[0].create_job).to.be.eql('second');
           });
       });
 
