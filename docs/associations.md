@@ -531,6 +531,70 @@ Person.belongsToMany(Person, { as: 'Children', through: 'PersonChildren' })
 
 ```
 
+#### Source and target keys
+
+If you want to create a belongs to many relationship that does not use the default primary key some setup work is required.
+You must set the `sourceKey` (optionally `targetKey`) appropriately for the two ends of the belongs to many. Further you must also ensure you have appropriate indexes created on your relationships. For example:
+
+```js
+const User = this.sequelize.define('User', {
+  id: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4,
+    field: 'user_id'
+  },
+  userSecondId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    defaultValue: DataTypes.UUIDV4,
+    field: 'user_second_id'
+  }
+}, {
+  tableName: 'tbl_user',
+  indexes: [
+    {
+      unique: true,
+      fields: ['user_second_id']
+    }
+  ]
+});
+
+const Group = this.sequelize.define('Group', {
+  id: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4,
+    field: 'group_id'
+  },
+  groupSecondId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    defaultValue: DataTypes.UUIDV4,
+    field: 'group_second_id'
+  }
+}, {
+  tableName: 'tbl_group',
+  indexes: [
+    {
+      unique: true,
+      fields: ['group_second_id']
+    }
+  ]
+});
+
+User.belongsToMany(Group, {
+  through: 'usergroups',
+  sourceKey: 'userSecondId'
+});
+Group.belongsToMany(User, {
+  through: 'usergroups',
+  sourceKey: 'groupSecondId'
+});
+```
+
 If you want additional attributes in your join table, you can define a model for the join table in sequelize, before you define the association, and then tell sequelize that it should use that model for joining, instead of creating a new one:
 
 ```js
