@@ -81,7 +81,7 @@ if (current.dialect.supports.JSON) {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ id: 1 })), {
             postgres: '("id"#>>\'{}\') = \'1\'',
             sqlite: "json_extract(`id`, '$') = '1'",
-            mysql: "`id`->>'$.' = '1'"
+            mysql: "(`id`->>'$') = '1'"
           });
         });
 
@@ -89,7 +89,7 @@ if (current.dialect.supports.JSON) {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ profile: { id: 1 } })), {
             postgres: '("profile"#>>\'{id}\') = \'1\'',
             sqlite: "json_extract(`profile`, '$.id') = '1'",
-            mysql: "`profile`->>'$.id' = '1'"
+            mysql: "(`profile`->>'$.\\\"id\\\"') = '1'"
           });
         });
 
@@ -97,7 +97,7 @@ if (current.dialect.supports.JSON) {
           expectsql(sql.whereItemQuery(undefined, Sequelize.json({ property: { value: 1 }, another: { value: 'string' } })), {
             postgres: '("property"#>>\'{value}\') = \'1\' AND ("another"#>>\'{value}\') = \'string\'',
             sqlite: "json_extract(`property`, '$.value') = '1' AND json_extract(`another`, '$.value') = 'string'",
-            mysql: "`property`->>'$.value' = '1' and `another`->>'$.value' = 'string'"
+            mysql: "(`property`->>'$.\\\"value\\\"') = '1' and (`another`->>'$.\\\"value\\\"') = 'string'"
           });
         });
 
@@ -105,7 +105,7 @@ if (current.dialect.supports.JSON) {
           expectsql(sql.whereItemQuery(Sequelize.json('profile.id'), '1'), {
             postgres: '("profile"#>>\'{id}\') = \'1\'',
             sqlite: "json_extract(`profile`, '$.id') = '1'",
-            mysql: "`profile`->>'$.id' = '1'"
+            mysql: "(`profile`->>'$.\\\"id\\\"') = '1'"
           });
         });
 
@@ -113,7 +113,7 @@ if (current.dialect.supports.JSON) {
           expectsql(sql.whereItemQuery(Sequelize.json('json'), '{}'), {
             postgres: '("json"#>>\'{}\') = \'{}\'',
             sqlite: "json_extract(`json`, '$') = '{}'",
-            mysql: "`json`->>'$.' = '{}'"
+            mysql: "(`json`->>'$') = '{}'"
           });
         });
       });
