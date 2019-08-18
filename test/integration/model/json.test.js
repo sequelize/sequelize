@@ -701,7 +701,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Model.findAll({
             raw: true,
             attributes: ['id'],
-            where: this.sequelize.json("data.id')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ", 1)
+            where: this.sequelize.json("data.id')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ", '1')
           });
         });
 
