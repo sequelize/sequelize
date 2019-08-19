@@ -38,6 +38,7 @@ Add any other context or screenshots about the issue here.
 
 - [ ] No. This issue is relevant to Sequelize as a whole.
 - [ ] Yes. This issue only applies to the following dialect(s): XXX, YYY, ZZZ
+- [ ] I don't know.
 
 ### Would you be willing to resolve this issue by subitting a Pull Request?
 
