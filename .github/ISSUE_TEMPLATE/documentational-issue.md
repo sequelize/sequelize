@@ -17,7 +17,11 @@ For general questions, please use StackOverflow or Slack.
 
 ### What was unclear/insufficient/not covered in the documentation
 
+Write here.
+
 ### If possible: Provide some suggestion on how we can enhance the docs
+
+Write here.
 
 ### Additional context
 Add any other context or screenshots about the issue here.
@@ -30,6 +34,7 @@ Add any other context or screenshots about the issue here.
 
 - [ ] No. This issue is relevant to Sequelize as a whole.
 - [ ] Yes. This issue only applies to the following dialect(s): XXX, YYY, ZZZ
+- [ ] I don't know.
 
 ### Would you be willing to resolve this issue by subitting a Pull Request?
 
