@@ -2,7 +2,7 @@
 name: Bug report
 about: Create a bug report to help us improve
 title: ''
-labels: ''
+labels: 'type: bug'
 assignees: ''
 
 ---
@@ -13,7 +13,9 @@ Please note this is an issue tracker, not a support forum.
 For general questions, please use StackOverflow or Slack.
 -->
 
-## What are you doing?
+## Issue Description
+
+### What are you doing?
 
 <!--
 Post a MINIMAL, SELF-CONTAINED code that reproduces the issue. It must be runnable by simply copying and pasting into an isolated JS file, except possibly for the database connection configuration.
@@ -24,13 +26,13 @@ Check http://sscce.org/ or https://stackoverflow.com/help/minimal-reproducible-e
 // MINIMAL, SELF-CONTAINED code here (SSCCE/MCVE/reprex)
 ```
 
-## What do you expect to happen?
+### What do you expect to happen?
 
 <!-- Explain what behavior you wanted/expected. You may include an output. -->
 
 _I wanted Foo!_
 
-## What is actually happening?
+### What is actually happening?
 
 <!-- Show what happened. -->
 
@@ -40,7 +42,21 @@ _The output was Bar!_
 Output here
 ```
 
-## How does this problem relates to dialects?
+### Additional context
+Add any other context or screenshots about the feature request here.
+
+### Environment
+
+- Sequelize version: XXX <!-- run `npm list sequelize` to obtain this -->
+- Node.js version: XXX <!-- run `node -v` to obtain this -->
+- Operating System: XXX
+- If TypeScript related: TypeScript version: XXX
+
+## Issue Template Checklist
+
+<!-- Please answer the questions below. If you don't, your issue may be closed. -->
+
+### How does this problem relate to dialects?
 
 <!-- Choose one. -->
 
@@ -48,19 +64,15 @@ Output here
 - [ ] I think this problem happens only for the following dialect(s): <!-- Put dialect(s) here -->
 - [ ] I don't know, I was using PUT-YOUR-DIALECT-HERE, with connector library version XXX and database version XXX
 
-## Environment
+### Would you be willing to resolve this issue by subitting a Pull Request?
 
-Sequelize version: XXX
-Node version: XXX
-OS: XXX
-If TypeScript related: TypeScript version: XXX
+<!-- Remember that first contributors are welcome! -->
 
-## Other considerations
+- [ ] Yes, I have the time and I know how to start.
+- [ ] Yes, I have the time but I don't know how to start, I would need guidance.
+- [ ] No, I don't have the time, although I believe I could do it if I had the time...
+- [ ] No, I don't have the time and I wouldn't even know how to start.
 
-<!-- You may include extra information that you consider relevant. -->
-
-## Issue Template Checklist
-
-<!-- If you don't check all the boxes below, your issue may be closed. -->
+### SSCCE declaration
 
 - [ ] The code I posted above is a true [SSCCE](http://sscce.org/) (also known as [MCVE/reprex](https://stackoverflow.com/help/minimal-reproducible-example)). It is runnable by simply copying and pasting into an isolated JS file, except possibly for the database connection configuration.
