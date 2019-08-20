@@ -24,7 +24,7 @@ describe('errors', () => {
       const stackParts = err.stack.split('\n');
       const fullErrorName = `Sequelize${errorName}`;
       expect(stackParts[0]).to.equal(`${fullErrorName}: this is a message`);
-      expect(stackParts[1]).to.match(/^    at throwError \(.*errors.test.js:\d+:\d+\)$/);
+      expect(stackParts[1]).to.match(/^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/);
     });
   });
 
@@ -49,7 +49,7 @@ describe('errors', () => {
 
       const fullErrorName = `Sequelize${errorName}`;
       expect(stackParts[0]).to.equal(fullErrorName);
-      expect(stackParts[1]).to.match(/^    at throwError \(.*errors.test.js:\d+:\d+\)$/);
+      expect(stackParts[1]).to.match(/^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/);
     });
   });
 });

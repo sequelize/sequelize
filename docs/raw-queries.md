@@ -1,6 +1,6 @@
 # Raw queries
 
-As there are often use cases in which it is just easier to execute raw / already prepared SQL queries, you can utilize the function `sequelize.query`.
+As there are often use cases in which it is just easier to execute raw / already prepared SQL queries, you can use the function `sequelize.query`.
 
 By default the function will return two arguments - a results array, and an object containing metadata (affected rows etc.). Note that since this is a raw query, the metadata (property names etc.) is dialect specific. Some dialects return the metadata "within" the results object (as properties on an array). However, two arguments will always be returned, but for MSSQL and MySQL it will be two references to the same object.
 
@@ -35,7 +35,58 @@ sequelize
   })
 ```
 
+See more options in the [query API reference](../class/lib/sequelize.js~Sequelize.html#instance-method-query). Some examples below:
+
+```js
+sequelize.query('SELECT 1', {
+  // A function (or false) for logging your queries
+  // Will get called for every SQL query that gets sent
+  // to the server.
+  logging: console.log,
+
+  // If plain is true, then sequelize will only return the first
+  // record of the result set. In case of false it will return all records.
+  plain: false,
+
+  // Set this to true if you don't have a model definition for your query.
+  raw: false,
+
+  // The type of query you are executing. The query type affects how results are formatted before they are passed back.
+  type: Sequelize.QueryTypes.SELECT
+})
+
+// Note the second argument being null!
+// Even if we declared a callee here, the raw: true would
+// supersede and return a raw object.
+sequelize
+  .query('SELECT * FROM projects', { raw: true })
+  .then(projects => {
+    console.log(projects)
+  })
+```
+
+## "Dotted" attributes
+
+If an attribute name of the table contains dots, the resulting objects will be nested. This is due to the usage of [dottie.js](https://github.com/mickhansen/dottie.js/) under the hood. See below:
+
+```js
+sequelize.query('select 1 as `foo.bar.baz`').then(rows => {
+  console.log(JSON.stringify(rows))
+})
+```
+
+```json
+[{
+  "foo": {
+    "bar": {
+      "baz": 1
+    }
+  }
+}]
+```
+
 ## Replacements
+
 Replacements in a query can be done in two different ways, either using named parameters (starting with `:`), or unnamed, represented by a `?`. Replacements are passed in the options object.
 
 * If an array is passed, `?` will be replaced in the order that they appear in the array
@@ -76,6 +127,7 @@ sequelize.query('SELECT * FROM users WHERE name LIKE :search_name ',
 ```
 
 ## Bind Parameter
+
 Bind parameters are like replacements. Except replacements are escaped and inserted into the query by sequelize before the query is sent to the database, while bind parameters are sent to the database outside the SQL query text. A query can have either bind parameters or replacements. Bind parameters are referred to by either $1, $2, ... (numeric) or $key (alpha-numeric). This is independent of the dialect.
 
 * If an array is passed, `$1` is bound to the 1st element in the array (`bind[0]`)
@@ -99,4 +151,3 @@ sequelize.query('SELECT *, "text with literal $$1 and literal $$status" as t FRO
   console.log(projects)
 })
 ```
-

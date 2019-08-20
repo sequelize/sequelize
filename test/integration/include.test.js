@@ -913,6 +913,22 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
+    it('should support eager loading associations using the name of the relation (string)', function() {
+      return this.Team.findOne({
+        where: {
+          name: 'TeamA'
+        },
+        include: [
+          {
+            association: 'members',
+            required: true
+          }
+        ]
+      }).then(team => {
+        expect(team.members).to.have.length(2);
+      });
+    });
+
     it('should not ripple grandchild required to top level find when required of child is not given (implicitly false)', function() {
       return this.Team.findAll({
         include: [

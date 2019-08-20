@@ -112,6 +112,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should unite attributes with array', () => {
         expect(User.scope('aScope', 'defaultScope')._scope.attributes).to.deep.equal({ exclude: ['value', 'password'] });
       });
+
+      it('should not modify the original scopes when merging them', () => {
+        expect(User.scope('defaultScope', 'aScope').options.defaultScope.attributes).to.deep.equal({ exclude: ['password'] });
+      });
     });
 
     it('defaultScope should be an empty object if not overridden', () => {
@@ -371,6 +375,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         offset: 3
       });
     });
+
+    it('should be able to merge scope and having', () => {
+      Sequelize.Model._scope = {
+        having: {
+          something: true,
+          somethingElse: 42
+        },
+        limit: 15,
+        offset: 3
+      };
+
+      const options = {
+        having: {
+          something: false
+        },
+        limit: 9
+      };
+
+      Sequelize.Model._injectScope(options);
+
+      expect(options).to.deep.equal({
+        having: {
+          something: false,
+          somethingElse: 42
+        },
+        limit: 9,
+        offset: 3
+      });
+    });
+
 
     it('should be able to merge scopes with the same include', () => {
       Sequelize.Model._scope = {

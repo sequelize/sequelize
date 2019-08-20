@@ -98,12 +98,39 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
   });
 
+  describe('strings', () => {
+    it('formats null characters correctly when inserting', () => {
+      const User = Support.sequelize.define('user', {
+        username: {
+          type: DataTypes.STRING,
+          field: 'user_name'
+        }
+      }, {
+        timestamps: false
+      });
+
+      expectsql(sql.insertQuery(User.tableName, { user_name: 'null\0test' }, User.rawAttributes),
+        {
+          query: {
+            postgres: 'INSERT INTO "users" ("user_name") VALUES ($1);',
+            mssql: 'INSERT INTO [users] ([user_name]) VALUES ($1);',
+            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
+          },
+          bind: {
+            postgres: ['null\u0000test'],
+            default: ['null\0test']
+          }
+        });
+    });
+  });
+
   describe('bulkCreate', () => {
     it('bulk create with onDuplicateKeyUpdate', () => {
       const User = Support.sequelize.define('user', {
         username: {
           type: DataTypes.STRING,
-          field: 'user_name'
+          field: 'user_name',
+          primaryKey: true
         },
         password: {
           type: DataTypes.STRING,
@@ -121,10 +148,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: true
       });
 
-      expectsql(sql.bulkInsertQuery(User.tableName, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'] }, User.fieldRawAttributesMap),
+      // mapping primary keys to their "field" override values
+      const primaryKeys = User.primaryKeyAttributes.map(attr => User.rawAttributes[attr].field || attr);
+
+      expectsql(sql.bulkInsertQuery(User.tableName, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys }, User.fieldRawAttributesMap),
         {
           default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
-          postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
+          postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
           mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (N\'testuser\',N\'12345\');',
           mariadb: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
           mysql: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);'

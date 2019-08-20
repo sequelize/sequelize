@@ -435,7 +435,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             this.queryInterface.QueryGenerator.getForeignKeyQuery('hosts', 'admin'),
             {}
           )
-            .spread(fk => {
+            .then(([fk]) => {
               expect(fks[0]).to.deep.eql(fk[0]);
             });
         }
@@ -488,6 +488,34 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           .then(constraints => {
             constraints = constraints.map(constraint => constraint.constraintName);
             expect(constraints).to.not.include('users_email_uk');
+          });
+      });
+
+      it('should add a constraint after another', function() {
+        return this.queryInterface.addConstraint('users', ['username'], {
+          type: 'unique'
+        }).then(() => this.queryInterface.addConstraint('users', ['email'], {
+          type: 'unique'
+        }))
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.include('users_email_uk');
+            expect(constraints).to.include('users_username_uk');
+            return this.queryInterface.removeConstraint('users', 'users_email_uk');
+          })
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('users_email_uk');
+            expect(constraints).to.include('users_username_uk');
+            return this.queryInterface.removeConstraint('users', 'users_username_uk');
+          })
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('users_email_uk');
+            expect(constraints).to.not.include('users_username_uk');
           });
       });
     });

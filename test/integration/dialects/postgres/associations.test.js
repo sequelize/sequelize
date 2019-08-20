@@ -57,11 +57,8 @@ if (dialect.match(/^postgres/)) {
             tasks = [];
 
           for (let i = 0; i < 5; ++i) {
-            users[users.length] = { name: `User${Math.random()}` };
-          }
-
-          for (let x = 0; x < 5; ++x) {
-            tasks[tasks.length] = { name: `Task${Math.random()}` };
+            users[i] = { name: `User${Math.random()}` };
+            tasks[i] = { name: `Task${Math.random()}` };
           }
 
           return this.sequelize.sync({ force: true }).then(() => {
@@ -105,11 +102,8 @@ if (dialect.match(/^postgres/)) {
           this.Task.belongsToMany(this.User, { as: 'Users', through: 'usertasks' });
 
           for (let i = 0; i < 5; ++i) {
-            users[users.length] = { id: i + 1, name: `User${Math.random()}` };
-          }
-
-          for (let x = 0; x < 5; ++x) {
-            tasks[tasks.length] = { id: x + 1, name: `Task${Math.random()}` };
+            users[i] = { id: i + 1, name: `User${Math.random()}` };
+            tasks[i] = { id: i + 1, name: `Task${Math.random()}` };
           }
 
           return this.sequelize.sync({ force: true }).then(() => {

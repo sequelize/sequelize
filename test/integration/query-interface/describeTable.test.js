@@ -17,7 +17,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   describe('describeTable', () => {
-
     if (Support.sequelize.dialect.supports.schemas) {
       it('reads the metadata of the table with schema', function() {
         const MyTable1 = this.sequelize.define('my_table', {
@@ -50,6 +49,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           });
       });
     }
+
+    it('rejects when no data is available', function() {
+      return expect(
+        this.queryInterface.describeTable('_some_random_missing_table')
+      ).to.be.rejectedWith('No description found for "_some_random_missing_table" table. Check the table name and schema; remember, they _are_ case sensitive.');
+    });
 
     it('reads the metadata of the table', function() {
       const Users = this.sequelize.define('_Users', {

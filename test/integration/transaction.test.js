@@ -81,7 +81,7 @@ if (current.dialect.supports.transactions) {
         });
       });
 
-      it('supports running hooks when a transaction is commited', function() {
+      it('supports running hooks when a transaction is committed', function() {
         const hook = sinon.spy();
         let transaction;
         return expect(this.sequelize.transaction(t => {
@@ -106,7 +106,7 @@ if (current.dialect.supports.transactions) {
         });
       });
 
-      //Promise rejection test is specifc to postgres
+      //Promise rejection test is specific to postgres
       if (dialect === 'postgres') {
         it('do not rollback if already committed', function() {
           const SumSumSum = this.sequelize.define('transaction', {
@@ -124,16 +124,7 @@ if (current.dialect.supports.transactions) {
             };
           // Attention: this test is a bit racy. If you find a nicer way to test this: go ahead
           return SumSumSum.sync({ force: true }).then(() => {
-            return expect(Promise.join(transTest(80), transTest(80), transTest(80))).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions');
-          }).delay(100).then(() => {
-            if (this.sequelize.test.$runningQueries !== 0) {
-              return Promise.delay(200);
-            }
-            return void 0;
-          }).then(() => {
-            if (this.sequelize.test.$runningQueries !== 0) {
-              return Promise.delay(500);
-            }
+            return expect(Promise.all([transTest(80), transTest(80), transTest(80)])).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions');
           });
         });
       }
@@ -154,7 +145,7 @@ if (current.dialect.supports.transactions) {
         });
     });
 
-    it('does not allow queries immediatly after commit call', function() {
+    it('does not allow queries immediately after commit call', function() {
       return expect(
         this.sequelize.transaction().then(t => {
           return this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }).then(() => {
@@ -194,7 +185,7 @@ if (current.dialect.supports.transactions) {
         .to.eventually.be.rejectedWith('Transaction cannot be rolled back because it never started');
     });
 
-    it('does not allow queries immediatly after rollback call', function() {
+    it('does not allow queries immediately after rollback call', function() {
       return expect(
         this.sequelize.transaction().then(t => {
           return Promise.join(
@@ -375,6 +366,68 @@ if (current.dialect.supports.transactions) {
       });
     });
 
+    if (dialect === 'mysql' || dialect === 'mariadb') {
+      describe('deadlock handling', () => {
+        it('should treat deadlocked transaction as rollback', function() {
+          const Task = this.sequelize.define('task', {
+            id: {
+              type: Sequelize.INTEGER,
+              primaryKey: true
+            }
+          });
+
+          // This gets called twice simultaneously, and we expect at least one of the calls to encounter a
+          // deadlock (which effectively rolls back the active transaction).
+          // We only expect createTask() to insert rows if a transaction is active.  If deadlocks are handled
+          // properly, it should only execute a query if we're actually inside a real transaction.  If it does
+          // execute a query, we expect the newly-created rows to be destroyed when we forcibly rollback by
+          // throwing an error.
+          // tl;dr; This test is designed to ensure that this function never inserts and commits a new row.
+          const update = (from, to) => this.sequelize.transaction(transaction => {
+            return Task.findAll({
+              where: {
+                id: {
+                  [Sequelize.Op.eq]: from
+                }
+              },
+              lock: 'UPDATE',
+              transaction
+            })
+              .then(() => Promise.delay(10))
+              .then(() => {
+                return Task.update({ id: to }, {
+                  where: {
+                    id: {
+                      [Sequelize.Op.ne]: to
+                    }
+                  },
+                  lock: transaction.LOCK.UPDATE,
+                  transaction
+                });
+              })
+              .catch(e => { console.log(e.message); })
+              .then(() => Task.create({ id: 2 }, { transaction }))
+              .catch(e => { console.log(e.message); })
+              .then(() => { throw new Error('Rollback!'); });
+          }).catch(() => {});
+
+          return this.sequelize.sync({ force: true })
+            .then(() => Task.create({ id: 0 }))
+            .then(() => Task.create({ id: 1 }))
+            .then(() => Promise.all([
+              update(1, 0),
+              update(0, 1)
+            ]))
+            .then(() => {
+              return Task.count().then(count => {
+                // If we were actually inside a transaction when we called `Task.create({ id: 2 })`, no new rows should be added.
+                expect(count).to.equal(2, 'transactions were fully rolled-back, and no new rows were added');
+              });
+            });
+        });
+      });
+    }
+
     if (dialect === 'sqlite') {
       it('provides persistent transactions', () => {
         const sequelize = new Support.Sequelize('database', 'username', 'password', { dialect: 'sqlite' }),
@@ -508,7 +561,7 @@ if (current.dialect.supports.transactions) {
                     }).then(() => {
                       t2Spy();
                       return t2.commit().then(() => {
-                        expect(t2Spy).to.have.been.calledAfter(t1Spy); // Find should not succeed before t1 has comitted
+                        expect(t2Spy).to.have.been.calledAfter(t1Spy); // Find should not succeed before t1 has committed
                       });
                     }),
 

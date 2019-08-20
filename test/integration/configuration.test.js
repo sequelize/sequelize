@@ -9,8 +9,9 @@ const chai = require('chai'),
   fs = require('fs'),
   path = require('path');
 
+let sqlite3;
 if (dialect === 'sqlite') {
-  var sqlite3 = require('sqlite3'); // eslint-disable-line
+  sqlite3 = require('sqlite3'); // eslint-disable-line
 }
 
 describe(Support.getTestDialectTeaser('Configuration'), () => {

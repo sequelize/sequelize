@@ -30,7 +30,7 @@
           "title": "Sequelize",
           "description": "Node.js ORM for PostgreSQL, MySQL, SQLite and MSSQL",
           "repository": "https://github.com/sequelize/sequelize",
-          "site": "http://docs.sequelizejs.com/"
+          "site": "https://sequelize.org/master/"
         },
         "manual": {
           "index": "./docs/index.md",
@@ -38,26 +38,31 @@
           "asset": "./docs/images",
           "files": [
             "./docs/getting-started.md",
-            "./docs/usage.md",
+            "./docs/dialects.md",
             "./docs/data-types.md",
             "./docs/models-definition.md",
             "./docs/models-usage.md",
+            "./docs/hooks.md",
             "./docs/querying.md",
             "./docs/instances.md",
             "./docs/associations.md",
             "./docs/transactions.md",
             "./docs/scopes.md",
-            "./docs/hooks.md",
             "./docs/raw-queries.md",
+            "./docs/read-replication.md",
             "./docs/migrations.md",
+            "./docs/resources.md",
+            "./docs/typescript.md",
             "./docs/upgrade-to-v5.md",
-            "./docs/upgrade-to-v4.md",
             "./docs/legacy.md",
             "./docs/whos-using.md",
             "./docs/legal.md"
           ]
         }
       }
+    },
+    {
+      "name": "./docs/plugins/group-data-types"
     }
   ]
 }

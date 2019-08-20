@@ -1,19 +1,16 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  assert = chai.assert,
-  Support = require('./support'),
-  DataTypes = require('../../lib/data-types'),
-  dialect = Support.getTestDialect(),
-  _ = require('lodash'),
-  Sequelize = require('../../index'),
-  config = require('../config/config'),
-  moment = require('moment'),
-  Transaction = require('../../lib/transaction'),
-  logger = require('../../lib/utils/logger'),
-  sinon = require('sinon'),
-  current = Support.sequelize;
+const { expect, assert } = require('chai');
+const Support = require('./support');
+const DataTypes = require('../../lib/data-types');
+const dialect = Support.getTestDialect();
+const _ = require('lodash');
+const Sequelize = require('../../index');
+const config = require('../config/config');
+const moment = require('moment');
+const Transaction = require('../../lib/transaction');
+const sinon = require('sinon');
+const current = Support.sequelize;
 
 const qq = str => {
   if (dialect === 'postgres' || dialect === 'mssql') {
@@ -27,10 +24,6 @@ const qq = str => {
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('constructor', () => {
-    afterEach(() => {
-      logger.deprecate.restore && logger.deprecate.restore();
-    });
-
     it('should pass the global options correctly', () => {
       const sequelize = Support.createSequelizeInstance({ logging: false, define: { underscored: true } }),
         DAO = sequelize.define('dao', { name: DataTypes.STRING });
@@ -121,12 +114,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             .sequelizeWithInvalidConnection
             .authenticate()
             .catch(err => {
+              console.log(err);
               expect(
                 err.message.includes('connect ECONNREFUSED') ||
                 err.message.includes('invalid port number') ||
                 err.message.match(/should be >=? 0 and < 65536/) ||
                 err.message.includes('Login failed for user') ||
-                err.message.includes('Port must be > 0 and < 65536')
+                err.message.includes('must be > 0 and < 65536')
               ).to.be.ok;
             });
         });
@@ -224,13 +218,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('query', () => {
     afterEach(function() {
       this.sequelize.options.quoteIdentifiers = true;
-
       console.log.restore && console.log.restore();
     });
 
     beforeEach(function() {
       this.User = this.sequelize.define('User', {
-        username: DataTypes.STRING,
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        },
         emailAddress: {
           type: DataTypes.STRING,
           field: 'email_address'
@@ -270,20 +266,34 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
     });
 
-    describe('logging', () => {
-      it('executes a query with global benchmarking option and default logger', () => {
-        const logger = sinon.spy(console, 'log');
-        const sequelize = Support.createSequelizeInstance({
-          logging: logger,
-          benchmark: true
-        });
+    describe('retry',  () => {
+      it('properly bind parameters on extra retries', function() {
+        const payload = {
+          username: 'test',
+          createdAt: '2010-10-10 00:00:00',
+          updatedAt: '2010-10-10 00:00:00'
+        };
 
-        return sequelize.query('select 1;').then(() => {
-          expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; Elapsed time: \d+ms/);
+        const spy = sinon.spy();
+
+        return expect(this.User.create(payload).then(() => this.sequelize.query(`
+          INSERT INTO ${qq(this.User.tableName)} (username,${qq('createdAt')},${qq('updatedAt')}) VALUES ($username,$createdAt,$updatedAt);
+        `, {
+          bind: payload,
+          logging: spy,
+          retry: {
+            max: 3,
+            match: [
+              /Validation/
+            ]
+          }
+        }))).to.be.rejectedWith(Sequelize.UniqueConstraintError).then(() => {
+          expect(spy.callCount).to.eql(3);
         });
       });
+    });
 
+    describe('logging', () => {
       it('executes a query with global benchmarking option and custom logger', () => {
         const logger = sinon.spy();
         const sequelize = Support.createSequelizeInstance({
@@ -295,17 +305,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           expect(logger.calledOnce).to.be.true;
           expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1/);
           expect(typeof logger.args[0][1] === 'number').to.be.true;
-        });
-      });
-
-      it('executes a query with benchmarking option and default logger', function() {
-        const logger = sinon.spy(console, 'log');
-        return this.sequelize.query('select 1;', {
-          logging: logger,
-          benchmark: true
-        }).then(() => {
-          expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; Elapsed time: \d+ms/);
         });
       });
 
@@ -326,7 +325,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('executes select queries correctly', function() {
       return this.sequelize.query(this.insertQuery).then(() => {
         return this.sequelize.query(`select * from ${qq(this.User.tableName)}`);
-      }).spread(users => {
+      }).then(([users]) => {
         expect(users.map(u => { return u.username; })).to.include('john');
       });
     });
@@ -337,7 +336,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       seq.options.quoteIdentifiers = false;
       return seq.query(this.insertQuery).then(() => {
         return seq.query(`select * from ${qq(this.User.tableName)}`);
-      }).spread(users => {
+      }).then(([users]) => {
         expect(users.map(u => { return u.username; })).to.include('john');
       });
     });
@@ -347,7 +346,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         return this.sequelize.query(this.insertQuery);
       }).then(() => {
         return this.sequelize.query(`select username as ${qq('user.username')} from ${qq(this.User.tableName)}`);
-      }).spread(users => {
+      }).then(([users]) => {
         expect(users).to.deep.equal([{ 'user.username': 'john' }]);
       });
     });
@@ -715,7 +714,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         datetime = 'GETDATE()';
       }
 
-      return this.sequelize.query(`SELECT ${datetime} AS t`).spread(result => {
+      return this.sequelize.query(`SELECT ${datetime} AS t`).then(([result]) => {
         expect(moment(result[0].t).isValid()).to.be.true;
       });
     });
@@ -855,7 +854,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('adds a new dao to the dao manager', function() {
       const count = this.sequelize.modelManager.all.length;
       this.sequelize.define('foo', { title: DataTypes.STRING });
-      expect(this.sequelize.modelManager.all.length).to.equal(count+1);
+      expect(this.sequelize.modelManager.all.length).to.equal(count + 1);
     });
 
     it('adds a new dao to sequelize.models', function() {
@@ -991,7 +990,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             } else if (dialect === 'mssql') {
               expect(err.message).to.equal('Login failed for user \'bar\'.');
             } else {
-              expect(err.message.toString()).to.match(/.*Access\ denied.*/);
+              expect(err.message.toString()).to.match(/.*Access denied.*/);
             }
           });
       });
@@ -1097,6 +1096,20 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
+    it('handles alter: true with underscore correctly', function() {
+      this.sequelize.define('access_metric', {
+        user_id: {
+          type: DataTypes.INTEGER
+        }
+      }, {
+        underscored: true
+      });
+
+      return this.sequelize.sync({
+        alter: true
+      });
+    });
+
     describe("doesn't emit logging when explicitly saying not to", () => {
       afterEach(function() {
         this.sequelize.options.logging = false;
@@ -1157,7 +1170,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('imports a dao definition from a function', function() {
       const Project = this.sequelize.import('Project', (sequelize, DataTypes) => {
-        return sequelize.define(`Project${parseInt(Math.random() * 9999999999999999)}`, {
+        return sequelize.define(`Project${parseInt(Math.random() * 9999999999999999, 10)}`, {
           name: DataTypes.STRING
         });
       });
