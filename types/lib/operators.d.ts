@@ -2,43 +2,433 @@
  * object that holds all operator symbols
  */
 declare const Op: {
-  readonly adjacent: unique symbol;
-  readonly all: unique symbol;
-  readonly and: unique symbol;
-  readonly any: unique symbol;
-  readonly between: unique symbol;
-  readonly col: unique symbol;
-  readonly contained: unique symbol;
-  readonly contains: unique symbol;
-  readonly endsWith: unique symbol;
-  readonly eq: unique symbol;
-  readonly gt: unique symbol;
-  readonly gte: unique symbol;
-  readonly iLike: unique symbol;
-  readonly in: unique symbol;
-  readonly iRegexp: unique symbol;
-  readonly is: unique symbol;
-  readonly like: unique symbol;
-  readonly lt: unique symbol;
-  readonly lte: unique symbol;
-  readonly ne: unique symbol;
-  readonly noExtendLeft: unique symbol;
-  readonly noExtendRight: unique symbol;
-  readonly not: unique symbol;
-  readonly notBetween: unique symbol;
-  readonly notILike: unique symbol;
-  readonly notIn: unique symbol;
-  readonly notIRegexp: unique symbol;
-  readonly notLike: unique symbol;
-  readonly notRegexp: unique symbol;
-  readonly or: unique symbol;
-  readonly overlap: unique symbol;
-  readonly placeholder: unique symbol;
-  readonly regexp: unique symbol;
-  readonly startsWith: unique symbol;
-  readonly strictLeft: unique symbol;
-  readonly strictRight: unique symbol;
-  readonly substring: unique symbol;
-  readonly values: unique symbol;
+    /**
+     * Operator -|- (PG range is adjacent to operator)
+     *
+     * ```js
+     * [Op.adjacent]: [1, 2]
+     * ```
+     * In SQL
+     * ```sql
+     * -|- (1, 2)
+     * ```
+     */
+    readonly adjacent: unique symbol;
+
+    readonly all: unique symbol;
+    /**
+     * Operator AND
+     *
+     * ```js
+     * [Op.and]: {a: 5}
+     * ```
+     * In SQL
+     * ```sql
+     * AND (a = 5)
+     * ```
+     */
+    readonly and: unique symbol;
+    /**
+     * Operator ANY ARRAY (PG only)
+     *
+     * ```js
+     * [Op.any]: [2,3]
+     * ```
+     * In SQL
+     * ```sql
+     * ANY ARRAY[2, 3]::INTEGER
+     * ```
+     *
+     * Operator LIKE ANY ARRAY (also works for iLike and notLike)
+     *
+     * ```js
+     * [Op.like]: { [Op.any]: ['cat', 'hat']}
+     * ```
+     * In SQL
+     * ```sql
+     * LIKE ANY ARRAY['cat', 'hat']
+     * ```
+     */
+    readonly any: unique symbol;
+    /**
+     * Operator BETWEEN
+     *
+     * ```js
+     * [Op.between]: [6, 10]
+     * ```
+     * In SQL
+     * ```sql
+     * BETWEEN 6 AND 10
+     * ```
+     */
+    readonly between: unique symbol;
+    /**
+     * With dialect specific column identifiers (PG in this example)
+     *
+     * ```js
+     * [Op.col]: 'user.organization_id'
+     * ```
+     * In SQL
+     * ```sql
+     * = "user"."organization_id"
+     * ```
+     */
+    readonly col: unique symbol;
+    /**
+     * Operator <@ (PG array contained by operator)
+     *
+     * ```js
+     * [Op.contained]: [1, 2]
+     * ```
+     * In SQL
+     * ```sql
+     * <@ [1, 2]
+     * ```
+     */
+    readonly contained: unique symbol;
+    /**
+     * Operator @> (PG array contains operator)
+     *
+     * ```js
+     * [Op.contains]: [1, 2]
+     * ```
+     * In SQL
+     * ```sql
+     * @> [1, 2]
+     * ```
+     */
+    readonly contains: unique symbol;
+    /**
+     * Operator LIKE
+     *
+     * ```js
+     * [Op.endsWith]: 'hat'
+     * ```
+     * In SQL
+     * ```sql
+     * LIKE '%hat'
+     * ```
+     */
+    readonly endsWith: unique symbol;
+    /**
+     * Operator =
+     *
+     * ```js
+     * [Op.eq]: 3
+     * ```
+     * In SQL
+     * ```sql
+     * = 3
+     * ```
+     */
+    readonly eq: unique symbol;
+    /**
+     * Operator >
+     *
+     * ```js
+     * [Op.gt]: 6
+     * ```
+     * In SQL
+     * ```sql
+     * > 6
+     * ```
+     */
+    readonly gt: unique symbol;
+    /**
+     * Operator >=
+     *
+     * ```js
+     * [Op.gte]: 6
+     * ```
+     * In SQL
+     * ```sql
+     * >= 6
+     * ```
+     */
+    readonly gte: unique symbol;
+
+    /**
+     * Operator ILIKE (case insensitive) (PG only)
+     *
+     * ```js
+     * [Op.iLike]: '%hat'
+     * ```
+     * In SQL
+     * ```sql
+     * ILIKE '%hat'
+     * ```
+     */
+    readonly iLike: unique symbol;
+    /**
+     * Operator IN
+     *
+     * ```js
+     * [Op.in]: [1, 2]
+     * ```
+     * In SQL
+     * ```sql
+     * IN [1, 2]
+     * ```
+     */
+    readonly in: unique symbol;
+    /**
+     * Operator ~* (PG only)
+     *
+     * ```js
+     * [Op.iRegexp]: '^[h|a|t]'
+     * ```
+     * In SQL
+     * ```sql
+     * ~* '^[h|a|t]'
+     * ```
+     */
+    readonly iRegexp: unique symbol;
+
+    readonly is: unique symbol;
+    /**
+     * Operator LIKE
+     *
+     * ```js
+     * [Op.like]: '%hat'
+     * ```
+     * In SQL
+     * ```sql
+     * LIKE '%hat'
+     * ```
+     */
+    readonly like: unique symbol;
+    /**
+     * Operator <
+     *
+     * ```js
+     * [Op.lt]: 10
+     * ```
+     * In SQL
+     * ```sql
+     * < 10
+     * ```
+     */
+    readonly lt: unique symbol;
+    /**
+     * Operator <=
+     *
+     * ```js
+     * [Op.lte]: 10
+     * ```
+     * In SQL
+     * ```sql
+     * <= 10
+     * ```
+     */
+    readonly lte: unique symbol;
+    /**
+     * Operator !=
+     *
+     * ```js
+     * [Op.ne]: 20
+     * ```
+     * In SQL
+     * ```sql
+     * != 20
+     * ```
+     */
+    readonly ne: unique symbol;
+    /**
+     * Operator &> (PG range does not extend to the left of operator)
+     *
+     * ```js
+     * [Op.noExtendLeft]: [1, 2]
+     * ```
+     * In SQL
+     * ```sql
+     * &> (1, 2)
+     * ```
+     */
+    readonly noExtendLeft: unique symbol;
+    /**
+     * Operator &< (PG range does not extend to the right of operator)
+     *
+     * ```js
+     * [Op.noExtendRight]: [1, 2]
+     * ```
+     * In SQL
+     * ```sql
+     * &< (1, 2)
+     * ```
+     */
+    readonly noExtendRight: unique symbol;
+    /**
+     * Operator NOT
+     *
+     * ```js
+     * [Op.not]: true
+     * ```
+     * In SQL
+     * ```sql
+     * IS NOT TRUE
+     * ```
+     */
+    readonly not: unique symbol;
+    /**
+     * Operator NOT BETWEEN
+     *
+     * ```js
+     * [Op.notBetween]: [11, 15]
+     * ```
+     * In SQL
+     * ```sql
+     * NOT BETWEEN 11 AND 15
+     * ```
+     */
+    readonly notBetween: unique symbol;
+    /**
+     * Operator NOT ILIKE (case insensitive) (PG only)
+     *
+     * ```js
+     * [Op.notILike]: '%hat'
+     * ```
+     * In SQL
+     * ```sql
+     * NOT ILIKE '%hat'
+     * ```
+     */
+    readonly notILike: unique symbol;
+    /**
+     * Operator NOT IN
+     *
+     * ```js
+     * [Op.notIn]: [1, 2]
+     * ```
+     * In SQL
+     * ```sql
+     * NOT IN [1, 2]
+     * ```
+     */
+    readonly notIn: unique symbol;
+    /**
+     * Operator !~* (PG only)
+     *
+     * ```js
+     * [Op.notIRegexp]: '^[h|a|t]'
+     * ```
+     * In SQL
+     * ```sql
+     * !~* '^[h|a|t]'
+     * ```
+     */
+    readonly notIRegexp: unique symbol;
+    /**
+     * Operator NOT LIKE
+     *
+     * ```js
+     * [Op.notLike]: '%hat'
+     * ```
+     * In SQL
+     * ```sql
+     * NOT LIKE '%hat'
+     * ```
+     */
+    readonly notLike: unique symbol;
+    /**
+     * Operator NOT REGEXP (MySQL/PG only)
+     *
+     * ```js
+     * [Op.notRegexp]: '^[h|a|t]'
+     * ```
+     * In SQL
+     * ```sql
+     * NOT REGEXP/!~ '^[h|a|t]'
+     * ```
+     */
+    readonly notRegexp: unique symbol;
+    /**
+     * Operator OR
+     *
+     * ```js
+     * [Op.or]: [{a: 5}, {a: 6}]
+     * ```
+     * In SQL
+     * ```sql
+     * (a = 5 OR a = 6)
+     * ```
+     */
+    readonly or: unique symbol;
+    /**
+     * Operator && (PG array overlap operator)
+     *
+     * ```js
+     * [Op.overlap]: [1, 2]
+     * ```
+     * In SQL
+     * ```sql
+     * && [1, 2]
+     * ```
+     */
+    readonly overlap: unique symbol;
+
+    readonly placeholder: unique symbol;
+    /**
+     * Operator REGEXP (MySQL/PG only)
+     *
+     * ```js
+     * [Op.regexp]: '^[h|a|t]'
+     * ```
+     * In SQL
+     * ```sql
+     * REGEXP/~ '^[h|a|t]'
+     * ```
+     */
+    readonly regexp: unique symbol;
+    /**
+     * Operator LIKE
+     *
+     * ```js
+     * [Op.startsWith]: 'hat'
+     * ```
+     * In SQL
+     * ```sql
+     * LIKE 'hat%'
+     * ```
+     */
+    readonly startsWith: unique symbol;
+    /**
+     * Operator << (PG range strictly left of operator)
+     *
+     * ```js
+     * [Op.strictLeft]: [1, 2]
+     * ```
+     * In SQL
+     * ```sql
+     * << (1, 2)
+     * ```
+     */
+    readonly strictLeft: unique symbol;
+    /**
+     * Operator >> (PG range strictly right of operator)
+     *
+     * ```js
+     * [Op.strictRight]: [1, 2]
+     * ```
+     * In SQL
+     * ```sql
+     * >> (1, 2)
+     * ```
+     */
+    readonly strictRight: unique symbol;
+    /**
+     * Operator LIKE
+     *
+     * ```js
+     * [Op.substring]: 'hat'
+     * ```
+     * In SQL
+     * ```sql
+     * LIKE '%hat%'
+     * ```
+     */
+    readonly substring: unique symbol;
+
+    readonly values: unique symbol;
 };
+
 export = Op;
