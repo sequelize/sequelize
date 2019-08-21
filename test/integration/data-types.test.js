@@ -162,7 +162,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.SMALLDATETIME();
 
     if (['mssql'].includes(dialect)) {
-      return testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
+      return testSuccess(Type, new Date());
     }
     testFailure(Type);
   });
