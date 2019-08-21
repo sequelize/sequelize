@@ -325,8 +325,9 @@ export interface Options extends Logging {
   typeValidation?: boolean;
 
   /**
-   * Sets available operator aliases. See (https://sequelize.org/master/manual/tutorial/querying.html#operators)
-   * for more information. Set to false to disable operator aliases completely (recommended)
+   * Sets available operator aliases.
+   * See (https://sequelize.org/master/manual/querying.html#operators) for more information.
+   * WARNING: Setting this to boolean value was deprecated and is no-op.
    *
    * @default all aliases
    */
