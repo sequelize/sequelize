@@ -2,7 +2,7 @@
 name: Feature request
 about: Suggest an idea for this project
 title: ''
-labels: 'type: feature'
+labels: ''
 assignees: ''
 
 ---
@@ -43,7 +43,7 @@ Add any other context or screenshots about the feature request here.
 - [ ] No. This issue is relevant to Sequelize as a whole.
 - [ ] Yes. This issue only applies to the following dialect(s): XXX, YYY, ZZZ
 
-### Would you be willing to resolve this issue by subitting a Pull Request?
+### Would you be willing to resolve this issue by submitting a Pull Request?
 
 <!-- Remember that first contributors are welcome! -->
 

@@ -2,7 +2,7 @@
 name: Bug report
 about: Create a bug report to help us improve
 title: ''
-labels: 'type: bug'
+labels: ''
 assignees: ''
 
 ---
@@ -64,7 +64,7 @@ Add any other context or screenshots about the feature request here.
 - [ ] I think this problem happens only for the following dialect(s): <!-- Put dialect(s) here -->
 - [ ] I don't know, I was using PUT-YOUR-DIALECT-HERE, with connector library version XXX and database version XXX
 
-### Would you be willing to resolve this issue by subitting a Pull Request?
+### Would you be willing to resolve this issue by submitting a Pull Request?
 
 <!-- Remember that first contributors are welcome! -->
 
@@ -72,7 +72,3 @@ Add any other context or screenshots about the feature request here.
 - [ ] Yes, I have the time but I don't know how to start, I would need guidance.
 - [ ] No, I don't have the time, although I believe I could do it if I had the time...
 - [ ] No, I don't have the time and I wouldn't even know how to start.
-
-### SSCCE declaration
-
-- [ ] The code I posted above is a true [SSCCE](http://sscce.org/) (also known as [MCVE/reprex](https://stackoverflow.com/help/minimal-reproducible-example)). It is runnable by simply copying and pasting into an isolated JS file, except possibly for the database connection configuration.

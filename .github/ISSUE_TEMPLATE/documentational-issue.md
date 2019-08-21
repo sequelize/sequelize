@@ -36,7 +36,7 @@ Add any other context or screenshots about the issue here.
 - [ ] Yes. This issue only applies to the following dialect(s): XXX, YYY, ZZZ
 - [ ] I don't know.
 
-### Would you be willing to resolve this issue by subitting a Pull Request?
+### Would you be willing to resolve this issue by submitting a Pull Request?
 
 <!-- Remember that first contributors are welcome! -->
 
