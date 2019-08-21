@@ -32,6 +32,7 @@ Sequelize.DECIMAL(10, 2)              // DECIMAL(10,2)
 Sequelize.DATE                        // DATETIME for mysql / sqlite, TIMESTAMP WITH TIME ZONE for postgres
 Sequelize.DATE(6)                     // DATETIME(6) for mysql 5.6.4+. Fractional seconds support with up to 6 digits of precision
 Sequelize.DATEONLY                    // DATE without time.
+Sequelize.SMALLDATETIME               // SMALLDATETIME datatype for MSSQL
 Sequelize.BOOLEAN                     // TINYINT(1)
 
 Sequelize.ENUM('value 1', 'value 2')  // An ENUM with allowed values 'value 1' and 'value 2'
