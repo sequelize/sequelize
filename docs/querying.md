@@ -153,6 +153,7 @@ const Op = Sequelize.Op
 [Op.lte]: 10,              // <= 10
 [Op.ne]: 20,               // != 20
 [Op.eq]: 3,                // = 3
+[Op.is]: null              // IS NULL
 [Op.not]: true,            // IS NOT TRUE
 [Op.between]: [6, 10],     // BETWEEN 6 AND 10
 [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
@@ -170,13 +171,15 @@ const Op = Sequelize.Op
 [Op.iRegexp]: '^[h|a|t]'    // ~* '^[h|a|t]' (PG only)
 [Op.notIRegexp]: '^[h|a|t]' // !~* '^[h|a|t]' (PG only)
 [Op.like]: { [Op.any]: ['cat', 'hat']}
-                       // LIKE ANY ARRAY['cat', 'hat'] - also works for iLike and notLike
+                           // LIKE ANY ARRAY['cat', 'hat'] - also works for iLike and notLike
 [Op.overlap]: [1, 2]       // && [1, 2] (PG array overlap operator)
 [Op.contains]: [1, 2]      // @> [1, 2] (PG array contains operator)
 [Op.contained]: [1, 2]     // <@ [1, 2] (PG array contained by operator)
 [Op.any]: [2,3]            // ANY ARRAY[2, 3]::INTEGER (PG only)
 
 [Op.col]: 'user.organization_id' // = "user"."organization_id", with dialect specific column identifiers, PG in this example
+[Op.gt]: { [Op.all]: literal('SELECT 1') }
+                          // > ALL (SELECT 1)
 ```
 
 #### Range Operators
