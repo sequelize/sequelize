@@ -1084,6 +1084,31 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         });
       });
 
+      it('should support a raw object without IDs', function() {
+        const Product = this.sequelize.define('Product');
+        const ProductImage = this.sequelize.define('ProductImage', {
+          image: Sequelize.STRING,
+          thumbnail: Sequelize.STRING
+        });
+        Product.hasMany(ProductImage);
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Product.create({});
+        }).then(product => {
+          return product.setProductImages([
+            { image: 'test1', thumbnail: 'test1' },
+            { image: 'test2', thumbnail: 'test2' }
+          ]);
+        }).then(() => {
+          return expect(ProductImage.findAll()).to.eventually.have.length(2);
+        }).then(() => {
+          return Product.findOne({ include: ProductImage }).then(product => {
+            expect(product.ProductImages).to.be.an.array;
+            expect(product.ProductImages).to.have.length(2);
+          });
+        });
+      });
+
       it('gets all associated objects when no options are passed', function() {
         return this.User.findOne({ where: { username: 'John' } }).then(john => {
           return john.getTasks();
