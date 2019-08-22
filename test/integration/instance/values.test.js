@@ -185,6 +185,39 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           expect(product.user).to.be.instanceof(User);
         });
 
+        it('should support a raw object without IDs', function() {
+          const Product = this.sequelize.define('Product');
+          const ProductImage = this.sequelize.define('ProductImage', {
+            image: Sequelize.STRING,
+            thunbmail: Sequelize.STRING
+          });
+
+          Product.hasMany(ProductImage);
+
+          const product = Product.build({}, {
+            include: [ProductImage]
+          });
+
+          product.set({
+            ProductImage: [
+              {
+                image: 'test1',
+                thumbnail: 'test1'
+              },
+              {
+                image: 'test2',
+                thumbnail: 'test2'
+              },
+              {
+                image: 'test3',
+                thumbnail: 'test3'
+              }
+            ]
+          });
+          expect(product.ProductImage).to.be.ok;
+          expect(product.ProductImage.length).to.equal(3);
+        });
+
         it('should support basic includes (with raw: true)', function() {
           const Product = this.sequelize.define('Product', {
             title: Sequelize.STRING
