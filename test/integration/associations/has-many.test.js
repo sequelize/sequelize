@@ -1091,7 +1091,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           thumbnail: Sequelize.STRING
         });
         Product.hasMany(ProductImage);
-
         return this.sequelize.sync({ force: true }).then(() => {
           return Product.create({});
         }).then(product => {
@@ -1103,7 +1102,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return expect(ProductImage.findAll()).to.eventually.have.length(2);
         }).then(() => {
           return Product.findOne({ include: ProductImage }).then(product => {
-            expect(product.ProductImages).to.be.an.array;
+            expect(product.ProductImages).to.be.an('array');
             expect(product.ProductImages).to.have.length(2);
           });
         });
