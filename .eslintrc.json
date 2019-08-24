@@ -97,18 +97,6 @@
     "ecmaVersion": 6,
     "sourceType": "script"
   },
-  "overrides": [
-    {
-      "files": [
-        "lib/associations/has-many.js",
-        "lib/associations/base.js"
-      ],
-      "rules": {
-        "no-unused-vars": "off"
-      },
-      "parser": "babel-eslint"
-    }
-  ],
   "plugins": ["mocha", "jsdoc"],
   "env": {
     "node": true,
