@@ -162,8 +162,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
               User,
               Tag
             ]
-          });
-
+          });        
           product.set({
             id: 1,
             title: 'Chair',
@@ -177,45 +176,11 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
               last_name: 'Hansen'
             }
           });
-
           expect(product.tags).to.be.ok;
           expect(product.tags.length).to.equal(2);
           expect(product.tags[0]).to.be.instanceof(Tag);
           expect(product.user).to.be.ok;
           expect(product.user).to.be.instanceof(User);
-        });
-
-        it('should support a raw object without IDs', function() {
-          const Product = this.sequelize.define('Product');
-          const ProductImage = this.sequelize.define('ProductImage', {
-            image: Sequelize.STRING,
-            thunbmail: Sequelize.STRING
-          });
-
-          Product.hasMany(ProductImage);
-
-          const product = Product.build({}, {
-            include: [ProductImage]
-          });
-
-          product.set({
-            ProductImage: [
-              {
-                image: 'test1',
-                thumbnail: 'test1'
-              },
-              {
-                image: 'test2',
-                thumbnail: 'test2'
-              },
-              {
-                image: 'test3',
-                thumbnail: 'test3'
-              }
-            ]
-          });
-          expect(product.ProductImage).to.be.ok;
-          expect(product.ProductImage.length).to.equal(3);
         });
 
         it('should support basic includes (with raw: true)', function() {
