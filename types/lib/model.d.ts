@@ -741,6 +741,11 @@ export interface BulkCreateOptions extends Logging, Transactionable {
   updateOnDuplicate?: string[];
 
   /**
+   * Include options. See `find` for details
+   */
+  include?: Includeable[];
+
+  /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
   returning?: boolean | string[];
@@ -1178,15 +1183,15 @@ export interface ModelNameOptions {
 /**
  * Interface for getterMethods in InitOptions
  */
-export interface ModelGetterOptions {
-  [name: string]: (this: Model) => unknown;
+export interface ModelGetterOptions<M extends Model = Model> {
+  [name: string]: (this: M) => unknown;
 }
 
 /**
  * Interface for setterMethods in InitOptions
  */
-export interface ModelSetterOptions {
-  [name: string]: (this: Model, val: any) => void;
+export interface ModelSetterOptions<M extends Model = Model> {
+  [name: string]: (this: M, val: any) => void;
 }
 
 /**
@@ -1477,12 +1482,12 @@ export interface ModelOptions<M extends Model = Model> {
   /**
    * Allows defining additional setters that will be available on model instances.
    */
-  setterMethods?: ModelSetterOptions;
+  setterMethods?: ModelSetterOptions<M>;
 
   /**
    * Allows defining additional getters that will be available on model instances.
    */
-  getterMethods?: ModelGetterOptions;
+  getterMethods?: ModelGetterOptions<M>;
 
   /**
    * Enable optimistic locking.
@@ -1498,7 +1503,7 @@ export interface ModelOptions<M extends Model = Model> {
 /**
  * Options passed to [[Model.init]]
  */
-export interface InitOptions extends ModelOptions {
+export interface InitOptions<M extends Model =  Model> extends ModelOptions<M> {
   /**
    * The sequelize connection. Required ATM.
    */
@@ -1588,7 +1593,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *  string or a type-description object, with the properties described below:
    * @param options These options are merged with the default define options provided to the Sequelize constructor
    */
-  public static init(attributes: ModelAttributes, options: InitOptions): void;
+  public static init<M extends Model = Model>(this: ModelCtor<M>, attributes: ModelAttributes, options: InitOptions<M>): void;
 
   /**
    * Remove attribute from model definition

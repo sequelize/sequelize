@@ -64,6 +64,18 @@ export interface BelongsToManyOptions extends ManyToManyOptions {
   otherKey?: string | ForeignKeyOptions;
 
   /**
+   * The name of the field to use as the key for the association in the source table. Defaults to the primary
+   * key of the source table
+   */
+  sourceKey?: string;
+
+  /**
+   * The name of the field to use as the key for the association in the target table. Defaults to the primary
+   * key of the target table
+   */
+  targetKey?: string;
+
+  /**
    * Should the join model have timestamps
    */
   timestamps?: boolean;
@@ -76,6 +88,8 @@ export interface BelongsToManyOptions extends ManyToManyOptions {
 
 export class BelongsToMany<S extends Model = Model, T extends Model = Model> extends Association<S, T> {
   public otherKey: string;
+  public sourceKey: string;
+  public targetKey: string;
   public accessors: MultiAssociationAccessors;
   constructor(source: ModelCtor<S>, target: ModelCtor<T>, options: BelongsToManyOptions);
 }

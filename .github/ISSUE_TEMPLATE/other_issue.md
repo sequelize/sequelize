@@ -1,8 +1,8 @@
 ---
-name: Docs issue
-about: Documentation is unclear, or otherwise insufficient/misleading
+name: Other
+about: Open an issue that does not fall directly into the other categories
 title: ''
-labels: 'type: docs'
+labels: ''
 assignees: ''
 
 ---
@@ -15,13 +15,17 @@ For general questions, please use StackOverflow or Slack.
 
 ## Issue Description
 
-### What was unclear/insufficient/not covered in the documentation
+A clear and concise description of what is this issue about.
 
-Write here.
+If applicable, you can add some code. In this case, an SSCCE/MCVE/reprex is much better than just an isolated code snippet.
 
-### If possible: Provide some suggestion on how we can enhance the docs
+<!--
+Check http://sscce.org/ or https://stackoverflow.com/help/minimal-reproducible-example to learn more about SSCCE/MCVE/reprex.
+-->
 
-Write here.
+### StackOverflow / Slack attempts
+
+If you have tried asking on StackOverflow / Slack about this, add a link to that here.
 
 ### Additional context
 Add any other context or screenshots about the issue here.
@@ -44,5 +48,3 @@ Add any other context or screenshots about the issue here.
 - [ ] Yes, I have the time but I don't know how to start, I would need guidance.
 - [ ] No, I don't have the time, although I believe I could do it if I had the time...
 - [ ] No, I don't have the time and I wouldn't even know how to start.
-
-
