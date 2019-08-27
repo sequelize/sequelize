@@ -564,7 +564,7 @@ export interface NonNullFindOptions extends FindOptions {
   /**
    * Throw if nothing was found.
    */
-  rejectOnEmpty: boolean;
+  rejectOnEmpty: boolean | Error;
 }
 
 /**
