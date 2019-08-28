@@ -55,7 +55,8 @@ const myModel: typeof Model1 = sequelize.models.asd;
 myModel.hasOne(Model2)
 myModel.findAll();
 
-const result = await sequelize.query('SELECT * FROM `user`');
-const data = result[0];
-const arraysOnly = (a: any[]) => a;
-arraysOnly(data);
+sequelize.query('SELECT * FROM `user`').then(result => {
+  const data = result[0];
+  const arraysOnly = (a: any[]) => a;
+  arraysOnly(data);
+});
