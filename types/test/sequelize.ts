@@ -6,7 +6,7 @@ Sequelize.useCLS({
 
 export const sequelize = new Sequelize({
   hooks: {
-    afterConnect: async (connection:, config: Config) => {
+    afterConnect: (connection, config: Config) => {
       // noop
     }
   },
