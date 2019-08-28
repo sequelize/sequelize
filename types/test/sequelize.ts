@@ -6,7 +6,7 @@ Sequelize.useCLS({
 
 export const sequelize = new Sequelize({
   hooks: {
-    afterConnect: (connection, config: Config) => {
+    afterConnect: async (connection:, config: Config) => {
       // noop
     }
   },
@@ -54,3 +54,8 @@ class Model2 extends Model{}
 const myModel: typeof Model1 = sequelize.models.asd;
 myModel.hasOne(Model2)
 myModel.findAll();
+
+const result = await sequelize.query('SELECT * FROM `user`');
+const data = result[0];
+const arraysOnly = (a: any[]) => a;
+arraysOnly(data);
