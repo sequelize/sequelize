@@ -545,6 +545,11 @@ export interface FindOptions extends QueryOptions, Filterable, Projectable, Para
   lock?: Transaction.LOCK | { level: Transaction.LOCK; of: typeof Model };
 
   /**
+   * Skip locked rows. Only supported in Postgres.
+   */
+  skipLocked?: boolean;
+
+  /**
    * Return raw result. See sequelize.query for more information.
    */
   raw?: boolean;
@@ -564,7 +569,7 @@ export interface NonNullFindOptions extends FindOptions {
   /**
    * Throw if nothing was found.
    */
-  rejectOnEmpty: boolean;
+  rejectOnEmpty: boolean | Error;
 }
 
 /**
