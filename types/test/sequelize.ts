@@ -1,4 +1,4 @@
-import { Config, Sequelize, Model } from 'sequelize';
+import { Config, Sequelize, Model, QueryTypes } from 'sequelize';
 import { Fn } from '../lib/utils';
 
 Sequelize.useCLS({
@@ -55,7 +55,7 @@ const myModel: typeof Model1 = sequelize.models.asd;
 myModel.hasOne(Model2)
 myModel.findAll();
 
-sequelize.query('SELECT * FROM `user`').then(result => {
+sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW }).then(result => {
   const data = result[0];
   const arraysOnly = (a: any[]) => a;
   arraysOnly(data);
