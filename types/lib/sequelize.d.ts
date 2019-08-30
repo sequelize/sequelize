@@ -1185,7 +1185,7 @@ export class Sequelize extends Hooks {
     options: QueryOptionsWithModel
   ): Promise<M[]>;
   public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
-  public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<unknown[]>;
+  public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
 
   /**
    * Get the fn for random based on the dialect
