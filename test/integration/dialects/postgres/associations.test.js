@@ -140,6 +140,39 @@ if (dialect.match(/^postgres/)) {
             });
           });
         });
+        it('defaults to schema provided to sync() for references #11276', function() {
+          const User = this.sequelize.define('UserXYZ', {
+              uid: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+                allowNull: false
+              }
+            }),
+            Task = this.sequelize.define('TaskXYZ', {
+            });
+
+          Task.belongsTo(User);
+
+          return Support.dropTestSchemas(this.sequelize).then(() => {
+            return this.sequelize.createSchema('archive');
+          }).then(() => {
+            return User.sync({ force: true, schema: 'archive' });
+          }).then(() => {
+            return Task.sync({ force: true, schema: 'archive' });
+          }).then(() => {
+            return User.schema('archive').create({});
+          }).then(user => {
+            return Task.schema('archive').create({}).then(task => {
+              return task.setUserXYZ(user).then(() => {
+                return task.getUserXYZ({ schema: 'archive' });
+              });
+            });
+          }).then(user => {
+            expect(user).to.be.ok;
+            return this.sequelize.dropSchema('archive');
+          });
+        });
       });
     });
   });
