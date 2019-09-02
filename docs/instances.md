@@ -140,7 +140,7 @@ If you have soft-deleted an instance of a model with `paranoid: true`, and would
 Task.create({ title: 'a task' }).then(task => {
   // now you see me...
   return task.destroy();
-}).then(() => {
+}).then((task) => {
   // now i'm gone, but wait...
   return task.restore();
 })

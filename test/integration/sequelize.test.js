@@ -1371,11 +1371,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         } else {
           it('correctly handles multiple transactions', function() {
             const TransactionTest = this.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false });
+            const aliasesMapping = new Map([['_0', 'cnt']]);
 
             const count = transaction => {
               const sql = this.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
 
-              return this.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then(result => {
+              return this.sequelizeWithTransaction.query(sql, { plain: true, transaction, aliasesMapping  }).then(result => {
                 return parseInt(result.cnt, 10);
               });
             };

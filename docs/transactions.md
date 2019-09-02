@@ -2,14 +2,14 @@
 
 Sequelize supports two ways of using transactions:
 
-* One which will automatically commit or rollback the transaction based on the result of a promise chain and, (if enabled) pass the transaction to all calls within the callback
-* And one which leaves committing, rolling back and passing the transaction to the user.
+1. **Managed**, One which will automatically commit or rollback the transaction based on the result of a promise chain and, (if CLS enabled) pass the transaction to all calls within the callback
+2. **Unmanaged**, One which leaves committing, rolling back and passing the transaction to the user
 
 The key difference is that the managed transaction uses a callback that expects a promise to be returned to it while the unmanaged transaction returns a promise.
 
 ## Managed transaction (auto-callback)
 
-Managed transactions handle committing or rolling back the transaction automagically. You start a managed transaction by passing a callback to `sequelize.transaction`.
+Managed transactions handle committing or rolling back the transaction automatically. You start a managed transaction by passing a callback to `sequelize.transaction`.
 
 Notice how the callback passed to `transaction` returns a promise chain, and does not explicitly call `t.commit()` nor `t.rollback()`. If all promises in the returned chain are resolved successfully the transaction is committed. If one or several of the promises are rejected, the transaction is rolled back.
 
@@ -57,8 +57,8 @@ return sequelize.transaction(t => {
 In the examples above, the transaction is still manually passed, by passing `{ transaction: t }` as the second argument. To automatically pass the transaction to all queries you must install the [continuation local storage](https://github.com/othiym23/node-continuation-local-storage) (CLS) module and instantiate a namespace in your own code:
 
 ```js
-const cls = require('continuation-local-storage'),
-    namespace = cls.createNamespace('my-very-own-namespace');
+const cls = require('continuation-local-storage');
+const namespace = cls.createNamespace('my-very-own-namespace');
 ```
 
 To enable CLS you must tell sequelize which namespace to use by using a static method of the sequelize constructor:
@@ -142,6 +142,21 @@ return sequelize.transaction({
   });
 ```
 
+The `isolationLevel` can either be set globally when initializing the Sequelize instance or
+locally for every transaction:
+
+```js
+// globally
+new Sequelize('db', 'user', 'pw', {
+  isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+});
+
+// locally
+sequelize.transaction({
+  isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+});
+```
+
 **Note:** _The SET ISOLATION LEVEL queries are not logged in case of MSSQL as the specified isolationLevel is passed directly to tedious_
 
 ## Unmanaged transaction (then-callback)
@@ -164,56 +179,6 @@ return sequelize.transaction().then(t => {
     return t.rollback();
   });
 });
-```
-
-## Options
-
-The `transaction` method can be called with an options object as the first argument, that
-allows the configuration of the transaction.
-
-```js
-return sequelize.transaction({ /* options */ });
-```
-
-The following options (with their default values) are available:
-
-```js
-{
-  isolationLevel: 'REPEATABLE_READ',
-  deferrable: 'NOT DEFERRABLE' // implicit default of postgres
-}
-```
-
-The `isolationLevel` can either be set globally when initializing the Sequelize instance or
-locally for every transaction:
-
-```js
-// globally
-new Sequelize('db', 'user', 'pw', {
-  isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
-});
-
-// locally
-sequelize.transaction({
-  isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
-});
-```
-
-The `deferrable` option triggers an additional query after the transaction start
-that optionally set the constraint checks to be deferred or immediate. Please note
-that this is only supported in PostgreSQL.
-
-```js
-sequelize.transaction({
-  // to defer all constraints:
-  deferrable: Sequelize.Deferrable.SET_DEFERRED,
-
-  // to defer a specific constraint:
-  deferrable: Sequelize.Deferrable.SET_DEFERRED(['some_constraint']),
-
-  // to not defer constraints:
-  deferrable: Sequelize.Deferrable.SET_IMMEDIATE
-})
 ```
 
 ## Usage with other sequelize methods

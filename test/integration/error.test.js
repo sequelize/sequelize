@@ -171,6 +171,18 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(databaseError.message).to.equal('original database error message');
     });
 
+    it('SequelizeDatabaseError should keep the original sql and the parameters', () => {
+      const orig = new Error();
+      orig.sql = 'SELECT * FROM table WHERE id = $1';
+      orig.parameters = ['1'];
+      const databaseError = new Sequelize.DatabaseError(orig);
+
+      expect(databaseError).to.have.property('sql');
+      expect(databaseError).to.have.property('parameters');
+      expect(databaseError.sql).to.equal(orig.sql);
+      expect(databaseError.parameters).to.equal(orig.parameters);
+    });
+
     it('ConnectionError should keep original message', () => {
       const orig = new Error('original connection error message');
       const connectionError = new Sequelize.ConnectionError(orig);
