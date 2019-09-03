@@ -97,6 +97,11 @@ export interface PoolOptions {
   acquire?: number;
 
   /**
+   * The time interval, in milliseconds, after which sequelize-pool will remove idle connections.
+   */
+  evict?: number;
+
+  /**
    * A function that validates a connection. Called with client. The default function checks that client is an
    * object, and that its state is not disconnected
    */

@@ -15,6 +15,9 @@ export const sequelize = new Sequelize({
     match: ['hurr'],
   },
   dialectModule: {},
+  pool: {
+    evict: 1000,
+  }
 });
 
 const conn = sequelize.connectionManager;
