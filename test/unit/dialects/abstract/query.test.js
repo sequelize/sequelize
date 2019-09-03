@@ -493,8 +493,8 @@ describe('[ABSTRACT]', () => {
       expect(this.sequelizeStub.log).to.have.been.calledOnce;
       expect(this.sequelizeStub.log).to.have.been.calledWithMatch('Executing (test): SELECT 1');
 
-      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1;');
-      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1;');
+      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1');
+      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1');
     });
 
     it('logs before and after with benchmark', function() {
@@ -505,8 +505,8 @@ describe('[ABSTRACT]', () => {
       expect(this.sequelizeStub.log).to.have.been.calledOnce;
       expect(this.sequelizeStub.log).to.have.been.calledWithMatch('Executed (test): SELECT 1', match.number, { benchmark: true });
 
-      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1;');
-      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1;');
+      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1');
+      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1');
     });
   });
 });
