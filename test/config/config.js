@@ -76,7 +76,8 @@ module.exports = {
     pool: {
       max: env.SEQ_PG_POOL_MAX || env.SEQ_POOL_MAX || 5,
       idle: env.SEQ_PG_POOL_IDLE || env.SEQ_POOL_IDLE || 3000
-    }
+    },
+    minifyAliases: env.SEQ_PG_MINIFY_ALIASES
   },
 
   db2: {

@@ -142,4 +142,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
   });
+
+  describe('scope in associations', () => {
+    it('should work when association with a virtual column queried with default scope', function() {
+      const Game = this.sequelize.define('Game', {
+        name: Sequelize.TEXT
+      });
+    
+      const User = this.sequelize.define('User', {
+        login: Sequelize.TEXT,
+        session: {
+          type: Sequelize.VIRTUAL,
+          get() {
+            return 'New';
+          }
+        }
+      }, {
+        defaultScope: {
+          attributes: {
+            exclude: ['login']
+          }
+        }
+      });
+      
+      Game.hasMany(User);
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Game.findAll({
+          include: [{
+            model: User
+          }]
+        });
+      }).then(games => {
+        expect(games).to.have.lengthOf(0);
+      });
+    });
+  });
 });

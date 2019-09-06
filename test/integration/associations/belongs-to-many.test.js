@@ -1516,9 +1516,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         this.comment = comment;
         this.tag = tag;
         return this.post.setTags([this.tag]);
-      }).then( () => {
+      }).then(() => {
         return this.comment.setTags([this.tag]);
-      }).then( () => {
+      }).then(() => {
         return Promise.all([
           this.post.getTags(),
           this.comment.getTags()
@@ -1559,7 +1559,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         foreignKey: 'taggable_id'
       });
 
-      return this.sequelize.sync({ force: true }).then( () => {
+      return this.sequelize.sync({ force: true }).then(() => {
         return Promise.all([
           Post.create({ name: 'post1' }),
           Comment.create({ name: 'comment1' }),

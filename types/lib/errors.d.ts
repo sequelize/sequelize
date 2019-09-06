@@ -79,6 +79,7 @@ export class DatabaseError extends BaseError implements CommonErrorProperties {
   public readonly parent: Error;
   public readonly original: Error;
   public readonly sql: string;
+  public readonly parameters: Array<any>;
   /**
    * A base class for all database related errors.
    * @param parent The database specific error which triggered this one
