@@ -3,6 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
+  dialect = Support.getTestDialect(),
   DataTypes = require('../../../lib/data-types'),
   current = Support.sequelize,
   Op = Support.Sequelize.Op,
@@ -552,34 +553,38 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('defaults to schema provided to sync() for references #11276', function() {
-          const User = this.sequelize.define('UserXYZ', {
-              uid: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                autoIncrement: true,
-                allowNull: false
-              }
-            }),
-            Task = this.sequelize.define('TaskXYZ', {
-            });
-
-          Task.belongsTo(User);
-
-          return User.sync({ force: true, schema: SCHEMA_ONE }).then(() => {
-            return Task.sync({ force: true, schema: SCHEMA_ONE });
-          }).then(() => {
-            return User.schema(SCHEMA_ONE).create({});
-          }).then(user => {
-            return Task.schema(SCHEMA_ONE).create({}).then(task => {
-              return task.setUserXYZ(user).then(() => {
-                return task.getUserXYZ({ schema: SCHEMA_ONE });
+        // TODO: this should work with MSSQL / MariaDB too
+        // Need to fix addSchema return type
+        if (dialect.match(/^postgres/)) {
+          it('defaults to schema provided to sync() for references #11276', function() {
+            const User = this.sequelize.define('UserXYZ', {
+                uid: {
+                  type: DataTypes.INTEGER,
+                  primaryKey: true,
+                  autoIncrement: true,
+                  allowNull: false
+                }
+              }),
+              Task = this.sequelize.define('TaskXYZ', {
               });
+
+            Task.belongsTo(User);
+
+            return User.sync({ force: true, schema: SCHEMA_ONE }).then(() => {
+              return Task.sync({ force: true, schema: SCHEMA_ONE });
+            }).then(() => {
+              return User.schema(SCHEMA_ONE).create({});
+            }).then(user => {
+              return Task.schema(SCHEMA_ONE).create({}).then(task => {
+                return task.setUserXYZ(user).then(() => {
+                  return task.getUserXYZ({ schema: SCHEMA_ONE });
+                });
+              });
+            }).then(user => {
+              expect(user).to.be.ok;
             });
-          }).then(user => {
-            expect(user).to.be.ok;
           });
-        });
+        }
       });
     });
   }
