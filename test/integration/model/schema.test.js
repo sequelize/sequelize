@@ -3,6 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
+  dialect = Support.getTestDialect(),
   DataTypes = require('../../../lib/data-types'),
   current = Support.sequelize,
   Op = Support.Sequelize.Op,
@@ -184,8 +185,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       beforeEach('build restaurant tables', function() {
         return Promise.all([
-          current.createSchema('schema_one'),
-          current.createSchema('schema_two')
+          current.createSchema(SCHEMA_ONE),
+          current.createSchema(SCHEMA_TWO)
         ]).then(() => {
           return Promise.all([
             this.RestaurantOne.sync({ force: true }),
@@ -196,8 +197,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       afterEach('drop schemas', () => {
         return Promise.all([
-          current.dropSchema('schema_one'),
-          current.dropSchema('schema_two')
+          current.dropSchema(SCHEMA_ONE),
+          current.dropSchema(SCHEMA_TWO)
         ]);
       });
 
@@ -509,6 +510,81 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               });
             });
         });
+      });
+
+      describe('regressions', () => {
+        it('should be able to sync model with schema', function() {
+          const User = this.sequelize.define('User1', {
+            name: DataTypes.STRING,
+            value: DataTypes.INTEGER
+          }, {
+            schema: SCHEMA_ONE,
+            indexes: [
+              {
+                name: 'test_slug_idx',
+                fields: ['name']
+              }
+            ]
+          });
+
+          const Task = this.sequelize.define('Task2', {
+            name: DataTypes.STRING,
+            value: DataTypes.INTEGER
+          }, {
+            schema: SCHEMA_TWO,
+            indexes: [
+              {
+                name: 'test_slug_idx',
+                fields: ['name']
+              }
+            ]
+          });
+
+          return User.sync({ force: true }).then(() => {
+            return Task.sync({ force: true });
+          }).then(() => {
+            return Promise.all([
+              this.sequelize.queryInterface.describeTable(User.tableName, SCHEMA_ONE),
+              this.sequelize.queryInterface.describeTable(Task.tableName, SCHEMA_TWO)
+            ]);
+          }).then(([user, task]) => {
+            expect(user).to.be.ok;
+            expect(task).to.be.ok;
+          });
+        });
+
+        // TODO: this should work with MSSQL / MariaDB too
+        // Need to fix addSchema return type
+        if (dialect.match(/^postgres/)) {
+          it('defaults to schema provided to sync() for references #11276', function() {
+            const User = this.sequelize.define('UserXYZ', {
+                uid: {
+                  type: DataTypes.INTEGER,
+                  primaryKey: true,
+                  autoIncrement: true,
+                  allowNull: false
+                }
+              }),
+              Task = this.sequelize.define('TaskXYZ', {
+              });
+
+            Task.belongsTo(User);
+
+            return User.sync({ force: true, schema: SCHEMA_ONE }).then(() => {
+              return Task.sync({ force: true, schema: SCHEMA_ONE });
+            }).then(() => {
+              return User.schema(SCHEMA_ONE).create({});
+            }).then(user => {
+              return Task.schema(SCHEMA_ONE).create({}).then(task => {
+                return task.setUserXYZ(user).then(() => {
+                  return task.getUserXYZ({ schema: SCHEMA_ONE });
+                });
+              });
+            }).then(user => {
+              expect(user).to.be.ok;
+            });
+          });
+        }
       });
     });
   }
