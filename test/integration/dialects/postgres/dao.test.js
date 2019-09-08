@@ -266,6 +266,14 @@ if (dialect.match(/^postgres/)) {
     });
 
     describe('enums', () => {
+      it('should be able to create enums with escape values', function() {
+        const User = this.sequelize.define('UserEnums', {
+          mood: DataTypes.ENUM('happy', 'sad', '1970\'s')
+        });
+
+        return User.sync({ force: true });
+      });
+
       it('should be able to ignore enum types that already exist', function() {
         const User = this.sequelize.define('UserEnums', {
           mood: DataTypes.ENUM('happy', 'sad', 'meh')
