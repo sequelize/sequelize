@@ -29,13 +29,13 @@ You are currently looking at the **Tutorials and Guides** for Sequelize. You mig
 ## Quick example
 
 ```js
-const Sequelize = require('sequelize');
-const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
+const { Sequelize, Model, DataTypes } = require('sequelize');
+const sequelize = new Sequelize('sqlite::memory:');
 
-class User extends Sequelize.Model {}
+class User extends Model {}
 User.init({
-  username: Sequelize.STRING,
-  birthday: Sequelize.DATE
+  username: DataTypes.STRING,
+  birthday: DataTypes.DATE
 }, { sequelize, modelName: 'user' });
 
 sequelize.sync()
