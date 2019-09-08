@@ -35,8 +35,7 @@ div.sequelize {
   font-weight: 600;
   margin: 9.6px 0 3.2px 0;
   color: black !important;
-  font-variant: small-caps;
-  font-size: 19px;
+  font-size: 17px;
 }
 
 .api-reference-link {
