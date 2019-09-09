@@ -1535,6 +1535,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public static readonly primaryKeyAttribute: string;
 
   /**
+   * The name of the primary key attributes
+   */
+  public static readonly primaryKeyAttributes: string[];
+
+  /**
    * An object hash from alias to association object
    */
   public static readonly associations: {
