@@ -133,7 +133,7 @@ Suppose you want to find all users who have a profile attached:
 ```js
 User.findAndCountAll({
   include: [
-     { model: Profile, required: true}
+     { model: Profile, required: true }
   ],
   limit: 3
 });
