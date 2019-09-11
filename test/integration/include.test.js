@@ -48,6 +48,53 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
+    it('should support to use associations with Sequelize.col', function() {
+      const Table1 = this.sequelize.define('Table1');
+      const Table2 = this.sequelize.define('Table2');
+      const Table3 = this.sequelize.define('Table3', { value: DataTypes.INTEGER });
+      Table1.hasOne(Table2, { foreignKey: 'Table1Id' });
+      Table2.hasMany(Table3, { as: 'Tables3', foreignKey: 'Table2Id' });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Table1.create().then(table1 => {
+          return Table2.create({
+            Table1Id: table1.get('id')
+          });
+        }).then(table2 => {
+          return Table3.bulkCreate([
+            {
+              Table2Id: table2.get('id'),
+              value: 5
+            },
+            {
+              Table2Id: table2.get('id'),
+              value: 7
+            }
+          ], {
+            validate: true
+          });
+        });
+      }).then(() => {
+        return Table1.findAll({
+          raw: true,
+          attributes: [Sequelize.fn('SUM', Sequelize.col('Table2.Tables3.value'))],
+          include: [
+            {
+              model: Table2,
+              attributes: [],
+              include: [
+                {
+                  model: Table3,
+                  as: 'Tables3',
+                  attributes: []
+                }
+              ]
+            }
+          ]
+        });
+      });
+    });
+
     it('should support a belongsTo association reference with a where', function() {
       const Company = this.sequelize.define('Company', { name: DataTypes.STRING }),
         User = this.sequelize.define('User', {}),
