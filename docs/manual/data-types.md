@@ -1,6 +1,6 @@
 # Datatypes
 
-Below are some of the datatypes supported by sequelize. For a full and updated list, see [DataTypes](/variable/index.html#static-variable-DataTypes).
+Below are some of the datatypes supported by sequelize. For a full and updated list, see [DataTypes](/variable/index.md#static-variable-DataTypes).
 
 ```js
 Sequelize.STRING                      // VARCHAR(255)
@@ -165,7 +165,7 @@ Timeline.create({ range: [-Infinity, new Date(Date.UTC(2016, 0, 1))] });
 
 ## Extending datatypes
 
-Most likely the type you are trying to implement is already included in [DataTypes](data-types.html). If a new datatype is not included, this manual will show how to write it yourself.
+Most likely the type you are trying to implement is already included in [DataTypes](data-types.md). If a new datatype is not included, this manual will show how to write it yourself.
 
 Sequelize doesn't create new datatypes in the database. This tutorial explains how to make Sequelize recognize new datatypes and assumes that those new datatypes are already created in the database.
 

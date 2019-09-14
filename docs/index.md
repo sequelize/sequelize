@@ -22,9 +22,9 @@ Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite an
 
 Sequelize follows [SEMVER](http://semver.org). Supports Node v6 and above to use ES6 features.
 
-**Sequelize v5** was released on March 13, 2019. [Official TypeScript typings are now included](manual/typescript).
+**Sequelize v5** was released on March 13, 2019. [Official TypeScript typings are now included](manual/typescript.md).
 
-You are currently looking at the **Tutorials and Guides** for Sequelize. You might also be interested in the [API Reference](identifiers).
+You are currently looking at the **Tutorials and Guides** for Sequelize. You might also be interested in the [API Reference](identifiers.md).
 
 ## Quick example
 
@@ -48,4 +48,4 @@ sequelize.sync()
   });
 ```
 
-To learn more about how to use Sequelize, read the tutorials available in the left menu. Begin with [Getting Started](manual/getting-started).
+To learn more about how to use Sequelize, read the tutorials available in the left menu. Begin with [Getting Started](manual/getting-started.md).
