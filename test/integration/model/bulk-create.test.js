@@ -519,7 +519,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('when the primary key column names and model field names are different', function() {
             const data = [
-              { plateNumber: 'abc', color: 'Black' },
+              { plateNumber: 'abc', color: 'Grey' },
               { plateNumber: 'def', color: 'White' }
             ];
 
