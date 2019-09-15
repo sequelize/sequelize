@@ -34,6 +34,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         no: { type: DataTypes.INTEGER, primaryKey: true },
         name: { type: DataTypes.STRING, allowNull: false }
       });
+      this.Car = this.sequelize.define('Car', {
+        plateNumber: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+          field: 'plate_number'
+        },
+        color: {
+          type: DataTypes.TEXT
+        }
+      });
 
       return this.sequelize.sync({ force: true });
     });
@@ -480,27 +490,55 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should support the updateOnDuplicate option with primary keys', function() {
-          const data = [
-            { no: 1, name: 'Peter' },
-            { no: 2, name: 'Paul' }
-          ];
-
-          return this.Student.bulkCreate(data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
-            const new_data = [
-              { no: 1, name: 'Peterson' },
-              { no: 2, name: 'Paulson' },
-              { no: 3, name: 'Michael' }
+        describe('should support the updateOnDuplicate option with primary keys', () => {
+          it('when the primary key column names and model field names are the same', function() {
+            const data = [
+              { no: 1, name: 'Peter' },
+              { no: 2, name: 'Paul' }
             ];
-            return this.Student.bulkCreate(new_data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
-              return this.Student.findAll({ order: ['no'] }).then(students => {
-                expect(students.length).to.equal(3);
-                expect(students[0].name).to.equal('Peterson');
-                expect(students[0].no).to.equal(1);
-                expect(students[1].name).to.equal('Paulson');
-                expect(students[1].no).to.equal(2);
-                expect(students[2].name).to.equal('Michael');
-                expect(students[2].no).to.equal(3);
+
+            return this.Student.bulkCreate(data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
+              const new_data = [
+                { no: 1, name: 'Peterson' },
+                { no: 2, name: 'Paulson' },
+                { no: 3, name: 'Michael' }
+              ];
+              return this.Student.bulkCreate(new_data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
+                return this.Student.findAll({ order: ['no'] }).then(students => {
+                  expect(students.length).to.equal(3);
+                  expect(students[0].name).to.equal('Peterson');
+                  expect(students[0].no).to.equal(1);
+                  expect(students[1].name).to.equal('Paulson');
+                  expect(students[1].no).to.equal(2);
+                  expect(students[2].name).to.equal('Michael');
+                  expect(students[2].no).to.equal(3);
+                });
+              });
+            });
+          });
+
+          it('when the primary key column names and model field names are different', function() {
+            const data = [
+              { plateNumber: 'abc', color: 'Black' },
+              { plateNumber: 'def', color: 'White' }
+            ];
+
+            return this.Car.bulkCreate(data, { fields: ['plateNumber', 'color'], updateOnDuplicate: ['color'] }).then(() => {
+              const new_data = [
+                { plateNumber: 'abc', color: 'Red' },
+                { plateNumber: 'def', color: 'Green' },
+                { plateNumber: 'ghi', color: 'Blue' }
+              ];
+              return this.Car.bulkCreate(new_data, { fields: ['plateNumber', 'color'], updateOnDuplicate: ['color'] }).then(() => {
+                return this.Car.findAll({ order: ['plateNumber'] }).then(cars => {
+                  expect(cars.length).to.equal(3);
+                  expect(cars[0].plateNumber).to.equal('abc');
+                  expect(cars[0].color).to.equal('Red');
+                  expect(cars[1].plateNumber).to.equal('def');
+                  expect(cars[1].color).to.equal('Green');
+                  expect(cars[2].plateNumber).to.equal('ghi');
+                  expect(cars[2].color).to.equal('Blue');
+                });
               });
             });
           });
