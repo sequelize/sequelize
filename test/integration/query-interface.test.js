@@ -42,23 +42,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   describe('showAllTables', () => {
-    it('should contain only tables', function() {
-      const cleanup = r => {
-        return this.sequelize.query('DROP VIEW V_Fail').then(() => r, () => r);
+    it('should not contain views', function() {
+      const cleanup = () => {
+        return this.sequelize.query('DROP VIEW V_Fail').reflect();
       };
       return this.queryInterface
         .createTable('my_test_table', { name: DataTypes.STRING })
-        .then(cleanup)
+        .tap(cleanup)
         .then(() => this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id'))
         .then(() => this.queryInterface.showAllTables())
-        .then(cleanup)
+        .tap(cleanup)
         .then(tableNames => {
           if (tableNames[0] && tableNames[0].tableName) {
             tableNames = tableNames.map(v => v.tableName);
           }
-          expect(tableNames).to.have.length(1);
-          expect(tableNames).to.contain('my_test_table');
-          expect(tableNames).to.not.contain('V_Fail');
+          expect(tableNames).to.deep.equal(['my_test_table']);
         });
     });
   });
