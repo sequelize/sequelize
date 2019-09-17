@@ -44,6 +44,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('showAllTables', () => {
     it('should not contain views', function() {
       const cleanup = () => {
+        // NOTE: The syntax "DROP VIEW [IF EXISTS]"" is not part of the standard
+        // and might not be available on all RDBMSs. Therefore "DROP VIEW" is
+        // the compatible option, which can throw an error in case the VIEW does
+        // not exist. In case of error, it is ignored by reflect()+tap().
         return this.sequelize.query('DROP VIEW V_Fail').reflect();
       };
       return this.queryInterface
