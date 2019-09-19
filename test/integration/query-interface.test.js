@@ -41,6 +41,30 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
   });
 
+  describe('showAllTables', () => {
+    it('should not contain views', function() {
+      const cleanup = () => {
+        // NOTE: The syntax "DROP VIEW [IF EXISTS]"" is not part of the standard
+        // and might not be available on all RDBMSs. Therefore "DROP VIEW" is
+        // the compatible option, which can throw an error in case the VIEW does
+        // not exist. In case of error, it is ignored by reflect()+tap().
+        return this.sequelize.query('DROP VIEW V_Fail').reflect();
+      };
+      return this.queryInterface
+        .createTable('my_test_table', { name: DataTypes.STRING })
+        .tap(cleanup)
+        .then(() => this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id'))
+        .then(() => this.queryInterface.showAllTables())
+        .tap(cleanup)
+        .then(tableNames => {
+          if (tableNames[0] && tableNames[0].tableName) {
+            tableNames = tableNames.map(v => v.tableName);
+          }
+          expect(tableNames).to.deep.equal(['my_test_table']);
+        });
+    });
+  });
+
   describe('renameTable', () => {
     it('should rename table', function() {
       return this.queryInterface
