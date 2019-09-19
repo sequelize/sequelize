@@ -67,19 +67,8 @@ UserModel.findCreateFind({
   }
 })
 
-class ModelCompositePrimaryKey extends Model {}
-
-ModelCompositePrimaryKey.init({
-  uid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  primaryKeyOne: { type: DataTypes.STRING, primaryKey: true, allowNull: false },
-  title: DataTypes.STRING,
-  description: DataTypes.TEXT,
-}, { sequelize, modelName: 'ModelCompositePrimaryKey' });
-
-ModelCompositePrimaryKey
-  .create({ primaryKeyOne: "Type 1", title: 'Test Record', description: 'Record created to test composite primary key' })
-  .then(modelCompositePrimaryKey => {
-    console.log(modelCompositePrimaryKey.get('title'));
-    console.log(modelCompositePrimaryKey.get('description'));
-    console.log(ModelCompositePrimaryKey.primaryKeyAttributes);
-  })
+/**
+ * Test for primaryKeyAttributes.
+ */
+class TestModel extends Model {};
+TestModel.primaryKeyAttributes;
