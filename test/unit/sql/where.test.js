@@ -1193,5 +1193,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     testsql(current.where(current.fn('SUM', current.col('hours')), Op.gt, 0), {
       default: 'SUM([hours]) > 0'
     });
+
+    testsql(current.where(current.fn('lower', current.col('name')),  Op.ne, null), {
+      default: 'lower([name]) IS NOT NULL'
+    });
+
+    testsql(current.where(current.fn('lower', current.col('name')),  Op.not, null), {
+      default: 'lower([name]) IS NOT NULL'
+    });
   });
 });
