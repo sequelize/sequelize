@@ -210,10 +210,12 @@ export interface HasManyCreateAssociationMixinOptions extends CreateOptions {}
  * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
-export type HasManyCreateAssociationMixin<TModel> = (
-  values?: { [attribute: string]: unknown },
+export type HasManyCreateAssociationMixin<TModel, TValues = DefaultHasManyCreateAssociationValues> = (
+  values?: TValues,
   options?: HasManyCreateAssociationMixinOptions
 ) => Promise<TModel>;
+
+type DefaultHasManyCreateAssociationValues = { [attribute: string]: unknown };
 
 /**
  * The options for the removeAssociation mixin of the hasMany association.
