@@ -67,10 +67,11 @@ Now edit this file and set correct database credentials and dialect. The keys of
 
 Once you have properly configured CLI config file you are ready to create your first migration. It's as simple as executing a simple command.
 
-We will use `model:generate` command. This command requires two options
+We will use `model:generate` command. This command requires three options
 
 - `name`, Name of the model
 - `attributes`, List of model attributes
+- `timestamp`, Boolean, which will skip timestamp in case of passing false for timestamp
 
 Let's create a model named `User`.
 
