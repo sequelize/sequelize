@@ -13,7 +13,6 @@
 [![Last commit](https://badgen.net/github/last-commit/sequelize/sequelize)](https://github.com/sequelize/sequelize)
 [![Merged PRs](https://badgen.net/github/merged-prs/sequelize/sequelize)](https://github.com/sequelize/sequelize)
 [![GitHub stars](https://badgen.net/github/stars/sequelize/sequelize)](https://github.com/sequelize/sequelize)
-[![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
 [![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com/)
 [![node](https://badgen.net/npm/node/sequelize)](https://www.npmjs.com/package/sequelize)
 [![License](https://badgen.net/github/license/sequelize/sequelize)](https://github.com/sequelize/sequelize/blob/master/LICENSE)
@@ -30,13 +29,13 @@ You are currently looking at the **Tutorials and Guides** for Sequelize. You mig
 ## Quick example
 
 ```js
-const Sequelize = require('sequelize');
-const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
+const { Sequelize, Model, DataTypes } = require('sequelize');
+const sequelize = new Sequelize('sqlite::memory:');
 
-class User extends Sequelize.Model {}
+class User extends Model {}
 User.init({
-  username: Sequelize.STRING,
-  birthday: Sequelize.DATE
+  username: DataTypes.STRING,
+  birthday: DataTypes.DATE
 }, { sequelize, modelName: 'user' });
 
 sequelize.sync()

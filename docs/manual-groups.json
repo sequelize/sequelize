@@ -1,0 +1,26 @@
+{
+  "Core Concepts": [
+    "getting-started.md",
+    "dialects.md",
+    "data-types.md",
+    "models-definition.md",
+    "models-usage.md",
+    "hooks.md",
+    "querying.md",
+    "instances.md",
+    "associations.md",
+    "raw-queries.md"
+  ],
+  "Other Topics": [
+    "transactions.md",
+    "scopes.md",
+    "read-replication.md",
+    "migrations.md",
+    "resources.md",
+    "typescript.md",
+    "upgrade-to-v5.md",
+    "legacy.md",
+    "whos-using.md",
+    "legal.md"
+  ]
+}
