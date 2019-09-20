@@ -77,7 +77,6 @@ jobs:
         - npm run semantic-release
       before_deploy:
         - npm run docs
-        - npm run docs-routing
       deploy:
         provider: surge
         project: ./esdoc/
