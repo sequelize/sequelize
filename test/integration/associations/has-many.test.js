@@ -933,14 +933,16 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
     });
 
-    describe('set javascript objects without IDs', () => {
-      it('should support a raw object without IDs', function() {
+    describe('add and set raw objects without IDs', () => {
+      it('should set a raw object without IDs', function() {
         const Product = this.sequelize.define('Product');
         const ProductImage = this.sequelize.define('ProductImage', {
           image: Sequelize.STRING,
           thumbnail: Sequelize.STRING
         });
+
         Product.hasMany(ProductImage);
+
         return this.sequelize.sync({ force: true }).then(() => {
           return Product.create({});
         }).then(product => {
@@ -954,7 +956,145 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return Product.findOne({ include: ProductImage }).then(product => {
             expect(product.ProductImages).to.be.an('array');
             expect(product.ProductImages).to.have.length(2);
+            expect(product.ProductImages[0]).to.be.an.instanceof(ProductImage);
+            expect(product.ProductImages[0].id).to.be.ok;
+            expect(product.ProductImages[0].image).to.equal('test1');
           });
+        });
+      });
+
+      it('should remove older associations', function() {
+        const Product = this.sequelize.define('Product');
+        const ProductImage = this.sequelize.define('ProductImage', {
+          image: Sequelize.STRING,
+          thumbnail: Sequelize.STRING
+        });
+
+        Product.hasMany(ProductImage);
+        const ctx = {};
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Product.create({});
+        }).then(product => {
+          ctx.product = product;
+          return product.setProductImages({ image: 'test0', thumbnail: 'test0' });
+        }).then(() => {
+          return ctx.product.getProductImages();
+        }).then(productImages => {
+          expect(productImages).to.have.length(1);
+          expect(productImages[0].image).to.equal('test0');
+          return ctx.product.setProductImages([
+            { image: 'test1', thumbnail: 'test1' }, 
+            { image: 'test2', thumbnail: 'test2' }
+          ]);
+        }).then(() => {
+          return ctx.product.getProductImages();
+        }).then(productImages => {
+          expect(productImages).to.have.length(2);
+          expect(productImages[0].image).to.equal('test1');
+        });
+      });
+
+      it('should set a array with raw objects and instances', function() {
+        const Product = this.sequelize.define('Product');
+        const ProductImage = this.sequelize.define('ProductImage', {
+          image: Sequelize.STRING,
+          thumbnail: Sequelize.STRING
+        });
+
+        Product.hasMany(ProductImage);
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Promise.all([
+            Product.create({}), 
+            ProductImage.create({ id: 0, image: 'test0', thumbnail: 'test0' })
+          ]);
+        }).then(([product, productImage]) => {
+          return product.setProductImages([
+            productImage,
+            { image: 'test1', thumbnail: 'test1' },
+            { image: 'test2', thumbnail: 'test2' }
+          ]);
+        }).then(() => {
+          return expect(ProductImage.findAll()).to.eventually.have.length(3);
+        }).then(() => {
+          return Product.findOne({ include: ProductImage }).then(product => {
+            expect(product.ProductImages).to.be.an('array');
+            expect(product.ProductImages).to.have.length(3);
+            expect(product.ProductImages[0]).to.be.an.instanceof(ProductImage);
+            expect(product.ProductImages[0].id).to.be.ok;
+            expect(product.ProductImages[0].image).to.equal('test0');
+            expect(product.ProductImages[1]).to.be.an.instanceof(ProductImage);
+            expect(product.ProductImages[1].id).to.be.ok;
+            expect(product.ProductImages[1].image).to.equal('test1');
+          });    
+        });
+      });
+
+      it('should increment new associations with older associations', function() {
+        const Product = this.sequelize.define('Product');
+        const ProductImage = this.sequelize.define('ProductImage', {
+          image: Sequelize.STRING,
+          thumbnail: Sequelize.STRING
+        });
+
+        Product.hasMany(ProductImage);
+        const ctx = {};
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Product.create({});
+        }).then(product => {
+          ctx.product = product;
+          return product.addProductImages({ image: 'test0', thumbnail: 'test0' });
+        }).then(() => {
+          return ctx.product.getProductImages();
+        }).then(productImages => {
+          expect(productImages).to.have.length(1);
+          return ctx.product.addProductImages([
+            { image: 'test1', thumbnail: 'test1' }, 
+            { image: 'test2', thumbnail: 'test2' }
+          ]);
+        }).then(() => {
+          return ctx.product.getProductImages();
+        }).then(productImages => {
+          expect(productImages).to.have.length(3);
+          expect(productImages[0].image).to.equal('test0');
+        });
+      });
+
+      it('should add a array with raw objects and instances', function() {
+        const Product = this.sequelize.define('Product');
+        const ProductImage = this.sequelize.define('ProductImage', {
+          image: Sequelize.STRING,
+          thumbnail: Sequelize.STRING
+        });
+
+        Product.hasMany(ProductImage);
+        
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Promise.all([
+            Product.create({}), 
+            ProductImage.create({ id: 0, image: 'test0', thumbnail: 'test0' })
+          ]);
+        }).then(([product, productImage]) => {
+          return product.addProductImages([
+            productImage,
+            { image: 'test1', thumbnail: 'test1' },
+            { image: 'test2', thumbnail: 'test2' }
+          ]);
+        }).then(() => {
+          return expect(ProductImage.findAll()).to.eventually.have.length(3);
+        }).then(() => {
+          return Product.findOne({ include: ProductImage }).then(product => {
+            expect(product.ProductImages).to.be.an('array');
+            expect(product.ProductImages).to.have.length(3);
+            expect(product.ProductImages[0]).to.be.an.instanceof(ProductImage);
+            expect(product.ProductImages[0].id).to.be.ok;
+            expect(product.ProductImages[0].image).to.equal('test0');
+            expect(product.ProductImages[1]).to.be.an.instanceof(ProductImage);
+            expect(product.ProductImages[1].id).to.be.ok;
+            expect(product.ProductImages[1].image).to.equal('test1');
+          });    
         });
       });
 
@@ -978,6 +1118,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return Product.findOne({ include: ProductImage }).then(product => {
             expect(product.ProductImages).to.be.an('array');
             expect(product.ProductImages).to.have.length(2);
+            expect(product.ProductImages[0]).to.be.an.instanceof(ProductImage);
+            expect(product.ProductImages[0].id).to.be.ok;
+            expect(product.ProductImages[0].image).to.equal('test1');
           });
         });
       });
@@ -1314,7 +1457,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               Task.create({ title: 'task' })
             ]);
           }).then(([user, task]) => {
-            return Promise.resolve(user.setTasks([task])).return(user);
+            return user.setTasks([task]).return(user);
           }).then(user => {
             // Changing the id of a DAO requires a little dance since
             // the `UPDATE` query generated by `save()` uses `id` in the
@@ -1370,7 +1513,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               Task.create({ title: 'task' })
             ]);
           }).then(([user, task]) => {
-            return Promise.resolve(user.setTasks([task])).return(user);
+            return user.setTasks([task]).return(user);
           }).then(user => {
             // Changing the id of a DAO requires a little dance since
             // the `UPDATE` query generated by `save()` uses `id` in the

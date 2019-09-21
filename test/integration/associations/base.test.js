@@ -22,8 +22,8 @@ describe(Support.getTestDialectTeaser('Base Functions'), () => {
 
     it('Should receive a array of models from toInstanceCreate', () => {
       const productImages = [
-        { image: 'image1', thunbmail: 'thunbmail1' },
-        { image: 'image1', thunbmail: 'thunbmail1' }
+        { image: 'image1', thunbmail: 'thumbnail1' },
+        { image: 'image1', thunbmail: 'thumbnail1' }
       ];
 
       return this.association.toInstanceCreate(productImages).then(result => {
@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('Base Functions'), () => {
 
     it('Should just return the model', () => {
       return Promise.resolve(this.ProductImages.create(
-        { image: 'image1', thunbmail: 'thunbmail1' }
+        { image: 'image1', thunbmail: 'thumbnail1' }
       )).then(image => {
         return this.association.toInstanceCreate(image).then(result => {
           expect(result[0]).to.be.equal(image);
