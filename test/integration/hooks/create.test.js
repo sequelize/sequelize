@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   Sequelize = Support.Sequelize,
   sinon = require('sinon'),
   Promise = require('bluebird');
@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return this.User.create({username: 'Toni', mood: 'happy'}).then(() => {
+        return this.User.create({ username: 'Toni', mood: 'happy' }).then(() => {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
           expect(beforeSave).to.have.been.calledOnce;
@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejected.then(() => {
+        return expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejected.then(() => {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).not.to.have.been.called;
           expect(beforeSave).not.to.have.been.called;
@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejected.then(() => {
+        return expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejected.then(() => {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
           expect(beforeSave).to.have.been.calledOnce;
@@ -107,14 +107,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         return Promise.resolve();
       });
 
-      B.belongsToMany(A, {through: 'a_b'});
-      A.belongsToMany(B, {through: 'a_b'});
+      B.belongsToMany(A, { through: 'a_b' });
+      A.belongsToMany(B, { through: 'a_b' });
 
-      return this.sequelize.sync({force: true}).bind(this).then(function() {
-        return this.sequelize.Promise.all([
-          A.create({name: 'a'}),
-          B.create({name: 'b'})
-        ]).spread((a, b) => {
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Sequelize.Promise.all([
+          A.create({ name: 'a' }),
+          B.create({ name: 'b' })
+        ]).then(([a, b]) => {
           return a.addB(b).then(() => {
             expect(hookCalled).to.equal(1);
           });
@@ -131,7 +131,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           hookCalled++;
         });
 
-        return this.User.create({mood: 'sad', username: 'leafninja'}).then(user => {
+        return this.User.create({ mood: 'sad', username: 'leafninja' }).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('leafninja');
           expect(hookCalled).to.equal(1);
@@ -146,7 +146,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           hookCalled++;
         });
 
-        return this.User.create({mood: 'sad', username: 'fireninja'}).then(user => {
+        return this.User.create({ mood: 'sad', username: 'fireninja' }).then(user => {
           expect(user.mood).to.equal('neutral');
           expect(user.username).to.equal('fireninja');
           expect(hookCalled).to.equal(1);
@@ -161,7 +161,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           hookCalled++;
         });
 
-        return this.User.create({username: 'akira'}).then(user => {
+        return this.User.create({ username: 'akira' }).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('akira');
           expect(hookCalled).to.equal(1);
@@ -176,7 +176,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           hookCalled++;
         });
 
-        return this.User.create({username: 'akira'}).then(user => {
+        return this.User.create({ username: 'akira' }).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('akira');
           expect(hookCalled).to.equal(1);
@@ -196,7 +196,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           hookCalled++;
         });
 
-        return this.User.create({username: 'akira'}).then(user => {
+        return this.User.create({ username: 'akira' }).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('akira');
           expect(hookCalled).to.equal(2);

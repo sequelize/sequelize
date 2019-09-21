@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Utils = require(__dirname + '/../../lib/utils'),
-  Support = require(__dirname + '/support'),
-  DataTypes = require(__dirname + '/../../lib/data-types'),
+  Utils = require('../../lib/utils'),
+  Support = require('./support'),
+  DataTypes = require('../../lib/data-types'),
   Sequelize = require('../../index'),
   Op = Sequelize.Op;
 
@@ -53,14 +53,14 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   describe('cloneDeep', () => {
     it('should clone objects', () => {
-      const obj = {foo: 1},
+      const obj = { foo: 1 },
         clone = Utils.cloneDeep(obj);
 
       expect(obj).to.not.equal(clone);
     });
 
     it('should clone nested objects', () => {
-      const obj = {foo: {bar: 1}},
+      const obj = { foo: { bar: 1 } },
         clone = Utils.cloneDeep(obj);
 
       expect(obj.foo).to.not.equal(clone.foo);
@@ -85,42 +85,6 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
         Utils.cloneDeep(arr);
       }).to.not.throw();
-    });
-  });
-
-  describe('validateParameter', () => {
-    describe('method signature', () => {
-      it('throws an error if the value is not defined', () => {
-        expect(() => {
-          Utils.validateParameter();
-        }).to.throw('No value has been passed.');
-      });
-
-      it('does not throw an error if the value is not defined and the parameter is optional', () => {
-        expect(() => {
-          Utils.validateParameter(undefined, Object, { optional: true });
-        }).to.not.throw();
-      });
-
-      it('throws an error if the expectation is not defined', () => {
-        expect(() => {
-          Utils.validateParameter(1);
-        }).to.throw('No expectation has been passed.');
-      });
-    });
-
-    describe('expectation', () => {
-      it('uses the instanceof method if the expectation is a class', () => {
-        expect(Utils.validateParameter(new Number(1), Number)).to.be.true;
-      });
-    });
-
-    describe('failing expectations', () => {
-      it('throws an error if the expectation does not match', () => {
-        expect(() => {
-          Utils.validateParameter(1, String);
-        }).to.throw(/The parameter.*is no.*/);
-      });
     });
   });
 
@@ -198,7 +162,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     if (Support.getTestDialect() !== 'mssql') {
       it('accepts condition object (with cast)', function() {
-        const type = Support.getTestDialect() === 'mysql' ? 'unsigned': 'int';
+        const type = Support.getTestDialect() === 'mysql' ? 'unsigned' : 'int';
 
         return Airplane.findAll({
           attributes: [
@@ -215,10 +179,11 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               }
             }, type)), 'count-engines-wings']
           ]
-        }).spread(airplane => {
-          expect(parseInt(airplane.get('count'))).to.equal(3);
-          expect(parseInt(airplane.get('count-engines'))).to.equal(1);
-          expect(parseInt(airplane.get('count-engines-wings'))).to.equal(2);
+        }).then(([airplane]) => {
+          // TODO: `parseInt` should not be needed, see #10533
+          expect(parseInt(airplane.get('count'), 10)).to.equal(3);
+          expect(parseInt(airplane.get('count-engines'), 10)).to.equal(1);
+          expect(parseInt(airplane.get('count-engines-wings'), 10)).to.equal(2);
         });
       });
     }
@@ -240,12 +205,43 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               }
             }), 'count-engines-wings']
           ]
-        }).spread(airplane => {
-          expect(parseInt(airplane.get('count'))).to.equal(3);
-          expect(parseInt(airplane.get('count-engines'))).to.equal(1);
-          expect(parseInt(airplane.get('count-engines-wings'))).to.equal(2);
+        }).then(([airplane]) => {
+          // TODO: `parseInt` should not be needed, see #10533
+          expect(airplane.get('count')).to.equal(3);
+          expect(parseInt(airplane.get('count-engines'), 10)).to.equal(1);
+          expect(parseInt(airplane.get('count-engines-wings'), 10)).to.equal(2);
         });
       });
     }
+  });
+
+  describe('flattenObjectDeep', () => {
+    it('should return the value if it is not an object', () => {
+      const value = 'non-object';
+      const returnedValue = Utils.flattenObjectDeep(value);
+      expect(returnedValue).to.equal(value);
+    });
+
+    it('should return correctly if values are null', () => {
+      const value = {
+        name: 'John',
+        address: {
+          street: 'Fake St. 123',
+          city: null,
+          coordinates: {
+            longitude: 55.6779627,
+            latitude: 12.5964313
+          }
+        }
+      };
+      const returnedValue = Utils.flattenObjectDeep(value);
+      expect(returnedValue).to.deep.equal({
+        name: 'John',
+        'address.street': 'Fake St. 123',
+        'address.city': null,
+        'address.coordinates.longitude': 55.6779627,
+        'address.coordinates.latitude': 12.5964313
+      });
+    });
   });
 });

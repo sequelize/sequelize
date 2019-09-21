@@ -3,9 +3,9 @@
 const util = require('util');
 const chai = require('chai');
 const expect = chai.expect;
-const Support   = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
-const Model = require(__dirname + '/../../../lib/model');
+const Support   = require('../support');
+const DataTypes = require('../../../lib/data-types');
+const Model = require('../../../lib/model');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.QueryGenerator;
@@ -17,7 +17,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = (options, expectation) => {
       const model = options.model;
 
-      it(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.selectQuery(
             options.table || model && model.getTableName(),
@@ -352,11 +352,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       ]
     }, {
       mssql: 'SELECT [id], [name] FROM [subtask] AS [Subtask] ORDER BY RAND();',
+      mariadb: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
       mysql: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
       postgres: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
       sqlite: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();'
     });
-  
+
     describe('Invalid', () => {
       it('Error on invalid association', () => {
         return expect(Subtask.findAll({

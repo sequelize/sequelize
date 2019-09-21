@@ -1,6 +1,6 @@
 'use strict';
 
-const Support   = require(__dirname + '/../support'),
+const Support   = require('../support'),
   util = require('util'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
@@ -8,12 +8,12 @@ const Support   = require(__dirname + '/../support'),
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite(Support.getTestDialectTeaser('SQL'), () => {
-  suite('offset/limit', () => {
+describe(Support.getTestDialectTeaser('SQL'), () => {
+  describe('offset/limit', () => {
     const testsql = function(options, expectation) {
       const model = options.model;
 
-      test(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
           sql.addLimitAndOffset(
             options,
@@ -26,7 +26,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql({
       limit: 10, //when no order by present, one is automagically prepended, test its existence
-      model: {primaryKeyField: 'id', name: 'tableRef'}
+      model: { primaryKeyField: 'id', name: 'tableRef' }
     }, {
       default: ' LIMIT 10',
       mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
@@ -61,6 +61,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       ]
     }, {
       default: " LIMIT ''';DELETE FROM user'",
+      mariadb: " LIMIT '\\';DELETE FROM user'",
       mysql: " LIMIT '\\';DELETE FROM user'",
       mssql: " OFFSET 0 ROWS FETCH NEXT N''';DELETE FROM user' ROWS ONLY"
     });
@@ -74,6 +75,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       sqlite: " LIMIT ''';DELETE FROM user', 10",
       postgres: " LIMIT 10 OFFSET ''';DELETE FROM user'",
+      mariadb: " LIMIT '\\';DELETE FROM user', 10",
       mysql: " LIMIT '\\';DELETE FROM user', 10",
       mssql: " OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY"
     });

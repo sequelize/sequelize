@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+  Support = require('../../support'),
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
 
@@ -13,7 +13,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         set: DataTypes.STRING
       });
 
-      const user = User.build({set: 'A'});
+      const user = User.build({ set: 'A' });
       expect(user.get('set')).to.equal('A');
       user.set('set', 'B');
       expect(user.get('set')).to.equal('B');

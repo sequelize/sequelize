@@ -3,7 +3,7 @@
 const chai = require('chai'),
   Sequelize = require('../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
+  Support = require('../support'),
   current = Support.sequelize;
 
 if (current.dialect.supports.tmpTableTrigger) {
@@ -32,8 +32,8 @@ if (current.dialect.supports.tmpTableTrigger) {
           hasTrigger: true
         });
 
-        return User.sync({force: true}).bind(this).then(function() {
-          return this.sequelize.query(triggerQuery, {type: this.sequelize.QueryTypes.RAW});
+        return User.sync({ force: true }).then(() => {
+          return this.sequelize.query(triggerQuery, { type: this.sequelize.QueryTypes.RAW });
         });
       });
 
@@ -41,7 +41,7 @@ if (current.dialect.supports.tmpTableTrigger) {
         return User.create({
           username: 'triggertest'
         }).then(() => {
-          return expect(User.find({username: 'triggertest'})).to.eventually.have.property('username').which.equals('triggertest');
+          return expect(User.findOne({ username: 'triggertest' })).to.eventually.have.property('username').which.equals('triggertest');
         });
       });
 
@@ -53,7 +53,7 @@ if (current.dialect.supports.tmpTableTrigger) {
           return user.save();
         })
           .then(() => {
-            return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
+            return expect(User.findOne({ username: 'usernamechanged' })).to.eventually.have.property('username').which.equals('usernamechanged');
           });
       });
 
@@ -70,7 +70,7 @@ if (current.dialect.supports.tmpTableTrigger) {
           });
         })
           .then(() => {
-            return expect(User.find({username: 'usernamechanged'})).to.eventually.have.property('username').which.equals('usernamechanged');
+            return expect(User.findOne({ username: 'usernamechanged' })).to.eventually.have.property('username').which.equals('usernamechanged');
           });
       });
 
@@ -80,7 +80,7 @@ if (current.dialect.supports.tmpTableTrigger) {
         }).then(user => {
           return user.destroy();
         }).then(() => {
-          return expect(User.find({username: 'triggertest'})).to.eventually.be.null;
+          return expect(User.findOne({ username: 'triggertest' })).to.eventually.be.null;
         });
       });
     });

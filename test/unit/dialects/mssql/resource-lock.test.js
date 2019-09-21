@@ -3,7 +3,7 @@
 const ResourceLock = require('../../../../lib/dialects/mssql/resource-lock'),
   Promise = require('../../../../lib/promise'),
   assert = require('assert'),
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   dialect = Support.getTestDialect();
 
 if (dialect === 'mssql') {

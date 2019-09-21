@@ -2,14 +2,14 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
+  Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  DataTypes = require('../../../lib/data-types'),
   Promise = require('bluebird').getNewLibraryCopy();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  describe('findAndCount', () => {
+  describe('findAndCountAll', () => {
     describe('should handle promise rejection', () => {
       before(function() {
         this.stub = sinon.stub();
@@ -23,13 +23,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           age: DataTypes.INTEGER
         });
 
-        this.findAll = sinon.stub(this.User, 'findAll').callsFake(() => {
-          return Promise.reject(new Error());
-        });
+        this.findAll = sinon.stub(this.User, 'findAll').rejects(new Error());
 
-        this.count = sinon.stub(this.User, 'count').callsFake(() => {
-          return Promise.reject(new Error());
-        });
+        this.count = sinon.stub(this.User, 'count').rejects(new Error());
       });
 
       after(function() {
@@ -38,7 +34,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('with errors in count and findAll both', function() {
-        return this.User.findAndCount({})
+        return this.User.findAndCountAll({})
           .then(() => {
             throw new Error();
           })

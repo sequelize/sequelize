@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(function() {
@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     this.User.hasMany(this.Project);
     this.Project.belongsTo(this.User);
 
-    return this.sequelize.sync({force: true});
+    return this.sequelize.sync({ force: true });
   });
 
 
@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.User.bulkCreate([
         { username: 'Mello', age: 10 },
         { username: 'Mello', age: 20 }
-      ], { returning: true }).spread((user1, user2) => {
+      ], { returning: true }).then(([, user2]) => {
         return this.Project.create({
           name: 'Investigate'
         }).then(project => user2.setProjects([project]));
@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             model: this.Project
           }]
         });
-      }).spread((user, created) => {
+      }).then(([user, created]) => {
         expect(created).to.be.false;
         expect(user.get('id')).to.be.ok;
         expect(user.get('username')).to.equal('Mello');

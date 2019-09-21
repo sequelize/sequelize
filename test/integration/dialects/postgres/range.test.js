@@ -2,11 +2,11 @@
 
 const chai    = require('chai'),
   expect  = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  Support = require('../../support'),
+  DataTypes = require('../../../../lib/data-types'),
   dialect = Support.getTestDialect(),
   range   = require('../../../../lib/dialects/postgres/range');
-  
+
 if (dialect.match(/^postgres/)) {
   // Don't try to load pg until we know we're running on postgres.
   const pg = require('pg');
@@ -60,12 +60,12 @@ if (dialect.match(/^postgres/)) {
 
       it('should stringify integer values with appropriate casting', () => {
         const Range = new DataTypes.postgres.RANGE(DataTypes.INTEGER);
-        expect(Range.stringify(1)).to.equal('\'1\'::integer');
+        expect(Range.stringify(1)).to.equal('\'1\'::int4');
       });
 
       it('should stringify bigint values with appropriate casting', () => {
         const Range = new DataTypes.postgres.RANGE(DataTypes.BIGINT);
-        expect(Range.stringify(1)).to.equal('\'1\'::bigint');
+        expect(Range.stringify(1)).to.equal('\'1\'::int8');
       });
 
       it('should stringify numeric values with appropriate casting', () => {
@@ -75,7 +75,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should stringify dateonly values with appropriate casting', () => {
         const Range = new DataTypes.postgres.RANGE(DataTypes.DATEONLY);
-        expect(Range.stringify(new Date(Date.UTC(2000, 1, 1))).indexOf('::date')).not.to.equal(-1);
+        expect(Range.stringify(new Date(Date.UTC(2000, 1, 1)))).to.include('::date');
       });
 
       it('should stringify date values with appropriate casting', () => {
@@ -185,9 +185,15 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle native postgres timestamp format', () => {
-        const tsOid = DataTypes.postgres.DATE.types.postgres.oids[0],
-          parser = pg.types.getTypeParser(tsOid);
-        expect(range.parse('(2016-01-01 08:00:00-04,)', parser)[0].value.toISOString()).to.equal('2016-01-01T12:00:00.000Z');
+        // Make sure nameOidMap is loaded
+        return Support.sequelize.connectionManager.getConnection().then(connection => {
+          Support.sequelize.connectionManager.releaseConnection(connection);
+
+          const tsName = DataTypes.postgres.DATE.types.postgres[0],
+            tsOid = Support.sequelize.connectionManager.nameOidMap[tsName].oid,
+            parser = pg.types.getTypeParser(tsOid);
+          expect(range.parse('(2016-01-01 08:00:00-04,)', parser)[0].value.toISOString()).to.equal('2016-01-01T12:00:00.000Z');
+        });
       });
 
     });
@@ -199,7 +205,7 @@ if (dialect.match(/^postgres/)) {
         let stringified = Range.stringify(testRange, {});
         stringified = stringified.substr(1, stringified.length - 2); // Remove the escaping ticks
 
-        expect(DataTypes.postgres.RANGE.parse(stringified, 3904, () => { return DataTypes.postgres.INTEGER.parse; })).to.deep.equal(testRange);
+        expect(DataTypes.postgres.RANGE.parse(stringified, { parser: DataTypes.postgres.INTEGER.parse })).to.deep.equal(testRange);
       });
     });
   });

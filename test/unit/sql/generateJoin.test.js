@@ -1,29 +1,29 @@
 'use strict';
 
-const Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  Sequelize = require(__dirname + '/../../../lib/sequelize'),
-  util      = require('util'),
-  _         = require('lodash'),
+const Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
+  Sequelize = require('../../../lib/sequelize'),
+  util = require('util'),
+  _ = require('lodash'),
   expectsql = Support.expectsql,
-  current   = Support.sequelize,
-  sql       = current.dialect.QueryGenerator,
-  Op        = current.Op;
+  current = Support.sequelize,
+  sql = current.dialect.QueryGenerator,
+  Op = Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite(Support.getTestDialectTeaser('SQL'), () => {
-  suite('generateJoin', () => {
+describe(Support.getTestDialectTeaser('SQL'), () => {
+  describe('generateJoin', () => {
     const testsql = function(path, options, expectation) {
 
       const name = `${path}, ${util.inspect(options, { depth: 10 })}`;
 
-      Sequelize.Model._conformOptions(options);
+      Sequelize.Model._conformIncludes(options);
       options = Sequelize.Model._validateIncludedElements(options);
 
       const include = _.at(options, path)[0];
 
-      test(name, () => {
+      it(name, () => {
 
         const join = sql.generateJoin(include,
           {
@@ -79,12 +79,12 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       tableName: 'profession'
     });
 
-    User.Tasks = User.hasMany(Task, {as: 'Tasks', foreignKey: 'userId'});
-    User.Company = User.belongsTo(Company, {foreignKey: 'companyId'});
-    User.Profession = User.belongsTo(Profession, {foreignKey: 'professionId'});
-    Profession.Professionals = Profession.hasMany(User, {as: 'Professionals', foreignKey: 'professionId'});
-    Company.Employees = Company.hasMany(User, {as: 'Employees', foreignKey: 'companyId'});
-    Company.Owner = Company.belongsTo(User, {as: 'Owner', foreignKey: 'ownerId'});
+    User.Tasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId' });
+    User.Company = User.belongsTo(Company, { foreignKey: 'companyId' });
+    User.Profession = User.belongsTo(Profession, { foreignKey: 'professionId' });
+    Profession.Professionals = Profession.hasMany(User, { as: 'Professionals', foreignKey: 'professionId' });
+    Company.Employees = Company.hasMany(User, { as: 'Employees', foreignKey: 'companyId' });
+    Company.Owner = Company.belongsTo(User, { as: 'Owner', foreignKey: 'ownerId' });
 
     /*
      * BelongsTo
@@ -316,7 +316,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
                 association: Company.Owner,
                 on: {
                   [Op.or]: [
-                    { '$Company.owner_id$': { [Op.col]: 'Company.Owner.id_user'} },
+                    { '$Company.owner_id$': { [Op.col]: 'Company.Owner.id_user' } },
                     { '$Company.Owner.id_user$': 2 }
                   ]
                 }

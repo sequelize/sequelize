@@ -2,10 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
+  Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  Promise = current.Promise,
   DataTypes = require('../../../lib/data-types'),
   _ = require('lodash');
 
@@ -19,7 +18,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     beforeEach(function() {
-      this.stubUpdate = sinon.stub(current.getQueryInterface(), 'bulkUpdate').returns(Promise.resolve([]));
+      this.stubUpdate = sinon.stub(current.getQueryInterface(), 'bulkUpdate').resolves([]);
       this.updates = { name: 'Batman', secretValue: '7' };
       this.cloneUpdates = _.clone(this.updates);
     });

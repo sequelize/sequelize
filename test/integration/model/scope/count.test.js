@@ -4,8 +4,8 @@ const chai = require('chai'),
   Sequelize = require('../../../../index'),
   Op = Sequelize.Op,
   expect = chai.expect,
-  Promise = require(__dirname + '/../../../../lib/promise'),
-  Support = require(__dirname + '/../../support');
+  Promise = require('../../../../lib/promise'),
+  Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
@@ -17,6 +17,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.ScopeMe = this.sequelize.define('ScopeMe', {
           username: Sequelize.STRING,
           email: Sequelize.STRING,
+          aliasValue: {
+            field: 'alias_value',
+            type: Sequelize.INTEGER
+          },
           access_level: Sequelize.INTEGER,
           other_value: Sequelize.INTEGER
         }, {
@@ -66,18 +70,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   }
                 }]
               };
+            },
+            withAliasedField: {
+              where: {
+                aliasValue: { [Op.ne]: 1 }
+              }
             }
           }
         });
         this.Child.belongsTo(this.ScopeMe);
         this.ScopeMe.hasMany(this.Child);
 
-        return this.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           const records = [
-            {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7},
-            {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11},
-            {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10},
-            {username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7}
+            { username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7, aliasValue: 12 },
+            { username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11, aliasValue: 5 },
+            { username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10, aliasValue: 1 },
+            { username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7, aliasValue: 10 }
           ];
           return this.ScopeMe.bulkCreate(records);
         }).then(() => {
@@ -99,7 +108,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to override default scope', function() {
-        return expect(this.ScopeMe.count({ where: { access_level: { [Op.gt]: 5 }}})).to.eventually.equal(1);
+        return expect(this.ScopeMe.count({ where: { access_level: { [Op.gt]: 5 } } })).to.eventually.equal(1);
       });
 
       it('should be able to unscope', function() {
@@ -111,7 +120,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to merge scopes with where', function() {
-        return expect(this.ScopeMe.scope('lowAccess').count({ where: { username: 'dan'}})).to.eventually.equal(1);
+        return expect(this.ScopeMe.scope('lowAccess').count({ where: { username: 'dan' } })).to.eventually.equal(1);
+      });
+
+      it('should be able to merge scopes with where on aliased fields', function() {
+        return expect(this.ScopeMe.scope('withAliasedField').count({ where: { aliasValue: 5 } })).to.eventually.equal(1);
       });
 
       it('should ignore the order option if it is found within the scope', function() {

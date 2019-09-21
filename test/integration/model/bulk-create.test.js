@@ -5,10 +5,9 @@ const chai = require('chai'),
   Op = Sequelize.Op,
   Promise = Sequelize.Promise,
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   dialect = Support.getTestDialect(),
-  _ = require('lodash'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -32,8 +31,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         accountName: DataTypes.STRING
       });
       this.Student = this.sequelize.define('Student', {
-        no: {type: DataTypes.INTEGER, primaryKey: true},
-        name: {type: DataTypes.STRING, allowNull: false}
+        no: { type: DataTypes.INTEGER, primaryKey: true },
+        name: { type: DataTypes.STRING, allowNull: false }
+      });
+      this.Car = this.sequelize.define('Car', {
+        plateNumber: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+          field: 'plate_number'
+        },
+        color: {
+          type: DataTypes.TEXT
+        }
       });
 
       return this.sequelize.sync({ force: true });
@@ -75,14 +84,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       const createdAt = new Date(2012, 10, 10, 10, 10, 10);
       const updatedAt = new Date(2011, 11, 11, 11, 11, 11);
-      const values = _.map(new Array(10), () => {
-        return {
-          createdAt,
-          updatedAt
-        };
+      const values = new Array(10).fill({
+        createdAt,
+        updatedAt
       });
 
-      return User.sync({force: true}).then(() => {
+      return User.sync({ force: true }).then(() => {
         return User.bulkCreate(values, {
           silent: true
         }).then(() => {
@@ -107,10 +114,37 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         name: Sequelize.STRING
       });
 
-      return User.sync({force: true}).then(() => {
+      return User.sync({ force: true }).then(() => {
         return User.bulkCreate([
-          {name: 'James'}
-        ], {validate: true, individualHooks: true});
+          { name: 'James' }
+        ], { validate: true, individualHooks: true });
+      });
+    });
+
+    it('should not map instance dataValues to fields with individualHooks: true', function() {
+      const User = this.sequelize.define('user', {
+        name: Sequelize.STRING,
+        type: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          field: 'user_type'
+        },
+        createdAt: {
+          type: Sequelize.DATE,
+          allowNull: false,
+          field: 'created_at'
+        },
+        updatedAt: {
+          type: Sequelize.DATE,
+          field: 'modified_at'
+        }
+      });
+
+      return User.sync({ force: true }).then(() => {
+        return User.bulkCreate([
+          { name: 'James', type: 'A' },
+          { name: 'Alan', type: 'Z' }
+        ], { individualHooks: true });
       });
     });
 
@@ -120,17 +154,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         size: Sequelize.INTEGER
       });
 
-      return Beer.sync({force: true}).then(() => {
+      return Beer.sync({ force: true }).then(() => {
         return Beer.bulkCreate([{
           style: 'ipa'
         }], {
           logging(sql) {
             if (dialect === 'postgres') {
-              expect(sql.indexOf('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT')).not.be.equal(-1);
+              expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
             } else if (dialect === 'mssql') {
-              expect(sql.indexOf('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) VALUES')).not.be.equal(-1);
+              expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
             } else { // mysql, sqlite
-              expect(sql.indexOf('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL')).not.be.equal(-1);
+              expect(sql).to.include('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL');
             }
           }
         });
@@ -138,13 +172,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('properly handles disparate field lists', function() {
-      const self = this,
-        data = [{username: 'Peter', secretValue: '42', uniqueName: '1' },
-          {username: 'Paul', uniqueName: '2'},
-          {username: 'Steve', uniqueName: '3'}];
+      const data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
+        { username: 'Paul', uniqueName: '2' },
+        { username: 'Steve', uniqueName: '3' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({where: {username: 'Paul'}}).then(users => {
+        return this.User.findAll({ where: { username: 'Paul' } }).then(users => {
           expect(users.length).to.equal(1);
           expect(users[0].username).to.equal('Paul');
           expect(users[0].secretValue).to.be.null;
@@ -153,12 +186,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('inserts multiple values respecting the white list', function() {
-      const self = this,
-        data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
-          { username: 'Paul', secretValue: '23', uniqueName: '2'}];
+      const data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
+        { username: 'Paul', secretValue: '23', uniqueName: '2' }];
 
       return this.User.bulkCreate(data, { fields: ['username', 'uniqueName'] }).then(() => {
-        return self.User.findAll({order: ['id']}).then(users => {
+        return this.User.findAll({ order: ['id'] }).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(users[0].secretValue).to.be.null;
@@ -169,12 +201,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should store all values if no whitelist is specified', function() {
-      const self = this,
-        data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
-          { username: 'Paul', secretValue: '23', uniqueName: '2'}];
+      const data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
+        { username: 'Paul', secretValue: '23', uniqueName: '2' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then(users => {
+        return this.User.findAll({ order: ['id'] }).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(users[0].secretValue).to.equal('42');
@@ -185,12 +216,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should set isNewRecord = false', function() {
-      const self = this,
-        data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
-          { username: 'Paul', secretValue: '23', uniqueName: '2'}];
+      const data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
+        { username: 'Paul', secretValue: '23', uniqueName: '2' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then(users => {
+        return this.User.findAll({ order: ['id'] }).then(users => {
           expect(users.length).to.equal(2);
           users.forEach(user => {
             expect(user.isNewRecord).to.equal(false);
@@ -200,13 +230,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('saves data with single quote', function() {
-      const self = this,
-        quote = "Single'Quote",
-        data = [{ username: 'Peter', data: quote, uniqueName: '1'},
-          { username: 'Paul', data: quote, uniqueName: '2'}];
+      const quote = "Single'Quote",
+        data = [{ username: 'Peter', data: quote, uniqueName: '1' },
+          { username: 'Paul', data: quote, uniqueName: '2' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then(users => {
+        return this.User.findAll({ order: ['id'] }).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(users[0].data).to.equal(quote);
@@ -217,13 +246,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('saves data with double quote', function() {
-      const self = this,
-        quote = 'Double"Quote',
-        data = [{ username: 'Peter', data: quote, uniqueName: '1'},
-          { username: 'Paul', data: quote, uniqueName: '2'}];
+      const quote = 'Double"Quote',
+        data = [{ username: 'Peter', data: quote, uniqueName: '1' },
+          { username: 'Paul', data: quote, uniqueName: '2' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then(users => {
+        return this.User.findAll({ order: ['id'] }).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(users[0].data).to.equal(quote);
@@ -234,13 +262,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('saves stringified JSON data', function() {
-      const self = this,
-        json = JSON.stringify({ key: 'value' }),
-        data = [{ username: 'Peter', data: json, uniqueName: '1'},
-          { username: 'Paul', data: json, uniqueName: '2'}];
+      const json = JSON.stringify({ key: 'value' }),
+        data = [{ username: 'Peter', data: json, uniqueName: '1' },
+          { username: 'Paul', data: json, uniqueName: '2' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then(users => {
+        return this.User.findAll({ order: ['id'] }).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(users[0].data).to.equal(json);
@@ -255,18 +282,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         length: Sequelize.INTEGER
       });
 
-      return UserWithLength.sync({force: true}).then(() => {
-        return UserWithLength.bulkCreate([{ length: 42}, {length: 11}]);
+      return UserWithLength.sync({ force: true }).then(() => {
+        return UserWithLength.bulkCreate([{ length: 42 }, { length: 11 }]);
       });
     });
 
     it('stores the current date in createdAt', function() {
-      const self = this,
-        data = [{ username: 'Peter', uniqueName: '1'},
-          { username: 'Paul', uniqueName: '2'}];
+      const data = [{ username: 'Peter', uniqueName: '1' },
+        { username: 'Paul', uniqueName: '2' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return self.User.findAll({order: ['id']}).then(users => {
+        return this.User.findAll({ order: ['id'] }).then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].username).to.equal('Peter');
           expect(parseInt(+users[0].createdAt / 5000, 10)).to.be.closeTo(parseInt(+new Date() / 5000, 10), 1.5);
@@ -292,9 +318,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return Tasks.sync({ force: true }).then(() => {
         return Tasks.bulkCreate([
-          {name: 'foo', code: '123'},
-          {code: '1234'},
-          {name: 'bar', code: '1'}
+          { name: 'foo', code: '123' },
+          { code: '1234' },
+          { name: 'bar', code: '1' }
         ], { validate: true }).catch(errors => {
           const expectedValidationError = 'Validation len on code failed';
           const expectedNotNullError = 'notNull Violation: Task.name cannot be null';
@@ -334,13 +360,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return Tasks.sync({ force: true }).then(() => {
         return Tasks.bulkCreate([
-          {name: 'foo', code: '123'},
-          {code: '1234'}
+          { name: 'foo', code: '123' },
+          { code: '1234' }
         ], { fields: ['code'], validate: true });
       });
     });
 
-    it('should allow blank arrays (return immediatly)', function() {
+    it('should allow blank arrays (return immediately)', function() {
       const Worker = this.sequelize.define('Worker', {});
       return Worker.sync().then(() => {
         return Worker.bulkCreate([]).then(workers => {
@@ -351,7 +377,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should allow blank creates (with timestamps: false)', function() {
-      const Worker = this.sequelize.define('Worker', {}, {timestamps: false});
+      const Worker = this.sequelize.define('Worker', {}, { timestamps: false });
       return Worker.sync().then(() => {
         return Worker.bulkCreate([{}, {}]).then(workers => {
           expect(workers).to.be.ok;
@@ -360,13 +386,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should allow autoincremented attributes to be set', function() {
-      const Worker = this.sequelize.define('Worker', {}, {timestamps: false});
+      const Worker = this.sequelize.define('Worker', {}, { timestamps: false });
       return Worker.sync().then(() => {
         return Worker.bulkCreate([
-          {id: 5},
-          {id: 10}
+          { id: 5 },
+          { id: 10 }
         ]).then(() => {
-          return Worker.findAll({order: [['id', 'ASC']]}).then(workers => {
+          return Worker.findAll({ order: [['id', 'ASC']] }).then(workers => {
             expect(workers[0].id).to.equal(5);
             expect(workers[1].id).to.equal(10);
           });
@@ -383,21 +409,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         tableName: 'Dummy'
       });
 
-      return this.sequelize.dropAllSchemas().bind(this).then(function() {
+      return Support.dropTestSchemas(this.sequelize).then(() => {
         return this.sequelize.createSchema('space1');
       }).then(() => {
-        return Dummy.sync({force: true});
+        return Dummy.sync({ force: true });
       }).then(() => {
         return Dummy.bulkCreate([
-          {foo: 'a', bar: 'b'},
-          {foo: 'c', bar: 'd'}
+          { foo: 'a', bar: 'b' },
+          { foo: 'c', bar: 'd' }
         ]);
       });
     });
 
-    if (current.dialect.supports.ignoreDuplicates) {
+    if (current.dialect.supports.inserts.ignoreDuplicates ||
+        current.dialect.supports.inserts.onConflictDoNothing) {
       it('should support the ignoreDuplicates option', function() {
-        const self = this;
         const data = [
           { uniqueName: 'Peter', secretValue: '42' },
           { uniqueName: 'Paul', secretValue: '23' }
@@ -406,8 +432,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).then(() => {
           data.push({ uniqueName: 'Michael', secretValue: '26' });
 
-          return self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).then(() => {
-            return self.User.findAll({order: ['id']}).then(users => {
+          return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).then(() => {
+            return this.User.findAll({ order: ['id'] }).then(users => {
               expect(users.length).to.equal(3);
               expect(users[0].uniqueName).to.equal('Peter');
               expect(users[0].secretValue).to.equal('42');
@@ -436,7 +462,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (current.dialect.supports.updateOnDuplicate) {
+    if (current.dialect.supports.inserts.updateOnDuplicate) {
       describe('updateOnDuplicate', () => {
         it('should support the updateOnDuplicate option', function() {
           const data = [
@@ -451,7 +477,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               { uniqueName: 'Michael', secretValue: '26' }
             ];
             return this.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] }).then(() => {
-              return this.User.findAll({order: ['id']}).then(users => {
+              return this.User.findAll({ order: ['id'] }).then(users => {
                 expect(users.length).to.equal(3);
                 expect(users[0].uniqueName).to.equal('Peter');
                 expect(users[0].secretValue).to.equal('43');
@@ -459,6 +485,60 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(users[1].secretValue).to.equal('24');
                 expect(users[2].uniqueName).to.equal('Michael');
                 expect(users[2].secretValue).to.equal('26');
+              });
+            });
+          });
+        });
+
+        describe('should support the updateOnDuplicate option with primary keys', () => {
+          it('when the primary key column names and model field names are the same', function() {
+            const data = [
+              { no: 1, name: 'Peter' },
+              { no: 2, name: 'Paul' }
+            ];
+
+            return this.Student.bulkCreate(data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
+              const new_data = [
+                { no: 1, name: 'Peterson' },
+                { no: 2, name: 'Paulson' },
+                { no: 3, name: 'Michael' }
+              ];
+              return this.Student.bulkCreate(new_data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
+                return this.Student.findAll({ order: ['no'] }).then(students => {
+                  expect(students.length).to.equal(3);
+                  expect(students[0].name).to.equal('Peterson');
+                  expect(students[0].no).to.equal(1);
+                  expect(students[1].name).to.equal('Paulson');
+                  expect(students[1].no).to.equal(2);
+                  expect(students[2].name).to.equal('Michael');
+                  expect(students[2].no).to.equal(3);
+                });
+              });
+            });
+          });
+
+          it('when the primary key column names and model field names are different', function() {
+            const data = [
+              { plateNumber: 'abc', color: 'Grey' },
+              { plateNumber: 'def', color: 'White' }
+            ];
+
+            return this.Car.bulkCreate(data, { fields: ['plateNumber', 'color'], updateOnDuplicate: ['color'] }).then(() => {
+              const new_data = [
+                { plateNumber: 'abc', color: 'Red' },
+                { plateNumber: 'def', color: 'Green' },
+                { plateNumber: 'ghi', color: 'Blue' }
+              ];
+              return this.Car.bulkCreate(new_data, { fields: ['plateNumber', 'color'], updateOnDuplicate: ['color'] }).then(() => {
+                return this.Car.findAll({ order: ['plateNumber'] }).then(cars => {
+                  expect(cars.length).to.equal(3);
+                  expect(cars[0].plateNumber).to.equal('abc');
+                  expect(cars[0].color).to.equal('Red');
+                  expect(cars[1].plateNumber).to.equal('def');
+                  expect(cars[1].color).to.equal('Green');
+                  expect(cars[2].plateNumber).to.equal('ghi');
+                  expect(cars[2].color).to.equal('Blue');
+                });
               });
             });
           });
@@ -506,7 +586,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               User.findAll({ order: ['id'] })
                 .then(actualUsers => [users, actualUsers])
             )
-            .spread((users, actualUsers) => {
+            .then(([users, actualUsers]) => {
               expect(users.length).to.eql(actualUsers.length);
               users.forEach((user, i) => {
                 expect(user.get('id')).to.be.ok;
@@ -539,7 +619,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               User.findAll({ order: ['maId'] })
                 .then(actualUsers => [users, actualUsers])
             )
-            .spread((users, actualUsers) => {
+            .then(([users, actualUsers]) => {
               expect(users.length).to.eql(actualUsers.length);
               users.forEach((user, i) => {
                 expect(user.get('maId')).to.be.ok;
@@ -553,15 +633,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('enums', () => {
       it('correctly restores enum values', function() {
-        const self = this,
-          Item = self.sequelize.define('Item', {
-            state: { type: Sequelize.ENUM, values: ['available', 'in_cart', 'shipped'] },
-            name: Sequelize.STRING
-          });
+        const Item = this.sequelize.define('Item', {
+          state: { type: Sequelize.ENUM, values: ['available', 'in_cart', 'shipped'] },
+          name: Sequelize.STRING
+        });
 
         return Item.sync({ force: true }).then(() => {
-          return Item.bulkCreate([{state: 'in_cart', name: 'A'}, { state: 'available', name: 'B'}]).then(() => {
-            return Item.find({ where: { state: 'available' }}).then(item => {
+          return Item.bulkCreate([{ state: 'in_cart', name: 'A' }, { state: 'available', name: 'B' }]).then(() => {
+            return Item.findOne({ where: { state: 'available' } }).then(item => {
               expect(item.name).to.equal('B');
             });
           });
@@ -586,8 +665,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      const M1 = { id: 1, name: 'Prathma Maya', secret: 'You are on list #1'};
-      const M2 = { id: 2, name: 'Dwitiya Maya', secret: 'You are on list #2'};
+      const M1 = { id: 1, name: 'Prathma Maya', secret: 'You are on list #1' };
+      const M2 = { id: 2, name: 'Dwitiya Maya', secret: 'You are on list #2' };
 
       return Maya.sync({ force: true }).then(() => Maya.create(M1))
         .then(m => {
@@ -597,9 +676,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(m.secret).to.be.eql(M1.secret);
 
           return Maya.bulkCreate([M2]);
-        }).spread(m => {
+        }).then(([m]) => {
 
-        // only attributes are returned, no fields are mixed
+          // only attributes are returned, no fields are mixed
           expect(m.createdAt).to.be.ok;
           expect(m.created_at).to.not.exist;
           expect(m.secret_given).to.not.exist;
@@ -642,7 +721,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             User.findAll({ order: [['id', 'ASC']] })
               .then(actualUsers => [users, actualUsers])
           )
-          .spread((users, actualUsers) => {
+          .then(([users, actualUsers]) => {
             expect(users.length).to.eql(actualUsers.length);
 
             expect(users[0].get('id')).to.equal(1).and.to.equal(actualUsers[0].get('id'));
@@ -671,6 +750,52 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(users[0].get('id')).to.equal(2);
             expect(users[1].get('id')).to.equal(4);
             expect(users[2].get('id')).to.equal(5);
+          });
+      });
+    });
+
+    describe('virtual attribute', () => {
+      beforeEach(function() {
+        this.User = this.sequelize.define('user', {
+          password: {
+            type: Sequelize.VIRTUAL,
+            validate: {
+              customValidator: () => {
+                throw new Error('always invalid');
+              }
+            }
+          }
+        });
+      });
+
+      it('should validate', function() {
+        return this.User
+          .sync({ force: true })
+          .then(() => this.User.bulkCreate([
+            { password: 'password' }
+          ], { validate: true }))
+          .then(() => {
+            expect.fail();
+          }, error => {
+            expect(error.length).to.equal(1);
+            expect(error[0].message).to.match(/.*always invalid.*/);
+          });
+      });
+
+      it('should not validate', function() {
+        return this.User
+          .sync({ force: true })
+          .then(() => this.User.bulkCreate([
+            { password: 'password' }
+          ], { validate: false }))
+          .then(users => {
+            expect(users.length).to.equal(1);
+          })
+          .then(() => this.User.bulkCreate([
+            { password: 'password' }
+          ]))
+          .then(users => {
+            expect(users.length).to.equal(1);
           });
       });
     });

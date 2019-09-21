@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   sinon = require('sinon');
 
 if (Support.sequelize.dialect.supports.upserts) {
@@ -32,7 +32,7 @@ if (Support.sequelize.dialect.supports.upserts) {
           this.User.beforeUpsert(beforeHook);
           this.User.afterUpsert(afterHook);
 
-          return this.User.upsert({username: 'Toni', mood: 'happy'}).then(() => {
+          return this.User.upsert({ username: 'Toni', mood: 'happy' }).then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
           });
@@ -50,7 +50,7 @@ if (Support.sequelize.dialect.supports.upserts) {
           });
           this.User.afterUpsert(afterHook);
 
-          return expect(this.User.upsert({username: 'Toni', mood: 'happy'})).to.be.rejected.then(() => {
+          return expect(this.User.upsert({ username: 'Toni', mood: 'happy' })).to.be.rejected.then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).not.to.have.been.called;
           });
@@ -66,7 +66,7 @@ if (Support.sequelize.dialect.supports.upserts) {
             throw new Error('Whoops!');
           });
 
-          return expect(this.User.upsert({username: 'Toni', mood: 'happy'})).to.be.rejected.then(() => {
+          return expect(this.User.upsert({ username: 'Toni', mood: 'happy' })).to.be.rejected.then(() => {
             expect(beforeHook).to.have.been.calledOnce;
             expect(afterHook).to.have.been.calledOnce;
           });

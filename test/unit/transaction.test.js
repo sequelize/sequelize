@@ -3,37 +3,37 @@
 const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
-const Support = require(__dirname + '/support');
+const Support = require('./support');
 const Sequelize = Support.Sequelize;
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 
-describe('Transaction', function() {
-  before(() => {
-    this.stub = sinon.stub(current, 'query').returns(Sequelize.Promise.resolve({}));
+describe('Transaction', () => {
+  before(function() {
+    this.stub = sinon.stub(current, 'query').resolves({});
 
     this.stubConnection = sinon.stub(current.connectionManager, 'getConnection')
-      .returns(Sequelize.Promise.resolve({
+      .resolves({
         uuid: 'ssfdjd-434fd-43dfg23-2d',
         close() {}
-      }));
+      });
 
     this.stubRelease = sinon.stub(current.connectionManager, 'releaseConnection')
-      .returns(Sequelize.Promise.resolve());
+      .resolves();
   });
 
-  beforeEach(() => {
+  beforeEach(function() {
     this.stub.resetHistory();
     this.stubConnection.resetHistory();
     this.stubRelease.resetHistory();
   });
 
-  after(() => {
+  after(function() {
     this.stub.restore();
     this.stubConnection.restore();
   });
 
-  it('should run auto commit query only when needed', () => {
+  it('should run auto commit query only when needed', function() {
     const expectations = {
       all: [
         'START TRANSACTION;'

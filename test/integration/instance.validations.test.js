@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require(__dirname + '/../../index'),
-  Support = require(__dirname + '/support'),
-  config = require(__dirname + '/../config/config');
+  Sequelize = require('../../index'),
+  Support = require('./support'),
+  config = require('../config/config');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('#update', () => {
@@ -25,9 +25,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       return User.sync({ force: true }).then(() => {
         return User.create({ username: 'bob', email: 'hello@world.com' }).then(user => {
           return User
-            .update({ username: 'toni' }, { where: {id: user.id }})
+            .update({ username: 'toni' }, { where: { id: user.id } })
             .then(() => {
-              return User.findById(1).then(user => {
+              return User.findByPk(1).then(user => {
                 expect(user.username).to.equal('toni');
               });
             });
@@ -47,8 +47,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
 
       return Model.sync({ force: true }).then(() => {
-        return Model.create({name: 'World'}).then(model => {
-          return model.updateAttributes({name: ''}).catch(err => {
+        return Model.create({ name: 'World' }).then(model => {
+          return model.update({ name: '' }).catch(err => {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.get('name')[0].message).to.equal('Validation notEmpty on name failed');
           });
@@ -68,8 +68,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
 
       return Model.sync({ force: true }).then(() => {
-        return Model.create({name: 'World'}).then(() => {
-          return Model.update({name: ''}, {where: {id: 1}}).catch(err => {
+        return Model.create({ name: 'World' }).then(() => {
+          return Model.update({ name: '' }, { where: { id: 1 } }).catch(err => {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.get('name')[0].message).to.equal('Validation notEmpty on name failed');
           });
@@ -171,8 +171,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('#create', () => {
     describe('generic', () => {
       beforeEach(function() {
-        const self = this;
-
         const Project = this.sequelize.define('Project', {
           name: {
             type: Sequelize.STRING,
@@ -192,21 +190,20 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         Task.belongsTo(Project);
 
         return this.sequelize.sync({ force: true }).then(() => {
-          self.Project = Project;
-          self.Task = Task;
+          this.Project = Project;
+          this.Task = Task;
         });
       });
 
       it('correctly throws an error using create method ', function() {
-        return this.Project.create({name: 'nope'}).catch(err => {
+        return this.Project.create({ name: 'nope' }).catch(err => {
           expect(err).to.have.ownProperty('name');
         });
       });
 
       it('correctly validates using create method ', function() {
-        const self = this;
         return this.Project.create({}).then(project => {
-          return self.Task.create({something: 1}).then(task => {
+          return this.Task.create({ something: 1 }).then(task => {
             return project.setTask(task).then(task => {
               expect(task.ProjectId).to.not.be.null;
               return task.setProject(project).then(project => {
@@ -232,7 +229,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return User.create({id: 'helloworld'}).catch(err => {
+          return User.create({ id: 'helloworld' }).catch(err => {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.get('id')[0].message).to.equal('Validation isInt on id failed');
           });
@@ -252,7 +249,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return User.create({username: 'helloworldhelloworld'}).catch(err => {
+          return User.create({ username: 'helloworldhelloworld' }).catch(err => {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.get('username')[0].message).to.equal('Username must be an integer!');
           });
@@ -276,14 +273,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
 
         it('should emit an error when we try to enter in a string for the id key with validation arguments', function() {
-          return this.User.create({id: 'helloworld'}).catch(err => {
+          return this.User.create({ id: 'helloworld' }).catch(err => {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.get('id')[0].message).to.equal('ID must be an integer!');
           });
         });
 
         it('should emit an error when we try to enter in a string for an auto increment key through .build().validate()', function() {
-          const user = this.User.build({id: 'helloworld'});
+          const user = this.User.build({ id: 'helloworld' });
 
           return expect(user.validate()).to.be.rejected.then(err => {
             expect(err.get('id')[0].message).to.equal('ID must be an integer!');
@@ -291,7 +288,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
 
         it('should emit an error when we try to .save()', function() {
-          const user = this.User.build({id: 'helloworld'});
+          const user = this.User.build({ id: 'helloworld' });
           return user.save().catch(err => {
             expect(err).to.be.an.instanceOf(Error);
             expect(err.get('id')[0].message).to.equal('ID must be an integer!');
@@ -302,7 +299,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     describe('pass all paths when validating', () => {
       beforeEach(function() {
-        const self = this;
         const Project = this.sequelize.define('Project', {
           name: {
             type: Sequelize.STRING,
@@ -331,8 +327,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         return Project.sync({ force: true }).then(() => {
           return Task.sync({ force: true }).then(() => {
-            self.Project = Project;
-            self.Task = Task;
+            this.Project = Project;
+            this.Task = Task;
           });
         });
       });
@@ -384,7 +380,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('correctly validates using custom validation methods', function() {
-    const User = this.sequelize.define('User' + config.rand(), {
+    const User = this.sequelize.define(`User${config.rand()}`, {
       name: {
         type: Sequelize.STRING,
         validate: {
@@ -411,26 +407,25 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('supports promises with custom validation methods', function() {
-    const self = this,
-      User = this.sequelize.define('User' + config.rand(), {
-        name: {
-          type: Sequelize.STRING,
-          validate: {
-            customFn(val) {
-              return User.findAll()
-                .then(() => {
-                  if (val === 'error') {
-                    throw new Error('Invalid username');
-                  }
-                });
-            }
+    const User = this.sequelize.define(`User${config.rand()}`, {
+      name: {
+        type: Sequelize.STRING,
+        validate: {
+          customFn(val) {
+            return User.findAll()
+              .then(() => {
+                if (val === 'error') {
+                  throw new Error('Invalid username');
+                }
+              });
           }
         }
-      });
+      }
+    });
 
     return User.sync().then(() => {
       return expect(User.build({ name: 'error' }).validate()).to.be.rejected.then(error => {
-        expect(error).to.be.instanceof(self.sequelize.ValidationError);
+        expect(error).to.be.instanceof(Sequelize.ValidationError);
         expect(error.get('name')[0].message).to.equal('Invalid username');
 
         return expect(User.build({ name: 'no error' }).validate()).not.to.be.rejected;
@@ -439,7 +434,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('skips other validations if allowNull is true and the value is null', function() {
-    const User = this.sequelize.define('User' + config.rand(), {
+    const User = this.sequelize.define(`User${config.rand()}`, {
       age: {
         type: Sequelize.INTEGER,
         allowNull: true,
@@ -459,7 +454,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('validates a model with custom model-wide validation methods', function() {
-    const Foo = this.sequelize.define('Foo' + config.rand(), {
+    const Foo = this.sequelize.define(`Foo${config.rand()}`, {
       field1: {
         type: Sequelize.INTEGER,
         allowNull: true
@@ -493,7 +488,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('validates model with a validator whose arg is an Array successfully twice in a row', function() {
-    const Foo = this.sequelize.define('Foo' + config.rand(), {
+    const Foo = this.sequelize.define(`Foo${config.rand()}`, {
         bar: {
           type: Sequelize.STRING,
           validate: {
@@ -501,7 +496,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           }
         }
       }),
-      foo = Foo.build({bar: 'a'});
+      foo = Foo.build({ bar: 'a' });
     return expect(foo.validate()).not.to.be.rejected.then(() => {
       return expect(foo.validate()).not.to.be.rejected;
     });
@@ -510,7 +505,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   it('validates enums', function() {
     const values = ['value1', 'value2'];
 
-    const Bar = this.sequelize.define('Bar' + config.rand(), {
+    const Bar = this.sequelize.define(`Bar${config.rand()}`, {
       field: {
         type: Sequelize.ENUM,
         values,
@@ -531,7 +526,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   it('skips validations for the given fields', function() {
     const values = ['value1', 'value2'];
 
-    const Bar = this.sequelize.define('Bar' + config.rand(), {
+    const Bar = this.sequelize.define(`Bar${config.rand()}`, {
       field: {
         type: Sequelize.ENUM,
         values,
@@ -546,6 +541,24 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     return expect(failingBar.validate({ skip: ['field'] })).not.to.be.rejected;
   });
 
+  it('skips validations for fields with value that is SequelizeMethod', function() {
+    const values = ['value1', 'value2'];
+
+    const Bar = this.sequelize.define(`Bar${config.rand()}`, {
+      field: {
+        type: Sequelize.ENUM,
+        values,
+        validate: {
+          isIn: [values]
+        }
+      }
+    });
+
+    const failingBar = Bar.build({ field: this.sequelize.literal('5 + 1') });
+
+    return expect(failingBar.validate()).not.to.be.rejected;
+  });
+
   it('raises an error if saving a different value into an immutable field', function() {
     const User = this.sequelize.define('User', {
       name: {
@@ -556,7 +569,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    return User.sync({force: true}).then(() => {
+    return User.sync({ force: true }).then(() => {
       return User.create({ name: 'RedCat' }).then(user => {
         expect(user.getDataValue('name')).to.equal('RedCat');
         user.setDataValue('name', 'YellowCat');
@@ -628,7 +641,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     return expect(User.build({
-      email: {lol: true}
+      email: { lol: true }
     }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
 
@@ -640,7 +653,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     return expect(User.build({
-      email: {lol: true}
+      email: { lol: true }
     }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
 
@@ -652,7 +665,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     return expect(User.build({
-      email: {lol: true}
+      email: { lol: true }
     }).validate()).to.be.rejectedWith(Sequelize.ValidationError);
   });
 

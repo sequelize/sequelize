@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require(__dirname + '/../support'),
+  Support   = require('../support'),
   current   = Support.sequelize,
   Sequelize = Support.Sequelize,
   sinon     = require('sinon');
@@ -20,11 +20,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       before(() => {
-        stub = sinon.stub(current, 'query').returns(
-          Sequelize.Promise.resolve({
+        stub = sinon.stub(current, 'query').resolves(
+          {
             _previousDataValues: {},
-            dataValues: {id: 1}
-          })
+            dataValues: { id: 1 }
+          }
         );
       });
 
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should allow destroies even if options are not given', () => {
-        instance = Model.build({id: 1}, {isNewRecord: false});
+        instance = Model.build({ id: 1 }, { isNewRecord: false });
         expect(() => {
           instance.destroy();
         }).to.not.throw();

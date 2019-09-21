@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Sequelize = require('../../index'),
-  Support = require(__dirname + '/support');
+  Support = require('./support');
 
 chai.should();
 
@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('Vectors'), () => {
       tableName: 'student'
     });
 
-    return Student.sync({force: true}).then(() => {
+    return Student.sync({ force: true }).then(() => {
       return Student.create({
         name: 'Robert\\\'); DROP TABLE "students"; --'
       }).then(result => {

@@ -2,10 +2,11 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  current   = Support.sequelize,
-  Promise = current.Promise,
+  Support = require('../support'),
+  Sequelize = require('../../../index'),
+  Promise = Sequelize.Promise,
+  DataTypes = require('../../../lib/data-types'),
+  current = Support.sequelize,
   sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -97,7 +98,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             }
             if (typeof val === 'string') {
               // Canonicalize phone number
-              val = val.replace(/^\+/, '00').replace(/\(0\)|[\s+\/.\-\(\)]/g, '');
+              val = val.replace(/^\+/, '00').replace(/\(0\)|[\s+/.\-()]/g, '');
             }
             this.setDataValue('phoneNumber', val);
           }
