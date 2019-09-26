@@ -319,14 +319,7 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.removeColumn(
-        'Person',
-        'petName',
-        {
-          type: Sequelize.STRING,
-        },
-        { transaction }
-      );
+      await queryInterface.removeColumn('Person', 'petName', { transaction });
       await transaction.commit();
     } catch (err) {
       await transaction.rollback();
