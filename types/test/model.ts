@@ -67,3 +67,8 @@ UserModel.findCreateFind({
   }
 })
 
+/**
+ * Test for primaryKeyAttributes.
+ */
+class TestModel extends Model {};
+TestModel.primaryKeyAttributes;
