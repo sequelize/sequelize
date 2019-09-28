@@ -38,6 +38,7 @@
     "space-before-function-paren": ["error", "never"],
     "space-before-blocks": "error",
     "space-infix-ops": "error",
+    "no-multi-spaces": "error",
     "arrow-parens": ["error", "as-needed"],
     "comma-style": ["error", "last"],
     "indent": [
