@@ -84,7 +84,7 @@
     "sinon": "^7.5.0",
     "sinon-chai": "^3.3.0",
     "sqlite3": "^4.0.6",
-    "tedious": "6.4.0",
+    "tedious": "6.0.0",
     "typescript": "^3.6.3"
   },
   "keywords": [
