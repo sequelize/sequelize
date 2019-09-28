@@ -1,6 +1,6 @@
 # Datatypes
 
-Below are some of the datatypes supported by sequelize. For a full and updated list, see [DataTypes](/variable/index.html#static-variable-DataTypes).
+Below are some of the datatypes supported by sequelize. For a full and updated list, see [DataTypes](/master/variable/index.html#static-variable-DataTypes).
 
 ```js
 Sequelize.STRING                      // VARCHAR(255)
