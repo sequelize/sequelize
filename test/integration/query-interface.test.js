@@ -63,6 +63,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(tableNames).to.deep.equal(['my_test_table']);
         });
     });
+
+    if (dialect !== 'sqlite' && dialect !== 'postgres') {
+      // NOTE: sqlite doesn't allow querying between databases and
+      // postgres requires creating a new connection to create a new table.
+      it('should not show tables in other databases', function() {
+        return this.queryInterface
+          .createTable('my_test_table1', { name: DataTypes.STRING })
+          .then(() => this.sequelize.query('CREATE DATABASE my_test_db'))
+          .then(() => this.sequelize.query(`CREATE TABLE my_test_db${dialect === 'mssql' ? '.dbo' : ''}.my_test_table2 (id INT)`))
+          .then(() => this.queryInterface.showAllTables())
+          .tap(() => this.sequelize.query('DROP DATABASE my_test_db'))
+          .then(tableNames => {
+            if (tableNames[0] && tableNames[0].tableName) {
+              tableNames = tableNames.map(v => v.tableName);
+            }
+            expect(tableNames).to.deep.equal(['my_test_table1']);
+          });
+      });
+    }
   });
 
   describe('renameTable', () => {
