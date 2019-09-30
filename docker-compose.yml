@@ -56,6 +56,8 @@ services:
       MYSQL_DATABASE: sequelize_test
       MYSQL_USER: sequelize_test
       MYSQL_PASSWORD: sequelize_test
+    volumes:
+    - $MYSQLDB_ENTRYPOINT:/docker-entrypoint-initdb.d
     ports:
       - "8980:3306"
     container_name: mysql-57
@@ -69,4 +71,3 @@ services:
     ports:
       - "8970:1433"
     container_name: mssql
-
