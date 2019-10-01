@@ -468,6 +468,18 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
+    it('keeps field names that are mapped to the same name', function() {
+      return this.sequelize.query(this.insertQuery).then(() => {
+        return this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+          type: 'SELECT',
+          fieldMap: { username: 'username', email_address: 'email' }
+        });
+      }).then(users => {
+        expect(users[0].username).to.be.equal('john');
+        expect(users[0].email).to.be.equal('john@gmail.com');
+      });
+    });
+
     it('reject if `values` and `options.replacements` are both passed', function() {
       return this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { raw: true, replacements: [1, 2] })
         .should.be.rejectedWith(Error, 'Both `sql.values` and `options.replacements` cannot be set at the same time');
