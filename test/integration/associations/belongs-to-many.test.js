@@ -2533,7 +2533,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
   describe('Association options', () => {
     describe('allows the user to provide an attribute definition object as foreignKey', () => {
-      it('works when taking a column directly from the object', function() {
+      it.skip('works when taking a column directly from the object', function() {
         const Project = this.sequelize.define('project', {}),
           User = this.sequelize.define('user', {
             uid: {
