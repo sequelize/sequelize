@@ -145,7 +145,7 @@ Sequelize exposes symbol operators that can be used for to create more complex c
 ```js
 const Op = Sequelize.Op
 
-[Op.and]: {a: 5}           // AND (a = 5)
+[Op.and]: [{a: 5}, {b: 6}] // (a = 5) AND (b = 6)
 [Op.or]: [{a: 5}, {a: 6}]  // (a = 5 OR a = 6)
 [Op.gt]: 6,                // > 6
 [Op.gte]: 6,               // >= 6
