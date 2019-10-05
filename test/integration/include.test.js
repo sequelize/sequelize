@@ -76,6 +76,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
       }).then(() => {
         return Table1.findAll({
+          raw: true,
           attributes: [
             [Sequelize.fn('SUM', Sequelize.col('Table2.Tables3.value')), 'sum']
           ],
@@ -94,7 +95,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ]
         }).then(result => {
           expect(result.length).to.equal(1);
-          expect(result[0].get('sum')).to.equal(12);
+          expect(result[0].sum).to.equal(12);
         });
       });
     });
