@@ -95,7 +95,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ]
         }).then(result => {
           expect(result.length).to.equal(1);
-          expect(result[0].sum).to.equal(12);
+          expect(parseInt(result[0].sum, 10)).to.eq(12);
         });
       });
     });
