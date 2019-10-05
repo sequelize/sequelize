@@ -1,6 +1,6 @@
 # Datatypes
 
-Below are some of the datatypes supported by sequelize. For a full and updated list, see [DataTypes](/variable/index.html#static-variable-DataTypes).
+Below are some of the datatypes supported by sequelize. For a full and updated list, see [DataTypes](/master/variable/index.html#static-variable-DataTypes).
 
 ```js
 Sequelize.STRING                      // VARCHAR(255)
@@ -184,13 +184,13 @@ sequelizeAdditions(Sequelize)
 // In this exmaple a Sequelize instance is created and exported
 const sequelize = new Sequelize(sequelizeConfig)
 
-modules.exports = sequelize
+module.exports = sequelize
 ```
 
 ```js
 // myproject/lib/sequelize-additions.js
 
-modules.exports = function sequelizeAdditions(Sequelize) {
+module.exports = function sequelizeAdditions(Sequelize) {
 
   DataTypes = Sequelize.DataTypes
 
@@ -254,7 +254,7 @@ Let's say the name of the new datatype is `pg_new_type` in the postgres database
 ```js
 // myproject/lib/sequelize-additions.js
 
-modules.exports = function sequelizeAdditions(Sequelize) {
+module.exports = function sequelizeAdditions(Sequelize) {
 
   DataTypes = Sequelize.DataTypes
 
@@ -300,7 +300,7 @@ In this example the name of the postgres range type is `newtype_range` and the n
 ```js
 // myproject/lib/sequelize-additions.js
 
-modules.exports = function sequelizeAdditions(Sequelize) {
+module.exports = function sequelizeAdditions(Sequelize) {
 
   DataTypes = Sequelize.DataTypes
 

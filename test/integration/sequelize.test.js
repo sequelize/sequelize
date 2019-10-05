@@ -320,6 +320,62 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           expect(typeof logger.args[0][1] === 'number').to.be.true;
         });
       });
+      describe('log sql when set logQueryParameters', () => {
+        beforeEach(function() {
+          this.sequelize = Support.createSequelizeInstance({
+            benchmark: true,
+            logQueryParameters: true
+          });
+          this.User = this.sequelize.define('User', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true
+            },
+            username: {
+              type: DataTypes.STRING
+            },
+            emailAddress: {
+              type: DataTypes.STRING
+            }
+          }, {
+            timestamps: false
+          });
+  
+          return this.User.sync({ force: true });
+        });
+        it('add parameters in log sql', function() {
+          let createSql, updateSql;
+          return this.User.create({
+            username: 'john',
+            emailAddress: 'john@gmail.com'
+          }, {
+            logging: s =>{
+              createSql = s;
+            }
+          }).then(user=>{
+            user.username = 'li';
+            return user.save({
+              logging: s =>{
+                updateSql = s;
+              }
+            });
+          }).then(()=>{
+            expect(createSql).to.match(/; ("john", "john@gmail.com"|{"(\$1|0)":"john","(\$2|1)":"john@gmail.com"})/);
+            expect(updateSql).to.match(/; ("li", 1|{"(\$1|0)":"li","(\$2|1)":1})/);
+          });
+        });
+  
+        it('add parameters in log sql when use bind value', function() {
+          let logSql;
+          const typeCast = dialect === 'postgres' ? '::text' : '';
+          return this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { bind: ['foo', 'bar'], logging: s=>logSql = s })
+            .then(()=>{
+              expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
+            });
+        });
+      });
+      
     });
 
     it('executes select queries correctly', function() {
@@ -408,6 +464,18 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
       }).then(users => {
         expect(users[0].userName).to.be.equal('john');
+        expect(users[0].email).to.be.equal('john@gmail.com');
+      });
+    });
+
+    it('keeps field names that are mapped to the same name', function() {
+      return this.sequelize.query(this.insertQuery).then(() => {
+        return this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+          type: 'SELECT',
+          fieldMap: { username: 'username', email_address: 'email' }
+        });
+      }).then(users => {
+        expect(users[0].username).to.be.equal('john');
         expect(users[0].email).to.be.equal('john@gmail.com');
       });
     });

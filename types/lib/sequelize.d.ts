@@ -360,6 +360,13 @@ export interface Options extends Logging {
    */
   minifyAliases?: boolean;
 
+  /**
+   * Set to `true` to show bind patameters in log.
+   *
+   * @default false
+   */
+  logQueryParameters?: boolean;
+
   retry?: RetryOptions;
 }
 
