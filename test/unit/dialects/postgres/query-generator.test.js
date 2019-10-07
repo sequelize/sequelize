@@ -154,6 +154,12 @@ if (dialect.startsWith('postgres')) {
           expectation: { id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT' }
         },
 
+        // When type is ARRAY(ENUM) with defaultValue
+        {
+          arguments: [{ col: { type: DataTypes.ARRAY(DataTypes.ENUM('bar', 'baz')), allowNull: false, defaultValue: ['bar'] } }, { context: 'createTable', table: { schema: 'public', tableName: 'foo' } }],
+          expectation: { col: 'ENUM(\'bar\', \'baz\')[] NOT NULL DEFAULT ARRAY[\'bar\']::"enum_foo_col"[]' }
+        },
+
         // Variants when quoteIdentifiers is false
         {
           arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' } } }],
