@@ -535,6 +535,28 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }, {
             postgres: '"muscles" @> ARRAY[2,5]::INTEGER[]'
           });
+
+          testsql('muscles', {
+            [Op.contains]: ['stringValue1', 'stringValue2', 'stringValue3']
+          }, {
+            postgres: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']'
+          });
+
+          testsql('muscles', {
+            [Op.contained]: ['stringValue1', 'stringValue2', 'stringValue3']
+          }, {
+            postgres: '"muscles" <@ ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']'
+          });
+
+          testsql('muscles', {
+            [Op.contains]: ['stringValue1', 'stringValue2']
+          }, {
+            field: {
+              type: DataTypes.ARRAY(DataTypes.STRING)
+            }
+          }, {
+            postgres: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\']::VARCHAR(255)[]'
+          });
         });
 
         describe('Op.overlap', () => {

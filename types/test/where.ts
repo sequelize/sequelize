@@ -114,6 +114,12 @@ where = {
             },
         },
     },
+    meta2: {
+      [Op.contains]: ['stringValue1', 'stringValue2', 'stringValue3']
+    },
+    meta3: {
+      [Op.contains]: [1, 2, 3, 4]
+    },
 };
 
 // Relations / Associations
