@@ -586,9 +586,9 @@ if (current.dialect.supports.transactions) {
                       username: 'jan'
                     }
                   }).then(() => expect(transactionSpy).to.have.been.called ), // Update should not succeed before transaction has committed
-                  Promise.delay(2000).then(() => {
-                    return transaction.commit().then(transactionSpy);
-                  })
+                  Promise.delay(2000)
+                    .then(() => transaction.commit())
+                    .then(transactionSpy)
                 ));
             });
           });
