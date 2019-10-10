@@ -536,17 +536,11 @@ if (current.dialect.supports.transactions) {
         return expect(
           this.sequelize.sync({ force: true }).then(() => {
             return this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED }, transaction => {
-              return User.findAll({ transaction }).then(users => {
-                expect( users ).to.have.lengthOf(0);
-              }).then(() => {
-                // Create a User outside of the transaction
-                return User.create({ username: 'jan' }).then(() => { 
-                  // We should see the created user inside the transaction
-                  return User.findAll({ transaction }).then(users => {
-                    expect( users ).to.have.lengthOf(1);
-                  });
-                });
-              });
+              return User.findAll({ transaction })
+                .then(users => expect( users ).to.have.lengthOf(0))
+                .then(() => User.create({ username: 'jan' })) // Create a User outside of the transaction
+                .then(() => User.findAll({ transaction }))
+                .then(users => expect( users ).to.have.lengthOf(1)); // We SHOULD see the created user inside the transaction
             });
           })
         ).to.eventually.be.fulfilled;
@@ -562,17 +556,11 @@ if (current.dialect.supports.transactions) {
           return expect(
             this.sequelize.sync({ force: true }).then(() => {
               return this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ }, transaction => {
-                return User.findAll({ transaction }).then(users => {
-                  expect( users ).to.have.lengthOf(0);
-                }).then(() => {
-                  // Create a User outside of the transaction
-                  return User.create({ username: 'jan' }).then(() => { 
-                    // We should NOT see the created user inside the transaction
-                    return User.findAll({ transaction }).then(users => {
-                      expect( users ).to.have.lengthOf(0);
-                    });
-                  });
-                });
+                return User.findAll({ transaction })
+                  .then(users => expect( users ).to.have.lengthOf(0))
+                  .then(() => User.create({ username: 'jan' })) // Create a User outside of the transaction
+                  .then(() => User.findAll({ transaction })) 
+                  .then(users => expect( users ).to.have.lengthOf(0)); // We SHOULD NOT see the created user inside the transaction
               });
             })
           ).to.eventually.be.fulfilled;
@@ -580,7 +568,7 @@ if (current.dialect.supports.transactions) {
       }
 
       // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
-      if (!['sqlite', 'postgresql', 'postgresql-native'].includes(dialect)) {
+      if (!['sqlite', 'postgres', 'postgres-native'].includes(dialect)) {
         it('should block updates after reading a row using SERIALIZABLE', function() {
           const User = this.sequelize.define('user', {
               username: Support.Sequelize.STRING
@@ -591,21 +579,17 @@ if (current.dialect.supports.transactions) {
             return User.create({ username: 'jan' });
           }).then(() => {
             return this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE }).then(transaction => {
-              return User.findAll( { transaction } ).then(() => {
-                return Promise.join(
+              return User.findAll( { transaction } )
+                .then(() => Promise.join(
                   User.update({ username: 'joe' }, {
                     where: {
                       username: 'jan'
                     }
-                  }).then(() => {
-                    expect(transactionSpy).to.have.been.called; // Update should not succeed before transaction has committed
-                  }),
-
+                  }).then(() => expect(transactionSpy).to.have.been.called ), // Update should not succeed before transaction has committed
                   Promise.delay(2000).then(() => {
                     return transaction.commit().then(transactionSpy);
                   })
-                );
-              });
+                ));
             });
           });
         });
