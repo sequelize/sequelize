@@ -159,7 +159,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }) AS [user] ORDER BY [subquery_order_0] ASC;`
       });
 
-
       testsql({
         table: User.getTableName(),
         model: User,
@@ -371,6 +370,82 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: User
       }, User), {
         default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];'
+      });
+    });
+
+    it('include (right outer join)', () => {
+      const User = Support.sequelize.define('User', {
+        name: DataTypes.STRING,
+        age: DataTypes.INTEGER
+      },
+      {
+        freezeTableName: true
+      });
+      const Post = Support.sequelize.define('Post', {
+        title: DataTypes.STRING
+      },
+      {
+        freezeTableName: true
+      });
+
+      User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
+
+      expectsql(sql.selectQuery('User', {
+        attributes: ['name', 'age'],
+        include: Model._validateIncludedElements({
+          include: [{
+            attributes: ['title'],
+            association: User.Posts,
+            right: true
+          }],
+          model: User
+        }).include,
+        model: User
+      }, User), {
+        default: `SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];`
+      });
+    });
+
+    it('include through (right outer join)', () => {
+      const User = Support.sequelize.define('user', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+          field: 'id_user'
+        }
+      });
+      const Project = Support.sequelize.define('project', {
+        title: DataTypes.STRING
+      });
+
+      const ProjectUser = Support.sequelize.define('project_user', {
+        userId: {
+          type: DataTypes.INTEGER,
+          field: 'user_id'
+        },
+        projectId: {
+          type: DataTypes.INTEGER,
+          field: 'project_id'
+        }
+      }, { timestamps: false });
+
+      User.Projects = User.belongsToMany(Project, { through: ProjectUser });
+      Project.belongsToMany(User, { through: ProjectUser });
+
+      expectsql(sql.selectQuery('User', {
+        attributes: ['id_user', 'id'],
+        include: Model._validateIncludedElements({
+          include: [{
+            model: Project,
+            right: true
+          }],
+          model: User
+        }).include,
+        model: User
+      }, User), {
+        default: `SELECT [user].[id_user], [user].[id], [projects].[id] AS [projects.id], [projects].[title] AS [projects.title], [projects].[createdAt] AS [projects.createdAt], [projects].[updatedAt] AS [projects.updatedAt], [projects->project_user].[user_id] AS [projects.project_user.userId], [projects->project_user].[project_id] AS [projects.project_user.projectId] FROM [User] AS [user] ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN ( [project_users] AS [projects->project_user] INNER JOIN [projects] AS [projects] ON [projects].[id] = [projects->project_user].[project_id]) ON [user].[id_user] = [projects->project_user].[user_id];`,
+        sqlite: `SELECT \`user\`.\`id_user\`, \`user\`.\`id\`, \`projects\`.\`id\` AS \`projects.id\`, \`projects\`.\`title\` AS \`projects.title\`, \`projects\`.\`createdAt\` AS \`projects.createdAt\`, \`projects\`.\`updatedAt\` AS \`projects.updatedAt\`, \`projects->project_user\`.\`user_id\` AS \`projects.project_user.userId\`, \`projects->project_user\`.\`project_id\` AS \`projects.project_user.projectId\` FROM \`User\` AS \`user\` ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN \`project_users\` AS \`projects->project_user\` ON \`user\`.\`id_user\` = \`projects->project_user\`.\`user_id\` LEFT OUTER JOIN \`projects\` AS \`projects\` ON \`projects\`.\`id\` = \`projects->project_user\`.\`project_id\`;`
       });
     });
 
