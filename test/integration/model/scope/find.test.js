@@ -148,7 +148,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const Game = this.sequelize.define('Game', {
         name: Sequelize.TEXT
       });
-    
+
       const User = this.sequelize.define('User', {
         login: Sequelize.TEXT,
         session: {
@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         }
       });
-      
+
       Game.hasMany(User);
 
       return this.sequelize.sync({ force: true }).then(() => {

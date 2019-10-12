@@ -277,7 +277,7 @@ where = literal('true')
 
 MyModel.findAll({
     where: literal('true')
-})
+});
 
 // Where as having option
 MyModel.findAll({
@@ -286,7 +286,7 @@ MyModel.findAll({
 
 where = {
     [Op.lt]: Sequelize.literal('SOME_STRING')
-}
+};
 
 Sequelize.where(
     Sequelize.cast(Sequelize.col('SOME_COL'), 'INTEGER'), {

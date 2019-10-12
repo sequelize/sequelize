@@ -55,7 +55,7 @@ const rnd: Fn = sequelize.random();
 class Model1 extends Model{}
 class Model2 extends Model{}
 const myModel: typeof Model1 = sequelize.models.asd;
-myModel.hasOne(Model2)
+myModel.hasOne(Model2);
 myModel.findAll();
 
 sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW }).then(result => {
