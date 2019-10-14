@@ -211,14 +211,14 @@ export interface WhereOperators {
    *
    * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  [Op.contains]?: Rangable;
+  [Op.contains]?: (string | number)[] | Rangable;
 
   /**
    * PG array contained by operator
    *
    * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?: Rangable;
+  [Op.contained]?: (string | number)[] | Rangable;
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
   [Op.gt]?: number | string | Date | Literal;

@@ -204,6 +204,12 @@ module.exports = {
 }
 ```
 
+We can generate this file using `migration:generate`. This will create `xxx-migration-skeleton.js` in your migration folder.
+
+```bash
+$ npx sequelize-cli migration:generate --name migration-skeleton
+```
+
 The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. Function `up` or `down` should return a `Promise`. Let's look at an example:
 
 ```js

@@ -26,7 +26,7 @@ Sequelize now ship official typings [#10287](https://github.com/sequelize/sequel
 
 ### Pooling
 
-With v5 Sequelize now use `sequelize-pool` which is a modernized fork of `generic-pool@2.5`. You no longer need to call `sequelize.close` to shutdown pool, this helps with lambda executions. [#8468](https://github.com/sequelize/sequelize/issues/8468)
+With v5 Sequelize now use `sequelize-pool` which is a modernized fork of <code>generic-pool&#64;2.5</code>. You no longer need to call `sequelize.close` to shutdown pool, this helps with lambda executions. [#8468](https://github.com/sequelize/sequelize/issues/8468)
 
 ### Model
 
@@ -231,7 +231,7 @@ dialectOptions: {
 - fix(types): additional options for db.query and add missing retry [#10512](https://github.com/sequelize/sequelize/pull/10512)
 - fix(query): don't prepare options & sql for every retry [#10498](https://github.com/sequelize/sequelize/pull/10498)
 - feat: expose Sequelize.BaseError
-- feat: upgrade to tedious@6.0.0 [#10494](https://github.com/sequelize/sequelize/pull/10494)
+- feat: upgrade to <code>tedious&#64;6.0.0</code> [#10494](https://github.com/sequelize/sequelize/pull/10494)
 - feat(sqlite/query-generator): support restart identity for truncate-table [#10522](https://github.com/sequelize/sequelize/pull/10522)
 - feat(data-types): handle numbers passed as objects [#10492](https://github.com/sequelize/sequelize/pull/10492)
 - feat(types): enabled string association [#10481](https://github.com/sequelize/sequelize/pull/10481)
