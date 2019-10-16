@@ -7,6 +7,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
+  QuoteHelper = require('../../../lib/dialects/abstract/query-generator/helpers/quote'),
   dialect = Support.getTestDialect(),
   current = Support.sequelize;
 
@@ -630,6 +631,42 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
     }
+
+    it('should support both literal and non-literal attributes', function() {
+      const User = this.sequelize.define('user', {
+        name: Sequelize.STRING,
+        email: Sequelize.STRING
+      });
+
+      return User.sync({ force: true })
+        .then(() => User.bulkCreate([
+          {
+            email: Sequelize.literal('TRIM(\'  example@EMAIL.com  \')'),
+            name: 'name'
+          }
+        ], {
+          logging: console.log
+        }))
+        .then(() => User.findOne({
+          attributes: [
+            'name',
+            'email',
+            [
+              Sequelize.literal(`LOWER(${QuoteHelper.quoteIdentifier(dialect, 'email')})`),
+              'literalEmail'
+            ]
+          ],
+          where: {
+            name: 'name'
+          }
+        }))
+        .then(user => {
+          const userData = user.get();
+
+          expect(userData.email).to.eql('example@EMAIL.com');
+          expect(userData.literalEmail).to.eql('example@email.com');
+        });
+    });
 
     describe('enums', () => {
       it('correctly restores enum values', function() {
