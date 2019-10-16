@@ -15,9 +15,12 @@ let where: WhereOptions;
  */
 where = {
   string: 'foo',
+  strings: ['foo'],
   number: 1,
+  numbers: [1],
   boolean: true,
   buffer: Buffer.alloc(0),
+  buffers: [Buffer.alloc(0)],
   null: null,
 };
 
