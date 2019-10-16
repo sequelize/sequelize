@@ -341,6 +341,7 @@ export type WhereValue =
   | string // literal value
   | number // literal value
   | boolean // literal value
+  | Buffer // literal value
   | null
   | WhereOperators
   | WhereAttributeHash // for JSON columns
