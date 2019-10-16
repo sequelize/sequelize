@@ -9,7 +9,8 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types'),
   QuoteHelper = require('../../../lib/dialects/abstract/query-generator/helpers/quote'),
   dialect = Support.getTestDialect(),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(function() {
@@ -644,9 +645,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             email: Sequelize.literal('TRIM(\'  example@EMAIL.com  \')'),
             name: 'name'
           }
-        ], {
-          logging: console.log
-        }))
+        ]))
         .then(() => User.findOne({
           attributes: [
             'name',
@@ -664,6 +663,39 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const userData = user.get();
 
           expect(userData.email).to.eql('example@EMAIL.com');
+          expect(userData.literalEmail).to.eql('example@email.com');
+        });
+    });
+
+    // eslint-disable-next-line
+    it.only('should support both literal and non-literal attributes in RETURNING fragment', function() {
+      const User = this.sequelize.define('user', {
+        name: Sequelize.STRING,
+        email: Sequelize.STRING
+      });
+
+      return User.sync({ force: true })
+        .then(() => User.bulkCreate([
+          {
+            email: Sequelize.literal('TRIM(\'  example@EMAIL.com  \')'),
+            name: 'name'
+          }
+        ], {
+          returning: [
+            'name',
+            [
+              Sequelize.literal(`LOWER(${QuoteHelper.quoteIdentifier(dialect, 'email')})`),
+              'literalEmail'
+            ]
+          ]
+        }))
+        .then(results => {
+          if (!_.get(current.dialect.supports, 'returnValues.returning')) {
+            return;
+          }
+
+          const userData = results[0].get();
+
           expect(userData.literalEmail).to.eql('example@email.com');
         });
     });
