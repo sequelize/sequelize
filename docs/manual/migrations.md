@@ -338,6 +338,7 @@ module.exports = {
 ### The `.sequelizerc` File
 
 This is a special configuration file. It lets you specify following options that you would usually pass as arguments to CLI:
+
 - `env`: The environment to run the command in
 - `config`: The path to the config file
 - `options-path`: The path to a JSON file with additional options
