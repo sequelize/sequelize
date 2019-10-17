@@ -350,7 +350,7 @@ export type WhereValue =
   | OrOperator
   | AndOperator
   | WhereGeometryOptions
-  | (string | number | WhereAttributeHash)[]; // implicit [Op.or]
+  | (string | number | Buffer | WhereAttributeHash)[]; // implicit [Op.or]
 
 /**
  * A hash of attributes to describe your search.
