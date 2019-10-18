@@ -350,8 +350,10 @@ export type WhereValue =
   | OrOperator
   | AndOperator
   | WhereGeometryOptions
-  | (string | number | Buffer | WhereAttributeHash)[]; // implicit [Op.or]
-
+  | (string | number | Buffer | WhereAttributeHash)[] // implicit [Op.or]
+    // allow optional values in where object types
+    // Sequelize will still throw when a value in the object has the value undefined
+  | undefined;
 /**
  * A hash of attributes to describe your search.
  */
