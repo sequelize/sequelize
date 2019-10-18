@@ -9,6 +9,21 @@ let where: WhereOptions;
 
 // From https://sequelize.org/master/en/v4/docs/querying/
 
+/**
+ * Literal values
+ * @see WhereValue
+ */
+where = {
+  string: 'foo',
+  strings: ['foo'],
+  number: 1,
+  numbers: [1],
+  boolean: true,
+  buffer: Buffer.alloc(0),
+  buffers: [Buffer.alloc(0)],
+  null: null,
+};
+
 // Operators
 
 const and: AndOperator = {

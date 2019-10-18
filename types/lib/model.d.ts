@@ -341,6 +341,7 @@ export type WhereValue =
   | string // literal value
   | number // literal value
   | boolean // literal value
+  | Buffer // literal value
   | null
   | WhereOperators
   | WhereAttributeHash // for JSON columns
@@ -349,7 +350,7 @@ export type WhereValue =
   | OrOperator
   | AndOperator
   | WhereGeometryOptions
-  | (string | number | WhereAttributeHash)[]; // implicit [Op.or]
+  | (string | number | Buffer | WhereAttributeHash)[]; // implicit [Op.or]
 
 /**
  * A hash of attributes to describe your search.
@@ -418,6 +419,11 @@ export interface IncludeOptions extends Filterable, Projectable, Paranoid {
    * matching children. True if `include.where` is set, false otherwise.
    */
   required?: boolean;
+
+  /**
+   * If true, converts to a right join if dialect support it. Ignored if `include.required` is true.
+   */
+  right?: boolean;
 
   /**
    * Limit include. Only available when setting `separate` to true.

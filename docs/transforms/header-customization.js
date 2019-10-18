@@ -17,7 +17,7 @@ module.exports = function transform($) {
     .css('top', '')
     .after(`
       <a href="http://sequelize-slack.herokuapp.com/">
-        <img src="manual/asset/slack.svg" style="width: 30px" />
+        <img src="manual/asset/slack.svg" style="width: 60px; margin-left: -15px;" />
       </a>
     `);
 };
