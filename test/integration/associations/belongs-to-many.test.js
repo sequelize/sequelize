@@ -1267,6 +1267,60 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
   });
 
+  describe('hasAssociations with binary key', () => {
+    beforeEach(function() {
+      const keyDataType = dialect === 'mysql' || dialect === 'mariadb' ? 'BINARY(255)' : DataTypes.BLOB('tiny');
+      this.Article = this.sequelize.define('Article', {
+        id: {
+          type: keyDataType,
+          primaryKey: true
+        }
+      });
+      this.Label = this.sequelize.define('Label', {
+        id: {
+          type: keyDataType,
+          primaryKey: true
+        }
+      });
+      this.ArticleLabel = this.sequelize.define('ArticleLabel');
+
+      this.Article.belongsToMany(this.Label, { through: this.ArticleLabel });
+      this.Label.belongsToMany(this.Article, { through: this.ArticleLabel });
+
+      return this.sequelize.sync({ force: true });
+    });
+
+    it('answers true for labels that have been assigned', function() {
+      return Promise.all([
+        this.Article.create({
+          id: Buffer.alloc(255)
+        }),
+        this.Label.create({
+          id: Buffer.alloc(255)
+        })
+      ]).then(([article, label]) => Promise.all([
+        article,
+        label,
+        article.addLabel(label, {
+          through: 'ArticleLabel'
+        })
+      ])).then(([article, label]) => article.hasLabels([label]))
+        .then(result => expect(result).to.be.true);
+    });
+
+    it('answer false for labels that have not been assigned', function() {
+      return Promise.all([
+        this.Article.create({
+          id: Buffer.alloc(255)
+        }),
+        this.Label.create({
+          id: Buffer.alloc(255)
+        })
+      ]).then(([article, label]) => article.hasLabels([label]))
+        .then(result => expect(result).to.be.false);
+    });
+  });
+
   describe('countAssociations', () => {
     beforeEach(function() {
       this.User = this.sequelize.define('User', {
