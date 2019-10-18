@@ -421,6 +421,11 @@ export interface IncludeOptions extends Filterable, Projectable, Paranoid {
   required?: boolean;
 
   /**
+   * If true, converts to a right join if dialect support it. Ignored if `include.required` is true.
+   */
+  right?: boolean;
+
+  /**
    * Limit include. Only available when setting `separate` to true.
    */
   limit?: number;

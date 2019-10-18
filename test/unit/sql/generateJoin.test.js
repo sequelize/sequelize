@@ -173,6 +173,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     );
 
     testsql(
+      'include[0]',
+      {
+        model: User,
+        subQuery: true,
+        include: [
+          {
+            association: User.Company, right: true
+          }
+        ]
+      },
+      {
+        default: `${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]`
+      }
+    );
+
+    testsql(
       'include[0].include[0]',
       {
         subQuery: true,
