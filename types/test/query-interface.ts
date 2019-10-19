@@ -51,6 +51,8 @@ queryInterface.createTable(
 
 queryInterface.dropTable('nameOfTheExistingTable');
 
+queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
+
 queryInterface.dropAllTables();
 
 queryInterface.renameTable('Person', 'User');
