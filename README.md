@@ -4,20 +4,19 @@
 [![Travis Build Status](https://badgen.net/travis/sequelize/sequelize?icon=travis)](https://travis-ci.org/sequelize/sequelize)
 [![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/9l1ypgwsp5ij46m3/branch/master?svg=true)](https://ci.appveyor.com/project/sushantdhiman/sequelize/branch/master)
 [![codecov](https://badgen.net/codecov/c/github/sequelize/sequelize?icon=codecov)](https://codecov.io/gh/sequelize/sequelize)
+[![npm downloads](https://badgen.net/npm/dm/sequelize)](https://www.npmjs.com/package/sequelize)
+[![Merged PRs](https://badgen.net/github/merged-prs/sequelize/sequelize)](https://github.com/sequelize/sequelize)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite and Microsoft SQL Server. It features solid transaction support, relations, eager and lazy loading, read replication and more.
-
-Sequelize follows [SEMVER](http://semver.org).
+Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite and Microsoft SQL Server. It features solid transaction support, relations, eager and lazy loading, read replication and more. Sequelize follows [SEMVER](http://semver.org).
 
 New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.org/master). You might also be interested in the [API Reference](https://sequelize.org/master/identifiers).
 
-**Note :** We have started `v6-beta` release. You can find changelog [here](https://github.com/sequelize/sequelize/blob/master/docs/manual/upgrade-to-v6.md).
+### v6-beta Release
 
-## Table of Contents
-- [Installation](#installation)
-- [Documentation](#documentation)
-- [Responsible disclosure](#responsible-disclosure)
-- [Resources](#resources)
+[![npm version](https://badgen.net/npm/v/sequelize/next)](https://www.npmjs.com/package/sequelize)
+
+`v6-beta` is now available. You can find detailed changelog [here](https://github.com/sequelize/sequelize/blob/master/docs/manual/upgrade-to-v6.md).
 
 ## Installation
 
@@ -35,13 +34,11 @@ $ npm install --save tedious # Microsoft SQL Server
 
 ## Documentation
 - [v6-beta Documentation](https://sequelize.org/master)
-- [v5 Documentation](https://sequelize.org/v5)
-- [v4 Documentation](https://sequelize.org/v4)
-- [v3 Documentation](https://sequelize.org/v3)
+- [v5/v4/v3 Documentation](https://sequelize.org)
 - [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 
 ## Responsible disclosure
-If you have security issues to report please refer to our [Responsible Disclosure Policy](./SECURITY.md) for more details.
+If you have security issues to report please refer to our [Responsible Disclosure Policy](https://github.com/sequelize/sequelize/blob/master/SECURITY.md) for more details.
 
 ## Resources
 - [Changelog](https://github.com/sequelize/sequelize/releases)
@@ -49,17 +46,13 @@ If you have security issues to report please refer to our [Responsible Disclosur
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/sequelize.js)
 
 ### Tools
-- [Sequelize CLI](https://github.com/sequelize/cli)
-- [Sequelize & TypeScript](https://sequelize.org/master/manual/typescript.html)
+- [CLI](https://github.com/sequelize/cli)
+- [With TypeScript](https://sequelize.org/master/manual/typescript.html)
 - [Enhanced TypeScript with decorators](https://github.com/RobinBuschmann/sequelize-typescript)
-- [Sequelize & GraphQL](https://github.com/mickhansen/graphql-sequelize)
-- [Add-ons & Plugins](https://sequelize.org/master/manual/resources.html)
-- [Sequelize & CockroachDB](https://github.com/cockroachdb/sequelize-cockroachdb)
-
-### Learning
-- [Getting Started](https://sequelize.org/master/manual/getting-started)
-- [Express Example](https://github.com/sequelize/express-example)
+- [For GraphQL](https://github.com/mickhansen/graphql-sequelize)
+- [For CockroachDB](https://github.com/cockroachdb/sequelize-cockroachdb)
+- [Plugins](https://sequelize.org/master/manual/resources.html)
 
 ### Translations
-- [English v3/v4/v5/v6-beta](https://sequelize.org) (OFFICIAL)
-- [中文文档 v4/v5](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)
+- [English](https://sequelize.org) (OFFICIAL)
+- [中文文档](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)
