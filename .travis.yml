@@ -6,6 +6,7 @@ language: node_js
 branches:
   only:
     - master
+    - v5
     - /^greenkeeper/.*$/
   except:
     - /^v\d+\.\d+\.\d+$/
@@ -76,16 +77,16 @@ jobs:
       node_js: '8'
       script:
         - npm run semantic-release
-      before_deploy:
-        - npm run docs
-      deploy:
-        provider: surge
-        project: ./esdoc/
-        domain: docs.sequelizejs.com
-        skip_cleanup: true
+      # before_deploy:
+      #   - npm run docs
+      # deploy:
+      #   provider: surge
+      #   project: ./esdoc/
+      #   domain: docs.sequelizejs.com
+      #   skip_cleanup: true
 
 stages:
   - lint
   - test
   - name: release
-    if: branch = master AND type = push AND fork = false
+    if: branch = v5 AND type = push AND fork = false
