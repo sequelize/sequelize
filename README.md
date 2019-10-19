@@ -11,6 +11,8 @@ Sequelize follows [SEMVER](http://semver.org).
 
 New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.org/master). You might also be interested in the [API Reference](https://sequelize.org/master/identifiers).
 
+**Note :** We have started `v6-beta` release. You can find changelog [here](https://github.com/sequelize/sequelize/blob/master/docs/manual/upgrade-to-v6.md).
+
 ## Table of Contents
 - [Installation](#installation)
 - [Documentation](#documentation)
@@ -21,6 +23,7 @@ New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.or
 
 ```bash
 $ npm install --save sequelize # This will install v5
+$ npm install --save sequelize@next # This will install v6-beta
 
 # And one of the following:
 $ npm install --save pg pg-hstore # Postgres
