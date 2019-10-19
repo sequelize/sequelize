@@ -628,6 +628,56 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               });
             });
         });
+
+        it('should only return fields that are not defined in the model (with returning: true)', function() {
+          const User = this.sequelize.define('user');
+
+          return User
+            .sync({ force: true })
+            .then(() => this.sequelize.queryInterface.addColumn('users', 'not_on_model', Sequelize.STRING))
+            .then(() => User.bulkCreate([
+              {},
+              {},
+              {}
+            ], {
+              returning: true
+            }))
+            .then(users =>
+              User.findAll()
+                .then(actualUsers => [users, actualUsers])
+            )
+            .then(([users, actualUsers]) => {
+              expect(users.length).to.eql(actualUsers.length);
+              users.forEach(user => {
+                expect(user.get()).not.to.have.property('not_on_model');
+              });
+            });
+        });
+
+        it('should return fields that are not defined in the model (with returning: ["*"])', function() {
+          const User = this.sequelize.define('user');
+
+          return User
+            .sync({ force: true })
+            .then(() => this.sequelize.queryInterface.addColumn('users', 'not_on_model', Sequelize.STRING))
+            .then(() => User.bulkCreate([
+              {},
+              {},
+              {}
+            ], {
+              returning: ['*']
+            }))
+            .then(users =>
+              User.findAll()
+                .then(actualUsers => [users, actualUsers])
+            )
+            .then(([users, actualUsers]) => {
+              expect(users.length).to.eql(actualUsers.length);
+              users.forEach(user => {
+                expect(user.get()).to.have.property('not_on_model');
+              });
+            });
+        });
       });
     }
 
