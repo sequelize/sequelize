@@ -2,8 +2,7 @@
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
   "version": "0.0.0-development",
-  "author": "Sascha Depold <sascha@depold.com>",
-  "contributors": [
+  "maintainers": [
     "Sascha Depold <sascha@depold.com>",
     "Jan Aagaard Meier <janzeh@gmail.com>",
     "Daniel Durante <me@danieldurante.com>",
@@ -21,7 +20,7 @@
   "main": "index.js",
   "types": "types",
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=10.0.0"
   },
   "files": [
     "lib",
