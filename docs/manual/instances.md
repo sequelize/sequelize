@@ -140,7 +140,7 @@ If you have soft-deleted an instance of a model with `paranoid: true`, and would
 Task.create({ title: 'a task' }).then(task => {
   // now you see me...
   return task.destroy();
-}).then(() => {
+}).then((task) => {
   // now i'm gone, but wait...
   return task.restore();
 })
@@ -168,6 +168,32 @@ User.bulkCreate([
 }).then(users => {
   console.log(users) // ... in order to get the array of user objects
 })
+```
+
+Insert several rows and return all columns (Postgres only):
+
+```js
+User.bulkCreate([
+  { username: 'barfooz', isAdmin: true },
+  { username: 'foo', isAdmin: true },
+  { username: 'bar', isAdmin: false }
+], { returning: true }) // will return all columns for each row inserted
+.then((result) => {
+  console.log(result);
+});
+```
+
+Insert several rows and return specific columns (Postgres only):
+
+```js
+User.bulkCreate([
+  { username: 'barfooz', isAdmin: true },
+  { username: 'foo', isAdmin: true },
+  { username: 'bar', isAdmin: false }
+], { returning: ['username'] }) // will return only the specified columns for each row inserted
+.then((result) => {
+  console.log(result);
+});
 ```
 
 To update several rows at once:

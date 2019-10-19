@@ -697,6 +697,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        it('should properly escape path keys with sequelize.json', function() {
+          return this.Model.findAll({
+            raw: true,
+            attributes: ['id'],
+            where: this.sequelize.json("data.id')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ", '1')
+          });
+        });
+
         it('should properly escape the single quotes in array', function() {
           return this.Model.create({
             data: {

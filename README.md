@@ -8,21 +8,16 @@
 [![Last commit](https://badgen.net/github/last-commit/sequelize/sequelize)](https://github.com/sequelize/sequelize)
 [![Merged PRs](https://badgen.net/github/merged-prs/sequelize/sequelize)](https://github.com/sequelize/sequelize)
 [![GitHub stars](https://badgen.net/github/stars/sequelize/sequelize)](https://github.com/sequelize/sequelize)
-[![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
-[![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com/)
+[![Slack Status](https://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com/)
 [![node](https://badgen.net/npm/node/sequelize)](https://www.npmjs.com/package/sequelize)
 [![License](https://badgen.net/github/license/sequelize/sequelize)](https://github.com/sequelize/sequelize/blob/master/LICENSE)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite and Microsoft SQL Server. It features solid transaction support, relations, eager and lazy loading, read replication and more.
 
-Sequelize follows [SEMVER](http://semver.org). Supports Node v6 and above to use ES6 features.
+Sequelize follows [SEMVER](http://semver.org). Supports Node v10 and above to use ES6 features.
 
-New to Sequelize? Take a look at the [Tutorials and Guides](http://docs.sequelizejs.com/). You might also be interested in the [API Reference](http://docs.sequelizejs.com/identifiers).
-
-## v5 Release
-
-You can find the upgrade guide and changelog [here](http://docs.sequelizejs.com/manual/upgrade-to-v5.html).
+New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.org/master). You might also be interested in the [API Reference](https://sequelize.org/master/identifiers).
 
 ## Table of Contents
 - [Installation](#installation)
@@ -44,31 +39,31 @@ $ npm install --save tedious # Microsoft SQL Server
 ```
 
 ## Documentation
-- [v5 Documentation](http://docs.sequelizejs.com)
-- [v4 Documentation](https://github.com/sequelize/sequelize/blob/v4/docs)
-- [v3 Documentation](https://sequelize.readthedocs.io/en/v3/)
+- [v5 Documentation](https://sequelize.org/master)
+- [v4 Documentation](https://sequelize.org/v4)
+- [v3 Documentation](https://sequelize.org/v3)
 - [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 
 ## Responsible disclosure
-If you have any security issue to report, contact project maintainers privately. You can find contact information in [CONTACT.md](https://github.com/sequelize/sequelize/blob/master/CONTACT.md).
+If you have security issues to report please refer to our [Responsible Disclosure Policy](./SECURITY.md) for more details.
 
 ## Resources
-
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Slack](http://sequelize-slack.herokuapp.com/)
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/sequelize.js)
 
 ### Tools
-- [Sequelize & TypeScript](http://docs.sequelizejs.com/manual/typescript.html)
+- [Sequelize CLI](https://github.com/sequelize/cli)
+- [Sequelize & TypeScript](https://sequelize.org/master/manual/typescript.html)
 - [Enhanced TypeScript with decorators](https://github.com/RobinBuschmann/sequelize-typescript)
 - [Sequelize & GraphQL](https://github.com/mickhansen/graphql-sequelize)
-- [Add-ons & Plugins](http://docs.sequelizejs.com/manual/resources.html)
-- [Sequelize CLI](https://github.com/sequelize/cli)
+- [Add-ons & Plugins](https://sequelize.org/master/manual/resources.html)
+- [Sequelize & CockroachDB](https://github.com/cockroachdb/sequelize-cockroachdb)
 
 ### Learning
-- [Getting Started](http://docs.sequelizejs.com/manual/getting-started)
+- [Getting Started](https://sequelize.org/master/manual/getting-started)
 - [Express Example](https://github.com/sequelize/express-example)
 
 ### Translations
-- [English v5](http://docs.sequelizejs.com) (OFFICIAL)
+- [English v3/v4/v5](https://sequelize.org) (OFFICIAL)
 - [中文文档 v4/v5](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)

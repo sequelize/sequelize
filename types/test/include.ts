@@ -17,7 +17,7 @@ MyModel.findAll({
       on: {
         a: 1,
       },
-      order: [['id', 'DESC']],
+      order: [['id', 'DESC'], [ 'AssociatedModel', MyModel, 'id', 'DESC' ], [ MyModel, 'id' ] ],
       separate: true,
       where: { state: Sequelize.col('project.state') },
     },
@@ -32,7 +32,7 @@ MyModel.findAll({
   include: [{
     limit: 1,
     association: 'relation',
-    order: [['id', 'DESC']],
+    order: [['id', 'DESC'], 'id', [ AssociatedModel, MyModel, 'id', 'ASC' ]],
     separate: true,
     where: { state: Sequelize.col('project.state') },
   }]

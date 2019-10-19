@@ -38,7 +38,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
 ```
 
-The Sequelize constructor takes a whole slew of options that are documented in the [API Reference for the Sequelize constructor](/class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor).
+The Sequelize constructor takes a whole slew of options that are documented in the [API Reference for the Sequelize constructor](../class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor).
 
 ### Note: setting up SQLite
 
@@ -67,7 +67,7 @@ const sequelize = new Sequelize(/* ... */, {
 });
 ```
 
-Learn more in the [API Reference for the Sequelize constructor](/class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor). If you're connecting to the database from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of such that the total maximum size is respected. For example, if you want a max connection pool size of 90 and you have three processes, the Sequelize instance of each process should have a max connection pool size of 30.
+Learn more in the [API Reference for the Sequelize constructor](../class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor). If you're connecting to the database from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of such that the total maximum size is respected. For example, if you want a max connection pool size of 90 and you have three processes, the Sequelize instance of each process should have a max connection pool size of 30.
 
 ### Testing the connection
 
@@ -132,7 +132,7 @@ const User = sequelize.define('user', {
 
 Internally, `sequelize.define` calls `Model.init`.
 
-The above code tells Sequelize to expect a table named `users` in the database with the fields `firstName` and `lastName`. The table name is automatically pluralized by default (a library called [inflection](https://www.npmjs.com/package/inflection) is used under the hood to do this). This behavior can be stopped for a specific model by using the `freezeTableName: true` option, or for all models by using the `define` option from the [Sequelize constructor](http://docs.sequelizejs.com/class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor).
+The above code tells Sequelize to expect a table named `users` in the database with the fields `firstName` and `lastName`. The table name is automatically pluralized by default (a library called [inflection](https://www.npmjs.com/package/inflection) is used under the hood to do this). This behavior can be stopped for a specific model by using the `freezeTableName: true` option, or for all models by using the `define` option from the [Sequelize constructor](../class/lib/sequelize.js~Sequelize.html#instance-constructor-constructor).
 
 Sequelize also defines by default the fields `id` (primary key), `createdAt` and `updatedAt` to every model. This behavior can also be changed, of course (check the API Reference to learn more about the available options).
 
@@ -158,7 +158,7 @@ class Bar extends Model {}
 Bar.init({ /* ... */ }, { sequelize, timestamps: true });
 ```
 
-You can read more about creating models in the [Model.init API Reference](/class/lib/model.js~Model.html#static-method-init), or in the [sequelize.define API reference](/class/lib/sequelize.js~Sequelize.html#instance-method-define).
+You can read more about creating models in the [Model.init API Reference](../class/lib/model.js~Model.html#static-method-init), or in the [sequelize.define API reference](../class/lib/sequelize.js~Sequelize.html#instance-method-define).
 
 ## Synchronizing the model with the database
 
@@ -181,7 +181,7 @@ Instead of calling `sync()` for every model, you can call `sequelize.sync()` whi
 
 ### Note for production
 
-In production, you might want to consider using Migrations instead of calling `sync()` in your code. Learn more in the [Migrations](http://docs.sequelizejs.com/manual/migrations.html) guide.
+In production, you might want to consider using Migrations instead of calling `sync()` in your code. Learn more in the [Migrations](migrations.html) guide.
 
 ## Querying
 

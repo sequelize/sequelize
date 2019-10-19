@@ -162,7 +162,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     if (Support.getTestDialect() !== 'mssql') {
       it('accepts condition object (with cast)', function() {
-        const type = Support.getTestDialect() === 'mysql' ? 'unsigned': 'int';
+        const type = Support.getTestDialect() === 'mysql' ? 'unsigned' : 'int';
 
         return Airplane.findAll({
           attributes: [

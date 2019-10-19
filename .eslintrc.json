@@ -34,23 +34,13 @@
         "properties": false
       }
     ],
-    "semi": [
-      "error",
-      "always"
-    ],
-    "space-before-function-paren": [
-      "error",
-      "never"
-    ],
+    "semi": ["error", "always"],
+    "space-before-function-paren": ["error", "never"],
     "space-before-blocks": "error",
-    "arrow-parens": [
-      "error",
-      "as-needed"
-    ],
-    "comma-style": [
-      "error",
-      "last"
-    ],
+    "space-infix-ops": "error",
+    "no-multi-spaces": "error",
+    "arrow-parens": ["error", "as-needed"],
+    "comma-style": ["error", "last"],
     "indent": [
       "error",
       2,
@@ -73,25 +63,16 @@
 
     // functional
     "valid-jsdoc": "off",
-    "strict": [
-      "error",
-      "global"
-    ],
+    "strict": ["error", "global"],
     "no-var": "error",
     "prefer-const": "error",
     "prefer-arrow-callback": "error",
     "no-extend-native": "error",
-    "wrap-iife": [
-      "error",
-      "any"
-    ],
+    "wrap-iife": ["error", "any"],
     "no-use-before-define": "off",
     "no-caller": "error",
     "no-irregular-whitespace": "error",
-    "max-depth": [
-      "error",
-      6
-    ],
+    "max-depth": ["error", 6],
     "no-loop-func": "warn",
     "object-shorthand": "error",
     "one-var-declaration-per-line": "error",
@@ -116,10 +97,7 @@
     "ecmaVersion": 6,
     "sourceType": "script"
   },
-  "plugins": [
-    "mocha",
-    "jsdoc"
-  ],
+  "plugins": ["mocha", "jsdoc"],
   "env": {
     "node": true,
     "mocha": true,

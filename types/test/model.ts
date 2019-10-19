@@ -38,11 +38,16 @@ MyModel.init({}, {
     }
   ],
   sequelize,
-  tableName: 'my_model'
+  tableName: 'my_model',
+  getterMethods: {
+    multiply: function() {
+      return this.num * 2;
+    }
+  }
 });
 
 /**
- * Tests for findCreateFind() type. 
+ * Tests for findCreateFind() type.
  */
 class UserModel extends Model {}
 
@@ -56,9 +61,14 @@ UserModel.init({
 UserModel.findCreateFind({
   where: {
     username: "new user username"
-  }, 
+  },
   defaults: {
-    beta_user: true 
+    beta_user: true
   }
 })
 
+/**
+ * Test for primaryKeyAttributes.
+ */
+class TestModel extends Model {};
+TestModel.primaryKeyAttributes;

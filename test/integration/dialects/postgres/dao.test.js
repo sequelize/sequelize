@@ -222,7 +222,7 @@ if (dialect.match(/^postgres/)) {
               }
             },
             logging(sql) {
-              expect(sql).to.equal('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE "Equipment"."utilityBelt" = \'"grapplingHook"=>"true"\';');
+              expect(sql).to.contains(' WHERE "Equipment"."utilityBelt" = \'"grapplingHook"=>"true"\';');
             }
           });
         });
@@ -247,7 +247,7 @@ if (dialect.match(/^postgres/)) {
               }
             },
             logging(sql) {
-              expect(sql).to.equal('Executing (default): SELECT "id", "grappling_hook" AS "grapplingHook", "utilityBelt", "createdAt", "updatedAt" FROM "Equipment" AS "Equipment" WHERE CAST(("Equipment"."utilityBelt"#>>\'{grapplingHook}\') AS BOOLEAN) = true;');
+              expect(sql).to.contains(' WHERE CAST(("Equipment"."utilityBelt"#>>\'{grapplingHook}\') AS BOOLEAN) = true;');
             }
           });
         });
@@ -266,6 +266,14 @@ if (dialect.match(/^postgres/)) {
     });
 
     describe('enums', () => {
+      it('should be able to create enums with escape values', function() {
+        const User = this.sequelize.define('UserEnums', {
+          mood: DataTypes.ENUM('happy', 'sad', '1970\'s')
+        });
+
+        return User.sync({ force: true });
+      });
+
       it('should be able to ignore enum types that already exist', function() {
         const User = this.sequelize.define('UserEnums', {
           mood: DataTypes.ENUM('happy', 'sad', 'meh')
@@ -364,6 +372,25 @@ if (dialect.match(/^postgres/)) {
         }).then(enums => {
           expect(enums).to.have.length(1);
           expect(enums[0].enum_value).to.equal('{neutral,happy,sad,ecstatic,meh,joyful}');
+        });
+      });
+
+      it('should be able to add multiple values with different order', function() {
+        let User = this.sequelize.define('UserEnums', {
+          priority: DataTypes.ENUM('1', '2', '6')
+        });
+
+        return User.sync({ force: true }).then(() => {
+          User = this.sequelize.define('UserEnums', {
+            priority: DataTypes.ENUM('0', '1', '2', '3', '4', '5', '6', '7')
+          });
+
+          return User.sync();
+        }).then(() => {
+          return this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
+        }).then(enums => {
+          expect(enums).to.have.length(1);
+          expect(enums[0].enum_value).to.equal('{0,1,2,3,4,5,6,7}');
         });
       });
 
