@@ -53,6 +53,14 @@ queryInterface.dropTable('nameOfTheExistingTable');
 
 queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
 
+queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
+
+queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar', as: 'baz', name: 'quz' }, {}, {});
+
+queryInterface.dropTrigger({ tableName: 'foo', as: 'bar', name: 'baz' }, 'foo', {});
+
+queryInterface.quoteTable({ tableName: 'foo', delimiter: 'bar' });
+
 queryInterface.dropAllTables();
 
 queryInterface.renameTable('Person', 'User');
