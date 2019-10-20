@@ -8,6 +8,20 @@ Sequelize v6 is the next major release after v5
 
 Sequelize v6 will only support Node 10 and up [#10821](https://github.com/sequelize/sequelize/issues/10821)
 
+### CLS
+
+You should now use [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked) package for CLS support.
+
+```js
+  const cls = require('cls-hooked');
+  const namespace = cls.createNamespace('....');
+  const Sequelize = require('sequelize');
+
+  Sequelize.useCLS(namespace);
+```
+
+Bluebird [now supports](https://github.com/petkaantonov/bluebird/issues/1403) `async_hooks`. This configuration will automatically be enabled when invoking `Sequelize.useCLS`. Thus all promises should maintain CLS context without `cls-bluebird` patching.
+
 ### Model
 
 **`options.returning`**
@@ -33,6 +47,10 @@ This method now tests for equality with `_.isEqual` and is now deep aware. Modif
 ```
 
 ## Changelog
+
+### 6.0.0-beta.3
+
+- feat: support cls-hooked / tests [#11584](https://github.com/sequelize/sequelize/pull/11584)
 
 ### 6.0.0-beta.2
 
