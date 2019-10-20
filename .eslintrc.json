@@ -98,7 +98,7 @@
     "no-case-declarations": "off"
   },
   "parserOptions": {
-    "ecmaVersion": 10,
+    "ecmaVersion": 2018,
     "sourceType": "script"
   },
   "plugins": ["mocha", "jsdoc"],
