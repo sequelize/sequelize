@@ -120,14 +120,14 @@ export interface QueryInterfaceDropAllTablesOptions extends QueryInterfaceOption
   skip?: string[];
 }
 
-export interface TablenameWithSchema {
+export interface TableNameWithSchema {
   tableName: string;
   schema?: string;
   delimiter?: string;
   as?: string;
   name?: string;
 }
-export type Tablename = string | TablenameWithSchema;
+export type TableName = string | TableNameWithSchema;
 
 export type IndexType = 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
 export type IndexMethod = 'BTREE' | 'HASH' | 'GIST' | 'SPGIST' | 'GIN' | 'BRIN' | string;
@@ -445,7 +445,7 @@ export class QueryInterface {
    * Inserts or Updates a record in the database
    */
   public upsert(
-    tableName: Tablename,
+    tableName: TableName,
     values: object,
     updateValues: object,
     model: typeof Model,
@@ -456,7 +456,7 @@ export class QueryInterface {
    * Inserts multiple records at once
    */
   public bulkInsert(
-    tableName: Tablename,
+    tableName: TableName,
     records: object[],
     options?: QueryOptions,
     attributes?: string[] | string
@@ -467,7 +467,7 @@ export class QueryInterface {
    */
   public update(
     instance: Model,
-    tableName: Tablename,
+    tableName: TableName,
     values: object,
     identifier: WhereOptions,
     options?: QueryOptions
@@ -477,7 +477,7 @@ export class QueryInterface {
    * Updates multiple rows at once
    */
   public bulkUpdate(
-    tableName: Tablename,
+    tableName: TableName,
     values: object,
     identifier: WhereOptions,
     options?: QueryOptions,
@@ -487,13 +487,13 @@ export class QueryInterface {
   /**
    * Deletes a row
    */
-  public delete(instance: Model | null, tableName: Tablename, identifier: WhereOptions, options?: QueryOptions): Promise<object>;
+  public delete(instance: Model | null, tableName: TableName, identifier: WhereOptions, options?: QueryOptions): Promise<object>;
 
   /**
    * Deletes multiple rows at once
    */
   public bulkDelete(
-    tableName: Tablename,
+    tableName: TableName,
     identifier: WhereOptions,
     options?: QueryOptions,
     model?: typeof Model
@@ -502,14 +502,14 @@ export class QueryInterface {
   /**
    * Returns selected rows
    */
-  public select(model: typeof Model | null, tableName: Tablename, options?: QueryOptionsWithWhere): Promise<object[]>;
+  public select(model: typeof Model | null, tableName: TableName, options?: QueryOptionsWithWhere): Promise<object[]>;
 
   /**
    * Increments a row value
    */
   public increment(
     instance: Model,
-    tableName: Tablename,
+    tableName: TableName,
     values: object,
     identifier: WhereOptions,
     options?: QueryOptions
@@ -519,7 +519,7 @@ export class QueryInterface {
    * Selects raw without parsing the string into an object
    */
   public rawSelect(
-    tableName: Tablename,
+    tableName: TableName,
     options: QueryOptionsWithWhere,
     attributeSelector: string | string[],
     model?: typeof Model
@@ -530,7 +530,7 @@ export class QueryInterface {
    * parameters.
    */
   public createTrigger(
-    tableName: Tablename,
+    tableName: TableName,
     triggerName: string,
     timingType: string,
     fireOnArray: {
@@ -545,13 +545,13 @@ export class QueryInterface {
   /**
    * Postgres only. Drops the specified trigger.
    */
-  public dropTrigger(tableName: Tablename, triggerName: string, options?: QueryInterfaceOptions): Promise<void>;
+  public dropTrigger(tableName: TableName, triggerName: string, options?: QueryInterfaceOptions): Promise<void>;
 
   /**
    * Postgres only. Renames a trigger
    */
   public renameTrigger(
-    tableName: Tablename,
+    tableName: TableName,
     oldTriggerName: string,
     newTriggerName: string,
     options?: QueryInterfaceOptions
@@ -594,7 +594,7 @@ export class QueryInterface {
   /**
    * Escape a table name
    */
-  public quoteTable(identifier: Tablename): string;
+  public quoteTable(identifier: TableName): string;
 
   /**
    * Split an identifier into .-separated tokens and quote each part. If force is true, the identifier will be
