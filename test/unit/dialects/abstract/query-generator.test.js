@@ -102,7 +102,7 @@ describe('QueryGenerator', () => {
     it('should correctly escape $ in sequelize.fn arguments', function() {
       const QG = getAbstractQueryGenerator(this.sequelize);
       QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'))
-        .should.be.equal('upper(\'$$user\')');
+        .should.include('$$user');
     });
   });
 
