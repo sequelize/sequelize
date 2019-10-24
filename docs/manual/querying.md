@@ -481,12 +481,11 @@ Subtask.findAll({
 })
 ```
 
-`order` is also supported in the `destroy` method, but will only accept an an array of attributes and directions.
+`order` is also supported in the `destroy` method and will only accept an array of attributes and directions.
 
 ```js
 Subtask.destroy({
   order: [
-    // Will escape title and age and validate DESC and ASC respectively against a list of valid direction parameters
     ['title', 'DESC'], ['age', 'ASC']
   ]
 })
