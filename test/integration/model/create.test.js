@@ -330,16 +330,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('returns instance if username is a sequelize fn with $ in value', function() {
-      const data = {
-        username: Sequelize.fn('upper', '$username')
-      };
-
-      return this.User.create(data).then(user => {
-        expect(user.username).to.equal('$USERNAME');
-      });
-    });
-
     it('Returns instance if already existent. Multiple find fields.', function() {
       const data = {
         username: 'Username',
@@ -886,6 +876,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).then(user => {
         return this.User.findByPk(user.id).then(user => {
           expect(user.secretValue).to.equal('SEQUELIZE');
+        });
+      });
+    });
+
+    it('should escape $ in sequelize functions arguments', function() {
+      return this.User.create({
+        secretValue: this.sequelize.fn('upper', '$sequelize')
+      }).then(user => {
+        return this.User.findByPk(user.id).then(user => {
+          expect(user.secretValue).to.equal('$SEQUELIZE');
         });
       });
     });

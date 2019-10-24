@@ -1,6 +1,6 @@
 # Associations
 
-This section describes the various association types in sequelize. There are four type of
+This section describes the various association types in sequelize. There are four types of
 associations available in Sequelize
 
 1. BelongsTo
