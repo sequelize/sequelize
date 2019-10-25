@@ -22,6 +22,7 @@ where = {
   buffer: Buffer.alloc(0),
   buffers: [Buffer.alloc(0)],
   null: null,
+  date: new Date()
 };
 
 // Operators
