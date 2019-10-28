@@ -2163,7 +2163,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): void;
   public static beforeDestroy<M extends Model>(
     this: { new (): M } & typeof Model,
-    fn: (instance: Model, options: InstanceDestroyOptions) => HookReturn
+    fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
 
   /**
