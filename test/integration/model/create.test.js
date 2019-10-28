@@ -880,6 +880,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should escape $ in sequelize functions arguments', function() {
+      return this.User.create({
+        secretValue: this.sequelize.fn('upper', '$sequelize')
+      }).then(user => {
+        return this.User.findByPk(user.id).then(user => {
+          expect(user.secretValue).to.equal('$SEQUELIZE');
+        });
+      });
+    });
+
     it('should work with a non-id named uuid primary key columns', function() {
       const Monkey = this.sequelize.define('Monkey', {
         monkeyId: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4, allowNull: false }

@@ -98,6 +98,12 @@ describe('QueryGenerator', () => {
       QG.handleSequelizeMethod(this.sequelize.where(this.sequelize.col('foo'), Op.not, null))
         .should.be.equal('foo IS NOT NULL');
     });
+
+    it('should correctly escape $ in sequelize.fn arguments', function() {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'))
+        .should.include('$$user');
+    });
   });
 
   describe('format', () => {

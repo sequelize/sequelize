@@ -428,6 +428,17 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
+    it('updates with function that contains escaped dollar symbol', function() {
+      return this.User.create({}).then(user => {
+        user.username = this.sequelize.fn('upper', '$sequelize');
+        return user.save().then(() => {
+          return this.User.findByPk(user.id).then(userAfterUpdate => {
+            expect(userAfterUpdate.username).to.equal('$SEQUELIZE');
+          });
+        });
+      });
+    });
+
     describe('without timestamps option', () => {
       it("doesn't update the updatedAt column", function() {
         const User2 = this.sequelize.define('User2', {
