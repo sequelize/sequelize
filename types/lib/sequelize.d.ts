@@ -1067,6 +1067,12 @@ export class Sequelize extends Hooks {
   public getDialect(): string;
 
   /**
+   * Returns the database name.
+   */
+
+  public getDatabaseName() : string;
+
+  /**
    * Returns an instance of QueryInterface.
    */
   public getQueryInterface(): QueryInterface;
