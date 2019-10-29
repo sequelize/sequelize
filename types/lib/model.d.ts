@@ -513,13 +513,13 @@ type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
  */
 export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid, IndexHintable {
   /**
-   * A list of associations to eagerly load using a left join. Supported is either
-   * `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
+   * A list of associations to eagerly load using a left join (a single association is also supported). Supported is either
+   * `{ include: Model1 }`, `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
    * `{ include: [{ all: true }]}`.
    * If your association are set up with an `as` (eg. `X.hasMany(Y, { as: 'Z }`, you need to specify Z in
    * the as attribute when eager loading Y).
    */
-  include?: Includeable[];
+  include?: Includeable | Includeable[];
 
   /**
    * Specifies an ordering. If a string is provided, it will be escaped. Using an array, you can provide
@@ -588,7 +588,7 @@ export interface CountOptions extends Logging, Transactionable, Filterable, Proj
   /**
    * Include options. See `find` for details
    */
-  include?: Includeable[];
+  include?: Includeable | Includeable[];
 
   /**
    * Apply COUNT(DISTINCT(col))
@@ -637,11 +637,11 @@ export interface BuildOptions {
   isNewRecord?: boolean;
 
   /**
-   * an array of include options - Used to build prefetched/included model instances. See `set`
+   * An array of include options. A single option is also supported - Used to build prefetched/included model instances. See `set`
    *
    * TODO: See set
    */
-  include?: Includeable[];
+  include?: Includeable | Includeable[];
 }
 
 export interface Silent {
@@ -757,7 +757,7 @@ export interface BulkCreateOptions extends Logging, Transactionable {
   /**
    * Include options. See `find` for details
    */
-  include?: Includeable[];
+  include?: Includeable | Includeable[];
 
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
