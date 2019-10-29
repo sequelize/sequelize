@@ -18,6 +18,48 @@ async function trans() {
     });
 }
 
+async function trans2() {
+    return await sequelize.transaction(async transaction => {
+        transaction.afterCommit(() => console.log('transaction complete'));
+        User.findAll(
+            {
+                transaction,
+                lock: transaction.LOCK.UPDATE,
+            }
+        );
+        return 1;
+    });
+}
+
+async function trans3() {
+    return await sequelize.transaction(async transaction => {
+        transaction.afterCommit(() => console.log('transaction complete'));
+        User.findAll(
+            {
+                transaction,
+                lock: true,
+            }
+        );
+        return 1;
+    });
+}
+
+async function trans4() {
+    return await sequelize.transaction(async transaction => {
+        transaction.afterCommit(() => console.log('transaction complete'));
+        User.findAll(
+            {
+                transaction,
+                lock: {
+                    level: transaction.LOCK.UPDATE,
+                    of: User,
+                },
+            }
+        );
+        return 1;
+    });
+}
+
 async function transact() {
     const t = await sequelize.transaction({
         deferrable: Deferrable.SET_DEFERRED(['test']),

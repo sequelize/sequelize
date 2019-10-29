@@ -18,7 +18,7 @@ import Op = require('./operators');
 import { Promise } from './promise';
 import { QueryOptions, IndexesOptions } from './query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
-import { Transaction } from './transaction';
+import { Transaction, LOCK } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
 import { IndexHints } from '..';
 
@@ -548,8 +548,10 @@ export interface FindOptions extends QueryOptions, Filterable, Projectable, Para
    * Postgres also supports transaction.LOCK.KEY_SHARE, transaction.LOCK.NO_KEY_UPDATE and specific model
    * locks with joins. See [transaction.LOCK for an example](transaction#lock)
    */
-  lock?: Transaction.LOCK | { level: Transaction.LOCK; of: typeof Model };
-
+  lock?:
+    | LOCK
+    | { level: LOCK; of: typeof Model }
+    | boolean;
   /**
    * Skip locked rows. Only supported in Postgres.
    */
