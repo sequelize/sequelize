@@ -19,6 +19,17 @@ const num: number = Instance.get('num');
 
 MyModel.findOne({
   include: [
+    {
+      through: {
+        as: "OtherModel",
+        attributes: ['num']
+      }
+    }
+  ]
+});
+
+MyModel.findOne({
+  include: [
     { model: OtherModel, paranoid: true }
   ]
 });
