@@ -1,4 +1,4 @@
-import { Association, HasOne, Model, Sequelize, DataTypes } from 'sequelize';
+import { Association, DataTypes, HasOne, Model, Sequelize } from 'sequelize';
 
 class MyModel extends Model {
   public num!: number;
@@ -26,6 +26,14 @@ MyModel.findOne({
 MyModel.hasOne(OtherModel, { as: 'OtherModelAlias' });
 
 MyModel.findOne({ include: ['OtherModelAlias'] });
+
+MyModel.findOne({ include: OtherModel });
+
+MyModel.count({ include: OtherModel });
+
+MyModel.build({ int: 10 }, { include: OtherModel });
+
+MyModel.bulkCreate([{ int: 10 }], { include: OtherModel });
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
