@@ -2728,6 +2728,15 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * values gotten from the DB, and apply all custom getters.
    */
   public toJSON(): object;
+
+  /**
+   * Helper method to determine if a instance is "soft deleted". This is
+   * particularly useful if the implementer renamed the deletedAt attribute to
+   * something different. This method requires paranoid to be enabled.
+   *
+   * Throws an error if paranoid is not enabled.
+   */
+  public isSoftDeleted(): boolean;
 }
 
 export type ModelType = typeof Model;
