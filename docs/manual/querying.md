@@ -100,7 +100,7 @@ Post.findAll({
 
 Post.findAll({
   where: {
-    [Op.or]: [{authorId: 12}, {authorId: 13}]
+    [Op.and]: [{authorId: 12}, {authorId: 13}]
   }
 });
 // SELECT * FROM post WHERE authorId = 12 OR authorId = 13;
