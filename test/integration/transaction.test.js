@@ -366,6 +366,41 @@ if (current.dialect.supports.transactions) {
       });
     });
 
+    describe('more concurrent transactios than the connections in connection pool', () => {
+      it('does not deadlock', async function() {
+        this.timeout(5000);
+
+        const poolSize = this.sequelize.connectionManager.pool.maxSize;
+        expect(poolSize).to.gte(2, 'Ther must be a connection pool larger than 2 to test this');
+        const doublePoolSize = poolSize * 2;
+
+        const User = this.sequelize.define('user', {
+          username: Support.Sequelize.STRING,
+          birthday: Sequelize.DATE
+        });
+        await this.sequelize.sync({ force: true });
+        await User.create({ username: 'janedoe', birthday: new Date(2020, 1, 8) });
+        const running = [];
+        for (let i = 0; i < doublePoolSize ; i++) {
+          const day = i + 1;
+          running.push(this.sequelize.transaction(transaction => {
+            const user = { where: { username: 'janedoe' } };
+            const options = { transaction };
+            const newBirthday = { birthday: new Date(1980, 1, day) };
+            return User
+              .findOne(user, options)
+              .then(() => User.update(newBirthday, user, options));
+          }));
+        }
+
+        await Promise.all(running);
+
+        const user = await (await User.findOne()).dataValues;
+        expect(user.username).to.eql('janedoe');
+        expect(user.birthday).to.eql(new Date(1980, 1, doublePoolSize));
+      });
+    });
+
     if (dialect === 'mysql' || dialect === 'mariadb') {
       describe('deadlock handling', () => {
         it('should treat deadlocked transaction as rollback', function() {
@@ -594,9 +629,7 @@ if (current.dialect.supports.transactions) {
           });
         });
       }
-
     });
-
 
     if (current.dialect.supports.lock) {
       describe('row locking', () => {
@@ -904,5 +937,4 @@ if (current.dialect.supports.transactions) {
       });
     }
   });
-
 }
