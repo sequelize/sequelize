@@ -2569,6 +2569,32 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         });
       });
 
+      it('should be able to alias the default name of the join table', function() {
+        return Promise.all([
+          this.User.create(),
+          this.Project.create()
+        ]).then(([user, project]) => {
+          return user.addProject(project, { through: { status: 'active', data: 42 } }).return(user);
+        }).then(() => {
+          return this.User.findAll({
+            include: [{
+              model: this.Project,
+              through: {
+                as: 'myProject'
+              }
+            }]
+          });
+        }).then(users => {
+          const project = users[0].Projects[0];
+          
+          expect(project.UserProjects).not.to.exist;
+          expect(project.status).not.to.exist;
+          expect(project.myProject).to.be.ok;
+          expect(project.myProject.status).to.equal('active');
+          expect(project.myProject.data).to.equal(42);
+        });
+      });
+
       it('should be able to limit the join table attributes returned', function() {
         return Promise.all([
           this.User.create(),

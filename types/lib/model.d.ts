@@ -1,26 +1,15 @@
-import {
-  Association,
-  BelongsTo,
-  BelongsToMany,
-  BelongsToManyOptions,
-  BelongsToOptions,
-  HasMany,
-  HasManyOptions,
-  HasOne,
-  HasOneOptions,
-} from './associations/index';
+import { IndexHints } from '..';
+import { Association, BelongsTo, BelongsToMany, BelongsToManyOptions, BelongsToOptions, HasMany, HasManyOptions, HasOne, HasOneOptions } from './associations/index';
 import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
-import { ModelManager } from './model-manager';
-import Op = require('./operators');
 import { Promise } from './promise';
 import { QueryOptions, IndexesOptions } from './query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
 import { Transaction, LOCK } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
-import { IndexHints } from '..';
+import Op = require('./operators');
 
 export interface Logging {
   /**
@@ -373,7 +362,13 @@ export interface WhereAttributeHash {
 /**
  * Through options for Include Options
  */
-export interface IncludeThroughOptions extends Filterable, Projectable {}
+export interface IncludeThroughOptions extends Filterable, Projectable {
+  /**
+   * The alias of the relation, in case the model you want to eagerly load is aliassed. For `hasOne` /
+   * `belongsTo`, this should be the singular name, and for `hasMany`, it should be the plural
+   */
+  as?: string;
+}
 
 /**
  * Options for eager-loading associated models, also allowing for all associations to be loaded at once
