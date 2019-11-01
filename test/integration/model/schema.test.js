@@ -577,11 +577,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }).then(user => {
               return Task.schema(SCHEMA_ONE).create({}).then(task => {
                 return task.setUserXYZ(user).then(() => {
-                  return task.getUserXYZ({ schema: SCHEMA_ONE });
+                  const promises = [];
+                  promises.push(task.getUserXYZ()); // Default to schema of tasks
+                  promises.push(task.getUserXYZ({ schema: SCHEMA_ONE }));
+                  return Promise.all(promises);
                 });
               });
-            }).then(user => {
-              expect(user).to.be.ok;
+            }).then(users => {
+              expect(users[0]).to.be.ok;
+              expect(users[1]).to.be.ok;
             });
           });
         }
