@@ -553,6 +553,43 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        describe('regressions', () => {
+          it('should be able to sync model with schema provided at sync time', function() {
+            this.sequelize.models = [];
+            this.sequelize.define('User3', {
+              name: DataTypes.STRING,
+              value: DataTypes.INTEGER
+            }, {
+              indexes: [
+                {
+                  name: 'test_user3_idx',
+                  fields: ['name']
+                }
+              ]
+            });
+
+            this.sequelize.define('Task3', {
+              name: DataTypes.STRING,
+              value: DataTypes.INTEGER
+            }, {
+              indexes: [
+                {
+                  name: 'test_task3_idx',
+                  fields: ['name']
+                }
+              ]
+            });
+
+            return Promise.all([
+              this.sequelize.sync({ schema: SCHEMA_ONE, force: true }),
+              this.sequelize.sync({ schema: SCHEMA_TWO, force: true })
+            ]).then(([res1, res2]) => {
+              expect(res1).to.be.ok;
+              expect(res2).to.be.ok;
+            });
+          });
+        });
+
         // TODO: this should work with MSSQL / MariaDB too
         // Need to fix addSchema return type
         if (dialect.match(/^postgres/)) {
