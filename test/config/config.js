@@ -31,7 +31,8 @@ module.exports = {
     port: env.SEQ_MSSQL_PORT || env.SEQ_PORT || 1433,
     dialectOptions: {
       options: {
-        requestTimeout: 60000
+        requestTimeout: 60000,
+        encrypt: false
       }
     },
     pool: {

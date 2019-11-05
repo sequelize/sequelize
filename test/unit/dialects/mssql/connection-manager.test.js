@@ -75,5 +75,24 @@ if (dialect === 'mssql') {
           expect(err.parent.message).to.equal('Connection was closed by remote server');
         });
     });
+
+    it('connectionManager._connect() provides no default encryption option', function() {
+      this.connectionStub.returns({
+        once(event, cb) {
+          if (event === 'connect') {
+            setTimeout(() => {
+              cb();
+            }, 500);
+          }
+        },
+        removeListener: () => {},
+        on: () => {}
+      });
+
+      return this.instance.dialect.connectionManager._connect(this.config).then(() => {
+        expect(this.connectionStub).to.have.been.calledWithNew;
+        expect(this.connectionStub).to.have.been.calledWithMatch(sinon.match({ options: { encrypt: undefined } }));
+      });
+    });
   });
 }
