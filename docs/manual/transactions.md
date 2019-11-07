@@ -98,7 +98,7 @@ You can have concurrent transactions within a sequence of queries or have some o
 
 **Warning:** _SQLite does not support more than one transaction at the same time._
 
-### Without CLS enabled
+### With CLS enabled
 
 ```js
 sequelize.transaction((t1) => {
