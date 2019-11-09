@@ -35,7 +35,11 @@
       }
     ],
     "semi": ["error", "always"],
-    "space-before-function-paren": ["error", "never"],
+    "space-before-function-paren": ["error", {
+      "named": "never",
+      "anonymous": "never",
+      "asyncArrow": "always"
+    }],
     "space-before-blocks": "error",
     "space-infix-ops": "error",
     "no-multi-spaces": "error",
@@ -94,7 +98,7 @@
     "no-case-declarations": "off"
   },
   "parserOptions": {
-    "ecmaVersion": 6,
+    "ecmaVersion": 2018,
     "sourceType": "script"
   },
   "plugins": ["mocha", "jsdoc"],

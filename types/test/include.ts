@@ -20,6 +20,8 @@ MyModel.findAll({
       order: [['id', 'DESC'], [ 'AssociatedModel', MyModel, 'id', 'DESC' ], [ MyModel, 'id' ] ],
       separate: true,
       where: { state: Sequelize.col('project.state') },
+      all: true,
+      nested: true,
     },
   ],
 });

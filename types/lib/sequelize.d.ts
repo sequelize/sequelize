@@ -1067,6 +1067,12 @@ export class Sequelize extends Hooks {
   public getDialect(): string;
 
   /**
+   * Returns the database name.
+   */
+
+  public getDatabaseName() : string;
+
+  /**
    * Returns an instance of QueryInterface.
    */
   public getQueryInterface(): QueryInterface;
@@ -1336,15 +1342,15 @@ export class Sequelize extends Hooks {
    * });
    * ```
    *
-   * If you have [CLS](https://github.com/othiym23/node-continuation-local-storage) enabled, the transaction
+   * If you have [CLS](https://github.com/Jeff-Lewis/cls-hooked) enabled, the transaction
    * will automatically be passed to any query that runs witin the callback. To enable CLS, add it do your
    * project, create a namespace and set it on the sequelize constructor:
    *
    * ```js
-   * const cls = require('continuation-local-storage'),
-   *   ns = cls.createNamespace('....');
+   * const cls = require('cls-hooked');
+   * const namespace = cls.createNamespace('....');
    * const Sequelize = require('sequelize');
-   * Sequelize.cls = ns;
+   * Sequelize.useCLS(namespace);
    * ```
    * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
    *

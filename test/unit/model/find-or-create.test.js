@@ -4,19 +4,18 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
   current = Support.sequelize,
-  cls = require('continuation-local-storage'),
+  cls = require('cls-hooked'),
   sinon = require('sinon'),
   stub = sinon.stub;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-
   describe('method findOrCreate', () => {
-
     before(() => {
       current.constructor.useCLS(cls.createNamespace('sequelize'));
     });
 
     after(() => {
+      cls.destroyNamespace('sequelize');
       delete current.constructor._cls;
     });
 
@@ -36,7 +35,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should use transaction from cls if available', function() {
-
       const options = {
         where: {
           name: 'John'
@@ -54,7 +52,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not use transaction from cls if provided as argument', function() {
-
       const options = {
         where: {
           name: 'John'
