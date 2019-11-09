@@ -46,6 +46,8 @@ MyModel.build({ int: 10 }, { include: OtherModel });
 
 MyModel.bulkCreate([{ int: 10 }], { include: OtherModel });
 
+MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
+
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
 MyModel.init({}, {
