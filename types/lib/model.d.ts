@@ -835,7 +835,7 @@ export interface RestoreOptions extends Logging, Transactionable, Filterable {
 /**
  * Options used for Model.update
  */
-export interface UpdateOptions extends Logging, Transactionable {
+export interface UpdateOptions extends Logging, Transactionable, Paranoid {
   /**
    * Options to describe the scope of the search.
    */
@@ -1260,7 +1260,7 @@ export interface ModelAttributeColumnReferencesOptions {
 /**
  * Column options for the model schema attributes
  */
-export interface ModelAttributeColumnOptions extends ColumnOptions {
+export interface ModelAttributeColumnOptions<M extends Model = Model> extends ColumnOptions {
   /**
    * A string or a data type
    */
@@ -1341,23 +1341,23 @@ export interface ModelAttributeColumnOptions extends ColumnOptions {
    * Provide a custom getter for this column. Use `this.getDataValue(String)` to manipulate the underlying
    * values.
    */
-  get?(): unknown;
+  get?(this: M): unknown;
 
   /**
    * Provide a custom setter for this column. Use `this.setDataValue(String, Value)` to manipulate the
    * underlying values.
    */
-  set?(val: unknown): void;
+  set?(this: M, val: unknown): void;
 }
 
 /**
  * Interface for Attributes provided for a column
  */
-export interface ModelAttributes {
+export interface ModelAttributes<M extends Model = Model> {
   /**
    * The description of a database column
    */
-  [name: string]: DataType | ModelAttributeColumnOptions;
+  [name: string]: DataType | ModelAttributeColumnOptions<M>;
 }
 
 /**
@@ -1607,7 +1607,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *  string or a type-description object, with the properties described below:
    * @param options These options are merged with the default define options provided to the Sequelize constructor
    */
-  public static init<M extends Model = Model>(this: ModelCtor<M>, attributes: ModelAttributes, options: InitOptions<M>): void;
+  public static init<M extends Model = Model>(this: ModelCtor<M>, attributes: ModelAttributes<M>, options: InitOptions<M>): void;
 
   /**
    * Remove attribute from model definition
