@@ -446,8 +446,9 @@ export class QueryInterface {
    */
   public upsert(
     tableName: TableName,
-    values: object,
+    insertValues: object,
     updateValues: object,
+    where: object,
     model: typeof Model,
     options?: QueryOptions
   ): Promise<object>;
