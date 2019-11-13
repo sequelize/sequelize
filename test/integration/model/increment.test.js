@@ -231,6 +231,48 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(notJeff.aNumber).to.equal(this.assert(3, 3));
         });
       });
+
+      it('should reproduce #10719', function() {
+        const User = this.sequelize.define('User', {
+          aNumber: DataTypes.INTEGER,
+          name: DataTypes.STRING,
+          age: DataTypes.INTEGER
+        }, {
+          scopes: {
+            jeff: {
+              attributes: { exclude: ['age', 'created_at', 'updated_at'] }
+            }
+          }
+        });
+
+        // setup
+        return User.sync({ force: true }).then(() => {
+          return User.bulkCreate([
+            {
+              aNumber: 1,
+              name: 'Jeff',
+              age: 94
+            },
+            {
+              aNumber: 3,
+              name: 'Not Jeff',
+              age: 87
+            }
+          ]);
+        })
+          // test
+          .then(() => {
+            return User.scope('jeff').findOne({ where: { id: 1 } }).then(user=>{
+              user.increment('aNumber', { by: 1 });
+            });
+          })
+          // validate
+          .then(() => {
+            return User.scope('jeff').findOne({ where: { id: 1 } }).then(user=>{
+              expect(user.aNumber).to.equal(this.assert(2, 0));
+            });
+          });
+      });
     });
   });
 });
