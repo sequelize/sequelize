@@ -232,7 +232,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should reproduce #10719', function() {
+      it('should work with scopes using "exclude" #10719', function() {
         const User = this.sequelize.define('User', {
           aNumber: DataTypes.INTEGER,
           name: DataTypes.STRING,
@@ -263,7 +263,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           // test
           .then(() => {
             return User.scope('jeff').findOne({ where: { id: 1 } }).then(user=>{
-              user.increment('aNumber', { by: 1 });
+              user[method]('aNumber', { by: 1 });
             });
           })
           // validate
