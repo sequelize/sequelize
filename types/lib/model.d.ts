@@ -104,7 +104,7 @@ export interface ScopeOptions {
    * any arguments, or an array, where the first element is the name of the method, and consecutive elements
    * are arguments to that method. Pass null to remove all scopes, including the default.
    */
-  method: string | [string, ...unknown[]];
+  method;
 }
 
 /**
