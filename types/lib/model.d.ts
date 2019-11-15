@@ -1529,7 +1529,7 @@ export interface AddScopeOptions {
   override: boolean;
 }
 
-export abstract class Model<T = any, T2 = any> extends Hooks {
+export abstract class Model<T = any> extends Hooks {
   /** The name of the database table */
   public static readonly tableName: string;
 
