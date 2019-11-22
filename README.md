@@ -38,7 +38,7 @@ $ npm install --save tedious # Microsoft SQL Server
 - [Contributing](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)
 
 ## Responsible disclosure
-If you have security issues to report please refer to our [Responsible Disclosure Policy](https://github.com/sequelize/sequelize/blob/master/SECURITY.md) for more details.
+If you have security issues to report, please refer to our [Responsible Disclosure Policy](https://github.com/sequelize/sequelize/blob/master/SECURITY.md) for more details.
 
 ## Resources
 - [Changelog](https://github.com/sequelize/sequelize/releases)
