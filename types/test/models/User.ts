@@ -119,3 +119,6 @@ User.scope([
   'custom2',
   { method: [ 'custom', 32 ] }
 ])
+
+const instance = new User({ username: 'foo', firstName: 'bar', lastName: 'baz' });
+instance.isSoftDeleted()
