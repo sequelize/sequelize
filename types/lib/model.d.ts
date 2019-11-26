@@ -53,14 +53,14 @@ export interface Filterable {
   where?: WhereOptions;
 }
 
-export interface Projectable {
+export interface Projectable<T extends FindAttributeOptions = any> {
   /**
    * A list of the attributes that you want to select. To rename an attribute, you can pass an array, with
    * two elements - the first is the name of the attribute in the DB (or some kind of expression such as
    * `Sequelize.literal`, `Sequelize.fn` and so on), and the second is the name you want the attribute to
    * have in the returned instance
    */
-  attributes?: FindAttributeOptions;
+  attributes?: T[];
 }
 
 export interface Paranoid {
@@ -139,45 +139,45 @@ export interface WhereOperators {
    *
    * _PG only_
    */
-  [Op.any]?: (string | number | Literal)[] | Literal;
+    [Op.any]?: (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
-  [Op.gte]?: number | string | Date | Literal;
+    [Op.gte]?: number | string | Date | Literal;
 
   /** Example: `[Op.lt]: 10,` becomes `< 10` */
-  [Op.lt]?: number | string | Date | Literal;
+    [Op.lt]?: number | string | Date | Literal;
 
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
-  [Op.lte]?: number | string | Date | Literal;
+    [Op.lte]?: number | string | Date | Literal;
 
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
-  [Op.ne]?: string | number | Literal | WhereOperators;
+    [Op.ne]?: string | number | Literal | WhereOperators;
 
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
-  [Op.not]?: boolean | string | number |  Literal | WhereOperators;
+    [Op.not]?: boolean | string | number |  Literal | WhereOperators;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
-  [Op.between]?: [number, number];
+    [Op.between]?: [number, number];
 
   /** Example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
-  [Op.in]?: (string | number | Literal)[] | Literal;
+    [Op.in]?: (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.notIn]: [1, 2],` becomes `NOT IN [1, 2]` */
-  [Op.notIn]?: (string | number | Literal)[] | Literal;
+    [Op.notIn]?: (string | number | Literal)[] | Literal;
 
   /**
    * Examples:
    *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
    *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.like]?: string | Literal | AnyOperator | AllOperator;
+    [Op.like]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * Examples:
    *  - `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
    *  - `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notLike]?: string | Literal | AnyOperator | AllOperator;
+    [Op.notLike]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * case insensitive PG only
@@ -186,31 +186,31 @@ export interface WhereOperators {
    *  - `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
    *  - `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.iLike]?: string | Literal | AnyOperator | AllOperator;
+    [Op.iLike]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * PG array overlap operator
    *
    * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
    */
-  [Op.overlap]?: Rangable;
+    [Op.overlap]?: Rangable;
 
   /**
    * PG array contains operator
    *
    * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-  [Op.contains]?: (string | number)[] | Rangable;
+    [Op.contains]?: (string | number)[] | Rangable;
 
   /**
    * PG array contained by operator
    *
    * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?: (string | number)[] | Rangable;
+    [Op.contained]?: (string | number)[] | Rangable;
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
-  [Op.gt]?: number | string | Date | Literal;
+    [Op.gt]?: number | string | Date | Literal;
 
   /**
    * PG only
@@ -219,24 +219,24 @@ export interface WhereOperators {
    *  - `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
    *  - `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-  [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
+    [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
 
   /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
-  [Op.notBetween]?: [number, number];
+    [Op.notBetween]?: [number, number];
 
   /**
    * Strings starts with value.
    */
-  [Op.startsWith]?: string;
+    [Op.startsWith]?: string;
 
   /**
    * String ends with value.
    */
-  [Op.endsWith]?: string;
+    [Op.endsWith]?: string;
   /**
    * String contains value.
    */
-  [Op.substring]?: string;
+    [Op.substring]?: string;
 
   /**
    * MySQL/PG only
@@ -245,7 +245,7 @@ export interface WhereOperators {
    *
    * Example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
-  [Op.regexp]?: string;
+    [Op.regexp]?: string;
 
   /**
    * MySQL/PG only
@@ -254,7 +254,7 @@ export interface WhereOperators {
    *
    * Example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
    */
-  [Op.notRegexp]?: string;
+    [Op.notRegexp]?: string;
 
   /**
    * PG only
@@ -263,7 +263,7 @@ export interface WhereOperators {
    *
    * Example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
    */
-  [Op.iRegexp]?: string;
+    [Op.iRegexp]?: string;
 
   /**
    * PG only
@@ -272,35 +272,35 @@ export interface WhereOperators {
    *
    * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
    */
-  [Op.notIRegexp]?: string;
+    [Op.notIRegexp]?: string;
 
   /**
    * PG only
    *
    * Forces the operator to be strictly left eg. `<< [a, b)`
    */
-  [Op.strictLeft]?: Rangable;
+    [Op.strictLeft]?: Rangable;
 
   /**
    * PG only
    *
    * Forces the operator to be strictly right eg. `>> [a, b)`
    */
-  [Op.strictRight]?: Rangable;
+    [Op.strictRight]?: Rangable;
 
   /**
    * PG only
    *
    * Forces the operator to not extend the left eg. `&> [1, 2)`
    */
-  [Op.noExtendLeft]?: Rangable;
+    [Op.noExtendLeft]?: Rangable;
 
   /**
    * PG only
    *
    * Forces the operator to not extend the left eg. `&< [1, 2)`
    */
-  [Op.noExtendRight]?: Rangable;
+    [Op.noExtendRight]?: Rangable;
 
 }
 
@@ -479,13 +479,13 @@ export type ProjectionAlias = [string | Literal | Fn, string];
 export type FindAttributeOptions =
   | (string | ProjectionAlias)[]
   | {
-      exclude: string[];
-      include?: (string | ProjectionAlias)[];
-    }
+  exclude: string[];
+  include?: (string | ProjectionAlias)[];
+}
   | {
-      exclude?: string[];
-      include: (string | ProjectionAlias)[];
-    };
+  exclude?: string[];
+  include: (string | ProjectionAlias)[];
+};
 
 export interface IndexHint {
   type: IndexHints;
@@ -506,7 +506,7 @@ type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
  *
  * A hash of options to describe the scope of the search
  */
-export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid, IndexHintable {
+export interface FindOptions<T extends any = any> extends QueryOptions, Filterable, Projectable<T>, Paranoid, IndexHintable {
   /**
    * A list of associations to eagerly load using a left join (a single association is also supported). Supported is either
    * `{ include: Model1 }`, `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
@@ -569,7 +569,7 @@ export interface FindOptions extends QueryOptions, Filterable, Projectable, Para
   subQuery?: boolean;
 }
 
-export interface NonNullFindOptions extends FindOptions {
+export interface NonNullFindOptions<T> extends FindOptions<T> {
   /**
    * Throw if nothing was found.
    */
@@ -1786,32 +1786,32 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *
    * @see {Sequelize#query}
    */
-  public static findAll<M extends Model>(this: { new (): M } & typeof Model, options?: FindOptions): Promise<M[]>;
+  public static findAll<M extends Model = Model, K extends keyof M = keyof M>(this: { new(): M } & typeof Model, options?: FindOptions<K>): Promise<(Pick<M, K> | M)[]>;
 
   /**
    * Search for a single instance by its primary key. This applies LIMIT 1, so the listener will
    * always be called with a single instance.
    */
-  public static findByPk<M extends Model>(
+  public static findByPk<M extends Model = Model, K extends keyof M = keyof M>(
     this: { new (): M } & typeof Model,
     identifier?: Identifier,
-    options?: Omit<FindOptions, 'where'>
-  ): Promise<M | null>;
-  public static findByPk<M extends Model>(
+    options?: Omit<FindOptions<K>, 'where'>
+  ): Promise<(Pick<M, K> | M) | null>;
+  public static findByPk<M extends Model = Model, K extends keyof M = keyof M>(
     this: { new (): M } & typeof Model,
     identifier: Identifier,
-    options: Omit<NonNullFindOptions, 'where'>
-  ): Promise<M>;
+    options: Omit<NonNullFindOptions<K>, 'where'>
+  ): Promise<(Pick<M, K> | M)>;
 
   /**
    * Search for a single instance. This applies LIMIT 1, so the listener will always be called with a single
    * instance.
    */
-  public static findOne<M extends Model>(
+  public static findOne<M extends Model = Model, K extends keyof M = keyof M>(
     this: { new (): M } & typeof Model,
-    options?: FindOptions
-  ): Promise<M | null>;
-  public static findOne<M extends Model>(this: { new (): M } & typeof Model, options: NonNullFindOptions): Promise<M>;
+    options?: FindOptions<K>
+  ): Promise<(Pick<M, K> | M) | null>;
+  public static findOne<M extends Model = Model, K extends keyof M = never>(this: { new (): M } & typeof Model, options: NonNullFindOptions<K>): Promise<(Pick<M, K> | M)>;
 
   /**
    * Run an aggregation method on the specified field
