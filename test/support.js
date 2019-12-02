@@ -22,7 +22,7 @@ chai.should();
 // Make sure errors get thrown when testing
 process.on('uncaughtException', e => {
   console.error('An unhandled exception occurred:');
-  // throw e;
+  throw e;
 });
 Sequelize.Promise.onPossiblyUnhandledRejection(e => {
   console.error('An unhandled rejection occurred:');
@@ -63,7 +63,8 @@ const Support = {
       pool: config.pool,
       dialectOptions: options.dialectOptions || config.dialectOptions || {},
       odbcConnectionString: config.odbcConnectionString || '',
-      schema: config.schema || ''
+      schema: config.schema || '',
+      minifyAliases: options.minifyAliases || config.minifyAliases
     });
 
     if (process.env.DIALECT === 'postgres-native') {
@@ -210,5 +211,6 @@ if (global.beforeEach) {
     this.sequelize = Support.sequelize;
   });
 }
+
 Support.sequelize = Support.createSequelizeInstance();
 module.exports = Support;

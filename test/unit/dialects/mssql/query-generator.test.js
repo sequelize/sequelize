@@ -183,7 +183,7 @@ if (current.dialect.name === 'mssql') {
 
     it('showTablesQuery', function() {
       expectsql(this.queryGenerator.showTablesQuery(), {
-        mssql: 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES;'
+        mssql: "SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';"
       });
     });
 

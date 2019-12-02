@@ -7,7 +7,23 @@ class MyModel extends Model {
 
 let where: WhereOptions;
 
-// From http://docs.sequelizejs.com/en/v4/docs/querying/
+// From https://sequelize.org/master/en/v4/docs/querying/
+
+/**
+ * Literal values
+ * @see WhereValue
+ */
+where = {
+  string: 'foo',
+  strings: ['foo'],
+  number: 1,
+  numbers: [1],
+  boolean: true,
+  buffer: Buffer.alloc(0),
+  buffers: [Buffer.alloc(0)],
+  null: null,
+  date: new Date()
+};
 
 // Operators
 
@@ -114,6 +130,12 @@ where = {
             },
         },
     },
+    meta2: {
+      [Op.contains]: ['stringValue1', 'stringValue2', 'stringValue3']
+    },
+    meta3: {
+      [Op.contains]: [1, 2, 3, 4]
+    },
 };
 
 // Relations / Associations
@@ -140,7 +162,7 @@ MyModel.findOne({
 MyModel.destroy({ where });
 MyModel.update({ hi: 1 }, { where });
 
-// From http://docs.sequelizejs.com/en/v4/docs/models-usage/
+// From https://sequelize.org/master/en/v4/docs/models-usage/
 
 // find multiple entries
 MyModel.findAll().then(projects => {

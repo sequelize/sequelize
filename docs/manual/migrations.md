@@ -59,7 +59,7 @@ Before continuing further we will need to tell CLI how to connect to database. T
 }
 ```
 
-Now edit this file and set correct database credentials and dialect.
+Now edit this file and set correct database credentials and dialect. The keys of the objects(ex. "development") are used on `model/index.js` for matching `process.env.NODE_ENV` (When undefined, "development" is a default value.).
 
 **Note:** _If your database doesn't exists yet, you can just call `db:create` command. With proper access it will create that database for you._
 
@@ -140,8 +140,8 @@ module.exports = {
         firstName: 'John',
         lastName: 'Doe',
         email: 'demo@demo.com',
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+        createdAt: new Date(),
+        updatedAt: new Date()
       }], {});
   },
 
@@ -202,6 +202,12 @@ module.exports = {
     // logic for reverting the changes
   }
 }
+```
+
+We can generate this file using `migration:generate`. This will create `xxx-migration-skeleton.js` in your migration folder.
+
+```bash
+$ npx sequelize-cli migration:generate --name migration-skeleton
 ```
 
 The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. Function `up` or `down` should return a `Promise`. Let's look at an example:
@@ -270,7 +276,7 @@ module.exports = {
           model: {
             tableName: 'users',
             schema: 'schema'
-          }
+          },
           key: 'id'
         },
         allowNull: false
@@ -285,9 +291,64 @@ module.exports = {
 
 ```
 
+The next is an example of a migration that has uses async/await where you create an unique index on a new column:
+
+```js
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+      await queryInterface.addColumn(
+        'Person',
+        'petName',
+        {
+          type: Sequelize.STRING,
+        },
+        { transaction }
+      );
+      await queryInterface.addIndex(
+        'Person',
+        'petName',
+        {
+          fields: 'petName',
+          unique: true,
+        },
+        { transaction }
+      );
+      await transaction.commit();
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+  },
+
+  async down(queryInterface, Sequelize) {
+    const transaction = await queryInterface.sequelize.transaction();
+    try {
+      await queryInterface.removeColumn('Person', 'petName', { transaction });
+      await transaction.commit();
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+  },
+};
+```
+
 ### The `.sequelizerc` File
 
-This is a special configuration file. It lets you specify various options that you would usually pass as arguments to CLI. Some scenarios where you can use it.
+This is a special configuration file. It lets you specify following options that you would usually pass as arguments to CLI:
+
+- `env`: The environment to run the command in
+- `config`: The path to the config file
+- `options-path`: The path to a JSON file with additional options
+- `migrations-path`: The path to the migrations folder
+- `seeders-path`: The path to the seeders folder
+- `models-path`: The path to the models folder
+- `url`: The database connection string to use. Alternative to using --config files
+- `debug`: When available show various debug information
+
+Some scenarios where you can use it.
 
 - You want to override default path to `migrations`, `models`, `seeders` or `config` folder.
 - You want to rename `config.json` to something else like `database.json`
@@ -598,4 +659,4 @@ Using `queryInterface` object described before you can change database schema. T
 
 [0]: https://github.com/sequelize/cli
 [1]: https://github.com/sequelize/umzug
-[2]: /class/lib/query-interface.js~QueryInterface.html
+[2]: ../class/lib/query-interface.js~QueryInterface.html

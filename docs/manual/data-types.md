@@ -1,6 +1,6 @@
 # Datatypes
 
-Below are some of the datatypes supported by sequelize. For a full and updated list, see [DataTypes](/variable/index.html#static-variable-DataTypes).
+Below are some of the datatypes supported by sequelize. For a full and updated list, see [DataTypes](/master/variable/index.html#static-variable-DataTypes).
 
 ```js
 Sequelize.STRING                      // VARCHAR(255)
@@ -165,7 +165,7 @@ Timeline.create({ range: [-Infinity, new Date(Date.UTC(2016, 0, 1))] });
 
 ## Extending datatypes
 
-Most likely the type you are trying to implement is already included in [DataTypes](/manual/data-types.html). If a new datatype is not included, this manual will show how to write it yourself.
+Most likely the type you are trying to implement is already included in [DataTypes](data-types.html). If a new datatype is not included, this manual will show how to write it yourself.
 
 Sequelize doesn't create new datatypes in the database. This tutorial explains how to make Sequelize recognize new datatypes and assumes that those new datatypes are already created in the database.
 
@@ -184,13 +184,13 @@ sequelizeAdditions(Sequelize)
 // In this exmaple a Sequelize instance is created and exported
 const sequelize = new Sequelize(sequelizeConfig)
 
-modules.exports = sequelize
+module.exports = sequelize
 ```
 
 ```js
 // myproject/lib/sequelize-additions.js
 
-modules.exports = function sequelizeAdditions(Sequelize) {
+module.exports = function sequelizeAdditions(Sequelize) {
 
   DataTypes = Sequelize.DataTypes
 
@@ -254,7 +254,7 @@ Let's say the name of the new datatype is `pg_new_type` in the postgres database
 ```js
 // myproject/lib/sequelize-additions.js
 
-modules.exports = function sequelizeAdditions(Sequelize) {
+module.exports = function sequelizeAdditions(Sequelize) {
 
   DataTypes = Sequelize.DataTypes
 
@@ -300,7 +300,7 @@ In this example the name of the postgres range type is `newtype_range` and the n
 ```js
 // myproject/lib/sequelize-additions.js
 
-modules.exports = function sequelizeAdditions(Sequelize) {
+module.exports = function sequelizeAdditions(Sequelize) {
 
   DataTypes = Sequelize.DataTypes
 

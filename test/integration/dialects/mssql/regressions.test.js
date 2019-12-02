@@ -95,4 +95,41 @@ if (dialect.match(/^mssql/)) {
       });
     });
   });
+
+  it('sets the char(10) length correctly on describeTable', function() {
+    const Users = this.sequelize.define('_Users', {
+      username: Sequelize.CHAR(10)
+    }, { freezeTableName: true });
+
+    return Users.sync({ force: true }).then(() => {
+      return this.sequelize.getQueryInterface().describeTable('_Users').then(metadata => {
+        const username = metadata.username;
+        expect(username.type).to.include('(10)');
+      });
+    });
+  });
+
+  it('saves value bigger than 2147483647, #11245', function() {
+    const BigIntTable =  this.sequelize.define('BigIntTable', {
+      business_id: {
+        type: Sequelize.BIGINT,
+        allowNull: false
+      }
+    }, {
+      freezeTableName: true
+    });
+
+    const bigIntValue = 2147483648;
+
+    return BigIntTable.sync({ force: true })
+      .then(() => {
+        return BigIntTable.create({
+          business_id: bigIntValue
+        });
+      })
+      .then(() => BigIntTable.findOne())
+      .then(record => {
+        expect(Number(record.business_id)).to.equals(bigIntValue);
+      });
+  });
 }

@@ -1,4 +1,4 @@
-import { Association, HasOne, Model, Sequelize, DataTypes } from 'sequelize';
+import { Association, DataTypes, HasOne, Model, Sequelize } from 'sequelize';
 
 class MyModel extends Model {
   public num!: number;
@@ -19,6 +19,17 @@ const num: number = Instance.get('num');
 
 MyModel.findOne({
   include: [
+    {
+      through: {
+        as: "OtherModel",
+        attributes: ['num']
+      }
+    }
+  ]
+});
+
+MyModel.findOne({
+  include: [
     { model: OtherModel, paranoid: true }
   ]
 });
@@ -27,9 +38,29 @@ MyModel.hasOne(OtherModel, { as: 'OtherModelAlias' });
 
 MyModel.findOne({ include: ['OtherModelAlias'] });
 
+MyModel.findOne({ include: OtherModel });
+
+MyModel.count({ include: OtherModel });
+
+MyModel.build({ int: 10 }, { include: OtherModel });
+
+MyModel.bulkCreate([{ int: 10 }], { include: OtherModel });
+
+MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
+
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
-MyModel.init({}, {
+MyModel.init({
+  virtual: {
+    type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['num']),
+    get() {
+      return this.getDataValue('num') + 2;
+    },
+    set(value: number) {
+      this.setDataValue('num', value - 2);
+    }
+  }
+}, {
   indexes: [
     {
       fields: ['foo'],
@@ -38,11 +69,16 @@ MyModel.init({}, {
     }
   ],
   sequelize,
-  tableName: 'my_model'
+  tableName: 'my_model',
+  getterMethods: {
+    multiply: function() {
+      return this.num * 2;
+    }
+  }
 });
 
 /**
- * Tests for findCreateFind() type. 
+ * Tests for findCreateFind() type.
  */
 class UserModel extends Model {}
 
@@ -56,9 +92,14 @@ UserModel.init({
 UserModel.findCreateFind({
   where: {
     username: "new user username"
-  }, 
+  },
   defaults: {
-    beta_user: true 
+    beta_user: true
   }
 })
 
+/**
+ * Test for primaryKeyAttributes.
+ */
+class TestModel extends Model {};
+TestModel.primaryKeyAttributes;

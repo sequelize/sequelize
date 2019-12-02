@@ -2,6 +2,8 @@
 
 Hooks (also known as lifecycle events), are functions which are called before and after calls in sequelize are executed. For example, if you want to always set a value on a model before saving it, you can add a `beforeUpdate` hook.
 
+**Note:** _You can't use hooks with instances. Hooks are used with models._
+
 For a full list of hooks, see [Hooks file](https://github.com/sequelize/sequelize/blob/master/lib/hooks.js#L7).
 
 ## Order of Operations
@@ -330,7 +332,8 @@ User.beforeBulkCreate((users, options) => {
 For the most part hooks will work the same for instances when being associated except a few things
 
 1. When using add/set functions the beforeUpdate/afterUpdate hooks will run.
-2. The only way to call beforeDestroy/afterDestroy hooks are on associations with `onDelete: 'cascade'` and the option `hooks: true`. For instance:
+2. When using add functions for belongsToMany relationships that will add record to pivot table, beforeBulkCreate/afterBulkCreate hooks in intermediate model will run.
+3. The only way to call beforeDestroy/afterDestroy hooks are on associations with `onDelete: 'cascade'` and the option `hooks: true`. For instance:
 
 ```js
 class Projects extends Model {}

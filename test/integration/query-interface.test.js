@@ -41,6 +41,70 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
   });
 
+  describe('showAllTables', () => {
+    it('should not contain views', function() {
+      const cleanup = () => {
+        // NOTE: The syntax "DROP VIEW [IF EXISTS]"" is not part of the standard
+        // and might not be available on all RDBMSs. Therefore "DROP VIEW" is
+        // the compatible option, which can throw an error in case the VIEW does
+        // not exist. In case of error, it is ignored by reflect()+tap().
+        return this.sequelize.query('DROP VIEW V_Fail').reflect();
+      };
+      return this.queryInterface
+        .createTable('my_test_table', { name: DataTypes.STRING })
+        .tap(cleanup)
+        .then(() => this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id'))
+        .then(() => this.queryInterface.showAllTables())
+        .tap(cleanup)
+        .then(tableNames => {
+          if (tableNames[0] && tableNames[0].tableName) {
+            tableNames = tableNames.map(v => v.tableName);
+          }
+          expect(tableNames).to.deep.equal(['my_test_table']);
+        });
+    });
+
+    if (dialect !== 'sqlite' && dialect !== 'postgres') {
+      // NOTE: sqlite doesn't allow querying between databases and
+      // postgres requires creating a new connection to create a new table.
+      it('should not show tables in other databases', function() {
+        return this.queryInterface
+          .createTable('my_test_table1', { name: DataTypes.STRING })
+          .then(() => this.sequelize.query('CREATE DATABASE my_test_db'))
+          .then(() => this.sequelize.query(`CREATE TABLE my_test_db${dialect === 'mssql' ? '.dbo' : ''}.my_test_table2 (id INT)`))
+          .then(() => this.queryInterface.showAllTables())
+          .tap(() => this.sequelize.query('DROP DATABASE my_test_db'))
+          .then(tableNames => {
+            if (tableNames[0] && tableNames[0].tableName) {
+              tableNames = tableNames.map(v => v.tableName);
+            }
+            expect(tableNames).to.deep.equal(['my_test_table1']);
+          });
+      });
+
+      if (dialect === 'mysql' || dialect === 'mariadb') {
+        it('should show all tables in all databases', function() {
+          return this.queryInterface
+            .createTable('my_test_table1', { name: DataTypes.STRING })
+            .then(() => this.sequelize.query('CREATE DATABASE my_test_db'))
+            .then(() => this.sequelize.query('CREATE TABLE my_test_db.my_test_table2 (id INT)'))
+            .then(() => this.sequelize.query(this.queryInterface.QueryGenerator.showTablesQuery(), {
+              raw: true,
+              type: this.sequelize.QueryTypes.SHOWTABLES
+            }))
+            .tap(() => this.sequelize.query('DROP DATABASE my_test_db'))
+            .then(tableNames => {
+              if (tableNames[0] && tableNames[0].tableName) {
+                tableNames = tableNames.map(v => v.tableName);
+              }
+              tableNames.sort();
+              expect(tableNames).to.deep.equal(['my_test_table1', 'my_test_table2']);
+            });
+        });
+      }
+    }
+  });
+
   describe('renameTable', () => {
     it('should rename table', function() {
       return this.queryInterface
@@ -488,6 +552,34 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           .then(constraints => {
             constraints = constraints.map(constraint => constraint.constraintName);
             expect(constraints).to.not.include('users_email_uk');
+          });
+      });
+
+      it('should add a constraint after another', function() {
+        return this.queryInterface.addConstraint('users', ['username'], {
+          type: 'unique'
+        }).then(() => this.queryInterface.addConstraint('users', ['email'], {
+          type: 'unique'
+        }))
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.include('users_email_uk');
+            expect(constraints).to.include('users_username_uk');
+            return this.queryInterface.removeConstraint('users', 'users_email_uk');
+          })
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('users_email_uk');
+            expect(constraints).to.include('users_username_uk');
+            return this.queryInterface.removeConstraint('users', 'users_username_uk');
+          })
+          .then(() => this.queryInterface.showConstraint('users'))
+          .then(constraints => {
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('users_email_uk');
+            expect(constraints).to.not.include('users_username_uk');
           });
       });
     });
