@@ -353,7 +353,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
-    it('should work with combinding a where and a scope', function() {
+    it('should work with combining a where and a scope', function() {
       const User = this.sequelize.define('User', {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         name: DataTypes.STRING

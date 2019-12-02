@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       Task.belongsTo(User);
 
-      return Support.dropTestSchemas(this.sequelize).then(() => {
+      return this.sequelize.dropSchema('archive').then(() => {
         return this.sequelize.createSchema('archive');
       }).then(() => {
         return User.sync({ force: true });

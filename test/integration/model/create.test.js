@@ -160,7 +160,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         }).catch(error => {
           expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-          expect(error.errors[0].path).to.be.a('string', 'username');
+          if (dialect !== 'ibmi') {
+            expect(error.errors[0].path).to.be.a('string', 'username');
+          }
         }));
     });
 
@@ -445,7 +447,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      (dialect !== 'sqlite' && dialect !== 'mssql' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', function() {
+      (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'ibmi' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', function() {
         const User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
@@ -725,6 +727,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(user).to.be.ok;
           expect(user.created_time).to.be.ok;
           expect(user.updated_time).to.be.ok;
+          console.log(user.created_time.getMilliseconds());
           expect(user.created_time.getMilliseconds()).not.to.equal(0);
           expect(user.updated_time.getMilliseconds()).not.to.equal(0);
         });

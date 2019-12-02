@@ -430,7 +430,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 })
               );
             }).then(([postA, postB, postC]) => {
-              console.log(postA);
+              // console.log(postA);
+              // console.log(postA.get('categories')[0]);
+              // console.log("OK");
+              // console.log(postA.get('categories')[1]);
               expect(postA.get('categories').length).to.equal(1);
               expect(postA.get('tags').length).to.equal(1);
               expect(postB.get('categories').length).to.equal(1);

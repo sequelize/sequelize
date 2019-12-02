@@ -4,12 +4,12 @@
   "version": "0.1.0",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
-    "Mark Irish <mirish@ibm.com>",
     "Sascha Depold <sascha@depold.com>",
     "Jan Aagaard Meier <janzeh@gmail.com>",
     "Daniel Durante <me@danieldurante.com>",
     "Mick Hansen <mick.kasper.hansen@gmail.com>",
-    "Sushant Dhiman <sushantdhiman@outlook.com>"
+    "Sushant Dhiman <sushantdhiman@outlook.com>",
+    "Mark Irish <mirish@ibm.com>"
   ],
   "repository": {
     "type": "git",
@@ -76,7 +76,7 @@
     "mocha": "^6.1.4",
     "mysql2": "^1.6.5",
     "nyc": "^14.1.1",
-    "odbc": "^2.1.1",
+    "odbc": "^2.2.1",
     "pg": "^7.8.1",
     "pg-hstore": "^2.x",
     "pg-types": "^2.0.0",

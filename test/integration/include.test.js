@@ -619,6 +619,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "PostComments.someProperty"'),
             [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2']
           ];
+        } else if (dialect === 'ibmi') {
+          findAttributes = [
+            Sequelize.literal('(SELECT 1 AS "PostComments.someProperty" FROM SYSIBM.SYSDUMMY1)'),
+            [Sequelize.literal('(SELECT 1 AS "PostComments.someProperty2" FROM SYSIBM.SYSDUMMY1)'), 'someProperty2']
+          ];
         } else {
           findAttributes = [
             Sequelize.literal('EXISTS(SELECT 1) AS "PostComments.someProperty"'),
@@ -636,6 +641,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ]
         });
       }).then(posts => {
+        console.log(posts[0].PostComments[0]);
         expect(posts[0].PostComments[0].get('someProperty')).to.be.ok;
         expect(posts[0].PostComments[0].get('someProperty2')).to.be.ok;
         expect(posts[0].PostComments[0].get('commentTitle')).to.equal('WAT');

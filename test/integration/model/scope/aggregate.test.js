@@ -107,10 +107,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (Support.sequelize.dialect.supports.schemas) {
         it('aggregate with schema', function() {
-          this.Hero = this.sequelize.define('Hero', {
-            codename: Sequelize.STRING
-          }, { schema: 'heroschema' });
-          return this.sequelize.createSchema('heroschema')
+          return this.sequelize.dropSchema('heroschema')
+            .then(() => {
+              this.Hero = this.sequelize.define('Hero', {
+                codename: Sequelize.STRING
+              }, { schema: 'heroschema' });
+              return this.sequelize.createSchema('heroschema');
+            })
             .then(() => {
               return this.sequelize.sync({ force: true });
             })

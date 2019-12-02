@@ -4,7 +4,8 @@ const chai = require('chai'),
   expect = chai.expect,
   Sequelize = require('../../index'),
   Support = require('./support'),
-  config = require('../config/config');
+  config = require('../config/config'),
+  dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('#update', () => {
@@ -95,10 +96,16 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           expect(instance).to.be.ok;
           return expect(Model.update(records[0], { where: { id: instance.id } })).to.be.rejected;
         }).then(err => {
-          expect(err).to.be.an.instanceOf(Error);
-          expect(err.errors).to.have.length(1);
-          expect(err.errors[0].path).to.include('uniqueName');
-          expect(err.errors[0].message).to.include('must be unique');
+          if (dialect === 'ibmi') {
+            expect(err).to.be.an.instanceOf(Error);
+            expect(err.original.odbcErrors).to.have.length(1);
+            expect(err.original.odbcErrors[0].code).to.equal(-803);
+          } else {
+            expect(err).to.be.an.instanceOf(Error);
+            expect(err.errors).to.have.length(1);
+            expect(err.errors[0].path).to.include('uniqueName');
+            expect(err.errors[0].message).to.include('must be unique');
+          }
         });
     });
 
@@ -123,10 +130,16 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           expect(instance).to.be.ok;
           return expect(Model.update(records[0], { where: { id: instance.id } })).to.be.rejected;
         }).then(err => {
-          expect(err).to.be.an.instanceOf(Error);
-          expect(err.errors).to.have.length(1);
-          expect(err.errors[0].path).to.include('uniqueName');
-          expect(err.errors[0].message).to.equal('custom unique error message');
+          if (dialect === 'ibmi') {
+            expect(err).to.be.an.instanceOf(Error);
+            expect(err.original.odbcErrors).to.have.length(1);
+            expect(err.original.odbcErrors[0].code).to.equal(-803);
+          } else {
+            expect(err).to.be.an.instanceOf(Error);
+            expect(err.errors).to.have.length(1);
+            expect(err.errors[0].path).to.include('uniqueName');
+            expect(err.errors[0].message).to.equal('custom unique error message');
+          }
         });
     });
 
@@ -153,17 +166,29 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           expect(instance).to.be.ok;
           return expect(Model.create(records[1])).to.be.rejected;
         }).then(err => {
-          expect(err).to.be.an.instanceOf(Error);
-          expect(err.errors).to.have.length(1);
-          expect(err.errors[0].path).to.include('uniqueName1');
-          expect(err.errors[0].message).to.equal('custom unique error message 1');
+          if (dialect === 'ibmi') {
+            expect(err).to.be.an.instanceOf(Error);
+            expect(err.original.odbcErrors).to.have.length(1);
+            expect(err.original.odbcErrors[0].code).to.equal(-803);
+          } else {
+            expect(err).to.be.an.instanceOf(Error);
+            expect(err.errors).to.have.length(1);
+            expect(err.errors[0].path).to.include('uniqueName1');
+            expect(err.errors[0].message).to.equal('custom unique error message 1');
+          }
 
           return expect(Model.create(records[2])).to.be.rejected;
         }).then(err => {
-          expect(err).to.be.an.instanceOf(Error);
-          expect(err.errors).to.have.length(1);
-          expect(err.errors[0].path).to.include('uniqueName2');
-          expect(err.errors[0].message).to.equal('custom unique error message 2');
+          if (dialect === 'ibmi') {
+            expect(err).to.be.an.instanceOf(Error);
+            expect(err.original.odbcErrors).to.have.length(1);
+            expect(err.original.odbcErrors[0].code).to.equal(-803);
+          } else {
+            expect(err).to.be.an.instanceOf(Error);
+            expect(err.errors).to.have.length(1);
+            expect(err.errors[0].path).to.include('uniqueName2');
+            expect(err.errors[0].message).to.equal('custom unique error message 2');
+          }
         });
     });
   });

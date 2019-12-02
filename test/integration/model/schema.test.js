@@ -18,33 +18,38 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('global schema', () => {
       before(function() {
-        current.options.schema = null;
-        this.RestaurantOne = current.define('restaurant', {
-          foo: DataTypes.STRING,
-          bar: DataTypes.STRING
-        });
-        this.LocationOne = current.define('location', {
-          name: DataTypes.STRING
-        });
-        this.RestaurantOne.belongsTo(this.LocationOne,
-          {
-            foreignKey: 'location_id',
-            constraints: false
+        return Promise.all([
+          this.sequelize.dropSchema(SCHEMA_ONE),
+          this.sequelize.dropSchema(SCHEMA_TWO)
+        ]).then(() => {
+          current.options.schema = null;
+          this.RestaurantOne = current.define('restaurant', {
+            foo: DataTypes.STRING,
+            bar: DataTypes.STRING
           });
-        current.options.schema = SCHEMA_TWO;
-        this.RestaurantTwo = current.define('restaurant', {
-          foo: DataTypes.STRING,
-          bar: DataTypes.STRING
-        });
-        this.LocationTwo = current.define('location', {
-          name: DataTypes.STRING
-        });
-        this.RestaurantTwo.belongsTo(this.LocationTwo,
-          {
-            foreignKey: 'location_id',
-            constraints: false
+          this.LocationOne = current.define('location', {
+            name: DataTypes.STRING
           });
-        current.options.schema = null;
+          this.RestaurantOne.belongsTo(this.LocationOne,
+            {
+              foreignKey: 'location_id',
+              constraints: false
+            });
+          current.options.schema = SCHEMA_TWO;
+          this.RestaurantTwo = current.define('restaurant', {
+            foo: DataTypes.STRING,
+            bar: DataTypes.STRING
+          });
+          this.LocationTwo = current.define('location', {
+            name: DataTypes.STRING
+          });
+          this.RestaurantTwo.belongsTo(this.LocationTwo,
+            {
+              foreignKey: 'location_id',
+              constraints: false
+            });
+          current.options.schema = 'SEQUELIZE';
+        });
       });
 
       beforeEach('build restaurant tables', function() {

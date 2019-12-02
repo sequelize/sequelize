@@ -252,6 +252,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to handle binary values through associations as well...', function() {
+        if (dialect === 'ibmi') {
+          // Binary fields cannot be IDs on IBM i
+          return;
+        }
         const User = this.User;
         const Binary = this.sequelize.define('Binary', {
           id: {

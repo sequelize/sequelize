@@ -190,7 +190,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       AcmeProject.belongsToMany(AcmeUser, { through: AcmeProjectUsers });
 
       const ctx = {};
-      return Support.dropTestSchemas(this.sequelize).then(() => {
+      return this.sequelize.dropSchema('acme').then(() => {
         return this.sequelize.createSchema('acme');
       }).then(() => {
         return Promise.all([

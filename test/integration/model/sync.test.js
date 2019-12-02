@@ -79,15 +79,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         age: Sequelize.INTEGER
       });
       return this.sequelize.sync()
-        .then(() => this.sequelize.define('testSync', {
-          name: Sequelize.STRING,
-          age: Sequelize.STRING
-        }))
+        .then(() => {
+          if (dialect === 'ibmi') {
+            this.sequelize.define('testSync', {
+              name: Sequelize.STRING,
+              age: Sequelize.DECIMAL // ibm cant convert numeric -> string
+            });
+          } else {
+            this.sequelize.define('testSync', {
+              name: Sequelize.STRING,
+              age: Sequelize.STRING
+            });
+          }
+        })
         .then(() => this.sequelize.sync({ alter: true }))
         .then(() => testSync.describe())
         .then(data => {
           expect(data).to.have.ownProperty('age');
-          expect(data.age.type).to.have.string('CHAR'); // CHARACTER VARYING, VARCHAR(n)
+          if (dialect === 'ibmi') {
+            expect(data.age.type).to.have.string('DECIMAL');
+          } else {
+            expect(data.age.type).to.have.string('CHAR'); // CHARACTER VARYING, VARCHAR(n)
+          }
         });
     });
 
@@ -182,7 +195,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             .then(() => User.sync({ alter: true }))
             .then(() => this.sequelize.getQueryInterface().showIndex(User.getTableName()))
             .then(results => {
-              if (dialect === 'sqlite') {
+              if (dialect === 'sqlite' || dialect === 'ibmi') {
                 // SQLite doesn't treat primary key as index
                 expect(results).to.have.length(4);
               } else {
@@ -223,7 +236,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             .then(() => User.sync({ alter: true }))
             .then(() => this.sequelize.getQueryInterface().showIndex(User.getTableName()))
             .then(results => {
-              if (dialect === 'sqlite') {
+              if (dialect === 'sqlite' || dialect === 'ibmi') {
                 // SQLite doesn't treat primary key as index
                 expect(results).to.have.length(4);
               } else {
@@ -245,7 +258,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true }).then(() => {
           return this.sequelize.getQueryInterface().showIndex(User.getTableName());
         }).then(results => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'ibmi') { // unique: true sets a CONSTRAINT, not an INDEX, on IBM i. Can't see constraints and indexes on same query
+            expect(results).to.have.length(0);
+            return;
+          }
+          if (dialect === 'sqlite' || dialect === 'ibmi') {
             // SQLite doesn't treat primary key as index
             expect(results).to.have.length(1);
           } else {
@@ -272,6 +289,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true }).then(() => {
           return this.sequelize.getQueryInterface().showIndex(User.getTableName());
         }).then(results => {
+          if (dialect === 'ibmi') {
+            expect(results).to.have.length(0);
+            return;
+          }
           if (dialect === 'sqlite') {
             // SQLite doesn't treat primary key as index
             expect(results).to.have.length(2);
@@ -303,6 +324,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true }).then(() => {
           return this.sequelize.getQueryInterface().showIndex(User.getTableName());
         }).then(results => {
+          if (dialect === 'ibmi') {
+            expect(results).to.have.length(1);
+            expect(results.filter(r => r.name === 'wow_my_index')).to.have.length(1);
+            return;
+          }
           if (dialect === 'sqlite') {
             // SQLite doesn't treat primary key as index
             expect(results).to.have.length(3);
@@ -327,6 +353,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true }).then(() => {
           return this.sequelize.getQueryInterface().showIndex(User.getTableName());
         }).then(results => {
+          if (dialect === 'ibmi') {
+            expect(results).to.have.length(0);
+            return;
+          }
           if (dialect === 'sqlite') {
             // SQLite doesn't treat primary key as index
             expect(results).to.have.length(1);
@@ -359,6 +389,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true }).then(() => {
           return this.sequelize.getQueryInterface().showIndex(User.getTableName());
         }).then(results => {
+          if (dialect === 'ibmi') {
+            expect(results).to.have.length(0);
+            return;
+          }
           if (dialect === 'sqlite') {
             // SQLite doesn't treat primary key as index
             expect(results).to.have.length(1);

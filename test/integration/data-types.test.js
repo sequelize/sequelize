@@ -233,7 +233,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       age: Sequelize.BIGINT
     });
 
-    const age = BigInt(Number.MAX_SAFE_INTEGER).add(Number.MAX_SAFE_INTEGER);
+    const age = BigInt('9223372036854775807');
 
     return User.sync({ force: true }).then(() => {
       return User.create({ age });

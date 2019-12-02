@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        if (current.dialect.name !== 'mssql') {
+        if (current.dialect.name !== 'mssql' && current.dialect.name !== 'ibmi') {
           it('should work with order: literal()', function() {
             return this.User.findAll({
               order: this.sequelize.literal(`email = ${this.sequelize.escape('test@sequelizejs.com')}`)
@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should not throw on a literal', function() {
           return this.User.findAll({
             order: [
-              ['id', this.sequelize.literal('ASC, name DESC')]
+              ['id', this.sequelize.literal('ASC, "name" DESC')]
             ]
           });
         });

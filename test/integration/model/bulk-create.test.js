@@ -153,6 +153,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
             } else if (dialect === 'mssql') {
               expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) VALUES');
+            } else if (dialect === 'ibmi') {
+              expect(sql).to.include('INSERT INTO "SEQUELIZE"."Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
             } else { // mysql, sqlite
               expect(sql).to.include('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL');
             }
@@ -399,7 +401,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         tableName: 'Dummy'
       });
 
-      return Support.dropTestSchemas(this.sequelize).then(() => {
+      return this.sequelize.dropSchema('space1').then(() => {
         return this.sequelize.createSchema('space1');
       }).then(() => {
         return Dummy.sync({ force: true });
