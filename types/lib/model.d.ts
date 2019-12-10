@@ -668,6 +668,11 @@ export interface CreateOptions extends BuildOptions, Logging, Silent, Transactio
    * @default true
    */
   validate?: boolean;
+
+  /**
+   * If false, hooks are not run before and after create / update + validate.
+   */
+  hooks?: boolean;
 }
 
 /**
