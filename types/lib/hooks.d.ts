@@ -4,8 +4,10 @@ import Model, {
   CountOptions,
   CreateOptions,
   DestroyOptions,
+  RestoreOptions,
   FindOptions,
   InstanceDestroyOptions,
+  InstanceRestoreOptions,
   InstanceUpdateOptions,
   ModelAttributes,
   ModelOptions,
@@ -26,6 +28,8 @@ export interface ModelHooks<M extends Model = Model> {
   afterCreate(attributes: M, options: CreateOptions): HookReturn;
   beforeDestroy(instance: M, options: InstanceDestroyOptions): HookReturn;
   afterDestroy(instance: M, options: InstanceDestroyOptions): HookReturn;
+  beforeRestore(instance: M, options: InstanceRestoreOptions): HookReturn;
+  afterRestore(instance: M, options: InstanceRestoreOptions): HookReturn;
   beforeUpdate(instance: M, options: InstanceUpdateOptions): HookReturn;
   afterUpdate(instance: M, options: InstanceUpdateOptions): HookReturn;
   beforeSave(instance: M, options: InstanceUpdateOptions | CreateOptions): HookReturn;
@@ -34,6 +38,8 @@ export interface ModelHooks<M extends Model = Model> {
   afterBulkCreate(instances: M[], options: BulkCreateOptions): HookReturn;
   beforeBulkDestroy(options: DestroyOptions): HookReturn;
   afterBulkDestroy(options: DestroyOptions): HookReturn;
+  beforeBulkRestore(options: RestoreOptions): HookReturn;
+  afterBulkRestore(options: RestoreOptions): HookReturn;
   beforeBulkUpdate(options: UpdateOptions): HookReturn;
   afterBulkUpdate(options: UpdateOptions): HookReturn;
   beforeFind(options: FindOptions): HookReturn;
