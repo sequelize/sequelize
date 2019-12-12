@@ -20,6 +20,7 @@ import {
   WhereAttributeHash,
   WhereOperators,
   ModelCtor,
+  HookOptions,
 } from './model';
 import { ModelManager } from './model-manager';
 import * as Op from './operators';
@@ -36,7 +37,7 @@ import { ConnectionManager } from './connection-manager';
 /**
  * Sync Options
  */
-export interface SyncOptions extends Logging {
+export interface SyncOptions extends Logging, HookOptions {
   /**
    * If force is true, each DAO will do DROP TABLE IF EXISTS ..., before it tries to create its own table
    */
@@ -64,13 +65,9 @@ export interface SyncOptions extends Logging {
    */
   searchPath?: string;
 
-  /**
-   * If hooks is true then beforeSync, afterSync, beforeBulkSync, afterBulkSync hooks will be called
-   */
-  hooks?: boolean;
 }
 
-export interface DefaultSetOptions {}
+export interface DefaultSetOptions { }
 
 /**
  * Connection Pool options
@@ -160,7 +157,7 @@ export interface Config {
   };
 }
 
-export type Dialect =  'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'mariadb';
+export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'mariadb';
 
 export interface RetryOptions {
   match?: (RegExp | string | Function)[];
@@ -370,7 +367,7 @@ export interface Options extends Logging {
   retry?: RetryOptions;
 }
 
-export interface QueryOptionsTransactionRequired {}
+export interface QueryOptionsTransactionRequired { }
 
 /**
  * This is the main class, the entry point to sequelize. To use it, you just need to
@@ -1070,7 +1067,7 @@ export class Sequelize extends Hooks {
    * Returns the database name.
    */
 
-  public getDatabaseName() : string;
+  public getDatabaseName(): string;
 
   /**
    * Returns an instance of QueryInterface.
