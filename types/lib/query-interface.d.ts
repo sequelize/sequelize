@@ -443,6 +443,11 @@ export class QueryInterface {
   public getForeignKeysForTables(tableNames: string, options?: QueryInterfaceOptions): Promise<object>;
 
   /**
+   * Get foreign key references details for the table
+   */
+  public getForeignKeyReferencesForTable(tableName: string, options?: QueryInterfaceOptions): Promise<object>;
+
+  /**
    * Inserts a new record
    */
   public insert(instance: Model, tableName: string, values: object, options?: QueryOptions): Promise<object>;
