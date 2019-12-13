@@ -559,8 +559,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       return this.sequelize.sync({ force: true })
-        .then(() => User.create({ id: 1 }))
-        .then(() => Mail.create({ id: 1 }))
+        .then(() => User.create({}))
+        .then(() => Mail.create({}))
         .then(mail =>
           Entry.create({ mailId: mail.id, ownerId: 1 })
             .then(() => Entry.create({ mailId: mail.id, ownerId: 1 }))
