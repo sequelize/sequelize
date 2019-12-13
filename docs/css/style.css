@@ -12,24 +12,6 @@ div.sequelize {
   font-family: 'Titillium Web', sans-serif;
 }
 
-a[href="source.html"],
-a[href^="file/lib/"] {
-  display: none;
-}
-
-.slack-logo {
-  height: 20px;
-  position: relative;
-  top: 3px;
-  padding: 0 5px;
-}
-
-.header-logo {
-  height: 25px;
-  position: relative;
-  top: 6px;
-}
-
 .center {
   text-align: center;
 }
@@ -43,4 +25,33 @@ a[href^="file/lib/"] {
   margin-top: 40px !important;
   padding-top: 0;
   height: calc(100% - 40px);
+}
+
+.manual-toc a:hover {
+  color: #999 !important;
+}
+
+.manual-group {
+  font-weight: 600;
+  margin: 9.6px 0 3.2px 0;
+  color: black !important;
+  font-size: 17px;
+}
+
+.api-reference-link {
+  font-weight: bold;
+  padding: 0 20px;
+}
+.api-reference-link:hover {
+  color: rgb(3, 155, 229);
+}
+
+header a {
+  display: flex;
+  align-items: center;
+}
+
+a[href="source.html"],
+a[href^="file/lib/"] {
+  display: none;
 }

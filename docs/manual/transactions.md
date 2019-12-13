@@ -15,7 +15,6 @@ Notice how the callback passed to `transaction` returns a promise chain, and doe
 
 ```js
 return sequelize.transaction(t => {
-
   // chain all your queries here. make sure you return them.
   return User.create({
     firstName: 'Abraham',
@@ -54,10 +53,10 @@ return sequelize.transaction(t => {
 
 ### Automatically pass transactions to all queries
 
-In the examples above, the transaction is still manually passed, by passing `{ transaction: t }` as the second argument. To automatically pass the transaction to all queries you must install the [continuation local storage](https://github.com/othiym23/node-continuation-local-storage) (CLS) module and instantiate a namespace in your own code:
+In the examples above, the transaction is still manually passed, by passing `{ transaction: t }` as the second argument. To automatically pass the transaction to all queries you must install the [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked) (CLS) module and instantiate a namespace in your own code:
 
 ```js
-const cls = require('continuation-local-storage');
+const cls = require('cls-hooked');
 const namespace = cls.createNamespace('my-very-own-namespace');
 ```
 
@@ -93,17 +92,13 @@ sequelize.transaction((t1) => {
 });
 ```
 
-After you've used `Sequelize.useCLS()` all promises returned from sequelize will be patched to maintain CLS context. CLS is a complicated subject - more details in the docs for [cls-bluebird](https://www.npmjs.com/package/cls-bluebird), the patch used to make bluebird promises work with CLS.
-
-**Note:** _[CLS only supports async/await, at the moment, when using cls-hooked package](https://github.com/othiym23/node-continuation-local-storage/issues/98#issuecomment-323503807). Although, [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked/blob/master/README.md) relies on *experimental API* [async_hooks](https://github.com/nodejs/node/blob/master/doc/api/async_hooks.md)_
-
 ## Concurrent/Partial transactions
 
 You can have concurrent transactions within a sequence of queries or have some of them excluded from any transactions. Use the `{transaction: }` option to control which transaction a query belong to:
 
 **Warning:** _SQLite does not support more than one transaction at the same time._
 
-### Without CLS enabled
+### With CLS enabled
 
 ```js
 sequelize.transaction((t1) => {

@@ -527,6 +527,77 @@ if (current.dialect.supports.transactions) {
 
     }
 
+    describe('isolation levels', () => {
+      it('should read the most recent committed rows when using the READ COMMITTED isolation level', function() {
+        const User = this.sequelize.define('user', {
+          username: Support.Sequelize.STRING
+        });
+
+        return expect(
+          this.sequelize.sync({ force: true }).then(() => {
+            return this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED }, transaction => {
+              return User.findAll({ transaction })
+                .then(users => expect( users ).to.have.lengthOf(0))
+                .then(() => User.create({ username: 'jan' })) // Create a User outside of the transaction
+                .then(() => User.findAll({ transaction }))
+                .then(users => expect( users ).to.have.lengthOf(1)); // We SHOULD see the created user inside the transaction
+            });
+          })
+        ).to.eventually.be.fulfilled;
+      });
+
+      // mssql is excluded because it implements REPREATABLE READ using locks rather than a snapshot, and will see the new row
+      if (!['sqlite', 'mssql'].includes(dialect)) {
+        it('should not read newly committed rows when using the REPEATABLE READ isolation level', function() {
+          const User = this.sequelize.define('user', {
+            username: Support.Sequelize.STRING
+          });
+
+          return expect(
+            this.sequelize.sync({ force: true }).then(() => {
+              return this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ }, transaction => {
+                return User.findAll({ transaction })
+                  .then(users => expect( users ).to.have.lengthOf(0))
+                  .then(() => User.create({ username: 'jan' })) // Create a User outside of the transaction
+                  .then(() => User.findAll({ transaction })) 
+                  .then(users => expect( users ).to.have.lengthOf(0)); // We SHOULD NOT see the created user inside the transaction
+              });
+            })
+          ).to.eventually.be.fulfilled;
+        });
+      }
+
+      // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
+      if (!['sqlite', 'postgres', 'postgres-native'].includes(dialect)) {
+        it('should block updates after reading a row using SERIALIZABLE', function() {
+          const User = this.sequelize.define('user', {
+              username: Support.Sequelize.STRING
+            }),
+            transactionSpy = sinon.spy();
+
+          return this.sequelize.sync({ force: true }).then(() => {
+            return User.create({ username: 'jan' });
+          }).then(() => {
+            return this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE }).then(transaction => {
+              return User.findAll( { transaction } )
+                .then(() => Promise.join(
+                  User.update({ username: 'joe' }, {
+                    where: {
+                      username: 'jan'
+                    }
+                  }).then(() => expect(transactionSpy).to.have.been.called ), // Update should not succeed before transaction has committed
+                  Promise.delay(2000)
+                    .then(() => transaction.commit())
+                    .then(transactionSpy)
+                ));
+            });
+          });
+        });
+      }
+
+    });
+
+
     if (current.dialect.supports.lock) {
       describe('row locking', () => {
         it('supports for update', function() {

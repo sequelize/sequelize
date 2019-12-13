@@ -80,10 +80,17 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 
 ## MSSQL
 
-The library for MSSQL is`tedious@^6.0.0` You'll just need to define the dialect:
+The library for MSSQL is`tedious@^6.0.0` You'll just need to define the dialect.
+Please note: `tedious@^6.0.0` requires you to nest MSSQL specific options inside an additional `options`-object inside the `dialectOptions`-object.
 
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'mssql'
+  dialect: 'mssql',
+  dialectOptions: {
+    options: {
+      useUTC: false,
+      dateFirst: 1,
+    }
+  }
 })
 ```

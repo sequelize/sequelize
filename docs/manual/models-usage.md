@@ -133,7 +133,7 @@ Suppose you want to find all users who have a profile attached:
 ```js
 User.findAndCountAll({
   include: [
-     { model: Profile, required: true}
+     { model: Profile, required: true }
   ],
   limit: 3
 });
@@ -758,4 +758,50 @@ Include all also supports nested loading:
 
 ```js
 User.findAll({ include: [{ all: true, nested: true }]});
+```
+
+### Use right join for association
+
+By default, associations are loaded using a left join, that is to say it only includes records from the parent table. You can change this behavior to a right join by passing the `right` property, if the dialect you are using supports it. Currenly, `sqlite` *does not* support [right joins](https://www.sqlite.org/omitted.html).
+
+*Note:* `right` is only respected if `required` is false.
+
+```js
+User.findAll({
+    include: [{
+        model: Tool // will create a left join
+    }]
+});
+
+User.findAll({
+    include: [{
+        model: Tool,
+        right: true // will create a right join
+    }]
+});
+
+User.findAll({
+    include: [{
+        model: Tool,
+        required: true,
+        right: true // has no effect, will create an inner join
+    }]
+});
+
+User.findAll({
+    include: [{
+        model: Tool,
+        where: { name: { [Op.like]: '%ooth%' } },
+        right: true // has no effect, will create an inner join
+    }]
+});
+
+User.findAll({
+    include: [{
+        model: Tool,
+        where: { name: { [Op.like]: '%ooth%' } },
+        required: false
+        right: true // because we set `required` to false, this will create a right join
+    }]
+});
 ```

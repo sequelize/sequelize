@@ -1423,7 +1423,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should pull in dependent fields for a VIRTUAL', function() {
         const User = this.sequelize.define('User', {
           active: {
-            type: new Sequelize.VIRTUAL(Sequelize.BOOLEAN, ['createdAt']),
+            type: Sequelize.VIRTUAL(Sequelize.BOOLEAN, ['createdAt']),
             get() {
               return this.get('createdAt') > Date.now() - 7 * 24 * 60 * 60 * 1000;
             }
@@ -1439,6 +1439,55 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             users.forEach(user => {
               expect(user.get('createdAt')).to.be.ok;
               expect(user.get('active')).to.equal(true);
+            });
+          });
+        });
+      });
+
+      it('should pull in dependent fields for a VIRTUAL in include', async function() {
+        const User = this.sequelize.define('User', {
+          name: Sequelize.STRING
+        });
+
+        const Image = this.sequelize.define('Image', {
+          path: {
+            type: Sequelize.STRING,
+            allowNull: false
+          },
+          url: {
+            type: Sequelize.VIRTUAL(Sequelize.STRING, ['path']),
+            get() {
+              return `https://my-cool-domain.com/${this.get('path')}`;
+            }
+          }
+        });
+
+        User.hasOne(Image);
+        Image.belongsTo(User);
+
+        await this.sequelize.sync({ force: true });
+
+        return User.create({
+          name: 'some user',
+          Image: {
+            path: 'folder1/folder2/logo.png'
+          }
+        }, {
+          include: {
+            model: Image
+          }
+        }).then(() => {
+          return User.findAll({
+            attributes: ['name'],
+            include: [{
+              model: Image,
+              attributes: ['url']
+            }]
+          }).then(users => {
+            users.forEach(user => {
+              expect(user.get('name')).to.equal('some user');
+              expect(user.Image.get('url')).to.equal('https://my-cool-domain.com/folder1/folder2/logo.png');
+              expect(user.Image.get('path')).to.equal('folder1/folder2/logo.png');
             });
           });
         });

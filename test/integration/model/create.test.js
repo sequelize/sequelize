@@ -393,6 +393,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should ignore option returning', function() {
+      return this.User.findOrCreate({
+        where: { username: 'Username' },
+        defaults: { data: 'ThisIsData' },
+        returning: false
+      }).then(([user, created]) => {
+        expect(user.username).to.equal('Username');
+        expect(user.data).to.equal('ThisIsData');
+        expect(created).to.be.true;
+      });
+    });
+
     if (current.dialect.supports.transactions) {
       it('should release transaction when meeting errors', function() {
         const test = times => {
@@ -864,6 +876,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).then(user => {
         return this.User.findByPk(user.id).then(user => {
           expect(user.secretValue).to.equal('SEQUELIZE');
+        });
+      });
+    });
+
+    it('should escape $ in sequelize functions arguments', function() {
+      return this.User.create({
+        secretValue: this.sequelize.fn('upper', '$sequelize')
+      }).then(user => {
+        return this.User.findByPk(user.id).then(user => {
+          expect(user.secretValue).to.equal('$SEQUELIZE');
         });
       });
     });

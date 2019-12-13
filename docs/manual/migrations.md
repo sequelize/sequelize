@@ -204,6 +204,12 @@ module.exports = {
 }
 ```
 
+We can generate this file using `migration:generate`. This will create `xxx-migration-skeleton.js` in your migration folder.
+
+```bash
+$ npx sequelize-cli migration:generate --name migration-skeleton
+```
+
 The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. Function `up` or `down` should return a `Promise`. Let's look at an example:
 
 ```js
@@ -270,7 +276,7 @@ module.exports = {
           model: {
             tableName: 'users',
             schema: 'schema'
-          }
+          },
           key: 'id'
         },
         allowNull: false
@@ -319,14 +325,7 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     const transaction = await queryInterface.sequelize.transaction();
     try {
-      await queryInterface.removeColumn(
-        'Person',
-        'petName',
-        {
-          type: Sequelize.STRING,
-        },
-        { transaction }
-      );
+      await queryInterface.removeColumn('Person', 'petName', { transaction });
       await transaction.commit();
     } catch (err) {
       await transaction.rollback();
@@ -338,7 +337,18 @@ module.exports = {
 
 ### The `.sequelizerc` File
 
-This is a special configuration file. It lets you specify various options that you would usually pass as arguments to CLI. Some scenarios where you can use it.
+This is a special configuration file. It lets you specify following options that you would usually pass as arguments to CLI:
+
+- `env`: The environment to run the command in
+- `config`: The path to the config file
+- `options-path`: The path to a JSON file with additional options
+- `migrations-path`: The path to the migrations folder
+- `seeders-path`: The path to the seeders folder
+- `models-path`: The path to the models folder
+- `url`: The database connection string to use. Alternative to using --config files
+- `debug`: When available show various debug information
+
+Some scenarios where you can use it.
 
 - You want to override default path to `migrations`, `models`, `seeders` or `config` folder.
 - You want to rename `config.json` to something else like `database.json`
