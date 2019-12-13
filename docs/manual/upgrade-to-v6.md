@@ -48,6 +48,37 @@ This method now tests for equality with `_.isEqual` and is now deep aware. Modif
 
 ## Changelog
 
+### 6.0.0-beta.4
+
+- feat(sync): allow to bypass drop statements when sync with alter enabled [#11708](https://github.com/sequelize/sequelize/pull/11708)
+- fix(model): injectDependentVirtualAttrs on included models [#11713](https://github.com/sequelize/sequelize/pull/11713)
+- fix(model): generate ON CONFLICT ... DO UPDATE correctly [#11666](https://github.com/sequelize/sequelize/pull/11666)
+- fix(mssql): optimize formatError RegEx [#11725](https://github.com/sequelize/sequelize/pull/11725)
+- fix(types): add getForeignKeyReferencesForTable type [#11738](https://github.com/sequelize/sequelize/pull/11738)
+- fix(types): add 'restore' hooks to types [#11730](https://github.com/sequelize/sequelize/pull/11730)
+- fix(types): added 'fieldMaps' to QueryOptions typings [#11702](https://github.com/sequelize/sequelize/pull/11702)
+- fix(types): add isSoftDeleted to Model [#11628](https://github.com/sequelize/sequelize/pull/11628)
+- fix(types): fix upsert typing [#11674](https://github.com/sequelize/sequelize/pull/11674)
+- fix(types): specified 'this' for getters and setters in fields [#11648](https://github.com/sequelize/sequelize/pull/11648)
+- fix(types): add paranoid to UpdateOptions interface [#11647](https://github.com/sequelize/sequelize/pull/11647)
+- fix(types): include 'as' in IncludeThroughOptions definition [#11624](https://github.com/sequelize/sequelize/pull/11624)
+- fix(types): add Includeable to IncludeOptions.include type [#11622](https://github.com/sequelize/sequelize/pull/11622)
+- fix(types): transaction lock [#11620](https://github.com/sequelize/sequelize/pull/11620)
+- fix(sequelize.fn): escape dollarsign (#11533) [#11606](https://github.com/sequelize/sequelize/pull/11606)
+- fix(types): add nested to Includeable [#11354](https://github.com/sequelize/sequelize/pull/11354)
+- fix(types): add date to where [#11612](https://github.com/sequelize/sequelize/pull/11612)
+- fix(types): add getDatabaseName (#11431) [#11614](https://github.com/sequelize/sequelize/pull/11614)
+- fix(types): beforeDestroy [#11618](https://github.com/sequelize/sequelize/pull/11618)
+- fix(types): query-interface table schema [#11582](https://github.com/sequelize/sequelize/pull/11582)
+- docs: README.md [#11698](https://github.com/sequelize/sequelize/pull/11698)
+- docs(sequelize): detail options.retry usage [#11643](https://github.com/sequelize/sequelize/pull/11643)
+- docs: clarify logging option in Sequelize constructor [#11653](https://github.com/sequelize/sequelize/pull/11653)
+- docs(migrations): fix syntax error in example [#11626](https://github.com/sequelize/sequelize/pull/11626)
+- docs: describe logging option [#11654](https://github.com/sequelize/sequelize/pull/11654)
+- docs(transaction): fix typo [#11659](https://github.com/sequelize/sequelize/pull/11659)
+- docs(hooks): add info about belongs-to-many [#11601](https://github.com/sequelize/sequelize/pull/11601)
+- docs(associations): fix typo [#11592](https://github.com/sequelize/sequelize/pull/11592)
+
 ### 6.0.0-beta.3
 
 - feat: support cls-hooked / tests [#11584](https://github.com/sequelize/sequelize/pull/11584)
