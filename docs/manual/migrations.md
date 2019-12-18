@@ -312,8 +312,8 @@ module.exports = {
         {
           fields: 'petName',
           unique: true,
-        },
-        { transaction }
+          transaction,
+        }
       );
       await transaction.commit();
     } catch (err) {
