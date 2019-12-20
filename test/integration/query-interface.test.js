@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       return this.queryInterface
         .createTable('my_test_table', { name: DataTypes.STRING })
         .tap(cleanup)
-        .then(() => this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id'))
+        .then(() => this.sequelize.query(`CREATE VIEW V_Fail AS SELECT 1 Id ${dialect === 'ibmi' ? 'FROM SYSIBM.SYSDUMMY1' : ''}`))
         .then(() => this.queryInterface.showAllTables())
         .tap(cleanup)
         .then(tableNames => {
@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
     });
 
-    if (dialect !== 'sqlite' && dialect !== 'postgres') {
+    if (dialect !== 'sqlite' && dialect !== 'postgres' && dialect !== 'ibmi') {
       // NOTE: sqlite doesn't allow querying between databases and
       // postgres requires creating a new connection to create a new table.
       it('should not show tables in other databases', function() {
@@ -723,9 +723,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             type: 'unique'
           })
           .catch(e => {
-            expect(e.table).to.equal('users');
-            expect(e.constraint).to.equal('unknown__constraint__name');
-
+            if (dialect !== 'ibmi') {
+              expect(e.table).to.equal('users');
+              expect(e.constraint).to.equal('unknown__constraint__name');
+            }
             throw e;
           });
 

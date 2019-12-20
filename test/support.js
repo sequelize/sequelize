@@ -109,12 +109,10 @@ const Support = {
   },
 
   dropTestSchemas(sequelize) {
-
     const queryInterface = sequelize.getQueryInterface();
-    if (!queryInterface.QueryGenerator._dialect.supports.schemas || queryInterface.QueryGenerator._dialect.name === 'ibmi') {
+    if (!queryInterface.QueryGenerator._dialect.supports.schemas) {
       return this.sequelize.drop({});
     }
-
 
     return sequelize.showAllSchemas().then(schemas => {
       const schemasPromise = [];
