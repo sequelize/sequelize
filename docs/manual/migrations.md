@@ -258,7 +258,7 @@ module.exports = {
 };
 ```
 
-The next is an example of a migration that has a foreign key. You can use references to specify a foreign key:
+The next example is of a migration that has a foreign key. You can use references to specify a foreign key:
 
 ```js
 module.exports = {
@@ -291,7 +291,7 @@ module.exports = {
 
 ```
 
-The next is an example of a migration that has uses async/await where you create an unique index on a new column:
+The next example is of a migration that uses async/await where you create an unique index on a new column:
 
 ```js
 module.exports = {
