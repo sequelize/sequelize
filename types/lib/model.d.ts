@@ -1804,8 +1804,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): Promise<M>;
 
   /**
-   * Search for a single instance. This applies LIMIT 1, so the listener will always be called with a single
-   * instance.
+   * Search for a single instance. Returns the first instance found, or null if none can be found.
    */
   public static findOne<M extends Model>(
     this: { new (): M } & typeof Model,
