@@ -67,7 +67,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               }         
             } 
           },
-          point2 = { type: 'Point', coordinates: [49.807222, -86.984722] };
+          point2 = { type: 'Point', coordinates: [49.807222, -86.984722], 
+            crs: {  
+              type: 'name',   
+              properties: {  
+                name: 'EPSG:4326' 
+              }         
+            } 
+          };
         const props = { username: 'username', geography: point1, 
           crs: {  
             type: 'name',   
