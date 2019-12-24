@@ -250,8 +250,15 @@ if (dialect === 'postgres') {
 
   if (current.dialect.supports.GEOMETRY) {
     describe('GEOMETRY', () => {
+     
       it('should work with object including crs', function() {
-        const User = this.User;
+        const User = this.sequelize.define('User', {
+          username: DataTypes.STRING,
+          geometry: DataTypes.GEOMETRY
+        });
+
+        User.sync({ force: true });
+      
         const point = { type: 'Point', coordinates: [39.807222, -76.984722], 
           crs: {  
             type: 'name',   
