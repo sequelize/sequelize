@@ -257,8 +257,6 @@ if (dialect === 'postgres') {
           geometry: DataTypes.GEOMETRY
         });
 
-        User.sync({ force: true });
-      
         const point = { type: 'Point', coordinates: [39.807222, -76.984722], 
           crs: {  
             type: 'name',   
@@ -267,8 +265,9 @@ if (dialect === 'postgres') {
             }         
           } 
         };
-    
-        return User.create({ username: 'username', geometry: point }).then(newUser => {
+        User.sync({ force: true }).then(()=>{
+          User.create({ username: 'username', geometry: point });
+        }).then(newUser => {
           expect(newUser).not.to.be.null;
           expect(newUser.geometry).to.be.deep.eql(point);
         });
