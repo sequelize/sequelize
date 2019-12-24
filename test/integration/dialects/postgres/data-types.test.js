@@ -6,6 +6,8 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const DataTypes = require('../../../../lib/data-types');
 
+const current = Support.sequelize;
+
 if (dialect === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
     describe('DATE/DATEONLY Validate and Stringify', () => {
@@ -245,4 +247,51 @@ if (dialect === 'postgres') {
     });
 
   });
+
+  if (current.dialect.supports.GEOMETRY) {
+    describe('GEOMETRY', () => {
+      it('should work with object including crs', function() {
+        const User = this.User;
+        const point = { type: 'Point', coordinates: [39.807222, -76.984722], 
+          crs: {  
+            type: 'name',   
+            properties: {  
+              name: 'EPSG:4326' 
+            }         
+          } 
+        };
+    
+        return User.create({ username: 'username', geometry: point }).then(newUser => {
+          expect(newUser).not.to.be.null;
+          expect(newUser.geometry).to.be.deep.eql(point);
+        });
+      });
+    });
+  }
+  
+
+  if (current.dialect.supports.GEOGRAPHY) {
+    describe('GEOGRAPHY', () => {
+      it('should work with object including crs', function() {
+        const Pub = this.sequelize.define('Pub', {
+            location: { field: 'coordinates', type: DataTypes.GEOGRAPHY }
+          }),
+          point = { type: 'Point', coordinates: [39.807222, -76.984722], 
+            crs: {  
+              type: 'name',   
+              properties: {  
+                name: 'EPSG:4326' 
+              }         
+            } 
+          };
+    
+        return Pub.sync({ force: true }).then(() => {
+          return Pub.create({ location: point });
+        }).then(pub => {
+          expect(pub).not.to.be.null;
+          expect(pub.location).to.be.deep.eql(point); 
+        });
+      });
+    });
+  }
 }

@@ -3,34 +3,12 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  dialect = Support.getTestDialect(),
   DataTypes = require('../../../lib/data-types');
 
 const current = Support.sequelize;
 
-
 describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.GEOGRAPHY) {
-    if (dialect === 'postgres') {
-      it('should work with geometry object including crs', function() {
-        const User = this.User;
-        const point = { type: 'Point', coordinates: [39.807222, -76.984722], 
-          crs: {  
-            type: 'name',   
-            properties: {  
-              name: 'EPSG:4326' 
-            }         
-          } 
-        };
-
-        return User.create({ username: 'username', geometry: point }).then(newUser => {
-          expect(newUser).not.to.be.null;
-          expect(newUser.geometry).to.be.deep.eql(point);
-        });
-      });
-
-    }
-
     describe('GEOGRAPHY', () => {
       beforeEach(function() {
         this.User = this.sequelize.define('User', {
