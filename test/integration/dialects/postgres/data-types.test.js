@@ -266,7 +266,7 @@ if (dialect === 'postgres') {
           } 
         };
         User.sync({ force: true }).then(()=>{
-          User.create({ username: 'username', geometry: point });
+          return User.create({ username: 'username', geometry: point });
         }).then(newUser => {
           expect(newUser).not.to.be.null;
           expect(newUser.geometry).to.be.deep.eql(point);
