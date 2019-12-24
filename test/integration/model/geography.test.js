@@ -191,7 +191,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const point = { type: 'Polygon', coordinates: [
             [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
               [100.0, 1.0], [100.0, 0.0]]
-          ] };
+          ],
+          crs: {  
+            type: 'name',   
+            properties: {  
+              name: 'EPSG:4326' 
+            }         
+          } };
 
           return User.create({ username: 'username', geography: point }).then(newUser => {
             expect(newUser).not.to.be.null;
@@ -203,11 +209,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const User = this.User;
           const polygon1 = { type: 'Polygon', coordinates: [
               [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]
-            ] },
+            ], 
+            crs: {  
+              type: 'name',   
+              properties: {  
+                name: 'EPSG:4326' 
+              }         
+            } },
             polygon2 = { type: 'Polygon', coordinates: [
               [[100.0, 0.0], [102.0, 0.0], [102.0, 1.0],
                 [100.0, 1.0], [100.0, 0.0]]
-            ] };
+            ],
+            crs: {  
+              type: 'name',   
+              properties: {  
+                name: 'EPSG:4326' 
+              }         
+            } };
           const props = { username: 'username', geography: polygon1 };
 
           return User.create(props).then(() => {
