@@ -36,12 +36,12 @@ This method now tests for equality with `_.isEqual` and is now deep aware. Modif
   const instance = await MyModel.findOne();
 
   instance.myJsonField.a = 1;
-  console.log(instance.changed()) => false
+  console.log(instance.changed()); // logs `false`
 
   await instance.save(); // this will not save anything
 
   instance.changed('myJsonField', true);
-  console.log(instance.changed()) => ['myJsonField']
+  console.log(instance.changed()); // logs `["myJsonField"]`
 
   await instance.save(); // will save
 ```
