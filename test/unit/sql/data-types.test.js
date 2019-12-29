@@ -1,28 +1,26 @@
 'use strict';
 
-const Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+const Support   = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
   Sequelize = Support.Sequelize,
   chai = require('chai'),
   util = require('util'),
   uuid = require('uuid'),
   expectsql = Support.expectsql,
-  current = Support.sequelize,
-  expect = chai.expect,
-  dialect = Support.getTestDialect();
+  current   = Support.sequelize,
+  expect = chai.expect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
-
-  describe('DataTypes', () => {
+suite(Support.getTestDialectTeaser('SQL'), () => {
+  suite('DataTypes', () => {
     const testsql = function(description, dataType, expectation) {
-      it(description, () => {
+      test(description, () => {
         return expectsql(current.normalizeDataType(dataType).toSql(), expectation);
       });
     };
 
-    describe('STRING', () => {
+    suite('STRING', () => {
       testsql('STRING', DataTypes.STRING, {
         default: 'VARCHAR(255)',
         mssql: 'NVARCHAR(255)'
@@ -52,8 +50,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         postgres: 'BYTEA'
       });
 
-      describe('validate', () => {
-        it('should return `true` if `value` is a string', () => {
+      suite('validate', () => {
+        test('should return `true` if `value` is a string', () => {
           const type = DataTypes.STRING();
 
           expect(type.validate('foobar')).to.equal(true);
@@ -63,7 +61,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('TEXT', () => {
+    suite('TEXT', () => {
       testsql('TEXT', DataTypes.TEXT, {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)' // in mssql text is actually representing a non unicode text field
@@ -72,33 +70,29 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('TEXT("tiny")', DataTypes.TEXT('tiny'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
-        mariadb: 'TINYTEXT',
         mysql: 'TINYTEXT'
       });
 
       testsql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
         default: 'TEXT',
         mssql: 'NVARCHAR(256)',
-        mariadb: 'TINYTEXT',
         mysql: 'TINYTEXT'
       });
 
       testsql('TEXT("medium")', DataTypes.TEXT('medium'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
-        mariadb: 'MEDIUMTEXT',
         mysql: 'MEDIUMTEXT'
       });
 
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
         default: 'TEXT',
         mssql: 'NVARCHAR(MAX)',
-        mariadb: 'LONGTEXT',
         mysql: 'LONGTEXT'
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.TEXT();
 
           expect(() => {
@@ -106,7 +100,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '12345 is not a valid string');
         });
 
-        it('should return `true` if `value` is a string', () => {
+        test('should return `true` if `value` is a string', () => {
           const type = DataTypes.TEXT();
 
           expect(type.validate('foobar')).to.equal(true);
@@ -114,7 +108,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('CHAR', () => {
+    suite('CHAR', () => {
       testsql('CHAR', DataTypes.CHAR, {
         default: 'CHAR(255)'
       });
@@ -140,17 +134,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('BOOLEAN', () => {
+    suite('BOOLEAN', () => {
       testsql('BOOLEAN', DataTypes.BOOLEAN, {
         postgres: 'BOOLEAN',
         mssql: 'BIT',
-        mariadb: 'TINYINT(1)',
         mysql: 'TINYINT(1)',
         sqlite: 'TINYINT(1)'
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.BOOLEAN();
 
           expect(() => {
@@ -158,7 +151,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '12345 is not a valid boolean');
         });
 
-        it('should return `true` if `value` is a boolean', () => {
+        test('should return `true` if `value` is a boolean', () => {
           const type = DataTypes.BOOLEAN();
 
           expect(type.validate(true)).to.equal(true);
@@ -171,11 +164,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('DATE', () => {
+    suite('DATE', () => {
       testsql('DATE', DataTypes.DATE, {
         postgres: 'TIMESTAMP WITH TIME ZONE',
         mssql: 'DATETIMEOFFSET',
-        mariadb: 'DATETIME',
         mysql: 'DATETIME',
         sqlite: 'DATETIME'
       });
@@ -183,13 +175,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('DATE(6)', DataTypes.DATE(6), {
         postgres: 'TIMESTAMP WITH TIME ZONE',
         mssql: 'DATETIMEOFFSET',
-        mariadb: 'DATETIME(6)',
         mysql: 'DATETIME(6)',
         sqlite: 'DATETIME'
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.DATE();
 
           expect(() => {
@@ -197,7 +188,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid date');
         });
 
-        it('should return `true` if `value` is a date', () => {
+        test('should return `true` if `value` is a date', () => {
           const type = DataTypes.DATE();
 
           expect(type.validate(new Date())).to.equal(true);
@@ -206,9 +197,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     if (current.dialect.supports.HSTORE) {
-      describe('HSTORE', () => {
-        describe('validate', () => {
-          it('should throw an error if `value` is invalid', () => {
+      suite('HSTORE', () => {
+        suite('validate', () => {
+          test('should throw an error if `value` is invalid', () => {
             const type = DataTypes.HSTORE();
 
             expect(() => {
@@ -216,7 +207,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid hstore');
           });
 
-          it('should return `true` if `value` is an hstore', () => {
+          test('should return `true` if `value` is an hstore', () => {
             const type = DataTypes.HSTORE();
 
             expect(type.validate({ foo: 'bar' })).to.equal(true);
@@ -225,17 +216,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    describe('UUID', () => {
+    suite('UUID', () => {
       testsql('UUID', DataTypes.UUID, {
         postgres: 'UUID',
         mssql: 'CHAR(36)',
-        mariadb: 'CHAR(36) BINARY',
         mysql: 'CHAR(36) BINARY',
         sqlite: 'UUID'
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.UUID();
 
           expect(() => {
@@ -247,13 +237,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '["foobar"] is not a valid uuid');
         });
 
-        it('should return `true` if `value` is an uuid', () => {
+        test('should return `true` if `value` is an uuid', () => {
           const type = DataTypes.UUID();
 
           expect(type.validate(uuid.v4())).to.equal(true);
         });
 
-        it('should return `true` if `value` is a string and we accept strings', () => {
+        test('should return `true` if `value` is a string and we accept strings', () => {
           const type = DataTypes.UUID();
 
           expect(type.validate('foobar', { acceptStrings: true })).to.equal(true);
@@ -261,13 +251,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('UUIDV1', () => {
+    suite('UUIDV1', () => {
       testsql('UUIDV1', DataTypes.UUIDV1, {
         default: 'UUIDV1'
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.UUIDV1();
 
           expect(() => {
@@ -279,13 +269,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '["foobar"] is not a valid uuid');
         });
 
-        it('should return `true` if `value` is an uuid', () => {
+        test('should return `true` if `value` is an uuid', () => {
           const type = DataTypes.UUIDV1();
 
           expect(type.validate(uuid.v1())).to.equal(true);
         });
 
-        it('should return `true` if `value` is a string and we accept strings', () => {
+        test('should return `true` if `value` is a string and we accept strings', () => {
           const type = DataTypes.UUIDV1();
 
           expect(type.validate('foobar', { acceptStrings: true })).to.equal(true);
@@ -293,13 +283,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('UUIDV4', () => {
+    suite('UUIDV4', () => {
       testsql('UUIDV4', DataTypes.UUIDV4, {
         default: 'UUIDV4'
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.UUIDV4();
           const value = uuid.v1();
 
@@ -312,13 +302,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '["foobar"] is not a valid uuidv4');
         });
 
-        it('should return `true` if `value` is an uuid', () => {
+        test('should return `true` if `value` is an uuid', () => {
           const type = DataTypes.UUIDV4();
 
           expect(type.validate(uuid.v4())).to.equal(true);
         });
 
-        it('should return `true` if `value` is a string and we accept strings', () => {
+        test('should return `true` if `value` is a string and we accept strings', () => {
           const type = DataTypes.UUIDV4();
 
           expect(type.validate('foobar', { acceptStrings: true })).to.equal(true);
@@ -326,14 +316,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('NOW', () => {
+    suite('NOW', () => {
       testsql('NOW', DataTypes.NOW, {
         default: 'NOW',
         mssql: 'GETDATE()'
       });
     });
 
-    describe('INTEGER', () => {
+    suite('INTEGER', () => {
       testsql('INTEGER', DataTypes.INTEGER, {
         default: 'INTEGER'
       });
@@ -341,15 +331,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('INTEGER.UNSIGNED', DataTypes.INTEGER.UNSIGNED, {
         default: 'INTEGER UNSIGNED',
         postgres: 'INTEGER',
-        mssql: 'INTEGER',
-        sqlite: 'INTEGER'
+        mssql: 'INTEGER'
       });
 
       testsql('INTEGER.UNSIGNED.ZEROFILL', DataTypes.INTEGER.UNSIGNED.ZEROFILL, {
         default: 'INTEGER UNSIGNED ZEROFILL',
         postgres: 'INTEGER',
-        mssql: 'INTEGER',
-        sqlite: 'INTEGER'
+        mssql: 'INTEGER'
       });
 
       testsql('INTEGER(11)', DataTypes.INTEGER(11), {
@@ -366,34 +354,34 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('INTEGER(11).UNSIGNED', DataTypes.INTEGER(11).UNSIGNED, {
         default: 'INTEGER(11) UNSIGNED',
-        sqlite: 'INTEGER(11)',
+        sqlite: 'INTEGER UNSIGNED(11)',
         postgres: 'INTEGER',
         mssql: 'INTEGER'
       });
 
       testsql('INTEGER(11).UNSIGNED.ZEROFILL', DataTypes.INTEGER(11).UNSIGNED.ZEROFILL, {
         default: 'INTEGER(11) UNSIGNED ZEROFILL',
-        sqlite: 'INTEGER(11)',
+        sqlite: 'INTEGER UNSIGNED ZEROFILL(11)',
         postgres: 'INTEGER',
         mssql: 'INTEGER'
       });
 
       testsql('INTEGER(11).ZEROFILL', DataTypes.INTEGER(11).ZEROFILL, {
         default: 'INTEGER(11) ZEROFILL',
-        sqlite: 'INTEGER(11)',
+        sqlite: 'INTEGER ZEROFILL(11)',
         postgres: 'INTEGER',
         mssql: 'INTEGER'
       });
 
       testsql('INTEGER(11).ZEROFILL.UNSIGNED', DataTypes.INTEGER(11).ZEROFILL.UNSIGNED, {
         default: 'INTEGER(11) UNSIGNED ZEROFILL',
-        sqlite: 'INTEGER(11)',
+        sqlite: 'INTEGER UNSIGNED ZEROFILL(11)',
         postgres: 'INTEGER',
         mssql: 'INTEGER'
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.INTEGER();
 
           expect(() => {
@@ -409,7 +397,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '123.45 is not a valid integer');
         });
 
-        it('should return `true` if `value` is a valid integer', () => {
+        test('should return `true` if `value` is a valid integer', () => {
           const type = DataTypes.INTEGER();
 
           expect(type.validate('12345')).to.equal(true);
@@ -418,7 +406,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('TINYINT', () => {
+    suite('TINYINT', () => {
       const cases = [
         {
           title: 'TINYINT',
@@ -432,8 +420,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2),
           expect: {
             default: 'TINYINT(2)',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT'
+            mssql: 'TINYINT'
           }
         },
         {
@@ -441,8 +428,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT({ length: 2 }),
           expect: {
             default: 'TINYINT(2)',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT'
+            mssql: 'TINYINT'
           }
         },
         {
@@ -450,9 +436,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.UNSIGNED,
           expect: {
             default: 'TINYINT UNSIGNED',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT',
-            sqlite: 'TINYINT'
+            mssql: 'TINYINT'
           }
         },
         {
@@ -460,9 +444,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2).UNSIGNED,
           expect: {
             default: 'TINYINT(2) UNSIGNED',
-            sqlite: 'TINYINT(2)',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT'
+            sqlite: 'TINYINT UNSIGNED(2)',
+            mssql: 'TINYINT'
           }
         },
         {
@@ -470,9 +453,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.UNSIGNED.ZEROFILL,
           expect: {
             default: 'TINYINT UNSIGNED ZEROFILL',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT',
-            sqlite: 'TINYINT'
+            mssql: 'TINYINT'
           }
         },
         {
@@ -480,9 +461,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2).UNSIGNED.ZEROFILL,
           expect: {
             default: 'TINYINT(2) UNSIGNED ZEROFILL',
-            sqlite: 'TINYINT(2)',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT'
+            sqlite: 'TINYINT UNSIGNED ZEROFILL(2)',
+            mssql: 'TINYINT'
           }
         },
         {
@@ -490,9 +470,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.ZEROFILL,
           expect: {
             default: 'TINYINT ZEROFILL',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT',
-            sqlite: 'TINYINT'
+            mssql: 'TINYINT'
           }
         },
         {
@@ -500,9 +478,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2).ZEROFILL,
           expect: {
             default: 'TINYINT(2) ZEROFILL',
-            sqlite: 'TINYINT(2)',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT'
+            sqlite: 'TINYINT ZEROFILL(2)',
+            mssql: 'TINYINT'
           }
         },
         {
@@ -510,9 +487,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT.ZEROFILL.UNSIGNED,
           expect: {
             default: 'TINYINT UNSIGNED ZEROFILL',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT',
-            sqlite: 'TINYINT'
+            mssql: 'TINYINT'
           }
         },
         {
@@ -520,9 +495,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.TINYINT(2).ZEROFILL.UNSIGNED,
           expect: {
             default: 'TINYINT(2) UNSIGNED ZEROFILL',
-            sqlite: 'TINYINT(2)',
-            mssql: 'TINYINT',
-            postgres: 'TINYINT'
+            sqlite: 'TINYINT UNSIGNED ZEROFILL(2)',
+            mssql: 'TINYINT'
           }
         }
       ];
@@ -530,8 +504,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         testsql(row.title, row.dataType, row.expect);
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.TINYINT();
 
           expect(() => {
@@ -543,7 +517,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '123.45 is not a valid tinyint');
         });
 
-        it('should return `true` if `value` is an integer', () => {
+        test('should return `true` if `value` is an integer', () => {
           const type = DataTypes.TINYINT();
 
           expect(type.validate(-128)).to.equal(true);
@@ -552,7 +526,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('SMALLINT', () => {
+    suite('SMALLINT', () => {
       const cases = [
         {
           title: 'SMALLINT',
@@ -585,8 +559,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'SMALLINT UNSIGNED',
             postgres: 'SMALLINT',
-            mssql: 'SMALLINT',
-            sqlite: 'SMALLINT'
+            mssql: 'SMALLINT'
           }
         },
         {
@@ -594,7 +567,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).UNSIGNED,
           expect: {
             default: 'SMALLINT(4) UNSIGNED',
-            sqlite: 'SMALLINT(4)',
+            sqlite: 'SMALLINT UNSIGNED(4)',
             postgres: 'SMALLINT',
             mssql: 'SMALLINT'
           }
@@ -605,8 +578,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'SMALLINT UNSIGNED ZEROFILL',
             postgres: 'SMALLINT',
-            mssql: 'SMALLINT',
-            sqlite: 'SMALLINT'
+            mssql: 'SMALLINT'
           }
         },
         {
@@ -614,7 +586,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).UNSIGNED.ZEROFILL,
           expect: {
             default: 'SMALLINT(4) UNSIGNED ZEROFILL',
-            sqlite: 'SMALLINT(4)',
+            sqlite: 'SMALLINT UNSIGNED ZEROFILL(4)',
             postgres: 'SMALLINT',
             mssql: 'SMALLINT'
           }
@@ -625,8 +597,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'SMALLINT ZEROFILL',
             postgres: 'SMALLINT',
-            mssql: 'SMALLINT',
-            sqlite: 'SMALLINT'
+            mssql: 'SMALLINT'
           }
         },
         {
@@ -634,7 +605,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).ZEROFILL,
           expect: {
             default: 'SMALLINT(4) ZEROFILL',
-            sqlite: 'SMALLINT(4)',
+            sqlite: 'SMALLINT ZEROFILL(4)',
             postgres: 'SMALLINT',
             mssql: 'SMALLINT'
           }
@@ -645,8 +616,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'SMALLINT UNSIGNED ZEROFILL',
             postgres: 'SMALLINT',
-            mssql: 'SMALLINT',
-            sqlite: 'SMALLINT'
+            mssql: 'SMALLINT'
           }
         },
         {
@@ -654,7 +624,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).ZEROFILL.UNSIGNED,
           expect: {
             default: 'SMALLINT(4) UNSIGNED ZEROFILL',
-            sqlite: 'SMALLINT(4)',
+            sqlite: 'SMALLINT UNSIGNED ZEROFILL(4)',
             postgres: 'SMALLINT',
             mssql: 'SMALLINT'
           }
@@ -664,8 +634,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         testsql(row.title, row.dataType, row.expect);
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.SMALLINT();
 
           expect(() => {
@@ -677,7 +647,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '123.45 is not a valid smallint');
         });
 
-        it('should return `true` if `value` is an integer', () => {
+        test('should return `true` if `value` is an integer', () => {
           const type = DataTypes.SMALLINT();
 
           expect(type.validate(-32768)).to.equal(true);
@@ -686,7 +656,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('MEDIUMINT', () => {
+    suite('MEDIUMINT', () => {
       const cases = [
         {
           title: 'MEDIUMINT',
@@ -713,8 +683,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'MEDIUMINT.UNSIGNED',
           dataType: DataTypes.MEDIUMINT.UNSIGNED,
           expect: {
-            default: 'MEDIUMINT UNSIGNED',
-            sqlite: 'MEDIUMINT'
+            default: 'MEDIUMINT UNSIGNED'
           }
         },
         {
@@ -722,15 +691,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).UNSIGNED,
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED',
-            sqlite: 'MEDIUMINT(6)'
+            sqlite: 'MEDIUMINT UNSIGNED(6)'
           }
         },
         {
           title: 'MEDIUMINT.UNSIGNED.ZEROFILL',
           dataType: DataTypes.MEDIUMINT.UNSIGNED.ZEROFILL,
           expect: {
-            default: 'MEDIUMINT UNSIGNED ZEROFILL',
-            sqlite: 'MEDIUMINT'
+            default: 'MEDIUMINT UNSIGNED ZEROFILL'
           }
         },
         {
@@ -738,15 +706,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).UNSIGNED.ZEROFILL,
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
-            sqlite: 'MEDIUMINT(6)'
+            sqlite: 'MEDIUMINT UNSIGNED ZEROFILL(6)'
           }
         },
         {
           title: 'MEDIUMINT.ZEROFILL',
           dataType: DataTypes.MEDIUMINT.ZEROFILL,
           expect: {
-            default: 'MEDIUMINT ZEROFILL',
-            sqlite: 'MEDIUMINT'
+            default: 'MEDIUMINT ZEROFILL'
           }
         },
         {
@@ -754,15 +721,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).ZEROFILL,
           expect: {
             default: 'MEDIUMINT(6) ZEROFILL',
-            sqlite: 'MEDIUMINT(6)'
+            sqlite: 'MEDIUMINT ZEROFILL(6)'
           }
         },
         {
           title: 'MEDIUMINT.ZEROFILL.UNSIGNED',
           dataType: DataTypes.MEDIUMINT.ZEROFILL.UNSIGNED,
           expect: {
-            default: 'MEDIUMINT UNSIGNED ZEROFILL',
-            sqlite: 'MEDIUMINT'
+            default: 'MEDIUMINT UNSIGNED ZEROFILL'
           }
         },
         {
@@ -770,7 +736,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).ZEROFILL.UNSIGNED,
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
-            sqlite: 'MEDIUMINT(6)'
+            sqlite: 'MEDIUMINT UNSIGNED ZEROFILL(6)'
           }
         }
       ];
@@ -778,8 +744,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         testsql(row.title, row.dataType, row.expect);
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.MEDIUMINT();
 
           expect(() => {
@@ -791,7 +757,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '123.45 is not a valid mediumint');
         });
 
-        it('should return `true` if `value` is an integer', () => {
+        test('should return `true` if `value` is an integer', () => {
           const type = DataTypes.MEDIUMINT();
 
           expect(type.validate(-8388608)).to.equal(true);
@@ -800,7 +766,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('BIGINT', () => {
+    suite('BIGINT', () => {
       testsql('BIGINT', DataTypes.BIGINT, {
         default: 'BIGINT'
       });
@@ -808,15 +774,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
         default: 'BIGINT UNSIGNED',
         postgres: 'BIGINT',
-        mssql: 'BIGINT',
-        sqlite: 'BIGINT'
+        mssql: 'BIGINT'
       });
 
       testsql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
         default: 'BIGINT UNSIGNED ZEROFILL',
         postgres: 'BIGINT',
-        mssql: 'BIGINT',
-        sqlite: 'BIGINT'
+        mssql: 'BIGINT'
       });
 
       testsql('BIGINT(11)', DataTypes.BIGINT(11), {
@@ -833,34 +797,34 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('BIGINT(11).UNSIGNED', DataTypes.BIGINT(11).UNSIGNED, {
         default: 'BIGINT(11) UNSIGNED',
-        sqlite: 'BIGINT(11)',
+        sqlite: 'BIGINT UNSIGNED(11)',
         postgres: 'BIGINT',
         mssql: 'BIGINT'
       });
 
       testsql('BIGINT(11).UNSIGNED.ZEROFILL', DataTypes.BIGINT(11).UNSIGNED.ZEROFILL, {
         default: 'BIGINT(11) UNSIGNED ZEROFILL',
-        sqlite: 'BIGINT(11)',
+        sqlite: 'BIGINT UNSIGNED ZEROFILL(11)',
         postgres: 'BIGINT',
         mssql: 'BIGINT'
       });
 
       testsql('BIGINT(11).ZEROFILL', DataTypes.BIGINT(11).ZEROFILL, {
         default: 'BIGINT(11) ZEROFILL',
-        sqlite: 'BIGINT(11)',
+        sqlite: 'BIGINT ZEROFILL(11)',
         postgres: 'BIGINT',
         mssql: 'BIGINT'
       });
 
       testsql('BIGINT(11).ZEROFILL.UNSIGNED', DataTypes.BIGINT(11).ZEROFILL.UNSIGNED, {
         default: 'BIGINT(11) UNSIGNED ZEROFILL',
-        sqlite: 'BIGINT(11)',
+        sqlite: 'BIGINT UNSIGNED ZEROFILL(11)',
         postgres: 'BIGINT',
         mssql: 'BIGINT'
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.BIGINT();
 
           expect(() => {
@@ -872,7 +836,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '123.45 is not a valid bigint');
         });
 
-        it('should return `true` if `value` is an integer', () => {
+        test('should return `true` if `value` is an integer', () => {
           const type = DataTypes.BIGINT();
 
           expect(type.validate('9223372036854775807')).to.equal(true);
@@ -880,7 +844,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('REAL', () => {
+    suite('REAL', () => {
       testsql('REAL', DataTypes.REAL, {
         default: 'REAL'
       });
@@ -973,7 +937,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('DOUBLE PRECISION', () => {
+    suite('DOUBLE PRECISION', () => {
       testsql('DOUBLE', DataTypes.DOUBLE, {
         default: 'DOUBLE PRECISION'
       });
@@ -1048,7 +1012,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('FLOAT', () => {
+    suite('FLOAT', () => {
       testsql('FLOAT', DataTypes.FLOAT, {
         default: 'FLOAT',
         postgres: 'FLOAT'
@@ -1142,8 +1106,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'FLOAT'
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.FLOAT();
 
           expect(() => {
@@ -1151,7 +1115,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid float');
         });
 
-        it('should return `true` if `value` is a float', () => {
+        test('should return `true` if `value` is a float', () => {
           const type = DataTypes.FLOAT();
 
           expect(type.validate(1.2)).to.equal(true);
@@ -1173,7 +1137,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    describe('DECIMAL', () => {
+    suite('DECIMAL', () => {
       testsql('DECIMAL', DataTypes.DECIMAL, {
         default: 'DECIMAL'
       });
@@ -1195,25 +1159,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       testsql('DECIMAL.UNSIGNED', DataTypes.DECIMAL.UNSIGNED, {
-        mariadb: 'DECIMAL UNSIGNED',
         mysql: 'DECIMAL UNSIGNED',
         default: 'DECIMAL'
       });
 
       testsql('DECIMAL.UNSIGNED.ZEROFILL', DataTypes.DECIMAL.UNSIGNED.ZEROFILL, {
-        mariadb: 'DECIMAL UNSIGNED ZEROFILL',
         mysql: 'DECIMAL UNSIGNED ZEROFILL',
         default: 'DECIMAL'
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
-        mariadb: 'DECIMAL(10,2) UNSIGNED',
         mysql: 'DECIMAL(10,2) UNSIGNED',
         default: 'DECIMAL(10,2)'
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.DECIMAL(10);
 
           expect(() => {
@@ -1229,7 +1190,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, 'null is not a valid decimal');
         });
 
-        it('should return `true` if `value` is a decimal', () => {
+        test('should return `true` if `value` is a decimal', () => {
           const type = DataTypes.DECIMAL(10);
 
           expect(type.validate(123)).to.equal(true);
@@ -1244,14 +1205,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('ENUM', () => {
+    suite('ENUM', () => {
       // TODO: Fix Enums and add more tests
       // testsql('ENUM("value 1", "value 2")', DataTypes.ENUM('value 1', 'value 2'), {
       //   default: 'ENUM'
       // });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.ENUM('foo');
 
           expect(() => {
@@ -1259,7 +1220,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid choice in ["foo"]');
         });
 
-        it('should return `true` if `value` is a valid choice', () => {
+        test('should return `true` if `value` is a valid choice', () => {
           const type = DataTypes.ENUM('foobar', 'foobiz');
 
           expect(type.validate('foobar')).to.equal(true);
@@ -1268,7 +1229,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    describe('BLOB', () => {
+    suite('BLOB', () => {
       testsql('BLOB', DataTypes.BLOB, {
         default: 'BLOB',
         mssql: 'VARBINARY(MAX)',
@@ -1299,8 +1260,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         postgres: 'BYTEA'
       });
 
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.BLOB();
 
           expect(() => {
@@ -1308,18 +1269,18 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '12345 is not a valid blob');
         });
 
-        it('should return `true` if `value` is a blob', () => {
+        test('should return `true` if `value` is a blob', () => {
           const type = DataTypes.BLOB();
 
           expect(type.validate('foobar')).to.equal(true);
-          expect(type.validate(Buffer.from('foobar'))).to.equal(true);
+          expect(type.validate(new Buffer('foobar'))).to.equal(true);
         });
       });
     });
 
-    describe('RANGE', () => {
-      describe('validate', () => {
-        it('should throw an error if `value` is invalid', () => {
+    suite('RANGE', () => {
+      suite('validate', () => {
+        test('should throw an error if `value` is invalid', () => {
           const type = DataTypes.RANGE();
 
           expect(() => {
@@ -1327,7 +1288,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid range');
         });
 
-        it('should throw an error if `value` is not an array with two elements', () => {
+        test('should throw an error if `value` is not an array with two elements', () => {
           const type = DataTypes.RANGE();
 
           expect(() => {
@@ -1335,16 +1296,38 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).to.throw(Sequelize.ValidationError, 'A range must be an array with two elements');
         });
 
-        it('should return `true` if `value` is a range', () => {
+        test('should throw an error if `value.inclusive` is invalid', () => {
+          const type = DataTypes.RANGE();
+
+          expect(() => {
+            type.validate({ inclusive: 'foobar' });
+          }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid range');
+        });
+
+        test('should throw an error if `value.inclusive` is not an array with two elements', () => {
+          const type = DataTypes.RANGE();
+
+          expect(() => {
+            type.validate({ inclusive: [1] });
+          }).to.throw(Sequelize.ValidationError, 'A range must be an array with two elements');
+        });
+
+        test('should return `true` if `value` is a range', () => {
           const type = DataTypes.RANGE();
 
           expect(type.validate([1, 2])).to.equal(true);
+        });
+
+        test('should return `true` if `value.inclusive` is a range', () => {
+          const type = DataTypes.RANGE();
+
+          expect(type.validate({ inclusive: [1, 2] })).to.equal(true);
         });
       });
     });
 
     if (current.dialect.supports.ARRAY) {
-      describe('ARRAY', () => {
+      suite('ARRAY', () => {
         testsql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
           postgres: 'VARCHAR(255)[]'
         });
@@ -1409,14 +1392,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         }
 
-        if (dialect === 'postgres') {
-          testsql('ARRAY(CITEXT)', DataTypes.ARRAY(DataTypes.CITEXT), {
-            postgres: 'CITEXT[]'
-          });
-        }
-
-        describe('validate', () => {
-          it('should throw an error if `value` is invalid', () => {
+        suite('validate', () => {
+          test('should throw an error if `value` is invalid', () => {
             const type = DataTypes.ARRAY();
 
             expect(() => {
@@ -1424,7 +1401,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             }).to.throw(Sequelize.ValidationError, '"foobar" is not a valid array');
           });
 
-          it('should return `true` if `value` is an array', () => {
+          test('should return `true` if `value` is an array', () => {
             const type = DataTypes.ARRAY();
 
             expect(type.validate(['foo', 'bar'])).to.equal(true);
@@ -1434,32 +1411,28 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }
 
     if (current.dialect.supports.GEOMETRY) {
-      describe('GEOMETRY', () => {
+      suite('GEOMETRY', () => {
         testsql('GEOMETRY', DataTypes.GEOMETRY, {
           default: 'GEOMETRY'
         });
 
         testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('POINT'), {
           postgres: 'GEOMETRY(POINT)',
-          mariadb: 'POINT',
           mysql: 'POINT'
         });
 
         testsql('GEOMETRY(\'LINESTRING\')', DataTypes.GEOMETRY('LINESTRING'), {
           postgres: 'GEOMETRY(LINESTRING)',
-          mariadb: 'LINESTRING',
           mysql: 'LINESTRING'
         });
 
         testsql('GEOMETRY(\'POLYGON\')', DataTypes.GEOMETRY('POLYGON'), {
           postgres: 'GEOMETRY(POLYGON)',
-          mariadb: 'POLYGON',
           mysql: 'POLYGON'
         });
 
         testsql('GEOMETRY(\'POINT\',4326)', DataTypes.GEOMETRY('POINT', 4326), {
           postgres: 'GEOMETRY(POINT,4326)',
-          mariadb: 'POINT',
           mysql: 'POINT'
         });
       });

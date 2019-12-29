@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require('../../../../index'),
-  Support = require('../../support'),
+  Sequelize = require(__dirname + '/../../../../index'),
+  Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
   tedious = require('tedious'),
   sinon = require('sinon');
@@ -38,17 +38,13 @@ if (dialect === 'mssql') {
     });
 
     it('connectionManager._connect() does not delete `domain` from config.dialectOptions', function() {
-      this.connectionStub.returns({
-        once(event, cb) {
-          if (event === 'connect') {
-            setTimeout(() => {
-              cb();
-            }, 500);
-          }
-        },
-        removeListener: () => {},
-        on: () => {}
-      });
+      this.connectionStub.returns({on(event, cb) {
+        if (event === 'connect') {
+          setTimeout(() => {
+            cb();
+          }, 500);
+        }
+      }});
 
       expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
       return this.instance.dialect.connectionManager._connect(this.config).then(() => {
@@ -57,22 +53,18 @@ if (dialect === 'mssql') {
     });
 
     it('connectionManager._connect() should reject if end was called and connect was not', function() {
-      this.connectionStub.returns({
-        once(event, cb) {
-          if (event === 'end') {
-            setTimeout(() => {
-              cb();
-            }, 500);
-          }
-        },
-        removeListener: () => {},
-        on: () => {}
-      });
+      this.connectionStub.returns({ on(event, cb) {
+        if (event === 'end') {
+          setTimeout(() => {
+            cb();
+          }, 500);
+        }
+      } });
 
       return this.instance.dialect.connectionManager._connect(this.config)
         .catch(err => {
           expect(err.name).to.equal('SequelizeConnectionError');
-          expect(err.parent.message).to.equal('Connection was closed by remote server');
+          expect(err.parent).to.equal('Connection was closed by remote server');
         });
     });
   });

@@ -2,7 +2,7 @@
 
 const path = require('path');
 const Query = require(path.resolve('./lib/dialects/mssql/query.js'));
-const Support = require('../../support');
+const Support = require(__dirname + '/../../support');
 const dialect = Support.getTestDialect();
 const sequelize = Support.sequelize;
 const sinon = require('sinon');
@@ -17,13 +17,15 @@ if (dialect === 'mssql') {
   describe('[MSSQL Specific] Query', () => {
     describe('beginTransaction', () => {
       beforeEach(() => {
-        sandbox = sinon.createSandbox();
+        sandbox = sinon.sandbox.create();
         const options = {
           transaction: { name: 'transactionName' },
           isolationLevel: 'REPEATABLE_READ',
           logging: false
         };
-        sandbox.stub(connectionStub, 'beginTransaction').callsArg(0);
+        sandbox.stub(connectionStub, 'beginTransaction').callsFake(cb => {
+          cb();
+        });
         query = new Query(connectionStub, sequelize, options);
       });
 

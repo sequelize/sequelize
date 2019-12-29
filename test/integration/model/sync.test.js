@@ -3,7 +3,7 @@
 const chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
-  Support = require('../support'),
+  Support = require(__dirname + '/../support'),
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -18,8 +18,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should remove a column if it exists in the databases schema but not the model', function() {
       const User = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
-        age: Sequelize.INTEGER,
-        badgeNumber: { type: Sequelize.INTEGER, field: 'badge_number' }
+        age: Sequelize.INTEGER
       });
       return this.sequelize.sync()
         .then(() => {
@@ -27,12 +26,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             name: Sequelize.STRING
           });
         })
-        .then(() => this.sequelize.sync({ alter: true }))
+        .then(() => this.sequelize.sync({alter: true}))
         .then(() => User.describe())
         .then(data => {
           expect(data).to.not.have.ownProperty('age');
-          expect(data).to.not.have.ownProperty('badge_number');
-          expect(data).to.not.have.ownProperty('badgeNumber');
           expect(data).to.have.ownProperty('name');
         });
     });
@@ -44,67 +41,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.sequelize.sync()
         .then(() => this.sequelize.define('testSync', {
           name: Sequelize.STRING,
-          age: Sequelize.INTEGER,
-          height: { type: Sequelize.INTEGER, field: 'height_cm' }
+          age: Sequelize.INTEGER
         }))
-        .then(() => this.sequelize.sync({ alter: true }))
+        .then(() => this.sequelize.sync({alter: true}))
         .then(() => testSync.describe())
-        .then(data => {
-          expect(data).to.have.ownProperty('age');
-          expect(data).to.have.ownProperty('height_cm');
-          expect(data).not.to.have.ownProperty('height');
-        });
-    });
-
-    it('should not remove columns if drop is set to false in alter configuration', function() {
-      const testSync = this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        age: Sequelize.INTEGER
-      });
-      return this.sequelize.sync()
-        .then(() => this.sequelize.define('testSync', {
-          name: Sequelize.STRING
-        }))
-        .then(() => this.sequelize.sync({ alter: { drop: false } }))
-        .then(() => testSync.describe())
-        .then(data => {
-          expect(data).to.have.ownProperty('name');
-          expect(data).to.have.ownProperty('age');
-        });
-    });
-
-    it('should remove columns if drop is set to true in alter configuration', function() {
-      const testSync = this.sequelize.define('testSync', {
-        name: Sequelize.STRING,
-        age: Sequelize.INTEGER
-      });
-      return this.sequelize.sync()
-        .then(() => this.sequelize.define('testSync', {
-          name: Sequelize.STRING
-        }))
-        .then(() => this.sequelize.sync({ alter: { drop: true } }))
-        .then(() => testSync.describe())
-        .then(data => {
-          expect(data).to.have.ownProperty('name');
-          expect(data).not.to.have.ownProperty('age');
-        });
-    });
-
-    it('should alter a column using the correct column name (#9515)', function() {
-      const testSync = this.sequelize.define('testSync', {
-        name: Sequelize.STRING
-      });
-      return this.sequelize.sync()
-        .then(() => this.sequelize.define('testSync', {
-          name: Sequelize.STRING,
-          badgeNumber: { type: Sequelize.INTEGER, field: 'badge_number' }
-        }))
-        .then(() => this.sequelize.sync({ alter: true }))
-        .then(() => testSync.describe())
-        .then(data => {
-          expect(data).to.have.ownProperty('badge_number');
-          expect(data).not.to.have.ownProperty('badgeNumber');
-        });
+        .then(data => expect(data).to.have.ownProperty('age'));
     });
 
     it('should change a column if it exists in the model but is different in the database', function() {
@@ -117,7 +58,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           name: Sequelize.STRING,
           age: Sequelize.STRING
         }))
-        .then(() => this.sequelize.sync({ alter: true }))
+        .then(() => this.sequelize.sync({alter: true}))
         .then(() => testSync.describe())
         .then(data => {
           expect(data).to.have.ownProperty('age');
@@ -131,8 +72,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         age: Sequelize.STRING
       });
       return this.sequelize.sync()
-        .then(() => testSync.create({ name: 'test', age: '1' }))
-        .then(() => this.sequelize.sync({ alter: true }))
+        .then(() => testSync.create({name: 'test', age: '1'}))
+        .then(() => this.sequelize.sync({alter: true}))
         .then(() => testSync.findOne())
         .then(data => {
           expect(data.dataValues.name).to.eql('test');
@@ -144,18 +85,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.STRING
-      }, { indexes: [{ unique: true, fields: ['name', 'age'] }] });
+      }, {indexes: [{unique: true, fields: ['name', 'age']}]});
       return this.sequelize.sync()
-        .then(() => testSync.create({ name: 'test' }))
-        .then(() => testSync.create({ name: 'test2' }))
-        .then(() => testSync.create({ name: 'test3' }))
-        .then(() => testSync.create({ age: '1' }))
-        .then(() => testSync.create({ age: '2' }))
-        .then(() => testSync.create({ name: 'test', age: '1' }))
-        .then(() => testSync.create({ name: 'test', age: '2' }))
-        .then(() => testSync.create({ name: 'test2', age: '2' }))
-        .then(() => testSync.create({ name: 'test3', age: '2' }))
-        .then(() => testSync.create({ name: 'test3', age: '1' }))
+        .then(() => testSync.create({name: 'test'}))
+        .then(() => testSync.create({name: 'test2'}))
+        .then(() => testSync.create({name: 'test3'}))
+        .then(() => testSync.create({age: '1'}))
+        .then(() => testSync.create({age: '2'}))
+        .then(() => testSync.create({name: 'test', age: '1'}))
+        .then(() => testSync.create({name: 'test', age: '2'}))
+        .then(() => testSync.create({name: 'test2', age: '2'}))
+        .then(() => testSync.create({name: 'test3', age: '2'}))
+        .then(() => testSync.create({name: 'test3', age: '1'}))
         .then(data => {
           expect(data.dataValues.name).to.eql('test3');
           expect(data.dataValues.age).to.eql('1');
@@ -165,10 +106,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.STRING
-      }, { indexes: [{ unique: true, fields: ['name', 'age'] }] });
+      }, {indexes: [{unique: true, fields: ['name', 'age']}]});
       return this.sequelize.sync()
-        .then(() => testSync.create({ name: 'test', age: '1' }))
-        .then(() => testSync.create({ name: 'test', age: '1' }))
+        .then(() => testSync.create({name: 'test', age: '1'}))
+        .then(() => testSync.create({name: 'test', age: '1'}))
         .then(data => expect(data).not.to.be.ok, error => expect(error).to.be.ok);
     });
 
@@ -206,7 +147,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               { name: 'another_index_email_mobile', fields: ['email', 'mobile'] },
               { name: 'another_index_phone_mobile', fields: ['phone', 'mobile'], unique: true },
               { name: 'another_index_email', fields: ['email'] },
-              { name: 'another_index_mobile', fields: ['mobile'] }
+              { name: 'another_index_mobile', fields: ['mobile'] },
             ]
           });
 
@@ -247,7 +188,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               { fields: ['email', 'mobile'] },
               { fields: ['phone', 'mobile'], unique: true },
               { fields: ['email'] },
-              { fields: ['mobile'] }
+              { fields: ['mobile'] },
             ]
           });
 
@@ -371,7 +312,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(results.filter(r => r.unique === true && r.primary === false)).to.have.length(1);
 
-          if (!['postgres', 'sqlite'].includes(dialect)) {
+          if (['postgres', 'sqlite'].indexOf(dialect) === -1) {
             // Postgres/SQLite doesn't support naming indexes in create table
             expect(results.filter(r => r.name === 'wow_my_index')).to.have.length(1);
           }
@@ -402,7 +343,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           expect(results.filter(r => r.unique === true && r.primary === false)).to.have.length(1);
-          if (!['postgres', 'sqlite'].includes(dialect)) {
+          if (['postgres', 'sqlite'].indexOf(dialect) === -1) {
             // Postgres/SQLite doesn't support naming indexes in create table
             expect(results.filter(r => r.name === 'wow_my_index')).to.have.length(1);
           }

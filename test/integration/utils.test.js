@@ -2,13 +2,71 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Utils = require('../../lib/utils'),
-  Support = require('./support'),
-  DataTypes = require('../../lib/data-types'),
-  Sequelize = require('../../index'),
-  Op = Sequelize.Op;
+  Utils = require(__dirname + '/../../lib/utils'),
+  Support = require(__dirname + '/support'),
+  DataTypes = require(__dirname + '/../../lib/data-types'),
+  Sequelize = require('../../index');
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
+  describe('removeCommentsFromFunctionString', () => {
+    it('removes line comments at the start of a line', () => {
+      const functionWithLineComments = function() {
+        // noot noot
+      };
+
+      const string = functionWithLineComments.toString(),
+        result = Utils.removeCommentsFromFunctionString(string);
+
+      expect(result).not.to.match(/.*noot.*/);
+    });
+
+    it('removes lines comments in the middle of a line', () => {
+      const functionWithLineComments = function() {
+        console.log(1); // noot noot
+      };
+
+      const string = functionWithLineComments.toString(),
+        result = Utils.removeCommentsFromFunctionString(string);
+
+      expect(result).not.to.match(/.*noot.*/);
+    });
+
+    it('removes range comments', () => {
+      const s = function() {
+        console.log(1); /*
+          noot noot
+        */
+        console.log(2); /*
+          foo
+        */
+      }.toString();
+
+      const result = Utils.removeCommentsFromFunctionString(s);
+
+      expect(result).not.to.match(/.*noot.*/);
+      expect(result).not.to.match(/.*foo.*/);
+      expect(result).to.match(/.*console.log\(2\).*/);
+    });
+  });
+
+  describe('argsArePrimaryKeys', () => {
+    it('doesn\'t detect primary keys if primareyKeys and values have different lengths', () => {
+      expect(Utils.argsArePrimaryKeys([1, 2, 3], [1])).to.be.false;
+    });
+
+    it('doesn\'t detect primary keys if primary keys are hashes or arrays', () => {
+      expect(Utils.argsArePrimaryKeys([[]], [1])).to.be.false;
+    });
+
+    it('detects primary keys if length is correct and data types are matching', () => {
+      expect(Utils.argsArePrimaryKeys([1, 2, 3], ['INTEGER', 'INTEGER', 'INTEGER'])).to.be.true;
+    });
+
+    it('detects primary keys if primary keys are dates and lengths are matching', () => {
+      expect(Utils.argsArePrimaryKeys([new Date()], ['foo'])).to.be.true;
+    });
+  });
+
   describe('underscore', () => {
     describe('underscoredIf', () => {
       it('is defined', () => {
@@ -53,14 +111,14 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   describe('cloneDeep', () => {
     it('should clone objects', () => {
-      const obj = { foo: 1 },
+      const obj = {foo: 1},
         clone = Utils.cloneDeep(obj);
 
       expect(obj).to.not.equal(clone);
     });
 
     it('should clone nested objects', () => {
-      const obj = { foo: { bar: 1 } },
+      const obj = {foo: {bar: 1}},
         clone = Utils.cloneDeep(obj);
 
       expect(obj.foo).to.not.equal(clone.foo);
@@ -88,13 +146,47 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  if (Support.getTestDialect() === 'postgres') {
-    describe('json', () => {
-      beforeEach(function() {
-        this.queryGenerator = this.sequelize.getQueryInterface().QueryGenerator;
+  describe('validateParameter', () => {
+    describe('method signature', () => {
+      it('throws an error if the value is not defined', () => {
+        expect(() => {
+          Utils.validateParameter();
+        }).to.throw('No value has been passed.');
       });
 
-      it('successfully parses a complex nested condition hash', function() {
+      it('does not throw an error if the value is not defined and the parameter is optional', () => {
+        expect(() => {
+          Utils.validateParameter(undefined, Object, { optional: true });
+        }).to.not.throw();
+      });
+
+      it('throws an error if the expectation is not defined', () => {
+        expect(() => {
+          Utils.validateParameter(1);
+        }).to.throw('No expectation has been passed.');
+      });
+    });
+
+    describe('expectation', () => {
+      it('uses the instanceof method if the expectation is a class', () => {
+        expect(Utils.validateParameter(new Number(1), Number)).to.be.true;
+      });
+    });
+
+    describe('failing expectations', () => {
+      it('throws an error if the expectation does not match', () => {
+        expect(() => {
+          Utils.validateParameter(1, String);
+        }).to.throw(/The parameter.*is no.*/);
+      });
+    });
+  });
+
+  if (Support.getTestDialect() === 'postgres') {
+    describe('json', () => {
+      const queryGenerator = require('../../lib/dialects/postgres/query-generator.js');
+
+      it('successfully parses a complex nested condition hash', () => {
         const conditions = {
           metadata: {
             language: 'icelandic',
@@ -103,23 +195,23 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
           another_json_field: { x: 1 }
         };
         const expected = '("metadata"#>>\'{language}\') = \'icelandic\' AND ("metadata"#>>\'{pg_rating,dk}\') = \'G\' AND ("another_json_field"#>>\'{x}\') = \'1\'';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))).to.deep.equal(expected);
+        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))).to.deep.equal(expected);
       });
 
-      it('successfully parses a string using dot notation', function() {
+      it('successfully parses a string using dot notation', () => {
         const path = 'metadata.pg_rating.dk';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal('("metadata"#>>\'{pg_rating,dk}\')');
+        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal('("metadata"#>>\'{pg_rating,dk}\')');
       });
 
-      it('allows postgres json syntax', function() {
+      it('allows postgres json syntax', () => {
         const path = 'metadata->pg_rating->>dk';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(path);
+        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(path);
       });
 
-      it('can take a value to compare against', function() {
+      it('can take a value to compare against', () => {
         const path = 'metadata.pg_rating.is';
         const value = 'U';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal('("metadata"#>>\'{pg_rating,is}\') = \'U\'');
+        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal('("metadata"#>>\'{pg_rating,is}\') = \'U\'');
       });
     });
   }
@@ -162,7 +254,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     if (Support.getTestDialect() !== 'mssql') {
       it('accepts condition object (with cast)', function() {
-        const type = Support.getTestDialect() === 'mysql' ? 'unsigned' : 'int';
+        const type = Support.getTestDialect() === 'mysql' ? 'unsigned': 'int';
 
         return Airplane.findAll({
           attributes: [
@@ -171,19 +263,18 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               engines: 1
             }, type)), 'count-engines'],
             [Sequelize.fn('SUM', Sequelize.cast({
-              [Op.or]: {
+              $or: {
                 engines: {
-                  [Op.gt]: 1
+                  $gt: 1
                 },
                 wings: 4
               }
             }, type)), 'count-engines-wings']
           ]
-        }).then(([airplane]) => {
-          // TODO: `parseInt` should not be needed, see #10533
-          expect(parseInt(airplane.get('count'), 10)).to.equal(3);
-          expect(parseInt(airplane.get('count-engines'), 10)).to.equal(1);
-          expect(parseInt(airplane.get('count-engines-wings'), 10)).to.equal(2);
+        }).spread(airplane => {
+          expect(parseInt(airplane.get('count'))).to.equal(3);
+          expect(parseInt(airplane.get('count-engines'))).to.equal(1);
+          expect(parseInt(airplane.get('count-engines-wings'))).to.equal(2);
         });
       });
     }
@@ -197,51 +288,20 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               engines: 1
             }), 'count-engines'],
             [Sequelize.fn('SUM', {
-              [Op.or]: {
+              $or: {
                 engines: {
-                  [Op.gt]: 1
+                  $gt: 1
                 },
                 wings: 4
               }
             }), 'count-engines-wings']
           ]
-        }).then(([airplane]) => {
-          // TODO: `parseInt` should not be needed, see #10533
-          expect(airplane.get('count')).to.equal(3);
-          expect(parseInt(airplane.get('count-engines'), 10)).to.equal(1);
-          expect(parseInt(airplane.get('count-engines-wings'), 10)).to.equal(2);
+        }).spread(airplane => {
+          expect(parseInt(airplane.get('count'))).to.equal(3);
+          expect(parseInt(airplane.get('count-engines'))).to.equal(1);
+          expect(parseInt(airplane.get('count-engines-wings'))).to.equal(2);
         });
       });
     }
-  });
-
-  describe('flattenObjectDeep', () => {
-    it('should return the value if it is not an object', () => {
-      const value = 'non-object';
-      const returnedValue = Utils.flattenObjectDeep(value);
-      expect(returnedValue).to.equal(value);
-    });
-
-    it('should return correctly if values are null', () => {
-      const value = {
-        name: 'John',
-        address: {
-          street: 'Fake St. 123',
-          city: null,
-          coordinates: {
-            longitude: 55.6779627,
-            latitude: 12.5964313
-          }
-        }
-      };
-      const returnedValue = Utils.flattenObjectDeep(value);
-      expect(returnedValue).to.deep.equal({
-        name: 'John',
-        'address.street': 'Fake St. 123',
-        'address.city': null,
-        'address.coordinates.longitude': 55.6779627,
-        'address.coordinates.latitude': 12.5964313
-      });
-    });
   });
 });

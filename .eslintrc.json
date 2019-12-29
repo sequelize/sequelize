@@ -1,50 +1,60 @@
 {
-  "extends": "eslint:recommended",
   "rules": {
     "mocha/no-exclusive-tests": "error",
     "mocha/no-skipped-tests": "warn",
 
-    "jsdoc/check-param-names": "error",
-    "jsdoc/check-tag-names": "error",
-    "jsdoc/check-types": "error",
-    "jsdoc/newline-after-description": "error",
-    "jsdoc/no-undefined-types": "off",
-    "jsdoc/require-description-complete-sentence": "off",
-    "jsdoc/require-example": "off",
-    "jsdoc/require-hyphen-before-param-description": "off",
-    "jsdoc/require-param": "error",
-    "jsdoc/require-param-description": "off",
-    "jsdoc/require-param-name": "error",
-    "jsdoc/require-param-type": "error",
-    "jsdoc/require-returns-description": "off",
-    "jsdoc/require-returns-type": "error",
-    "jsdoc/valid-types": "error",
-
-    // style
     "array-bracket-spacing": "error",
     "comma-spacing": "error",
     "key-spacing": "error",
     "keyword-spacing": "error",
-    "object-curly-spacing": ["error", "always"],
-    "func-call-spacing": ["error", "never"],
+
+    "no-console": "off",
+    "no-extra-parens": "warn",
+    "valid-jsdoc": "off",
     "new-cap": [
-      "error",
+      "warn",
       {
         "capIsNewExceptionPattern": "^BigInt",
         "properties": false
       }
     ],
-    "semi": ["error", "always"],
-    "space-before-function-paren": ["error", {
-      "named": "never",
-      "anonymous": "never",
-      "asyncArrow": "always"
-    }],
+    "no-extra-boolean-cast": "warn",
+    "strict": [
+      "warn",
+      "global"
+    ],
+    "no-var": "error",
+    "prefer-const": "error",
+    "semi": [
+      "error",
+      "always"
+    ],
+    "space-before-function-paren": [
+      "warn",
+      "never"
+    ],
     "space-before-blocks": "error",
-    "space-infix-ops": "error",
-    "no-multi-spaces": "error",
-    "arrow-parens": ["error", "as-needed"],
-    "comma-style": ["error", "last"],
+    "prefer-arrow-callback": "error",
+    "arrow-parens": [
+      "error",
+      "as-needed"
+    ],
+    "comma-style": [
+      "warn",
+      "last"
+    ],
+    "no-bitwise": "off",
+    "no-cond-assign": [
+      "error",
+      "except-parens"
+    ],
+    "curly": "off",
+    "eqeqeq": "error",
+    "no-extend-native": "error",
+    "wrap-iife": [
+      "error",
+      "any"
+    ],
     "indent": [
       "error",
       2,
@@ -52,8 +62,15 @@
         "SwitchCase": 1
       }
     ],
-    "no-extra-parens": "error",
-    "curly": "off",
+    "no-use-before-define": "off",
+    "no-caller": "error",
+    "no-undef": "error",
+    "no-unused-vars": "error",
+    "no-irregular-whitespace": "error",
+    "max-depth": [
+      "error",
+      8
+    ],
     "quotes": [
       "error",
       "single",
@@ -62,46 +79,20 @@
       }
     ],
     "linebreak-style": "error",
-    "camelcase": "error",
-    "comma-dangle": "error",
-
-    // functional
-    "valid-jsdoc": "off",
-    "strict": ["error", "global"],
-    "no-var": "error",
-    "prefer-const": "error",
-    "prefer-arrow-callback": "error",
-    "no-extend-native": "error",
-    "wrap-iife": ["error", "any"],
-    "no-use-before-define": "off",
-    "no-caller": "error",
-    "no-irregular-whitespace": "error",
-    "max-depth": ["error", 6],
     "no-loop-func": "warn",
     "object-shorthand": "error",
-    "one-var-declaration-per-line": "error",
+    "one-var-declaration-per-line": "warn",
+    "comma-dangle": "warn",
     "no-shadow": "warn",
-    "prefer-template": "error",
-    "no-else-return": ["error", { "allowElseIf": false }],
-    "no-lonely-if": "error",
-    "no-throw-literal": "error",
-    "prefer-promise-reject-errors": "error",
-    "no-invalid-this": "error",
-    "radix": "error",
-    "no-with": "error",
-    "no-useless-concat": "error",
-    "no-useless-catch": "error",
-    "no-useless-call": "error",
-    "no-unused-expressions": "error",
-    "no-sequences": "error",
-    "no-self-compare": "error",
-    "no-case-declarations": "off"
+    "camelcase": "warn"
   },
   "parserOptions": {
-    "ecmaVersion": 2018,
+    "ecmaVersion": 6,
     "sourceType": "script"
   },
-  "plugins": ["mocha", "jsdoc"],
+  "plugins": [
+    "mocha"
+  ],
   "env": {
     "node": true,
     "mocha": true,

@@ -1,0 +1,24 @@
+301 /en/v3/ https://sequelize.readthedocs.io/en/v3/
+301 /en/v3/:foo https://sequelize.readthedocs.io/en/v3/:foo
+301 /en/v3/:foo/:bar https://sequelize.readthedocs.io/en/v3/:foo/:bar
+301 /en/v3/:foo/:bar/:baz https://sequelize.readthedocs.io/en/v3/:foo/:bar/:baz
+301 /en/v3/:foo/:bar/:baz/:quz https://sequelize.readthedocs.io/en/v3/:foo/:bar/:baz/:quz
+
+301 /en/latest /
+301 /en/latest/ /
+
+301 /en/latest/docs/getting-started/ /manual/installation/getting-started.html
+301 /en/latest/docs/:section/ /manual/tutorial/:section.html
+
+301 /en/latest/api/sequelize/ /class/lib/sequelize.js~Sequelize.html
+301 /en/latest/api/model/ /class/lib/model.js~Model.html
+301 /en/latest/api/instance/ /class/lib/model.js~Model.html
+301 /en/latest/api/associations/ /class/lib/associations/base.js~Association.html
+301 /en/latest/api/associations/belongs-to/ /class/lib/associations/belongs-to.js~BelongsTo.html
+301 /en/latest/api/associations/belongs-to-many/ /class/lib/associations/belongs-to-.many.js~BelongsToMany.html
+301 /en/latest/api/associations/has-one/ /class/lib/associations/has-one.js~HasOne.html
+301 /en/latest/api/associations/has-many/ /class/lib/associations/has-many.js~HasMany.html
+301 /en/latest/api/transaction/ /class/lib/transaction.js~Transaction.html
+301 /en/latest/api/datatypes/ /variable/index.html#static-variable-DataTypes
+301 /en/latest/api/deferrable/ /variable/index.html#static-variable-Deferrable
+301 /en/latest/api/errors/ /class/lib/errors/index.js~BaseError.html

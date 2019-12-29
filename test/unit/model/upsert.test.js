@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require('../../../index'),
-  Support = require('../support'),
+  Support = require(__dirname + '/../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
+  Promise = current.Promise,
   DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -42,19 +42,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       beforeEach(function() {
-        this.query = sinon.stub(current, 'query').resolves();
-        this.stub = sinon.stub(current.getQueryInterface(), 'upsert').resolves([true, undefined]);
+        this.sinon = sinon.sandbox.create();
+
+        this.query = this.sinon.stub(current, 'query').returns(Promise.resolve());
+        this.stub = this.sinon.stub(current.getQueryInterface(), 'upsert').returns(Promise.resolve([true, undefined]));
       });
 
       afterEach(function() {
-        this.query.restore();
-        this.stub.restore();
+        this.sinon.restore();
       });
 
       it('skip validations for missing fields', function() {
         return expect(this.User.upsert({
           name: 'Grumpy Cat'
-        })).not.to.be.rejectedWith(Sequelize.ValidationError);
+        })).not.to.be.rejectedWith(current.ValidationError);
       });
 
       it('creates new record with correct field names', function() {

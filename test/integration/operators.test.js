@@ -5,8 +5,8 @@ const chai = require('chai'),
   Op = Sequelize.Op,
   Promise = Sequelize.Promise,
   expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('../../lib/data-types'),
+  Support = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../lib/data-types'),
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Operators'), () => {
@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
           return this.User.create({
             name: 'Foobar'
           }).then(() => {
-            return this.User.findOne({
+            return this.User.find({
               where: {
                 name: {
                   [Op.regexp]: '^Foo'
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
           return this.User.create({
             name: 'Foobar'
           }).then(() => {
-            return this.User.findOne({
+            return this.User.find({
               where: {
                 name: {
                   [Op.notRegexp]: '^Foo'
@@ -111,10 +111,12 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
     if (dialect === 'postgres') {
       describe('case insensitive', () => {
         it('should work with a case-insensitive regexp where', function() {
+          const self = this;
+
           return this.User.create({
             name: 'Foobar'
           }).then(() => {
-            return this.User.findOne({
+            return self.User.find({
               where: {
                 name: {
                   [Op.iRegexp]: '^foo'
@@ -127,10 +129,12 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
         });
 
         it('should work with a case-insensitive not regexp where', function() {
+          const self = this;
+
           return this.User.create({
             name: 'Foobar'
           }).then(() => {
-            return this.User.findOne({
+            return self.User.find({
               where: {
                 name: {
                   [Op.notIRegexp]: '^foo'

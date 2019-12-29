@@ -2,10 +2,9 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const Support = require('../../support');
+const Support = require(__dirname + '/../../support');
 const dialect = Support.getTestDialect();
-const Sequelize = require('../../../../index');
-const DataTypes = require('../../../../lib/data-types');
+const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Errors', () => {
@@ -30,26 +29,28 @@ if (dialect === 'mysql') {
       });
 
       it('in context of DELETE restriction', function() {
-        const ctx = {};
-        return this.sequelize.sync({ force: true }).then(() => {
+        const self = this,
+          ForeignKeyConstraintError = this.sequelize.ForeignKeyConstraintError;
+
+        return this.sequelize.sync({ force: true }).bind({}).then(() => {
           return Promise.all([
-            this.User.create({ id: 67, username: 'foo' }),
-            this.Task.create({ id: 52, title: 'task' })
+            self.User.create({ id: 67, username: 'foo' }),
+            self.Task.create({ id: 52, title: 'task' })
           ]);
-        }).then(([user1, task1]) => {
-          ctx.user1 = user1;
-          ctx.task1 = task1;
+        }).spread(function(user1, task1) {
+          this.user1 = user1;
+          this.task1 = task1;
           return user1.setTasks([task1]);
-        }).then(() => {
+        }).then(function() {
           return Promise.all([
-            validateError(ctx.user1.destroy(), Sequelize.ForeignKeyConstraintError, {
+            validateError(this.user1.destroy(), ForeignKeyConstraintError, {
               fields: ['userId'],
               table: 'users',
               value: undefined,
               index: 'tasksusers_ibfk_1',
               reltype: 'parent'
             }),
-            validateError(ctx.task1.destroy(), Sequelize.ForeignKeyConstraintError, {
+            validateError(this.task1.destroy(), ForeignKeyConstraintError, {
               fields: ['taskId'],
               table: 'tasks',
               value: undefined,
@@ -61,8 +62,11 @@ if (dialect === 'mysql') {
       });
 
       it('in context of missing relation', function() {
+        const self = this,
+          ForeignKeyConstraintError = this.sequelize.ForeignKeyConstraintError;
+
         return this.sequelize.sync({ force: true }).then(() =>
-          validateError(this.Task.create({ title: 'task', primaryUserId: 5 }), Sequelize.ForeignKeyConstraintError, {
+          validateError(self.Task.create({ title: 'task', primaryUserId: 5 }), ForeignKeyConstraintError, {
             fields: ['primaryUserId'],
             table: 'users',
             value: 5,
@@ -70,6 +74,7 @@ if (dialect === 'mysql') {
             reltype: 'child'
           }));
       });
+
     });
   });
 }

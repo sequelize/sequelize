@@ -4,13 +4,16 @@ platform:
   - x64
 
 services:
-  - mssql2017
+  - mssql2016
 
 shallow_clone: true
 
+cache:
+  - node_modules
+
 environment:
   matrix:
-    - { NODE_VERSION: 10, DIALECT: mssql, COVERAGE: true }
+    - {NODE_VERSION: 4, DIALECT: mssql, COVERAGE: true}
 
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
@@ -24,7 +27,7 @@ install:
 build: off
 
 before_test:
-  - ps: . .\scripts\appveyor-setup.ps1
+  - ps: . .\appveyor-setup.ps1
 
 test_script:
   - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
@@ -40,4 +43,4 @@ after_test:
 branches:
   only:
     - master
-    - /^greenkeeper/.*$/
+    - v4

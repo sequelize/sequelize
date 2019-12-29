@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  Support = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
   Sequelize = Support.Sequelize,
   dialect = Support.getTestDialect(),
   sinon = require('sinon'),
@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         factory.options.name.singular = 'barr';
       });
 
-      this.model = this.sequelize.define('foo', { name: DataTypes.STRING });
+      this.model = this.sequelize.define('foo', {name: DataTypes.STRING});
     });
 
     it('beforeDefine hook can change model name', function() {
@@ -178,6 +178,38 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return Promise.resolve();
             },
             afterDestroy(user) {
+              expect(user).to.be.instanceof(User);
+              afterHooked = true;
+              return Promise.resolve();
+            }
+          }
+        });
+
+        return User.sync({ force: true }).then(() => {
+          return User.create({ username: 'bob' }).then(user => {
+            return user.destroy().then(() => {
+              expect(beforeHooked).to.be.true;
+              expect(afterHooked).to.be.true;
+            });
+          });
+        });
+      });
+    });
+
+    describe('beforeDelete / afterDelete', () => {
+      it('should pass a DAO instance to the hook', function() {
+        let beforeHooked = false;
+        let afterHooked = false;
+        const User = this.sequelize.define('User', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            beforeDelete(user) {
+              expect(user).to.be.instanceof(User);
+              beforeHooked = true;
+              return Promise.resolve();
+            },
+            afterDelete(user) {
               expect(user).to.be.instanceof(User);
               afterHooked = true;
               return Promise.resolve();
@@ -386,14 +418,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();
 
-      this.User.addHook('beforeCreate', 'sasuke', sasukeHook);
-      this.User.addHook('beforeCreate', 'naruto', narutoHook);
+      this.User.hook('beforeCreate', 'sasuke', sasukeHook);
+      this.User.hook('beforeCreate', 'naruto', narutoHook);
 
-      return this.User.create({ username: 'makunouchi' }).then(() => {
+      return this.User.create({ username: 'makunouchi'}).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledOnce;
         this.User.removeHook('beforeCreate', 'sasuke');
-        return this.User.create({ username: 'sendo' });
+        return this.User.create({ username: 'sendo'});
       }).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledTwice;
@@ -404,14 +436,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();
 
-      this.User.addHook('beforeCreate', sasukeHook);
-      this.User.addHook('beforeCreate', narutoHook);
+      this.User.hook('beforeCreate', sasukeHook);
+      this.User.hook('beforeCreate', narutoHook);
 
-      return this.User.create({ username: 'makunouchi' }).then(() => {
+      return this.User.create({ username: 'makunouchi'}).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledOnce;
         this.User.removeHook('beforeCreate', sasukeHook);
-        return this.User.create({ username: 'sendo' });
+        return this.User.create({ username: 'sendo'});
       }).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledTwice;
@@ -422,14 +454,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();
 
-      this.User.addHook('beforeSave', sasukeHook);
-      this.User.addHook('beforeSave', narutoHook);
+      this.User.hook('beforeSave', sasukeHook);
+      this.User.hook('beforeSave', narutoHook);
 
-      return this.User.create({ username: 'makunouchi' }).then(user => {
+      return this.User.create({ username: 'makunouchi'}).then(user => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledOnce;
         this.User.removeHook('beforeSave', sasukeHook);
-        return user.update({ username: 'sendo' });
+        return user.updateAttributes({ username: 'sendo'});
       }).then(() => {
         expect(sasukeHook).to.have.been.calledOnce;
         expect(narutoHook).to.have.been.calledTwice;

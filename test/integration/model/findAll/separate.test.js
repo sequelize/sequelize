@@ -29,12 +29,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             LevelTwo.create({ name: 'testL21' }),
             LevelTwo.create({ name: 'testL22' })
           ]);
-        }).then(([project, level21, level22]) => {
+        }).spread((project, level21, level22) => {
           return Sequelize.Promise.all([
             project.addLevelTwo(level21),
             project.addLevelTwo(level22)
           ]);
-        }).then(() => {
+        }).spread(() => {
           // one include case
           return Project.findAll({
             where: { name: 'testProject' },

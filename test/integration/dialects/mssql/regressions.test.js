@@ -2,14 +2,14 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require('../../support'),
+  Support = require(__dirname + '/../../support'),
   Sequelize = Support.Sequelize,
   Op = Sequelize.Op,
   dialect = Support.getTestDialect();
 
 if (dialect.match(/^mssql/)) {
   describe('[MSSQL Specific] Regressions', () => {
-    it('does not duplicate columns in ORDER BY statement, #9008', function() {
+    it('does not duplicate columns in ORDER BY statement, #9008', function () {
       const LoginLog = this.sequelize.define('LoginLog', {
         ID: {
           field: 'id',
@@ -52,7 +52,7 @@ if (dialect.match(/^mssql/)) {
           { UserName: 'Nikita' },
           { UserName: 'Aryamaan' }
         ], { returning: true }))
-        .then(([vyom, shakti, nikita, arya]) => {
+        .spread((vyom, shakti, nikita, arya) => {
           return Sequelize.Promise.all([
             vyom.createLoginLog(),
             shakti.createLoginLog(),
@@ -81,55 +81,5 @@ if (dialect.match(/^mssql/)) {
           expect(logs[1].User.get('UserName')).to.equal('Aryamaan');
         });
     });
-  });
-
-  it('sets the varchar(max) length correctly on describeTable', function() {
-    const Users = this.sequelize.define('_Users', {
-      username: Sequelize.STRING('MAX')
-    }, { freezeTableName: true });
-
-    return Users.sync({ force: true }).then(() => {
-      return this.sequelize.getQueryInterface().describeTable('_Users').then(metadata => {
-        const username = metadata.username;
-        expect(username.type).to.include('(MAX)');
-      });
-    });
-  });
-
-  it('sets the char(10) length correctly on describeTable', function() {
-    const Users = this.sequelize.define('_Users', {
-      username: Sequelize.CHAR(10)
-    }, { freezeTableName: true });
-
-    return Users.sync({ force: true }).then(() => {
-      return this.sequelize.getQueryInterface().describeTable('_Users').then(metadata => {
-        const username = metadata.username;
-        expect(username.type).to.include('(10)');
-      });
-    });
-  });
-
-  it('saves value bigger than 2147483647, #11245', function() {
-    const BigIntTable =  this.sequelize.define('BigIntTable', {
-      business_id: {
-        type: Sequelize.BIGINT,
-        allowNull: false
-      }
-    }, {
-      freezeTableName: true
-    });
-
-    const bigIntValue = 2147483648;
-
-    return BigIntTable.sync({ force: true })
-      .then(() => {
-        return BigIntTable.create({
-          business_id: bigIntValue
-        });
-      })
-      .then(() => BigIntTable.findOne())
-      .then(record => {
-        expect(Number(record.business_id)).to.equals(bigIntValue);
-      });
   });
 }

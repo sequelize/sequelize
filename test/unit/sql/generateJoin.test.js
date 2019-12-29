@@ -1,29 +1,28 @@
 'use strict';
 
-const Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  Sequelize = require('../../../lib/sequelize'),
-  util = require('util'),
-  _ = require('lodash'),
+const Support   = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Sequelize = require(__dirname + '/../../../lib/sequelize'),
+  util      = require('util'),
+  _         = require('lodash'),
   expectsql = Support.expectsql,
-  current = Support.sequelize,
-  sql = current.dialect.QueryGenerator,
-  Op = Sequelize.Op;
+  current   = Support.sequelize,
+  sql       = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
-  describe('generateJoin', () => {
+suite(Support.getTestDialectTeaser('SQL'), () => {
+  suite('generateJoin', () => {
     const testsql = function(path, options, expectation) {
 
       const name = `${path}, ${util.inspect(options, { depth: 10 })}`;
 
-      Sequelize.Model._conformIncludes(options);
+      Sequelize.Model._conformOptions(options);
       options = Sequelize.Model._validateIncludedElements(options);
 
       const include = _.at(options, path)[0];
 
-      it(name, () => {
+      test(name, () => {
 
         const join = sql.generateJoin(include,
           {
@@ -79,12 +78,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       tableName: 'profession'
     });
 
-    User.Tasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId' });
-    User.Company = User.belongsTo(Company, { foreignKey: 'companyId' });
-    User.Profession = User.belongsTo(Profession, { foreignKey: 'professionId' });
-    Profession.Professionals = Profession.hasMany(User, { as: 'Professionals', foreignKey: 'professionId' });
-    Company.Employees = Company.hasMany(User, { as: 'Employees', foreignKey: 'companyId' });
-    Company.Owner = Company.belongsTo(User, { as: 'Owner', foreignKey: 'ownerId' });
+    User.Tasks = User.hasMany(Task, {as: 'Tasks', foreignKey: 'userId'});
+    User.Company = User.belongsTo(Company, {foreignKey: 'companyId'});
+    User.Profession = User.belongsTo(Profession, {foreignKey: 'professionId'});
+    Profession.Professionals = Profession.hasMany(User, {as: 'Professionals', foreignKey: 'professionId'});
+    Company.Employees = Company.hasMany(User, {as: 'Employees', foreignKey: 'companyId'});
+    Company.Owner = Company.belongsTo(User, {as: 'Owner', foreignKey: 'ownerId'});
 
     /*
      * BelongsTo
@@ -169,22 +168,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       {
         default: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = 'ABC'",
         mssql: "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = N'ABC'"
-      }
-    );
-
-    testsql(
-      'include[0]',
-      {
-        model: User,
-        subQuery: true,
-        include: [
-          {
-            association: User.Company, right: true
-          }
-        ]
-      },
-      {
-        default: `${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]`
       }
     );
 
@@ -296,8 +279,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         include: [
           {
             association: User.Tasks, on: {
-              [Op.or]: [
-                { '$User.id_user$': { [Op.col]: 'Tasks.user_id' } },
+              $or: [
+                { '$User.id_user$': { $col: 'Tasks.user_id' } },
                 { '$Tasks.user_id$': 2 }
               ]
             }
@@ -313,7 +296,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         include: [
           {
             association: User.Tasks,
-            on: { 'user_id': { [Op.col]: 'User.alternative_id' } }
+            on: { 'user_id': { $col: 'User.alternative_id' } }
           }
         ]
       }, { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id]' }
@@ -331,8 +314,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               {
                 association: Company.Owner,
                 on: {
-                  [Op.or]: [
-                    { '$Company.owner_id$': { [Op.col]: 'Company.Owner.id_user' } },
+                  $or: [
+                    { '$Company.owner_id$': { $col: 'Company.Owner.id_user'} },
                     { '$Company.Owner.id_user$': 2 }
                   ]
                 }

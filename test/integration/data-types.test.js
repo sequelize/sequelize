@@ -3,12 +3,11 @@
 const chai = require('chai'),
   Sequelize = require('../../index'),
   expect = chai.expect,
-  Support = require('./support'),
+  Support = require(__dirname + '/support'),
   sinon = require('sinon'),
   _ = require('lodash'),
   moment = require('moment'),
   current = Support.sequelize,
-  Op = Sequelize.Op,
   uuid = require('uuid'),
   DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect(),
@@ -58,7 +57,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   });
 
-  const testSuccess = function(Type, value, options) {
+  const testSuccess = function(Type, value) {
     const parse = Type.constructor.parse = sinon.spy(value => {
       return value;
     });
@@ -66,12 +65,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const stringify = Type.constructor.prototype.stringify = sinon.spy(function() {
       return Sequelize.ABSTRACT.prototype.stringify.apply(this, arguments);
     });
-    let bindParam;
-    if (options && options.useBindParam) {
-      bindParam = Type.constructor.prototype.bindParam = sinon.spy(function() {
-        return Sequelize.ABSTRACT.prototype.bindParam.apply(this, arguments);
-      });
-    }
 
     const User = current.define('user', {
       field: Type
@@ -90,17 +83,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return User.findAll().get(0);
     }).then(() => {
       expect(parse).to.have.been.called;
-      if (options && options.useBindParam) {
-        expect(bindParam).to.have.been.called;
-      } else {
-        expect(stringify).to.have.been.called;
-      }
+      expect(stringify).to.have.been.called;
 
       delete Type.constructor.parse;
       delete Type.constructor.prototype.stringify;
-      if (options && options.useBindParam) {
-        delete Type.constructor.prototype.bindParam;
-      }
     });
   };
 
@@ -109,7 +95,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     expect(() => {
       current.refreshTypes();
-    }).to.throw(`Parse function not supported for type ${Type.key} in dialect ${dialect}`);
+    }).to.throw('Parse function not supported for type ' + Type.key + ' in dialect ' + dialect);
 
     delete Type.constructor.parse;
   };
@@ -118,7 +104,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and stringify for JSON', () => {
       const Type = new Sequelize.JSON();
 
-      return testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
+      return testSuccess(Type, { test: 42, nested: { foo: 'bar' }});
     });
   }
 
@@ -126,23 +112,23 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and stringify for JSONB', () => {
       const Type = new Sequelize.JSONB();
 
-      return testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
+      return testSuccess(Type, { test: 42, nested: { foo: 'bar' }});
     });
   }
 
   if (current.dialect.supports.HSTORE) {
-    it('calls parse and bindParam for HSTORE', () => {
+    it('calls parse and stringify for HSTORE', () => {
       const Type = new Sequelize.HSTORE();
 
-      return testSuccess(Type, { test: 42, nested: false }, { useBindParam: true });
+      return testSuccess(Type, { test: 42, nested: false });
     });
   }
 
   if (current.dialect.supports.RANGE) {
-    it('calls parse and bindParam for RANGE', () => {
+    it('calls parse and stringify for RANGE', () => {
       const Type = new Sequelize.RANGE(new Sequelize.INTEGER());
 
-      return testSuccess(Type, [1, 2], { useBindParam: true });
+      return testSuccess(Type, [1, 2]);
     });
   }
 
@@ -161,13 +147,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for TIME', () => {
     const Type = new Sequelize.TIME();
 
-    return testSuccess(Type, moment(new Date()).format('HH:mm:ss'));
+    return testSuccess(Type, new Date());
   });
 
   it('calls parse and stringify for BLOB', () => {
     const Type = new Sequelize.BLOB();
 
-    return testSuccess(Type, 'foobar', { useBindParam: true });
+    return testSuccess(Type, 'foobar');
   });
 
   it('calls parse and stringify for CHAR', () => {
@@ -176,15 +162,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     return testSuccess(Type, 'foobar');
   });
 
-  it('calls parse and stringify/bindParam for STRING', () => {
+  it('calls parse and stringify for STRING', () => {
     const Type = new Sequelize.STRING();
 
-    // mssql has a _bindParam function that checks if STRING was created with
-    // the boolean param (if so it outputs a Buffer bind param). This override
-    // isn't needed for other dialects
-    if (dialect === 'mssql') {
-      return testSuccess(Type, 'foobar',  { useBindParam: true });
-    }
     return testSuccess(Type, 'foobar');
   });
 
@@ -285,96 +265,86 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  it('calls parse and bindParam for DOUBLE', () => {
+  it('calls parse and stringify for DOUBLE', () => {
     const Type = new Sequelize.DOUBLE();
 
-    return testSuccess(Type, 1.5, { useBindParam: true });
+    return testSuccess(Type, 1.5);
   });
 
-  it('calls parse and bindParam for FLOAT', () => {
+  it('calls parse and stringify for FLOAT', () => {
     const Type = new Sequelize.FLOAT();
 
     if (dialect === 'postgres') {
       // Postgres doesn't have float, maps to either decimal or double
       testFailure(Type);
     } else {
-      return testSuccess(Type, 1.5, { useBindParam: true });
+      return testSuccess(Type, 1.5);
     }
   });
 
-  it('calls parse and bindParam for REAL', () => {
+  it('calls parse and stringify for REAL', () => {
     const Type = new Sequelize.REAL();
 
-    return testSuccess(Type, 1.5, { useBindParam: true });
+    return testSuccess(Type, 1.5);
   });
 
   it('calls parse and stringify for UUID', () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite'].includes(dialect)) {
+    if (['postgres', 'sqlite'].indexOf(dialect) !== -1) {
       return testSuccess(Type, uuid.v4());
+    } else {
+      // No native uuid type
+      testFailure(Type);
     }
-    // No native uuid type
-    testFailure(Type);
   });
 
   it('calls parse and stringify for CIDR', () => {
     const Type = new Sequelize.CIDR();
 
-    if (['postgres'].includes(dialect)) {
+    if (['postgres'].indexOf(dialect) !== -1) {
       return testSuccess(Type, '10.1.2.3/32');
+    } else {
+      testFailure(Type);
     }
-    testFailure(Type);
   });
 
   it('calls parse and stringify for INET', () => {
     const Type = new Sequelize.INET();
 
-    if (['postgres'].includes(dialect)) {
+    if (['postgres'].indexOf(dialect) !== -1) {
       return testSuccess(Type, '127.0.0.1');
+    } else {
+      testFailure(Type);
     }
-    testFailure(Type);
-  });
-
-  it('calls parse and stringify for CITEXT', () => {
-    const Type = new Sequelize.CITEXT();
-
-    if (dialect === 'sqlite') {
-      // The "field type" sqlite returns is TEXT so is covered under TEXT test above
-      return;
-    }
-
-    if (dialect === 'postgres') {
-      return testSuccess(Type, 'foobar');
-    }
-    testFailure(Type);
   });
 
   it('calls parse and stringify for MACADDR', () => {
     const Type = new Sequelize.MACADDR();
 
-    if (['postgres'].includes(dialect)) {
+    if (['postgres'].indexOf(dialect) !== -1) {
       return testSuccess(Type, '01:23:45:67:89:ab');
+    } else {
+      testFailure(Type);
     }
-    testFailure(Type);
-
   });
 
   it('calls parse and stringify for ENUM', () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
-    if (['postgres'].includes(dialect)) {
+    if (['postgres'].indexOf(dialect) !== -1) {
       return testSuccess(Type, 'hat');
+    } else {
+      testFailure(Type);
     }
-    testFailure(Type);
   });
 
   if (current.dialect.supports.GEOMETRY) {
-    it('calls parse and bindParam for GEOMETRY', () => {
+    it('calls parse and stringify for GEOMETRY', () => {
       const Type = new Sequelize.GEOMETRY();
 
-      return testSuccess(Type, { type: 'Point', coordinates: [125.6, 10.1] }, { useBindParam: true });
+      return testSuccess(Type, { type: 'Point', coordinates: [125.6, 10.1] });
     });
 
     it('should parse an empty GEOMETRY field', () => {
@@ -414,8 +384,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
             //This case throw unhandled exception
             return User.findAll();
           }).then(users =>{
-            if (dialect === 'mysql' || dialect === 'mariadb') {
-              // MySQL will return NULL, because they lack EMPTY geometry data support.
+            if (dialect === 'mysql') {
+              // MySQL will return NULL, becuase they lack EMPTY geometry data support.
               expect(users[0].field).to.be.eql(null);
             } else if (dialect === 'postgres' || dialect === 'postgres-native') {
               //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
@@ -467,7 +437,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           real: -Infinity
         });
       }).then(() => {
-        return Model.findOne({ where: { id: 1 } });
+        return Model.find({ where: { id: 1 } });
       }).then(user => {
         expect(user.get('float')).to.be.NaN;
         expect(user.get('double')).to.eq(Infinity);
@@ -498,7 +468,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return Model.sync({ force: true }).then(() => {
         return Model.create(sampleData);
       }).then(() => {
-        return Model.findByPk(1);
+        return Model.findById(1);
       }).then(user => {
         /**
          * MYSQL default precision is 10 and scale is 0
@@ -516,9 +486,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
       });
     });
-  }
 
-  if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
     it('should parse BIGINT as string', function() {
       const Model = this.sequelize.define('model', {
         jewelPurity: Sequelize.BIGINT
@@ -532,7 +500,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return Model.sync({ force: true }).then(() => {
         return Model.create(sampleData);
       }).then(() => {
-        return Model.findByPk(1);
+        return Model.findById(1);
       }).then(user => {
         expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
         expect(user.get('jewelPurity')).to.be.string;
@@ -553,109 +521,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return Model.sync({ force: true })
         .then(() => Model.create({ interval: [1, 4] }) )
         .then(() => Model.findAll() )
-        .then(([m]) => {
-          expect(m.interval[0].value).to.be.eql(1);
-          expect(m.interval[1].value).to.be.eql(4);
-        });
-    });
-  }
-
-  if (current.dialect.supports.RANGE) {
-
-    it('should allow date ranges to be generated with default bounds inclusion #8176', function() {
-      const Model = this.sequelize.define('M', {
-        interval: {
-          type: Sequelize.RANGE(Sequelize.DATE),
-          allowNull: false,
-          unique: true
-        }
-      });
-      const testDate1 = new Date();
-      const testDate2 = new Date(testDate1.getTime() + 10000);
-      const testDateRange = [testDate1, testDate2];
-
-      return Model.sync({ force: true })
-        .then(() => Model.create({ interval: testDateRange }))
-        .then(() => Model.findOne())
-        .then(m => {
-          expect(m).to.exist;
-          expect(m.interval[0].value).to.be.eql(testDate1);
-          expect(m.interval[1].value).to.be.eql(testDate2);
-          expect(m.interval[0].inclusive).to.be.eql(true);
-          expect(m.interval[1].inclusive).to.be.eql(false);
-        });
-    });
-
-    it('should allow date ranges to be generated using a single range expression to define bounds inclusion #8176', function() {
-      const Model = this.sequelize.define('M', {
-        interval: {
-          type: Sequelize.RANGE(Sequelize.DATE),
-          allowNull: false,
-          unique: true
-        }
-      });
-      const testDate1 = new Date();
-      const testDate2 = new Date(testDate1.getTime() + 10000);
-      const testDateRange = [{ value: testDate1, inclusive: false }, { value: testDate2, inclusive: true }];
-
-      return Model.sync({ force: true })
-        .then(() => Model.create({ interval: testDateRange }))
-        .then(() => Model.findOne())
-        .then(m => {
-          expect(m).to.exist;
-          expect(m.interval[0].value).to.be.eql(testDate1);
-          expect(m.interval[1].value).to.be.eql(testDate2);
-          expect(m.interval[0].inclusive).to.be.eql(false);
-          expect(m.interval[1].inclusive).to.be.eql(true);
-        });
-    });
-
-    it('should allow date ranges to be generated using a composite range expression #8176', function() {
-      const Model = this.sequelize.define('M', {
-        interval: {
-          type: Sequelize.RANGE(Sequelize.DATE),
-          allowNull: false,
-          unique: true
-        }
-      });
-      const testDate1 = new Date();
-      const testDate2 = new Date(testDate1.getTime() + 10000);
-      const testDateRange = [testDate1, { value: testDate2, inclusive: true }];
-
-      return Model.sync({ force: true })
-        .then(() => Model.create({ interval: testDateRange }))
-        .then(() => Model.findOne())
-        .then(m => {
-          expect(m).to.exist;
-          expect(m.interval[0].value).to.be.eql(testDate1);
-          expect(m.interval[1].value).to.be.eql(testDate2);
-          expect(m.interval[0].inclusive).to.be.eql(true);
-          expect(m.interval[1].inclusive).to.be.eql(true);
-        });
-    });
-
-    it('should correctly return ranges when using predicates that define bounds inclusion #8176', function() {
-      const Model = this.sequelize.define('M', {
-        interval: {
-          type: Sequelize.RANGE(Sequelize.DATE),
-          allowNull: false,
-          unique: true
-        }
-      });
-      const testDate1 = new Date();
-      const testDate2 = new Date(testDate1.getTime() + 10000);
-      const testDateRange = [testDate1, testDate2];
-      const dateRangePredicate = [{ value: testDate1, inclusive: true }, { value: testDate1, inclusive: true }];
-
-      return Model.sync({ force: true })
-        .then(() => Model.create({ interval: testDateRange }))
-        .then(() => Model.findOne({
-          where: {
-            interval: { [Op.overlap]: dateRangePredicate }
-          }
-        }))
-        .then(m => {
-          expect(m).to.exist;
+        .spread(m => {
+          expect(m.interval[0]).to.be.eql(1);
+          expect(m.interval[1]).to.be.eql(4);
         });
     });
   }
@@ -680,13 +548,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const testDate = moment().format('YYYY-MM-DD');
     const newDate = new Date();
 
-    return Model.sync({ force: true })
+    return Model.sync({ force: true})
       .then(() => Model.create({ stamp: testDate }))
       .then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
-        return Model.findByPk(record.id);
+        return Model.findById(record.id);
       }).then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
@@ -707,10 +575,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         return record.reload();
       }).then(record => {
         expect(typeof record.stamp).to.be.eql('string');
-        const recordDate = new Date(record.stamp);
-        expect(recordDate.getUTCFullYear()).to.equal(newDate.getUTCFullYear());
-        expect(recordDate.getUTCDate()).to.equal(newDate.getUTCDate());
-        expect(recordDate.getUTCMonth()).to.equal(newDate.getUTCMonth());
+        expect(new Date(record.stamp)).to.equalDate(newDate);
       });
   });
 
@@ -720,13 +585,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
     const testDate = moment().format('YYYY-MM-DD');
 
-    return Model.sync({ force: true })
+    return Model.sync({ force: true})
       .then(() => Model.create({ stamp: testDate }))
       .then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
-        return Model.findByPk(record.id);
+        return Model.findById(record.id);
       }).then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
@@ -758,12 +623,12 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       force: true
     }).then(() => {
       return ByteModel.create({
-        byteToBool: Buffer.from([true])
+        byteToBool: new Buffer([true])
       });
     }).then(byte => {
       expect(byte.byteToBool).to.be.ok;
 
-      return BoolModel.findByPk(byte.id);
+      return BoolModel.findById(byte.id);
     }).then(bool => {
       expect(bool.byteToBool).to.be.true;
     });

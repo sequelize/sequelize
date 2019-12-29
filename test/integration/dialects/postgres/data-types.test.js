@@ -2,9 +2,9 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const Support = require('../../support');
+const Support = require(__dirname + '/../../support');
 const dialect = Support.getTestDialect();
-const DataTypes = require('../../../../lib/data-types');
+const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 if (dialect === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {

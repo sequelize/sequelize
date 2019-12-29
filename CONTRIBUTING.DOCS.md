@@ -1,20 +1,17 @@
 # Documentation
 
-The sequelize documentation is divided in two parts:
+The sequelize documentation is written in a combination of markdown (articles and example based documentation) and [JSDoc](http://usejsdoc.org) (API reference generated from source code comments).
 
-* Tutorials, guides, and example based documentation are written in Markdown
-* The API reference is generated automatically from source code comments with [ESDoc](http://esdoc.org) (which uses [JSDoc](http://usejsdoc.org) syntax).
+All documentation is located in the `docs` folder.
 
-The whole documentation is rendered using ESDoc and continuously deployed to [Surge](http://surge.sh). The output is produced in the `esdoc` folder.
+The documentation is rendered using [esdoc](http://esdoc.org) and continously deployed to [Surge](http://surge.sh). esdoc generates static HTML from the code comments. 
 
-The tutorials, written in markdown, are located in the `docs` folder. ESDoc is configured to find them in the `"manual"` field of `.esdoc.json`.
+All pages in the documentation are defined in the `manual` section of `.esdoc.json`. Each page is given as a separate line:
 
-To generate the docs locally, run `npm run docs` and open the generated `esdoc/index.html` in your favorite browser.
+To view the docs locally run `npm run docs` and open the generated HTML in your favorite browser.
 
 ## Articles and example based docs
-
 Write markdown, and have fun :)
 
 ## API docs
-
-Change the source code documentation comments, using JSDoc syntax, and rerun `npm run docs` to see your changes.
+Change the source-code, and rerun `npm run docs` to see your changes.

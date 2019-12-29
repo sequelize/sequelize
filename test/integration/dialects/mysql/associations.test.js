@@ -2,23 +2,24 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require('../../support'),
+  Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require('../../../../lib/data-types');
+  DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Associations', () => {
     describe('many-to-many', () => {
       describe('where tables have the same prefix', () => {
         it('should create a table wp_table1wp_table2s', function() {
-          const Table2 = this.sequelize.define('wp_table2', { foo: DataTypes.STRING }),
-            Table1 = this.sequelize.define('wp_table1', { foo: DataTypes.STRING });
+          const Table2 = this.sequelize.define('wp_table2', {foo: DataTypes.STRING}),
+            Table1 = this.sequelize.define('wp_table1', {foo: DataTypes.STRING}),
+            self = this;
 
           Table1.belongsToMany(Table2, { through: 'wp_table1swp_table2s' });
           Table2.belongsToMany(Table1, { through: 'wp_table1swp_table2s' });
           return Table1.sync({ force: true }).then(() => {
             return Table2.sync({ force: true }).then(() => {
-              expect(this.sequelize.modelManager.getModel('wp_table1swp_table2s')).to.exist;
+              expect(self.sequelize.modelManager.getModel('wp_table1swp_table2s')).to.exist;
             });
           });
         });
@@ -26,11 +27,11 @@ if (dialect === 'mysql') {
 
       describe('when join table name is specified', () => {
         beforeEach(function() {
-          const Table2 = this.sequelize.define('ms_table1', { foo: DataTypes.STRING }),
-            Table1 = this.sequelize.define('ms_table2', { foo: DataTypes.STRING });
+          const Table2 = this.sequelize.define('ms_table1', {foo: DataTypes.STRING}),
+            Table1 = this.sequelize.define('ms_table2', {foo: DataTypes.STRING});
 
-          Table1.belongsToMany(Table2, { through: 'table1_to_table2' });
-          Table2.belongsToMany(Table1, { through: 'table1_to_table2' });
+          Table1.belongsToMany(Table2, {through: 'table1_to_table2'});
+          Table2.belongsToMany(Table1, {through: 'table1_to_table2'});
           return Table1.sync({ force: true }).then(() => {
             return Table2.sync({ force: true });
           });
@@ -46,47 +47,55 @@ if (dialect === 'mysql') {
     describe('HasMany', () => {
       beforeEach(function() {
         //prevent periods from occurring in the table name since they are used to delimit (table.column)
-        this.User = this.sequelize.define(`User${Math.ceil(Math.random() * 10000000)}`, { name: DataTypes.STRING });
-        this.Task = this.sequelize.define(`Task${Math.ceil(Math.random() * 10000000)}`, { name: DataTypes.STRING });
+        this.User = this.sequelize.define('User' + Math.ceil(Math.random() * 10000000), { name: DataTypes.STRING });
+        this.Task = this.sequelize.define('Task' + Math.ceil(Math.random() * 10000000), { name: DataTypes.STRING });
         this.users = null;
         this.tasks = null;
 
-        this.User.belongsToMany(this.Task, { as: 'Tasks', through: 'UserTasks' });
-        this.Task.belongsToMany(this.User, { as: 'Users', through: 'UserTasks' });
+        this.User.belongsToMany(this.Task, {as: 'Tasks', through: 'UserTasks'});
+        this.Task.belongsToMany(this.User, {as: 'Users', through: 'UserTasks'});
 
-        const users = [],
+        const self = this,
+          users = [],
           tasks = [];
 
         for (let i = 0; i < 5; ++i) {
-          users[i] = { name: `User${Math.random()}` };
-          tasks[i] = { name: `Task${Math.random()}` };
+          users[users.length] = {name: 'User' + Math.random()};
+        }
+
+        for (let x = 0; x < 5; ++x) {
+          tasks[tasks.length] = {name: 'Task' + Math.random()};
         }
 
         return this.sequelize.sync({ force: true }).then(() => {
-          return this.User.bulkCreate(users).then(() => {
-            return this.Task.bulkCreate(tasks);
+          return self.User.bulkCreate(users).then(() => {
+            return self.Task.bulkCreate(tasks);
           });
         });
       });
 
       describe('addDAO / getModel', () => {
         beforeEach(function() {
-          this.user = null;
-          this.task = null;
+          const self = this;
 
-          return this.User.findAll().then(_users => {
-            return this.Task.findAll().then(_tasks => {
-              this.user = _users[0];
-              this.task = _tasks[0];
+          self.user = null;
+          self.task = null;
+
+          return self.User.findAll().then(_users => {
+            return self.Task.findAll().then(_tasks => {
+              self.user = _users[0];
+              self.task = _tasks[0];
             });
           });
         });
 
         it('should correctly add an association to the dao', function() {
-          return this.user.getTasks().then(_tasks => {
+          const self = this;
+
+          return self.user.getTasks().then(_tasks => {
             expect(_tasks.length).to.equal(0);
-            return this.user.addTask(this.task).then(() => {
-              return this.user.getTasks().then(_tasks => {
+            return self.user.addTask(self.task).then(() => {
+              return self.user.getTasks().then(_tasks => {
                 expect(_tasks.length).to.equal(1);
               });
             });
@@ -96,29 +105,33 @@ if (dialect === 'mysql') {
 
       describe('removeDAO', () => {
         beforeEach(function() {
-          this.user = null;
-          this.tasks = null;
+          const self = this;
 
-          return this.User.findAll().then(_users => {
-            return this.Task.findAll().then(_tasks => {
-              this.user = _users[0];
-              this.tasks = _tasks;
+          self.user = null;
+          self.tasks = null;
+
+          return self.User.findAll().then(_users => {
+            return self.Task.findAll().then(_tasks => {
+              self.user = _users[0];
+              self.tasks = _tasks;
             });
           });
         });
 
         it('should correctly remove associated objects', function() {
-          return this.user.getTasks().then(__tasks => {
+          const self = this;
+
+          return self.user.getTasks().then(__tasks => {
             expect(__tasks.length).to.equal(0);
-            return this.user.setTasks(this.tasks).then(() => {
-              return this.user.getTasks().then(_tasks => {
-                expect(_tasks.length).to.equal(this.tasks.length);
-                return this.user.removeTask(this.tasks[0]).then(() => {
-                  return this.user.getTasks().then(_tasks => {
-                    expect(_tasks.length).to.equal(this.tasks.length - 1);
-                    return this.user.removeTasks([this.tasks[1], this.tasks[2]]).then(() => {
-                      return this.user.getTasks().then(_tasks => {
-                        expect(_tasks).to.have.length(this.tasks.length - 3);
+            return self.user.setTasks(self.tasks).then(() => {
+              return self.user.getTasks().then(_tasks => {
+                expect(_tasks.length).to.equal(self.tasks.length);
+                return self.user.removeTask(self.tasks[0]).then(() => {
+                  return self.user.getTasks().then(_tasks => {
+                    expect(_tasks.length).to.equal(self.tasks.length - 1);
+                    return self.user.removeTasks([self.tasks[1], self.tasks[2]]).then(() => {
+                      return self.user.getTasks().then(_tasks => {
+                        expect(_tasks).to.have.length(self.tasks.length - 3);
                       });
                     });
                   });

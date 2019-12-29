@@ -3,9 +3,8 @@
 const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
-  Support = require('../support'),
-  Op = Support.Sequelize.Op,
-  DataTypes = require('../../../lib/data-types'),
+  Support = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
   Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
@@ -34,7 +33,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         // Create an enviroment
         return Promise.join(
           Project.bulkCreate([
-            { id: 1, name: 'No tasks' },
+            { id: 1, name: 'No tasks'},
             { id: 2, name: 'No tasks no employees' },
             { id: 3, name: 'No employees' },
             { id: 4, name: 'In progress A' },
@@ -42,16 +41,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { id: 6, name: 'In progress C' }
           ]),
           Task.bulkCreate([
-            { name: 'Important task', fk: 3 },
-            { name: 'Important task', fk: 4 },
-            { name: 'Important task', fk: 5 },
-            { name: 'Important task', fk: 6 }
+            { name: 'Important task', fk: 3},
+            { name: 'Important task', fk: 4},
+            { name: 'Important task', fk: 5},
+            { name: 'Important task', fk: 6}
           ]),
           Employee.bulkCreate([
-            { name: 'Jane Doe', fk: 1 },
-            { name: 'John Doe', fk: 4 },
-            { name: 'Jane John Doe', fk: 5 },
-            { name: 'John Jane Doe', fk: 6 }
+            { name: 'Jane Doe', fk: 1},
+            { name: 'John Doe', fk: 4},
+            { name: 'Jane John Doe', fk: 5},
+            { name: 'John Jane Doe', fk: 6}
           ])
         ).then(() =>{
           //Find all projects with tasks and employees
@@ -73,7 +72,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
       });
     });
-
     it('should be able to include a required model. Result rows should match count', function() {
       const User = this.sequelize.define('User', { name: DataTypes.STRING(40) }, { paranoid: true }),
         SomeConnection = this.sequelize.define('SomeConnection', {
@@ -84,6 +82,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }),
         B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }),
         C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true });
+
+      const self = this;
 
       // Associate them
       User.hasMany(SomeConnection, { foreignKey: 'u', constraints: false });
@@ -151,12 +151,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ])
         ).then(() => {
           // Delete some of conns to prove the concept
-          return SomeConnection.destroy({ where: {
+          return SomeConnection.destroy({where: {
             m: 'A',
             u: 1,
             fk: [1, 2]
-          } }).then(() => {
-            this.clock.tick(1000);
+          }}).then(() => {
+            self.clock.tick(1000);
             // Last and most important queries ( we connected 4, but deleted 2, witch means we must get 2 only )
             return A.findAndCountAll({
               include: [{
@@ -179,7 +179,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     it('should count on a where and not use an uneeded include', function() {
       const Project = this.sequelize.define('Project', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        project_name: { type: DataTypes.STRING }
+        project_name: { type: DataTypes.STRING}
       });
 
       const User = this.sequelize.define('User', {
@@ -191,8 +191,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       let userId = null;
 
-      return User.sync({ force: true }).then(() => {
-        return Project.sync({ force: true });
+      return User.sync({force: true}).then(() => {
+        return Project.sync({force: true});
       }).then(() => {
         return Promise.all([User.create(), Project.create(), Project.create(), Project.create()]);
       }).then(results => {
@@ -201,7 +201,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return user.setProjects([results[1], results[2], results[3]]);
       }).then(() => {
         return User.findAndCountAll({
-          where: { id: userId },
+          where: {id: userId},
           include: [Project],
           distinct: true
         });
@@ -222,10 +222,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return s.sync({ force: true }).then(() => {
         // Make five instances of Foo
-        return Foo.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]);
+        return Foo.bulkCreate([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}]);
       }).then(() => {
         // Make four instances of Bar, related to the last four instances of Foo
-        return Bar.bulkCreate([{ 'FooId': 2 }, { 'FooId': 3 }, { 'FooId': 4 }, { 'FooId': 5 }]);
+        return Bar.bulkCreate([{'FooId': 2}, {'FooId': 3}, {'FooId': 4}, {'FooId': 5}]);
       }).then(() => {
         // Query for the first two instances of Foo which have related Bars
         return Foo.findAndCountAll({
@@ -250,16 +250,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should return the correct count and rows when using a required belongsTo with a where condition and a limit', function() {
       const Foo = this.sequelize.define('Foo', {}),
-        Bar = this.sequelize.define('Bar', { m: DataTypes.STRING(40) });
+        Bar = this.sequelize.define('Bar', {m: DataTypes.STRING(40)});
 
       Foo.hasMany(Bar);
       Bar.belongsTo(Foo);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Foo.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]);
+        return Foo.bulkCreate([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}]);
       }).then(() => {
         // Make four instances of Bar, related to the first two instances of Foo
-        return Bar.bulkCreate([{ 'FooId': 1, m: 'yes' }, { 'FooId': 1, m: 'yes' }, { 'FooId': 1, m: 'no' }, { 'FooId': 2, m: 'yes' }]);
+        return Bar.bulkCreate([{'FooId': 1, m: 'yes'}, {'FooId': 1, m: 'yes'}, {'FooId': 1, m: 'no'}, {'FooId': 2, m: 'yes'}]);
       }).then(() => {
         // Query for the first instance of Foo which have related Bars with m === 'yes'
         return Foo.findAndCountAll({
@@ -279,21 +279,21 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     it('should correctly filter, limit and sort when multiple includes and types of associations are present.', function() {
       const TaskTag = this.sequelize.define('TaskTag', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        name: { type: DataTypes.STRING }
+        name: { type: DataTypes.STRING}
       });
 
       const Tag = this.sequelize.define('Tag', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        name: { type: DataTypes.STRING }
+        name: { type: DataTypes.STRING}
       });
 
       const Task = this.sequelize.define('Task', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        name: { type: DataTypes.STRING }
+        name: { type: DataTypes.STRING}
       });
       const Project = this.sequelize.define('Project', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        m: { type: DataTypes.STRING }
+        m: { type: DataTypes.STRING}
       });
 
       const User = this.sequelize.define('User', {
@@ -303,7 +303,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       Project.belongsTo(User);
       Task.belongsTo(Project);
-      Task.belongsToMany(Tag, { through: TaskTag });
+      Task.belongsToMany(Tag, {through: TaskTag});
       // Sync them
       return this.sequelize.sync({ force: true }).then(() => {
         // Create an enviroment
@@ -312,8 +312,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { name: 'user-name-2' }
         ]).then(() => {
           return Project.bulkCreate([
-            { m: 'A', UserId: 1 },
-            { m: 'A', UserId: 2 }
+            { m: 'A', UserId: 1},
+            { m: 'A', UserId: 2}
           ]);
         }).then(() => {
           return Task.bulkCreate([
@@ -332,10 +332,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               include: [
                 {
                   model: Project,
-                  where: { [Op.and]: [{ m: 'A' }] },
+                  where: { '$and': [{ m: 'A' }] },
                   include: [{
                     model: User,
-                    where: { [Op.and]: [{ name: 'user-name-2' }] }
+                    where: { '$and': [{ name: 'user-name-2' }] }
                   }
                   ]
                 },
@@ -359,7 +359,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const Project = this.sequelize.define('Project', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
-        name: { type: DataTypes.STRING }
+        name: { type: DataTypes.STRING}
       });
 
       User.hasMany(Project);
@@ -372,25 +372,25 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ]);
       }).then(() => {
         return Project.bulkCreate([
-          { name: 'naam-satya', UserId: 1 },
-          { name: 'guru-satya', UserId: 2 },
-          { name: 'app-satya', UserId: 2 }
+          { name: 'naam-satya', UserId: 1},
+          { name: 'guru-satya', UserId: 2},
+          { name: 'app-satya', UserId: 2}
         ]);
       }).then(() => {
         return User.findAndCountAll({
           limit: 1,
           offset: 1,
           where: sequelize.or(
-            { first_name: { [Op.like]: '%user-fname%' } },
-            { last_name: { [Op.like]: '%user-lname%' } }
+            { first_name: { like: '%user-fname%' } },
+            { last_name: { like: '%user-lname%' } }
           ),
           include: [
             {
               model: Project,
               required: true,
               where: { name: {
-                [Op.in]: ['naam-satya', 'guru-satya']
-              } }
+                $in: ['naam-satya', 'guru-satya']
+              }}
             }
           ]
         });

@@ -2,20 +2,22 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require('../support'),
+  Support = require(__dirname + '/../support'),
   current = Support.sequelize,
-  cls = require('cls-hooked'),
+  cls = require('continuation-local-storage'),
   sinon = require('sinon'),
-  stub = sinon.stub;
+  stub = sinon.stub,
+  Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+
   describe('method findOrCreate', () => {
+
     before(() => {
       current.constructor.useCLS(cls.createNamespace('sequelize'));
     });
 
     after(() => {
-      cls.destroyNamespace('sequelize');
       delete current.constructor._cls;
     });
 
@@ -24,9 +26,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         name: 'John'
       });
 
-      this.transactionStub = stub(this.User.sequelize, 'transaction').rejects(new Error('abort'));
+      this.transactionStub = stub(this.User.sequelize, 'transaction');
+      this.transactionStub.returns(new Promise(() => {}));
 
-      this.clsStub = stub(current.constructor._cls, 'get').returns({ id: 123 });
+      this.clsStub = stub(current.constructor._cls, 'get');
+      this.clsStub.returns({ id: 123 });
     });
 
     afterEach(function() {
@@ -35,23 +39,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should use transaction from cls if available', function() {
+
       const options = {
         where: {
           name: 'John'
         }
       };
 
-      return this.User.findOrCreate(options)
-        .then(() => {
-          expect.fail('expected to fail');
-        })
-        .catch(/abort/, () => {
-          expect(this.clsStub.calledOnce).to.equal(true, 'expected to ask for transaction');
-        });
+      this.User.findOrCreate(options);
 
+      expect(this.clsStub.calledOnce).to.equal(true, 'expected to ask for transaction');
     });
 
     it('should not use transaction from cls if provided as argument', function() {
+
       const options = {
         where: {
           name: 'John'
@@ -59,13 +60,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         transaction: { id: 123 }
       };
 
-      return this.User.findOrCreate(options)
-        .then(() => {
-          expect.fail('expected to fail');
-        })
-        .catch(/abort/, () => {
-          expect(this.clsStub.called).to.equal(false);
-        });
+      this.User.findOrCreate(options);
+
+      expect(this.clsStub.called).to.equal(false);
     });
   });
 });

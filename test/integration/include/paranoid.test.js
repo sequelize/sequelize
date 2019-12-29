@@ -3,9 +3,8 @@
 const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
-  Support = require('../support'),
-  Sequelize = require('../../../index'),
-  DataTypes = require('../../../lib/data-types');
+  Support = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
@@ -19,7 +18,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
       D = this.D = S.define('D', { name: DT.STRING }, { paranoid: true });
 
     A.belongsTo(B);
-    A.belongsToMany(D, { through: 'a_d' });
+    A.belongsToMany(D, {through: 'a_d'});
     A.hasMany(C);
 
     B.hasMany(A);
@@ -28,7 +27,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
     C.belongsTo(A);
     C.belongsTo(B);
 
-    D.belongsToMany(A, { through: 'a_d' });
+    D.belongsToMany(A, {through: 'a_d'});
 
     return S.sync({ force: true });
   });
@@ -51,7 +50,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
       });
 
     return S.sync({ force: true }).then(() => {
-      return Test.findByPk(1);
+      return Test.findById(1);
     });
   });
 
@@ -67,7 +66,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
         ]
       };
 
-    return A.findOne(options).then(() => {
+    return A.find(options).then(() => {
       expect(options.include[0].required).to.be.equal(false);
     });
   });
@@ -84,7 +83,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
         ]
       };
 
-    return A.findOne(options).then(() => {
+    return A.find(options).then(() => {
       expect(options.include[0].required).to.be.equal(true);
     });
   });
@@ -105,19 +104,19 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
     X.hasMany(Y);
 
-    return this.sequelize.sync({ force: true }).then(() => {
-      return Sequelize.Promise.all([
+    return this.sequelize.sync({ force: true}).bind(this).then(function() {
+      return this.sequelize.Promise.all([
         X.create(),
         Y.create()
       ]);
-    }).then(([x, y]) => {
+    }).spread(function(x, y) {
       this.x = x;
       this.y = y;
 
       return x.addY(y);
-    }).then(() => {
+    }).then(function() {
       return this.y.destroy();
-    }).then(() => {
+    }).then(function() {
       //prevent CURRENT_TIMESTAMP to be same
       this.clock.tick(1000);
 

@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require('../support'),
-  DataTypes = require('../../../lib/data-types');
+  Support = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {
@@ -31,15 +31,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it("doesn't return instance that isn't defined", function() {
-      return this.Project.create({ lovelyUserId: null })
+    it("dont return instance that isn't defined", function() {
+      const self = this;
+      return self.Project.create({ lovelyUserId: null })
         .then(project => {
-          return this.Project.findOne({
+          return self.Project.findOne({
             where: {
               id: project.id
             },
             include: [
-              { model: this.User, as: 'LovelyUser' }
+              { model: self.User, as: 'LovelyUser' }
             ]
           });
         })
@@ -49,15 +50,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
     });
 
-    it("doesn't return instances that aren't defined", function() {
-      return this.User.create({ username: 'cuss' })
+    it("dont return instances that aren't defined", function() {
+      const self = this;
+      return self.User.create({ username: 'cuss' })
         .then(user => {
-          return this.User.findOne({
+          return self.User.findOne({
             where: {
               id: user.id
             },
             include: [
-              { model: this.Project, as: 'Projects' }
+              { model: self.Project, as: 'Projects' }
             ]
           });
         })
@@ -162,7 +164,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           level: -1,
           isUser: false,
           isAdmin: true
-        }).then(user => this.User.findByPk(user.get('id'))).then(user => {
+        }).then(user => this.User.findById(user.get('id'))).then(user => {
           expect(user.toJSON()).to.deep.equal({
             id: user.get('id'),
             username: 'Adam',
@@ -180,7 +182,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           age: 99,
           isAdmin: true,
           isUser: false
-        }).then(user => this.User.findByPk(user.get('id'))).then(user => {
+        }).then(user => this.User.findById(user.get('id'))).then(user => {
           expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);
         });
       });
@@ -190,7 +192,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'test.user',
           age: 99,
           isAdmin: true
-        }).then(user => this.User.findByPk(user.get('id'))).then(user => {
+        }).then(user => this.User.findById(user.get('id'))).then(user => {
           expect(JSON.parse(JSON.stringify(user))).to.deep.equal({
             id: user.get('id'),
             username: 'test.user',
@@ -204,16 +206,17 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('includes the eagerly loaded associations', function() {
+      const self = this;
       return this.User.create({ username: 'fnord', age: 1, isAdmin: true }).then(user => {
-        return this.Project.create({ title: 'fnord' }).then(project => {
+        return self.Project.create({ title: 'fnord' }).then(project => {
           return user.setProjects([project]).then(() => {
-            return this.User.findAll({ include: [{ model: this.Project, as: 'Projects' }] }).then(users => {
+            return self.User.findAll({include: [{ model: self.Project, as: 'Projects' }]}).then(users => {
               const _user = users[0];
 
               expect(_user.Projects).to.exist;
               expect(JSON.parse(JSON.stringify(_user)).Projects).to.exist;
 
-              return this.Project.findAll({ include: [{ model: this.User, as: 'LovelyUser' }] }).then(projects => {
+              return self.Project.findAll({include: [{ model: self.User, as: 'LovelyUser' }]}).then(projects => {
                 const _project = projects[0];
 
                 expect(_project.LovelyUser).to.exist;

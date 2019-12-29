@@ -2,8 +2,7 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const Support = require('../../support');
-const Sequelize = Support.Sequelize;
+const Support = require(__dirname + '/../../support');
 const dialect = Support.getTestDialect();
 const queryProto = Support.sequelize.dialect.Query.prototype;
 
@@ -16,7 +15,7 @@ if (dialect === 'mysql') {
 
       const parsedErr = queryProto.formatError(fakeErr);
 
-      expect(parsedErr).to.be.instanceOf(Sequelize.ForeignKeyConstraintError);
+      expect(parsedErr).to.be.instanceOf(Support.sequelize.ForeignKeyConstraintError);
       expect(parsedErr.parent).to.equal(fakeErr);
       expect(parsedErr.reltype).to.equal('parent');
       expect(parsedErr.table).to.equal('people');
@@ -32,7 +31,7 @@ if (dialect === 'mysql') {
 
       const parsedErr = queryProto.formatError(fakeErr);
 
-      expect(parsedErr).to.be.instanceOf(Sequelize.ForeignKeyConstraintError);
+      expect(parsedErr).to.be.instanceOf(Support.sequelize.ForeignKeyConstraintError);
       expect(parsedErr.parent).to.equal(fakeErr);
       expect(parsedErr.reltype).to.equal('parent');
       expect(parsedErr.table).to.equal('people');
@@ -40,18 +39,5 @@ if (dialect === 'mysql') {
       expect(parsedErr.value).to.be.undefined;
       expect(parsedErr.index).to.equal('brothers_ibfk_1');
     });
-
-    it('newlines contained in err message are parsed correctly', () => {
-      const fakeErr = new Error("Duplicate entry '13888888888\r' for key 'num'");
-
-      fakeErr.code = 1062;
-
-      const parsedErr = queryProto.formatError(fakeErr);
-
-      expect(parsedErr).to.be.instanceOf(Sequelize.UniqueConstraintError);
-      expect(parsedErr.parent).to.equal(fakeErr);
-      expect(parsedErr.fields.num).to.equal('13888888888\r');
-    });
-    
   });
 }

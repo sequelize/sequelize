@@ -2,9 +2,17 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const Support = require('../support');
-const DataTypes = require('../../../lib/data-types');
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
 const dialect = Support.getTestDialect();
+
+let count = 0;
+function log() {
+  // sqlite fires a lot more querys than the other dbs. this is just a simple hack, since i'm lazy
+  if (dialect !== 'sqlite' || count === 0) {
+    count++;
+  }
+};
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function() {
@@ -13,12 +21,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   afterEach(function() {
-    return Support.dropTestSchemas(this.sequelize);
+    return this.sequelize.dropAllSchemas();
   });
 
   describe('changeColumn', () => {
     it('should support schemas', function() {
-      return this.sequelize.createSchema('archive').then(() => {
+      return this.sequelize.createSchema('archive').bind(this).then(function() {
         return this.queryInterface.createTable({
           tableName: 'users',
           schema: 'archive'
@@ -29,14 +37,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             autoIncrement: true
           },
           currency: DataTypes.INTEGER
-        }).then(() => {
+        }).bind(this).then(function() {
           return this.queryInterface.changeColumn({
             tableName: 'users',
             schema: 'archive'
           }, 'currency', {
             type: DataTypes.FLOAT
           });
-        }).then(() => {
+        }).then(function() {
           return this.queryInterface.describeTable({
             tableName: 'users',
             schema: 'archive'
@@ -61,12 +69,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           autoIncrement: true
         },
         currency: DataTypes.INTEGER
-      }).then(() => {
+      }).bind(this).then(function() {
         return this.queryInterface.changeColumn('users', 'currency', {
           type: DataTypes.FLOAT,
           allowNull: true
         });
-      }).then(() => {
+      }).then(function() {
         return this.queryInterface.describeTable({
           tableName: 'users'
         });
@@ -82,40 +90,27 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     // MSSQL doesn't support using a modified column in a check constraint.
     // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
     if (dialect !== 'mssql') {
-      it('should work with enums (case 1)', function() {
+      it('should work with enums', function() {
         return this.queryInterface.createTable({
           tableName: 'users'
         }, {
           firstName: DataTypes.STRING
-        }).then(() => {
+        }).bind(this).then(function() {
           return this.queryInterface.changeColumn('users', 'firstName', {
             type: DataTypes.ENUM(['value1', 'value2', 'value3'])
           });
         });
       });
 
-      it('should work with enums (case 2)', function() {
-        return this.queryInterface.createTable({
-          tableName: 'users'
-        }, {
-          firstName: DataTypes.STRING
-        }).then(() => {
-          return this.queryInterface.changeColumn('users', 'firstName', {
-            type: DataTypes.ENUM,
-            values: ['value1', 'value2', 'value3']
-          });
-        });
-      });
-
       it('should work with enums with schemas', function() {
-        return this.sequelize.createSchema('archive').then(() => {
+        return this.sequelize.createSchema('archive').bind(this).then(function() {
           return this.queryInterface.createTable({
             tableName: 'users',
             schema: 'archive'
           }, {
             firstName: DataTypes.STRING
           });
-        }).then(() => {
+        }).bind(this).then(function() {
           return this.queryInterface.changeColumn({
             tableName: 'users',
             schema: 'archive'
@@ -126,7 +121,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    //SQlite natively doesn't support ALTER Foreign key
+    //SQlite navitely doesnt support ALTER Foreign key
     if (dialect !== 'sqlite') {
       describe('should support foreign keys', () => {
         beforeEach(function() {
@@ -140,101 +135,33 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               type: DataTypes.INTEGER,
               allowNull: false
             }
-          }).then(() => {
-            return this.queryInterface.createTable('level', {
-              id: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                autoIncrement: true
-              }
+          })
+            .bind(this).then(function() {
+              return this.queryInterface.createTable('level', {
+                id: {
+                  type: DataTypes.INTEGER,
+                  primaryKey: true,
+                  autoIncrement: true
+                }
+              });
             });
-          });
         });
 
         it('able to change column to foreign key', function() {
-          return this.queryInterface.getForeignKeyReferencesForTable('users').then( foreignKeys => {
-            expect(foreignKeys).to.be.an('array');
-            expect(foreignKeys).to.be.empty;
-            return this.queryInterface.changeColumn('users', 'level_id', {
-              type: DataTypes.INTEGER,
-              references: {
-                model: 'level',
-                key: 'id'
-              },
-              onUpdate: 'cascade',
-              onDelete: 'cascade'
-            });
-          }).then(() => {
-            return this.queryInterface.getForeignKeyReferencesForTable('users');
-          }).then(newForeignKeys => {
-            expect(newForeignKeys).to.be.an('array');
-            expect(newForeignKeys).to.have.lengthOf(1);
-            expect(newForeignKeys[0].columnName).to.be.equal('level_id');
+          return this.queryInterface.changeColumn('users', 'level_id', {
+            type: DataTypes.INTEGER,
+            references: {
+              model: 'level',
+              key: 'id'
+            },
+            onUpdate: 'cascade',
+            onDelete: 'cascade'
+          }, {logging: log}).then(() => {
+            expect(count).to.be.equal(1);
+            count = 0;
           });
         });
 
-        it('able to change column property without affecting other properties', function() {
-          let firstTable, firstForeignKeys;
-          // 1. look for users table information
-          // 2. change column level_id on users to have a Foreign Key
-          // 3. look for users table Foreign Keys information
-          // 4. change column level_id AGAIN to allow null values
-          // 5. look for new foreign keys information
-          // 6. look for new table structure information
-          // 7. compare foreign keys and tables(before and after the changes)
-          return this.queryInterface.describeTable({
-            tableName: 'users'
-          }).then( describedTable => {
-            firstTable = describedTable;
-            return this.queryInterface.changeColumn('users', 'level_id', {
-              type: DataTypes.INTEGER,
-              references: {
-                model: 'level',
-                key: 'id'
-              },
-              onUpdate: 'cascade',
-              onDelete: 'cascade'
-            });
-          }).then( () => {
-            return this.queryInterface.getForeignKeyReferencesForTable('users');
-          }).then( keys => {
-            firstForeignKeys = keys;
-            return this.queryInterface.changeColumn('users', 'level_id', {
-              type: DataTypes.INTEGER,
-              allowNull: true
-            });
-          }).then( () => {
-            return this.queryInterface.getForeignKeyReferencesForTable('users');
-          }).then( newForeignKeys => {
-            expect(firstForeignKeys.length).to.be.equal(newForeignKeys.length);
-            expect(firstForeignKeys[0].columnName).to.be.equal('level_id');
-            expect(firstForeignKeys[0].columnName).to.be.equal(newForeignKeys[0].columnName);
-            
-            return this.queryInterface.describeTable({
-              tableName: 'users'
-            });
-          }).then( describedTable => {
-            expect(describedTable.level_id).to.have.property('allowNull');
-            expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
-            expect(describedTable.level_id.allowNull).to.be.equal(true);
-          });
-        });
-
-        it('should change the comment of column', function() {
-          return this.queryInterface.describeTable({
-            tableName: 'users'
-          }).then(describedTable => {
-            expect(describedTable.level_id.comment).to.be.equal(null);
-            return this.queryInterface.changeColumn('users', 'level_id', {
-              type: DataTypes.INTEGER,
-              comment: 'FooBar'
-            });
-          }).then(() => {
-            return this.queryInterface.describeTable({ tableName: 'users' });
-          }).then(describedTable2 => {
-            expect(describedTable2.level_id.comment).to.be.equal('FooBar');
-          });
-        });
       });
     }
   });

@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require('../support'),
+  Support = require(__dirname + '/../support'),
   current = Support.sequelize,
-  DataTypes = require('../../../lib/data-types');
+  DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('indexes', () => {
@@ -18,27 +18,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       expect(Model.rawAttributes.eventData.index).not.to.equal(true);
-      expect(Model._indexes.length).to.equal(1);
-      expect(Model._indexes[0].fields).to.eql(['data']);
-      expect(Model._indexes[0].using).to.equal('gin');
+      expect(Model.options.indexes.length).to.equal(1);
+      expect(Model.options.indexes[0].fields).to.eql(['data']);
+      expect(Model.options.indexes[0].using).to.equal('gin');
     });
 
     it('should set the unique property when type is unique', () => {
       const Model = current.define('m', {}, {
         indexes: [
           {
-            type: 'unique',
-            fields: ['name']
+            type: 'unique'
           },
           {
-            type: 'UNIQUE',
-            fields: ['name']
+            type: 'UNIQUE'
           }
         ]
       });
 
-      expect(Model._indexes[0].unique).to.eql(true);
-      expect(Model._indexes[1].unique).to.eql(true);
+      expect(Model.options.indexes[0].unique).to.eql(true);
+      expect(Model.options.indexes[1].unique).to.eql(true);
     });
 
     it('should not set rawAttributes when indexes are defined via options', () => {

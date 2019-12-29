@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
+  Support   = require(__dirname + '/../support'),
   current   = Support.sequelize,
   Sequelize = Support.Sequelize;
 
@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should reject if options.where are missing', () => {
-        return expect(() => Model.increment(['id', 'count'], { by: 10 }))
+        return expect(() => Model.increment(['id', 'count'], { by: 10}))
           .to.throw('Missing where attribute in the options parameter');
       });
     });
