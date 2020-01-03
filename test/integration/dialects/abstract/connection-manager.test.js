@@ -7,8 +7,7 @@ const chai = require('chai'),
   Config = require('../../../config/config'),
   ConnectionManager = require('../../../../lib/dialects/abstract/connection-manager'),
   Pool = require('sequelize-pool').Pool,
-  _ = require('lodash'),
-  Promise = require('../../../../lib/promise');
+  _ = require('lodash');
 
 const baseConf = Config[Support.getTestDialect()];
 const poolEntry = {
@@ -22,6 +21,7 @@ describe('Connection Manager', () => {
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
+    sandbox.usingPromise(require('bluebird'));
   });
 
   afterEach(() => {
@@ -75,15 +75,13 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const resolvedPromise = new Promise(resolve => {
-      resolve({
-        queryType: 'read'
-      });
-    });
+    const res = {
+      queryType: 'read'
+    };
 
-    const connectStub = sandbox.stub(connectionManager, '_connect').returns(resolvedPromise);
-    sandbox.stub(connectionManager, '_disconnect').returns(resolvedPromise);
-    sandbox.stub(sequelize, 'databaseVersion').returns(resolvedPromise);
+    const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
+    sandbox.stub(connectionManager, '_disconnect').resolves(res);
+    sandbox.stub(sequelize, 'databaseVersion').resolves(res);
     connectionManager.initPools();
 
     const queryOptions = {
@@ -121,15 +119,12 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const resolvedPromise = new Promise(resolve => {
-      resolve({
-        queryType: 'read'
-      });
-    });
-
-    const connectStub = sandbox.stub(connectionManager, '_connect').returns(resolvedPromise);
-    sandbox.stub(connectionManager, '_disconnect').returns(resolvedPromise);
-    sandbox.stub(sequelize, 'databaseVersion').returns(resolvedPromise);
+    const res = {
+      queryType: 'read'
+    };
+    const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
+    sandbox.stub(connectionManager, '_disconnect').resolves(res);
+    sandbox.stub(sequelize, 'databaseVersion').resolves(res);
     connectionManager.initPools();
 
     const queryOptions = {

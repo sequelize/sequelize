@@ -803,81 +803,127 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     });
 
     it('should support a non-primary key as the association column on a target without a primary key', function() {
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
+      const User = this.sequelize.define('User', { username: { type: DataTypes.STRING, unique: true } });
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
       User.removeAttribute('id');
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
 
-      return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'bob' }).then(newUser => {
-          return Task.create({ title: 'some task' }).then(newTask => {
-            return newTask.setUser(newUser).then(() => {
-              return Task.findOne({ where: { title: 'some task' } }).then(foundTask => {
-                return foundTask.getUser().then(foundUser => {
-                  expect(foundUser.username).to.equal('bob');
-                });
-              });
-            });
+      return this.sequelize.sync({ force: true })
+        .then(() => User.create({ username: 'bob' }))
+        .then(newUser => Task.create({ title: 'some task' })
+          .then(newTask => newTask.setUser(newUser)))
+        .then(() => Task.findOne({ where: { title: 'some task' } }))
+        .then(foundTask => foundTask.getUser())
+        .then(foundUser => expect(foundUser.username).to.equal('bob'))
+        .then(() => this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks'))
+        .then(foreignKeysDescriptions => {
+          expect(foreignKeysDescriptions[0]).to.includes({
+            referencedColumnName: 'username',
+            referencedTableName: 'Users',
+            columnName: 'user_name'
           });
         });
-      });
     });
 
     it('should support a non-primary unique key as the association column', function() {
       const User = this.sequelize.define('User', {
-          username: {
-            type: DataTypes.STRING,
-            field: 'user_name',
-            unique: true
-          }
-        }),
-        Task = this.sequelize.define('Task', {
-          title: DataTypes.STRING
-        });
+        username: {
+          type: DataTypes.STRING,
+          field: 'user_name',
+          unique: true
+        }
+      });
+      const Task = this.sequelize.define('Task', {
+        title: DataTypes.STRING
+      });
 
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
 
-      return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'bob' }).then(newUser => {
-          return Task.create({ title: 'some task' }).then(newTask => {
-            return newTask.setUser(newUser).then(() => {
-              return Task.findOne({ where: { title: 'some task' } }).then(foundTask => {
-                return foundTask.getUser().then(foundUser => {
-                  expect(foundUser.username).to.equal('bob');
-                });
-              });
-            });
+      return this.sequelize.sync({ force: true })
+        .then(() => User.create({ username: 'bob' }))
+        .then(newUser => Task.create({ title: 'some task' })
+          .then(newTask => newTask.setUser(newUser)))
+        .then(() => Task.findOne({ where: { title: 'some task' } }))
+        .then(foundTask => foundTask.getUser())
+        .then(foundUser => expect(foundUser.username).to.equal('bob'))
+        .then(() => this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks'))
+        .then(foreignKeysDescriptions => {
+          expect(foreignKeysDescriptions[0]).to.includes({
+            referencedColumnName: 'user_name',
+            referencedTableName: 'Users',
+            columnName: 'user_name'
           });
         });
-      });
     });
 
     it('should support a non-primary key as the association column with a field option', function() {
       const User = this.sequelize.define('User', {
-          username: {
-            type: DataTypes.STRING,
-            field: 'the_user_name_field'
-          }
-        }),
-        Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+        username: {
+          type: DataTypes.STRING,
+          field: 'the_user_name_field',
+          unique: true
+        }
+      });
+      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
       User.removeAttribute('id');
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
 
-      return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'bob' }).then(newUser => {
-          return Task.create({ title: 'some task' }).then(newTask => {
-            return newTask.setUser(newUser).then(() => {
-              return Task.findOne({ where: { title: 'some task' } }).then(foundTask => {
-                return foundTask.getUser().then(foundUser => {
-                  expect(foundUser.username).to.equal('bob');
-                });
-              });
-            });
+      return this.sequelize.sync({ force: true })
+        .then(() => User.create({ username: 'bob' }))
+        .then(newUser => Task.create({ title: 'some task' })
+          .then(newTask => newTask.setUser(newUser)))
+        .then(() => Task.findOne({ where: { title: 'some task' } }))
+        .then(foundTask => foundTask.getUser())
+        .then(foundUser => expect(foundUser.username).to.equal('bob'))
+        .then(() => this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks'))
+        .then(foreignKeysDescriptions => {
+          expect(foreignKeysDescriptions[0]).to.includes({
+            referencedColumnName: 'the_user_name_field',
+            referencedTableName: 'Users',
+            columnName: 'user_name'
           });
         });
+    });
+
+    it('should support a non-primary key as the association column in a table with a composite primary key', function() {
+      const User = this.sequelize.define('User', {
+        username: {
+          type: DataTypes.STRING,
+          field: 'the_user_name_field',
+          unique: true
+        },
+        age: {
+          type: DataTypes.INTEGER,
+          field: 'the_user_age_field',
+          primaryKey: true
+        },
+        weight: {
+          type: DataTypes.INTEGER,
+          field: 'the_user_weight_field',
+          primaryKey: true
+        }
       });
+      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
+      Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
+
+      return this.sequelize.sync({ force: true })
+        .then(() => User.create({ username: 'bob', age: 18, weight: 40 }))
+        .then(newUser => Task.create({ title: 'some task' })
+          .then(newTask => newTask.setUser(newUser)))
+        .then(() => Task.findOne({ where: { title: 'some task' } }))
+        .then(foundTask => foundTask.getUser())
+        .then(foundUser => expect(foundUser.username).to.equal('bob'))
+        .then(() => this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks'))
+        .then(foreignKeysDescriptions => {
+          expect(foreignKeysDescriptions[0]).to.includes({
+            referencedColumnName: 'the_user_name_field',
+            referencedTableName: 'Users',
+            columnName: 'user_name'
+          });
+        });
     });
   });
 
@@ -890,7 +936,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       dataTypes.forEach(dataType => {
         const tableName = `TaskXYZ_${dataType.key}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
-
         Tasks[dataType].belongsTo(User, { foreignKey: 'userId', keyType: dataType, constraints: false });
       });
 

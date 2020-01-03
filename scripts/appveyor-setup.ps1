@@ -5,26 +5,34 @@ Start-Service sqlbrowser
 [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
 [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement") | Out-Null
 
-$wmi = New-Object('Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer')
-$tcp = $wmi.GetSmoObject("ManagedComputer[@Name='${env:computername}']/ServerInstance[@Name='SQL2017']/ServerProtocol[@Name='Tcp']")
-$tcp.IsEnabled = $true
-$tcp.Alter()
+$serverName = $env:COMPUTERNAME
+$instanceName = 'SQL2017'
+$smo = 'Microsoft.SqlServer.Management.Smo.'
+$wmi = new-object ($smo + 'Wmi.ManagedComputer')
 
-$wmi = New-Object('Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer')
-$ipall = $wmi.GetSmoObject("ManagedComputer[@Name='${env:computername}']/ServerInstance[@Name='SQL2017']/ServerProtocol[@Name='Tcp']/IPAddress[@Name='IPAll']")
-$port = $ipall.IPAddressProperties.Item("TcpDynamicPorts").Value
+# Enable TCP/IP
+$uri = "ManagedComputer[@Name='$serverName']/ServerInstance[@Name='$instanceName']/ServerProtocol[@Name='Tcp']"
+$Tcp = $wmi.GetSmoObject($uri)
+$Tcp.IsEnabled = $true
+$TCP.alter()
+
+Start-Service "MSSQL`$$instanceName"
+
+$ipall = $wmi.GetSmoObject("ManagedComputer[@Name='$serverName']/ServerInstance[@Name='$instanceName']/ServerProtocol[@Name='Tcp']/IPAddress[@Name='IPAll']")
+$port = $ipall.IPAddressProperties.Item("TcpPort").Value
 
 $config = @{
-  instanceName = "SQL2017"
   host = "localhost"
   username = "sa"
   password = "Password12!"
   port = $port
   database = "sequelize_test"
   dialectOptions = @{
-    requestTimeout = 25000
-    cryptoCredentialsDetails = @{
-      ciphers = "RC4-MD5"
+    options = @{
+      requestTimeout = 25000
+      cryptoCredentialsDetails = @{
+        ciphers = "RC4-MD5"
+      }
     }
   }
   pool = @{

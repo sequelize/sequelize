@@ -152,7 +152,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             if (dialect === 'postgres') {
               expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
             } else if (dialect === 'mssql') {
-              expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) VALUES');
+              expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
             } else { // mysql, sqlite
               expect(sql).to.include('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL');
             }
@@ -356,7 +356,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should allow blank arrays (return immediatly)', function() {
+    it('should allow blank arrays (return immediately)', function() {
       const Worker = this.sequelize.define('Worker', {});
       return Worker.sync().then(() => {
         return Worker.bulkCreate([]).then(workers => {
@@ -475,6 +475,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(users[1].secretValue).to.equal('24');
                 expect(users[2].uniqueName).to.equal('Michael');
                 expect(users[2].secretValue).to.equal('26');
+              });
+            });
+          });
+        });
+
+        it('should support the updateOnDuplicate option with primary keys', function() {
+          const data = [
+            { no: 1, name: 'Peter' },
+            { no: 2, name: 'Paul' }
+          ];
+
+          return this.Student.bulkCreate(data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
+            const new_data = [
+              { no: 1, name: 'Peterson' },
+              { no: 2, name: 'Paulson' },
+              { no: 3, name: 'Michael' }
+            ];
+            return this.Student.bulkCreate(new_data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
+              return this.Student.findAll({ order: ['no'] }).then(students => {
+                expect(students.length).to.equal(3);
+                expect(students[0].name).to.equal('Peterson');
+                expect(students[0].no).to.equal(1);
+                expect(students[1].name).to.equal('Paulson');
+                expect(students[1].no).to.equal(2);
+                expect(students[2].name).to.equal('Michael');
+                expect(students[2].no).to.equal(3);
               });
             });
           });
@@ -612,7 +638,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(m.secret).to.be.eql(M1.secret);
 
           return Maya.bulkCreate([M2]);
-        }).spread(m => {
+        }).then(([m]) => {
 
           // only attributes are returned, no fields are mixed
           expect(m.createdAt).to.be.ok;
@@ -718,7 +744,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
       });
 
-      it('shold not validate', function() {
+      it('should not validate', function() {
         return this.User
           .sync({ force: true })
           .then(() => this.User.bulkCreate([

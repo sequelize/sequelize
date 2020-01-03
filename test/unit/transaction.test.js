@@ -10,16 +10,16 @@ const current = Support.sequelize;
 
 describe('Transaction', () => {
   before(function() {
-    this.stub = sinon.stub(current, 'query').returns(Sequelize.Promise.resolve({}));
+    this.stub = sinon.stub(current, 'query').resolves({});
 
     this.stubConnection = sinon.stub(current.connectionManager, 'getConnection')
-      .returns(Sequelize.Promise.resolve({
+      .resolves({
         uuid: 'ssfdjd-434fd-43dfg23-2d',
         close() {}
-      }));
+      });
 
     this.stubRelease = sinon.stub(current.connectionManager, 'releaseConnection')
-      .returns(Sequelize.Promise.resolve());
+      .resolves();
   });
 
   beforeEach(function() {

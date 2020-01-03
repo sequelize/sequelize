@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(User.tableName).to.equal('SuperUsers');
     });
 
-    it('uses checks to make sure dao factory isnt leaking on multiple define', function() {
+    it('uses checks to make sure dao factory is not leaking on multiple define', function() {
       this.sequelize.define('SuperUser', {}, { freezeTableName: false });
       const factorySize = this.sequelize.modelManager.all.length;
 
@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(factorySize).to.equal(factorySize2);
     });
 
-    it('allows us us to predefine the ID column with our own specs', function() {
+    it('allows us to predefine the ID column with our own specs', function() {
       const User = this.sequelize.define('UserCol', {
         id: {
           type: Sequelize.STRING,
@@ -261,8 +261,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return User.sync({ force: true, logging: _.after(2, _.once(sql => {
         if (dialect === 'mssql') {
-          expect(sql).to.match(/CONSTRAINT\s*([`"\[]?user_and_email[`"\]]?)?\s*UNIQUE\s*\([`"\[]?username[`"\]]?, [`"\[]?email[`"\]]?\)/);
-          expect(sql).to.match(/CONSTRAINT\s*([`"\[]?a_and_b[`"\]]?)?\s*UNIQUE\s*\([`"\[]?aCol[`"\]]?, [`"\[]?bCol[`"\]]?\)/);
+          expect(sql).to.match(/CONSTRAINT\s*([`"[]?user_and_email[`"\]]?)?\s*UNIQUE\s*\([`"[]?username[`"\]]?, [`"[]?email[`"\]]?\)/);
+          expect(sql).to.match(/CONSTRAINT\s*([`"[]?a_and_b[`"\]]?)?\s*UNIQUE\s*\([`"[]?aCol[`"\]]?, [`"[]?bCol[`"\]]?\)/);
         } else {
           expect(sql).to.match(/UNIQUE\s*([`"]?user_and_email[`"]?)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/);
           expect(sql).to.match(/UNIQUE\s*([`"]?a_and_b[`"]?)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/);
@@ -355,7 +355,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should allow the user to specify indexes in options', function() {
-      this.retries(3);
       const indices = [{
         name: 'a_b_uniq',
         unique: true,
@@ -740,16 +739,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return User.create({ username: 'foo' }, { transaction: t }).then(() => {
                 return User.findOrBuild({
                   where: { username: 'foo' }
-                }).spread(user1 => {
+                }).then(([user1]) => {
                   return User.findOrBuild({
                     where: { username: 'foo' },
                     transaction: t
-                  }).spread(user2 => {
+                  }).then(([user2]) => {
                     return User.findOrBuild({
                       where: { username: 'foo' },
                       defaults: { foo: 'asd' },
                       transaction: t
-                    }).spread(user3 => {
+                    }).then(([user3]) => {
                       expect(user1.isNewRecord).to.be.true;
                       expect(user2.isNewRecord).to.be.false;
                       expect(user3.isNewRecord).to.be.false;
@@ -813,6 +812,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
   });
 
+  describe('save', () => {
+    it('should mapping the correct fields when saving instance. see #10589', function() {
+      const User = this.sequelize.define('User', {
+        id3: {
+          field: 'id',
+          type: Sequelize.INTEGER,
+          primaryKey: true
+        },
+        id: {
+          field: 'id2',
+          type: Sequelize.INTEGER,
+          allowNull: false
+        },
+        id2: {
+          field: 'id3',
+          type: Sequelize.INTEGER,
+          allowNull: false
+        }
+      });
+
+      // Setup
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({ id3: 94, id: 87, id2: 943 });
+      })
+        // Test
+        .then(() => User.findByPk(94))
+        .then(user => user.set('id2', 8877))
+        .then(user => user.save({ id2: 8877 }))
+        // Validate
+        .then(() => User.findByPk(94))
+        .then(user => expect(user.id2).to.equal(8877));
+    });
+  });
+
   describe('update', () => {
     it('throws an error if no where clause is given', function() {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
@@ -825,6 +858,39 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(err).to.be.an.instanceof(Error);
         expect(err.message).to.equal('Missing where attribute in the options parameter');
       });
+    });
+
+    it('should mapping the correct fields when updating instance. see #10589', function() {
+      const User = this.sequelize.define('User', {
+        id3: {
+          field: 'id',
+          type: Sequelize.INTEGER,
+          primaryKey: true
+        },
+        id: {
+          field: 'id2',
+          type: Sequelize.INTEGER,
+          allowNull: false
+        },
+        id2: {
+          field: 'id3',
+          type: Sequelize.INTEGER,
+          allowNull: false
+        }
+      });
+
+      // Setup
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({ id3: 94, id: 87, id2: 943 });
+      })
+        // Test
+        .then(() => User.findByPk(94))
+        .then(user => {
+          return user.update({ id2: 8877 });
+        })
+        // Validate
+        .then(() => User.findByPk(94))
+        .then(user => expect(user.id2).to.equal(8877));
     });
 
     if (current.dialect.supports.transactions) {
@@ -999,7 +1065,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }).then(() => {
         return User.findAll();
-      }).spread(user => {
+      }).then(([user]) => {
         expect(user.username).to.equal('kurt');
       });
     });
@@ -1035,7 +1101,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }).then(() => {
         return User.findAll();
-      }).spread(user => {
+      }).then(([user]) => {
         expect(user.illness_pain).to.be.equal(5);
       });
     });
@@ -1070,7 +1136,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }).then(() => {
         return User.findAll();
-      }).spread(user => {
+      }).then(([user]) => {
         expect(user.illness_pain).to.be.equal(10);
       });
     });
@@ -1123,10 +1189,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { username: 'Bob', secretValue: '43' }];
 
       return this.User.bulkCreate(data).then(() => {
-        return this.User.update({ username: 'Bill' }, { where: { secretValue: '42' } }).spread(affectedRows => {
+        return this.User.update({ username: 'Bill' }, { where: { secretValue: '42' } }).then(([affectedRows]) => {
           expect(affectedRows).to.equal(2);
         }).then(() => {
-          return this.User.update({ username: 'Bill' }, { where: { secretValue: '44' } }).spread(affectedRows => {
+          return this.User.update({ username: 'Bill' }, { where: { secretValue: '44' } }).then(([affectedRows]) => {
             expect(affectedRows).to.equal(0);
           });
         });
@@ -1194,6 +1260,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('calls update hook for soft deleted objects', function() {
+      const hookSpy = sinon.spy();
+      const User = this.sequelize.define('User',
+        { username: DataTypes.STRING },
+        { paranoid: true, hooks: { beforeUpdate: hookSpy } }
+      );
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.bulkCreate([
+          { username: 'user1' }
+        ]);
+      }).then(() => {
+        return User.destroy({
+          where: {
+            username: 'user1'
+          }
+        });
+      }).then(() => {
+        return User.update(
+          { username: 'updUser1' },
+          { paranoid: false, where: { username: 'user1' }, individualHooks: true });
+      }).then(() => {
+        return User.findOne({ where: { username: 'updUser1' }, paranoid: false });
+      }).then( user => {
+        expect(user).to.not.be.null;
+        expect(user.username).to.eq('updUser1');
+        expect(hookSpy).to.have.been.called;
+      });
+    });
+
     if (dialect === 'postgres') {
       it('returns the affected rows if `options.returning` is true', function() {
         const data = [{ username: 'Peter', secretValue: '42' },
@@ -1221,7 +1317,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { username: 'Peter', secretValue: '42' }];
 
         return this.User.bulkCreate(data).then(() => {
-          return this.User.update({ secretValue: '43' }, { where: { username: 'Peter' }, limit: 1 }).spread(affectedRows => {
+          return this.User.update({ secretValue: '43' }, { where: { username: 'Peter' }, limit: 1 }).then(([affectedRows]) => {
             expect(affectedRows).to.equal(1);
           });
         });
@@ -1607,7 +1703,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.destroy({ where: { username: ['Tony', 'Max'] }, force: true });
       }).then(() => {
         return this.sequelize.query('SELECT * FROM paranoidusers', { raw: true });
-      }).spread(users => {
+      }).then(([users]) => {
         expect(users).to.have.length(1);
         expect(users[0].username).to.equal('Tobi');
       });
@@ -1813,6 +1909,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           group: ['data']
         }).then(count => {
           expect(count.length).to.equal(2);
+        });
+      });
+    });
+
+    describe('aggregate', () => {
+      if (dialect === 'mssql') {
+        return;
+      }
+      it('allows grouping by aliased attribute', function() {
+        return this.User.aggregate('id', 'count', {
+          attributes: [['id', 'id2']],
+          group: ['id2'],
+          logging: true
         });
       });
     });
@@ -2487,7 +2596,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           if (semver.gte(current.options.databaseVersion, '5.6.0')) {
             expect(err.message).to.match(/Cannot add foreign key constraint/);
           } else {
-            expect(err.message).to.match(/Can\'t create table/);
+            expect(err.message).to.match(/Can't create table/);
           }
         } else if (dialect === 'sqlite') {
           // the parser should not end up here ... see above

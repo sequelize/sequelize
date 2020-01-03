@@ -71,7 +71,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         [
           `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
           `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`
-        ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
+        ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
       }) AS [User];`
     });
 
@@ -386,7 +386,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           [
             `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [user].[last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
             `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [user].[last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`
-          ].join(current.dialect.supports['UNION ALL'] ?' UNION ALL ' : ' UNION ')
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];`
       });
     })();
@@ -516,7 +516,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         expectsql(sql.selectQuery('User', {
           attributes: ['a\', * FROM User; DELETE FROM User;SELECT id']
         }), {
-          default: "SELECT [a\', * FROM User; DELETE FROM User;SELECT id] FROM [User];",
+          default: "SELECT [a', * FROM User; DELETE FROM User;SELECT id] FROM [User];",
           mssql: 'SELECT [a, * FROM User; DELETE FROM User;SELECT id] FROM [User];'
         });
       });

@@ -5,7 +5,7 @@ const expect = chai.expect;
 const Support = require('./support');
 const DataTypes = require('../../lib/data-types');
 const Utils = require('../../lib/utils');
-const logger = require('../../lib/utils/logger').getLogger();
+const { logger } = require('../../lib/utils/logger');
 const Op = Support.Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
@@ -25,10 +25,10 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       expect(Utils.toDefaultValue(DataTypes.UUIDV4)).to.equal('UUIDV4');
     });
     it('return uuid v1', () => {
-      expect(/^[a-z0-9\-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))).to.be.equal(true);
+      expect(/^[a-z0-9-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))).to.be.equal(true);
     });
     it('return uuid v4', () => {
-      expect(/^[a-z0-9\-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4()))).to.be.equal(true);
+      expect(/^[a-z0-9-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4()))).to.be.equal(true);
     });
     it('return now', () => {
       expect(Object.prototype.toString.call(Utils.toDefaultValue(DataTypes.NOW()))).to.be.equal('[object Date]');
@@ -144,7 +144,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       });
     });
 
-    it('$or where', () => {
+    it('Op.or where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
           [Op.or]: {
@@ -171,7 +171,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       });
     });
 
-    it('$or[] where', () => {
+    it('Op.or[] where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
           [Op.or]: [
@@ -270,14 +270,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   });
 
   describe('Logger', () => {
-    it('deprecate', () => {
-      expect(logger.deprecate).to.be.a('function');
-      logger.deprecate('test deprecation');
-    });
-
     it('debug', () => {
-      expect(logger.debug).to.be.a('function');
-      logger.debug('test debug');
+      expect(logger.debugContext).to.be.a('function');
+      logger.debugContext('test debug');
     });
 
     it('warn', () => {
@@ -290,7 +285,6 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       const testLogger = logger.debugContext('test');
 
       expect(testLogger).to.be.a('function');
-      expect(testLogger.namespace).to.be.eql('sequelize:test');
     });
   });
 });

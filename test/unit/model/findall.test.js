@@ -6,13 +6,13 @@ const Support = require('../support');
 const current = Support.sequelize;
 const sinon = require('sinon');
 const DataTypes = require('../../../lib/data-types');
-const logger = require('../../../lib/utils/logger');
+const { Logger } = require('../../../lib/utils/logger');
 const sequelizeErrors = require('../../../lib/errors');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('warnOnInvalidOptions', () => {
     beforeEach(function() {
-      this.loggerSpy = sinon.spy(logger, 'warn');
+      this.loggerSpy = sinon.spy(Logger.prototype, 'warn');
     });
 
     afterEach(function() {
@@ -45,9 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }, { timestamps: false });
 
     before(function() {
-      this.stub = sinon.stub(current.getQueryInterface(), 'select').callsFake(() => {
-        return Model.build({});
-      });
+      this.stub = sinon.stub(current.getQueryInterface(), 'select').callsFake(() => Model.build({}));
       this.warnOnInvalidOptionsStub = sinon.stub(Model, 'warnOnInvalidOptions');
     });
 

@@ -5,19 +5,11 @@ const chai = require('chai'),
   Support = require('./support'),
   Promise = require('../../lib/promise'),
   Transaction = require('../../lib/transaction'),
-  sinon = require('sinon'),
   current = Support.sequelize;
 
 if (current.dialect.supports.transactions) {
 
   describe(Support.getTestDialectTeaser('Sequelize#transaction'), () => {
-    beforeEach(function() {
-      this.sinon = sinon.createSandbox();
-    });
-
-    afterEach(function() {
-      this.sinon.restore();
-    });
 
     describe('then', () => {
       it('gets triggered once a transaction has been successfully committed', function() {

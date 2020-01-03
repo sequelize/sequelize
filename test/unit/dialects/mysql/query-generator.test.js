@@ -6,6 +6,7 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
   Op = require('../../../../lib/operators'),
+  IndexHints = require('../../../../lib/index-hints'),
   QueryGenerator = require('../../../../lib/dialects/mysql/query-generator');
 
 if (dialect === 'mysql') {
@@ -175,7 +176,7 @@ if (dialect === 'mysql') {
         },
         {
           arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }, { charset: 'latin1' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM(\"A\", \"B\", \"C\"), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;'
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM("A", "B", "C"), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;'
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { rowFormat: 'default' }],
@@ -709,10 +710,58 @@ if (dialect === 'mysql') {
           expectation: 'DROP INDEX `user_foo_bar` ON `User`'
         }
       ],
+
       getForeignKeyQuery: [
         {
           arguments: ['User', 'email'],
           expectation: "SELECT CONSTRAINT_NAME as constraint_name,CONSTRAINT_NAME as constraintName,CONSTRAINT_SCHEMA as constraintSchema,CONSTRAINT_SCHEMA as constraintCatalog,TABLE_NAME as tableName,TABLE_SCHEMA as tableSchema,TABLE_SCHEMA as tableCatalog,COLUMN_NAME as columnName,REFERENCED_TABLE_SCHEMA as referencedTableSchema,REFERENCED_TABLE_SCHEMA as referencedTableCatalog,REFERENCED_TABLE_NAME as referencedTableName,REFERENCED_COLUMN_NAME as referencedColumnName FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (REFERENCED_TABLE_NAME = 'User' AND REFERENCED_COLUMN_NAME = 'email') OR (TABLE_NAME = 'User' AND COLUMN_NAME = 'email' AND REFERENCED_TABLE_NAME IS NOT NULL)"
+        }
+      ],
+
+      selectFromTableFragment: [
+        {
+          arguments: [{}, null, ['*'], '`Project`'],
+          expectation: 'SELECT * FROM `Project`'
+        }, {
+          arguments: [
+            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name'] }] },
+            null,
+            ['*'],
+            '`Project`'
+          ],
+          expectation: 'SELECT * FROM `Project` USE INDEX (`index_project_on_name`)'
+        }, {
+          arguments: [
+            { indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }] },
+            null,
+            ['*'],
+            '`Project`'
+          ],
+          expectation: 'SELECT * FROM `Project` FORCE INDEX (`index_project_on_name`)'
+        }, {
+          arguments: [
+            { indexHints: [{ type: IndexHints.IGNORE, values: ['index_project_on_name'] }] },
+            null,
+            ['*'],
+            '`Project`'
+          ],
+          expectation: 'SELECT * FROM `Project` IGNORE INDEX (`index_project_on_name`)'
+        }, {
+          arguments: [
+            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name', 'index_project_on_name_and_foo'] }] },
+            null,
+            ['*'],
+            '`Project`'
+          ],
+          expectation: 'SELECT * FROM `Project` USE INDEX (`index_project_on_name`,`index_project_on_name_and_foo`)'
+        }, {
+          arguments: [
+            { indexHints: [{ type: 'FOO', values: ['index_project_on_name'] }] },
+            null,
+            ['*'],
+            '`Project`'
+          ],
+          expectation: 'SELECT * FROM `Project`'
         }
       ]
     };
@@ -738,7 +787,7 @@ if (dialect === 'mysql') {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             this.queryGenerator.options = Object.assign({}, this.queryGenerator.options, test.context && test.context.options || {});
 
-            const conditions = this.queryGenerator[suiteTitle].apply(this.queryGenerator, test.arguments);
+            const conditions = this.queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         });

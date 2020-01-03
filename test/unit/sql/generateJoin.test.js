@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       const name = `${path}, ${util.inspect(options, { depth: 10 })}`;
 
-      Sequelize.Model._conformOptions(options);
+      Sequelize.Model._conformIncludes(options);
       options = Sequelize.Model._validateIncludedElements(options);
 
       const include = _.at(options, path)[0];

@@ -14,14 +14,13 @@ describe('[MariaDB Specific] Associations', () => {
       it('should create a table wp_table1wp_table2s', function() {
         const Table2 = this.sequelize.define('wp_table2', { foo: DataTypes.STRING }),
           Table1 = this.sequelize.define('wp_table1',
-            { foo: DataTypes.STRING }),
-          self = this;
+            { foo: DataTypes.STRING });
 
         Table1.belongsToMany(Table2, { through: 'wp_table1swp_table2s' });
         Table2.belongsToMany(Table1, { through: 'wp_table1swp_table2s' });
         return Table1.sync({ force: true }).then(() => {
           return Table2.sync({ force: true }).then(() => {
-            expect(self.sequelize.modelManager.getModel(
+            expect(this.sequelize.modelManager.getModel(
               'wp_table1swp_table2s')).to.exist;
           });
         });
@@ -61,21 +60,17 @@ describe('[MariaDB Specific] Associations', () => {
       this.User.belongsToMany(this.Task, { as: 'Tasks', through: 'UserTasks' });
       this.Task.belongsToMany(this.User, { as: 'Users', through: 'UserTasks' });
 
-      const self = this,
-        users = [],
-        tasks = [];
+      const users = [];
+      const tasks = [];
 
       for (let i = 0; i < 5; ++i) {
-        users[users.length] = { name: `User${Math.random()}` };
-      }
-
-      for (let x = 0; x < 5; ++x) {
-        tasks[tasks.length] = { name: `Task${Math.random()}` };
+        users[i] = { name: `User${Math.random()}` };
+        tasks[i] = { name: `Task${Math.random()}` };
       }
 
       return this.sequelize.sync({ force: true })
-        .then(() => self.User.bulkCreate(users))
-        .then(() => self.Task.bulkCreate(tasks));
+        .then(() => this.User.bulkCreate(users))
+        .then(() => this.Task.bulkCreate(tasks));
 
     });
 

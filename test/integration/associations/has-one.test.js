@@ -153,7 +153,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
           return this.sequelize.showAllSchemas().then(schemas => {
             if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
               expect(schemas).to.not.have.property('admin');
-            };
+            }
           });
         });
       });

@@ -2,8 +2,6 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
   Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
@@ -19,9 +17,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     before(function() {
-      this.stubDelete = sinon.stub(current.getQueryInterface(), 'bulkDelete').callsFake(() => {
-        return Promise.resolve([]);
-      });
+      this.stubDelete = sinon.stub(current.getQueryInterface(), 'bulkDelete').resolves([]);
     });
 
     beforeEach(function() {
@@ -39,7 +35,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.stubDelete.restore();
     });
 
-    it('can detect complexe objects', () => {
+    it('can detect complex objects', () => {
       const Where = function() { this.secretValue = '1'; };
 
       expect(() => {

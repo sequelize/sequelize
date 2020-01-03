@@ -20,7 +20,7 @@ if (dialect === 'mysql') {
           }
         }))
         // https://github.com/sequelize/sequelize/issues/7184
-        .spread(affectedCount => affectedCount.should.equal(1));
+        .then(([affectedCount]) => affectedCount.should.equal(1));
     });
 
     it('should acquire a valid connection when keepDefaultTimezone is true', () => {

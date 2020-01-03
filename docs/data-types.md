@@ -91,12 +91,13 @@ Usage in object notation:
 
 ```js
 // for enums:
-sequelize.define('model', {
+class MyModel extends Model {}
+MyModel.init({
   states: {
     type: Sequelize.ENUM,
     values: ['active', 'pending', 'deleted']
   }
-})
+}, { sequelize })
 ```
 
 ### Array(ENUM)
@@ -146,7 +147,7 @@ range // [{ value: Date, inclusive: false }, { value: Date, inclusive: true }]
 
 You will need to call reload after updating an instance with a range type or use `returning: true` option.
 
-**Special Cases**
+#### Special Cases
 
 ```js
 // empty range:
@@ -162,9 +163,9 @@ Timeline.create({ range: [null, new Date(Date.UTC(2016, 0, 1))] });
 Timeline.create({ range: [-Infinity, new Date(Date.UTC(2016, 0, 1))] });
 ```
 
-# Extending datatypes
+## Extending datatypes
 
-Most likely the type you are trying to implement is already included in [DataTypes](/manual/tutorial/data-types.html). If a new datatype is not included, this manual will show how to write it yourself.
+Most likely the type you are trying to implement is already included in [DataTypes](data-types.html). If a new datatype is not included, this manual will show how to write it yourself.
 
 Sequelize doesn't create new datatypes in the database. This tutorial explains how to make Sequelize recognize new datatypes and assumes that those new datatypes are already created in the database.
 
@@ -178,7 +179,7 @@ const sequelizeConfig = require('../config/sequelize')
 const sequelizeAdditions = require('./sequelize-additions')
 
 // Function that adds new datatypes
-sequelizeAdditions(Sequelize.DataTypes)
+sequelizeAdditions(Sequelize)
 
 // In this exmaple a Sequelize instance is created and exported
 const sequelize = new Sequelize(sequelizeConfig)
@@ -196,51 +197,50 @@ modules.exports = function sequelizeAdditions(Sequelize) {
   /*
    * Create new types
    */
+  class NEWTYPE extends DataTypes.ABSTRACT {
+    // Mandatory, complete definition of the new type in the database
+    toSql() {
+      return 'INTEGER(11) UNSIGNED ZEROFILL'
+    }
 
-  // Create new type
-  DataTypes.NEWTYPE = function NEWTYPE() {
-    if (!(this instanceof DataTypes.NEWTYPE)) return new DataTypes.NEWTYPE()
+    // Optional, validator function
+    validate(value, options) {
+      return (typeof value === 'number') && (! Number.isNaN(value))
+    }
+
+    // Optional, sanitizer
+    _sanitize(value) {
+      // Force all numbers to be positive
+      if (value < 0) {
+        value = 0
+      }
+
+      return Math.round(value)
+    }
+
+    // Optional, value stringifier before sending to database
+    _stringify(value) {
+      return value.toString()
+    }
+
+    // Optional, parser for values received from the database
+    static parse(value) {
+      return Number.parseInt(value)
+    }
   }
-  inherits(DataTypes.NEWTYPE, DataTypes.ABSTRACT)
+
+  DataTypes.NEWTYPE = NEWTYPE;
 
   // Mandatory, set key
   DataTypes.NEWTYPE.prototype.key = DataTypes.NEWTYPE.key = 'NEWTYPE'
 
-  // Mandatory, complete definition of the new type in the database
-  DataTypes.NEWTYPE.prototype.toSql = function toSql() {
-    return 'INTEGER(11) UNSIGNED ZEROFILL'
-  }
-
-  // Optional, validator function
-  DataTypes.NEWTYPE.prototype.validate = function validate(value, options) {
-    return (typeof value === 'number') && (! Number.isNaN(value))
-  }
-
-  // Optional, sanitizer
-  DataTypes.NEWTYPE.prototype._sanitize = function _sanitize(value) {
-    // Force all numbers to be positive
-    if (value < 0) {
-      value = 0
-    }
-
-    return Math.round(value)
-  }
-
-  // Optional, value stringifier before sending to database
-  DataTypes.NEWTYPE.prototype._stringify = function _stringify(value) {
-      return value.toString()
-  }
   // Optional, disable escaping after stringifier. Not recommended.
   // Warning: disables Sequelize protection against SQL injections
-  //DataTypes.NEWTYPE.escape = false
-
-  // Optional, parser for values received from the database
-  DataTypes.NEWTYPE.parse = function parse(value) {
-      return Number.parseInt(value)
-  }
+  // DataTypes.NEWTYPE.escape = false
 
   // For convenience
-  Sequelize.NEWTYPE = DataTypes.NEWTYPE
+  // `classToInvokable` allows you to use the datatype without `new`
+  Sequelize.NEWTYPE = Sequelize.Utils.classToInvokable(DataTypes.NEWTYPE)
 
 }
 ```
@@ -273,7 +273,7 @@ modules.exports = function sequelizeAdditions(Sequelize) {
 
   // Mandatory, create a postgres-specific child datatype with its own parse
   // method. The parser will be dynamically mapped to the OID of pg_new_type.
-  PgTypes = DataTypes.postgres 
+  PgTypes = DataTypes.postgres
 
   PgTypes.NEWTYPE = function NEWTYPE() {
     if (!(this instanceof PgTypes.NEWTYPE)) return new PgTypes.NEWTYPE();
@@ -283,7 +283,7 @@ modules.exports = function sequelizeAdditions(Sequelize) {
 
   // Mandatory, create, override or reassign a postgres-specific parser
   //PgTypes.NEWTYPE.parse = value => value;
-  PgTypes.NEWTYPE.parse = BaseTypes.NEWTYPE.parse;
+  PgTypes.NEWTYPE.parse = DataTypes.NEWTYPE.parse;
 
   // Optional, add or override methods of the postgres-specific datatype
   // like toSql, escape, validate, _stringify, _sanitize...
@@ -296,7 +296,6 @@ modules.exports = function sequelizeAdditions(Sequelize) {
 After a new range type has been [defined in postgres](https://www.postgresql.org/docs/current/static/rangetypes.html#RANGETYPES-DEFINING), it is trivial to add it to Sequelize.
 
 In this example the name of the postgres range type is `newtype_range` and the name of the underlying postgres datatype is `pg_new_type`. The key of `subtypes` and `castTypes` is the key of the Sequelize datatype `DataTypes.NEWTYPE.key`, in lower case.
-
 
 ```js
 // myproject/lib/sequelize-additions.js
@@ -329,4 +328,3 @@ modules.exports = function sequelizeAdditions(Sequelize) {
 ```
 
 The new range can be used in model definitions as `Sequelize.RANGE(Sequelize.NEWTYPE)` or `DataTypes.RANGE(DataTypes.NEWTYPE)`.
-

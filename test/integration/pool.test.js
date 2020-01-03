@@ -25,7 +25,7 @@ function assertSameConnection(newConnection, oldConnection) {
     default:
       throw new Error('Unsupported dialect');
   }
-};
+}
 
 function assertNewConnection(newConnection, oldConnection) {
   switch (dialect) {
@@ -46,7 +46,7 @@ function assertNewConnection(newConnection, oldConnection) {
     default:
       throw new Error('Unsupported dialect');
   }
-};
+}
 
 function unwrapAndAttachMSSQLUniqueId(connection) {
   if (dialect === 'mssql') {

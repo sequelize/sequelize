@@ -14,8 +14,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     /*
      * shortcut for building simple {name: 'foo'} seed data
      */
-    function build() {
-      return Array.prototype.slice.call(arguments).map(arg => ({ name: arg }));
+    function build(...args) {
+      return args.map(arg => ({ name: arg }));
     }
 
     /*
