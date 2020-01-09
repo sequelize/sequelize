@@ -43,6 +43,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { model: User, where: { something: 42 } }
       ]
     },
+    chainableSomething() {
+      return {
+        where: {
+          [Op.and]: {
+            something: {
+              [Op.gte]: 4
+            }
+          }
+        }
+      };
+    },
+    chainableSomethingElse() {
+      return {
+        where: {
+          [Op.and]: {
+            something: {
+              [Op.lte]: 15
+            }
+          }
+        }
+      };
+    },
+
     projects: {
       include: [Project]
     },
@@ -116,6 +139,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should not modify the original scopes when merging them', () => {
         expect(User.scope('defaultScope', 'aScope').options.defaultScope.attributes).to.deep.equal({ exclude: ['password'] });
       });
+    });
+
+    describe('chaining scopes', () => {
+      expect(Company.scope([{ method: ['chainableSomething'] }, { method: ['chainableSomethingElse'] }])._scope.where[Op.and]).to.deep.equal([
+        {
+          something: {
+            [Op.gte]: 4
+          }
+        },
+        {
+          something: {
+            [Op.lte]: 15
+          }
+        }
+      ]);
     });
 
     it('defaultScope should be an empty object if not overridden', () => {
