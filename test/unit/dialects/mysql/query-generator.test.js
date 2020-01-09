@@ -763,6 +763,33 @@ if (dialect === 'mysql') {
           ],
           expectation: 'SELECT * FROM `Project`'
         }
+      ],
+
+      indexHintsFragment: [
+        {
+          arguments: [[{ type: IndexHints.USE, values: ['index_project_on_name'] }]],
+          expectation: 'USE INDEX (`index_project_on_name`)'
+        },
+        {
+          arguments: [[{ type: IndexHints.FORCE, values: ['index_project_on_name'] }]],
+          expectation: 'FORCE INDEX (`index_project_on_name`)'
+        },
+        {
+          arguments: [[{ type: IndexHints.IGNORE, values: ['index_project_on_name'] }]],
+          expectation: 'IGNORE INDEX (`index_project_on_name`)'
+        },
+        {
+          arguments: [[{ type: IndexHints.USE, values: ['index_project_on_name', 'index_project_on_name_and_foo'] }]], 
+          expectation: 'USE INDEX (`index_project_on_name`,`index_project_on_name_and_foo`)' 
+        },
+        {
+          arguments: [[{ indexHints: [{ type: 'FOO', values: ['index_project_on_name'] }] }]], 
+          expectation: '' 
+        },
+        {
+          arguments: [[{ indexHints: [{ type: 'FOO', values: ['index_project_on_name'] }] }, { indexHints: [{ type: 'BAR', values: ['index_project_on_name'] }] }]],
+          expectation: ''
+        }
       ]
     };
 
