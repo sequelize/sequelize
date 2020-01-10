@@ -276,7 +276,7 @@ module.exports = {
           model: {
             tableName: 'users',
             schema: 'schema'
-          }
+          },
           key: 'id'
         },
         allowNull: false
