@@ -10,6 +10,7 @@ export abstract class Association<S extends Model = Model, T extends Model = Mod
   public as: string;
   public isAliased: boolean;
   public foreignKey: string;
+  public sourceKey: string;
   public identifier: string;
   public inspect(): string;
 }
