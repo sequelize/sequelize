@@ -1,6 +1,6 @@
 import { Association, DataTypes, HasOne, Model, Sequelize } from 'sequelize';
 
-class MyModel extends Model {
+class MyModel extends Model<MyModel> {
   public num!: number;
   public static associations: {
     other: HasOne;
@@ -14,7 +14,7 @@ class OtherModel extends Model {}
 
 const assoc: Association = MyModel.associations.other;
 
-const Instance: MyModel = new MyModel({ int: 10 });
+const Instance: MyModel = new MyModel({ num: 10 });
 const num: number = Instance.get('num');
 
 MyModel.findOne({
@@ -42,9 +42,9 @@ MyModel.findOne({ include: OtherModel });
 
 MyModel.count({ include: OtherModel });
 
-MyModel.build({ int: 10 }, { include: OtherModel });
+MyModel.build({ num: 10 }, { include: OtherModel });
 
-MyModel.bulkCreate([{ int: 10 }], { include: OtherModel });
+MyModel.bulkCreate([{ num: 10 }], { include: OtherModel });
 
 MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
 
