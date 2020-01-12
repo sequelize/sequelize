@@ -650,7 +650,8 @@ type FunctionKeys<T> = ({[P in keyof T]: T[P] extends Function ? P : never })[ke
 type ArrayType<T> = NonNullable<T> extends Array<infer R> ? R : any;
 
 /**
- * Model attributes of M
+ * Model attribute keys of M.
+ * (Construct a union type of keys of M excluding keys of Model and function keys)
  *
  * ```ts
  * class User extends Model {
@@ -664,10 +665,10 @@ type ArrayType<T> = NonNullable<T> extends Array<infer R> ? R : any;
  * type UserAttributeKeys = ModelAttributeKeys<User>; // 'name' | 'age'
  * ```
  */
-export type ModelAttributeKeys<M> = Omit<M, keyof Model | FunctionKeys<M>>;
+export type ModelAttributeKeys<M> = Exclude<keyof M, keyof Model | FunctionKeys<M>>;
 
 /**
- * Model values of M
+ * Model values of M.
  *
  * ```ts
  * class Group extends Model {
@@ -686,8 +687,8 @@ export type ModelAttributeKeys<M> = Omit<M, keyof Model | FunctionKeys<M>>;
  * ```
  */
 export type ModelValues<M> = {
-  // Maps inferred model attribute keys of T
-  [P in keyof ModelAttributeKeys<M>]?:
+  // Maps inferred model attribute keys of M
+  [P in ModelAttributeKeys<M>]?:
     // Maps properties which are type of Model to ModelValues
     NonNullable<M[P]> extends Model ? ModelValues<NonNullable<M[P]>> :
       // Maps properties which are type of Array<Model> to Array<ModelValues>
