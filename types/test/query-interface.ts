@@ -1,4 +1,4 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 // tslint:disable-next-line:no-submodule-imports
 import { QueryInterface } from 'sequelize/lib/query-interface';
 
@@ -170,3 +170,5 @@ queryInterface.delete(null, 'Person', {
     a: 1,
   },
 });
+
+queryInterface.upsert("test", {"a": 1}, {"b": 2}, {"c": 3}, Model, {});
