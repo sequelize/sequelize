@@ -156,6 +156,46 @@ const user = await User.create({ firstName: 'John', lastName: 'Doe' });
 console.log(user.fullName); // 'John Doe'
 ```
 
-## Deprecated: `getterMethods` and `setterMethods`
+## `getterMethods` and `setterMethods`
 
-Previously, Sequelize would allow you to use the `getterMethods` and `setterMethods` of the model definition to provide getters and setters. However, this is deprecated and discouraged. If you really need to know, please refer to the [v4 docs](https://sequelize.org/v4/manual/tutorial/models-definition.html#defining-as-part-of-the-model-options). If you have those in your codebase and would like to upgrade, just use virtual attributes instead.
+Sequelize also provides the `getterMethods` and `setterMethods` options in the model definition to specify things that look like, but aren't exactly the same as, virtual attributes. This usage is discouraged and likely to be deprecated in the future (in favor of using virtual attributes directly).
+
+Example:
+
+```js
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = new Sequelize('sqlite::memory:');
+
+const User = sequelize.define('user', {
+  firstName: DataTypes.STRING,
+  lastName: DataTypes.STRING
+}, {
+  getterMethods: {
+    fullName() {
+      return this.firstName + ' ' + this.lastName;
+    }
+  },
+  setterMethods: {
+    fullName(value) {
+      // Note: this is just for demonstration.
+      // See: https://www.kalzumeus.com/2010/06/17/falsehoods-programmers-believe-about-names/
+      const names = value.split(' ');
+      const firstName = names[0];
+      const lastName = names.slice(1).join(' ');
+      this.setDataValue('firstName', firstName);
+      this.setDataValue('lastName', lastName);
+    }
+  }
+});
+
+(async () => {
+  await sequelize.sync();
+  let user = await User.create({ firstName: 'John',  lastName: 'Doe' });
+  console.log(user.fullName); // 'John Doe'
+  user.fullName = 'Someone Else';
+  await user.save();
+  user = await User.findOne();
+  console.log(user.firstName); // 'Someone'
+  console.log(user.lastName); // 'Else'
+})();
+```
