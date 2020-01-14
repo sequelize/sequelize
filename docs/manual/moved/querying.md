@@ -1,8 +1,8 @@
 # \[MOVED\] Querying
 
-After a major rewrite in Sequelize docs, the contents of this page were spread around other guides.
+The contents of this page were moved to other specialized guides.
 
-If you're here, you might be looking for:
+If you're here, you might be looking for these topics:
 
 * **Core Concepts**
   * [Model Querying - Basics](model-querying-basics.html)
