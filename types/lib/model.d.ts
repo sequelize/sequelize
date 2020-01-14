@@ -2620,11 +2620,13 @@ export abstract class Model<T = any> extends Hooks {
   public previous<K extends keyof this>(key: K): this[K];
 
   /**
-   * Validate this instance, and if the validation passes, persist it to the database.
-   *
-   * On success, the callback will be called with this instance. On validation error, the callback will be
-   * called with an instance of `Sequelize.ValidationError`. This error will have a property for each of the
-   * fields for which validation failed, with the error message for that field.
+   * Validates this instance, and if the validation passes, persists it to the database.
+   * 
+   * Returns a Promise that resolves to the saved instance (or rejects with a `Sequelize.ValidationError`, which will have a property for each of the fields for which the validation failed, with the error message for that field).
+   * 
+   * This method is optimized to perform an UPDATE only into the fields that changed. If nothing has changed, no SQL query will be performed.
+   * 
+   * This method is not aware of eager loaded associations. In other words, if some other model instance (child) was eager loaded with this instance (parent), and you change something in the child, calling `save()` will simply ignore the change that happened on the child.
    */
   public save(options?: SaveOptions): Promise<this>;
 
@@ -2728,6 +2730,15 @@ export abstract class Model<T = any> extends Hooks {
    * values gotten from the DB, and apply all custom getters.
    */
   public toJSON(): object;
+
+  /**
+   * Helper method to determine if a instance is "soft deleted". This is
+   * particularly useful if the implementer renamed the deletedAt attribute to
+   * something different. This method requires paranoid to be enabled.
+   *
+   * Throws an error if paranoid is not enabled.
+   */
+  public isSoftDeleted(): boolean;
 }
 
 export type ModelType = typeof Model;
