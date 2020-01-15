@@ -835,7 +835,7 @@ export interface RestoreOptions extends Logging, Transactionable, Filterable {
 /**
  * Options used for Model.update
  */
-export interface UpdateOptions extends Logging, Transactionable {
+export interface UpdateOptions extends Logging, Transactionable, Paranoid {
   /**
    * Options to describe the scope of the search.
    */
@@ -1260,7 +1260,7 @@ export interface ModelAttributeColumnReferencesOptions {
 /**
  * Column options for the model schema attributes
  */
-export interface ModelAttributeColumnOptions extends ColumnOptions {
+export interface ModelAttributeColumnOptions<M extends Model = Model> extends ColumnOptions {
   /**
    * A string or a data type
    */
@@ -1341,23 +1341,23 @@ export interface ModelAttributeColumnOptions extends ColumnOptions {
    * Provide a custom getter for this column. Use `this.getDataValue(String)` to manipulate the underlying
    * values.
    */
-  get?(): unknown;
+  get?(this: M): unknown;
 
   /**
    * Provide a custom setter for this column. Use `this.setDataValue(String, Value)` to manipulate the
    * underlying values.
    */
-  set?(val: unknown): void;
+  set?(this: M, val: unknown): void;
 }
 
 /**
  * Interface for Attributes provided for a column
  */
-export interface ModelAttributes {
+export interface ModelAttributes<M extends Model = Model> {
   /**
    * The description of a database column
    */
-  [name: string]: DataType | ModelAttributeColumnOptions;
+  [name: string]: DataType | ModelAttributeColumnOptions<M>;
 }
 
 /**
@@ -1607,7 +1607,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *  string or a type-description object, with the properties described below:
    * @param options These options are merged with the default define options provided to the Sequelize constructor
    */
-  public static init<M extends Model = Model>(this: ModelCtor<M>, attributes: ModelAttributes, options: InitOptions<M>): void;
+  public static init<M extends Model = Model>(this: ModelCtor<M>, attributes: ModelAttributes<M>, options: InitOptions<M>): void;
 
   /**
    * Remove attribute from model definition
@@ -2620,11 +2620,13 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public previous<K extends keyof this>(key: K): this[K];
 
   /**
-   * Validate this instance, and if the validation passes, persist it to the database.
-   *
-   * On success, the callback will be called with this instance. On validation error, the callback will be
-   * called with an instance of `Sequelize.ValidationError`. This error will have a property for each of the
-   * fields for which validation failed, with the error message for that field.
+   * Validates this instance, and if the validation passes, persists it to the database.
+   * 
+   * Returns a Promise that resolves to the saved instance (or rejects with a `Sequelize.ValidationError`, which will have a property for each of the fields for which the validation failed, with the error message for that field).
+   * 
+   * This method is optimized to perform an UPDATE only into the fields that changed. If nothing has changed, no SQL query will be performed.
+   * 
+   * This method is not aware of eager loaded associations. In other words, if some other model instance (child) was eager loaded with this instance (parent), and you change something in the child, calling `save()` will simply ignore the change that happened on the child.
    */
   public save(options?: SaveOptions): Promise<this>;
 
@@ -2728,6 +2730,15 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * values gotten from the DB, and apply all custom getters.
    */
   public toJSON(): object;
+
+  /**
+   * Helper method to determine if a instance is "soft deleted". This is
+   * particularly useful if the implementer renamed the deletedAt attribute to
+   * something different. This method requires paranoid to be enabled.
+   *
+   * Throws an error if paranoid is not enabled.
+   */
+  public isSoftDeleted(): boolean;
 }
 
 export type ModelType = typeof Model;

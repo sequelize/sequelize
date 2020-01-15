@@ -34,6 +34,16 @@ import { validator } from './utils/validator-extras';
 import { ConnectionManager } from './connection-manager';
 
 /**
+ * Additional options for table altering during sync
+ */
+export interface SyncAlterOptions {
+  /**
+   * Prevents any drop statements while altering a table when set to `false`
+   */
+  drop?: boolean;
+}
+
+/**
  * Sync Options
  */
 export interface SyncOptions extends Logging {
@@ -44,9 +54,9 @@ export interface SyncOptions extends Logging {
 
   /**
    * If alter is true, each DAO will do ALTER TABLE ... CHANGE ...
-   * Alters tables to fit models. Not recommended for production use. Deletes data in columns that were removed or had their type changed in the model.
+   * Alters tables to fit models. Provide an object for additional configuration. Not recommended for production use. If not further configured deletes data in columns that were removed or had their type changed in the model.
    */
-  alter?: boolean;
+  alter?: boolean | SyncAlterOptions;
 
   /**
    * Match a regex against the database name before syncing, a safety check for cases where force: true is
@@ -160,7 +170,7 @@ export interface Config {
   };
 }
 
-export type Dialect =  'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'mariadb';
+export type Dialect =  'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql';
 
 export interface RetryOptions {
   match?: (RegExp | string | Function)[];
