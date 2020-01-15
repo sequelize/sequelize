@@ -5,26 +5,24 @@ const chai      = require('chai'),
   Support   = require('./support'),
   Sequelize = Support.Sequelize,
   Promise   = Sequelize.Promise,
-  cls       = require('continuation-local-storage'),
+  cls       = require('cls-hooked'),
   current = Support.sequelize;
 
 if (current.dialect.supports.transactions) {
-  describe(Support.getTestDialectTeaser('Continuation local storage'), () => {
-    before(function() {
-      this.thenOriginal = Promise.prototype.then;
-      Sequelize.useCLS(cls.createNamespace('sequelize'));
+  describe(Support.getTestDialectTeaser('CLS (Async hooks)'), () => {
+    before(() => {
+      current.constructor.useCLS(cls.createNamespace('sequelize'));
     });
 
     after(() => {
+      cls.destroyNamespace('sequelize');
       delete Sequelize._cls;
     });
 
     beforeEach(function() {
       return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
         this.sequelize = sequelize;
-
         this.ns = cls.getNamespace('sequelize');
-
         this.User = this.sequelize.define('user', {
           name: Sequelize.STRING
         });
@@ -36,7 +34,7 @@ if (current.dialect.supports.transactions) {
       it('does not use continuation storage on manually managed transactions', function() {
         return Sequelize._clsRun(() => {
           return this.sequelize.transaction().then(transaction => {
-            expect(this.ns.get('transaction')).to.be.undefined;
+            expect(this.ns.get('transaction')).not.to.be.ok;
             return transaction.rollback();
           });
         });
@@ -143,12 +141,14 @@ if (current.dialect.supports.transactions) {
           });
         });
       });
-    });
 
-    it('bluebird patch is applied', function() {
-      expect(Promise.prototype.then).to.be.a('function');
-      expect(this.thenOriginal).to.be.a('function');
-      expect(Promise.prototype.then).not.to.equal(this.thenOriginal);
+      it('automagically uses the transaction in all calls with async/await', function() {
+        return this.sequelize.transaction(async () => {
+          await this.User.create({ name: 'bob' });
+          await expect(this.User.findAll({ transaction: null })).to.eventually.have.length(0);
+          await expect(this.User.findAll({})).to.eventually.have.length(1);
+        });
+      });
     });
 
     it('CLS namespace is stored in Sequelize._cls', function() {

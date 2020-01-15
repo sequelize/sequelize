@@ -7,7 +7,8 @@ const chai = require('chai'),
   Support = require('./support'),
   DataTypes = require('../../lib/data-types'),
   _ = require('lodash'),
-  dialect = Support.getTestDialect();
+  dialect = Support.getTestDialect(),
+  current = Support.sequelize;
 
 const sortById = function(a, b) {
   return a.id < b.id ? -1 : 1;
@@ -907,6 +908,104 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return questionnaire.getQuestions({
           include: Answer
         });
+      });
+    });
+  });
+
+  describe('right join', () => {
+    it('should support getting an include with a right join', function() {
+      const User = this.sequelize.define('user', {
+          name: DataTypes.STRING
+        }),
+        Group = this.sequelize.define('group', {
+          name: DataTypes.STRING
+        });
+
+      User.hasMany(Group);
+      Group.belongsTo(User);
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.all([
+          User.create({ name: 'User 1' }),
+          User.create({ name: 'User 2' }),
+          User.create({ name: 'User 3' }),
+          Group.create({ name: 'A Group' })
+        ]);
+      }).then(() => {
+        return Group.findAll({
+          include: [{
+            model: User,
+            right: true
+          }]
+        });
+      }).then(groups => {
+        if (current.dialect.supports['RIGHT JOIN']) {
+          expect(groups.length).to.equal(3);
+        } else {
+          expect(groups.length).to.equal(1);
+        }
+      });
+    });
+
+    it('should support getting an include through with a right join', function() {
+      const User = this.sequelize.define('user', {
+          name: DataTypes.STRING
+        }),
+        Group = this.sequelize.define('group', {
+          name: DataTypes.STRING
+        }),
+        UserGroup = this.sequelize.define('user_group', {
+          vip: DataTypes.INTEGER
+        });
+
+      User.hasMany(Group);
+      Group.belongsTo(User);
+      User.belongsToMany(Group, {
+        through: UserGroup,
+        as: 'Clubs',
+        constraints: false
+      });
+      Group.belongsToMany(User, {
+        through: UserGroup,
+        as: 'Members',
+        constraints: false
+      });
+
+      const ctx = {};
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.all([
+          User.create({ name: 'Member 1' }),
+          User.create({ name: 'Member 2' }),
+          Group.create({ name: 'Group 1' }),
+          Group.create({ name: 'Group 2' })
+        ]);
+      }).then(([member1, member2, group1, group2]) => {
+        ctx.member1 = member1;
+        ctx.member2 = member2;
+        ctx.group1 = group1;
+        ctx.group2 = group2;
+      }).then(() => {
+        return Promise.all([
+          ctx.group1.addMember(ctx.member1),
+          ctx.group1.addMember(ctx.member2),
+          ctx.group2.addMember(ctx.member1)
+        ]);
+      }).then(() => {
+        return ctx.group2.destroy();
+      }).then(() => {
+        return Group.findAll({
+          include: [{
+            model: User,
+            as: 'Members',
+            right: true
+          }]
+        });
+      }).then(groups => {
+        if (current.dialect.supports['RIGHT JOIN']) {
+          expect(groups.length).to.equal(2);
+        } else {
+          expect(groups.length).to.equal(1);
+        }
       });
     });
   });

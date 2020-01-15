@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { username: 'bar' },
         {
           username: 'valak',
-          createdAt: (new Date()).setFullYear(2015)
+          createdAt: new Date().setFullYear(2015)
         }
       ]).then(() => this.User.count({
         attributes: ['createdAt'],

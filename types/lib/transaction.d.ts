@@ -26,6 +26,18 @@ export class Transaction {
    * Adds hook that is run after a transaction is committed
    */
   public afterCommit(fn: (transaction: this) => void | Promise<void>): void;
+
+  /**
+   * Returns possible options for row locking
+   */
+  static get LOCK(): LOCK;
+
+  /**
+   * Same as its static version, but can also be called on instances of
+   * transactions to get possible options for row locking directly from the
+   * instance.
+   */
+  get LOCK(): LOCK;
 }
 
 // tslint:disable-next-line no-namespace
@@ -71,54 +83,61 @@ export namespace Transaction {
     IMMEDIATE = 'IMMEDIATE',
     EXCLUSIVE = 'EXCLUSIVE',
   }
+}
 
+/**
+ * Possible options for row locking. Used in conjunction with `find` calls:
+ *
+ * ```js
+ * t1 // is a transaction
+ * t1.LOCK.UPDATE,
+ * t1.LOCK.SHARE,
+ * t1.LOCK.KEY_SHARE, // Postgres 9.3+ only
+ * t1.LOCK.NO_KEY_UPDATE // Postgres 9.3+ only
+ * ```
+ *
+ * Usage:
+ * ```js
+ * t1 // is a transaction
+ * Model.findAll({
+ *   where: ...,
+ *   transaction: t1,
+ *   lock: t1.LOCK...
+ * });
+ * ```
+ *
+ * Postgres also supports specific locks while eager loading by using OF:
+ * ```js
+ * UserModel.findAll({
+ *   where: ...,
+ *   include: [TaskModel, ...],
+ *   transaction: t1,
+ *   lock: {
+ *   level: t1.LOCK...,
+ *   of: UserModel
+ *   }
+ * });
+ * ```
+ * UserModel will be locked but TaskModel won't!
+ */
+export enum LOCK {
+  UPDATE = 'UPDATE',
+  SHARE = 'SHARE',
   /**
-   * Possible options for row locking. Used in conjunction with `find` calls:
-   *
-   * ```js
-   * t1 // is a transaction
-   * t1.LOCK.UPDATE,
-   * t1.LOCK.SHARE,
-   * t1.LOCK.KEY_SHARE, // Postgres 9.3+ only
-   * t1.LOCK.NO_KEY_UPDATE // Postgres 9.3+ only
-   * ```
-   *
-   * Usage:
-   * ```js
-   * t1 // is a transaction
-   * Model.findAll({
-   *   where: ...,
-   *   transaction: t1,
-   *   lock: t1.LOCK...
-   * });
-   * ```
-   *
-   * Postgres also supports specific locks while eager loading by using OF:
-   * ```js
-   * UserModel.findAll({
-   *   where: ...,
-   *   include: [TaskModel, ...],
-   *   transaction: t1,
-   *   lock: {
-   *   level: t1.LOCK...,
-   *   of: UserModel
-   *   }
-   * });
-   * ```
-   * UserModel will be locked but TaskModel won't!
+   * Postgres 9.3+ only
    */
-  enum LOCK {
-    UPDATE = 'UPDATE',
-    SHARE = 'SHARE',
-    /**
-     * Postgres 9.3+ only
-     */
-    KEY_SHARE = 'KEY SHARE',
-    /**
-     * Postgres 9.3+ only
-     */
-    NO_KEY_UPDATE = 'NO KEY UPDATE',
-  }
+  KEY_SHARE = 'KEY SHARE',
+  /**
+   * Postgres 9.3+ only
+   */
+  NO_KEY_UPDATE = 'NO KEY UPDATE',
+}
+
+interface LOCK {
+  UPDATE: LOCK.UPDATE;
+  SHARE: LOCK.SHARE;
+  KEY_SHARE: LOCK.KEY_SHARE;
+  NO_KEY_UPDATE: LOCK.NO_KEY_UPDATE;
 }
 
 /**

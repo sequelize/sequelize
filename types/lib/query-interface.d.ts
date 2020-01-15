@@ -6,6 +6,7 @@ import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
+type FieldMap = { [key: string]: string };
 
 /**
  * Interface for query options
@@ -62,6 +63,11 @@ export interface QueryOptions extends Logging, Transactionable, Poolable {
   mapToModel?: boolean;
 
   retry?: RetryOptions;
+
+  /**
+   * Map returned fields to arbitrary names for SELECT query type if `options.fieldMaps` is present.
+   */
+  fieldMap?: FieldMap;
 }
 
 export interface QueryOptionsWithWhere extends QueryOptions, Filterable {
@@ -119,6 +125,15 @@ export interface QueryInterfaceDropTableOptions extends QueryInterfaceOptions {
 export interface QueryInterfaceDropAllTablesOptions extends QueryInterfaceOptions {
   skip?: string[];
 }
+
+export interface TableNameWithSchema {
+  tableName: string;
+  schema?: string;
+  delimiter?: string;
+  as?: string;
+  name?: string;
+}
+export type TableName = string | TableNameWithSchema;
 
 export type IndexType = 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
 export type IndexMethod = 'BTREE' | 'HASH' | 'GIST' | 'SPGIST' | 'GIN' | 'BRIN' | string;
@@ -428,6 +443,11 @@ export class QueryInterface {
   public getForeignKeysForTables(tableNames: string, options?: QueryInterfaceOptions): Promise<object>;
 
   /**
+   * Get foreign key references details for the table
+   */
+  public getForeignKeyReferencesForTable(tableName: string, options?: QueryInterfaceOptions): Promise<object>;
+
+  /**
    * Inserts a new record
    */
   public insert(instance: Model, tableName: string, values: object, options?: QueryOptions): Promise<object>;
@@ -436,9 +456,10 @@ export class QueryInterface {
    * Inserts or Updates a record in the database
    */
   public upsert(
-    tableName: string,
-    values: object,
+    tableName: TableName,
+    insertValues: object,
     updateValues: object,
+    where: object,
     model: typeof Model,
     options?: QueryOptions
   ): Promise<object>;
@@ -447,7 +468,7 @@ export class QueryInterface {
    * Inserts multiple records at once
    */
   public bulkInsert(
-    tableName: string,
+    tableName: TableName,
     records: object[],
     options?: QueryOptions,
     attributes?: string[] | string
@@ -458,7 +479,7 @@ export class QueryInterface {
    */
   public update(
     instance: Model,
-    tableName: string,
+    tableName: TableName,
     values: object,
     identifier: WhereOptions,
     options?: QueryOptions
@@ -468,7 +489,7 @@ export class QueryInterface {
    * Updates multiple rows at once
    */
   public bulkUpdate(
-    tableName: string,
+    tableName: TableName,
     values: object,
     identifier: WhereOptions,
     options?: QueryOptions,
@@ -478,13 +499,13 @@ export class QueryInterface {
   /**
    * Deletes a row
    */
-  public delete(instance: Model | null, tableName: string, identifier: WhereOptions, options?: QueryOptions): Promise<object>;
+  public delete(instance: Model | null, tableName: TableName, identifier: WhereOptions, options?: QueryOptions): Promise<object>;
 
   /**
    * Deletes multiple rows at once
    */
   public bulkDelete(
-    tableName: string,
+    tableName: TableName,
     identifier: WhereOptions,
     options?: QueryOptions,
     model?: typeof Model
@@ -493,14 +514,14 @@ export class QueryInterface {
   /**
    * Returns selected rows
    */
-  public select(model: typeof Model | null, tableName: string, options?: QueryOptionsWithWhere): Promise<object[]>;
+  public select(model: typeof Model | null, tableName: TableName, options?: QueryOptionsWithWhere): Promise<object[]>;
 
   /**
    * Increments a row value
    */
   public increment(
     instance: Model,
-    tableName: string,
+    tableName: TableName,
     values: object,
     identifier: WhereOptions,
     options?: QueryOptions
@@ -510,7 +531,7 @@ export class QueryInterface {
    * Selects raw without parsing the string into an object
    */
   public rawSelect(
-    tableName: string,
+    tableName: TableName,
     options: QueryOptionsWithWhere,
     attributeSelector: string | string[],
     model?: typeof Model
@@ -521,7 +542,7 @@ export class QueryInterface {
    * parameters.
    */
   public createTrigger(
-    tableName: string,
+    tableName: TableName,
     triggerName: string,
     timingType: string,
     fireOnArray: {
@@ -536,13 +557,13 @@ export class QueryInterface {
   /**
    * Postgres only. Drops the specified trigger.
    */
-  public dropTrigger(tableName: string, triggerName: string, options?: QueryInterfaceOptions): Promise<void>;
+  public dropTrigger(tableName: TableName, triggerName: string, options?: QueryInterfaceOptions): Promise<void>;
 
   /**
    * Postgres only. Renames a trigger
    */
   public renameTrigger(
-    tableName: string,
+    tableName: TableName,
     oldTriggerName: string,
     newTriggerName: string,
     options?: QueryInterfaceOptions
@@ -585,7 +606,7 @@ export class QueryInterface {
   /**
    * Escape a table name
    */
-  public quoteTable(identifier: string): string;
+  public quoteTable(identifier: TableName): string;
 
   /**
    * Split an identifier into .-separated tokens and quote each part. If force is true, the identifier will be
