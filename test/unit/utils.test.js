@@ -2,17 +2,17 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const Support = require(__dirname + '/support');
-const DataTypes = require(__dirname + '/../../lib/data-types');
-const Utils = require(__dirname + '/../../lib/utils');
-const tedious = require('tedious');
-const tediousIsolationLevel = tedious.ISOLATION_LEVEL;
+const Support = require('./support');
+const DataTypes = require('../../lib/data-types');
+const Utils = require('../../lib/utils');
+const { logger } = require('../../lib/utils/logger');
+const Op = Support.Sequelize.Op;
 
-suite(Support.getTestDialectTeaser('Utils'), () => {
-  suite('merge', () => {
-    test('does not clone sequelize models', () => {
+describe(Support.getTestDialectTeaser('Utils'), () => {
+  describe('merge', () => {
+    it('does not clone sequelize models', () => {
       const User = Support.sequelize.define('user');
-      const merged = Utils.merge({}, { include: [{model : User }]});
+      const merged = Utils.merge({}, { include: [{ model: User }] });
       const merged2 = Utils.merge({}, { user: User });
 
       expect(merged.include[0].model).to.equal(User);
@@ -20,29 +20,71 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  suite('toDefaultValue', () => {
-    test('return plain data types', () => {
+  describe('canTreatArrayAsAnd', () => {
+    it('Array can be treated as and', () => {
+      expect(Utils.canTreatArrayAsAnd([{ 'uuid': 1 }])).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([{ 'uuid': 1 }, { 'uuid': 2 }, 1])).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([new Utils.Where('uuid', 1)])).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([new Utils.Where('uuid', 1), new Utils.Where('uuid', 2)])).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([new Utils.Where('uuid', 1), { 'uuid': 2 }, 1])).to.equal(true);
+    });
+    it('Array cannot be treated as and', () => {
+      expect(Utils.canTreatArrayAsAnd([1, 'uuid'])).to.equal(false);
+      expect(Utils.canTreatArrayAsAnd([1])).to.equal(false);
+    });
+  });
+
+  describe('toDefaultValue', () => {
+    it('return plain data types', () => {
       expect(Utils.toDefaultValue(DataTypes.UUIDV4)).to.equal('UUIDV4');
     });
-    test('return uuid v1', () => {
-      expect(/^[a-z0-9\-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))).to.be.equal(true);
+    it('return uuid v1', () => {
+      expect(/^[a-z0-9-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))).to.be.equal(true);
     });
-    test('return uuid v4', () => {
-      expect(/^[a-z0-9\-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4()))).to.be.equal(true);
+    it('return uuid v4', () => {
+      expect(/^[a-z0-9-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4()))).to.be.equal(true);
     });
-    test('return now', () => {
+    it('return now', () => {
       expect(Object.prototype.toString.call(Utils.toDefaultValue(DataTypes.NOW()))).to.be.equal('[object Date]');
     });
-    test('return plain string', () => {
+    it('return plain string', () => {
       expect(Utils.toDefaultValue('Test')).to.equal('Test');
     });
-    test('return plain object', () => {
+    it('return plain object', () => {
       chai.assert.deepEqual({}, Utils.toDefaultValue({}));
     });
   });
 
-  suite('mapFinderOptions', () => {
-    test('virtual attribute dependencies', () => {
+  describe('defaults', () => {
+    it('defaults normal object', () => {
+      expect(Utils.defaults(
+        { a: 1, c: 3 },
+        { b: 2 },
+        { c: 4, d: 4 }
+      )).to.eql({
+        a: 1,
+        b: 2,
+        c: 3,
+        d: 4
+      });
+    });
+
+    it('defaults symbol keys', () => {
+      expect(Utils.defaults(
+        { a: 1, [Symbol.for('c')]: 3 },
+        { b: 2 },
+        { [Symbol.for('c')]: 4, [Symbol.for('d')]: 4 }
+      )).to.eql({
+        a: 1,
+        b: 2,
+        [Symbol.for('c')]: 3,
+        [Symbol.for('d')]: 4
+      });
+    });
+  });
+
+  describe('mapFinderOptions', () => {
+    it('virtual attribute dependencies', () => {
       expect(Utils.mapFinderOptions({
         attributes: [
           'active'
@@ -63,7 +105,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
       ]);
     });
 
-    test('multiple calls', () => {
+    it('multiple calls', () => {
       const Model = Support.sequelize.define('User', {
         createdAt: {
           type: DataTypes.DATE,
@@ -92,8 +134,8 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  suite('mapOptionFieldNames', () => {
-    test('plain where', () => {
+  describe('mapOptionFieldNames', () => {
+    it('plain where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
           firstName: 'Paul',
@@ -116,10 +158,10 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
       });
     });
 
-    test('$or where', () => {
+    it('Op.or where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
-          $or: {
+          [Op.or]: {
             firstName: 'Paul',
             lastName: 'Atreides'
           }
@@ -135,7 +177,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
         }
       }))).to.eql({
         where: {
-          $or: {
+          [Op.or]: {
             first_name: 'Paul',
             last_name: 'Atreides'
           }
@@ -143,12 +185,12 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
       });
     });
 
-    test('$or[] where', () => {
+    it('Op.or[] where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
-          $or: [
-            {firstName: 'Paul'},
-            {lastName: 'Atreides'}
+          [Op.or]: [
+            { firstName: 'Paul' },
+            { lastName: 'Atreides' }
           ]
         }
       }, Support.sequelize.define('User', {
@@ -162,18 +204,18 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
         }
       }))).to.eql({
         where: {
-          $or: [
-            {first_name: 'Paul'},
-            {last_name: 'Atreides'}
+          [Op.or]: [
+            { first_name: 'Paul' },
+            { last_name: 'Atreides' }
           ]
         }
       });
     });
 
-    test('$and where', () => {
+    it('$and where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
-          $and: {
+          [Op.and]: {
             firstName: 'Paul',
             lastName: 'Atreides'
           }
@@ -189,7 +231,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
         }
       }))).to.eql({
         where: {
-          $and: {
+          [Op.and]: {
             first_name: 'Paul',
             last_name: 'Atreides'
           }
@@ -198,8 +240,8 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  suite('stack', () => {
-    test('stack trace starts after call to Util.stack()', function this_here_test() { // eslint-disable-line
+  describe('stack', () => {
+    it('stack trace starts after call to Util.stack()', function this_here_test() { // eslint-disable-line
       // We need a named function to be able to capture its trace
       function a() {
         return b();
@@ -222,15 +264,15 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  suite('Sequelize.cast', () => {
+  describe('Sequelize.cast', () => {
     const sql = Support.sequelize;
     const generator = sql.queryInterface.QueryGenerator;
     const run = generator.handleSequelizeMethod.bind(generator);
     const expectsql = Support.expectsql;
 
-    test('accepts condition object (auto casting)', () => {
+    it('accepts condition object (auto casting)', () => {
       expectsql(run(sql.fn('SUM', sql.cast({
-        $or: {
+        [Op.or]: {
           foo: 'foo',
           bar: 'bar'
         }
@@ -241,59 +283,22 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  suite('Logger', () => {
-    const logger = Utils.getLogger();
-
-    test('deprecate', () => {
-      expect(logger.deprecate).to.be.function;
-      logger.deprecate('test deprecation');
+  describe('Logger', () => {
+    it('debug', () => {
+      expect(logger.debugContext).to.be.a('function');
+      logger.debugContext('test debug');
     });
 
-    test('debug', () => {
-      expect(logger.debug).to.be.function;
-      logger.debug('test debug');
-    });
-
-    test('warn', () => {
-      expect(logger.warn).to.be.function;
+    it('warn', () => {
+      expect(logger.warn).to.be.a('function');
       logger.warn('test warning');
     });
 
-    test('debugContext',  () => {
-      expect(logger.debugContext).to.be.function;
+    it('debugContext',  () => {
+      expect(logger.debugContext).to.be.a('function');
       const testLogger = logger.debugContext('test');
 
-      expect(testLogger).to.be.function;
-      expect(testLogger.namespace).to.be.eql('sequelize:test');
+      expect(testLogger).to.be.a('function');
     });
   });
-
-  if (Support.getTestDialect() === 'mssql') {
-    suite('mapIsolationLevelStringToTedious', () => {
-      test('READ_UNCOMMITTED', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('READ_UNCOMMITTED', tedious)).to.equal(tediousIsolationLevel.READ_UNCOMMITTED);
-      });
-
-      test('READ_COMMITTED', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('READ_COMMITTED', tedious)).to.equal(tediousIsolationLevel.READ_COMMITTED);
-      });
-
-      test('REPEATABLE_READ', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('REPEATABLE_READ', tedious)).to.equal(tediousIsolationLevel.REPEATABLE_READ);
-      });
-
-      test('SERIALIZABLE', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('SERIALIZABLE', tedious)).to.equal(tediousIsolationLevel.SERIALIZABLE);
-      });
-
-      test('SNAPSHOT', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('SNAPSHOT', tedious)).to.equal(tediousIsolationLevel.SNAPSHOT);
-      });
-
-      test('should throw error if tedious lib is not passed as a parameter', () => {
-        expect(Utils.mapIsolationLevelStringToTedious.bind(Utils, 'SNAPSHOT')).to.throw('An instance of tedious lib should be passed to this function');
-      });
-    });
-  }
-
 });

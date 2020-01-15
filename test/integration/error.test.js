@@ -1,38 +1,27 @@
 'use strict';
 
-const chai      = require('chai'),
-  sinon     = require('sinon'),
-  expect    = chai.expect,
-  errors    = require('../../lib/errors'),
-  Support   = require(__dirname + '/support'),
+const chai = require('chai'),
+  sinon = require('sinon'),
+  expect = chai.expect,
+  Support = require('./support'),
   Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
   describe('API Surface', () => {
-
     it('Should have the Error constructors exposed', () => {
       expect(Sequelize).to.have.property('Error');
       expect(Sequelize).to.have.property('ValidationError');
       expect(Sequelize).to.have.property('OptimisticLockError');
-      const sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
-      expect(sequelize).to.have.property('Error');
-      expect(sequelize).to.have.property('ValidationError');
-      expect(sequelize).to.have.property('OptimisticLockError');
     });
 
     it('Sequelize Errors instances should be instances of Error', () => {
       const error = new Sequelize.Error();
       const errorMessage = 'error message';
       const validationError = new Sequelize.ValidationError(errorMessage, [
-        new errors.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null),
-        new errors.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
+        new Sequelize.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null),
+        new Sequelize.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
       ]);
       const optimisticLockError = new Sequelize.OptimisticLockError();
-
-      const sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
-      const instError = new sequelize.Error();
-      const instValidationError = new sequelize.ValidationError();
-      const instOptimisticLockError = new sequelize.OptimisticLockError();
 
       expect(error).to.be.instanceOf(Sequelize.Error);
       expect(error).to.be.instanceOf(Error);
@@ -46,13 +35,6 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(optimisticLockError).to.be.instanceOf(Sequelize.OptimisticLockError);
       expect(optimisticLockError).to.be.instanceOf(Error);
       expect(optimisticLockError).to.have.property('name', 'SequelizeOptimisticLockError');
-
-      expect(instError).to.be.instanceOf(Sequelize.Error);
-      expect(instError).to.be.instanceOf(Error);
-      expect(instValidationError).to.be.instanceOf(Sequelize.ValidationError);
-      expect(instValidationError).to.be.instanceOf(Error);
-      expect(instOptimisticLockError).to.be.instanceOf(Sequelize.OptimisticLockError);
-      expect(instOptimisticLockError).to.be.instanceOf(Error);
     });
 
     it('SequelizeValidationError should find errors by path', () => {
@@ -84,13 +66,99 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
     it('SequelizeValidationError should concatenate an error messages from given errors if no explicit message is defined', () => {
       const errorItems = [
-          new errors.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null),
-          new errors.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
+          new Sequelize.ValidationErrorItem('<field name> cannot be null', 'notNull Violation', '<field name>', null),
+          new Sequelize.ValidationErrorItem('<field name> cannot be an array or an object', 'string violation', '<field name>', null)
         ],
         validationError = new Sequelize.ValidationError(null, errorItems);
 
       expect(validationError).to.have.property('name', 'SequelizeValidationError');
       expect(validationError.message).to.match(/notNull Violation: <field name> cannot be null,\nstring violation: <field name> cannot be an array or an object/);
+    });
+
+    it('SequelizeValidationErrorItem does not require instance & validator constructor parameters', () => {
+      const error = new Sequelize.ValidationErrorItem('error!', null, 'myfield');
+
+      expect(error).to.be.instanceOf(Sequelize.ValidationErrorItem);
+    });
+
+    it('SequelizeValidationErrorItem should have instance, key & validator properties when given to constructor', () => {
+      const inst  = { foo: 'bar' };
+      const vargs = [4];
+
+      const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', inst, 'klen', 'len', vargs);
+
+      expect(error).to.have.property('instance');
+      expect(error.instance).to.equal(inst);
+
+      expect(error).to.have.property('validatorKey',  'klen');
+      expect(error).to.have.property('validatorName', 'len');
+      expect(error).to.have.property('validatorArgs', vargs);
+    });
+
+    it('SequelizeValidationErrorItem.getValidatorKey() should return a string', () => {
+      const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', null, 'klen', 'len', [4]);
+
+      expect(error).to.have.property('getValidatorKey');
+      expect(error.getValidatorKey).to.be.a('function');
+
+      expect(error.getValidatorKey()).to.equal('function.klen');
+      expect(error.getValidatorKey(false)).to.equal('klen');
+      expect(error.getValidatorKey(0)).to.equal('klen');
+      expect(error.getValidatorKey(1, ':')).to.equal('function:klen');
+      expect(error.getValidatorKey(true, '-:-')).to.equal('function-:-klen');
+
+      const empty = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar');
+
+      expect(empty.getValidatorKey()).to.equal('');
+      expect(empty.getValidatorKey(false)).to.equal('');
+      expect(empty.getValidatorKey(0)).to.equal('');
+      expect(empty.getValidatorKey(1, ':')).to.equal('');
+      expect(empty.getValidatorKey(true, '-:-')).to.equal('');
+    });
+
+    it('SequelizeValidationErrorItem.getValidatorKey() should throw if namespace separator is invalid (only if NS is used & available)', () => {
+      const error = new Sequelize.ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', null, 'klen', 'len', [4]);
+
+      expect(() => error.getValidatorKey(false, {})).to.not.throw();
+      expect(() => error.getValidatorKey(false, [])).to.not.throw();
+      expect(() => error.getValidatorKey(false, null)).to.not.throw();
+      expect(() => error.getValidatorKey(false, '')).to.not.throw();
+      expect(() => error.getValidatorKey(false, false)).to.not.throw();
+      expect(() => error.getValidatorKey(false, true)).to.not.throw();
+      expect(() => error.getValidatorKey(false, undefined)).to.not.throw();
+      expect(() => error.getValidatorKey(true, undefined)).to.not.throw(); // undefined will trigger use of function parameter default
+
+      expect(() => error.getValidatorKey(true, {})).to.throw(Error);
+      expect(() => error.getValidatorKey(true, [])).to.throw(Error);
+      expect(() => error.getValidatorKey(true, null)).to.throw(Error);
+      expect(() => error.getValidatorKey(true, '')).to.throw(Error);
+      expect(() => error.getValidatorKey(true, false)).to.throw(Error);
+      expect(() => error.getValidatorKey(true, true)).to.throw(Error);
+    });
+
+    it('SequelizeValidationErrorItem should map deprecated "type" values to new "origin" values', () => {
+      const data  = {
+        'notNull Violation': 'CORE',
+        'string violation': 'CORE',
+        'unique violation': 'DB',
+        'Validation error': 'FUNCTION'
+      };
+
+      Object.keys(data).forEach(k => {
+        const error = new Sequelize.ValidationErrorItem('error!', k, 'foo', null);
+
+        expect(error).to.have.property('origin', data[k]);
+        expect(error).to.have.property('type', k);
+      });
+    });
+
+    it('SequelizeValidationErrorItem.Origins is valid', () => {
+      const ORIGINS = Sequelize.ValidationErrorItem.Origins;
+
+      expect(ORIGINS).to.have.property('CORE', 'CORE');
+      expect(ORIGINS).to.have.property('DB', 'DB');
+      expect(ORIGINS).to.have.property('FUNCTION', 'FUNCTION');
+
     });
 
     it('SequelizeDatabaseError should keep original message', () => {
@@ -101,6 +169,18 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(databaseError).to.have.property('original');
       expect(databaseError.name).to.equal('SequelizeDatabaseError');
       expect(databaseError.message).to.equal('original database error message');
+    });
+
+    it('SequelizeDatabaseError should keep the original sql and the parameters', () => {
+      const orig = new Error();
+      orig.sql = 'SELECT * FROM table WHERE id = $1';
+      orig.parameters = ['1'];
+      const databaseError = new Sequelize.DatabaseError(orig);
+
+      expect(databaseError).to.have.property('sql');
+      expect(databaseError).to.have.property('parameters');
+      expect(databaseError.sql).to.equal(orig.sql);
+      expect(databaseError.parameters).to.equal(orig.parameters);
     });
 
     it('ConnectionError should keep original message', () => {
@@ -174,7 +254,36 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
     });
   });
 
-  describe('Constraint error', () => {
+  describe('OptimisticLockError', () => {
+    it('got correct error type and message', function() {
+      const Account = this.sequelize.define('Account', {
+        number: {
+          type: Sequelize.INTEGER
+        }
+      }, {
+        version: true
+      });
+
+      return Account.sync({ force: true }).then(() => {
+        const result = Account.create({ number: 1 }).then(accountA => {
+          return Account.findByPk(accountA.id).then(accountB => {
+            accountA.number += 1;
+            return accountA.save().then(() => { return accountB; });
+          });
+        }).then(accountB => {
+          accountB.number += 1;
+          return accountB.save();
+        });
+
+        return Promise.all([
+          expect(result).to.eventually.be.rejectedWith(Support.Sequelize.OptimisticLockError),
+          expect(result).to.eventually.be.rejectedWith('Attempting to update a stale model instance: Account')
+        ]);
+      });
+    });
+  });
+
+  describe('ConstraintError', () => {
     [
       {
         type: 'UniqueConstraintError',
@@ -186,7 +295,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       }
     ].forEach(constraintTest => {
 
-      it('Can be intercepted as ' + constraintTest.type + ' using .catch', function() {
+      it(`Can be intercepted as ${constraintTest.type} using .catch`, function() {
         const spy = sinon.spy(),
           User = this.sequelize.define('user', {
             first_name: {
@@ -200,7 +309,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
           });
 
         const record = { first_name: 'jan', last_name: 'meier' };
-        return this.sequelize.sync({ force: true }).bind(this).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           return User.create(record);
         }).then(() => {
           return User.create(record).catch(constraintTest.exception, spy);
@@ -220,11 +329,11 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
           }
         });
 
-      return this.sequelize.sync({ force: true }).bind(this).then(() => {
+      return this.sequelize.sync({ force: true }).then(() => {
         return User.create({ name: 'jan' });
-      }).then(function() {
+      }).then(() => {
         // If the error was successfully parsed, we can catch it!
-        return User.create({ name: 'jan' }).catch(this.sequelize.UniqueConstraintError, spy);
+        return User.create({ name: 'jan' }).catch(Sequelize.UniqueConstraintError, spy);
       }).then(() => {
         expect(spy).to.have.been.calledOnce;
       });
@@ -238,19 +347,19 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         }
       }, { timestamps: false });
 
-      return this.sequelize.sync({ force: true }).bind(this).then(function() {
+      return this.sequelize.sync({ force: true }).then(() => {
         // Now let's pretend the index was created by someone else, and sequelize doesn't know about it
         User = this.sequelize.define('user', {
           name: Sequelize.STRING
         }, { timestamps: false });
 
         return User.create({ name: 'jan' });
-      }).then(function() {
+      }).then(() => {
         // It should work even though the unique key is not defined in the model
-        return expect(User.create({ name: 'jan' })).to.be.rejectedWith(this.sequelize.UniqueConstraintError);
-      }).then(function() {
+        return expect(User.create({ name: 'jan' })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+      }).then(() => {
         // And when the model is not passed at all
-        return expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(this.sequelize.UniqueConstraintError);
+        return expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
       });
     });
 
@@ -262,16 +371,28 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         }
       }, { timestamps: false });
 
-      return this.sequelize.sync({ force: true }).bind(this).then(() => {
-        return User.create({ name: 'jan' });
-      }).then(() => {
-        return expect(User.create({ name: 'jan' })).to.be.rejected;
-      }).then(function(error) {
-        expect(error).to.be.instanceOf(this.sequelize.UniqueConstraintError);
-        expect(error).to.have.property('parent');
-        expect(error).to.have.property('original');
-        expect(error).to.have.property('sql');
-      });
+      return this.sequelize.sync({ force: true })
+        .then(() => {
+          return User.create({ name: 'jan' });
+        }).then(() => {
+          // Unique key
+          return expect(User.create({ name: 'jan' })).to.be.rejected;
+        }).then(error => {
+          expect(error).to.be.instanceOf(Sequelize.UniqueConstraintError);
+          expect(error).to.have.property('parent');
+          expect(error).to.have.property('original');
+          expect(error).to.have.property('sql');
+
+          return User.create({ id: 2, name: 'jon' });
+        }).then(() => {
+          // Primary key
+          return expect(User.create({ id: 2, name: 'jon' })).to.be.rejected;
+        }).then(error => {
+          expect(error).to.be.instanceOf(Sequelize.UniqueConstraintError);
+          expect(error).to.have.property('parent');
+          expect(error).to.have.property('original');
+          expect(error).to.have.property('sql');
+        });
     });
   });
 });

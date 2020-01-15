@@ -2,17 +2,33 @@
 # Configuration for probot-stale - https://github.com/probot/stale
 
 # Number of days of inactivity before an issue becomes stale
-daysUntilStale: 60
+# daysUntilStale: 90
+daysUntilStale: 900000 # Temporarily disable
 
 # Number of days of inactivity before a stale issue is closed
-daysUntilClose: 7
+# daysUntilClose: 7
+daysUntilClose: 70000 # Temporarily disable
 
 # Issues with these labels will never be considered stale
 exemptLabels:
   - pinned
+  - type: feature
+  - type: docs
+  - type: bug
+  - discussion
+  - type: performance
+  - breaking change
+  - good first issue
+  - suggestion
+
+# Set to true to ignore issues in a milestone (defaults to false)
+exemptMilestones: true
 
 # Label to use when marking an issue as stale
 staleLabel: stale
+
+# Limit to only `issues` or `pulls`
+only: issues
 
 # Comment to post when marking an issue as stale. Set to `false` to disable
 markComment: >

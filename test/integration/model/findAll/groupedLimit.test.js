@@ -3,11 +3,11 @@
 const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   Sequelize = Support.Sequelize,
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  Promise = Sequelize.Promise,
+  DataTypes = require('../../../../lib/data-types'),
   current = Support.sequelize,
-  Promise = current.Promise,
   _ = require('lodash');
 
 if (current.dialect.supports['UNION ALL']) {
@@ -42,23 +42,23 @@ if (current.dialect.supports['UNION ALL']) {
             updatedAt: false
           });
 
-          this.User.Projects = this.User.belongsToMany(this.Project, {through: 'project_user' });
-          this.Project.belongsToMany(this.User, {as: 'members', through: 'project_user' });
+          this.User.Projects = this.User.belongsToMany(this.Project, { through: 'project_user' });
+          this.Project.belongsToMany(this.User, { as: 'members', through: 'project_user' });
 
-          this.User.ParanoidProjects = this.User.belongsToMany(this.Project, {through: this.ProjectUserParanoid});
-          this.Project.belongsToMany(this.User, {as: 'paranoidMembers', through: this.ProjectUserParanoid});
+          this.User.ParanoidProjects = this.User.belongsToMany(this.Project, { through: this.ProjectUserParanoid });
+          this.Project.belongsToMany(this.User, { as: 'paranoidMembers', through: this.ProjectUserParanoid });
 
           this.User.Tasks = this.User.hasMany(this.Task);
 
-          return this.sequelize.sync({force: true}).then(() => {
+          return this.sequelize.sync({ force: true }).then(() => {
             return Promise.join(
-              this.User.bulkCreate([{age: -5}, {age: 45}, {age: 7}, {age: -9}, {age: 8}, {age: 15}, {age: -9}]),
+              this.User.bulkCreate([{ age: -5 }, { age: 45 }, { age: 7 }, { age: -9 }, { age: 8 }, { age: 15 }, { age: -9 }]),
               this.Project.bulkCreate([{}, {}]),
               this.Task.bulkCreate([{}, {}])
             );
           })
-            .then(() => [this.User.findAll(), this.Project.findAll(), this.Task.findAll()])
-            .spread((users, projects, tasks) => {
+            .then(() => Promise.all([this.User.findAll(), this.Project.findAll(), this.Task.findAll()]))
+            .then(([users, projects, tasks]) => {
               this.projects = projects;
               return Promise.join(
                 projects[0].setMembers(users.slice(0, 4)),
@@ -217,14 +217,14 @@ if (current.dialect.supports['UNION ALL']) {
             this.Task = this.sequelize.define('task');
             this.User.Tasks = this.User.hasMany(this.Task);
 
-            return this.sequelize.sync({force: true}).then(() => {
+            return this.sequelize.sync({ force: true }).then(() => {
               return Promise.join(
                 this.User.bulkCreate([{}, {}, {}]),
-                this.Task.bulkCreate([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}, {id: 6}])
+                this.Task.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }])
               );
             })
-              .then(() => [this.User.findAll(), this.Task.findAll()])
-              .spread((users, tasks) => {
+              .then(() => Promise.all([this.User.findAll(), this.Task.findAll()]))
+              .then(([users, tasks]) => {
                 this.users = users;
                 return Promise.join(
                   users[0].setTasks(tasks[0]),

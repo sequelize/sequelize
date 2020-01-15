@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/support'),
+  Support = require('./support'),
   Sequelize = Support.Sequelize,
   Promise = Sequelize.Promise,
   Bluebird = require('bluebird');

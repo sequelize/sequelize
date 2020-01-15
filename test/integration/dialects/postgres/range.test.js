@@ -2,11 +2,10 @@
 
 const chai    = require('chai'),
   expect  = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  Support = require('../../support'),
+  DataTypes = require('../../../../lib/data-types'),
   dialect = Support.getTestDialect(),
-  range   = require('../../../../lib/dialects/postgres/range'),
-  _       = require('lodash');
+  range   = require('../../../../lib/dialects/postgres/range');
 
 if (dialect.match(/^postgres/)) {
   // Don't try to load pg until we know we're running on postgres.
@@ -50,25 +49,6 @@ if (dialect.match(/^postgres/)) {
         expect(range.stringify([0, { inclusive: true, value: 1 }])).to.equal('[0,1]');
       });
 
-      it('should handle inclusive property of input array properly', () => {
-        const testRange = [1, 2];
-
-        testRange.inclusive = [true, false];
-        expect(range.stringify(testRange)).to.equal('[1,2)');
-
-        testRange.inclusive = [false, true];
-        expect(range.stringify(testRange)).to.equal('(1,2]');
-
-        testRange.inclusive = [true, true];
-        expect(range.stringify(testRange)).to.equal('[1,2]');
-
-        testRange.inclusive = true;
-        expect(range.stringify(testRange)).to.equal('[1,2]');
-
-        testRange.inclusive = false;
-        expect(range.stringify(testRange)).to.equal('(1,2)');
-      });
-
       it('should handle date values', () => {
         const Range = new DataTypes.postgres.RANGE(DataTypes.DATE);
         expect(Range.stringify([new Date(Date.UTC(2000, 1, 1)),
@@ -80,12 +60,12 @@ if (dialect.match(/^postgres/)) {
 
       it('should stringify integer values with appropriate casting', () => {
         const Range = new DataTypes.postgres.RANGE(DataTypes.INTEGER);
-        expect(Range.stringify(1)).to.equal('\'1\'::integer');
+        expect(Range.stringify(1)).to.equal('\'1\'::int4');
       });
 
       it('should stringify bigint values with appropriate casting', () => {
         const Range = new DataTypes.postgres.RANGE(DataTypes.BIGINT);
-        expect(Range.stringify(1)).to.equal('\'1\'::bigint');
+        expect(Range.stringify(1)).to.equal('\'1\'::int8');
       });
 
       it('should stringify numeric values with appropriate casting', () => {
@@ -95,12 +75,84 @@ if (dialect.match(/^postgres/)) {
 
       it('should stringify dateonly values with appropriate casting', () => {
         const Range = new DataTypes.postgres.RANGE(DataTypes.DATEONLY);
-        expect(Range.stringify(new Date(Date.UTC(2000, 1, 1))).indexOf('::date')).not.to.equal(-1);
+        expect(Range.stringify(new Date(Date.UTC(2000, 1, 1)))).to.include('::date');
       });
 
       it('should stringify date values with appropriate casting', () => {
         const Range = new DataTypes.postgres.RANGE(DataTypes.DATE);
         expect(Range.stringify(new Date(Date.UTC(2000, 1, 1)), { timezone: '+02:00' })).to.equal('\'2000-02-01 02:00:00.000 +02:00\'::timestamptz');
+      });
+
+      describe('with null range bounds', () => {
+        const infiniteRange = [null, null];
+        const infiniteRangeSQL = "'[,)'";
+
+        it('should stringify integer range to infinite range', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.INTEGER);
+          expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
+        });
+
+        it('should stringify bigint range to infinite range', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.BIGINT);
+          expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
+        });
+
+        it('should stringify numeric range to infinite range', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.DECIMAL);
+          expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
+        });
+
+        it('should stringify dateonly ranges appropriately', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.DATEONLY);
+          expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
+        });
+
+        it('should be stringified to appropriate unbounded postgres range', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.DATEONLY);
+          expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
+        });
+
+        it('should stringify date values with appropriate casting', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.DATE);
+          expect(Range.stringify(infiniteRange, { timezone: '+02:00' })).to.equal(infiniteRangeSQL);
+        });
+
+      });
+
+      describe('with infinite range bounds', () => {
+        const infiniteRange = [-Infinity, Infinity];
+        const infiniteRangeSQL = "'[-infinity,infinity)'";
+
+        it('should stringify integer range to infinite range', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.INTEGER);
+          expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
+        });
+
+        it('should stringify bigint range to infinite range', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.BIGINT);
+          expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
+        });
+
+        it('should stringify numeric range to infinite range', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.DECIMAL);
+          expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
+        });
+
+        it('should stringify dateonly ranges appropriately', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.DATEONLY);
+          expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
+        });
+
+        it('should be stringified to appropriate unbounded postgres range', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.DATEONLY);
+          expect(Range.stringify(infiniteRange)).to.equal(infiniteRangeSQL);
+        });
+
+        it('should stringify date values with appropriate casting', () => {
+          const Range = new DataTypes.postgres.RANGE(DataTypes.DATE);
+          expect(Range.stringify(infiniteRange, { timezone: '+02:00' })).to.equal(infiniteRangeSQL);
+        });
+
       });
 
     });
@@ -111,21 +163,21 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle empty range string correctly', () => {
-        expect(range.parse('empty')).to.deep.equal(_.extend([], { inclusive: [] }));
+        expect(range.parse('empty')).to.deep.equal([]);
       });
 
       it('should handle empty bounds correctly', () => {
-        expect(range.parse('(1,)', DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([1, null], { inclusive: [false, false] }));
-        expect(range.parse('(,1)', DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([null, 1], { inclusive: [false, false] }));
-        expect(range.parse('(,)', DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([null, null], { inclusive: [false, false] }));
+        expect(range.parse('(1,)', DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: null, inclusive: false }]);
+        expect(range.parse('(,1)', DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: null, inclusive: false }, { value: 1, inclusive: false }]);
+        expect(range.parse('(,)', DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: null, inclusive: false }, { value: null, inclusive: false }]);
       });
 
       it('should handle infinity/-infinity bounds correctly', () => {
-        expect(range.parse('(infinity,1)', DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([Infinity, 1], { inclusive: [false, false] }));
-        expect(range.parse('(1,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([1, Infinity], { inclusive: [false, false] }));
-        expect(range.parse('(-infinity,1)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([-Infinity, 1], { inclusive: [false, false] }));
-        expect(range.parse('(1,-infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([1, -Infinity], { inclusive: [false, false] }));
-        expect(range.parse('(-infinity,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal(_.extend([-Infinity, Infinity], { inclusive: [false, false] }));
+        expect(range.parse('(infinity,1)', DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: Infinity, inclusive: false }, { value: 1, inclusive: false }]);
+        expect(range.parse('(1,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: Infinity, inclusive: false }]);
+        expect(range.parse('(-infinity,1)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: -Infinity, inclusive: false }, { value: 1, inclusive: false }]);
+        expect(range.parse('(1,-infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: 1, inclusive: false }, { value: -Infinity, inclusive: false }]);
+        expect(range.parse('(-infinity,infinity)',  DataTypes.postgres.INTEGER.parse)).to.deep.equal([{ value: -Infinity, inclusive: false }, { value: Infinity, inclusive: false }]);
       });
 
       it('should return raw value if not range is returned', () => {
@@ -133,23 +185,27 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle native postgres timestamp format', () => {
-        const tsOid = DataTypes.postgres.DATE.types.postgres.oids[0],
-          parser = pg.types.getTypeParser(tsOid);
-        expect(range.parse('(2016-01-01 08:00:00-04,)', parser)[0].toISOString()).to.equal('2016-01-01T12:00:00.000Z');
+        // Make sure nameOidMap is loaded
+        return Support.sequelize.connectionManager.getConnection().then(connection => {
+          Support.sequelize.connectionManager.releaseConnection(connection);
+
+          const tsName = DataTypes.postgres.DATE.types.postgres[0],
+            tsOid = Support.sequelize.connectionManager.nameOidMap[tsName].oid,
+            parser = pg.types.getTypeParser(tsOid);
+          expect(range.parse('(2016-01-01 08:00:00-04,)', parser)[0].value.toISOString()).to.equal('2016-01-01T12:00:00.000Z');
+        });
       });
 
     });
     describe('stringify and parse', () => {
       it('should stringify then parse back the same structure', () => {
-        const testRange = [5, 10];
-        testRange.inclusive = [true, true];
-
+        const testRange = [{ value: 5, inclusive: true }, { value: 10, inclusive: true }];
         const Range = new DataTypes.postgres.RANGE(DataTypes.INTEGER);
 
         let stringified = Range.stringify(testRange, {});
         stringified = stringified.substr(1, stringified.length - 2); // Remove the escaping ticks
 
-        expect(DataTypes.postgres.RANGE.parse(stringified, 3904, () => { return DataTypes.postgres.INTEGER.parse; })).to.deep.equal(testRange);
+        expect(DataTypes.postgres.RANGE.parse(stringified, { parser: DataTypes.postgres.INTEGER.parse })).to.deep.equal(testRange);
       });
     });
   });

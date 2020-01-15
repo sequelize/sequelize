@@ -15,7 +15,7 @@ if (dialect.match(/^mssql/)) {
       });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'John'});
+        return User.create({ username: 'John' });
       });
     });
 

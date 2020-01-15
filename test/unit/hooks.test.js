@@ -3,14 +3,21 @@
 const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
-  Support = require(__dirname + '/support'),
+  Sequelize = require('../../index'),
+  Promise = Sequelize.Promise,
+  Support = require('./support'),
   _ = require('lodash'),
-  current = Support.sequelize,
-  Promise = current.Promise;
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
     this.Model = current.define('m');
+  });
+
+  it('does not expose non-model hooks', function() {
+    for (const badHook of ['beforeDefine', 'afterDefine', 'beforeConnect', 'afterConnect', 'beforeDisconnect', 'afterDisconnect', 'beforeInit', 'afterInit']) {
+      expect(this.Model).to.not.have.property(badHook);
+    }
   });
 
   describe('arguments', () => {
@@ -22,6 +29,87 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       const options = {};
       return this.Model.runHooks('beforeCreate', options).then(() => {
         expect(options.answer).to.equal(41);
+      });
+    });
+  });
+
+  describe('proxies', () => {
+    beforeEach(() => {
+      sinon.stub(current, 'query').resolves([{
+        _previousDataValues: {},
+        dataValues: { id: 1, name: 'abc' }
+      }]);
+    });
+
+    afterEach(() => {
+      current.query.restore();
+    });
+
+    describe('defined by options.hooks', () => {
+      beforeEach(function() {
+        this.beforeSaveHook = sinon.spy();
+        this.afterSaveHook = sinon.spy();
+        this.afterCreateHook = sinon.spy();
+
+        this.Model = current.define('m', {
+          name: Support.Sequelize.STRING
+        }, {
+          hooks: {
+            beforeSave: this.beforeSaveHook,
+            afterSave: this.afterSaveHook,
+            afterCreate: this.afterCreateHook
+          }
+        });
+      });
+
+      it('calls beforeSave/afterSave', function() {
+        return this.Model.create({}).then(() => {
+          expect(this.afterCreateHook).to.have.been.calledOnce;
+          expect(this.beforeSaveHook).to.have.been.calledOnce;
+          expect(this.afterSaveHook).to.have.been.calledOnce;
+        });
+      });
+    });
+
+    describe('defined by addHook method', () => {
+      beforeEach(function() {
+        this.beforeSaveHook = sinon.spy();
+        this.afterSaveHook = sinon.spy();
+
+        this.Model = current.define('m', {
+          name: Support.Sequelize.STRING
+        });
+
+        this.Model.addHook('beforeSave', this.beforeSaveHook);
+        this.Model.addHook('afterSave', this.afterSaveHook);
+      });
+
+      it('calls beforeSave/afterSave', function() {
+        return this.Model.create({}).then(() => {
+          expect(this.beforeSaveHook).to.have.been.calledOnce;
+          expect(this.afterSaveHook).to.have.been.calledOnce;
+        });
+      });
+    });
+
+    describe('defined by hook method', () => {
+      beforeEach(function() {
+        this.beforeSaveHook = sinon.spy();
+        this.afterSaveHook = sinon.spy();
+
+        this.Model = current.define('m', {
+          name: Support.Sequelize.STRING
+        });
+
+        this.Model.addHook('beforeSave', this.beforeSaveHook);
+        this.Model.addHook('afterSave', this.afterSaveHook);
+      });
+
+      it('calls beforeSave/afterSave', function() {
+        return this.Model.create({}).then(() => {
+          expect(this.beforeSaveHook).to.have.been.calledOnce;
+          expect(this.afterSaveHook).to.have.been.calledOnce;
+        });
       });
     });
   });
@@ -164,7 +252,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           }
         });
 
-        return Model.runHooks('beforeCreate').bind(this).then(function() {
+        return Model.runHooks('beforeCreate').then(() => {
           expect(this.beforeCreate).to.have.been.calledOnce;
         });
       });
@@ -177,7 +265,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             }
           });
 
-        return Model.runHooks('beforeCreate').bind(this).then(function() {
+        return Model.runHooks('beforeCreate').then(() => {
           expect(this.beforeCreate).not.to.have.been.called;
           expect(localHook).to.have.been.calledOnce;
         });
@@ -193,12 +281,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       this.Model.addHook('beforeCreate', 'myHook', hook1);
       this.Model.beforeCreate('myHook2', hook2);
 
-      return this.Model.runHooks('beforeCreate').bind(this).then(function() {
+      return this.Model.runHooks('beforeCreate').then(() => {
         expect(hook1).to.have.been.calledOnce;
         expect(hook2).to.have.been.calledOnce;
 
-        hook1.reset();
-        hook2.reset();
+        hook1.resetHistory();
+        hook2.resetHistory();
 
         this.Model.removeHook('beforeCreate', 'myHook');
         this.Model.removeHook('beforeCreate', 'myHook2');
@@ -207,6 +295,39 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       }).then(() => {
         expect(hook1).not.to.have.been.called;
         expect(hook2).not.to.have.been.called;
+      });
+    });
+
+    it('should not remove other hooks', function() {
+      const hook1 = sinon.spy(),
+        hook2 = sinon.spy(),
+        hook3 = sinon.spy(),
+        hook4 = sinon.spy();
+
+      this.Model.addHook('beforeCreate', hook1);
+      this.Model.addHook('beforeCreate', 'myHook', hook2);
+      this.Model.beforeCreate('myHook2', hook3);
+      this.Model.beforeCreate(hook4);
+
+      return this.Model.runHooks('beforeCreate').then(() => {
+        expect(hook1).to.have.been.calledOnce;
+        expect(hook2).to.have.been.calledOnce;
+        expect(hook3).to.have.been.calledOnce;
+        expect(hook4).to.have.been.calledOnce;
+
+        hook1.resetHistory();
+        hook2.resetHistory();
+        hook3.resetHistory();
+        hook4.resetHistory();
+
+        this.Model.removeHook('beforeCreate', 'myHook');
+
+        return this.Model.runHooks('beforeCreate');
+      }).then(() => {
+        expect(hook1).to.have.been.calledOnce;
+        expect(hook2).not.to.have.been.called;
+        expect(hook3).to.have.been.calledOnce;
+        expect(hook4).to.have.been.calledOnce;
       });
     });
   });
@@ -229,51 +350,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
   });
 
-  describe('aliases', () => {
-    beforeEach(function() {
-      this.beforeDelete = sinon.spy();
-      this.afterDelete = sinon.spy();
-    });
-
-    afterEach(function() {
-      expect(this.beforeDelete).to.have.been.calledOnce;
-      expect(this.afterDelete).to.have.been.calledOnce;
-    });
-
-    describe('direct method', () => {
-      it('#delete', function() {
-        this.Model.beforeDelete(this.beforeDelete);
-        this.Model.afterDelete(this.afterDelete);
-
-        return Promise.join(
-          this.Model.runHooks('beforeDestroy'),
-          this.Model.runHooks('afterDestroy')
-        );
-      });
-    });
-
-    describe('.hook() method', () => {
-      it('#delete', function() {
-        this.Model.hook('beforeDelete', this.beforeDelete);
-        this.Model.hook('afterDelete', this.afterDelete);
-
-        return Promise.join(
-          this.Model.runHooks('beforeDestroy'),
-          this.Model.runHooks('afterDestroy')
-        );
-      });
-    });
-  });
-
   describe('promises', () => {
     it('can return a promise', function() {
-      const self = this;
-
       this.Model.beforeBulkCreate(() => {
-        return self.sequelize.Promise.resolve();
+        return Sequelize.Promise.resolve();
       });
 
-      return expect(this.Model.runHooks('beforeBulkCreate')).to.be.resolved;
+      return expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;
     });
 
     it('can return undefined', function() {
@@ -281,7 +364,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         // This space intentionally left blank
       });
 
-      return expect(this.Model.runHooks('beforeBulkCreate')).to.be.resolved;
+      return expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;
     });
 
     it('can return an error by rejecting', function() {

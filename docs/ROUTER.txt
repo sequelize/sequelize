@@ -1,0 +1,36 @@
+301 /en/v3/ https://sequelize.org/v3/
+301 /en/v3/:foo https://sequelize.org/v3/:foo
+301 /en/v3/:foo/:bar https://sequelize.org/v3/:foo/:bar
+301 /en/v3/:foo/:bar/:baz https://sequelize.org/v3/:foo/:bar/:baz
+301 /en/v3/:foo/:bar/:baz/:quz https://sequelize.org/v3/:foo/:bar/:baz/:quz
+
+301 /en/latest https://sequelize.org/master
+301 /en/latest/ https://sequelize.org/master/
+
+301 /en/latest/docs/getting-started/ https://sequelize.org/master/manual/getting-started.html
+301 /en/latest/docs/:section/ https://sequelize.org/master/manual/:section.html
+
+301 /en/latest/api/sequelize/ https://sequelize.org/master/class/lib/sequelize.js~Sequelize.html
+301 /en/latest/api/model/ https://sequelize.org/master/class/lib/model.js~Model.html
+301 /en/latest/api/instance/ https://sequelize.org/master/class/lib/model.js~Model.html
+301 /en/latest/api/associations/ https://sequelize.org/master/class/lib/associations/base.js~Association.html
+301 /en/latest/api/associations/belongs-to/ https://sequelize.org/master/class/lib/associations/belongs-to.js~BelongsTo.html
+301 /en/latest/api/associations/belongs-to-many/ https://sequelize.org/master/class/lib/associations/belongs-to-.many.js~BelongsToMany.html
+301 /en/latest/api/associations/has-one/ https://sequelize.org/master/class/lib/associations/has-one.js~HasOne.html
+301 /en/latest/api/associations/has-many/ https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
+301 /en/latest/api/transaction/ https://sequelize.org/master/class/lib/transaction.js~Transaction.html
+301 /en/latest/api/datatypes/ https://sequelize.org/master/variable/index.html#static-variable-DataTypes
+301 /en/latest/api/deferrable/ https://sequelize.org/master/variable/index.html#static-variable-Deferrable
+301 /en/latest/api/errors/ https://sequelize.org/master/class/lib/errors/base-error.js~BaseError.html
+
+301 /manual/tutorial/:section.html https://sequelize.org/master/manual/:section.html
+301 /manual/installation/:section.html https://sequelize.org/master/manual/:section.html
+301 /manual/faq/:section.html https://sequelize.org/master/manual/:section.html
+301 /manual/advanced/:section.html https://sequelize.org/master/manual/:section.html
+
+301 /:foo https://sequelize.org/master/:foo
+301 /:foo/:bar https://sequelize.org/master/:foo/:bar
+301 /:foo/:bar/:baz https://sequelize.org/master/:foo/:bar/:baz
+301 /:foo/:bar/:baz/:quz https://sequelize.org/master/:foo/:bar/:baz/:quz
+
+301 / https://sequelize.org/

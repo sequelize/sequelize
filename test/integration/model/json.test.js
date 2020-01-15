@@ -2,10 +2,12 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../index'),
+  Op = Sequelize.Op,
   Promise = Sequelize.Promise,
+  moment = require('moment'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -38,8 +40,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               transaction,
               lock: transaction.LOCK.UPDATE,
               logging: sql => {
-                if (sql.indexOf('SELECT') !== -1 && sql.indexOf('CREATE') === -1) {
-                  expect(sql.indexOf('FOR UPDATE')).not.to.be.equal(-1);
+                if (sql.includes('SELECT') && !sql.includes('CREATE')) {
+                  expect(sql.includes('FOR UPDATE')).to.be.true;
                 }
               }
             }).then(() => {
@@ -114,7 +116,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             where: {
               'data.name.first': 'Rick'
             }
-          })).then(() => this.Event.findById(2)).then(event => {
+          })).then(() => this.Event.findByPk(2)).then(event => {
             expect(event.get('data')).to.eql({
               name: {
                 first: 'Rick',
@@ -160,7 +162,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 }
               }
             }
-          })).then(() => this.Event.findById(2)).then(event => {
+          })).then(() => this.Event.findByPk(2)).then(event => {
             expect(event.get('data')).to.eql({
               name: {
                 first: 'Rick',
@@ -249,6 +251,95 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        it('should be possible to query dates with array operators', function() {
+          const now = moment().milliseconds(0).toDate();
+          const before = moment().milliseconds(0).subtract(1, 'day').toDate();
+          const after = moment().milliseconds(0).add(1, 'day').toDate();
+          return Promise.join(
+            this.Event.create({
+              json: {
+                user: 'Homer',
+                lastLogin: now
+              }
+            })
+          ).then(() => {
+            return this.Event.findAll({
+              where: {
+                json: {
+                  lastLogin: now
+                }
+              }
+            }).then(events => {
+              const event = events[0];
+
+              expect(events.length).to.equal(1);
+              expect(event.get('json')).to.eql({
+                user: 'Homer',
+                lastLogin: now.toISOString()
+              });
+            });
+          }).then(() => {
+            return this.Event.findAll({
+              where: {
+                json: {
+                  lastLogin: { [Op.between]: [before, after] }
+                }
+              }
+            }).then(events => {
+              const event = events[0];
+
+              expect(events.length).to.equal(1);
+              expect(event.get('json')).to.eql({
+                user: 'Homer',
+                lastLogin: now.toISOString()
+              });
+            });
+          });
+        });
+
+        it('should be possible to query a boolean with array operators', function() {
+          return Promise.join(
+            this.Event.create({
+              json: {
+                user: 'Homer',
+                active: true
+              }
+            })
+          ).then(() => {
+            return this.Event.findAll({
+              where: {
+                json: {
+                  active: true
+                }
+              }
+            }).then(events => {
+              const event = events[0];
+
+              expect(events.length).to.equal(1);
+              expect(event.get('json')).to.eql({
+                user: 'Homer',
+                active: true
+              });
+            });
+          }).then(() => {
+            return this.Event.findAll({
+              where: {
+                json: {
+                  active: { [Op.in]: [true, false] }
+                }
+              }
+            }).then(events => {
+              const event = events[0];
+
+              expect(events.length).to.equal(1);
+              expect(event.get('json')).to.eql({
+                user: 'Homer',
+                active: true
+              });
+            });
+          });
+        });
+
         it('should be possible to query a nested integer value', function() {
           return Promise.join(
             this.Event.create({
@@ -274,7 +365,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               where: {
                 data: {
                   age: {
-                    $gt: 38
+                    [Op.gt]: 38
                   }
                 }
               }
@@ -333,6 +424,60 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        it('should be possible to query for nested fields with hyphens/dashes, #8718', function() {
+          return Promise.join(
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Homer',
+                  last: 'Simpson'
+                },
+                status_report: {
+                  'red-indicator': {
+                    'level$$level': true
+                  }
+                },
+                employment: 'Nuclear Safety Inspector'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: null
+              }
+            })
+          ).then(() => {
+            return this.Event.findAll({
+              where: {
+                data: {
+                  status_report: {
+                    'red-indicator': {
+                      'level$$level': true
+                    }
+                  }
+                }
+              }
+            }).then(events => {
+              expect(events.length).to.equal(1);
+              expect(events[0].get('data')).to.eql({
+                name: {
+                  first: 'Homer',
+                  last: 'Simpson'
+                },
+                status_report: {
+                  'red-indicator': {
+                    'level$$level': true
+                  }
+                },
+                employment: 'Nuclear Safety Inspector'
+              });
+            });
+          });
+        });
+
         it('should be possible to query multiple nested values', function() {
           return this.Event.create({
             data: {
@@ -371,7 +516,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     last: 'Simpson'
                   },
                   employment: {
-                    $ne: 'None'
+                    [Op.ne]: 'None'
                   }
                 }
               },
@@ -540,6 +685,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        it('should properly escape path keys', function() {
+          return this.Model.findAll({
+            raw: true,
+            attributes: ['id'],
+            where: {
+              data: {
+                "a')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ": 1
+              }
+            }
+          });
+        });
+
+        it('should properly escape path keys with sequelize.json', function() {
+          return this.Model.findAll({
+            raw: true,
+            attributes: ['id'],
+            where: this.sequelize.json("data.id')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ", '1')
+          });
+        });
+
         it('should properly escape the single quotes in array', function() {
           return this.Model.create({
             data: {
@@ -631,7 +796,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   employment: 'Nuclear Safety Inspector'
                 });
               });
-            } else if (current.options.dialect === 'postgres') {
+            }
+            if (current.options.dialect === 'postgres') {
               return expect(this.Event.findAll({
                 where: {
                   data: {

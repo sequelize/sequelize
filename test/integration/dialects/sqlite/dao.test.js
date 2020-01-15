@@ -2,10 +2,11 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   Sequelize = Support.Sequelize,
+  Op = Sequelize.Op,
   dialect = Support.getTestDialect(),
-  DataTypes = require(__dirname + '/../../../../lib/data-types');
+  DataTypes = require('../../../../lib/data-types');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAO', () => {
@@ -39,7 +40,7 @@ if (dialect === 'sqlite') {
         return user.save().then(() => {
           return this.User.create({ username: 'new user' }).then(() => {
             return this.User.findAll({
-              where: { createdAt: { $gt: new Date(2012, 1, 1) } }
+              where: { createdAt: { [Op.gt]: new Date(2012, 1, 1) } }
             }).then(users => {
               expect(users).to.have.length(1);
             });
@@ -76,11 +77,11 @@ if (dialect === 'sqlite') {
 
     describe('json', () => {
       it('should be able to retrieve a row with json_extract function', function() {
-        return this.sequelize.Promise.all([
+        return Sequelize.Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ]).then(() => {
-          return this.User.find({
+          return this.User.findOne({
             where: Sequelize.json('json_extract(emergency_contact, \'$.name\')', 'kate'),
             attributes: ['username', 'emergency_contact']
           });
@@ -90,11 +91,11 @@ if (dialect === 'sqlite') {
       });
 
       it('should be able to retrieve a row by json_type function', function() {
-        return this.sequelize.Promise.all([
+        return Sequelize.Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: ['kate', 'joe'] })
         ]).then(() => {
-          return this.User.find({
+          return this.User.findOne({
             where: Sequelize.json('json_type(emergency_contact)', 'array'),
             attributes: ['username', 'emergency_contact']
           });

@@ -3,8 +3,8 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const expect = chai.expect;
-const Support = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
+const Support = require('../support');
+const DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.username = 'Toni';
         });
 
-        return this.User.create({mood: 'ecstatic'}).then(user => {
+        return this.User.create({ mood: 'ecstatic' }).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('Toni');
         });
@@ -42,8 +42,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('#3534, hooks modifications', () => {
       it('fields modified in hooks are saved', function() {
-        const self = this;
-
         this.User.afterValidate(user => {
           //if username is defined and has more than 5 char
           user.username = user.username
@@ -58,7 +56,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
 
-        return this.User.create({username: 'T', mood: 'neutral'}).then(user => {
+        return this.User.create({ username: 'T', mood: 'neutral' }).then(user => {
           expect(user.mood).to.equal('neutral');
           expect(user.username).to.equal('Samorost 3');
 
@@ -79,7 +77,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           //attributes were replaced by hooks ?
           expect(uSaved.mood).to.equal('sad');
           expect(uSaved.username).to.equal('Samorost 3');
-          return self.User.findById(uSaved.id);
+          return this.User.findByPk(uSaved.id);
         }).then(uFetched => {
           expect(uFetched.mood).to.equal('sad');
           expect(uFetched.username).to.equal('Samorost 3');
@@ -92,7 +90,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           expect(uFetchedSaved.mood).to.equal('neutral');
           expect(uFetchedSaved.username).to.equal('New Game is Needed');
 
-          return self.User.findById(uFetchedSaved.id);
+          return this.User.findByPk(uFetchedSaved.id);
         }).then(uFetched => {
           expect(uFetched.mood).to.equal('neutral');
           expect(uFetched.username).to.equal('New Game is Needed');
@@ -115,7 +113,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops! Changed user.mood!');
         });
 
-        return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejectedWith('Whoops! Changed user.mood!');
+        return expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejectedWith('Whoops! Changed user.mood!');
       });
 
       it('should call validationFailed hook', function() {
@@ -123,7 +121,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.validationFailed(validationFailedHook);
 
-        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(() => {
+        return expect(this.User.create({ mood: 'happy' })).to.be.rejected.then(() => {
           expect(validationFailedHook).to.have.been.calledOnce;
         });
       });
@@ -133,7 +131,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.validationFailed(validationFailedHook);
 
-        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(err => {
+        return expect(this.User.create({ mood: 'happy' })).to.be.rejected.then(err => {
           expect(err.name).to.equal('SequelizeValidationError');
         });
       });
@@ -143,7 +141,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.validationFailed(validationFailedHook);
 
-        return expect(this.User.create({mood: 'happy'})).to.be.rejected.then(err => {
+        return expect(this.User.create({ mood: 'happy' })).to.be.rejected.then(err => {
           expect(err.message).to.equal('Whoops!');
         });
       });

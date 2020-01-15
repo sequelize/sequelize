@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support   = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         }, {
           timestamp: false
         }),
-        instance = Model.build({ip: '127.0.0.1', ip2: '0.0.0.0'});
+        instance = Model.build({ ip: '127.0.0.1', ip2: '0.0.0.0' });
 
       expect(instance.get('created_time')).to.be.ok;
       expect(instance.get('created_time')).to.be.an.instanceof(Date);

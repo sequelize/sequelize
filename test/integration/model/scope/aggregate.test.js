@@ -2,9 +2,10 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../../index'),
+  Op = Sequelize.Op,
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  Promise = require(__dirname + '/../../../../lib/promise');
+  Support = require('../../support'),
+  Promise = require('../../../../lib/promise');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
@@ -22,7 +23,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           defaultScope: {
             where: {
               access_level: {
-                gte: 5
+                [Op.gte]: 5
               }
             }
           },
@@ -30,7 +31,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             lowAccess: {
               where: {
                 access_level: {
-                  lte: 5
+                  [Op.lte]: 5
                 }
               }
             },
@@ -50,12 +51,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Child.belongsTo(this.ScopeMe);
         this.ScopeMe.hasMany(this.Child);
 
-        return this.sequelize.sync({force: true}).then(() => {
+        return this.sequelize.sync({ force: true }).then(() => {
           const records = [
-            {username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7},
-            {username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11},
-            {username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10},
-            {username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7}
+            { username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7 },
+            { username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11 },
+            { username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10 },
+            { username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7 }
           ];
           return this.ScopeMe.bulkCreate(records);
         }).then(() => {
@@ -77,7 +78,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to override default scope', function() {
-        return expect(this.ScopeMe.aggregate( '*', 'count', { where: { access_level: { gt: 5 }}})).to.eventually.equal(1);
+        return expect(this.ScopeMe.aggregate( '*', 'count', { where: { access_level: { [Op.gt]: 5 } } })).to.eventually.equal(1);
       });
 
       it('should be able to unscope', function() {
@@ -89,7 +90,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to merge scopes with where', function() {
-        return expect(this.ScopeMe.scope('lowAccess').aggregate( '*', 'count', { where: { username: 'dan'}})).to.eventually.equal(1);
+        return expect(this.ScopeMe.scope('lowAccess').aggregate( '*', 'count', { where: { username: 'dan' } })).to.eventually.equal(1);
       });
 
       it('should be able to use where on include', function() {
@@ -103,6 +104,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           attributes: []
         })).to.eventually.equal(1);
       });
+
+      if (Support.sequelize.dialect.supports.schemas) {
+        it('aggregate with schema', function() {
+          this.Hero = this.sequelize.define('Hero', {
+            codename: Sequelize.STRING
+          }, { schema: 'heroschema' });
+          return this.sequelize.createSchema('heroschema')
+            .then(() => {
+              return this.sequelize.sync({ force: true });
+            })
+            .then(() => {
+              const records = [
+                { codename: 'hulk' },
+                { codename: 'rantanplan' }
+              ];
+              return this.Hero.bulkCreate(records);
+            })
+            .then(() => {
+              return expect(
+                this.Hero.unscoped().aggregate('*', 'count',
+                  { schema: 'heroschema' })).to.eventually.equal(
+                2);
+            });
+        });
+      }
     });
   });
 });

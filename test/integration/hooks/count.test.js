@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
@@ -23,9 +23,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#count', () => {
     beforeEach(function() {
       return this.User.bulkCreate([
-        {username: 'adam', mood: 'happy'},
-        {username: 'joe', mood: 'sad'},
-        {username: 'joe', mood: 'happy'}
+        { username: 'adam', mood: 'happy' },
+        { username: 'joe', mood: 'sad' },
+        { username: 'joe', mood: 'happy' }
       ]);
     });
 
@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           options.where.username = 'adam';
         });
 
-        return expect(this.User.count({where: {username: 'joe'}})).to.eventually.equal(1);
+        return expect(this.User.count({ where: { username: 'joe' } })).to.eventually.equal(1);
       });
     });
 
@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        return expect(this.User.count({where: {username: 'adam'}})).to.be.rejectedWith('Oops!');
+        return expect(this.User.count({ where: { username: 'adam' } })).to.be.rejectedWith('Oops!');
       });
     });
   });

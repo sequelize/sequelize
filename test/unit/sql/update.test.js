@@ -1,7 +1,7 @@
 'use strict';
 
-const Support   = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+const Support   = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
   sql       = current.dialect.QueryGenerator;
@@ -14,22 +14,27 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       const User = Support.sequelize.define('user', {
         username: {
           type: DataTypes.STRING,
-          field:'user_name'
+          field: 'user_name'
         }
       }, {
-        timestamps:false,
-        hasTrigger:true
+        timestamps: false,
+        hasTrigger: true
       });
 
       const options = {
-        returning : true,
-        hasTrigger : true
+        returning: true,
+        hasTrigger: true
       };
-      expectsql(sql.updateQuery(User.tableName, {user_name: 'triggertest'}, {id:2}, options, User.rawAttributes),
+      expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.rawAttributes),
         {
-          mssql: 'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));UPDATE [users] SET [user_name]=N\'triggertest\' OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp WHERE [id] = 2;select * from @tmp',
-          postgres:'UPDATE "users" SET "user_name"=\'triggertest\' WHERE "id" = 2 RETURNING *',
-          default: "UPDATE `users` SET `user_name`=\'triggertest\' WHERE `id` = 2"
+          query: {
+            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$1 OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp WHERE [id] = $2; SELECT * FROM @tmp',
+            postgres: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2 RETURNING "id","user_name"',
+            default: 'UPDATE `users` SET `user_name`=$1 WHERE `id` = $2'
+          },
+          bind: {
+            default: ['triggertest', 2]
+          }
         });
     });
 
@@ -47,9 +52,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       expectsql(sql.updateQuery(User.tableName, { username: 'new.username' }, { username: 'username' }, { limit: 1 }), {
-        mssql: "UPDATE TOP(1) [Users] SET [username]=N'new.username' OUTPUT INSERTED.* WHERE [username] = N'username'",
-        mysql: "UPDATE `Users` SET `username`='new.username' WHERE `username` = 'username' LIMIT 1",
-        default: "UPDATE [Users] SET [username]='new.username' WHERE [username] = 'username'"
+        query: {
+          mssql: 'UPDATE TOP(1) [Users] SET [username]=$1 OUTPUT INSERTED.* WHERE [username] = $2',
+          mariadb: 'UPDATE `Users` SET `username`=$1 WHERE `username` = $2 LIMIT 1',
+          mysql: 'UPDATE `Users` SET `username`=$1 WHERE `username` = $2 LIMIT 1',
+          sqlite: 'UPDATE `Users` SET `username`=$1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `username` = $2 LIMIT 1)',
+          default: 'UPDATE [Users] SET [username]=$1 WHERE [username] = $2'
+        },
+        bind: {
+          default: ['new.username', 'username']
+        }
       });
     });
   });

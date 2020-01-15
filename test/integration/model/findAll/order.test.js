@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  Support = require('../../support'),
+  DataTypes = require('../../../../lib/data-types'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             email: DataTypes.STRING
           });
 
-          return this.User.sync({force: true}).bind(this).then(function() {
+          return this.User.sync({ force: true }).then(() => {
             return this.User.create({
               email: 'test@sequelizejs.com'
             });
@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         if (current.dialect.name !== 'mssql') {
           it('should work with order: literal()', function() {
             return this.User.findAll({
-              order: this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))
+              order: this.sequelize.literal(`email = ${this.sequelize.escape('test@sequelizejs.com')}`)
             }).then(users => {
               expect(users.length).to.equal(1);
               users.forEach(user => {
@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('should work with order: [literal()]', function() {
             return this.User.findAll({
-              order: [this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))]
+              order: [this.sequelize.literal(`email = ${this.sequelize.escape('test@sequelizejs.com')}`)]
             }).then(users => {
               expect(users.length).to.equal(1);
               users.forEach(user => {
@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('should work with order: [[literal()]]', function() {
             return this.User.findAll({
               order: [
-                [this.sequelize.literal('email = ' + this.sequelize.escape('test@sequelizejs.com'))]
+                [this.sequelize.literal(`email = ${this.sequelize.escape('test@sequelizejs.com')}`)]
               ]
             }).then(users => {
               expect(users.length).to.equal(1);
@@ -69,7 +69,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           });
           this.User.belongsTo(this.Group);
-          return this.sequelize.sync({force: true});
+          return this.sequelize.sync({ force: true });
         });
 
         if (current.dialect.supports['ORDER NULLS']) {

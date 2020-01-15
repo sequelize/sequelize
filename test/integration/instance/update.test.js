@@ -4,10 +4,9 @@ const chai = require('chai'),
   sinon = require('sinon'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  dialect = Support.getTestDialect(),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  config = require(__dirname + '/../../config/config'),
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
+  config = require('../../config/config'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -32,26 +31,26 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         validateTest: {
           type: DataTypes.INTEGER,
           allowNull: true,
-          validate: {isInt: true}
+          validate: { isInt: true }
         },
         validateCustom: {
           type: DataTypes.STRING,
           allowNull: true,
-          validate: {len: {msg: 'Length failed.', args: [1, 20]}}
+          validate: { len: { msg: 'Length failed.', args: [1, 20] } }
         },
         validateSideEffect: {
           type: DataTypes.VIRTUAL,
           allowNull: true,
-          validate: {isInt: true},
+          validate: { isInt: true },
           set(val) {
             this.setDataValue('validateSideEffect', val);
-            this.setDataValue('validateSideAffected', val*2);
+            this.setDataValue('validateSideAffected', val * 2);
           }
         },
         validateSideAffected: {
           type: DataTypes.INTEGER,
           allowNull: true,
-          validate: {isInt: true}
+          validate: { isInt: true }
         },
 
         dateAllowNullTrue: {
@@ -64,7 +63,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
@@ -87,20 +86,20 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     }
 
     it('should update fields that are not specified on create', function() {
-      const User = this.sequelize.define('User' + config.rand(), {
+      const User = this.sequelize.define(`User${  config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING
       });
 
-      return User.sync({force: true}).then(() => {
+      return User.sync({ force: true }).then(() => {
         return User.create({
           name: 'snafu',
           email: 'email'
         }, {
           fields: ['name', 'email']
         }).then(user => {
-          return user.update({bio: 'swag'});
+          return user.update({ bio: 'swag' });
         }).then(user => {
           return user.reload();
         }).then(user => {
@@ -112,7 +111,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should succeed in updating when values are unchanged (without timestamps)', function() {
-      const User = this.sequelize.define('User' + config.rand(), {
+      const User = this.sequelize.define(`User${  config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING
@@ -120,7 +119,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         timestamps: false
       });
 
-      return User.sync({force: true}).then(() => {
+      return User.sync({ force: true }).then(() => {
         return User.create({
           name: 'snafu',
           email: 'email'
@@ -140,36 +139,34 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    if (dialect === 'mysql') {
-      it('should update timestamps w milliseconds', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
-          name: DataTypes.STRING,
-          bio: DataTypes.TEXT,
-          email: DataTypes.STRING,
-          createdAt: {type: DataTypes.DATE(6), allowNull: false},
-          updatedAt: {type: DataTypes.DATE(6), allowNull: false}
-        }, {
-          timestamps: true
-        });
+    it('should update timestamps with milliseconds', function() {
+      const User = this.sequelize.define(`User${  config.rand()}`, {
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
+        email: DataTypes.STRING,
+        createdAt: { type: DataTypes.DATE(6), allowNull: false },
+        updatedAt: { type: DataTypes.DATE(6), allowNull: false }
+      }, {
+        timestamps: true
+      });
 
-        this.clock.tick(2100); //move the clock forward 2100 ms.
+      this.clock.tick(2100); //move the clock forward 2100 ms.
 
-        return User.sync({force: true}).then(() => {
-          return User.create({
-            name: 'snafu',
-            email: 'email'
-          }).then(user => {
-            return user.reload();
-          }).then(user => {
-            expect(user.get('name')).to.equal('snafu');
-            expect(user.get('email')).to.equal('email');
-            const testDate = new Date();
-            testDate.setTime(2100);
-            expect(user.get('createdAt')).to.equalTime(testDate);
-          });
+      return User.sync({ force: true }).then(() => {
+        return User.create({
+          name: 'snafu',
+          email: 'email'
+        }).then(user => {
+          return user.reload();
+        }).then(user => {
+          expect(user.get('name')).to.equal('snafu');
+          expect(user.get('email')).to.equal('email');
+          const testDate = new Date();
+          testDate.setTime(2100);
+          expect(user.get('createdAt')).to.equalTime(testDate);
         });
       });
-    }
+    });
 
     it('should only save passed attributes', function() {
       const user = this.User.build();
@@ -191,7 +188,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should save attributes affected by setters', function() {
       const user = this.User.build();
-      return user.update({validateSideEffect: 5}).then(() => {
+      return user.update({ validateSideEffect: 5 }).then(() => {
         expect(user.validateSideEffect).to.be.equal(5);
       }).then(() => {
         return user.reload();
@@ -203,7 +200,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('hooks', () => {
       it('should update attributes added in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${  config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -213,7 +210,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           instance.set('email', 'B');
         });
 
-        return User.sync({force: true}).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create({
             name: 'A',
             bio: 'A',
@@ -234,7 +231,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should update attributes changed in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${  config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -244,7 +241,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           instance.set('email', 'C');
         });
 
-        return User.sync({force: true}).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create({
             name: 'A',
             bio: 'A',
@@ -266,7 +263,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should validate attributes added in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${  config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -281,7 +278,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           instance.set('email', 'B');
         });
 
-        return User.sync({force: true}).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create({
             name: 'A',
             bio: 'A',
@@ -299,7 +296,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should validate attributes changed in hooks when default fields are used', function() {
-        const User = this.sequelize.define('User' + config.rand(), {
+        const User = this.sequelize.define(`User${  config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -314,7 +311,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           instance.set('email', 'B');
         });
 
-        return User.sync({force: true}).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create({
             name: 'A',
             bio: 'A',
@@ -334,13 +331,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should not set attributes that are not specified by fields', function() {
-      const User = this.sequelize.define('User' + config.rand(), {
+      const User = this.sequelize.define(`User${  config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING
       });
 
-      return User.sync({force: true}).then(() => {
+      return User.sync({ force: true }).then(() => {
         return User.create({
           name: 'snafu',
           email: 'email'
@@ -370,26 +367,36 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('ignores unknown attributes', function() {
       return this.User.create({ username: 'user' }).then(user => {
-        return user.update({ username: 'person', foo: 'bar'}).then(user => {
+        return user.update({ username: 'person', foo: 'bar' }).then(user => {
           expect(user.username).to.equal('person');
           expect(user.foo).not.to.exist;
         });
       });
     });
 
+    it('ignores undefined attributes', function() {
+      return this.User.sync({ force: true }).then(() => {
+        return this.User.create({ username: 'user' }).then(user => {
+          return user.update({ username: undefined }).then(user => {
+            expect(user.username).to.equal('user');
+          });
+        });
+      });
+    });
+
     it('doesn\'t update primary keys or timestamps', function() {
-      const User = this.sequelize.define('User' + config.rand(), {
+      const User = this.sequelize.define(`User${  config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
-        identifier: {type: DataTypes.STRING, primaryKey: true}
+        identifier: { type: DataTypes.STRING, primaryKey: true }
       });
 
-      return User.sync({ force: true }).bind(this).then(() => {
+      return User.sync({ force: true }).then(() => {
         return User.create({
           name: 'snafu',
           identifier: 'identifier'
         });
-      }).then(function(user) {
+      }).then(user => {
         const oldCreatedAt = user.createdAt,
           oldUpdatedAt = user.updatedAt,
           oldIdentifier = user.identifier;
@@ -430,7 +437,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             expect(download.finishedAt).to.not.be.ok;
 
             return Download.findAll({
-              where: {finishedAt: null}
+              where: { finishedAt: null }
             }).then(downloads => {
               downloads.forEach(download => {
                 expect(download.startedAt instanceof Date).to.be.true;
@@ -447,7 +454,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const spy = sinon.spy();
 
       return this.User.create({}).then(user => {
-        return user.update({username: 'yolo'}, {logging: spy}).then(() => {
+        return user.update({ username: 'yolo' }, { logging: spy }).then(() => {
           expect(spy.called).to.be.ok;
         });
       });

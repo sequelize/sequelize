@@ -1,7 +1,7 @@
 'use strict';
 
-const Support = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
+const Support = require('../support');
+const DataTypes = require('../../../lib/data-types');
 const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
@@ -32,12 +32,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         timestamps: true
       });
 
-      return Account.sync({force: true})
+      return Account.sync({ force: true })
         .then(() => Account.create({ ownerId: 12 }))
         .then(() => Account.count())
         .then(count => {
           expect(count).to.be.equal(1);
-          return Account.destroy({ where: { ownerId: 12 }})
+          return Account.destroy({ where: { ownerId: 12 } })
             .then(result => {
               expect(result).to.be.equal(1);
             });
@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })
         .then(count => {
           expect(count).to.be.equal(1);
-          return Account.restore({ where: { ownerId: 12 }});
+          return Account.restore({ where: { ownerId: 12 } });
         })
         .then(() => Account.count())
         .then(count => {
@@ -80,12 +80,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         updatedAt: false
       });
 
-      return Account.sync({force: true})
+      return Account.sync({ force: true })
         .then(() => Account.create({ ownerId: 12 }))
         .then(() => Account.count())
         .then(count => {
           expect(count).to.be.equal(1);
-          return Account.destroy({ where: { ownerId: 12 }});
+          return Account.destroy({ where: { ownerId: 12 } });
         })
         .then(() => Account.count())
         .then(count => {
@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })
         .then(count => {
           expect(count).to.be.equal(1);
-          return Account.restore({ where: { ownerId: 12 }});
+          return Account.restore({ where: { ownerId: 12 } });
         })
         .then(() => Account.count())
         .then(count => {
@@ -103,14 +103,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     if (current.dialect.supports.JSON) {
-      describe('JSONB', () => {
+      describe('JSON', () => {
         before(function() {
           this.Model = this.sequelize.define('Model', {
             name: {
               type: DataTypes.STRING
             },
             data: {
-              type: DataTypes.JSONB
+              type: DataTypes.JSON
             },
             deletedAt: {
               type: DataTypes.DATE,
@@ -128,7 +128,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Model.sync({ force: true });
         });
 
-        it('should soft delete with JSONB condition', function() {
+        it('should soft delete with JSON condition', function() {
           return this.Model.bulkCreate([{
             name: 'One',
             data: {

@@ -1,10 +1,11 @@
 'use strict';
 
-const Support   = require(__dirname + '/../support');
-const current   = Support.sequelize;
+const Support = require('../support');
+const current = Support.sequelize;
 const expectsql = Support.expectsql;
 const sql = current.dialect.QueryGenerator;
 const expect = require('chai').expect;
+const Op = Support.Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('getConstraintSnippet', () => {
@@ -61,9 +62,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           name: 'check_mycolumn_where',
           where: {
             myColumn: {
-              $and: {
-                $gt: 50,
-                $lt: 100
+              [Op.and]: {
+                [Op.gt]: 50,
+                [Op.lt]: 100
               }
             }
           }

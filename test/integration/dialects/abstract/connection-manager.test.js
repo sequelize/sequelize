@@ -2,13 +2,12 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   sinon = require('sinon'),
-  Config = require(__dirname + '/../../../config/config'),
-  ConnectionManager = require(__dirname + '/../../../../lib/dialects/abstract/connection-manager'),
-  Pooling = require('generic-pool'),
-  _ = require('lodash'),
-  Promise = require(__dirname + '/../../../../lib/promise');
+  Config = require('../../../config/config'),
+  ConnectionManager = require('../../../../lib/dialects/abstract/connection-manager'),
+  Pool = require('sequelize-pool').Pool,
+  _ = require('lodash');
 
 const baseConf = Config[Support.getTestDialect()];
 const poolEntry = {
@@ -18,11 +17,11 @@ const poolEntry = {
 };
 
 describe('Connection Manager', () => {
-
   let sandbox;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
+    sandbox.usingPromise(require('bluebird'));
   });
 
   afterEach(() => {
@@ -36,9 +35,10 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const poolSpy = sandbox.spy(Pooling, 'createPool');
     connectionManager.initPools();
-    expect(poolSpy.calledOnce).to.be.true;
+    expect(connectionManager.pool).to.be.instanceOf(Pool);
+    expect(connectionManager.pool.read).to.be.undefined;
+    expect(connectionManager.pool.write).to.be.undefined;
   });
 
   it('should initialize a multiple pools with replication', () => {
@@ -51,9 +51,9 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const poolSpy = sandbox.spy(Pooling, 'createPool');
     connectionManager.initPools();
-    expect(poolSpy.calledTwice).to.be.true;
+    expect(connectionManager.pool.read).to.be.instanceOf(Pool);
+    expect(connectionManager.pool.write).to.be.instanceOf(Pool);
   });
 
   it('should round robin calls to the read pool', () => {
@@ -75,15 +75,13 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const resolvedPromise = new Promise(resolve => {
-      resolve({
-        queryType: 'read'
-      });
-    });
+    const res = {
+      queryType: 'read'
+    };
 
-    const connectStub = sandbox.stub(connectionManager, '_connect').returns(resolvedPromise);
-    sandbox.stub(connectionManager, '_disconnect').returns(resolvedPromise);
-    sandbox.stub(sequelize, 'databaseVersion').returns(resolvedPromise);
+    const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
+    sandbox.stub(connectionManager, '_disconnect').resolves(res);
+    sandbox.stub(sequelize, 'databaseVersion').resolves(res);
     connectionManager.initPools();
 
     const queryOptions = {
@@ -92,7 +90,7 @@ describe('Connection Manager', () => {
       useMaster: false
     };
 
-    const _getConnection = _.bind(connectionManager.getConnection, connectionManager, queryOptions);
+    const _getConnection = connectionManager.getConnection.bind(connectionManager, queryOptions);
 
     return _getConnection()
       .then(_getConnection)
@@ -121,15 +119,12 @@ describe('Connection Manager', () => {
     const sequelize = Support.createSequelizeInstance(options);
     const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
 
-    const resolvedPromise = new Promise(resolve => {
-      resolve({
-        queryType: 'read'
-      });
-    });
-
-    const connectStub = sandbox.stub(connectionManager, '_connect').returns(resolvedPromise);
-    sandbox.stub(connectionManager, '_disconnect').returns(resolvedPromise);
-    sandbox.stub(sequelize, 'databaseVersion').returns(resolvedPromise);
+    const res = {
+      queryType: 'read'
+    };
+    const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
+    sandbox.stub(connectionManager, '_disconnect').resolves(res);
+    sandbox.stub(sequelize, 'databaseVersion').resolves(res);
     connectionManager.initPools();
 
     const queryOptions = {
@@ -156,13 +151,12 @@ describe('Connection Manager', () => {
     connectionManager.initPools();
 
     const poolDrainSpy = sandbox.spy(connectionManager.pool, 'drain');
-    const poolClearSpy = sandbox.spy(connectionManager.pool, 'clear');
+    const poolClearSpy = sandbox.spy(connectionManager.pool, 'destroyAllNow');
 
     return connectionManager.close().then(() => {
       expect(poolDrainSpy.calledOnce).to.be.true;
       expect(poolClearSpy.calledOnce).to.be.true;
     });
-
   });
 
 });

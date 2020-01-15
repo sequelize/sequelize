@@ -1,41 +1,9 @@
 @import url(https://fonts.googleapis.com/css?family=Titillium+Web);
 
-.algolia-autocomplete .algolia-docsearch-suggestion--category-header,
-.algolia-autocomplete .algolia-docsearch-suggestion--title,
-.algolia-autocomplete .algolia-docsearch-suggestion--subcategory-column,
-#docs-search-input {
-  font-size: 16px !important;
-  line-height: normal;
-}
-
-.algolia-autocomplete .algolia-docsearch-suggestion--wrapper {
-  padding: 0 !important;
-}
-
-.docs-search-container {
-  float: right;
-  margin-right: 30px;
-}
-
-#docs-search-input {
-  border: none;
-  background: transparent;
-  padding: 10px;
-}
-
-#docs-search-input, .docs-search-container {
-  height: 40px;
-  width: 300px;
-}
-
-/* ESDoc search */
-.search-box {
-  display: none;
-}
-
 div.logo img {
   width: 200px;
   height: 200px;
+  box-shadow: none !important;
 }
 
 div.sequelize {
@@ -44,12 +12,8 @@ div.sequelize {
   font-family: 'Titillium Web', sans-serif;
 }
 
-.content {
-  max-width: 1200px;
-}
-
-.navigation {
-  overflow-x: hidden;
+.center {
+  text-align: center;
 }
 
 .manual-root .content img {
@@ -57,59 +21,41 @@ div.sequelize {
   max-width: 300px;
 }
 
-.manual-toc a {
-  width: 240px;
-  white-space: pre-wrap;
+.navigation {
+  margin-top: 40px !important;
+  padding-top: 0;
+  height: calc(100% - 40px);
 }
 
-blockquote {
-  background: #fafafa;
-  border-left: 10px solid #ddd;
-  margin: 1.5em 10px;
-  padding: 0.5em 10px;
+.manual-toc a:hover {
+  color: #999 !important;
 }
 
-blockquote p {
-  margin-bottom: 0;
+.manual-group {
+  font-weight: 600;
+  margin: 9.6px 0 3.2px 0;
+  color: black !important;
+  font-size: 17px;
 }
 
-h3#static-variable-DataTypes ~ div[data-ice="properties"] table.params tr td:nth-child(3) {
-  display: none;
+.no-mouse {
+  pointer-events: none;
 }
 
-h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(2),
-h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(3),
-h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(4) {
-  display: none;
+.api-reference-link {
+  font-weight: bold;
+  padding: 0 20px;
+}
+.api-reference-link:hover {
+  color: rgb(3, 155, 229);
 }
 
-.manual-badge,
-.manual-cards {
-  display: none !important;
+header a {
+  display: flex;
+  align-items: center;
 }
 
 a[href="source.html"],
 a[href^="file/lib/"] {
   display: none;
-}
-
-.manual-color:after  {
-  content: '' !important;
-}
-
-.slack-logo {
-  height: 20px;
-  position: relative;
-  top: 3px;
-  padding: 0 5px;
-}
-
-.header-logo {
-  height: 25px;
-  position: relative;
-  top: 6px;
-}
-
-.center {
-  text-align: center;
 }

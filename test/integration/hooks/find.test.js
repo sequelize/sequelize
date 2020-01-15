@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+  Support = require('../support'),
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
@@ -24,8 +24,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#find', () => {
     beforeEach(function() {
       return this.User.bulkCreate([
-        {username: 'adam', mood: 'happy'},
-        {username: 'joe', mood: 'sad'}
+        { username: 'adam', mood: 'happy' },
+        { username: 'joe', mood: 'sad' }
       ]);
     });
 
@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           afterHook = true;
         });
 
-        return this.User.find({where: {username: 'adam'}}).then(user => {
+        return this.User.findOne({ where: { username: 'adam' } }).then(user => {
           expect(user.mood).to.equal('happy');
           expect(beforeHook).to.be.true;
           expect(beforeHook2).to.be.true;
@@ -75,7 +75,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           options.where.username = 'joe';
         });
 
-        return this.User.find({where: {username: 'adam'}}).then(user => {
+        return this.User.findOne({ where: { username: 'adam' } }).then(user => {
           expect(user.mood).to.equal('sad');
         });
       });
@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           options.where.username = 'joe';
         });
 
-        return this.User.find({where: {username: 'adam'}}).then(user => {
+        return this.User.findOne({ where: { username: 'adam' } }).then(user => {
           expect(user.mood).to.equal('sad');
         });
       });
@@ -95,7 +95,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           options.where.username = 'joe';
         });
 
-        return this.User.find({where: {username: 'adam'}}).then(user => {
+        return this.User.findOne({ where: { username: 'adam' } }).then(user => {
           expect(user.mood).to.equal('sad');
         });
       });
@@ -105,7 +105,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.mood = 'sad';
         });
 
-        return this.User.find({where: {username: 'adam'}}).then(user => {
+        return this.User.findOne({ where: { username: 'adam' } }).then(user => {
           expect(user.mood).to.equal('sad');
         });
       });
@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        return this.User.find({where: {username: 'adam'}}).catch (err => {
+        return this.User.findOne({ where: { username: 'adam' } }).catch(err => {
           expect(err.message).to.equal('Oops!');
         });
       });
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        return this.User.find({where: {username: 'adam'}}).catch (err => {
+        return this.User.findOne({ where: { username: 'adam' } }).catch(err => {
           expect(err.message).to.equal('Oops!');
         });
       });
@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        return this.User.find({where: {username: 'adam'}}).catch (err => {
+        return this.User.findOne({ where: { username: 'adam' } }).catch(err => {
           expect(err.message).to.equal('Oops!');
         });
       });
@@ -147,7 +147,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        return this.User.find({where: {username: 'adam'}}).catch (err => {
+        return this.User.findOne({ where: { username: 'adam' } }).catch(err => {
           expect(err.message).to.equal('Oops!');
         });
       });

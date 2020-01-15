@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
+  Support = require('../../support'),
+  DataTypes = require('../../../../lib/data-types'),
   dialect = Support.getTestDialect(),
-  dbFile = __dirname + '/test.sqlite',
+  dbFile = 'test.sqlite',
   storages = [dbFile];
 
 if (dialect === 'sqlite') {
@@ -25,7 +25,7 @@ if (dialect === 'sqlite') {
     });
 
     storages.forEach(storage => {
-      describe('with storage "' + storage + '"', () => {
+      describe(`with storage "${storage}"`, () => {
         after(() => {
           if (storage === dbFile) {
             require('fs').writeFileSync(dbFile, '');
@@ -34,13 +34,12 @@ if (dialect === 'sqlite') {
 
         describe('create', () => {
           it('creates a table entry', function() {
-            const self = this;
             return this.User.create({ age: 21, name: 'John Wayne', bio: 'noot noot' }).then(user => {
               expect(user.age).to.equal(21);
               expect(user.name).to.equal('John Wayne');
               expect(user.bio).to.equal('noot noot');
 
-              return self.User.findAll().then(users => {
+              return this.User.findAll().then(users => {
                 const usernames = users.map(user => {
                   return user.name;
                 });
@@ -100,19 +99,22 @@ if (dialect === 'sqlite') {
           });
         });
 
-        describe('.find', () => {
+        describe('.findOne', () => {
           beforeEach(function() {
-            return this.User.create({name: 'user', bio: 'footbar'});
+            return this.User.create({ name: 'user', bio: 'footbar' });
           });
 
           it('finds normal lookups', function() {
-            return this.User.find({ where: { name: 'user' } }).then(user => {
+            return this.User.findOne({ where: { name: 'user' } }).then(user => {
               expect(user.name).to.equal('user');
             });
           });
 
           it.skip('should make aliased attributes available', function() {
-            return this.User.find({ where: { name: 'user' }, attributes: ['id', ['name', 'username']] }).then(user => {
+            return this.User.findOne({
+              where: { name: 'user' },
+              attributes: ['id', ['name', 'username']]
+            }).then(user => {
               expect(user.username).to.equal('user');
             });
           });
@@ -121,8 +123,8 @@ if (dialect === 'sqlite') {
         describe('.all', () => {
           beforeEach(function() {
             return this.User.bulkCreate([
-              {name: 'user', bio: 'foobar'},
-              {name: 'user', bio: 'foobar'}
+              { name: 'user', bio: 'foobar' },
+              { name: 'user', bio: 'foobar' }
             ]);
           });
 
@@ -135,15 +137,14 @@ if (dialect === 'sqlite') {
 
         describe('.min', () => {
           it('should return the min value', function() {
-            const self = this,
-              users = [];
+            const users = [];
 
             for (let i = 2; i < 5; i++) {
-              users[users.length] = {age: i};
+              users[users.length] = { age: i };
             }
 
             return this.User.bulkCreate(users).then(() => {
-              return self.User.min('age').then(min => {
+              return this.User.min('age').then(min => {
                 expect(min).to.equal(2);
               });
             });
@@ -152,15 +153,14 @@ if (dialect === 'sqlite') {
 
         describe('.max', () => {
           it('should return the max value', function() {
-            const self = this,
-              users = [];
+            const users = [];
 
             for (let i = 2; i <= 5; i++) {
-              users[users.length] = {age: i};
+              users[users.length] = { age: i };
             }
 
             return this.User.bulkCreate(users).then(() => {
-              return self.User.max('age').then(min => {
+              return this.User.max('age').then(min => {
                 expect(min).to.equal(5);
               });
             });

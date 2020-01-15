@@ -3,8 +3,8 @@
 const chai = require('chai'),
   Sequelize = require('../../../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types');
+  Support = require('../../support'),
+  DataTypes = require('../../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('create', () => {
@@ -50,12 +50,45 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(savedProduct.User.createOptions.parentRecord).to.be.equal(savedProduct);
             return Product.findOne({
               where: { id: savedProduct.id },
-              include: [ User ]
+              include: [User]
             }).then(persistedProduct => {
               expect(persistedProduct.User).to.be.ok;
               expect(persistedProduct.User.first_name).to.be.equal('Mick');
               expect(persistedProduct.User.last_name).to.be.equal('Broadstone');
             });
+          });
+        });
+      });
+
+      it('should create data for BelongsTo relations with no nullable FK', function() {
+        const Product = this.sequelize.define('Product', {
+          title: Sequelize.STRING
+        });
+        const User = this.sequelize.define('User', {
+          first_name: Sequelize.STRING
+        });
+
+        Product.belongsTo(User, {
+          foreignKey: {
+            allowNull: false
+          }
+        });
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Product.create({
+            title: 'Chair',
+            User: {
+              first_name: 'Mick'
+            }
+          }, {
+            include: [{
+              model: User
+            }]
+          }).then(savedProduct => {
+            expect(savedProduct).to.exist;
+            expect(savedProduct.title).to.be.equal('Chair');
+            expect(savedProduct.User).to.exist;
+            expect(savedProduct.User.first_name).to.be.equal('Mick');
           });
         });
       });
@@ -69,7 +102,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           last_name: Sequelize.STRING
         });
 
-        const Creator = Product.belongsTo(User, {as: 'creator'});
+        const Creator = Product.belongsTo(User, { as: 'creator' });
 
         return this.sequelize.sync({ force: true }).then(() => {
           return Product.create({
@@ -79,11 +112,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               last_name: 'Hansen'
             }
           }, {
-            include: [ Creator ]
+            include: [Creator]
           }).then(savedProduct => {
             return Product.findOne({
               where: { id: savedProduct.id },
-              include: [ Creator ]
+              include: [Creator]
             }).then(persistedProduct => {
               expect(persistedProduct.creator).to.be.ok;
               expect(persistedProduct.creator.first_name).to.be.equal('Matt');
@@ -123,8 +156,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             id: 1,
             title: 'Chair',
             Tags: [
-              {id: 1, name: 'Alpha'},
-              {id: 2, name: 'Beta'}
+              { id: 1, name: 'Alpha' },
+              { id: 2, name: 'Beta' }
             ]
           }, {
             include: [{
@@ -137,9 +170,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(savedProduct.Tags[0].createOptions.parentRecord).to.be.equal(savedProduct);
             expect(savedProduct.Tags[1].createOptions.myOption).to.be.equal('option');
             expect(savedProduct.Tags[1].createOptions.parentRecord).to.be.equal(savedProduct);
-            return Product.find({
+            return Product.findOne({
               where: { id: savedProduct.id },
-              include: [ Tag ]
+              include: [Tag]
             }).then(persistedProduct => {
               expect(persistedProduct.Tags).to.be.ok;
               expect(persistedProduct.Tags.length).to.equal(2);
@@ -156,22 +189,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           name: Sequelize.STRING
         });
 
-        const Categories = Product.hasMany(Tag, {as: 'categories'});
+        const Categories = Product.hasMany(Tag, { as: 'categories' });
 
         return this.sequelize.sync({ force: true }).then(() => {
           return Product.create({
             id: 1,
             title: 'Chair',
             categories: [
-              {id: 1, name: 'Alpha'},
-              {id: 2, name: 'Beta'}
+              { id: 1, name: 'Alpha' },
+              { id: 2, name: 'Beta' }
             ]
           }, {
-            include: [ Categories ]
+            include: [Categories]
           }).then(savedProduct => {
-            return Product.find({
+            return Product.findOne({
               where: { id: savedProduct.id },
-              include: [ Categories ]
+              include: [Categories]
             }).then(persistedProduct => {
               expect(persistedProduct.categories).to.be.ok;
               expect(persistedProduct.categories.length).to.equal(2);
@@ -198,11 +231,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               title: 'Eat Clocks'
             }
           }, {
-            include: [ Task ]
+            include: [Task]
           }).then(savedUser => {
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
-              include: [ Task ]
+              include: [Task]
             }).then(persistedUser => {
               expect(persistedUser.Task).to.be.ok;
             });
@@ -219,7 +252,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           title: Sequelize.STRING
         });
 
-        const Job = User.hasOne(Task, {as: 'job'});
+        const Job = User.hasOne(Task, { as: 'job' });
 
 
         return this.sequelize.sync({ force: true }).then(() => {
@@ -229,11 +262,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               title: 'Eat Clocks'
             }
           }, {
-            include: [ Job ]
+            include: [Job]
           }).then(savedUser => {
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
-              include: [ Job ]
+              include: [Job]
             }).then(persistedUser => {
               expect(persistedUser.job).to.be.ok;
             });
@@ -266,8 +299,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        User.belongsToMany(Task, {through: 'user_task'});
-        Task.belongsToMany(User, {through: 'user_task'});
+        User.belongsToMany(Task, { through: 'user_task' });
+        Task.belongsToMany(User, { through: 'user_task' });
 
         return this.sequelize.sync({ force: true }).then(() => {
           return User.create({
@@ -287,9 +320,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(savedUser.Tasks[0].createOptions.parentRecord).to.be.equal(savedUser);
             expect(savedUser.Tasks[1].createOptions.myOption).to.be.equal('option');
             expect(savedUser.Tasks[1].createOptions.parentRecord).to.be.equal(savedUser);
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
-              include: [ Task ]
+              include: [Task]
             }).then(persistedUser => {
               expect(persistedUser.Tasks).to.be.ok;
               expect(persistedUser.Tasks.length).to.equal(2);
@@ -408,8 +441,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           active: DataTypes.BOOLEAN
         });
 
-        const Jobs = User.belongsToMany(Task, {through: 'user_job', as: 'jobs'});
-        Task.belongsToMany(User, {through: 'user_job'});
+        const Jobs = User.belongsToMany(Task, { through: 'user_job', as: 'jobs' });
+        Task.belongsToMany(User, { through: 'user_job' });
 
         return this.sequelize.sync({ force: true }).then(() => {
           return User.create({
@@ -419,11 +452,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               { title: 'Die trying', active: false }
             ]
           }, {
-            include: [ Jobs ]
+            include: [Jobs]
           }).then(savedUser => {
-            return User.find({
+            return User.findOne({
               where: { id: savedUser.id },
-              include: [ Jobs ]
+              include: [Jobs]
             }).then(persistedUser => {
               expect(persistedUser.jobs).to.be.ok;
               expect(persistedUser.jobs.length).to.equal(2);

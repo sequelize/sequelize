@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Support   = require('../support'),
+  DataTypes = require('../../../lib/data-types'),
   current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -11,7 +11,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     beforeEach(function() {
       this.User = current.define('User', {
         name: DataTypes.STRING,
-        birthdate: DataTypes.DATE,
+        birthday: DataTypes.DATE,
+        yoj: DataTypes.DATEONLY,
         meta: DataTypes.JSON
       });
     });
@@ -49,16 +50,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should return true for multiple changed values', function() {
       const user = this.User.build({
         name: 'a',
-        birthdate: new Date(new Date() - 10)
+        birthday: new Date(new Date() - 10)
       }, {
         isNewRecord: false,
         raw: true
       });
 
       user.set('name', 'b');
-      user.set('birthdate', new Date());
+      user.set('birthday', new Date());
       expect(user.changed('name')).to.equal(true);
-      expect(user.changed('birthdate')).to.equal(true);
+      expect(user.changed('birthday')).to.equal(true);
     });
 
     it('should return false for two instances with same value', function() {
@@ -67,31 +68,28 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const secondDate = new Date(milliseconds);
 
       const user = this.User.build({
-        birthdate: firstDate
+        birthday: firstDate
       }, {
         isNewRecord: false,
         raw: true
       });
 
-      user.set('birthdate', secondDate);
-      expect(user.changed('birthdate')).to.equal(false);
+      user.set('birthday', secondDate);
+      expect(user.changed('birthday')).to.equal(false);
     });
 
-    it('should return true for changed JSON with same object', function() {
-      const user = this.User.build({
-        meta: {
-          city: 'Copenhagen'
-        }
-      }, {
-        isNewRecord: false,
-        raw: true
-      });
-
-      const meta = user.get('meta');
-      meta.city = 'Stockholm';
-
-      user.set('meta', meta);
-      expect(user.changed('meta')).to.equal(true);
+    it('should not detect changes when equal', function() {
+      for (const value of [null, 1, 'asdf', new Date(), [], {}, Buffer.from('')]) {
+        const t = new this.User({
+          json: value
+        }, {
+          isNewRecord: false,
+          raw: true
+        });
+        t.json = value;
+        expect(t.changed('json')).to.be.false;
+        expect(t.changed()).to.be.false;
+      }
     });
 
     it('should return true for JSON dot.separated key with changed values', function() {
@@ -148,6 +146,43 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       user.set('meta.address', { street: 'Main street', number: '40' } );
       expect(user.changed('meta')).to.equal(false);
+    });
+
+    it('should return false when changed from null to null', function() {
+      const attributes = {};
+      for (const attr in this.User.rawAttributes) {
+        attributes[attr] = null;
+      }
+
+      const user = this.User.build(attributes, {
+        isNewRecord: false,
+        raw: true
+      });
+
+      for (const attr in this.User.rawAttributes) {
+        user.set(attr, null);
+      }
+
+      for (const attr in this.User.rawAttributes) {
+        expect(user.changed(attr), `${attr} is not changed`).to.equal(false);
+      }
+    });
+
+    describe('setDataValue', () => {
+      it('should return falsy for unchanged primitive', function() {
+        const user = this.User.build({
+          name: 'a',
+          meta: null
+        }, {
+          isNewRecord: false,
+          raw: true
+        });
+
+        user.setDataValue('name', 'a');
+        user.setDataValue('meta', null);
+        expect(user.changed('name')).to.equal(false);
+        expect(user.changed('meta')).to.equal(false);
+      });
     });
   });
 });

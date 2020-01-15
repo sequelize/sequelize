@@ -1,11 +1,10 @@
 'use strict';
 
-const _ = require('lodash'),
-  chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  Sequelize = require(__dirname + '/../../../index'),
-  config = require(__dirname + '/../../config/config')
+  Support = require('../support'),
+  Sequelize = require('../../../index'),
+  config = require('../../config/config')
   ;
 
 if (!Support.sequelize.dialect.supports.deferrableConstraints) {
@@ -18,9 +17,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       this.run = function(deferrable, options) {
         options = options || {};
 
-        const taskTableName      = options.taskTableName || 'tasks_' + config.rand();
-        const transactionOptions = _.assign({}, { deferrable: Sequelize.Deferrable.SET_DEFERRED }, options);
-        const userTableName      = 'users_' + config.rand();
+        const taskTableName      = options.taskTableName || `tasks_${config.rand()}`;
+        const transactionOptions = Object.assign({}, { deferrable: Sequelize.Deferrable.SET_DEFERRED }, options);
+        const userTableName      = `users_${config.rand()}`;
 
         const User = this.sequelize.define(
           'User', { name: Sequelize.STRING }, { tableName: userTableName }
@@ -43,16 +42,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           }
         );
 
-        return User.sync({ force: true }).bind(this).then(() => {
+        return User.sync({ force: true }).then(() => {
           return Task.sync({ force: true });
-        }).then(function() {
+        }).then(() => {
           return this.sequelize.transaction(transactionOptions, t => {
             return Task
               .create({ title: 'a task', user_id: -1 }, { transaction: t })
               .then(task => {
-                return [task, User.create({}, { transaction: t })];
+                return Promise.all([task, User.create({}, { transaction: t })]);
               })
-              .spread((task, user) => {
+              .then(([task, user]) => {
                 task.user_id = user.id;
                 return task.save({ transaction: t });
               });
@@ -84,11 +83,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('allows the violation of the foreign key constraint if the transaction deferres only the foreign key constraint', function() {
-        const taskTableName = 'tasks_' + config.rand();
+        const taskTableName = `tasks_${config.rand()}`;
 
         return this
           .run(Sequelize.Deferrable.INITIALLY_IMMEDIATE, {
-            deferrable: Sequelize.Deferrable.SET_DEFERRED([taskTableName + '_user_id_fkey']),
+            deferrable: Sequelize.Deferrable.SET_DEFERRED([`${taskTableName}_user_id_fkey`]),
             taskTableName
           })
           .then(task => {

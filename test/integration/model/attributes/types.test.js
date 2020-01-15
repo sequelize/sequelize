@@ -4,7 +4,7 @@ const chai = require('chai'),
   Sequelize = require('../../../../index'),
   Promise = Sequelize.Promise,
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+  Support = require('../../support'),
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -40,12 +40,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Project = this.sequelize.define('project', {});
 
           this.Task.belongsTo(this.User);
-          this.Project.belongsToMany(this.User, {through: 'project_user'});
-          this.User.belongsToMany(this.Project, {through: 'project_user'});
+          this.User.hasMany(this.Task);
+          this.Project.belongsToMany(this.User, { through: 'project_user' });
+          this.User.belongsToMany(this.Project, { through: 'project_user' });
 
           this.sqlAssert = function(sql) {
-            expect(sql.indexOf('field1')).to.equal(-1);
-            expect(sql.indexOf('field2')).to.equal(-1);
+            expect(sql).to.not.include('field1');
+            expect(sql).to.not.include('field2');
           };
 
           return this.sequelize.sync({ force: true });
@@ -97,7 +98,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
 
-          return this.sequelize.sync({ force: true}).then(() => {
+          return this.sequelize.sync({ force: true }).then(() => {
             return Post.bulkCreate([{ text: 'text1' }, { text: 'text2' }]);
           }).then(() => {
             let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
@@ -105,22 +106,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
             }
 
-            return Post.find({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
+            return Post.findOne({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
           }).then(post => {
             expect(post.get('someBoolean')).to.be.ok;
             expect(post.get().someBoolean).to.be.ok;
           });
         });
 
-        it('should be ignored in create and updateAttributes', function() {
+        it('should be ignored in create and update', function() {
           return this.User.create({
             field1: 'something'
           }).then(user => {
-            // We already verified that the virtual is not added to the table definition, so if this succeeds, were good
+            // We already verified that the virtual is not added to the table definition,
+            // so if this succeeds, were good
 
             expect(user.virtualWithDefault).to.equal('cake');
             expect(user.storage).to.equal('something');
-            return user.updateAttributes({
+            return user.update({
               field1: 'something else'
             }, {
               fields: ['storage']
@@ -132,15 +134,61 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be ignored in bulkCreate and and bulkUpdate', function() {
-          const self = this;
           return this.User.bulkCreate([{
             field1: 'something'
           }], {
             logging: this.sqlAssert
           }).then(() => {
-            return self.User.findAll();
+            return this.User.findAll();
           }).then(users => {
             expect(users[0].storage).to.equal('something');
+          });
+        });
+
+        it('should be able to exclude with attributes', function() {
+          return this.User.bulkCreate([{
+            field1: 'something'
+          }], {
+            logging: this.sqlAssert
+          }).then(() => {
+            return this.User.findAll({
+              logging: this.sqlAssert
+            });
+          }).then(users => {
+            const user = users[0].get();
+
+            expect(user.storage).to.equal('something');
+            expect(user).to.include.all.keys(['field1', 'field2']);
+
+            return this.User.findAll({
+              attributes: {
+                exclude: ['field1']
+              },
+              logging: this.sqlAssert
+            });
+          }).then(users => {
+            const user = users[0].get();
+
+            expect(user.storage).to.equal('something');
+            expect(user).not.to.include.all.keys(['field1']);
+            expect(user).to.include.all.keys(['field2']);
+          });
+        });
+
+        it('should be able to include model with virtual attributes', function() {
+          return this.User.create({}).then(user => {
+            return user.createTask();
+          }).then(() => {
+            return this.Task.findAll({
+              include: [{
+                attributes: ['field2', 'id'],
+                model: this.User
+              }]
+            });
+          }).then(tasks => {
+            const user = tasks[0].user.get();
+
+            expect(user.field2).to.equal(42);
           });
         });
       });
