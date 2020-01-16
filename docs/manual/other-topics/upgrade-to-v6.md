@@ -1,12 +1,12 @@
 # Upgrade to v6
 
-Sequelize v6 is the next major release after v5
+Sequelize v6 is the next major release after v5. Below is a list of breaking changes to help you upgrade.
 
 ## Breaking Changes
 
 ### Support for Node 10 and up
 
-Sequelize v6 will only support Node 10 and up [#10821](https://github.com/sequelize/sequelize/issues/10821)
+Sequelize v6 will only support Node 10 and up [#10821](https://github.com/sequelize/sequelize/issues/10821).
 
 ### CLS
 
@@ -20,28 +20,28 @@ You should now use [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked) packag
   Sequelize.useCLS(namespace);
 ```
 
-Bluebird [now supports](https://github.com/petkaantonov/bluebird/issues/1403) `async_hooks`. This configuration will automatically be enabled when invoking `Sequelize.useCLS`. Thus all promises should maintain CLS context without `cls-bluebird` patching.
+[Bluebird now supports `async_hooks`](https://github.com/petkaantonov/bluebird/issues/1403). This configuration will automatically be enabled when invoking `Sequelize.useCLS`. This way, using [`cls-bluebird`](https://www.npmjs.com/package/cls-bluebird) is no longer necessary.
 
 ### Model
 
-**`options.returning`**
+#### `options.returning`
 
-Option `returning: true` will no longer return attributes that are not defined in the model. Old behavior can be restored by using `returning: ['*']`
+Option `returning: true` will no longer return attributes that are not defined in the model. Old behavior can be achieved by using `returning: ['*']` instead.
 
-**`Model.changed()`**
+#### `Model.changed()`
 
-This method now tests for equality with `_.isEqual` and is now deep aware. Modifying nested value for JSON object won't mark them as changed, because it is still the same object.
+This method now tests for equality with [`_.isEqual`](https://lodash.com/docs/4.17.15#isEqual) and is now deep aware for JSON objects. Modifying a nested value for a JSON object won't mark it as changed (since it is still the same object).
 
 ```js
   const instance = await MyModel.findOne();
 
-  instance.myJsonField.a = 1;
-  console.log(instance.changed()) => false
+  instance.myJsonField.someProperty = 12345; // Changed from something else to 12345
+  console.log(instance.changed()); // false
 
   await instance.save(); // this will not save anything
 
   instance.changed('myJsonField', true);
-  console.log(instance.changed()) => ['myJsonField']
+  console.log(instance.changed()); // ['myJsonField']
 
   await instance.save(); // will save
 ```

@@ -38,6 +38,10 @@ div.sequelize {
   font-size: 17px;
 }
 
+.no-mouse {
+  pointer-events: none;
+}
+
 .api-reference-link {
   font-weight: bold;
   padding: 0 20px;
