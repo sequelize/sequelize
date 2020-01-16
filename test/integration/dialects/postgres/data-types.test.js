@@ -250,22 +250,23 @@ if (dialect === 'postgres') {
 
   if (current.dialect.supports.GEOMETRY) {
     describe('GEOMETRY', () => {
-     
+
       it('should work with object including crs', function() {
         const User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           geometry: DataTypes.GEOMETRY
         });
 
-        const point = { type: 'Point', coordinates: [39.807222, -76.984722], 
-          crs: {  
-            type: 'name',   
-            properties: {  
-              name: 'EPSG:4326' 
-            }         
-          } 
+        const point = {
+          type: 'Point', coordinates: [39.807222, -76.984722],
+          crs: {
+            type: 'name',
+            properties: {
+              name: 'EPSG:4326'
+            }
+          }
         };
-        User.sync({ force: true }).then(()=>{
+        User.sync({ force: true }).then(() => {
           return User.create({ username: 'username', geometry: point });
         }).then(newUser => {
           expect(newUser).not.to.be.null;
@@ -274,7 +275,7 @@ if (dialect === 'postgres') {
       });
     });
   }
-  
+
 
   if (current.dialect.supports.GEOGRAPHY) {
     describe('GEOGRAPHY', () => {
@@ -282,20 +283,21 @@ if (dialect === 'postgres') {
         const Pub = this.sequelize.define('Pub', {
             location: { field: 'coordinates', type: DataTypes.GEOGRAPHY }
           }),
-          point = { type: 'Point', coordinates: [39.807222, -76.984722], 
-            crs: {  
-              type: 'name',   
-              properties: {  
-                name: 'EPSG:4326' 
-              }         
-            } 
+          point = {
+            type: 'Point', coordinates: [39.807222, -76.984722],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
           };
-    
+
         return Pub.sync({ force: true }).then(() => {
           return Pub.create({ location: point });
         }).then(pub => {
           expect(pub).not.to.be.null;
-          expect(pub.location).to.be.deep.eql(point); 
+          expect(pub.location).to.be.deep.eql(point);
         });
       });
     });

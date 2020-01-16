@@ -16,38 +16,42 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           geography: DataTypes.GEOGRAPHY
         });
 
-        return this.User.sync({ force: true });  
+        return this.User.sync({ force: true });
       });
 
       it('works with aliases fields', function() {
         const Pub = this.sequelize.define('Pub', {
             location: { field: 'coordinates', type: DataTypes.GEOGRAPHY }
           }),
-          point = { type: 'Point', coordinates: [39.807222, -76.984722], 
-            crs: {  
-              type: 'name',   
-              properties: {  
-                name: 'EPSG:4326' 
-              }         
-            } };
+          point = {
+            type: 'Point', coordinates: [39.807222, -76.984722],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
+          };
 
         return Pub.sync({ force: true }).then(() => {
           return Pub.create({ location: point });
         }).then(pub => {
           expect(pub).not.to.be.null;
-          expect(pub.location).to.be.deep.eql(point); 
+          expect(pub.location).to.be.deep.eql(point);
         });
       });
 
       it('should create a geography object', function() {
         const User = this.User;
-        const point = { type: 'Point', coordinates: [39.807222, -76.984722], 
-          crs: {  
-            type: 'name',   
-            properties: {  
-              name: 'EPSG:4326' 
-            }         
-          } };
+        const point = {
+          type: 'Point', coordinates: [39.807222, -76.984722],
+          crs: {
+            type: 'name',
+            properties: {
+              name: 'EPSG:4326'
+            }
+          }
+        };
 
         return User.create({ username: 'username', geography: point }).then(newUser => {
           expect(newUser).not.to.be.null;
@@ -57,20 +61,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should update a geography object', function() {
         const User = this.User;
-        const point1 = { type: 'Point', coordinates: [39.807222, -76.984722], 
-            crs: {  
-              type: 'name',   
-              properties: {  
-                name: 'EPSG:4326' 
-              }         
-            }  },
-          point2 = { type: 'Point', coordinates: [49.807222, -86.984722], 
-            crs: {  
-              type: 'name',   
-              properties: {  
-                name: 'EPSG:4326' 
-              }         
-            } };
+        const point1 = {
+            type: 'Point', coordinates: [39.807222, -76.984722],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
+          },
+          point2 = {
+            type: 'Point', coordinates: [49.807222, -86.984722],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
+          };
         const props = { username: 'username', geography: point1 };
 
         return User.create(props).then(() => {
@@ -95,13 +103,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should create a geography object', function() {
         const User = this.User;
-        const point = { type: 'Point', coordinates: [39.807222, -76.984722], 
-          crs: {  
-            type: 'name',   
-            properties: {  
-              name: 'EPSG:4326' 
-            }         
-          }  };
+        const point = {
+          type: 'Point', coordinates: [39.807222, -76.984722],
+          crs: {
+            type: 'name',
+            properties: {
+              name: 'EPSG:4326'
+            }
+          }
+        };
 
         return User.create({ username: 'username', geography: point }).then(newUser => {
           expect(newUser).not.to.be.null;
@@ -111,20 +121,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should update a geography object', function() {
         const User = this.User;
-        const point1 = { type: 'Point', coordinates: [39.807222, -76.984722], 
-            crs: {  
-              type: 'name',   
-              properties: {  
-                name: 'EPSG:4326' 
-              }         
-            } },
-          point2 = { type: 'Point', coordinates: [49.807222, -86.984722], 
-            crs: {  
-              type: 'name',   
-              properties: {  
-                name: 'EPSG:4326' 
-              }         
-            }  };
+        const point1 = {
+            type: 'Point', coordinates: [39.807222, -76.984722],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
+          },
+          point2 = {
+            type: 'Point', coordinates: [49.807222, -86.984722],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
+          };
         const props = { username: 'username', geography: point1 };
 
         return User.create(props).then(() => {
@@ -149,13 +163,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should create a geography object', function() {
         const User = this.User;
-        const point = { type: 'LineString', 'coordinates': [[100.0, 0.0], [101.0, 1.0]], 
-          crs: {  
-            type: 'name',   
-            properties: {  
-              name: 'EPSG:4326' 
-            }         
-          } };
+        const point = {
+          type: 'LineString', 'coordinates': [[100.0, 0.0], [101.0, 1.0]],
+          crs: {
+            type: 'name',
+            properties: {
+              name: 'EPSG:4326'
+            }
+          }
+        };
 
         return User.create({ username: 'username', geography: point }).then(newUser => {
           expect(newUser).not.to.be.null;
@@ -165,20 +181,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should update a geography object', function() {
         const User = this.User;
-        const point1 = { type: 'LineString', coordinates: [[100.0, 0.0], [101.0, 1.0]], 
-            crs: {  
-              type: 'name',   
-              properties: {  
-                name: 'EPSG:4326' 
-              }         
-            } },
-          point2 = { type: 'LineString', coordinates: [[101.0, 0.0], [102.0, 1.0]], 
-            crs: {  
-              type: 'name',   
-              properties: {  
-                name: 'EPSG:4326' 
-              }         
-            } };
+        const point1 = {
+            type: 'LineString', coordinates: [[100.0, 0.0], [101.0, 1.0]],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
+          },
+          point2 = {
+            type: 'LineString', coordinates: [[101.0, 0.0], [102.0, 1.0]],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
+          };
         const props = { username: 'username', geography: point1 };
 
         return User.create(props).then(() => {
@@ -203,16 +223,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should create a geography object', function() {
         const User = this.User;
-        const point = { type: 'Polygon', coordinates: [
-          [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
-            [100.0, 1.0], [100.0, 0.0]]
-        ], 
-        crs: {  
-          type: 'name',   
-          properties: {  
-            name: 'EPSG:4326' 
-          }         
-        } };
+        const point = {
+          type: 'Polygon', coordinates: [
+            [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
+              [100.0, 1.0], [100.0, 0.0]]
+          ],
+          crs: {
+            type: 'name',
+            properties: {
+              name: 'EPSG:4326'
+            }
+          }
+        };
 
         return User.create({ username: 'username', geography: point }).then(newUser => {
           expect(newUser).not.to.be.null;
@@ -222,25 +244,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should update a geography object', function() {
         const User = this.User;
-        const polygon1 = { type: 'Polygon', coordinates: [
-            [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]
-          ], 
-          crs: {  
-            type: 'name',   
-            properties: {  
-              name: 'EPSG:4326' 
-            }         
-          } },
-          polygon2 = { type: 'Polygon', coordinates: [
-            [[100.0, 0.0], [102.0, 0.0], [102.0, 1.0],
-              [100.0, 1.0], [100.0, 0.0]]
-          ], 
-          crs: {  
-            type: 'name',   
-            properties: {  
-              name: 'EPSG:4326' 
-            }         
-          }  };
+        const polygon1 = {
+            type: 'Polygon', coordinates: [
+              [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]
+            ],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
+          },
+          polygon2 = {
+            type: 'Polygon', coordinates: [
+              [[100.0, 0.0], [102.0, 0.0], [102.0, 1.0],
+                [100.0, 1.0], [100.0, 0.0]]
+            ],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
+          };
         const props = { username: 'username', geography: polygon1 };
 
         return User.create(props).then(() => {
@@ -266,16 +292,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should create a geography object', function() {
           const User = this.User;
-          const point = { type: 'Polygon', coordinates: [
-            [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
-              [100.0, 1.0], [100.0, 0.0]]
-          ],
-          crs: {  
-            type: 'name',   
-            properties: {  
-              name: 'EPSG:4326' 
-            }         
-          } };
+          const point = {
+            type: 'Polygon', coordinates: [
+              [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
+                [100.0, 1.0], [100.0, 0.0]]
+            ],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
+          };
 
           return User.create({ username: 'username', geography: point }).then(newUser => {
             expect(newUser).not.to.be.null;
@@ -285,25 +313,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should update a geography object', function() {
           const User = this.User;
-          const polygon1 = { type: 'Polygon', coordinates: [
-              [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]
-            ], 
-            crs: {  
-              type: 'name',   
-              properties: {  
-                name: 'EPSG:4326' 
-              }         
-            } },
-            polygon2 = { type: 'Polygon', coordinates: [
-              [[100.0, 0.0], [102.0, 0.0], [102.0, 1.0],
-                [100.0, 1.0], [100.0, 0.0]]
-            ],
-            crs: {  
-              type: 'name',   
-              properties: {  
-                name: 'EPSG:4326' 
-              }         
-            } };
+          const polygon1 = {
+              type: 'Polygon', coordinates: [
+                [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]
+              ],
+              crs: {
+                type: 'name',
+                properties: {
+                  name: 'EPSG:4326'
+                }
+              }
+            },
+            polygon2 = {
+              type: 'Polygon', coordinates: [
+                [[100.0, 0.0], [102.0, 0.0], [102.0, 1.0],
+                  [100.0, 1.0], [100.0, 0.0]]
+              ],
+              crs: {
+                type: 'name',
+                properties: {
+                  name: 'EPSG:4326'
+                }
+              }
+            };
           const props = { username: 'username', geography: polygon1 };
 
           return User.create(props).then(() => {
