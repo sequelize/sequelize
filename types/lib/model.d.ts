@@ -139,45 +139,45 @@ export interface WhereOperators {
    *
    * _PG only_
    */
-    [Op.any]?: (string | number | Literal)[] | Literal;
+  [Op.any]?: (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.gte]: 6,` becomes `>= 6` */
-    [Op.gte]?: number | string | Date | Literal;
+  [Op.gte]?: number | string | Date | Literal;
 
   /** Example: `[Op.lt]: 10,` becomes `< 10` */
-    [Op.lt]?: number | string | Date | Literal;
+  [Op.lt]?: number | string | Date | Literal;
 
   /** Example: `[Op.lte]: 10,` becomes `<= 10` */
-    [Op.lte]?: number | string | Date | Literal;
+  [Op.lte]?: number | string | Date | Literal;
 
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
-    [Op.ne]?: string | number | Literal | WhereOperators;
+  [Op.ne]?: string | number | Literal | WhereOperators;
 
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
-    [Op.not]?: boolean | string | number |  Literal | WhereOperators;
+  [Op.not]?: boolean | string | number |  Literal | WhereOperators;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
-    [Op.between]?: [number, number];
+  [Op.between]?: [number, number];
 
   /** Example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
-    [Op.in]?: (string | number | Literal)[] | Literal;
+  [Op.in]?: (string | number | Literal)[] | Literal;
 
   /** Example: `[Op.notIn]: [1, 2],` becomes `NOT IN [1, 2]` */
-    [Op.notIn]?: (string | number | Literal)[] | Literal;
+  [Op.notIn]?: (string | number | Literal)[] | Literal;
 
   /**
    * Examples:
    *  - `[Op.like]: '%hat',` becomes `LIKE '%hat'`
    *  - `[Op.like]: { [Op.any]: ['cat', 'hat']}` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-    [Op.like]?: string | Literal | AnyOperator | AllOperator;
+  [Op.like]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * Examples:
    *  - `[Op.notLike]: '%hat'` becomes `NOT LIKE '%hat'`
    *  - `[Op.notLike]: { [Op.any]: ['cat', 'hat']}` becomes `NOT LIKE ANY ARRAY['cat', 'hat']`
    */
-    [Op.notLike]?: string | Literal | AnyOperator | AllOperator;
+  [Op.notLike]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * case insensitive PG only
@@ -186,31 +186,31 @@ export interface WhereOperators {
    *  - `[Op.iLike]: '%hat'` becomes `ILIKE '%hat'`
    *  - `[Op.iLike]: { [Op.any]: ['cat', 'hat']}` becomes `ILIKE ANY ARRAY['cat', 'hat']`
    */
-    [Op.iLike]?: string | Literal | AnyOperator | AllOperator;
+  [Op.iLike]?: string | Literal | AnyOperator | AllOperator;
 
   /**
    * PG array overlap operator
    *
    * Example: `[Op.overlap]: [1, 2]` becomes `&& [1, 2]`
    */
-    [Op.overlap]?: Rangable;
+  [Op.overlap]?: Rangable;
 
   /**
    * PG array contains operator
    *
    * Example: `[Op.contains]: [1, 2]` becomes `@> [1, 2]`
    */
-    [Op.contains]?: (string | number)[] | Rangable;
+  [Op.contains]?: (string | number)[] | Rangable;
 
   /**
    * PG array contained by operator
    *
    * Example: `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-    [Op.contained]?: (string | number)[] | Rangable;
+  [Op.contained]?: (string | number)[] | Rangable;
 
   /** Example: `[Op.gt]: 6,` becomes `> 6` */
-    [Op.gt]?: number | string | Date | Literal;
+  [Op.gt]?: number | string | Date | Literal;
 
   /**
    * PG only
@@ -219,24 +219,24 @@ export interface WhereOperators {
    *  - `[Op.notILike]: '%hat'` becomes `NOT ILIKE '%hat'`
    *  - `[Op.notLike]: ['cat', 'hat']` becomes `LIKE ANY ARRAY['cat', 'hat']`
    */
-    [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
+  [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
 
   /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
-    [Op.notBetween]?: [number, number];
+  [Op.notBetween]?: [number, number];
 
   /**
    * Strings starts with value.
    */
-    [Op.startsWith]?: string;
+  [Op.startsWith]?: string;
 
   /**
    * String ends with value.
    */
-    [Op.endsWith]?: string;
+  [Op.endsWith]?: string;
   /**
    * String contains value.
    */
-    [Op.substring]?: string;
+  [Op.substring]?: string;
 
   /**
    * MySQL/PG only
@@ -245,7 +245,7 @@ export interface WhereOperators {
    *
    * Example: `[Op.regexp]: '^[h|a|t]'` becomes `REGEXP/~ '^[h|a|t]'`
    */
-    [Op.regexp]?: string;
+  [Op.regexp]?: string;
 
   /**
    * MySQL/PG only
@@ -254,7 +254,7 @@ export interface WhereOperators {
    *
    * Example: `[Op.notRegexp]: '^[h|a|t]'` becomes `NOT REGEXP/!~ '^[h|a|t]'`
    */
-    [Op.notRegexp]?: string;
+  [Op.notRegexp]?: string;
 
   /**
    * PG only
@@ -263,7 +263,7 @@ export interface WhereOperators {
    *
    * Example: `[Op.iRegexp]: '^[h|a|t]'` becomes `~* '^[h|a|t]'`
    */
-    [Op.iRegexp]?: string;
+  [Op.iRegexp]?: string;
 
   /**
    * PG only
@@ -272,35 +272,35 @@ export interface WhereOperators {
    *
    * Example: `[Op.notIRegexp]: '^[h|a|t]'` becomes `!~* '^[h|a|t]'`
    */
-    [Op.notIRegexp]?: string;
+  [Op.notIRegexp]?: string;
 
   /**
    * PG only
    *
    * Forces the operator to be strictly left eg. `<< [a, b)`
    */
-    [Op.strictLeft]?: Rangable;
+  [Op.strictLeft]?: Rangable;
 
   /**
    * PG only
    *
    * Forces the operator to be strictly right eg. `>> [a, b)`
    */
-    [Op.strictRight]?: Rangable;
+  [Op.strictRight]?: Rangable;
 
   /**
    * PG only
    *
    * Forces the operator to not extend the left eg. `&> [1, 2)`
    */
-    [Op.noExtendLeft]?: Rangable;
+  [Op.noExtendLeft]?: Rangable;
 
   /**
    * PG only
    *
    * Forces the operator to not extend the left eg. `&< [1, 2)`
    */
-    [Op.noExtendRight]?: Rangable;
+  [Op.noExtendRight]?: Rangable;
 
 }
 
