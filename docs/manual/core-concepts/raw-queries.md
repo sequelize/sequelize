@@ -57,27 +57,6 @@ await sequelize.query('SELECT 1', {
 console.log(await sequelize.query('SELECT * FROM projects', { raw: true }));
 ```
 
-## "Dotted" attributes
-
-If an attribute name of the table contains dots, the resulting objects will be nested. This is due to the usage of [dottie.js](https://github.com/mickhansen/dottie.js/) under the hood. See below:
-
-```js
-const rows = await sequelize.query('select 1 as `foo.bar.baz`');
-console.log(JSON.stringify(rows, null, 2));
-```
-
-```json
-[
-  {
-    "foo": {
-      "bar": {
-        "baz": 1
-      }
-    }
-  }
-]
-```
-
 ## Replacements
 
 Replacements in a query can be done in two different ways, either using named parameters (starting with `:`), or unnamed, represented by a `?`. Replacements are passed in the options object.
