@@ -1,4 +1,4 @@
-# Working with legacy tables
+# Working with Legacy Tables
 
 While out of the box Sequelize will seem a bit opinionated it's easy to work legacy tables and forward proof your application by defining (otherwise generated) table and field names.
 
@@ -21,7 +21,7 @@ User.init({
 class MyModel extends Model {}
 MyModel.init({
   userId: {
-    type: Sequelize.INTEGER,
+    type: DataTypes.INTEGER,
     field: 'user_id'
   }
 }, { sequelize });
@@ -37,7 +37,7 @@ To define your own primary key:
 class Collection extends Model {}
 Collection.init({
   uid: {
-    type: Sequelize.INTEGER,
+    type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true // Automatically gets converted to SERIAL for postgres
   }
@@ -46,7 +46,7 @@ Collection.init({
 class Collection extends Model {}
 Collection.init({
   uuid: {
-    type: Sequelize.UUID,
+    type: DataTypes.UUID,
     primaryKey: true
   }
 }, { sequelize });
