@@ -293,7 +293,7 @@ if (dialect === 'postgres') {
             }
           };
 
-        return Pub.sync({ force: true }).then(() => {
+        Pub.sync({ force: true }).then(() => {
           return Pub.create({ location: point });
         }).then(pub => {
           expect(pub).not.to.be.null;
