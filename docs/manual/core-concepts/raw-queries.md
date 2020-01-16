@@ -57,6 +57,47 @@ await sequelize.query('SELECT 1', {
 console.log(await sequelize.query('SELECT * FROM projects', { raw: true }));
 ```
 
+## "Dotted" attributes and the `nest` option
+
+If an attribute name of the table contains dots, the resulting objects can become nested objects by setting the `nest: true` option. This is achieved with [dottie.js](https://github.com/mickhansen/dottie.js/) under the hood. See below:
+
+* Without `nest: true`:
+
+  ```js
+  const { QueryTypes } = require('sequelize');
+  const records = await sequelize.query('select 1 as `foo.bar.baz`', {
+    type: QueryTypes.SELECT
+  });
+  console.log(JSON.stringify(records[0], null, 2));
+  ```
+
+  ```json
+  {
+    "foo.bar.baz": 1
+  }
+  ```
+
+* With `nest: true`:
+
+  ```js
+  const { QueryTypes } = require('sequelize');
+  const records = await sequelize.query('select 1 as `foo.bar.baz`', {
+    nest: true,
+    type: QueryTypes.SELECT
+  });
+  console.log(JSON.stringify(records[0], null, 2));
+  ```
+
+  ```json
+  {
+    "foo": {
+      "bar": {
+        "baz": 1
+      }
+    }
+  }
+  ```
+
 ## Replacements
 
 Replacements in a query can be done in two different ways, either using named parameters (starting with `:`), or unnamed, represented by a `?`. Replacements are passed in the options object.
