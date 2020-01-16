@@ -280,8 +280,8 @@ if (dialect === 'postgres') {
   if (current.dialect.supports.GEOGRAPHY) {
     describe('GEOGRAPHY', () => {
       it('should work with geography object including crs', function() {
-        const User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
+        const Location = this.sequelize.define('User', {
+          name: DataTypes.STRING,
           geography: DataTypes.GEOGRAPHY
         });
 
@@ -295,7 +295,7 @@ if (dialect === 'postgres') {
           }
         };
 
-        return User.create({ username: 'username', geography: point }).then(newUser => {
+        return Location.create({ name: 'name', geography: point }).then(newUser => {
           expect(newUser).not.to.be.null;
           expect(newUser.geography).to.be.deep.eql(point);
         });
