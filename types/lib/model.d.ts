@@ -479,13 +479,13 @@ export type ProjectionAlias = [string | Literal | Fn, string];
 export type FindAttributeOptions =
   | (string | ProjectionAlias)[]
   | {
-  exclude: string[];
-  include?: (string | ProjectionAlias)[];
-}
+    exclude: string[];
+    include?: (string | ProjectionAlias)[];
+  }
   | {
-  exclude?: string[];
-  include: (string | ProjectionAlias)[];
-};
+    exclude?: string[];
+    include: (string | ProjectionAlias)[];
+  };
 
 export interface IndexHint {
   type: IndexHints;
