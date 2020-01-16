@@ -295,7 +295,9 @@ if (dialect === 'postgres') {
           }
         };
 
-        return Location.create({ name: 'name', geography: point }).then(newLocation => {
+        Location.sync({ force: true }).then(() => {
+          return Location.create({ name: 'name', geography: point });
+        }).then(newLocation => {
           expect(newLocation).not.to.be.null;
           expect(newLocation.geography).to.be.deep.eql(point);
         });
