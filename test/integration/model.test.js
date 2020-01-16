@@ -929,14 +929,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return User.sync({ force: true }).then(() => {
         return User.create({ username: 'Peter', secretValue: '42' }).then(user => {
           return user.update({ secretValue: '43' }, {
-            fields: ['secretValue'], logging(sql) {
+            fields: ['secretValue'],
+            logging(sql) {
               test = true;
               if (dialect === 'mssql') {
                 expect(sql).to.not.contain('createdAt');
               } else {
                 expect(sql).to.match(/UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]=(\$1|\?),[`"]+updatedAt[`"]+=(\$2|\?)\s+WHERE [`"]+id[`"]+\s=\s(\$3|\?)/);
               }
-            }
+            },
+            returning: ['*']
           });
         });
       }).then(() => {

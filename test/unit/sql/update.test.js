@@ -28,8 +28,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.rawAttributes),
         {
           query: {
-            mssql: 'declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$1 OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp WHERE [id] = $2;select * from @tmp',
-            postgres: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2 RETURNING *',
+            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$1 OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp WHERE [id] = $2; SELECT * FROM @tmp',
+            postgres: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2 RETURNING "id","user_name"',
             default: 'UPDATE `users` SET `user_name`=$1 WHERE `id` = $2'
           },
           bind: {

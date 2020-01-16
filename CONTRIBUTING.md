@@ -91,6 +91,22 @@ Now launch the docker mysql and postgres servers with this command (you can add 
 $ docker-compose up postgres-95 mysql-57 mssql
 ```
 
+> **_NOTE:_** If you get the following output:
+>```
+>...
+>Creating mysql-57 ... error
+>
+>ERROR: for mysql-57  Cannot create container for service mysql-57: b'create .: volume name is too short, names should be at least two alphanumeric characters'
+>
+>ERROR: for mysql-57  Cannot create container for service mysql-57: b'create .: volume name is too short, names should be at least two alphanumeric characters'
+>ERROR: Encountered errors while bringing up the project.
+>```
+>You need to set the variables `MARIADB_ENTRYPOINT` and `MYSQLDB_ENTRYPOINT` accordingly:
+>```sh
+>$ export MARIADB_ENTRYPOINT="$PATH_TO_PROJECT/test/config/mariadb"
+>$ export MYSQLDB_ENTRYPOINT="$PATH_TO_PROJECT/test/config/mysql"
+>```
+
 **MSSQL:** Please run `npm run setup-mssql` to create the test database.
 
 **POSTGRES:** Sequelize uses [special](https://github.com/sushantdhiman/sequelize-postgres) Docker image for PostgreSQL, which install all the extensions required by tests.
