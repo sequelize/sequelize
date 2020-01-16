@@ -1794,24 +1794,24 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static findByPk<M extends Model = Model, K extends keyof M = keyof M>(
     this: { new (): M } & typeof Model,
-    identifier?: Identifier,
-    options?: Omit<FindOptions<K>, 'where'>
-  ): Promise<(Pick<M, K> | M) | null>;
-  public static findByPk<M extends Model = Model, K extends keyof M = keyof M>(
-    this: { new (): M } & typeof Model,
     identifier: Identifier,
     options: Omit<NonNullFindOptions<K>, 'where'>
   ): Promise<(Pick<M, K> | M)>;
+  public static findByPk<M extends Model = Model, K extends keyof M = keyof M>(
+    this: { new (): M } & typeof Model,
+    identifier?: Identifier,
+    options?: Omit<FindOptions<K>, 'where'>
+  ): Promise<(Pick<M, K> | M) | null>;
 
   /**
    * Search for a single instance. This applies LIMIT 1, so the listener will always be called with a single
    * instance.
    */
+  public static findOne<M extends Model = Model, K extends keyof M = never>(this: { new (): M } & typeof Model, options: NonNullFindOptions<K>): Promise<(Pick<M, K> | M)>;
   public static findOne<M extends Model = Model, K extends keyof M = keyof M>(
     this: { new (): M } & typeof Model,
     options?: FindOptions<K>
   ): Promise<(Pick<M, K> | M) | null>;
-  public static findOne<M extends Model = Model, K extends keyof M = never>(this: { new (): M } & typeof Model, options: NonNullFindOptions<K>): Promise<(Pick<M, K> | M)>;
 
   /**
    * Run an aggregation method on the specified field
