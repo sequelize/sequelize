@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "6.0.0-beta.3",
+  "version": "6.0.0-beta.4",
   "maintainers": [
     "Sascha Depold <sascha@depold.com>",
     "Jan Aagaard Meier <janzeh@gmail.com>",
@@ -120,7 +120,7 @@
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
     "test-docker-unit": "npm run test-unit",
     "test-docker-integration": "env-cmd $npm_package_options_env_cmd npm run test-integration",
-    "docs": "esdoc -c docs/esdoc-config.js && node docs/run-docs-transforms.js && cp docs/favicon.ico esdoc/favicon.ico && cp docs/ROUTER.txt esdoc/ROUTER",
+    "docs": "rimraf esdoc && esdoc -c docs/esdoc-config.js && cp docs/favicon.ico esdoc/favicon.ico && cp docs/ROUTER.txt esdoc/ROUTER && node docs/run-docs-transforms.js && node docs/redirects/create-redirects.js",
     "teaser": "node scripts/teaser",
     "test-unit": "mocha --require scripts/mocha-bootload --globals setImmediate,clearImmediate --exit --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
     "test-unit-mariadb": "cross-env DIALECT=mariadb npm run test-unit",
