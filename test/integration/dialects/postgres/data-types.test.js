@@ -251,7 +251,7 @@ if (dialect === 'postgres') {
   if (current.dialect.supports.GEOMETRY) {
     describe('GEOMETRY', () => {
 
-      it('should work with object including crs', function() {
+      it('should work with geometry object including crs', function() {
         const User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           geometry: DataTypes.GEOMETRY
@@ -279,25 +279,25 @@ if (dialect === 'postgres') {
 
   if (current.dialect.supports.GEOGRAPHY) {
     describe('GEOGRAPHY', () => {
-      it('should work with object including crs', function() {
-        const Pub = this.sequelize.define('Pub', {
-            location: { field: 'coordinates', type: DataTypes.GEOGRAPHY }
-          }),
-          point = {
-            type: 'Point', coordinates: [39.807222, -76.984722],
-            crs: {
-              type: 'name',
-              properties: {
-                name: 'EPSG:4326'
-              }
-            }
-          };
+      it('should work with geography object including crs', function() {
+        const User = this.sequelize.define('User', {
+          username: DataTypes.STRING,
+          geography: DataTypes.GEOGRAPHY
+        });
 
-        Pub.sync({ force: true }).then(() => {
-          return Pub.create({ location: point });
-        }).then(pub => {
-          expect(pub).not.to.be.null;
-          expect(pub.location).to.be.deep.eql(point);
+        const point = {
+          type: 'Point', coordinates: [39.807222, -76.984722],
+          crs: {
+            type: 'name',
+            properties: {
+              name: 'EPSG:4326'
+            }
+          }
+        };
+
+        return User.create({ username: 'username', geography: point }).then(newUser => {
+          expect(newUser).not.to.be.null;
+          expect(newUser.geography).to.be.deep.eql(point);
         });
       });
     });
