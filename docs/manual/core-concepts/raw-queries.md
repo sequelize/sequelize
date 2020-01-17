@@ -57,17 +57,38 @@ await sequelize.query('SELECT 1', {
 console.log(await sequelize.query('SELECT * FROM projects', { raw: true }));
 ```
 
-## "Dotted" attributes
+## "Dotted" attributes and the `nest` option
 
-If an attribute name of the table contains dots, the resulting objects will be nested. This is due to the usage of [dottie.js](https://github.com/mickhansen/dottie.js/) under the hood. See below:
+If an attribute name of the table contains dots, the resulting objects can become nested objects by setting the `nest: true` option. This is achieved with [dottie.js](https://github.com/mickhansen/dottie.js/) under the hood. See below:
 
-```js
-const rows = await sequelize.query('select 1 as `foo.bar.baz`');
-console.log(JSON.stringify(rows, null, 2));
-```
+* Without `nest: true`:
 
-```json
-[
+  ```js
+  const { QueryTypes } = require('sequelize');
+  const records = await sequelize.query('select 1 as `foo.bar.baz`', {
+    type: QueryTypes.SELECT
+  });
+  console.log(JSON.stringify(records[0], null, 2));
+  ```
+
+  ```json
+  {
+    "foo.bar.baz": 1
+  }
+  ```
+
+* With `nest: true`:
+
+  ```js
+  const { QueryTypes } = require('sequelize');
+  const records = await sequelize.query('select 1 as `foo.bar.baz`', {
+    nest: true,
+    type: QueryTypes.SELECT
+  });
+  console.log(JSON.stringify(records[0], null, 2));
+  ```
+
+  ```json
   {
     "foo": {
       "bar": {
@@ -75,8 +96,7 @@ console.log(JSON.stringify(rows, null, 2));
       }
     }
   }
-]
-```
+  ```
 
 ## Replacements
 
