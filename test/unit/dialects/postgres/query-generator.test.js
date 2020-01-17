@@ -44,12 +44,14 @@ if (dialect.startsWith('postgres')) {
           expectation: 'CREATE DATABASE "myDatabase" ENCODING = \'UTF8\' LC_COLLATE = \'en_US.UTF-8\' LC_CTYPE = \'zh_TW.UTF-8\' TEMPLATE = \'template0\';'
         }
       ],
+
       dropDatabaseQuery: [
         {
           arguments: ['myDatabase'],
           expectation: 'DROP DATABASE IF EXISTS "myDatabase";'
         }
       ],
+
       arithmeticQuery: [
         {
           title: 'Should use the plus operator',
@@ -87,6 +89,7 @@ if (dialect.startsWith('postgres')) {
           expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\''
         }
       ],
+
       attributesToSQL: [
         {
           arguments: [{ id: 'INTEGER' }],
@@ -1088,6 +1091,29 @@ if (dialect.startsWith('postgres')) {
             bind: ["foo';DROP TABLE mySchema.myTable;", 'foo']
           },
           context: { options: { quoteIdentifiers: false } }
+        }
+      ],
+
+      upsertQuery: [
+        {
+          arguments: [
+            'myTable',
+            { name: 'foo' },
+            { name: 'foo' },
+            { id: 2 },
+            { primaryKeyField: 'id' }
+          ],
+          expectation: 'CREATE OR REPLACE FUNCTION pg_temp.sequelize_upsert(OUT created boolean, OUT primary_key text)  AS $func$ BEGIN INSERT INTO "myTable" ("name") VALUES (\'foo\') RETURNING "id" INTO primary_key; created := true; EXCEPTION WHEN unique_violation THEN UPDATE "myTable" SET "name"=\'foo\' WHERE "id" = 2 RETURNING "id" INTO primary_key; created := false; END; $func$ LANGUAGE plpgsql; SELECT * FROM pg_temp.sequelize_upsert();'
+        },
+        {
+          arguments: [
+            'myTable',
+            { name: 'RETURNING *', json: '{"foo":"RETURNING *"}' },
+            { name: 'RETURNING *', json: '{"foo":"RETURNING *"}' },
+            { id: 2 },
+            { primaryKeyField: 'id' }
+          ],
+          expectation: 'CREATE OR REPLACE FUNCTION pg_temp.sequelize_upsert(OUT created boolean, OUT primary_key text)  AS $func$ BEGIN INSERT INTO "myTable" ("name","json") VALUES (\'RETURNING *\',\'{"foo":"RETURNING *"}\') RETURNING "id" INTO primary_key; created := true; EXCEPTION WHEN unique_violation THEN UPDATE "myTable" SET "name"=\'RETURNING *\',"json"=\'{"foo":"RETURNING *"}\' WHERE "id" = 2 RETURNING "id" INTO primary_key; created := false; END; $func$ LANGUAGE plpgsql; SELECT * FROM pg_temp.sequelize_upsert();'
         }
       ],
 

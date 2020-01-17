@@ -20,6 +20,8 @@ export const sequelize = new Sequelize({
   }
 });
 
+const databaseName = sequelize.getDatabaseName();
+
 const conn = sequelize.connectionManager;
 
 // hooks

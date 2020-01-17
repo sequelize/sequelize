@@ -18,11 +18,20 @@ For general questions, please use StackOverflow or Slack.
 ### What are you doing?
 
 <!--
-Post a MINIMAL, SELF-CONTAINED code that reproduces the issue. It must be runnable by simply copying and pasting into an isolated JS file, except possibly for the database connection configuration.
+We have a repository dedicated to make it easy for you to create an SSCCE.
+https://github.com/papb/sequelize-sscce
+Please consider using it, everyone wins!
+-->
+
+**Here is the link to the SSCCE for this issue:** LINK-HERE <!-- add a link to the SSCCE -->
+
+<!--
+If you don't want to use the SSCCE repository, you can also post a MINIMAL, SELF-CONTAINED code that reproduces the issue. It must be runnable by simply copying and pasting into an isolated JS file, except possibly for the database connection configuration.
 Check http://sscce.org/ or https://stackoverflow.com/help/minimal-reproducible-example to learn more about SSCCE/MCVE/reprex.
 -->
 
 ```js
+// You can delete this code block if you have included a link to your SSCCE above!
 // MINIMAL, SELF-CONTAINED code here (SSCCE/MCVE/reprex)
 ```
 
@@ -34,7 +43,7 @@ _I wanted Foo!_
 
 ### What is actually happening?
 
-<!-- Show what happened. -->
+<!-- Show what happened. You can skip this part if you included a link to an SSCCE above. -->
 
 _The output was Bar!_
 
@@ -43,6 +52,7 @@ Output here
 ```
 
 ### Additional context
+
 Add any other context or screenshots about the feature request here.
 
 ### Environment

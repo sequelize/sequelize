@@ -56,6 +56,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
+    it('should not remove columns if drop is set to false in alter configuration', function() {
+      const testSync = this.sequelize.define('testSync', {
+        name: Sequelize.STRING,
+        age: Sequelize.INTEGER
+      });
+      return this.sequelize.sync()
+        .then(() => this.sequelize.define('testSync', {
+          name: Sequelize.STRING
+        }))
+        .then(() => this.sequelize.sync({ alter: { drop: false } }))
+        .then(() => testSync.describe())
+        .then(data => {
+          expect(data).to.have.ownProperty('name');
+          expect(data).to.have.ownProperty('age');
+        });
+    });
+
+    it('should remove columns if drop is set to true in alter configuration', function() {
+      const testSync = this.sequelize.define('testSync', {
+        name: Sequelize.STRING,
+        age: Sequelize.INTEGER
+      });
+      return this.sequelize.sync()
+        .then(() => this.sequelize.define('testSync', {
+          name: Sequelize.STRING
+        }))
+        .then(() => this.sequelize.sync({ alter: { drop: true } }))
+        .then(() => testSync.describe())
+        .then(data => {
+          expect(data).to.have.ownProperty('name');
+          expect(data).not.to.have.ownProperty('age');
+        });
+    });
+
     it('should alter a column using the correct column name (#9515)', function() {
       const testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING

@@ -535,6 +535,28 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }, {
             postgres: '"muscles" @> ARRAY[2,5]::INTEGER[]'
           });
+
+          testsql('muscles', {
+            [Op.contains]: ['stringValue1', 'stringValue2', 'stringValue3']
+          }, {
+            postgres: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']'
+          });
+
+          testsql('muscles', {
+            [Op.contained]: ['stringValue1', 'stringValue2', 'stringValue3']
+          }, {
+            postgres: '"muscles" <@ ARRAY[\'stringValue1\',\'stringValue2\',\'stringValue3\']'
+          });
+
+          testsql('muscles', {
+            [Op.contains]: ['stringValue1', 'stringValue2']
+          }, {
+            field: {
+              type: DataTypes.ARRAY(DataTypes.STRING)
+            }
+          }, {
+            postgres: '"muscles" @> ARRAY[\'stringValue1\',\'stringValue2\']::VARCHAR(255)[]'
+          });
         });
 
         describe('Op.overlap', () => {
@@ -1192,6 +1214,19 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql(current.where(current.fn('SUM', current.col('hours')), Op.gt, 0), {
       default: 'SUM([hours]) > 0'
+    });
+
+    testsql(current.where(current.fn('lower', current.col('name')), Op.ne, null), {
+      default: 'lower([name]) IS NOT NULL'
+    });
+
+    testsql(current.where(current.fn('lower', current.col('name')), Op.not, null), {
+      default: 'lower([name]) IS NOT NULL'
+    });
+
+    testsql([current.where(current.fn('SUM', current.col('hours')), Op.gt, 0),
+      current.where(current.fn('lower', current.col('name')), null)], {
+      default: '(SUM([hours]) > 0 AND lower([name]) IS NULL)'
     });
   });
 });

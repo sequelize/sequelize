@@ -209,5 +209,6 @@ if (global.beforeEach) {
     this.sequelize = Support.sequelize;
   });
 }
+
 Support.sequelize = Support.createSequelizeInstance();
 module.exports = Support;

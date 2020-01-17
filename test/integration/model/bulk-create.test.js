@@ -542,7 +542,52 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               });
             });
           });
+
+          it('when the primary key column names and model field names are different and have unique constraints', function() {
+            const Person = this.sequelize.define('Person', {
+              emailAddress: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                primaryKey: true,
+                unique: true,
+                field: 'email_address'
+              },
+              name: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: 'name'
+              }
+            }, {});
+
+            return Person.sync({ force: true })
+              .then(() => {
+                const inserts = [
+                  { emailAddress: 'a@example.com', name: 'Alice' }
+                ];
+                return Person.bulkCreate(inserts);
+              })
+              .then(people => {
+                expect(people.length).to.equal(1);
+                expect(people[0].emailAddress).to.equal('a@example.com');
+                expect(people[0].name).to.equal('Alice');
+
+                const updates = [
+                  { emailAddress: 'a@example.com', name: 'CHANGED NAME' },
+                  { emailAddress: 'b@example.com', name: 'Bob' }
+                ];
+
+                return Person.bulkCreate(updates, { updateOnDuplicate: ['emailAddress', 'name'] });
+              })
+              .then(people => {
+                expect(people.length).to.equal(2);
+                expect(people[0].emailAddress).to.equal('a@example.com');
+                expect(people[0].name).to.equal('CHANGED NAME');
+                expect(people[1].emailAddress).to.equal('b@example.com');
+                expect(people[1].name).to.equal('Bob');
+              });
+          });
         });
+
 
         it('should reject for non array updateOnDuplicate option', function() {
           const data = [
@@ -625,6 +670,56 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(user.get('maId')).to.be.ok;
                 expect(user.get('maId')).to.equal(actualUsers[i].get('maId'))
                   .and.to.equal(i + 1);
+              });
+            });
+        });
+
+        it('should only return fields that are not defined in the model (with returning: true)', function() {
+          const User = this.sequelize.define('user');
+
+          return User
+            .sync({ force: true })
+            .then(() => this.sequelize.queryInterface.addColumn('users', 'not_on_model', Sequelize.STRING))
+            .then(() => User.bulkCreate([
+              {},
+              {},
+              {}
+            ], {
+              returning: true
+            }))
+            .then(users =>
+              User.findAll()
+                .then(actualUsers => [users, actualUsers])
+            )
+            .then(([users, actualUsers]) => {
+              expect(users.length).to.eql(actualUsers.length);
+              users.forEach(user => {
+                expect(user.get()).not.to.have.property('not_on_model');
+              });
+            });
+        });
+
+        it('should return fields that are not defined in the model (with returning: ["*"])', function() {
+          const User = this.sequelize.define('user');
+
+          return User
+            .sync({ force: true })
+            .then(() => this.sequelize.queryInterface.addColumn('users', 'not_on_model', Sequelize.STRING))
+            .then(() => User.bulkCreate([
+              {},
+              {},
+              {}
+            ], {
+              returning: ['*']
+            }))
+            .then(users =>
+              User.findAll()
+                .then(actualUsers => [users, actualUsers])
+            )
+            .then(([users, actualUsers]) => {
+              expect(users.length).to.eql(actualUsers.length);
+              users.forEach(user => {
+                expect(user.get()).to.have.property('not_on_model');
               });
             });
         });

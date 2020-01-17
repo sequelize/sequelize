@@ -34,6 +34,16 @@ import { validator } from './utils/validator-extras';
 import { ConnectionManager } from './connection-manager';
 
 /**
+ * Additional options for table altering during sync
+ */
+export interface SyncAlterOptions {
+  /**
+   * Prevents any drop statements while altering a table when set to `false`
+   */
+  drop?: boolean;
+}
+
+/**
  * Sync Options
  */
 export interface SyncOptions extends Logging {
@@ -44,9 +54,9 @@ export interface SyncOptions extends Logging {
 
   /**
    * If alter is true, each DAO will do ALTER TABLE ... CHANGE ...
-   * Alters tables to fit models. Not recommended for production use. Deletes data in columns that were removed or had their type changed in the model.
+   * Alters tables to fit models. Provide an object for additional configuration. Not recommended for production use. If not further configured deletes data in columns that were removed or had their type changed in the model.
    */
-  alter?: boolean;
+  alter?: boolean | SyncAlterOptions;
 
   /**
    * Match a regex against the database name before syncing, a safety check for cases where force: true is
@@ -160,7 +170,7 @@ export interface Config {
   };
 }
 
-export type Dialect =  'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'mariadb';
+export type Dialect =  'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql';
 
 export interface RetryOptions {
   match?: (RegExp | string | Function)[];
@@ -1067,6 +1077,12 @@ export class Sequelize extends Hooks {
   public getDialect(): string;
 
   /**
+   * Returns the database name.
+   */
+
+  public getDatabaseName() : string;
+
+  /**
    * Returns an instance of QueryInterface.
    */
   public getQueryInterface(): QueryInterface;
@@ -1336,15 +1352,15 @@ export class Sequelize extends Hooks {
    * });
    * ```
    *
-   * If you have [CLS](https://github.com/othiym23/node-continuation-local-storage) enabled, the transaction
+   * If you have [CLS](https://github.com/Jeff-Lewis/cls-hooked) enabled, the transaction
    * will automatically be passed to any query that runs witin the callback. To enable CLS, add it do your
    * project, create a namespace and set it on the sequelize constructor:
    *
    * ```js
-   * const cls = require('continuation-local-storage'),
-   *   ns = cls.createNamespace('....');
+   * const cls = require('cls-hooked');
+   * const namespace = cls.createNamespace('....');
    * const Sequelize = require('sequelize');
-   * Sequelize.cls = ns;
+   * Sequelize.useCLS(namespace);
    * ```
    * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
    *

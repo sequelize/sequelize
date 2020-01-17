@@ -20,6 +20,20 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
+  describe('canTreatArrayAsAnd', () => {
+    it('Array can be treated as and', () => {
+      expect(Utils.canTreatArrayAsAnd([{ 'uuid': 1 }])).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([{ 'uuid': 1 }, { 'uuid': 2 }, 1])).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([new Utils.Where('uuid', 1)])).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([new Utils.Where('uuid', 1), new Utils.Where('uuid', 2)])).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([new Utils.Where('uuid', 1), { 'uuid': 2 }, 1])).to.equal(true);
+    });
+    it('Array cannot be treated as and', () => {
+      expect(Utils.canTreatArrayAsAnd([1, 'uuid'])).to.equal(false);
+      expect(Utils.canTreatArrayAsAnd([1])).to.equal(false);
+    });
+  });
+
   describe('toDefaultValue', () => {
     it('return plain data types', () => {
       expect(Utils.toDefaultValue(DataTypes.UUIDV4)).to.equal('UUIDV4');
