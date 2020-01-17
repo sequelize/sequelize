@@ -266,7 +266,7 @@ if (dialect === 'postgres') {
             }
           }
         };
-        User.sync({ force: true }).then(() => {
+        return User.sync({ force: true }).then(() => {
           return User.create({ username: 'username', geometry: point });
         }).then(newUser => {
           expect(newUser).not.to.be.null;
@@ -295,7 +295,7 @@ if (dialect === 'postgres') {
           }
         };
 
-        Location.sync({ force: true }).then(() => {
+        return Location.sync({ force: true }).then(() => {
           return Location.create({ name: 'name', geography: point });
         }).then(newLocation => {
           expect(newLocation).not.to.be.null;
