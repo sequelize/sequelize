@@ -1473,7 +1473,7 @@ export type LogicType = Fn | Col | Literal | OrOperator | AndOperator | WhereOpe
  * @param logic The condition. Can be both a simply type, or a further condition (`.or`, `.and`, `.literal`
  *   etc.)
  */
-export function where(attr: AttributeType, comparator: string, logic: LogicType): Where;
+export function where(attr: AttributeType, comparator: string | symbol, logic: LogicType): Where;
 export function where(attr: AttributeType, logic: LogicType): Where;
 
 export default Sequelize;
