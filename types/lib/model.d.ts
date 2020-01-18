@@ -1794,24 +1794,24 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
-    identifier?: Identifier,
-    options?: Omit<FindOptions, 'where'>
-  ): Promise<M | null>;
-  public static findByPk<M extends Model>(
-    this: { new (): M } & typeof Model,
     identifier: Identifier,
     options: Omit<NonNullFindOptions, 'where'>
   ): Promise<M>;
+  public static findByPk<M extends Model>(
+    this: { new (): M } & typeof Model,
+    identifier?: Identifier,
+    options?: Omit<FindOptions, 'where'>
+  ): Promise<M | null>;
 
   /**
    * Search for a single instance. This applies LIMIT 1, so the listener will always be called with a single
    * instance.
    */
+  public static findOne<M extends Model>(this: { new (): M } & typeof Model, options: NonNullFindOptions): Promise<M>;
   public static findOne<M extends Model>(
     this: { new (): M } & typeof Model,
     options?: FindOptions
   ): Promise<M | null>;
-  public static findOne<M extends Model>(this: { new (): M } & typeof Model, options: NonNullFindOptions): Promise<M>;
 
   /**
    * Run an aggregation method on the specified field
@@ -2620,11 +2620,13 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   public previous<K extends keyof this>(key: K): this[K];
 
   /**
-   * Validate this instance, and if the validation passes, persist it to the database.
-   *
-   * On success, the callback will be called with this instance. On validation error, the callback will be
-   * called with an instance of `Sequelize.ValidationError`. This error will have a property for each of the
-   * fields for which validation failed, with the error message for that field.
+   * Validates this instance, and if the validation passes, persists it to the database.
+   * 
+   * Returns a Promise that resolves to the saved instance (or rejects with a `Sequelize.ValidationError`, which will have a property for each of the fields for which the validation failed, with the error message for that field).
+   * 
+   * This method is optimized to perform an UPDATE only into the fields that changed. If nothing has changed, no SQL query will be performed.
+   * 
+   * This method is not aware of eager loaded associations. In other words, if some other model instance (child) was eager loaded with this instance (parent), and you change something in the child, calling `save()` will simply ignore the change that happened on the child.
    */
   public save(options?: SaveOptions): Promise<this>;
 
