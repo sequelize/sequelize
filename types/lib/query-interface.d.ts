@@ -4,6 +4,7 @@ import { Promise } from './promise';
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
+import { SetRequired } from './../type-helpers/set-required';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
@@ -403,7 +404,7 @@ export class QueryInterface {
   ): Promise<void>;
   public addIndex(
     tableName: string,
-    options: QueryInterfaceIndexOptions & { fields: string[] },
+    options: SetRequired<QueryInterfaceIndexOptions, 'fields'>,
     rawTablename?: string
   ): Promise<void>;
 
