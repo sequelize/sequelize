@@ -6,7 +6,6 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const DataTypes = require('../../../../lib/data-types');
 
-const current = Support.sequelize;
 
 if (dialect === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {
@@ -247,61 +246,4 @@ if (dialect === 'postgres') {
     });
 
   });
-
-  if (current.dialect.supports.GEOMETRY) {
-    describe('GEOMETRY', () => {
-
-      it('should work with geometry object including crs', function() {
-        const User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
-          geometry: DataTypes.GEOMETRY
-        });
-
-        const point = {
-          type: 'Point', coordinates: [39.807222, -76.984722],
-          crs: {
-            type: 'name',
-            properties: {
-              name: 'EPSG:4326'
-            }
-          }
-        };
-        return User.sync({ force: true }).then(() => {
-          return User.create({ username: 'username', geometry: point });
-        }).then(newUser => {
-          expect(newUser).not.to.be.null;
-          expect(newUser.geometry).to.be.deep.eql(point);
-        });
-      });
-    });
-  }
-
-
-  if (current.dialect.supports.GEOGRAPHY) {
-    describe('GEOGRAPHY', () => {
-      it('should work with geography object including crs', function() {
-        const Location = this.sequelize.define('Location', {
-          name: DataTypes.STRING,
-          geography: DataTypes.GEOGRAPHY
-        });
-
-        const point = {
-          type: 'Point', coordinates: [39.807222, -76.984722],
-          crs: {
-            type: 'name',
-            properties: {
-              name: 'EPSG:4326'
-            }
-          }
-        };
-
-        return Location.sync({ force: true }).then(() => {
-          return Location.create({ name: 'name', geography: point });
-        }).then(newLocation => {
-          expect(newLocation).not.to.be.null;
-          expect(newLocation.geography).to.be.deep.eql(point);
-        });
-      });
-    });
-  }
 }
