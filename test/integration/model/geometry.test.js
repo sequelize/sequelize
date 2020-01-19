@@ -277,7 +277,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         // MySQL 5.7, those guys finally fixed this
         if (dialect === 'mysql' && semver.gte(this.sequelize.options.databaseVersion, '5.7.0')) {
           return;
-        }
+        } 
 
         return this.Model.create({
           location: {
