@@ -246,33 +246,72 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         // setup
-        return User.sync({ force: true }).then(() => {
-          return User.bulkCreate([
-            {
-              aNumber: 1,
-              name: 'Jeff',
-              age: 94
-            },
-            {
-              aNumber: 3,
-              name: 'Not Jeff',
-              age: 87
-            }
-          ]);
-        })
-          // test
+        return User.drop()
+          .then(() => User.sync({ force: true }))
           .then(() => {
-            return User.scope('jeff').findOne({ where: { id: 1 } }).then(user=>{
-              user[method]('aNumber', { by: 1 });
-            });
+            return User.bulkCreate([
+              {
+                aNumber: 1,
+                name: 'Jeff exclude',
+                age: 94
+              },
+              {
+                aNumber: 3,
+                name: 'Not Jeff exclude',
+                age: 87
+              }
+            ]);
           })
+          // test
+          .then(() => User.scope('jeff').findOne({ where: { name: 'Jeff exclude' } }))
+          .then(user => user[method]('aNumber', { by: 1 }))
           // validate
-          .then(() => {
-            return User.scope('jeff').findOne({ where: { id: 1 } }).then(user=>{
-              expect(user.aNumber).to.equal(this.assert(2, 0));
-            });
+          .then(() => User.scope('jeff').findOne({ where: { name: 'Jeff exclude' } }))
+          .then(user => {
+            expect(user.aNumber).to.equal(this.assert(2, 0));
           });
       });
+
+      it('should work with scopes using "include" #10719', function() {
+        const User = this.sequelize.define('User', {
+          aNumber: DataTypes.INTEGER,
+          name: DataTypes.STRING,
+          age: DataTypes.INTEGER
+        }, {
+          scopes: {
+            jeff: {
+              attributes: { include: ['name', 'aNumber'] }
+            }
+          }
+        });
+
+        // setup
+        return User.drop()
+          .then(() => User.sync({ force: true }))
+          .then(() => {
+            return User.bulkCreate([
+              {
+                aNumber: 1,
+                name: 'Jeff exclude',
+                age: 94
+              },
+              {
+                aNumber: 3,
+                name: 'Not Jeff exclude',
+                age: 87
+              }
+            ]);
+          })
+          // test
+          .then(() => User.scope('jeff').findOne({ where: { name: 'Jeff exclude' } }))
+          .then(user => user[method]('aNumber', { by: 1 }))
+          // validate
+          .then(() => User.scope('jeff').findOne({ where: { name: 'Jeff exclude' } }))
+          .then(user => {
+            expect(user.aNumber).to.equal(this.assert(2, 0));
+          });
+      });
+
     });
   });
 });
