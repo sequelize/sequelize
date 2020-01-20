@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe(method, () => {
       before(function() {
         this.assert = (increment, decrement) => {
-          return method === 'increment'  ? increment : decrement;
+          return method === 'increment' ? increment : decrement;
         };
       });
 
@@ -231,6 +231,41 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(notJeff.aNumber).to.equal(this.assert(3, 3));
         });
       });
+
+      it('should not care for attributes in the instance scope', function() {
+        this.User.addScope('test', {
+          attributes: ['foo', 'bar']
+        });
+        return this.User.scope('test').findByPk(1)
+          .then(user => user[method]('aNumber', { by: 7 }))
+          .then(() => this.User.findByPk(1))
+          .then(user => {
+            expect(user.aNumber).to.equal(this.assert(7, -7));
+          });
+      });
+      it('should not care for exclude-attributes in the instance scope', function() {
+        this.User.addScope('test', {
+          attributes: { exclude: ['foo', 'bar'] }
+        });
+        return this.User.scope('test').findByPk(1)
+          .then(user => user[method]('aNumber', { by: 7 }))
+          .then(() => this.User.findByPk(1))
+          .then(user => {
+            expect(user.aNumber).to.equal(this.assert(7, -7));
+          });
+      });
+      it('should not care for include-attributes in the instance scope', function() {
+        this.User.addScope('test', {
+          attributes: { include: ['foo', 'bar'] }
+        });
+        return this.User.scope('test').findByPk(1)
+          .then(user => user[method]('aNumber', { by: 7 }))
+          .then(() => this.User.findByPk(1))
+          .then(user => {
+            expect(user.aNumber).to.equal(this.assert(7, -7));
+          });
+      });
+
     });
   });
 });
