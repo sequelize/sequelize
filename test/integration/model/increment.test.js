@@ -236,34 +236,34 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.User.addScope('test', {
           attributes: ['foo', 'bar']
         });
-        return this.User.scope('test').create({ aNumber: 5 })
-          .then(createdUser => createdUser[method]('aNumber', { by: 2 })
-            .then(() => this.User.findByPk(createdUser.id))
-            .then(user => {
-              expect(user.aNumber).to.equal(this.assert(7, 3));
-            }));
+        return this.User.scope('test').create({ id: 5, aNumber: 5 })
+          .then(createdUser => createdUser[method]('aNumber', { by: 2 }))
+          .then(() => this.User.findByPk(5))
+          .then(user => {
+            expect(user.aNumber).to.equal(this.assert(7, 3));
+          });
       });
       it('should not care for exclude-attributes in the instance scope', function() {
         this.User.addScope('test', {
           attributes: { exclude: ['foo', 'bar'] }
         });
-        return this.User.scope('test').create({ aNumber: 5 })
-          .then(createdUser => createdUser[method]('aNumber', { by: 2 })
-            .then(() => this.User.findByPk(createdUser.id))
-            .then(user => {
-              expect(user.aNumber).to.equal(this.assert(7, 3));
-            }));
+        return this.User.scope('test').create({ id: 5, aNumber: 5 })
+          .then(createdUser => createdUser[method]('aNumber', { by: 2 }))
+          .then(() => this.User.findByPk(5))
+          .then(user => {
+            expect(user.aNumber).to.equal(this.assert(7, 3));
+          });
       });
       it('should not care for include-attributes in the instance scope', function() {
         this.User.addScope('test', {
           attributes: { include: ['foo', 'bar'] }
         });
-        return this.User.scope('test').create({ aNumber: 5 })
-          .then(createdUser => createdUser[method]('aNumber', { by: 2 })
-            .then(() => this.User.findByPk(createdUser.id))
-            .then(user => {
-              expect(user.aNumber).to.equal(this.assert(7, 3));
-            }));
+        return this.User.scope('test').create({ id: 5, aNumber: 5 })
+          .then(createdUser => createdUser[method]('aNumber', { by: 2 }))
+          .then(() => this.User.findByPk(5))
+          .then(user => {
+            expect(user.aNumber).to.equal(this.assert(7, 3));
+          });
       });
 
     });
