@@ -145,6 +145,15 @@ queryInterface.addIndex('Person', ['firstname', 'lastname'], {
   type: 'UNIQUE',
 });
 
+queryInterface.addIndex('Foo', {
+  name: 'foo_a',
+  fields: [
+    { name: 'foo_b', order: 'DESC' },
+    'foo_c',
+    { name: 'foo_d', order: 'ASC', collate: 'foobar', length: 42 }
+  ],
+});
+
 queryInterface.removeIndex('Person', 'SuperDuperIndex');
 
 // or

@@ -2,6 +2,7 @@ import {
   BulkCreateOptions,
   CreateOptions,
   Filterable,
+  FindAttributeOptions,
   FindOptions,
   InstanceDestroyOptions,
   InstanceUpdateOptions,
@@ -99,6 +100,10 @@ export class BelongsToMany<S extends Model = Model, T extends Model = Model> ext
  * @see BelongsToManyGetAssociationsMixin
  */
 export interface BelongsToManyGetAssociationsMixinOptions extends FindOptions {
+  /**
+   * A list of the attributes from the join table that you want to select.
+   */
+  joinTableAttributes?: FindAttributeOptions
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */

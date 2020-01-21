@@ -1778,25 +1778,25 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * always be called with a single instance.
    */
   public static findByPk<M extends Model>(
-    this: { new(): M } & typeof Model,
-    identifier?: Identifier,
-    options?: Omit<FindOptions, 'where'>
-  ): Promise<M | null>;
-  public static findByPk<M extends Model>(
-    this: { new(): M } & typeof Model,
+    this: { new (): M } & typeof Model,
     identifier: Identifier,
     options: Omit<NonNullFindOptions, 'where'>
   ): Promise<M>;
+  public static findByPk<M extends Model>(
+    this: { new (): M } & typeof Model,
+    identifier?: Identifier,
+    options?: Omit<FindOptions, 'where'>
+  ): Promise<M | null>;
 
   /**
    * Search for a single instance. This applies LIMIT 1, so the listener will always be called with a single
    * instance.
    */
+  public static findOne<M extends Model>(this: { new (): M } & typeof Model, options: NonNullFindOptions): Promise<M>;
   public static findOne<M extends Model>(
     this: { new(): M } & typeof Model,
     options?: FindOptions
   ): Promise<M | null>;
-  public static findOne<M extends Model>(this: { new(): M } & typeof Model, options: NonNullFindOptions): Promise<M>;
 
   /**
    * Run an aggregation method on the specified field
