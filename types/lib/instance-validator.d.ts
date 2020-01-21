@@ -1,6 +1,6 @@
-import { HookOptions } from "./model";
+import { Hookable } from "./model";
 
-export interface ValidationOptions extends HookOptions {
+export interface ValidationOptions extends Hookable {
   /**
    * An array of strings. All properties that are in this array will not be validated
    */

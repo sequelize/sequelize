@@ -1,4 +1,4 @@
-import { ColumnOptions, Model, ModelCtor, HookOptions } from '../model';
+import { ColumnOptions, Model, ModelCtor, Hookable } from '../model';
 
 export abstract class Association<S extends Model = Model, T extends Model = Model> {
   public associationType: string;
@@ -42,7 +42,7 @@ export interface ForeignKeyOptions extends ColumnOptions {
 /**
  * Options provided when associating models
  */
-export interface AssociationOptions extends HookOptions {
+export interface AssociationOptions extends Hookable {
   /**
    * The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If
    * you create multiple associations between the same tables, you should provide an alias to be able to

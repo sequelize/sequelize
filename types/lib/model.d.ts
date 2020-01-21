@@ -651,7 +651,7 @@ export interface Silent {
 /**
  * Options for Model.create method
  */
-export interface CreateOptions extends BuildOptions, Logging, Silent, Transactionable, HookOptions {
+export interface CreateOptions extends BuildOptions, Logging, Silent, Transactionable, Hookable {
   /**
    * If set, only columns matching those in fields will be saved
    */
@@ -671,7 +671,7 @@ export interface CreateOptions extends BuildOptions, Logging, Silent, Transactio
 
 }
 
-export interface HookOptions {
+export interface Hookable {
 
   /**
    * If `false` the applicable hooks will not be called.
@@ -699,7 +699,7 @@ export interface FindOrCreateOptions extends Logging, Transactionable {
 /**
  * Options for Model.upsert method
  */
-export interface UpsertOptions extends Logging, Transactionable, SearchPathable, HookOptions {
+export interface UpsertOptions extends Logging, Transactionable, SearchPathable, Hookable {
   /**
    * The fields to insert / update. Defaults to all fields
    */
@@ -719,7 +719,7 @@ export interface UpsertOptions extends Logging, Transactionable, SearchPathable,
 /**
  * Options for Model.bulkCreate method
  */
-export interface BulkCreateOptions extends Logging, Transactionable, HookOptions {
+export interface BulkCreateOptions extends Logging, Transactionable, Hookable {
   /**
    * Fields to insert (defaults to all fields)
    */
@@ -764,7 +764,7 @@ export interface BulkCreateOptions extends Logging, Transactionable, HookOptions
 /**
  * The options passed to Model.destroy in addition to truncate
  */
-export interface TruncateOptions extends Logging, Transactionable, Filterable, HookOptions {
+export interface TruncateOptions extends Logging, Transactionable, Filterable, Hookable {
   /**
    * Only used in conjuction with TRUNCATE. Truncates  all tables that have foreign-key references to the
    * named table, or to any tables added to the group due to CASCADE.
@@ -810,7 +810,7 @@ export interface DestroyOptions extends TruncateOptions {
 /**
  * Options for Model.restore
  */
-export interface RestoreOptions extends Logging, Transactionable, Filterable, HookOptions {
+export interface RestoreOptions extends Logging, Transactionable, Filterable, Hookable {
 
   /**
    * If set to true, restore will find all records within the where parameter and will execute before / after
@@ -827,7 +827,7 @@ export interface RestoreOptions extends Logging, Transactionable, Filterable, Ho
 /**
  * Options used for Model.update
  */
-export interface UpdateOptions extends Logging, Transactionable, Paranoid, HookOptions {
+export interface UpdateOptions extends Logging, Transactionable, Paranoid, Hookable {
   /**
    * Options to describe the scope of the search.
    */

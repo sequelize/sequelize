@@ -20,7 +20,7 @@ import {
   WhereAttributeHash,
   WhereOperators,
   ModelCtor,
-  HookOptions,
+  Hookable,
 } from './model';
 import { ModelManager } from './model-manager';
 import * as Op from './operators';
@@ -37,7 +37,7 @@ import { ConnectionManager } from './connection-manager';
 /**
  * Sync Options
  */
-export interface SyncOptions extends Logging, HookOptions {
+export interface SyncOptions extends Logging, Hookable {
   /**
    * If force is true, each DAO will do DROP TABLE IF EXISTS ..., before it tries to create its own table
    */
