@@ -53,14 +53,14 @@ export interface Filterable {
   where?: WhereOptions;
 }
 
-export interface Projectable {
+export interface Projectable<T extends FindAttributeOptions = any> {
   /**
    * A list of the attributes that you want to select. To rename an attribute, you can pass an array, with
    * two elements - the first is the name of the attribute in the DB (or some kind of expression such as
    * `Sequelize.literal`, `Sequelize.fn` and so on), and the second is the name you want the attribute to
    * have in the returned instance
    */
-  attributes?: FindAttributeOptions;
+  attributes?: T[];
 }
 
 export interface Paranoid {
@@ -506,7 +506,7 @@ type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
  *
  * A hash of options to describe the scope of the search
  */
-export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid, IndexHintable {
+export interface FindOptions<T extends any = any> extends QueryOptions, Filterable, Projectable<T>, Paranoid, IndexHintable {
   /**
    * A list of associations to eagerly load using a left join (a single association is also supported). Supported is either
    * `{ include: Model1 }`, `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
@@ -569,7 +569,7 @@ export interface FindOptions extends QueryOptions, Filterable, Projectable, Para
   subQuery?: boolean;
 }
 
-export interface NonNullFindOptions extends FindOptions {
+export interface NonNullFindOptions<T> extends FindOptions<T> {
   /**
    * Throw if nothing was found.
    */
@@ -1786,32 +1786,32 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *
    * @see {Sequelize#query}
    */
-  public static findAll<M extends Model>(this: { new (): M } & typeof Model, options?: FindOptions): Promise<M[]>;
+  public static findAll<M extends Model = Model, K extends keyof M = keyof M>(this: { new(): M } & typeof Model, options?: FindOptions<K>): Promise<(Pick<M, K> | M)[]>;
 
   /**
    * Search for a single instance by its primary key. This applies LIMIT 1, so the listener will
    * always be called with a single instance.
    */
-  public static findByPk<M extends Model>(
+  public static findByPk<M extends Model = Model, K extends keyof M = keyof M>(
     this: { new (): M } & typeof Model,
     identifier: Identifier,
-    options: Omit<NonNullFindOptions, 'where'>
-  ): Promise<M>;
-  public static findByPk<M extends Model>(
+    options: Omit<NonNullFindOptions<K>, 'where'>
+  ): Promise<(Pick<M, K> | M)>;
+  public static findByPk<M extends Model = Model, K extends keyof M = keyof M>(
     this: { new (): M } & typeof Model,
     identifier?: Identifier,
-    options?: Omit<FindOptions, 'where'>
-  ): Promise<M | null>;
+    options?: Omit<FindOptions<K>, 'where'>
+  ): Promise<(Pick<M, K> | M) | null>;
 
   /**
    * Search for a single instance. This applies LIMIT 1, so the listener will always be called with a single
    * instance.
    */
-  public static findOne<M extends Model>(this: { new (): M } & typeof Model, options: NonNullFindOptions): Promise<M>;
-  public static findOne<M extends Model>(
+  public static findOne<M extends Model = Model, K extends keyof M = never>(this: { new (): M } & typeof Model, options: NonNullFindOptions<K>): Promise<(Pick<M, K> | M)>;
+  public static findOne<M extends Model = Model, K extends keyof M = keyof M>(
     this: { new (): M } & typeof Model,
-    options?: FindOptions
-  ): Promise<M | null>;
+    options?: FindOptions<K>
+  ): Promise<(Pick<M, K> | M) | null>;
 
   /**
    * Run an aggregation method on the specified field
