@@ -50,7 +50,7 @@ if (dialect === 'sqlite') {
     });
 
     it('automatic path provision for `options.storage`', () => {
-      Support.createSequelizeInstance({
+      return Support.createSequelizeInstance({
         storage: path.join(__dirname, folderName, fileName)
       })
         .define('User', { username: DataTypes.STRING })

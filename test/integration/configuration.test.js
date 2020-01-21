@@ -17,7 +17,12 @@ if (dialect === 'sqlite') {
 describe(Support.getTestDialectTeaser('Configuration'), () => {
   describe('Connections problems should fail with a nice message', () => {
     it('when we don\'t have the correct server details', () => {
-      const seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, { storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect });
+      const seq = new Sequelize(
+        config[dialect].database,
+        config[dialect].username,
+        config[dialect].password,
+        { storage: '/paffth/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect, dialectOptions: { mode: sqlite3.OPEN_READONLY  } }
+      );
       if (dialect === 'sqlite') {
         // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
         return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file');
