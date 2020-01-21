@@ -6,6 +6,7 @@ import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
+type FieldMap = { [key: string]: string };
 
 /**
  * Interface for query options
@@ -62,6 +63,11 @@ export interface QueryOptions extends Logging, Transactionable, Poolable {
   mapToModel?: boolean;
 
   retry?: RetryOptions;
+
+  /**
+   * Map returned fields to arbitrary names for SELECT query type if `options.fieldMaps` is present.
+   */
+  fieldMap?: FieldMap;
 }
 
 export interface QueryOptionsWithWhere extends QueryOptions, Filterable {
@@ -435,6 +441,11 @@ export class QueryInterface {
    * Returns all foreign key constraints of a table
    */
   public getForeignKeysForTables(tableNames: string, options?: QueryInterfaceOptions): Promise<object>;
+
+  /**
+   * Get foreign key references details for the table
+   */
+  public getForeignKeyReferencesForTable(tableName: string, options?: QueryInterfaceOptions): Promise<object>;
 
   /**
    * Inserts a new record
