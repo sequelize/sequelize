@@ -16,7 +16,7 @@ New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.or
 
 [![npm version](https://badgen.net/npm/v/sequelize/next)](https://www.npmjs.com/package/sequelize)
 
-`v6-beta` is now available. You can find detailed changelog [here](https://github.com/sequelize/sequelize/blob/master/docs/manual/upgrade-to-v6.md).
+`v6-beta` is now available. You can find detailed changelog [here](https://github.com/sequelize/sequelize/blob/master/docs/manual/other-topics/upgrade-to-v6.md).
 
 ## Installation
 
@@ -54,5 +54,5 @@ If you have security issues to report, please refer to our [Responsible Disclosu
 - [Plugins](https://sequelize.org/master/manual/resources.html)
 
 ### Translations
-- [English](https://sequelize.org) (OFFICIAL)
+- [English](https://sequelize.org/master) (OFFICIAL)
 - [中文文档](https://github.com/demopark/sequelize-docs-Zh-CN) (UNOFFICIAL)
