@@ -1,7 +1,7 @@
 {
   "name": "dougs-sequelize",
   "description": "Sequelize Dougs Fork (it is not meant to replace sequelize)",
-  "version": "4.41.2",
+  "version": "4.41.2-1",
   "dependencies": {
     "bluebird": "^3.5.0",
     "cls-bluebird": "^2.1.0",
@@ -14,6 +14,7 @@
     "moment": "^2.20.0",
     "moment-timezone": "^0.5.14",
     "retry-as-promised": "^2.3.2",
+    "sanitize-html": "^1.21.1",
     "semver": "^5.5.0",
     "terraformer-wkt-parser": "^1.1.2",
     "toposort-class": "^1.0.1",
