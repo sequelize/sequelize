@@ -325,3 +325,13 @@ Sequelize.where(
         [Op.notILike]: Sequelize.literal('LIT')
     }
 )
+
+Sequelize.where(Sequelize.col("ABS"), Op.is, null);
+
+Sequelize.where(
+  Sequelize.fn("ABS", Sequelize.col("age")),
+  Op.like,
+  Sequelize.fn("ABS", Sequelize.col("age"))
+);
+
+Sequelize.where(Sequelize.col("ABS"), null);
