@@ -154,7 +154,7 @@ export interface WhereOperators {
   [Op.ne]?: string | number | Literal | WhereOperators;
 
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
-  [Op.not]?: boolean | string | number |  Literal | WhereOperators;
+  [Op.not]?: boolean | string | number | Literal | WhereOperators;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
   [Op.between]?: [number, number];
@@ -479,13 +479,13 @@ export type ProjectionAlias = [string | Literal | Fn, string];
 export type FindAttributeOptions =
   | (string | ProjectionAlias)[]
   | {
-      exclude: string[];
-      include?: (string | ProjectionAlias)[];
-    }
+    exclude: string[];
+    include?: (string | ProjectionAlias)[];
+  }
   | {
-      exclude?: string[];
-      include: (string | ProjectionAlias)[];
-    };
+    exclude?: string[];
+    include: (string | ProjectionAlias)[];
+  };
 
 export interface IndexHint {
   type: IndexHints;
@@ -545,9 +545,9 @@ export interface FindOptions extends QueryOptions, Filterable, Projectable, Para
    * locks with joins. See [transaction.LOCK for an example](transaction#lock)
    */
   lock?:
-    | LOCK
-    | { level: LOCK; of: typeof Model }
-    | boolean;
+  | LOCK
+  | { level: LOCK; of: typeof Model }
+  | boolean;
   /**
    * Skip locked rows. Only supported in Postgres.
    */
@@ -615,7 +615,7 @@ export interface CountWithOptions extends CountOptions {
   group: GroupOption;
 }
 
-export interface FindAndCountOptions extends CountOptions, FindOptions {}
+export interface FindAndCountOptions extends CountOptions, FindOptions { }
 
 /**
  * Options for Model.build method
@@ -651,7 +651,7 @@ export interface Silent {
 /**
  * Options for Model.create method
  */
-export interface CreateOptions extends BuildOptions, Logging, Silent, Transactionable {
+export interface CreateOptions extends BuildOptions, Logging, Silent, Transactionable, Hookable {
   /**
    * If set, only columns matching those in fields will be saved
    */
@@ -668,6 +668,17 @@ export interface CreateOptions extends BuildOptions, Logging, Silent, Transactio
    * @default true
    */
   validate?: boolean;
+
+}
+
+export interface Hookable {
+
+  /**
+   * If `false` the applicable hooks will not be called.
+   * The default value depends on the context.
+   */
+  hooks?: boolean
+
 }
 
 /**
@@ -688,16 +699,11 @@ export interface FindOrCreateOptions extends Logging, Transactionable {
 /**
  * Options for Model.upsert method
  */
-export interface UpsertOptions extends Logging, Transactionable, SearchPathable {
+export interface UpsertOptions extends Logging, Transactionable, SearchPathable, Hookable {
   /**
    * The fields to insert / update. Defaults to all fields
    */
   fields?: string[];
-
-  /**
-   * Run before / after bulk create hooks?
-   */
-  hooks?: boolean;
 
   /**
    * Return the affected rows (only for postgres)
@@ -713,7 +719,7 @@ export interface UpsertOptions extends Logging, Transactionable, SearchPathable 
 /**
  * Options for Model.bulkCreate method
  */
-export interface BulkCreateOptions extends Logging, Transactionable {
+export interface BulkCreateOptions extends Logging, Transactionable, Hookable {
   /**
    * Fields to insert (defaults to all fields)
    */
@@ -724,11 +730,6 @@ export interface BulkCreateOptions extends Logging, Transactionable {
    * fails validation
    */
   validate?: boolean;
-
-  /**
-   * Run before / after bulk create hooks?
-   */
-  hooks?: boolean;
 
   /**
    * Run before / after create hooks for each individual Instance? BulkCreate hooks will still be run if
@@ -763,7 +764,7 @@ export interface BulkCreateOptions extends Logging, Transactionable {
 /**
  * The options passed to Model.destroy in addition to truncate
  */
-export interface TruncateOptions extends Logging, Transactionable, Filterable {
+export interface TruncateOptions extends Logging, Transactionable, Filterable, Hookable {
   /**
    * Only used in conjuction with TRUNCATE. Truncates  all tables that have foreign-key references to the
    * named table, or to any tables added to the group due to CASCADE.
@@ -771,11 +772,6 @@ export interface TruncateOptions extends Logging, Transactionable, Filterable {
    * @default false;
    */
   cascade?: boolean;
-
-  /**
-   * Run before / after bulk destroy hooks?
-   */
-  hooks?: boolean;
 
   /**
    * If set to true, destroy will SELECT all records matching the where parameter and will execute before /
@@ -814,11 +810,7 @@ export interface DestroyOptions extends TruncateOptions {
 /**
  * Options for Model.restore
  */
-export interface RestoreOptions extends Logging, Transactionable, Filterable {
-  /**
-   * Run before / after bulk restore hooks?
-   */
-  hooks?: boolean;
+export interface RestoreOptions extends Logging, Transactionable, Filterable, Hookable {
 
   /**
    * If set to true, restore will find all records within the where parameter and will execute before / after
@@ -835,7 +827,7 @@ export interface RestoreOptions extends Logging, Transactionable, Filterable {
 /**
  * Options used for Model.update
  */
-export interface UpdateOptions extends Logging, Transactionable, Paranoid {
+export interface UpdateOptions extends Logging, Transactionable, Paranoid, Hookable {
   /**
    * Options to describe the scope of the search.
    */
@@ -853,13 +845,6 @@ export interface UpdateOptions extends Logging, Transactionable, Paranoid {
    * @default true
    */
   validate?: boolean;
-
-  /**
-   * Run before / after bulk update hooks?
-   *
-   * @default true
-   */
-  hooks?: boolean;
 
   /**
    * Whether or not to update the side effects of any virtual setters.
@@ -913,7 +898,7 @@ export interface AggregateOptions<T extends DataType | unknown> extends QueryOpt
 /**
  * Options used for Instance.increment method
  */
-export interface IncrementDecrementOptions extends Logging, Transactionable, Silent, SearchPathable, Filterable {}
+export interface IncrementDecrementOptions extends Logging, Transactionable, Silent, SearchPathable, Filterable { }
 
 /**
  * Options used for Instance.increment method
@@ -930,7 +915,7 @@ export interface IncrementDecrementOptionsWithBy extends IncrementDecrementOptio
 /**
  * Options used for Instance.restore method
  */
-export interface InstanceRestoreOptions extends Logging, Transactionable {}
+export interface InstanceRestoreOptions extends Logging, Transactionable { }
 
 /**
  * Options used for Instance.destroy method
@@ -945,7 +930,7 @@ export interface InstanceDestroyOptions extends Logging, Transactionable {
 /**
  * Options used for Instance.update method
  */
-export interface InstanceUpdateOptions extends SaveOptions, SetOptions, Filterable {}
+export interface InstanceUpdateOptions extends SaveOptions, SetOptions, Filterable { }
 
 /**
  * Options used for Instance.set method
@@ -1512,7 +1497,7 @@ export interface ModelOptions<M extends Model = Model> {
 /**
  * Options passed to [[Model.init]]
  */
-export interface InitOptions<M extends Model =  Model> extends ModelOptions<M> {
+export interface InitOptions<M extends Model = Model> extends ModelOptions<M> {
   /**
    * The sequelize connection. Required ATM.
    */
@@ -1639,10 +1624,10 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options
    */
   public static schema<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     schema: string,
     options?: SchemaOptions
-  ): { new (): M } & typeof Model;
+  ): { new(): M } & typeof Model;
 
   /**
    * Get the tablename of the model, taking schema into account. The method will return The name as a string
@@ -1708,7 +1693,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @return Model A reference to the model, with the scope(s) applied. Calling scope again on the returned
    *  model will clear the previous scope.
    */
-  public static scope<M extends { new (): Model }>(
+  public static scope<M extends { new(): Model }>(
     this: M,
     options?: string | ScopeOptions | (string | ScopeOptions)[] | WhereAttributeHash
   ): M;
@@ -1786,7 +1771,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *
    * @see {Sequelize#query}
    */
-  public static findAll<M extends Model>(this: { new (): M } & typeof Model, options?: FindOptions): Promise<M[]>;
+  public static findAll<M extends Model>(this: { new(): M } & typeof Model, options?: FindOptions): Promise<M[]>;
 
   /**
    * Search for a single instance by its primary key. This applies LIMIT 1, so the listener will
@@ -1794,24 +1779,24 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static findByPk<M extends Model>(
     this: { new (): M } & typeof Model,
-    identifier?: Identifier,
-    options?: Omit<FindOptions, 'where'>
-  ): Promise<M | null>;
-  public static findByPk<M extends Model>(
-    this: { new (): M } & typeof Model,
     identifier: Identifier,
     options: Omit<NonNullFindOptions, 'where'>
   ): Promise<M>;
+  public static findByPk<M extends Model>(
+    this: { new (): M } & typeof Model,
+    identifier?: Identifier,
+    options?: Omit<FindOptions, 'where'>
+  ): Promise<M | null>;
 
   /**
    * Search for a single instance. This applies LIMIT 1, so the listener will always be called with a single
    * instance.
    */
+  public static findOne<M extends Model>(this: { new (): M } & typeof Model, options: NonNullFindOptions): Promise<M>;
   public static findOne<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     options?: FindOptions
   ): Promise<M | null>;
-  public static findOne<M extends Model>(this: { new (): M } & typeof Model, options: NonNullFindOptions): Promise<M>;
 
   /**
    * Run an aggregation method on the specified field
@@ -1823,7 +1808,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *     which case the complete data result is returned.
    */
   public static aggregate<M extends Model, T extends DataType | unknown>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     field: keyof M,
     aggregateFunction: string,
     options?: AggregateOptions<T>
@@ -1877,7 +1862,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * profiles will be counted
    */
   public static findAndCountAll<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     options?: FindAndCountOptions
   ): Promise<{ rows: M[]; count: number }>;
 
@@ -1885,7 +1870,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Find the maximum value of field
    */
   public static max<M extends Model, T extends DataType | unknown>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     field: keyof M,
     options?: AggregateOptions<T>
   ): Promise<T>;
@@ -1894,7 +1879,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Find the minimum value of field
    */
   public static min<M extends Model, T extends DataType | unknown>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     field: keyof M,
     options?: AggregateOptions<T>
   ): Promise<T>;
@@ -1903,7 +1888,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Find the sum of field
    */
   public static sum<M extends Model, T extends DataType | unknown>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     field: keyof M,
     options?: AggregateOptions<T>
   ): Promise<number>;
@@ -1912,7 +1897,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Builds a new model instance. Values is an object of key value pairs, must be defined but can be empty.
    */
   public static build<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     record?: object,
     options?: BuildOptions
   ): M;
@@ -1921,7 +1906,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Undocumented bulkBuild
    */
   public static bulkBuild<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     records: object[],
     options?: BuildOptions
   ): M[];
@@ -1930,7 +1915,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Builds a new model instance and calls save on it.
    */
   public static create<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     values?: object,
     options?: CreateOptions
   ): Promise<M>;
@@ -1941,7 +1926,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * The successfull result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
    */
   public static findOrBuild<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     options: FindOrCreateOptions
   ): Promise<[M, boolean]>;
 
@@ -1957,7 +1942,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * will be created instead, and any unique constraint violation will be handled internally.
    */
   public static findOrCreate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     options: FindOrCreateOptions
   ): Promise<[M, boolean]>;
 
@@ -1966,7 +1951,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Will execute a find call, if empty then attempt to create, if unique constraint then attempt to find again
    */
   public static findCreateFind<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     options: FindOrCreateOptions
   ): Promise<[M, boolean]>;
 
@@ -1990,16 +1975,16 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * whether the row was inserted or not.
    */
   public static upsert<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     values: object,
     options?: UpsertOptions & { returning?: false | undefined }
   ): Promise<boolean>;
 
-  public static upsert<M extends Model> (
-    this: { new (): M } & typeof Model,
+  public static upsert<M extends Model>(
+    this: { new(): M } & typeof Model,
     values: object,
     options?: UpsertOptions & { returning: true }
-  ): Promise<[ M, boolean ]>;
+  ): Promise<[M, boolean]>;
 
   /**
    * Create and insert multiple instances in bulk.
@@ -2013,7 +1998,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param records List of objects (key/value pairs) to create instances from
    */
   public static bulkCreate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     records: object[],
     options?: BulkCreateOptions
   ): Promise<M[]>;
@@ -2041,7 +2026,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * affected rows (only supported in postgres with `options.returning` true.)
    */
   public static update<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     values: object,
     options: UpdateOptions
   ): Promise<[number, M[]]>;
@@ -2050,7 +2035,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Increments a single field.
    */
   public static increment<M extends Model, K extends keyof M>(
-    this: { new (): M },
+    this: { new(): M },
     field: K,
     options: IncrementDecrementOptionsWithBy
   ): Promise<M>;
@@ -2059,7 +2044,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Increments multiple fields by the same value.
    */
   public static increment<M extends Model, K extends keyof M>(
-    this: { new (): M },
+    this: { new(): M },
     fields: K[],
     options: IncrementDecrementOptionsWithBy
   ): Promise<M>;
@@ -2068,7 +2053,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Increments multiple fields by different values.
    */
   public static increment<M extends Model, K extends keyof M>(
-    this: { new (): M },
+    this: { new(): M },
     fields: { [key in K]?: number },
     options: IncrementDecrementOptions
   ): Promise<M>;
@@ -2091,12 +2076,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with instance, options
    */
   public static beforeValidate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
   public static beforeValidate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
 
@@ -2107,12 +2092,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with instance, options
    */
   public static afterValidate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
   public static afterValidate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (instance: M, options: ValidationOptions) => HookReturn
   ): void;
 
@@ -2123,12 +2108,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with attributes, options
    */
   public static beforeCreate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (attributes: M, options: CreateOptions) => HookReturn
   ): void;
   public static beforeCreate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (attributes: M, options: CreateOptions) => HookReturn
   ): void;
 
@@ -2139,12 +2124,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with attributes, options
    */
   public static afterCreate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (attributes: M, options: CreateOptions) => HookReturn
   ): void;
   public static afterCreate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (attributes: M, options: CreateOptions) => HookReturn
   ): void;
 
@@ -2155,12 +2140,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with instance, options
    */
   public static beforeDestroy<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
   public static beforeDestroy<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
 
@@ -2171,12 +2156,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with instance, options
    */
   public static afterDestroy<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
   public static afterDestroy<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
   ): void;
 
@@ -2187,12 +2172,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with instance, options
    */
   public static beforeUpdate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (instance: M, options: UpdateOptions) => HookReturn
   ): void;
   public static beforeUpdate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (instance: M, options: UpdateOptions) => HookReturn
   ): void;
 
@@ -2203,12 +2188,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with instance, options
    */
   public static afterUpdate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (instance: M, options: UpdateOptions) => HookReturn
   ): void;
   public static afterUpdate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (instance: M, options: UpdateOptions) => HookReturn
   ): void;
 
@@ -2219,12 +2204,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with instance, options
    */
   public static beforeSave<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
   ): void;
   public static beforeSave<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
   ): void;
 
@@ -2235,12 +2220,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with instance, options
    */
   public static afterSave<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
   ): void;
   public static afterSave<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (instance: M, options: UpdateOptions | SaveOptions) => HookReturn
   ): void;
 
@@ -2251,12 +2236,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with instances, options
    */
   public static beforeBulkCreate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (instances: M[], options: BulkCreateOptions) => HookReturn
   ): void;
   public static beforeBulkCreate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (instances: M[], options: BulkCreateOptions) => HookReturn
   ): void;
 
@@ -2267,12 +2252,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn A callback function that is called with instances, options
    */
   public static afterBulkCreate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (instances: M[], options: BulkCreateOptions) => HookReturn
   ): void;
   public static afterBulkCreate<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (instances: M[], options: BulkCreateOptions) => HookReturn
   ): void;
 
@@ -2355,12 +2340,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param fn   A callback function that is called with instance(s), options
    */
   public static afterFind<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     name: string,
     fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
   public static afterFind<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     fn: (instancesOrInstance: M[] | M | null, options: FindOptions) => HookReturn
   ): void;
 
@@ -2743,6 +2728,6 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
 export type ModelType = typeof Model;
 
-export type ModelCtor<M extends Model> = { new (): M } & ModelType;
+export type ModelCtor<M extends Model> = { new(): M } & ModelType;
 
 export default Model;
