@@ -1,8 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const jetpack = require('fs-jetpack');
-const path = require('path');
+const jetpack = require('fs-jetpack').cwd(__dirname);
 const expect = chai.expect;
 const Support = require('../../support');
 const dialect = Support.getTestDialect();
@@ -14,13 +13,13 @@ const folderName = `${Math.random()}_test_folder`;
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] Connection Manager', () => {
     after(() => {
-      jetpack.remove(path.join(__dirname, fileName));
-      jetpack.remove(path.join(__dirname, folderName));
+      jetpack.remove(fileName);
+      jetpack.remove(folderName);
     });
 
     it('close connection and remove journal and wal files', function() {
       const sequelize = Support.createSequelizeInstance({
-        storage: path.join(__dirname, fileName)
+        storage: jetpack.path(fileName)
       });
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
@@ -34,28 +33,27 @@ if (dialect === 'sqlite') {
           });
         })
         .then(() => {
-          expect(jetpack.exists(path.join(__dirname, fileName))).to.be.equal('file');
-          expect(jetpack.exists(path.join(__dirname, `${fileName}-shm`)), 'shm file should exists').to.be.equal('file');
-          expect(jetpack.exists(path.join(__dirname, `${fileName}-wal`)), 'wal file should exists').to.be.equal('file');
+          expect(jetpack.exists(fileName)).to.be.equal('file');
+          expect(jetpack.exists(`${fileName}-shm`), 'shm file should exists').to.be.equal('file');
+          expect(jetpack.exists(`${fileName}-wal`), 'wal file should exists').to.be.equal('file');
 
           return sequelize.close();
         })
         .then(() => {
-          expect(jetpack.exists(path.join(__dirname, fileName))).to.be.equal('file');
-          expect(jetpack.exists(path.join(__dirname, `${fileName}-shm`)), 'shm file exists').to.be.false;
-          expect(jetpack.exists(path.join(__dirname, `${fileName}-wal`)), 'wal file exists').to.be.false;
+          expect(jetpack.exists(fileName)).to.be.equal('file');
+          expect(jetpack.exists(`${fileName}-shm`), 'shm file exists').to.be.false;
+          expect(jetpack.exists(`${fileName}-wal`), 'wal file exists').to.be.false;
 
           return this.sequelize.query('PRAGMA journal_mode = DELETE');
         });
     });
 
     it('automatic path provision for `options.storage`', () => {
-      return Support.createSequelizeInstance({
-        storage: path.join(__dirname, folderName, fileName)
-      })
+      const p = jetpack.path(folderName, fileName);
+      return Support.createSequelizeInstance({ storage: p })
         .define('User', { username: DataTypes.STRING })
         .sync({ force: true }).then(() => {
-          expect(jetpack.exists(path.join(__dirname, folderName, fileName))).to.be.equal('file');
+          expect(jetpack.exists(p)).to.be.equal('file');
         });
     });
   });
