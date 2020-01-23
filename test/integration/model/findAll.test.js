@@ -60,6 +60,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should throw on an attempt to fetch no attributes', function() {
+      return expect(this.User.findAll({ attributes: [] })).to.be.rejectedWith(
+        Sequelize.QueryError,
+        'Attempted to execute a finder query for model \'User\' without selecting any attributes.'
+      );
+    });
+
     describe('special where conditions/smartWhere object', () => {
       beforeEach(function() {
         this.buf = Buffer.alloc(16);

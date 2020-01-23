@@ -53,6 +53,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
+    it('should throw on an attempt to fetch no attributes', function() {
+      return expect(this.User.findOne({ attributes: [] })).to.be.rejectedWith(
+        Sequelize.QueryError,
+        'Attempted to execute a finder query for model \'User\' without selecting any attributes.'
+      );
+    });
+
     describe('general / basic function', () => {
       beforeEach(function() {
         return this.User.create({ username: 'barfooz' }).then(user => {
