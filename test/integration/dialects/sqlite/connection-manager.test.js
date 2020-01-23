@@ -8,13 +8,14 @@ const dialect = Support.getTestDialect();
 const DataTypes = require('../../../../lib/data-types');
 
 const fileName = `${Math.random()}_test.sqlite`;
-const folderName = `${Math.random()}_test_folder`;
+const directoryName = `${Math.random()}_test_directory`;
+const nestedFileName = jetpack.path(directoryName, 'subdirectory', 'test.sqlite');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] Connection Manager', () => {
     after(() => {
       jetpack.remove(fileName);
-      jetpack.remove(folderName);
+      jetpack.remove(directoryName);
     });
 
     it('close connection and remove journal and wal files', function() {
@@ -49,11 +50,10 @@ if (dialect === 'sqlite') {
     });
 
     it('automatic path provision for `options.storage`', () => {
-      const p = jetpack.path(folderName, fileName);
-      return Support.createSequelizeInstance({ storage: p })
+      return Support.createSequelizeInstance({ storage: nestedFileName })
         .define('User', { username: DataTypes.STRING })
         .sync({ force: true }).then(() => {
-          expect(jetpack.exists(p)).to.be.equal('file');
+          expect(jetpack.exists(nestedFileName)).to.be.equal('file');
         });
     });
   });
