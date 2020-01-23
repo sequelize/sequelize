@@ -1789,7 +1789,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const t = await sequelize.transaction();
           await User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t });
           const val1 = await User[methodName]('age');
-          const val2 = User[methodName]('age', { transaction: t });
+          const val2 = await User[methodName]('age', { transaction: t });
           expect(val1).to.be.not.ok;
           expect(val2).to.equal(methodName === 'min' ? 2 : 5);
           await t.rollback();
