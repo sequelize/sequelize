@@ -54,7 +54,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       return this.queryInterface
         .createTable('my_test_table', { name: DataTypes.STRING })
         .tap(cleanup)
-        .then(() => this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id'))
+        .then(() => {
+          if (dialect === 'db2') {
+            this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id FROM SYSIBM.SYSDUMMY1;');
+          } else {
+            this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id');
+          }
+        })
         .then(() => this.queryInterface.showAllTables())
         .tap(cleanup)
         .then(tableNames => {
@@ -65,7 +71,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
     });
 
-    if (dialect !== 'sqlite' && dialect !== 'postgres') {
+    if (dialect !== 'sqlite' && dialect !== 'postgres' && dialect !== 'db2') {
       // NOTE: sqlite doesn't allow querying between databases and
       // postgres requires creating a new connection to create a new table.
       it('should not show tables in other databases', function() {
@@ -536,7 +542,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('constraints', () => {
     beforeEach(function() {
       this.User = this.sequelize.define('users', {
-        username: DataTypes.STRING,
+        username: {type: DataTypes.STRING, allowNull: false },
         email: { type: DataTypes.STRING, allowNull: false },
         roles: DataTypes.STRING
       });

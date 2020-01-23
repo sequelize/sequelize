@@ -547,7 +547,7 @@ if (current.dialect.supports.transactions) {
       });
 
       // mssql is excluded because it implements REPREATABLE READ using locks rather than a snapshot, and will see the new row
-      if (!['sqlite', 'mssql'].includes(dialect)) {
+      if (!['sqlite', 'mssql', 'db2'].includes(dialect)) {
         it('should not read newly committed rows when using the REPEATABLE READ isolation level', function() {
           const User = this.sequelize.define('user', {
             username: Support.Sequelize.STRING
@@ -568,7 +568,7 @@ if (current.dialect.supports.transactions) {
       }
 
       // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
-      if (!['sqlite', 'postgres', 'postgres-native'].includes(dialect)) {
+      if (!['sqlite', 'postgres', 'postgres-native', 'db2'].includes(dialect)) {
         it('should block updates after reading a row using SERIALIZABLE', function() {
           const User = this.sequelize.define('user', {
               username: Support.Sequelize.STRING

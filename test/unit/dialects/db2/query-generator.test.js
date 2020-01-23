@@ -543,58 +543,58 @@ if (dialect === 'db2') {
         {
           arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3)',
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3);',
             bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), 2]
           }
 
         }, {
           arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3)',
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$1,"birthday"=$2 WHERE "id" = $3);',
             bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), 2]
           }
         }, {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2)',
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2);',
             bind: [2, 'foo']
           }
         }, {
           arguments: ['myTable', { name: "foo';DROP TABLE myTable;" }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$1 WHERE "name" = $2)',
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$1 WHERE "name" = $2);',
             bind: ["foo';DROP TABLE myTable;", 'foo']
           }
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1,"nullValue"=$2 WHERE "name" = $3)',
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1,"nullValue"=$2 WHERE "name" = $3);',
             bind: [2, null, 'foo']
           }
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1,"nullValue"=$2 WHERE "name" = $3)',
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1,"nullValue"=$2 WHERE "name" = $3);',
             bind: [2, null, 'foo']
           },
           context: { options: { omitNull: false } }
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2)',
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2);',
             bind: [2, 'foo']
           },
           context: { options: { omitNull: true } }
         }, {
           arguments: ['myTable', { bar: false }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2)',
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2);',
             bind: [false, 'foo']
           }
         }, {
           arguments: ['myTable', { bar: true }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2)',
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=$1 WHERE "name" = $2);',
             bind: [true, 'foo']
           }
         }, {
@@ -604,7 +604,7 @@ if (dialect === 'db2') {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=NOW() WHERE "name" = $1)',
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"=NOW() WHERE "name" = $1);',
             bind: ['foo']
           },
           needsSequelize: true
@@ -615,7 +615,7 @@ if (dialect === 'db2') {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"="foo" WHERE "name" = $1)',
+            query: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "bar"="foo" WHERE "name" = $1);',
             bind: ['foo']
           },
           needsSequelize: true
