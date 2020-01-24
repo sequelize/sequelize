@@ -381,27 +381,19 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
     });
 
-    it('supports setting same association twice', function() {
-      const Home = this.sequelize.define('home', {}),
-        User = this.sequelize.define('user');
+    it('supports setting same association twice', async function() {
+      const Home = this.sequelize.define('home', {});
+      const User = this.sequelize.define('user');
 
       Home.belongsTo(User);
 
-      const ctx = {};
-      return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.all([
-          Home.create(),
-          User.create()
-        ]);
-      }).then(([home, user]) => {
-        ctx.home = home;
-        ctx.user = user;
-        return home.setUser(user);
-      }).then(() => {
-        return ctx.home.setUser(ctx.user);
-      }).then(() => {
-        return expect(ctx.home.getUser()).to.eventually.have.property('id', ctx.user.get('id'));
-      });
+      await this.sequelize.sync({ force: true });
+      const [home, user] = await Promise.all([
+        Home.create(),
+        User.create()
+      ]);
+      await home.setUser(user);
+      expect(await home.getUser()).to.have.property('id', user.id);
     });
   });
 
