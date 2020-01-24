@@ -192,7 +192,7 @@ This means that, unlike the One-To-One association, in which we had to choose wh
 
 ### Goal
 
-In this example, we have the models `Team` and `Player`. We want to tell Sequelize that there is a One-To-Many relationship between them, meaning that one Team has many Players, while each Playes belongs to a single Team.
+In this example, we have the models `Team` and `Player`. We want to tell Sequelize that there is a One-To-Many relationship between them, meaning that one Team has many Players, while each Player belongs to a single Team.
 
 ### Implementation
 
