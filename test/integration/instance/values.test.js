@@ -162,8 +162,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
               User,
               Tag
             ]
-          });
-
+          });        
           product.set({
             id: 1,
             title: 'Chair',
@@ -177,7 +176,6 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
               last_name: 'Hansen'
             }
           });
-
           expect(product.tags).to.be.ok;
           expect(product.tags.length).to.equal(2);
           expect(product.tags[0]).to.be.instanceof(Tag);
