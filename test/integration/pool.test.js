@@ -69,175 +69,118 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
   });
 
   describe('network / connection errors', () => {
-    it('should obtain new connection when old connection is abruptly closed', () => {
-      const sequelize = Support.createSequelizeInstance({
-        pool: {
-          max: 1,
-          idle: 5000
+    it('should obtain new connection when old connection is abruptly closed', async () => {
+      function simulateUnexpectedError(connection) {
+        // should never be returned again
+        if (dialect === 'mssql') {
+          connection = unwrapAndAttachMSSQLUniqueId(connection);
         }
+        connection.emit('error', { code: 'ECONNRESET' });
+      }
+
+      const sequelize = Support.createSequelizeInstance({
+        pool: { max: 1, idle: 5000 }
       });
-
       const cm = sequelize.connectionManager;
-      let conn;
+      await sequelize.sync();
 
-      return sequelize
-        .sync()
-        .then(() => cm.getConnection())
-        .then(connection => {
-          // Save current connection
-          conn = connection;
+      const firstConnection = await cm.getConnection();
+      simulateUnexpectedError(firstConnection);
+      const secondConnection = await cm.getConnection();
 
-          if (dialect === 'mssql') {
-            connection = unwrapAndAttachMSSQLUniqueId(connection);
-          }
+      assertNewConnection(secondConnection, firstConnection);
+      expect(cm.pool.size).to.equal(1);
+      expect(cm.validate(firstConnection)).to.be.not.ok;
 
-          // simulate an unexpected error
-          // should never be returned again
-          connection.emit('error', {
-            code: 'ECONNRESET'
-          });
-        })
-        .then(() => {
-          // Get next available connection
-          return cm.getConnection();
-        })
-        .then(connection => {
-          assertNewConnection(connection, conn);
-
-          expect(sequelize.connectionManager.pool.size).to.equal(1);
-          expect(cm.validate(conn)).to.be.not.ok;
-
-          return cm.releaseConnection(connection);
-        });
+      await cm.releaseConnection(secondConnection);
     });
 
-    it('should obtain new connection when released connection dies inside pool', () => {
-      const sequelize = Support.createSequelizeInstance({
-        pool: {
-          max: 1,
-          idle: 5000
+    it('should obtain new connection when released connection dies inside pool', async () => {
+      function simulateUnexpectedError(connection) {
+        // should never be returned again
+        if (dialect === 'mssql') {
+          unwrapAndAttachMSSQLUniqueId(connection).close();
+        } else if (dialect === 'postgres') {
+          connection.end();
+        } else {
+          connection.close();
         }
+      }
+
+      const sequelize = Support.createSequelizeInstance({
+        pool: { max: 1, idle: 5000 }
       });
-
       const cm = sequelize.connectionManager;
-      let oldConnection;
+      await sequelize.sync();
 
-      return sequelize
-        .sync()
-        .then(() => cm.getConnection())
-        .then(connection => {
-          // Save current connection
-          oldConnection = connection;
+      const oldConnection = await cm.getConnection();
+      await cm.releaseConnection(oldConnection);
+      simulateUnexpectedError(oldConnection);
+      const newConnection = await cm.getConnection();
 
-          return cm.releaseConnection(connection);
-        })
-        .then(() => {
-          let connection = oldConnection;
+      assertNewConnection(newConnection, oldConnection);
+      expect(cm.pool.size).to.equal(1);
+      expect(cm.validate(oldConnection)).to.be.not.ok;
 
-          if (dialect === 'mssql') {
-            connection = unwrapAndAttachMSSQLUniqueId(connection);
-          }
-
-          // simulate an unexpected error
-          // should never be returned again
-          if (dialect.match(/postgres/)) {
-            connection.end();
-          } else {
-            connection.close();
-          }
-        })
-        .then(() => {
-          // Get next available connection
-          return cm.getConnection();
-        })
-        .then(connection => {
-          assertNewConnection(connection, oldConnection);
-
-          expect(sequelize.connectionManager.pool.size).to.equal(1);
-          expect(cm.validate(oldConnection)).to.be.not.ok;
-
-          return cm.releaseConnection(connection);
-        });
+      await cm.releaseConnection(newConnection);
     });
   });
 
   describe('idle', () => {
-    it('should maintain connection within idle range', () => {
+    it('should maintain connection within idle range', async () => {
       const sequelize = Support.createSequelizeInstance({
-        pool: {
-          max: 1,
-          idle: 10
-        }
+        pool: { max: 1, idle: 100 }
       });
-
       const cm = sequelize.connectionManager;
-      let conn;
+      await sequelize.sync();
 
-      return sequelize.sync()
-        .then(() => cm.getConnection())
-        .then(connection => {
-          // Save current connection
-          conn = connection;
+      const firstConnection = await cm.getConnection();
 
-          if (dialect === 'mssql') {
-            connection = unwrapAndAttachMSSQLUniqueId(connection);
-          }
+      // TODO - Do we really need this call?
+      unwrapAndAttachMSSQLUniqueId(firstConnection);
 
-          // returning connection back to pool
-          return cm.releaseConnection(conn);
-        })
-        .then(() => {
-          // Get next available connection
-          return Sequelize.Promise.delay(9).then(() => cm.getConnection());
-        })
-        .then(connection => {
-          assertSameConnection(connection, conn);
-          expect(cm.validate(conn)).to.be.ok;
+      // returning connection back to pool
+      await cm.releaseConnection(firstConnection);
 
-          return cm.releaseConnection(connection);
-        });
+      // Wait a little and then get next available connection
+      await Sequelize.Promise.delay(90);
+      const secondConnection = await cm.getConnection();
+
+      assertSameConnection(secondConnection, firstConnection);
+      expect(cm.validate(firstConnection)).to.be.ok;
+
+      await cm.releaseConnection(secondConnection);
     });
 
-    it('should get new connection beyond idle range', () => {
+    it('should get new connection beyond idle range', async () => {
       const sequelize = Support.createSequelizeInstance({
-        pool: {
-          max: 1,
-          idle: 100,
-          evict: 10
-        }
+        pool: { max: 1, idle: 100, evict: 10 }
       });
-
       const cm = sequelize.connectionManager;
-      let conn;
+      await sequelize.sync();
 
-      return sequelize.sync()
-        .then(() => cm.getConnection())
-        .then(connection => {
-          // Save current connection
-          conn = connection;
+      const firstConnection = await cm.getConnection();
 
-          if (dialect === 'mssql') {
-            connection = unwrapAndAttachMSSQLUniqueId(connection);
-          }
+      // TODO - Do we really need this call?
+      unwrapAndAttachMSSQLUniqueId(firstConnection);
 
-          // returning connection back to pool
-          return cm.releaseConnection(conn);
-        })
-        .then(() => {
-          // Get next available connection
-          return Sequelize.Promise.delay(110).then(() => cm.getConnection());
-        })
-        .then(connection => {
-          assertNewConnection(connection, conn);
-          expect(cm.validate(conn)).not.to.be.ok;
+      // returning connection back to pool
+      await cm.releaseConnection(firstConnection);
 
-          return cm.releaseConnection(connection);
-        });
+      // Wait a little and then get next available connection
+      await Sequelize.Promise.delay(110);
+
+      const secondConnection = await cm.getConnection();
+
+      assertNewConnection(secondConnection, firstConnection);
+      expect(cm.validate(firstConnection)).not.to.be.ok;
+
+      await cm.releaseConnection(secondConnection);
     });
   });
 
   describe('acquire', () => {
-    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', function() {
+    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', async function() {
       this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
         databaseVersion: '1.2.3',
@@ -249,11 +192,12 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       this.sinon.stub(this.testInstance.connectionManager, '_connect')
         .returns(new Sequelize.Promise(() => {}));
 
-      return expect(this.testInstance.authenticate())
-        .to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
+      await expect(
+        this.testInstance.authenticate()
+      ).to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
     });
 
-    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', function() {
+    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', async function() {
       this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
         databaseVersion: '1.2.3',
@@ -266,9 +210,11 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       this.sinon.stub(this.testInstance.connectionManager, '_connect')
         .returns(new Sequelize.Promise(() => {}));
 
-      return expect(this.testInstance.transaction(() => {
-        return this.testInstance.transaction(() => {});
-      })).to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
+      await expect(
+        this.testInstance.transaction(async () => {
+          await this.testInstance.transaction(() => {});
+        })
+      ).to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
     });
   });
 });
