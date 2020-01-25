@@ -291,8 +291,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
-      expect(
-        await this.queryInterface.renameColumn('_Users', 'email', 'pseudo')
+      await expect(
+        this.queryInterface.renameColumn('_Users', 'email', 'pseudo')
       ).to.be.rejectedWith('Table _Users doesn\'t have the column email');
     });
   });
@@ -339,12 +339,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }
       });
 
-      function testArgs(...args) {
+      const testArgs = (...args) => {
         expect(() => {
           this.queryInterface.addColumn(...args);
           throw new Error('Did not throw immediately...');
         }).to.throw(Error, 'addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
-      }
+      };
 
       testArgs(this, 'users', 'level_id');
       testArgs(this, null, 'level_id');
@@ -579,7 +579,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.addConstraint('users', ['username'], {
           type: 'PRIMARY KEY'
         });
-        let constraints = this.queryInterface.showConstraint('users');
+        let constraints = await this.queryInterface.showConstraint('users');
         constraints = constraints.map(constraint => constraint.constraintName);
 
         // The name of primaryKey constraint is always `PRIMARY` in case of MySQL and MariaDB
@@ -617,7 +617,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('posts_username_users_fk');
         await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
-        constraints = this.queryInterface.showConstraint('posts');
+        constraints = await this.queryInterface.showConstraint('posts');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('posts_username_users_fk');
       });
