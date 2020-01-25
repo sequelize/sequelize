@@ -1437,19 +1437,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
-    it('should count all associations', function() {
-      return expect(this.user.countTasks({})).to.eventually.equal(2);
+    it('should count all associations', async function() {
+      expect(await this.user.countTasks({})).to.equal(2);
     });
 
-    it('should count filtered associations', function() {
-      return expect(this.user.countTasks({
-        where: {
-          active: true
-        }
-      })).to.eventually.equal(1);
+    it('should count filtered associations', async function() {
+      expect(await this.user.countTasks({ where: { active: true } })).to.equal(1);
     });
 
-    it('should count scoped associations', function() {
+    it('should count scoped associations', async function() {
       this.User.belongsToMany(this.Task, {
         as: 'activeTasks',
         through: this.UserTask,
@@ -1458,12 +1454,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }
       });
 
-      return expect(this.user.countActiveTasks({})).to.eventually.equal(1);
+      expect(await this.user.countActiveTasks({})).to.equal(1);
     });
 
-    it('should count scoped through associations', function() {
-      const user = this.user;
-
+    it('should count scoped through associations', async function() {
       this.User.belongsToMany(this.Task, {
         as: 'startedTasks',
         through: {
@@ -1474,20 +1468,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }
       });
 
-      return Promise.join(
-        this.Task.create().then(task => {
-          return user.addTask(task, {
-            through: { started: true }
-          });
-        }),
-        this.Task.create().then(task => {
-          return user.addTask(task, {
-            through: { started: true }
-          });
-        })
-      ).then(() => {
-        return expect(user.countStartedTasks({})).to.eventually.equal(2);
-      });
+      for (let i = 0; i < 2; i++) {
+        await this.user.addTask(await this.Task.create(), {
+          through: { started: true }
+        });
+      }
+
+      expect(await this.user.countStartedTasks({})).to.equal(2);
     });
   });
 
