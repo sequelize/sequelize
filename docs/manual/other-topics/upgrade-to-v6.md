@@ -58,7 +58,7 @@ await User.findAll({ attributes: [] });
 // sql: 'SELECT  FROM `Foos` AS `Foo`;'
 
 // Now:
-// QueryError [SequelizeQueryError]: Attempted to execute a finder query for model 'Foo' without selecting any attributes.
+// QueryError [SequelizeQueryError]: Attempted a SELECT query for model 'Foo' (as `Foos`) without selecting any attributes.
 ```
 
 ## Changelog
