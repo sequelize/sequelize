@@ -346,9 +346,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }).to.throw(Error, 'addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
       };
 
-      testArgs(this, 'users', 'level_id');
-      testArgs(this, null, 'level_id');
-      testArgs(this, 'users', null, {});
+      testArgs('users', 'level_id');
+      testArgs(null, 'level_id');
+      testArgs('users', null, {});
     });
 
     it('should work with schemas', async function() {
@@ -541,7 +541,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         it('addconstraint missing type', function() {
           expect(() => {
-            this.queryInterface.addConstraint(this, 'users', ['roles'], {
+            this.queryInterface.addConstraint('users', ['roles'], {
               where: { roles: ['user', 'admin', 'guest', 'moderator'] },
               name: 'check_user_roles'
             });
