@@ -446,7 +446,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[2])).to.have.length(7);
       } else if (dialect === 'sqlite') {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
-      } else if (dialect === 'mysql' || dialect === 'mssql') {
+      } else if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'mssql') {
         expect(Object.keys(foreignKeys[0])).to.have.length(12);
       } else {
         throw new Error(`This test doesn't support ${dialect}`);
