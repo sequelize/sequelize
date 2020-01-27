@@ -118,6 +118,13 @@ export interface QueryInterfaceCreateTableOptions extends QueryInterfaceOptions,
   };
 }
 
+export interface QueryInterfaceRemoveColumnOptions extends QueryInterfaceOptions {
+  /**
+   * Used to check if column exists before removing it (only postgres dialect)
+   */
+  mustExist?: boolean;
+}
+
 export interface QueryInterfaceDropTableOptions extends QueryInterfaceOptions {
   cascade?: boolean;
   force?: boolean;
@@ -370,7 +377,7 @@ export class QueryInterface {
   public removeColumn(
     table: string | { schema?: string; tableName?: string },
     attribute: string,
-    options?: QueryInterfaceOptions
+    options?: QueryInterfaceRemoveColumnOptions
   ): Promise<void>;
 
   /**

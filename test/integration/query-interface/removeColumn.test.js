@@ -96,6 +96,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           });
         });
       }
+      
+      if (dialect === 'postgres') {
+        describe('with mustExist option', () => {
+          it('should not throw error if column doesn\'t exists', function() {
+            expect(() => this.queryInterface.removeColumn('users', 'random', { mustExist: false }))
+              .to.not.throw();
+          });
+        });
+      }
     });
 
     describe('(with a schema)', () => {

@@ -21,6 +21,20 @@ if (current.dialect.name !== 'sqlite') {
           postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";'
         });
       });
+
+      describe('with if exists option', () => {
+        it('schema', () => {
+          expectsql(sql.removeColumnQuery({
+            schema: 'archive',
+            tableName: 'user'
+          }, 'email', { mustExist: false }), {
+            mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
+            mariadb: 'ALTER TABLE `archive`.`user` DROP `email`;',
+            mysql: 'ALTER TABLE `archive.user` DROP `email`;',
+            postgres: 'ALTER TABLE "archive"."user" DROP COLUMN IF EXISTS "email";'
+          });
+        });
+      });
     });
   });
 }
