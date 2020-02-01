@@ -1,4 +1,4 @@
-import { Association, DataTypes, HasOne, Model, Sequelize } from 'sequelize';
+import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Sequelize } from 'sequelize';
 
 class MyModel extends Model {
   public num!: number;
@@ -103,3 +103,15 @@ UserModel.findCreateFind({
  */
 class TestModel extends Model {};
 TestModel.primaryKeyAttributes;
+
+/**
+ * Test for joinTableAttributes on BelongsToManyGetAssociationsMixin
+ */
+class SomeModel extends Model {
+    public getOthers!: BelongsToManyGetAssociationsMixin<OtherModel>
+}
+
+const someInstance = new SomeModel()
+someInstance.getOthers({
+    joinTableAttributes: { include: [ 'id' ] }
+})
