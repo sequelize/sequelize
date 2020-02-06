@@ -56,7 +56,7 @@ if (dialect.startsWith('postgres')) {
         {
           title: 'Should use the plus operator',
           arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\'  RETURNING *'
+          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' RETURNING *'
         },
         {
           title: 'Should use the plus operator with where clause',
@@ -71,12 +71,12 @@ if (dialect.startsWith('postgres')) {
         {
           title: 'Should use the minus operator',
           arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\'  RETURNING *'
+          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' RETURNING *'
         },
         {
           title: 'Should use the minus operator with negative value',
           arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- -1  RETURNING *'
+          expectation: 'UPDATE "myTable" SET "foo"="foo"- -1 RETURNING *'
         },
         {
           title: 'Should use the minus operator with where clause',
