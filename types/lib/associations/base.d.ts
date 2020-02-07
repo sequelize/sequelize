@@ -1,4 +1,4 @@
-import { ColumnOptions, Model, ModelCtor } from '../model';
+import { ColumnOptions, Model, ModelCtor, Hookable } from '../model';
 
 export abstract class Association<S extends Model = Model, T extends Model = Model> {
   public associationType: string;
@@ -42,17 +42,7 @@ export interface ForeignKeyOptions extends ColumnOptions {
 /**
  * Options provided when associating models
  */
-export interface AssociationOptions {
-  /**
-   * Set to true to run before-/afterDestroy hooks when an associated model is deleted because of a cascade.
-   * For example if `User.hasOne(Profile, {onDelete: 'cascade', hooks:true})`, the before-/afterDestroy hooks
-   * for profile will be called when a user is deleted. Otherwise the profile will be deleted without invoking
-   * any hooks.
-   *
-   * @default false
-   */
-  hooks?: boolean;
-
+export interface AssociationOptions extends Hookable {
   /**
    * The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If
    * you create multiple associations between the same tables, you should provide an alias to be able to

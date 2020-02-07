@@ -1,15 +1,8 @@
 'use strict';
 
-const _ = require('lodash');
+const { getDeclaredManuals, checkManuals } = require('./manual-utils');
 
-const manualGroups = require('./manual-groups.json');
-
-const manual = {
-  index: './docs/index.md',
-  globalIndex: true,
-  asset: './docs/images',
-  files: _.flatten(_.values(manualGroups)).map(file => `./docs/manual/${file}`)
-};
+checkManuals();
 
 module.exports = {
   source: './lib',
@@ -45,7 +38,12 @@ module.exports = {
           repository: 'https://github.com/sequelize/sequelize',
           site: 'https://sequelize.org/master/'
         },
-        manual
+        manual: {
+          index: './docs/index.md',
+          globalIndex: true,
+          asset: './docs/images',
+          files: getDeclaredManuals()
+        }
       }
     }
   ]

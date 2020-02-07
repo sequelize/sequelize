@@ -741,6 +741,85 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
+    it('supports non primary key attributes for joins for getting associations (sourceKey/targetKey)', function() {
+      const User = this.sequelize.define('User', {
+        userId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4
+        },
+        userSecondId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'user_second_id'
+        }
+      }, {
+        tableName: 'tbl_user',
+        indexes: [
+          {
+            unique: true,
+            fields: ['user_second_id']
+          }
+        ]
+      });
+
+      const Group = this.sequelize.define('Group', {
+        groupId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4
+        },
+        groupSecondId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'group_second_id'
+        }
+      }, {
+        tableName: 'tbl_group',
+        indexes: [
+          {
+            unique: true,
+            fields: ['group_second_id']
+          }
+        ]
+      });
+
+      User.belongsToMany(Group, { through: 'usergroups', sourceKey: 'userSecondId', targetKey: 'groupSecondId' });
+      Group.belongsToMany(User, { through: 'usergroups', sourceKey: 'groupSecondId', targetKey: 'userSecondId' });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.join(
+          User.create(),
+          User.create(),
+          Group.create(),
+          Group.create()
+        ).then(([user1, user2, group1, group2]) => {
+          return Promise.join(user1.addGroup(group1), user2.addGroup(group2))
+            .then(() => {
+              return Promise.join(
+                user1.getGroups(),
+                user2.getGroups(),
+                group1.getUsers(),
+                group2.getUsers()
+              );
+            }).then(([groups1, groups2, users1, users2]) => {
+              expect(groups1.length).to.be.equal(1);
+              expect(groups1[0].id).to.be.equal(group1.id);
+              expect(groups2.length).to.be.equal(1);
+              expect(groups2[0].id).to.be.equal(group2.id);
+              expect(users1.length).to.be.equal(1);
+              expect(users1[0].id).to.be.equal(user1.id);
+              expect(users2.length).to.be.equal(1);
+              expect(users2[0].id).to.be.equal(user2.id);
+            });
+        });
+      });
+    });
+
     it('supports non primary key attributes for joins (custom foreignKey)', function() {
       const User = this.sequelize.define('User', {
         id: {
@@ -1372,19 +1451,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
-    it('should count all associations', function() {
-      return expect(this.user.countTasks({})).to.eventually.equal(2);
+    it('should count all associations', async function() {
+      expect(await this.user.countTasks({})).to.equal(2);
     });
 
-    it('should count filtered associations', function() {
-      return expect(this.user.countTasks({
-        where: {
-          active: true
-        }
-      })).to.eventually.equal(1);
+    it('should count filtered associations', async function() {
+      expect(await this.user.countTasks({ where: { active: true } })).to.equal(1);
     });
 
-    it('should count scoped associations', function() {
+    it('should count scoped associations', async function() {
       this.User.belongsToMany(this.Task, {
         as: 'activeTasks',
         through: this.UserTask,
@@ -1393,12 +1468,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }
       });
 
-      return expect(this.user.countActiveTasks({})).to.eventually.equal(1);
+      expect(await this.user.countActiveTasks({})).to.equal(1);
     });
 
-    it('should count scoped through associations', function() {
-      const user = this.user;
-
+    it('should count scoped through associations', async function() {
       this.User.belongsToMany(this.Task, {
         as: 'startedTasks',
         through: {
@@ -1409,20 +1482,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }
       });
 
-      return Promise.join(
-        this.Task.create().then(task => {
-          return user.addTask(task, {
-            through: { started: true }
-          });
-        }),
-        this.Task.create().then(task => {
-          return user.addTask(task, {
-            through: { started: true }
-          });
-        })
-      ).then(() => {
-        return expect(user.countStartedTasks({})).to.eventually.equal(2);
-      });
+      for (let i = 0; i < 2; i++) {
+        await this.user.addTask(await this.Task.create(), {
+          through: { started: true }
+        });
+      }
+
+      expect(await this.user.countStartedTasks({})).to.equal(2);
     });
   });
 
