@@ -178,7 +178,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be able to include model with virtual attributes', function() {
-          return this.User.create({ 'id': 5 }).then(user => {
+          return this.User.create(dialect === 'db2' ? { id: 1 } : {}).then(user => {
             return user.createTask();
           }).then(() => {
             return this.Task.findAll({

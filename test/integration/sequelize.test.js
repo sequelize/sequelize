@@ -594,14 +594,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
+    const expected = dialect === 'db2' ? [{ FOO: 1, BAR: 2 }] : [{ foo: 1, bar: 2 }];
     it('uses properties `query` and `values` if query is tagged', function() {
       let logSql;
       return this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } }).then(result => {
-        if (dialect === 'db2') {
-          expect(result).to.deep.equal([{ FOO: 1, BAR: 2 }]);
-        } else {
-          expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
-        }
+        expect(result).to.deep.equal(expected);
         expect(logSql.indexOf('?')).to.equal(-1);
         expect(logSql).to.not.include('?');
       });
@@ -610,11 +607,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('uses properties `query` and `bind` if query is tagged', function() {
       let logSql;
       return this.sequelize.query({ query: `select $1${typeCast} as foo, $2${typeCast} as bar`, bind: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } }).then(result => {
-        if (dialect === 'db2') {
-          expect(result).to.deep.equal([{ FOO: 1, BAR: 2 }]);
-        } else {
-          expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
-        }
+        expect(result).to.deep.equal(expected);
         if (dialect === 'postgres' || dialect === 'sqlite') {
           expect(logSql).to.include('$1');
           expect(logSql).to.include('$2');
@@ -645,48 +638,31 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('replaces token with the passed array', function() {
       return this.sequelize.query('select ? as foo, ? as bar', { type: this.sequelize.QueryTypes.SELECT, replacements: [1, 2] }).then(result => {
-        if (dialect === 'db2') {
-          expect(result).to.deep.equal([{ FOO: 1, BAR: 2 }]);
-        } else {
-          expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
-        }
+        expect(result).to.deep.equal(expected);
       });
     });
 
     it('replaces named parameters with the passed object', function() {
-      if (dialect === 'db2') {
-        return expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
-          .to.eventually.deep.equal([{ FOO: 1, BAR: 2 }]);
-      }
       return expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
-        .to.eventually.deep.equal([{ foo: 1, bar: 2 }]);
+        .to.eventually.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object and ignore those which does not qualify', function() {
-      if (dialect === 'db2') {
-        return expect(this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
-          .to.eventually.deep.equal([{ FOO: 1, BAR: 2, BAZ: '00:00' }]);
-      }
+      const expected = dialect === 'db2' ? [{ FOO: 1, BAR: 2, BAZ: '00:00' }] : [{ foo: 1, bar: 2, baz: '00:00' }];
       return expect(this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
-        .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: '00:00' }]);
+        .to.eventually.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object using the same key twice', function() {
-      if (dialect === 'db2') {
-        return expect(this.sequelize.query('select :one as foo, :two as bar, :one as baz', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
-          .to.eventually.deep.equal([{ FOO: 1, BAR: 2, BAZ: 1 }]);
-      }
+      const expected = dialect === 'db2' ? [{ FOO: 1, BAR: 2, BAZ: 1 }] : [{ foo: 1, bar: 2, baz: 1 }];
       return expect(this.sequelize.query('select :one as foo, :two as bar, :one as baz', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
-        .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
+        .to.eventually.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object having a null property', function() {
-      if (dialect === 'db2') {
-        return expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: null } }).get(0))
-          .to.eventually.deep.equal([{ FOO: 1, BAR: null }]);
-      }
+      const expected = dialect === 'db2' ? [{ FOO: 1, BAR: null }] : [{ foo: 1, bar: null }];
       return expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: null } }).get(0))
-        .to.eventually.deep.equal([{ foo: 1, bar: null }]);
+        .to.eventually.deep.equal(expected);
     });
 
     it('reject when key is missing in the passed object', function() {
@@ -717,11 +693,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds token with the passed array', function() {
       let logSql;
       return this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) { logSql = s;} }).then(result => {
-        if (dialect === 'db2') {
-          expect(result).to.deep.equal([{ FOO: 1, BAR: 2 }]);
-        } else {
-          expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
-        }
+        expect(result).to.deep.equal(expected);
         if (dialect === 'postgres' || dialect === 'sqlite') {
           expect(logSql).to.include('$1');
         }
@@ -731,11 +703,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds named parameters with the passed object', function() {
       let logSql;
       return this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar`, { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } }).then(result => {
-        if (dialect === 'db2') {
-          expect(result[0]).to.deep.equal([{ FOO: 1, BAR: 2 }]);
-        } else {
-          expect(result[0]).to.deep.equal([{ foo: 1, bar: 2 }]);
-        }
+        expect(result[0]).to.deep.equal(expected);
         if (dialect === 'postgres') {
           expect(logSql).to.include('$1');
         }
@@ -747,7 +715,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     if (dialect !== 'db2') {
       it('binds named parameters with the passed object using the same key twice', function() {
-        const typeCast = dialect === 'postgres' ? '::int' : '';
         let logSql;
         return this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $one${typeCast} as baz`, { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } }).then(result => {
           expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
@@ -762,22 +729,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('binds named parameters with the passed object having a null property', function() {
       return this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar`, { raw: true, bind: { one: 1, two: null } }).then(result => {
-        if (dialect === 'db2') {
-          expect(result[0]).to.deep.equal([{ FOO: 1, BAR: null }]);
-        } else {
-          expect(result[0]).to.deep.equal([{ foo: 1, bar: null }]);
-        }
+        const expected = dialect === 'db2' ? [{ FOO: 1, BAR: null }] : [{ foo: 1, bar: null }];
+        expect(result[0]).to.deep.equal(expected);
       });
     });
 
     it('binds named parameters array handles escaped $$', function() {
       let logSql;
       return this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar`, { raw: true, bind: [1], logging(s) { logSql = s;} }).then(result => {
-        if (dialect === 'db2') {
-          expect(result[0]).to.deep.equal([{ FOO: 1, BAR: '$ / $1' }]);
-        } else {
-          expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $1' }]);
-        }
+        const expected = dialect === 'db2' ? [{ FOO: 1, BAR: '$ / $1' }] : [{ foo: 1, bar: '$ / $1' }];
+        expect(result[0]).to.deep.equal(expected);
         if (['postgres', 'sqlite', 'db2'].includes(dialect)) {
           expect(logSql).to.include('$1');
         }
@@ -786,11 +747,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('binds named parameters object handles escaped $$', function() {
       return this.sequelize.query(`select $one${typeCast} as foo, '$$ / $$one' as bar`, { raw: true, bind: { one: 1 } }).then(result => {
-        if (dialect === 'db2') {
-          expect(result[0]).to.deep.equal([{ FOO: 1, BAR: '$ / $one' }]);
-        } else {
-          expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $one' }]);
-        }
+        const expected = dialect === 'db2' ? [{ FOO: 1, BAR: '$ / $one' }] : [{ foo: 1, bar: '$ / $one' }];
+        expect(result[0]).to.deep.equal(expected);
       });
     });
 
@@ -1549,12 +1507,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             }).then(() => {
               return this.User.findAll({ transaction: this.transaction });
             }).then(users => {
-              if (dialect === 'db2') {
-                // SAVE commits in db2. There is no odbc API for save command.
-                expect(users).to.have.length(1);
-              } else {
-                expect(users).to.have.length(0);
-              }
+              // SAVE commits in db2. There is no odbc API for save command.
+              const len = dialect === 'db2' ? 1 : 0;
+              expect(users).to.have.length(len);
 
               return this.transaction.rollback();
             });
@@ -1620,11 +1575,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
                   return user.update({ username: 'bar' }, { transaction: t2 }).then(() => {
                     return t1.rollback().then(() => {
                       return User.findAll().then(users => {
-                        if (dialect === 'db2') {
-                          expect(users.length).to.equal(1);
-                        } else {
-                          expect(users.length).to.equal(0);
-                        }
+                        const len = dialect === 'db2' ? 1 : 0;
+                        expect(users.length).to.equal(len);
                       });
                     });
                   });

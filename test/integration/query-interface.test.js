@@ -541,11 +541,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('constraints', () => {
     beforeEach(function() {
-      this.User = this.sequelize.define('users', {
-        username: {type: DataTypes.STRING, allowNull: false },
-        email: { type: DataTypes.STRING, allowNull: false },
-        roles: DataTypes.STRING
-      });
+      if (dialect === 'db2') {
+        // Db2 does not allow unique constraint for a nullable column
+        this.User = this.sequelize.define('users', {
+          username: { type: DataTypes.STRING, allowNull: false },
+          email: { type: DataTypes.STRING, allowNull: false },
+          roles: DataTypes.STRING
+        });
+      } else {
+        this.User = this.sequelize.define('users', {
+          username: DataTypes.STRING,
+          email: { type: DataTypes.STRING, allowNull: false },
+          roles: DataTypes.STRING
+        });
+      }
 
       this.Post = this.sequelize.define('posts', {
         username: DataTypes.STRING

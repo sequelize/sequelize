@@ -2809,7 +2809,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
           return this.sequelize.sync({ force: true }).then(() => {
             return Promise.all([
-              Worker.create(),
+              dialect === 'db2' ? Worker.create({ id: 1 }) : Worker.create(),
               Task.bulkCreate([{}, {}]).then(() => {
                 return Task.findAll();
               })
@@ -2855,7 +2855,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         // Test setup
         return this.sequelize.sync({ force: true }).then(() => {
           return Sequelize.Promise.all([
-            Worker.create({}),
+            dialect === 'db2' ? Worker.create({ id: 1 }) : Worker.create({}),
             Task.bulkCreate([{}, {}, {}]).then(() => {
               return Task.findAll();
             })
@@ -2885,7 +2885,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         // Test setup
         return this.sequelize.sync({ force: true }).then(() => {
           return Sequelize.Promise.all([
-            Worker.create({}),
+            dialect === 'db2' ? Worker.create({ id: 1 }) : Worker.create({}),
             Task.bulkCreate([{}, {}, {}, {}, {}]).then(() => {
               return Task.findAll();
             })

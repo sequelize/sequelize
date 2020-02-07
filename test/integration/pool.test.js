@@ -100,11 +100,11 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
             connection = unwrapAndAttachMSSQLUniqueId(connection);
           }
 
-          // simulate an unexpected error
-          // should never be returned again
           if (dialect === 'db2') {
             sequelize.connectionManager.pool.destroy(connection);
           } else {
+            // simulate an unexpected error
+            // should never be returned again
             connection.emit('error', {
               code: 'ECONNRESET'
             });
