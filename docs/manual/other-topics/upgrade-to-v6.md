@@ -46,21 +46,6 @@ This method now tests for equality with [`_.isEqual`](https://lodash.com/docs/4.
   await instance.save(); // will save
 ```
 
-#### Finder methods with empty attributes
-
-Any attempt to execute a finder method with an empty array of attributes will now throw a helpful error. This is technically a breaking change because specifically on Postgres this did not throw. All other dialects gave SQL syntax errors, such as on SQLite for example:
-
-```js
-await User.findAll({ attributes: [] });
-
-// Previously:
-// DatabaseError [SequelizeDatabaseError]: SQLITE_ERROR: near "FROM": syntax error
-// sql: 'SELECT  FROM `Foos` AS `Foo`;'
-
-// Now:
-// QueryError [SequelizeQueryError]: Attempted a SELECT query for model 'Foo' (as `Foos`) without selecting any attributes.
-```
-
 ## Changelog
 
 ### 6.0.0-beta.4
