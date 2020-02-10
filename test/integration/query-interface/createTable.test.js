@@ -24,9 +24,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true
+        },
+        name: {
+          type: DataTypes.STRING
         }
       }).then(() => {
-        return this.queryInterface.insert(null, 'TableWithPK', {}, { raw: true, returning: true, plain: true })
+        // Db2 does not support VALUES(), so must have one value.
+        const values = dialect === 'db2' ? { name: 'abc' } : {};
+        return this.queryInterface.insert(null, 'TableWithPK', values, { raw: true, returning: true, plain: true })
           .then(([response]) => {
             expect(response.table_id || typeof response !== 'object' && response).to.be.ok;
           });

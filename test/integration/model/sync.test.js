@@ -126,7 +126,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not alter table if data type does not change', function() {
-      if (dialect === 'db2') { return; }
       const testSync = this.sequelize.define('testSync', {
         name: Sequelize.STRING,
         age: Sequelize.STRING

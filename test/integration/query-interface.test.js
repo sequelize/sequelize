@@ -28,7 +28,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.queryInterface.createSchema('newSchema');
       const newSchemaNames = await this.queryInterface.showAllSchemas();
       if (!current.dialect.supports.schemas) return;
-      if (dialect === 'db2') { return; }
       expect(newSchemaNames).to.have.length(schemaNames.length + 1);
       await this.queryInterface.dropSchema('newSchema');
     });
@@ -483,9 +482,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('constraints', () => {
     beforeEach(async function() {
       this.User = this.sequelize.define('users', {
-        // Db2 does not allow unique constraint for a nullable column
+        // Db2 does not allow unique constraint for a nullable column, Db2
+        // throws SQL0542N error if we create constraint on nullable column.
         username: dialect === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
-        email: DataTypes.STRING,
+        email: dialect === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
         roles: DataTypes.STRING
       });
 
