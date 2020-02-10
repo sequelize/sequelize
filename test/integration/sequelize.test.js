@@ -235,13 +235,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         }
       });
 
-      this.insertQuery = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
-        qq('createdAt')  }, ${qq('updatedAt')
-      }) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+      this.insertQuery = `INSERT INTO ${qq(this.User.tableName)}
+        (username, email_address, ${ qq('createdAt')  }, ${qq('updatedAt')}
+        ) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
       if (dialect === 'db2') {
         this.insertQuery = `INSERT INTO ${qq(this.User.tableName)}
-          ("username", "email_address", ${ qq('createdAt') }, ${qq('updatedAt')
-}) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+          ("username", "email_address", ${ qq('createdAt') }, ${qq('updatedAt')}          ) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
       }
 
       return this.User.sync({ force: true });
@@ -295,11 +294,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             ]
           }
         }))).to.be.rejectedWith(Sequelize.UniqueConstraintError).then(() => {
-          if (dialect === 'db2') {
-            expect(spy.callCount).to.be.gte(1);
-          } else {
-            expect(spy.callCount).to.eql(3);
-          }
+          expect(spy.callCount).to.eql(dialect === 'db2' ? 1 : 3);
         });
       });
     });
@@ -599,7 +594,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let logSql;
       return this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { type: this.sequelize.QueryTypes.SELECT, logging(s) { logSql = s; } }).then(result => {
         expect(result).to.deep.equal(expected);
-        expect(logSql.indexOf('?')).to.equal(-1);
         expect(logSql).to.not.include('?');
       });
     });
@@ -1507,7 +1501,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             }).then(() => {
               return this.User.findAll({ transaction: this.transaction });
             }).then(users => {
-              // SAVE commits in db2. There is no odbc API for save command.
+              // SAVE TRANSACTION command commits for db2.
+              // There is no odbc API for save command.
+              // Db2 does not support nested transaction. So, save transaction
+              // is getting translated into commit and begin transaction.
               const len = dialect === 'db2' ? 1 : 0;
               expect(users).to.have.length(len);
 
@@ -1575,6 +1572,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
                   return user.update({ username: 'bar' }, { transaction: t2 }).then(() => {
                     return t1.rollback().then(() => {
                       return User.findAll().then(users => {
+                        // Db2 does not support nested transaction.
                         const len = dialect === 'db2' ? 1 : 0;
                         expect(users.length).to.equal(len);
                       });
