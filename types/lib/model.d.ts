@@ -684,17 +684,7 @@ export interface Hookable {
 /**
  * Options for Model.findOrCreate method
  */
-export interface FindOrCreateOptions extends Logging, Transactionable {
-  /**
-   * A hash of search attributes.
-   */
-  where: WhereOptions;
-
-  /**
-   * Default values to use if building a new instance
-   */
-  defaults?: object;
-}
+export type FindOrCreateOptions = FindOptions & CreateOptions
 
 /**
  * Options for Model.upsert method
