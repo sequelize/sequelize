@@ -63,3 +63,13 @@ sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW }).then(result =>
   const arraysOnly = (a: any[]) => a;
   arraysOnly(data);
 });
+
+sequelize
+  .query("SELECT COUNT(1) as count FROM `user`", {
+    type: QueryTypes.SELECT,
+    plain: true
+  })
+  .then(result => {
+    const oneRowOnly = (a: any) => a;
+    oneRowOnly(result);
+  });
