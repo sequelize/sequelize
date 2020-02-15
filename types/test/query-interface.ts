@@ -53,7 +53,7 @@ queryInterface.dropTable('nameOfTheExistingTable');
 
 queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
 
-queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
+const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
 
 queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar', as: 'baz', name: 'quz' }, {}, {});
 
@@ -181,3 +181,5 @@ queryInterface.delete(null, 'Person', {
 });
 
 queryInterface.upsert("test", {"a": 1}, {"b": 2}, {"c": 3}, Model, {});
+
+queryInterface.insert(null, 'test', {});
