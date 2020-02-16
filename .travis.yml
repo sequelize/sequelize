@@ -71,6 +71,10 @@ jobs:
       node_js: '10'
       sudo: required
       env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres-native
+    - stage: test
+      node_js: '10'
+      sudo: required
+      env: DB2_VER=db2 SEQ_DB2_PORT=50000 DIALECT=db2
     - stage: release
       node_js: '10'
       script:
