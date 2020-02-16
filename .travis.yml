@@ -29,10 +29,11 @@ before_script:
   # setup docker
   - "if [ $MARIADB_VER ]; then export MARIADB_ENTRYPOINT=$TRAVIS_BUILD_DIR/test/config/mariadb; fi"
   - "if [ $MYSQL_VER ]; then export MYSQLDB_ENTRYPOINT=$TRAVIS_BUILD_DIR/test/config/mysql; fi"
-  - "if [ $POSTGRES_VER ] || [ $MARIADB_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MARIADB_VER} ${MYSQL_VER}; fi"
+  - "if [ $POSTGRES_VER ] || [ $MARIADB_VER ] || [ $MYSQL_VER ] || [$DB2_VER]; then docker-compose up -d ${POSTGRES_VER} ${MARIADB_VER} ${MYSQL_VER} ${DB2_VER}; fi"
   - "if [ $MARIADB_VER ]; then docker run --link ${MARIADB_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
+  - "if [ $DB2_VER ]; then docker run --link ${DB2_VER}:db -e CHECK_PORT=50000 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
 
 script:
   - |-
