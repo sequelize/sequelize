@@ -75,7 +75,7 @@ jobs:
     - stage: test
       node_js: '10'
       sudo: required
-      env: DB2_VER=db2 SEQ_DB2_PORT=50000 DIALECT=db2
+      env: DB2_VER=db2 SEQ_DB2_DB=testdb SEQ_DB2_USER=db2inst1 SEQ_DB2_PW=db2inst1 SEQ_DB2_PORT=50000 DIALECT=db2
     - stage: release
       node_js: '10'
       script:
