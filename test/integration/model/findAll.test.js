@@ -60,6 +60,38 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should throw on an attempt to fetch no attributes', function() {
+      return expect(this.User.findAll({ attributes: [] })).to.be.rejectedWith(
+        Sequelize.QueryError,
+        /^Attempted a SELECT query.+without selecting any columns$/
+      );
+    });
+
+    it('should not throw if overall attributes are nonempty', function() {
+      const Post = this.sequelize.define('Post', { foo: DataTypes.STRING });
+      const Comment = this.sequelize.define('Comment', { bar: DataTypes.STRING });
+      Post.hasMany(Comment, { as: 'comments' });
+      return Post.sync({ force: true })
+        .then(() => Comment.sync({ force: true }))
+        .then(() => {
+          // Should not throw in this case, even
+          // though `attributes: []` is set for the main model
+          return Post.findAll({
+            raw: true,
+            attributes: [],
+            include: [
+              {
+                model: Comment,
+                as: 'comments',
+                attributes: [
+                  [Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'commentCount']
+                ]
+              }
+            ]
+          });
+        });
+    });
+
     describe('special where conditions/smartWhere object', () => {
       beforeEach(function() {
         this.buf = Buffer.alloc(16);
