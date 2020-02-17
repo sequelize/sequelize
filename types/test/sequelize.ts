@@ -65,11 +65,18 @@ sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW }).then(result =>
 });
 
 sequelize
-  .query("SELECT COUNT(1) as count FROM `user`", {
+  .query<{ count: number }>("SELECT COUNT(1) as count FROM `user`", {
     type: QueryTypes.SELECT,
     plain: true
   })
   .then(result => {
-    const oneRowOnly = (a: any) => a;
-    oneRowOnly(result);
+    result.count.toExponential(); // is a number!
+  });
+
+sequelize
+  .query("SELECT COUNT(1) as count FROM `user`", {
+    plain: true
+  })
+  .then(result => {
+    console.log(result.count);
   });
