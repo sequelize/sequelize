@@ -172,7 +172,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (current.dialect.supports.operator) {
+    if (current.dialect.supports.index.operator) {
       it('operator with multiple fields', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['column1', 'column2'],
