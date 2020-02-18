@@ -1217,7 +1217,9 @@ export class Sequelize extends Hooks {
     sql: string | { query: string; values: unknown[] },
     options: QueryOptionsWithModel
   ): Promise<M[]>;
+  public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T>;
   public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
+  public query(sql: string | { query: string; values: unknown[] }, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown }>;
   public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
 
   /**
@@ -1450,7 +1452,7 @@ export function or(...args: (WhereOperators | WhereAttributeHash | Where)[]): Or
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
 export type AttributeType = Fn | Col | Literal | ModelAttributeColumnOptions | string;
-export type LogicType = Fn | Col | Literal | OrOperator | AndOperator | WhereOperators | string;
+export type LogicType = Fn | Col | Literal | OrOperator | AndOperator | WhereOperators | string | symbol | null;
 
 /**
  * A way of specifying attr = condition.
@@ -1470,7 +1472,7 @@ export type LogicType = Fn | Col | Literal | OrOperator | AndOperator | WhereOpe
  * @param logic The condition. Can be both a simply type, or a further condition (`.or`, `.and`, `.literal`
  *   etc.)
  */
-export function where(attr: AttributeType, comparator: string, logic: LogicType): Where;
+export function where(attr: AttributeType, comparator: string | symbol, logic: LogicType): Where;
 export function where(attr: AttributeType, logic: LogicType): Where;
 
 export default Sequelize;
