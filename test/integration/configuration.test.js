@@ -45,13 +45,6 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
     });
 
     it('when we don\'t have the correct login information', () => {
-      if (dialect === 'mssql') {
-        // NOTE: Travis seems to be having trouble with this test against the
-        //       AWS instance. Works perfectly fine on a local setup.
-        expect(true).to.be.true;
-        return;
-      }
-
       const seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', { logging: false, host: config[dialect].host, port: 1, dialect });
       if (dialect === 'sqlite') {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
