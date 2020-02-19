@@ -225,7 +225,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }, 'level', {
             name: 'name',
             operator: 'varchar_pattern_ops'
-          }]
+          }],
+          using: 'btree'
         }), {
           postgres: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)'
         });
