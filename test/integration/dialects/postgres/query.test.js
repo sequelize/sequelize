@@ -63,5 +63,52 @@ if (dialect.match(/^postgres/)) {
         expect(res[taskAlias].title).to.be.equal('SuperTask');
       });
     });
+
+    it('should throw due to table name being truncated', () => {
+      const sequelize = Support.createSequelizeInstance({ minifyAliases: true });
+
+      const User = sequelize.define('user_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
+        {
+          name: DataTypes.STRING,
+          email: DataTypes.STRING
+        },
+        {
+          tableName: 'user'
+        }
+      );
+      const Project = sequelize.define('project_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
+        {
+          name: DataTypes.STRING
+        },
+        {
+          tableName: 'project'
+        }
+      );
+      const Company = sequelize.define('company_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
+        {
+          name: DataTypes.STRING
+        },
+        {
+          tableName: 'company'
+        }
+      );
+      User.hasMany(Project, { foreignKey: 'userId' });
+      Project.belongsTo(Company, { foreignKey: 'companyId' });
+
+      return sequelize.sync({ force: true }).then(() => {
+        return Company.create({ name: 'Sequelize' }).then(comp => {
+          return User.create({ name: 'standard user' }).then(user => {
+            return Project.create({ name: 'Manhattan', companyId: comp.id, userId: user.id }).then(() => {
+              return User.findAll({
+                include: {
+                  model: Project,
+                  include: Company
+                }
+              });
+            });
+          });
+        });
+      });
+    });
   });
 }
