@@ -171,9 +171,9 @@ export interface IndexesOptions {
    * An array of the fields to index. Each field can either be a string containing the name of the field,
    * a sequelize object (e.g `sequelize.fn`), or an object with the following attributes: `name`
    * (field name), `length` (create a prefix index of length chars), `order` (the direction the column
-   * should be sorted in), `collate` (the collation (sort order) for the column)
+   * should be sorted in), `collate` (the collation (sort order) for the column), `operator` (likes IndexesOptions['operator'])
    */
-  fields?: (string | { name: string; length?: number; order?: 'ASC' | 'DESC'; collate?: string })[];
+  fields?: (string | { name: string; length?: number; order?: 'ASC' | 'DESC'; collate?: string; operator?: string })[];
 
   /**
    * The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and
