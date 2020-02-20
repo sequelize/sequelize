@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { model: User, where: { something: 42 } }
       ]
     },
-    chainableSomething() {
+    chainableSomethingAnding() {
       return {
         where: {
           [Op.and]: {
@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       };
     },
-    chainableSomethingElse() {
+    chainableSomethingElseAnding() {
       return {
         where: {
           [Op.and]: {
@@ -62,6 +62,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               [Op.lte]: 15
             }
           }
+        }
+      };
+    },
+    chainableSomething() {
+      return {
+        where: {
+
+          something: {
+            [Op.gte]: 4
+          }
+
+        }
+      };
+    },
+    chainableSomethingElse() {
+      return {
+        where: {
+
+          something: {
+            [Op.lte]: 15
+          }
+
         }
       };
     },
@@ -143,18 +165,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('chaining scopes', () => {
-      expect(Company.scope([{ method: ['chainableSomething'] }, { method: ['chainableSomethingElse'] }])._scope.where[Op.and]).to.deep.equal([
-        {
-          something: {
-            [Op.gte]: 4
+
+      it('chains scopes defined on AND', () => {
+        expect(Company.scope([{ method: ['chainableSomethingAnding'] }, { method: ['chainableSomethingElseAnding'] }])._scope.where[Op.and]).to.deep.equal([
+          {
+            something: {
+              [Op.gte]: 4
+            }
+          },
+          {
+            something: {
+              [Op.lte]: 15
+            }
           }
-        },
-        {
-          something: {
-            [Op.lte]: 15
-          }
-        }
-      ]);
+        ]);
+      });
+
+      it('chains scopes defined on field name', () => {
+        expect(Company.scope([{ method: ['chainableSomething'] }, { method: ['chainableSomethingElse'] }])._scope.where.something).to.deep.equal([
+          { [Op.gte]: 4 },
+          { [Op.lte]: 15 }
+        ]);
+      });
+
     });
 
     it('defaultScope should be an empty object if not overridden', () => {
