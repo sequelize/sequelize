@@ -13,9 +13,12 @@ if (dialect === 'sqlite') {
         name: DataTypes.STRING
       });
       return Vulnerability.sync({ force: true }).then(() => {
-        return expect(
-          Vulnerability.create({ name: 'SELECT tbl_name FROM sqlite_master' })
-        ).to.eventually.be.rejected;
+        // Before #11862 was fixed, the following call would crash the process.
+        // Here we test that this is no longer the case - the promise should settle properly.
+        // Ideally it should resolve, of course (not reject!), but from the point of view of the
+        // security issue, rejecting the promise is by far not as bad as crashing the process.
+        return Vulnerability.create({ name: 'SELECT tbl_name FROM sqlite_master' }).catch(() => {});
+        // Note that in Sequelize v5+, the above call behaves correctly (resolves).
       });
     });
   });
