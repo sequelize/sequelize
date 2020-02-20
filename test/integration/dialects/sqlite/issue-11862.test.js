@@ -1,8 +1,6 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
+const Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect(),
   DataTypes = require(__dirname + '/../../../../lib/data-types');
 
