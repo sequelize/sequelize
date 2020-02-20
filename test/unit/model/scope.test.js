@@ -100,6 +100,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       include: [Project],
       where: { active: true }
     },
+    enableExtendedScopeWhereMerges: true,
     scopes
   });
 
