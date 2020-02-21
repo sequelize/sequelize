@@ -83,81 +83,106 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('.scope', () => {
     describe('chaining scopes', () => {
-      // TODO: Add test covering enableExtendedScopeWhereMerges option
-      const User = current.define('user', {
-        password: DataTypes.STRING,
-        value: DataTypes.INTEGER,
-        name: DataTypes.STRING
-      }, {
-        enableExtendedScopeWhereMerges: true,
-        scopes: {
-          andSomething() {
-            return {
-              where: {
-                [Op.and]: {
-                  something: {
-                    [Op.gte]: 4
-                  }
-                }
-              }
-            };
-          },
-          andSomethingElse() {
-            return {
-              where: {
-                [Op.and]: {
-                  something: {
-                    [Op.lte]: 15
-                  }
-                }
-              }
-            };
-          },
-          something() {
-            return {
-              where: {
+      const scopes = {
+        andSomething() {
+          return {
+            where: {
+              [Op.and]: {
                 something: {
                   [Op.gte]: 4
                 }
-
               }
-            };
-          },
-          somethingElse() {
-            return {
-              where: {
-
+            }
+          };
+        },
+        andSomethingElse() {
+          return {
+            where: {
+              [Op.and]: {
                 something: {
                   [Op.lte]: 15
                 }
-
               }
-            };
-          }
+            }
+          };
+        },
+        something() {
+          return {
+            where: {
+              something: {
+                [Op.gte]: 4
+              }
+
+            }
+          };
+        },
+        somethingElse() {
+          return {
+            where: {
+
+              something: {
+                [Op.lte]: 15
+              }
+
+            }
+          };
         }
+      };
+
+      describe('when enableExtendedScopeWhereMerges option is false or not set explicitly', () => {
+        const User = current.define('user', {
+          password: DataTypes.STRING,
+          value: DataTypes.INTEGER,
+          name: DataTypes.STRING
+        }, {
+          scopes
+        });
+
+        it('should not merge scopes and apply only the last scope', () => {
+          expect(User.scope([{ method: ['andSomething'] }, { method: ['andSomethingElse'] }])._scope.where[Op.and]).to.deep.equal(
+            {
+              something: {
+                [Op.lte]: 15
+              }
+            }
+          );
+        });
       });
 
-      it('chains scopes defined on AND', () => {
-        expect(User.scope([{ method: ['andSomething'] }, { method: ['andSomethingElse'] }])._scope.where[Op.and]).to.deep.equal([
-          {
-            something: {
-              [Op.gte]: 4
+      describe('when enableExtendedScopeWhereMerges is true', () => {
+        const User = current.define('user', {
+          password: DataTypes.STRING,
+          value: DataTypes.INTEGER,
+          name: DataTypes.STRING
+        }, {
+          enableExtendedScopeWhereMerges: true,
+          scopes
+        });
+
+        it('should merge scopes defined on AND', () => {
+          expect(User.scope([{ method: ['andSomething'] }, { method: ['andSomethingElse'] }])._scope.where[Op.and]).to.deep.equal([
+            {
+              something: {
+                [Op.gte]: 4
+              }
+            },
+            {
+              something: {
+                [Op.lte]: 15
+              }
             }
-          },
-          {
-            something: {
-              [Op.lte]: 15
-            }
-          }
-        ]);
+          ]);
+        });
+
+        it('should merge scopes defined on field name', () => {
+          expect(User.scope([{ method: ['something'] }, { method: ['somethingElse'] }])._scope.where.something).to.deep.equal([
+            { [Op.gte]: 4 },
+            { [Op.lte]: 15 }
+          ]);
+        });
       });
 
-      it('chains scopes defined on field name', () => {
-        expect(User.scope([{ method: ['something'] }, { method: ['somethingElse'] }])._scope.where.something).to.deep.equal([
-          { [Op.gte]: 4 },
-          { [Op.lte]: 15 }
-        ]);
-      });
+
 
     });
 
