@@ -25,10 +25,10 @@ build: off
 
 before_test:
   - ps: . .\scripts\appveyor-setup.ps1
+  - ps: 'Get-ChildItem env:'
 
 test_script:
-  - 'Get-ChildItem env:'
-  #- 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
+  - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
 
 after_test:
   - ps: |
