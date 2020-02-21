@@ -43,50 +43,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { model: User, where: { something: 42 } }
       ]
     },
-    chainableSomethingAnding() {
-      return {
-        where: {
-          [Op.and]: {
-            something: {
-              [Op.gte]: 4
-            }
-          }
-        }
-      };
-    },
-    chainableSomethingElseAnding() {
-      return {
-        where: {
-          [Op.and]: {
-            something: {
-              [Op.lte]: 15
-            }
-          }
-        }
-      };
-    },
-    chainableSomething() {
-      return {
-        where: {
-
-          something: {
-            [Op.gte]: 4
-          }
-
-        }
-      };
-    },
-    chainableSomethingElse() {
-      return {
-        where: {
-
-          something: {
-            [Op.lte]: 15
-          }
-
-        }
-      };
-    },
 
     projects: {
       include: [Project]
@@ -122,11 +78,89 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       include: [Project],
       where: { active: true }
     },
-    enableExtendedScopeWhereMerges: true,
     scopes
   });
 
   describe('.scope', () => {
+    describe('chaining scopes', () => {
+      // TODO: Add test covering enableExtendedScopeWhereMerges option
+      const User = current.define('user', {
+        password: DataTypes.STRING,
+        value: DataTypes.INTEGER,
+        name: DataTypes.STRING
+      }, {
+        enableExtendedScopeWhereMerges: true,
+        scopes: {
+          andSomething() {
+            return {
+              where: {
+                [Op.and]: {
+                  something: {
+                    [Op.gte]: 4
+                  }
+                }
+              }
+            };
+          },
+          andSomethingElse() {
+            return {
+              where: {
+                [Op.and]: {
+                  something: {
+                    [Op.lte]: 15
+                  }
+                }
+              }
+            };
+          },
+          something() {
+            return {
+              where: {
+                something: {
+                  [Op.gte]: 4
+                }
+
+              }
+            };
+          },
+          somethingElse() {
+            return {
+              where: {
+
+                something: {
+                  [Op.lte]: 15
+                }
+
+              }
+            };
+          }
+        }
+      });
+
+      it('chains scopes defined on AND', () => {
+        expect(User.scope([{ method: ['andSomething'] }, { method: ['andSomethingElse'] }])._scope.where[Op.and]).to.deep.equal([
+          {
+            something: {
+              [Op.gte]: 4
+            }
+          },
+          {
+            something: {
+              [Op.lte]: 15
+            }
+          }
+        ]);
+      });
+
+      it('chains scopes defined on field name', () => {
+        expect(User.scope([{ method: ['something'] }, { method: ['somethingElse'] }])._scope.where.something).to.deep.equal([
+          { [Op.gte]: 4 },
+          { [Op.lte]: 15 }
+        ]);
+      });
+
+    });
+
     describe('attribute exclude / include', () => {
       const User = current.define('user', {
         password: DataTypes.STRING,
@@ -162,32 +196,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should not modify the original scopes when merging them', () => {
         expect(User.scope('defaultScope', 'aScope').options.defaultScope.attributes).to.deep.equal({ exclude: ['password'] });
       });
-    });
-
-    describe('chaining scopes', () => {
-
-      it('chains scopes defined on AND', () => {
-        expect(Company.scope([{ method: ['chainableSomethingAnding'] }, { method: ['chainableSomethingElseAnding'] }])._scope.where[Op.and]).to.deep.equal([
-          {
-            something: {
-              [Op.gte]: 4
-            }
-          },
-          {
-            something: {
-              [Op.lte]: 15
-            }
-          }
-        ]);
-      });
-
-      it('chains scopes defined on field name', () => {
-        expect(Company.scope([{ method: ['chainableSomething'] }, { method: ['chainableSomethingElse'] }])._scope.where.something).to.deep.equal([
-          { [Op.gte]: 4 },
-          { [Op.lte]: 15 }
-        ]);
-      });
-
     });
 
     it('defaultScope should be an empty object if not overridden', () => {
