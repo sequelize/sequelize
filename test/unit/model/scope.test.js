@@ -126,6 +126,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
             }
           };
+        },
+        somethingNoOperator() {
+          return {
+            where: {
+              something: 4
+            }
+          };
+        },
+        somethingElseNoOperator() {
+          return {
+            where: {
+              something: 5
+            }
+          };
         }
       };
 
@@ -139,10 +153,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should not merge scopes and apply only the last scope', () => {
-          expect(User.scope([{ method: ['andSomething'] }, { method: ['andSomethingElse'] }])._scope.where[Op.and]).to.deep.equal(
+          expect(User.scope([{ method: ['andSomething'] }, { method: ['andSomethingElse'] }])._scope).to.deep.equal(
             {
-              something: {
-                [Op.lte]: 15
+              where: {
+                [Op.and]: {
+                  something: {
+                    [Op.lte]: 15
+                  }
+                }
               }
             }
           );
@@ -160,25 +178,48 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should merge scopes defined on AND', () => {
-          expect(User.scope([{ method: ['andSomething'] }, { method: ['andSomethingElse'] }])._scope.where[Op.and]).to.deep.equal([
-            {
-              something: {
-                [Op.gte]: 4
-              }
-            },
-            {
-              something: {
-                [Op.lte]: 15
-              }
+          expect(User.scope([{ method: ['andSomething'] }, { method: ['andSomethingElse'] }])._scope).to.deep.equal({
+            where: {
+              [Op.and]: [
+                {
+                  something: {
+                    [Op.gte]: 4
+                  }
+                },
+                {
+                  something: {
+                    [Op.lte]: 15
+                  }
+                }
+              ]
             }
-          ]);
+          });
         });
 
         it('should merge scopes defined on field name', () => {
-          expect(User.scope([{ method: ['something'] }, { method: ['somethingElse'] }])._scope.where.something).to.deep.equal([
-            { [Op.gte]: 4 },
-            { [Op.lte]: 15 }
-          ]);
+          expect(User.scope([{ method: ['something'] }, { method: ['somethingElse'] }])._scope).to.deep.equal({
+            where: {
+              something: {
+                [Op.and]: [
+                  { [Op.gte]: 4 },
+                  { [Op.lte]: 15 }
+                ]
+              }
+            }
+          });
+        });
+
+        it('should merge scopes defined on field name without operators', () => {
+          expect(User.scope([{ method: ['somethingNoOperator'] }, { method: ['somethingElseNoOperator'] }])._scope).to.deep.equal({
+            where: {
+              something: {
+                [Op.and]: [
+                  { [Op.eq]: 4 },
+                  { [Op.eq]: 15 }
+                ]
+              }
+            }
+          });
         });
       });
 
