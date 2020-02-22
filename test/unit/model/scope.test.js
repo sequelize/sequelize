@@ -148,6 +148,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       inspect.defaultOptions.showHidden = true;
       inspect.defaultOptions.depth = null;
 
+      // TODO: Add more tests covering different cases
+
       describe('when enableExtendedScopeWhereMerges option is false or not set explicitly', () => {
         const User = current.define('user', {
           password: DataTypes.STRING,
