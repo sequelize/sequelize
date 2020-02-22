@@ -8,6 +8,8 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types'),
   current   = Support.sequelize;
 
+const { inspect } = require('util');
+
 describe(Support.getTestDialectTeaser('Model'), () => {
   const Project = current.define('project'),
     User = current.define('user');
@@ -137,11 +139,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         somethingElseNoOperator() {
           return {
             where: {
-              something: 5
+              something: 15
             }
           };
         }
       };
+
+      inspect.defaultOptions.showHidden = true;
+      inspect.defaultOptions.depth = null;
 
       describe('when enableExtendedScopeWhereMerges option is false or not set explicitly', () => {
         const User = current.define('user', {
@@ -153,16 +158,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should not merge scopes and apply only the last scope', () => {
-          expect(User.scope([{ method: ['andSomething'] }, { method: ['andSomethingElse'] }])._scope).to.deep.equal(
-            {
-              where: {
-                [Op.and]: {
-                  something: {
-                    [Op.lte]: 15
+          expect(
+            inspect(
+              User.scope([
+                { method: ['andSomething'] },
+                { method: ['andSomethingElse'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  [Op.and]: {
+                    something: {
+                      [Op.lte]: 15
+                    }
                   }
                 }
               }
-            }
+            )
           );
         });
       });
@@ -178,7 +192,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should merge scopes defined on AND', () => {
-          expect(User.scope([{ method: ['andSomething'] }, { method: ['andSomethingElse'] }])._scope).to.deep.equal({
+
+          expect(
+            inspect(
+              User.scope([
+                { method: ['andSomething'] },
+                { method: ['andSomethingElse'] }
+              ])._scope
+            )
+          ).to.equal(inspect({
             where: {
               [Op.and]: [
                 {
@@ -193,38 +215,57 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 }
               ]
             }
-          });
+          }));
         });
 
         it('should merge scopes defined on field name', () => {
-          expect(User.scope([{ method: ['something'] }, { method: ['somethingElse'] }])._scope).to.deep.equal({
-            where: {
-              something: {
-                [Op.and]: [
-                  { [Op.gte]: 4 },
-                  { [Op.lte]: 15 }
-                ]
+
+          expect(
+            inspect(
+              User.scope([
+                { method: ['something'] },
+                { method: ['somethingElse'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      { [Op.gte]: 4 },
+                      { [Op.lte]: 15 }
+                    ]
+                  }
+                }
               }
-            }
-          });
+            ));
         });
 
         it('should merge scopes defined on field name without operators', () => {
-          expect(User.scope([{ method: ['somethingNoOperator'] }, { method: ['somethingElseNoOperator'] }])._scope).to.deep.equal({
-            where: {
-              something: {
-                [Op.and]: [
-                  { [Op.eq]: 4 },
-                  { [Op.eq]: 15 }
-                ]
+          expect(
+            inspect(
+              User.scope([
+                { method: ['somethingNoOperator'] },
+                { method: ['somethingElseNoOperator'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      { [Op.eq]: 4 },
+                      { [Op.eq]: 15 }
+                    ]
+                  }
+                }
               }
-            }
-          });
+            )
+          );
         });
       });
-
-
-
     });
 
     describe('attribute exclude / include', () => {
