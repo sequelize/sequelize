@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           };
         },
-        andSomethingElse() {
+        andSomethingAnotherCondition() {
           return {
             where: {
               [Op.and]: {
@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           };
         },
-        somethingElse() {
+        somethingAnotherCondition() {
           return {
             where: {
 
@@ -132,14 +132,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         somethingNoOperator() {
           return {
             where: {
-              something: 4
+              something: 13
             }
           };
         },
-        somethingElseNoOperator() {
+        somethingAnotherConditionNoOperator() {
           return {
             where: {
-              something: 15
+              something: 8
+            }
+          };
+        },
+        somethingMixed() {
+          return {
+            where: {
+              something: {
+                [Op.and]: [
+                  { [Op.gte]: 18 },
+                  { [Op.lte]: 45 }
+                ],
+                [Op.gte]: 11
+              }
             }
           };
         }
@@ -153,7 +166,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('when enableExtendedScopeWhereMerges option is false or not set explicitly', () => {
         const User = current.define('user', {
           password: DataTypes.STRING,
-          value: DataTypes.INTEGER,
+          something: DataTypes.INTEGER,
           name: DataTypes.STRING
         }, {
           scopes
@@ -164,7 +177,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             inspect(
               User.scope([
                 { method: ['andSomething'] },
-                { method: ['andSomethingElse'] }
+                { method: ['andSomethingAnotherCondition'] }
               ])._scope
             )
           ).to.equal(
@@ -199,7 +212,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             inspect(
               User.scope([
                 { method: ['andSomething'] },
-                { method: ['andSomethingElse'] }
+                { method: ['andSomethingAnotherCondition'] }
               ])._scope
             )
           ).to.equal(inspect({
@@ -226,7 +239,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             inspect(
               User.scope([
                 { method: ['something'] },
-                { method: ['somethingElse'] }
+                { method: ['somethingAnotherCondition'] }
               ])._scope
             )
           ).to.equal(
@@ -245,11 +258,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should merge scopes defined on field name without operators', () => {
+          // Not a very helpful feature because obviously the resulting query is mutually exclusive
+          // but that's more a question to the end user of why she would use it.
+          // Better to keep it like this just for consistency.
+          // For the future maybe it worth raising kind of warning here.
           expect(
             inspect(
               User.scope([
                 { method: ['somethingNoOperator'] },
-                { method: ['somethingElseNoOperator'] }
+                { method: ['somethingAnotherConditionNoOperator'] }
               ])._scope
             )
           ).to.equal(
@@ -258,10 +275,100 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 where: {
                   something: {
                     [Op.and]: [
-                      { [Op.eq]: 4 },
-                      { [Op.eq]: 15 }
+                      { [Op.eq]: 13 },
+                      { [Op.eq]: 8 }
                     ]
                   }
+                }
+              }
+            )
+          );
+        });
+
+        it('should merge scope defined on field name without operators with another scope defined with operartor', () => {
+          expect(
+            inspect(
+              User.scope([
+                { method: ['somethingNoOperator'] },
+                { method: ['something'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      { [Op.eq]: 13 },
+                      { [Op.gte]: 4 }
+                    ]
+                  }
+                }
+              }
+            )
+          );
+        });
+
+        it('should merge scopes defined in mixed style', () => {
+          expect(
+            inspect(
+              User.scope([
+                { method: ['something'] },
+                { method: ['somethingMixed'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      { [Op.gte]: 4 },
+                      { [Op.gte]: 18 },
+                      { [Op.lte]: 45 },
+                      { [Op.gte]: 11 }
+                    ]
+                  }
+                }
+              }
+            )
+          );
+        });
+
+        it('should merge scopes defined in different style', () => {
+          expect(
+            inspect(
+              User.scope([
+                { method: ['andSomething'] },
+                { method: ['andSomethingAnotherCondition'] },
+                { method: ['somethingNoOperator'] },
+                { method: ['something'] },
+                { method: ['somethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      { [Op.eq]: 13 },
+                      { [Op.gte]: 4 },
+                      { [Op.lte]: 15 }
+                    ]
+                  },
+                  [Op.and]: [
+                    {
+                      something: {
+                        [Op.gte]: 4
+                      }
+                    },
+                    {
+                      something: {
+                        [Op.lte]: 15
+                      }
+                    }
+                  ]
                 }
               }
             )
