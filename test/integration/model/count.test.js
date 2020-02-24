@@ -109,6 +109,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
+    it('should be able to specify NO column for COUNT() with DISTINCT', function() {
+      return this.User.bulkCreate([
+        { username: 'ember', age: 10 },
+        { username: 'angular', age: 20 },
+        { username: 'mithril', age: 10 }
+      ]).then(() => {
+        return this.User.count({
+          distinct: true
+        });
+      })
+        .then(count => {
+          expect(count).to.be.eql(3);
+        });
+    });
+
     it('should be able to use where clause on included models', function() {
       const countOptions = {
         col: 'username',
