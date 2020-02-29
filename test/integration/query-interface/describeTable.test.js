@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
           expect(id.primaryKey).to.be.true;
 
-          if (['mysql', 'mssql'].includes(dialect)) {
+          if (['mysql', 'mssql', 'db2'].includes(dialect)) {
             expect(id.autoIncrement).to.be.true;
           }
 
@@ -89,6 +89,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               break;
             case 'mssql':
               assertVal = 'NVARCHAR(255)';
+              break;
+            case 'db2':
+              assertVal = 'VARCHAR';
               break;
           }
           expect(username.type).to.equal(assertVal);
@@ -111,6 +114,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           assertVal = 'TINYINT(1)';
           switch (dialect) {
             case 'postgres':
+            case 'db2':
               assertVal = 'BOOLEAN';
               break;
             case 'mssql':

@@ -62,7 +62,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('upsert', () => {
       it('works with upsert on id', function() {
         return this.User.upsert({ id: 42, username: 'john' }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).to.be.ok;
@@ -71,7 +71,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.clock.tick(1000);
           return this.User.upsert({ id: 42, username: 'doe' });
         }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).not.to.be.ok;
@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('works with upsert on a composite key', function() {
         return this.User.upsert({ foo: 'baz', bar: 19, username: 'john' }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).to.be.ok;
@@ -96,7 +96,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.clock.tick(1000);
           return this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
         }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).not.to.be.ok;
@@ -150,7 +150,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             User.upsert({ a: 'a', b: 'a', username: 'curt' })
           ]);
         }).then(([created1, created2]) => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created1).to.be.undefined;
             expect(created2).to.be.undefined;
           } else {
@@ -162,7 +162,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           // Update the first one
           return User.upsert({ a: 'a', b: 'b', username: 'doe' });
         }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).not.to.be.ok;
@@ -211,7 +211,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true })
           .then(() => User.upsert({ id: 1, email: 'notanemail' }, options))
           .then(created => {
-            if (dialect === 'sqlite') {
+            if (dialect === 'sqlite' || dialect === 'db2') {
               expect(created).to.be.undefined;
             } else {
               expect(created).to.be.ok;
@@ -221,7 +221,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('works with BLOBs', function() {
         return this.User.upsert({ id: 42, username: 'john', blob: Buffer.from('kaj') }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).to.be.ok;
@@ -230,7 +230,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.clock.tick(1000);
           return this.User.upsert({ id: 42, username: 'doe', blob: Buffer.from('andrea') });
         }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).not.to.be.ok;
@@ -247,7 +247,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('works with .field', function() {
         return this.User.upsert({ id: 42, baz: 'foo' }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).to.be.ok;
@@ -255,7 +255,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           return this.User.upsert({ id: 42, baz: 'oof' });
         }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).not.to.be.ok;
@@ -269,7 +269,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('works with primary key using .field', function() {
         return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'first' }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).to.be.ok;
@@ -278,7 +278,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.clock.tick(1000);
           return this.ModelWithFieldPK.upsert({ userId: 42, foo: 'second' });
         }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).not.to.be.ok;
@@ -292,7 +292,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('works with database functions', function() {
         return this.User.upsert({ id: 42, username: 'john', foo: this.sequelize.fn('upper', 'mixedCase1') }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).to.be.ok;
@@ -301,7 +301,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.clock.tick(1000);
           return this.User.upsert({ id: 42, username: 'doe', foo: this.sequelize.fn('upper', 'mixedCase2') });
         }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             expect(created).not.to.be.ok;
@@ -359,7 +359,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }).then(user => {
           return this.User.upsert({ id: user.id, username: user.username });
         }).then(created => {
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite' || dialect === 'db2') {
             expect(created).to.be.undefined;
           } else {
             // After set node-mysql flags = '-FOUND_ROWS' / foundRows=false
@@ -388,7 +388,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true }).then(() => {
           return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' })
             .then(created => {
-              if (dialect === 'sqlite') {
+              if (dialect === 'sqlite' || dialect === 'db2') {
                 expect(created).to.be.undefined;
               } else {
                 expect(created).to.be.ok;
@@ -396,7 +396,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               clock.tick(1000);
               return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
             }).then(created => {
-              if (dialect === 'sqlite') {
+              if (dialect === 'sqlite' || dialect === 'db2') {
                 expect(created).to.be.undefined;
               } else {
                 expect(created).not.to.be.ok;
@@ -430,14 +430,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true }).then(() => {
           return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' })
             .then(created => {
-              if (dialect === 'sqlite') {
+              if (dialect === 'sqlite' || dialect === 'db2') {
                 expect(created).to.be.undefined;
               } else {
                 expect(created).to.be.ok;
               }
               return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
             }).then(created => {
-              if (dialect === 'sqlite') {
+              if (dialect === 'sqlite' || dialect === 'db2') {
                 expect(created).to.be.undefined;
               } else {
                 expect(created).not.to.be.ok;
@@ -466,14 +466,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true }).then(() => {
           return User.upsert({ name: 'user1', address: 'address', city: 'City' })
             .then(created => {
-              if (dialect === 'sqlite') {
+              if (dialect === 'sqlite' || dialect === 'db2') {
                 expect(created).to.be.undefined;
               } else {
                 expect(created).to.be.ok;
               }
               return User.upsert({ name: 'user1', address: 'address', city: 'New City' });
             }).then(created => {
-              if (dialect === 'sqlite') {
+              if (dialect === 'sqlite' || dialect === 'db2') {
                 expect(created).to.be.undefined;
               } else {
                 expect(created).not.to.be.ok;

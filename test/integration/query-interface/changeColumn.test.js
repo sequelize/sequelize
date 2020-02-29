@@ -44,6 +44,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }).then(table => {
           if (dialect === 'postgres' || dialect === 'postgres-native') {
             expect(table.currency.type).to.equal('DOUBLE PRECISION');
+          } else if (dialect === 'db2') {
+            expect(table.currency.type).to.equal('DOUBLE');
           } else {
             expect(table.currency.type).to.equal('FLOAT');
           }
@@ -62,6 +64,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         },
         currency: DataTypes.INTEGER
       }).then(() => {
+        if (dialect === 'db2') { // DB2 can change only one attr of a column
+          return this.queryInterface.changeColumn('users', 'currency', {
+            type: DataTypes.FLOAT
+          });
+        }
         return this.queryInterface.changeColumn('users', 'currency', {
           type: DataTypes.FLOAT,
           allowNull: true
@@ -73,6 +80,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }).then(table => {
         if (dialect === 'postgres' || dialect === 'postgres-native') {
           expect(table.currency.type).to.equal('DOUBLE PRECISION');
+        } else if (dialect === 'db2') {
+          expect(table.currency.type).to.equal('DOUBLE');
         } else {
           expect(table.currency.type).to.equal('FLOAT');
         }
@@ -81,7 +90,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     // MSSQL doesn't support using a modified column in a check constraint.
     // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
-    if (dialect !== 'mssql') {
+    if (dialect !== 'mssql' && dialect !== 'db2') {
       it('should work with enums (case 1)', function() {
         return this.queryInterface.createTable({
           tableName: 'users'
@@ -220,21 +229,24 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           });
         });
 
-        it('should change the comment of column', function() {
-          return this.queryInterface.describeTable({
-            tableName: 'users'
-          }).then(describedTable => {
-            expect(describedTable.level_id.comment).to.be.equal(null);
-            return this.queryInterface.changeColumn('users', 'level_id', {
-              type: DataTypes.INTEGER,
-              comment: 'FooBar'
+        // Db2 does not allow change of comment in ALTER COLUMN
+        if (dialect !== 'db2') {
+          it('should change the comment of column', function() {
+            return this.queryInterface.describeTable({
+              tableName: 'users'
+            }).then(describedTable => {
+              expect(describedTable.level_id.comment).to.be.equal(null);
+              return this.queryInterface.changeColumn('users', 'level_id', {
+                type: DataTypes.INTEGER,
+                comment: 'FooBar'
+              });
+            }).then(() => {
+              return this.queryInterface.describeTable({ tableName: 'users' });
+            }).then(describedTable2 => {
+              expect(describedTable2.level_id.comment).to.be.equal('FooBar');
             });
-          }).then(() => {
-            return this.queryInterface.describeTable({ tableName: 'users' });
-          }).then(describedTable2 => {
-            expect(describedTable2.level_id.comment).to.be.equal('FooBar');
           });
-        });
+        }
       });
     }
   });

@@ -71,3 +71,16 @@ services:
     ports:
       - "8970:1433"
     container_name: mssql
+
+  # DB2
+  db2:
+    image: ibmcom/db2:latest
+    privileged: true
+    environment:
+      LICENSE: accept
+      DB2INSTANCE: db2inst1
+      DB2INST1_PASSWORD: db2inst1
+      DBNAME: testdb
+    ports:
+      - "50000-50001:50000-50001"
+    container_name: db2server

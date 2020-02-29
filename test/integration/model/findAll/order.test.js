@@ -23,9 +23,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         if (current.dialect.name !== 'mssql') {
+          const email = current.dialect.name === 'db2' ? '"email"' : 'email';
           it('should work with order: literal()', function() {
             return this.User.findAll({
-              order: this.sequelize.literal(`email = ${this.sequelize.escape('test@sequelizejs.com')}`)
+              order: this.sequelize.literal(`${email} = ${this.sequelize.escape('test@sequelizejs.com')}`)
             }).then(users => {
               expect(users.length).to.equal(1);
               users.forEach(user => {
@@ -36,7 +37,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('should work with order: [literal()]', function() {
             return this.User.findAll({
-              order: [this.sequelize.literal(`email = ${this.sequelize.escape('test@sequelizejs.com')}`)]
+              order: [this.sequelize.literal(`${email} = ${this.sequelize.escape('test@sequelizejs.com')}`)]
             }).then(users => {
               expect(users.length).to.equal(1);
               users.forEach(user => {
@@ -48,7 +49,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('should work with order: [[literal()]]', function() {
             return this.User.findAll({
               order: [
-                [this.sequelize.literal(`email = ${this.sequelize.escape('test@sequelizejs.com')}`)]
+                [this.sequelize.literal(`${email} = ${this.sequelize.escape('test@sequelizejs.com')}`)]
               ]
             }).then(users => {
               expect(users.length).to.equal(1);
@@ -85,6 +86,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         it('should not throw on a literal', function() {
+          if (current.dialect.name === 'db2') {
+            return this.User.findAll({
+              order: [
+                ['id', this.sequelize.literal('ASC, "name" DESC')]
+              ]
+            });
+          }
           return this.User.findAll({
             order: [
               ['id', this.sequelize.literal('ASC, name DESC')]
