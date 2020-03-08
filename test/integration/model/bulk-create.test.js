@@ -626,7 +626,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   { systemId: 1, system: 'system2', name: 'Bob' }
                 ];
 
-                return Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'], logging: console.log  });
+                return Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'] });
               })
               .then(people => {
                 expect(people.length).to.equal(2);
@@ -684,7 +684,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   { id: 2, systemId: 1, system: 'system2', name: 'Bob' }
                 ];
 
-                return Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'], logging: console.log  });
+                return Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'] });
               })
               .then(people => {
                 expect(people.length).to.equal(2);
