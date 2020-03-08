@@ -586,6 +586,117 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(people[1].name).to.equal('Bob');
               });
           });
+
+          it('when the composite primary key column names and model field names are different', function() {
+            const Person = this.sequelize.define('Person', {
+              systemId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                primaryKey: true,
+                field: 'system_id'
+              },
+              system: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                primaryKey: true,
+                field: 'system'
+              },
+              name: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: 'name'
+              }
+            }, {});
+
+            return Person.sync({ force: true })
+              .then(() => {
+                const inserts = [
+                  { systemId: 1, system: 'system1', name: 'Alice' }
+                ];
+                return Person.bulkCreate(inserts);
+              })
+              .then(people => {
+                expect(people.length).to.equal(1);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('Alice');
+
+                const updates = [
+                  { systemId: 1, system: 'system1', name: 'CHANGED NAME' },
+                  { systemId: 1, system: 'system2', name: 'Bob' }
+                ];
+
+                return Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'], logging: console.log  });
+              })
+              .then(people => {
+                expect(people.length).to.equal(2);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('CHANGED NAME');
+                expect(people[1].systemId).to.equal(1);
+                expect(people[1].system).to.equal('system2');
+                expect(people[1].name).to.equal('Bob');
+              });
+          });
+
+          it('when the primary key column names and model field names are different and have composite unique constraints', function() {
+            const Person = this.sequelize.define('Person', {
+              id: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                primaryKey: true,
+                field: 'id'
+              },
+              systemId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                unique: 'system_id_system_unique',
+                field: 'system_id'
+              },
+              system: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                unique: 'system_id_system_unique',
+                field: 'system'
+              },
+              name: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: 'name'
+              }
+            }, {});
+
+            return Person.sync({ force: true })
+              .then(() => {
+                const inserts = [
+                  { id: 1, systemId: 1, system: 'system1', name: 'Alice' }
+                ];
+                return Person.bulkCreate(inserts);
+              })
+              .then(people => {
+                expect(people.length).to.equal(1);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('Alice');
+
+                const updates = [
+                  { id: 1, systemId: 1, system: 'system1', name: 'CHANGED NAME' },
+                  { id: 2, systemId: 1, system: 'system2', name: 'Bob' }
+                ];
+
+                return Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'], logging: console.log  });
+              })
+              .then(people => {
+                expect(people.length).to.equal(2);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('CHANGED NAME');
+                expect(people[1].systemId).to.equal(1);
+                expect(people[1].system).to.equal('system2');
+                expect(people[1].name).to.equal('Bob');
+              });
+          });
+
         });
 
 
