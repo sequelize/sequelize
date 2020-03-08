@@ -86,6 +86,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('.scope', () => {
     describe('chaining scopes', () => {
       const scopes = {
+        orSomething() {
+          return {
+            where: {
+              [Op.or]: {
+                something: {
+                  [Op.gte]: 97
+                }
+              }
+            }
+          };
+        },
+        orSomethingAnotherCondition() {
+          return {
+            where: {
+              [Op.or]: {
+                something: {
+                  [Op.lte]: 500
+                }
+              }
+            }
+          };
+        },
         andSomething() {
           return {
             where: {
@@ -155,6 +177,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               }
             }
           };
+        },
+        somethingWithNestedOr() {
+          return {
+            where: {
+              something: {
+                [Op.or]: [
+                  { [Op.gte]: 188 },
+                  { [Op.lte]: 145 }
+                ],
+                [Op.gte]: 11
+              }
+            }
+          };
+        },
+        somethingAnotherWithNestedOr() {
+          return {
+            where: {
+              something: {
+                [Op.or]: [
+                  { [Op.gte]: 5 },
+                  { [Op.lte]: 700 }
+                ]
+              }
+            }
+          };
         }
       };
 
@@ -206,6 +253,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           scopes
         });
 
+        it('should merge scopes defined on OR', () => {
+
+          expect(
+            inspect(
+              User.scope([
+                { method: ['orSomething'] },
+                { method: ['orSomethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(inspect({
+            where: {
+              [Op.or]: [
+                {
+                  something: {
+                    [Op.gte]: 97
+                  }
+                },
+                {
+                  something: {
+                    [Op.lte]: 500
+                  }
+                }
+              ]
+            }
+          }));
+        });
+
         it('should merge scopes defined on AND', () => {
 
           expect(
@@ -226,6 +300,72 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 {
                   something: {
                     [Op.lte]: 15
+                  }
+                }
+              ]
+            }
+          }));
+        });
+
+        it('should properly handle scopes defined on both OR and AND', () => {
+
+          expect(
+            inspect(
+              User.scope([
+                { method: ['andSomething'] },
+                { method: ['orSomethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(inspect({
+            where: {
+              [Op.and]: {
+                something: {
+                  [Op.gte]: 4
+                }
+              },
+              [Op.or]: {
+                something: {
+                  [Op.lte]: 500
+                }
+              }
+            }
+          }));
+        });
+
+        it('should properly merge scopes defined on both OR and AND', () => {
+
+          expect(
+            inspect(
+              User.scope([
+                { method: ['andSomething'] },
+                { method: ['orSomething'] },
+                { method: ['andSomethingAnotherCondition'] },
+                { method: ['orSomethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(inspect({
+            where: {
+              [Op.and]: [
+                {
+                  something: {
+                    [Op.gte]: 4
+                  }
+                },
+                {
+                  something: {
+                    [Op.lte]: 15
+                  }
+                }
+              ],
+              [Op.or]: [
+                {
+                  something: {
+                    [Op.gte]: 97
+                  }
+                },
+                {
+                  something: {
+                    [Op.lte]: 500
                   }
                 }
               ]
@@ -369,6 +509,45 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                       }
                     }
                   ]
+                }
+              }
+            )
+          );
+        });
+
+        it('should keep nested OR conditions when merging', () => {
+          expect(
+            inspect(
+              User.scope([
+                { method: ['somethingWithNestedOr'] },
+                { method: ['somethingAnotherWithNestedOr'] },
+                { method: ['something'] },
+                { method: ['somethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      {
+                        [Op.or]: [
+                          { [Op.gte]: 188 },
+                          { [Op.lte]: 145 }
+                        ],
+                        [Op.gte]: 11
+                      },
+                      {
+                        [Op.or]: [
+                          { [Op.gte]: 5 },
+                          { [Op.lte]: 700 }
+                        ]
+                      },
+                      { [Op.gte]: 4 },
+                      { [Op.lte]: 15 }
+                    ]
+                  }
                 }
               }
             )
