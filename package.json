@@ -25,7 +25,8 @@
   "files": [
     "lib",
     "types/index.d.ts",
-    "types/lib"
+    "types/lib",
+    "types/type-helpers"
   ],
   "license": "MIT",
   "dependencies": {
