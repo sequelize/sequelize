@@ -25,7 +25,8 @@
   "files": [
     "lib",
     "types/index.d.ts",
-    "types/lib"
+    "types/lib",
+    "types/type-helpers"
   ],
   "license": "MIT",
   "dependencies": {
@@ -50,6 +51,7 @@
     "@types/bluebird": "^3.5.26",
     "@types/node": "^12.7.8",
     "@types/validator": "^10.11.0",
+    "acorn": "^7.1.1",
     "big-integer": "^1.6.45",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
@@ -71,6 +73,7 @@
     "lint-staged": "^8.1.5",
     "mariadb": "^2.1.5",
     "markdownlint-cli": "^0.21.0",
+    "marked": "^0.8.0",
     "mocha": "^6.1.4",
     "mysql2": "^1.6.5",
     "nyc": "^15.0.0",
