@@ -451,7 +451,7 @@ export class QueryInterface {
   /**
    * Inserts a new record
    */
-  public insert(instance: Model, tableName: string, values: object, options?: QueryOptions): Promise<object>;
+  public insert(instance: Model | null, tableName: string, values: object, options?: QueryOptions): Promise<object>;
 
   /**
    * Inserts or Updates a record in the database
@@ -473,7 +473,7 @@ export class QueryInterface {
     records: object[],
     options?: QueryOptions,
     attributes?: string[] | string
-  ): Promise<object>;
+  ): Promise<object | number>;
 
   /**
    * Updates a row
