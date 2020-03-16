@@ -72,3 +72,17 @@ UserModel.findCreateFind({
  */
 class TestModel extends Model {};
 TestModel.primaryKeyAttributes;
+
+/**
+ * Test for static decrement method
+ */
+class StaticDecrementModel extends Model {
+  public testString!: string;
+  public testIntegerA!: number;
+  public testIntegerB!: number;
+  public testIntegerC!: number;
+}
+
+StaticDecrementModel.decrement('testIntegerA', {});
+StaticDecrementModel.decrement(['testIntegerA', 'testIntegerB'], { by: 10 });
+StaticDecrementModel.decrement({ testIntegerA: 2, testIntegerB: -5, testIntegerC: 42}, {});

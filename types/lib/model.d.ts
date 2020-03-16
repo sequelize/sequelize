@@ -2078,6 +2078,33 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   ): Promise<M>;
 
   /**
+   * Decrements a single field.
+   */
+  public static decrement<M extends Model, K extends keyof M>(
+    this: { new(): M },
+    field: K,
+    options: IncrementDecrementOptionsWithBy
+  ): Promise<M>;
+
+  /**
+   * Decrements multiple fields by the same value.
+   */
+  public static decrement<M extends Model, K extends keyof M>(
+    this: { new(): M },
+    fields: K[],
+    options: IncrementDecrementOptionsWithBy
+  ): Promise<M>;
+
+  /**
+   * Decrements multiple fields by different values.
+   */
+  public static decrement<M extends Model, K extends keyof M>(
+    this: { new(): M },
+    fields: { [key in K]?: number },
+    options: IncrementDecrementOptions
+  ): Promise<M>;
+    
+  /**
    * Run a describe query on the table. The result will be return to the listener as a hash of attributes and
    * their types.
    */
