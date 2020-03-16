@@ -1673,8 +1673,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('allows grouping by aliased attribute', async function() {
           await this.User.aggregate('id', 'count', {
             attributes: [['id', 'id2']],
-            group: ['id2'],
-            logging: true
+            group: ['id2']
           });
         });
       });
