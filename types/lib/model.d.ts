@@ -151,10 +151,10 @@ export interface WhereOperators {
   [Op.lte]?: number | string | Date | Literal;
 
   /** Example: `[Op.ne]: 20,` becomes `!= 20` */
-  [Op.ne]?: string | number | Literal | WhereOperators;
+  [Op.ne]?: null | string | number | Literal | WhereOperators;
 
   /** Example: `[Op.not]: true,` becomes `IS NOT TRUE` */
-  [Op.not]?: boolean | string | number | Literal | WhereOperators;
+  [Op.not]?: null | boolean | string | number | Literal | WhereOperators;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
   [Op.between]?: [number, number];
@@ -2605,11 +2605,11 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
-   * 
+   *
    * Returns a Promise that resolves to the saved instance (or rejects with a `Sequelize.ValidationError`, which will have a property for each of the fields for which the validation failed, with the error message for that field).
-   * 
+   *
    * This method is optimized to perform an UPDATE only into the fields that changed. If nothing has changed, no SQL query will be performed.
-   * 
+   *
    * This method is not aware of eager loaded associations. In other words, if some other model instance (child) was eager loaded with this instance (parent), and you change something in the child, calling `save()` will simply ignore the change that happened on the child.
    */
   public save(options?: SaveOptions): Promise<this>;
