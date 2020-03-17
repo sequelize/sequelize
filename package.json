@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "6.0.0-beta.4",
+  "version": "6.0.0-beta.5",
   "maintainers": [
     "Sascha Depold <sascha@depold.com>",
     "Jan Aagaard Meier <janzeh@gmail.com>",
@@ -25,7 +25,8 @@
   "files": [
     "lib",
     "types/index.d.ts",
-    "types/lib"
+    "types/lib",
+    "types/type-helpers"
   ],
   "license": "MIT",
   "dependencies": {
@@ -50,6 +51,7 @@
     "@types/bluebird": "^3.5.26",
     "@types/node": "^12.7.8",
     "@types/validator": "^10.11.0",
+    "acorn": "^7.1.1",
     "big-integer": "^1.6.45",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
@@ -57,6 +59,7 @@
     "chai-spies": "^1.x",
     "cls-hooked": "^4.2.2",
     "cross-env": "^5.2.1",
+    "dtslint": "^2.0.5",
     "env-cmd": "^8.0.2",
     "esdoc": "^1.1.0",
     "esdoc-inject-style-plugin": "^1.0.0",
@@ -71,6 +74,7 @@
     "lint-staged": "^8.1.5",
     "mariadb": "^2.1.5",
     "markdownlint-cli": "^0.21.0",
+    "marked": "^0.8.0",
     "mocha": "^6.1.4",
     "mysql2": "^1.6.5",
     "nyc": "^15.0.0",
@@ -120,7 +124,7 @@
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
     "test-docker-unit": "npm run test-unit",
     "test-docker-integration": "env-cmd $npm_package_options_env_cmd npm run test-integration",
-    "docs": "rimraf esdoc && esdoc -c docs/esdoc-config.js && cp docs/favicon.ico esdoc/favicon.ico && cp docs/ROUTER.txt esdoc/ROUTER && node docs/run-docs-transforms.js && node docs/redirects/create-redirects.js",
+    "docs": "rimraf esdoc && esdoc -c docs/esdoc-config.js && cp docs/favicon.ico esdoc/favicon.ico && cp docs/ROUTER.txt esdoc/ROUTER && node docs/run-docs-transforms.js && node docs/redirects/create-redirects.js && rimraf esdoc/file esdoc/source.html",
     "teaser": "node scripts/teaser",
     "test-unit": "mocha --require scripts/mocha-bootload --globals setImmediate,clearImmediate --exit --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
     "test-unit-mariadb": "cross-env DIALECT=mariadb npm run test-unit",
@@ -147,7 +151,7 @@
     "test-postgresn": "npm run test-postgres-native",
     "test-mssql": "cross-env DIALECT=mssql npm test",
     "test-all": "npm run test-mariadb && npm run test-mysql && npm run test-sqlite && npm run test-postgres && npm run test-postgres-native && npm run test-mssql",
-    "test-typings": "tsc -b types/tsconfig.json && tsc -b types/test/tsconfig.json",
+    "test-typings": "tsc -b types/tsconfig.json &&  dtslint --expectOnly types/test",
     "cover": "rimraf coverage && npm run teaser && npm run cover-integration && npm run cover-unit && npm run merge-coverage",
     "cover-integration": "cross-env COVERAGE=true nyc --reporter=lcovonly mocha --require scripts/mocha-bootload -t 30000 --exit \"test/integration/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
     "cover-unit": "cross-env COVERAGE=true nyc --reporter=lcovonly mocha --require scripts/mocha-bootload -t 30000 --exit \"test/unit/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",

@@ -48,6 +48,32 @@ This method now tests for equality with [`_.isEqual`](https://lodash.com/docs/4.
 
 ## Changelog
 
+### 6.0.0-beta.5
+
+- fix(find-all): throw on empty attributes [#11867](https://github.com/sequelize/sequelize/pull/11867)
+- fix(types): `queryInterface.addIndex` [#11844](https://github.com/sequelize/sequelize/pull/11844)
+- fix(types): `plain` option in `sequelize.query` [#11596](https://github.com/sequelize/sequelize/pull/11596)
+- fix(types): correct overloaded method order [#11727](https://github.com/sequelize/sequelize/pull/11727)
+- fix(types): `comparator` arg of `Sequelize.where` [#11843](https://github.com/sequelize/sequelize/pull/11843)
+- fix(types): fix BelongsToManyGetAssociationsMixinOptions [#11818](https://github.com/sequelize/sequelize/pull/11818)
+- fix(types): adds `hooks` to `CreateOptions` [#11736](https://github.com/sequelize/sequelize/pull/11736)
+- fix(increment): broken queries [#11852](https://github.com/sequelize/sequelize/pull/11852)
+- fix(associations): gets on many-to-many with non-primary target key [#11778](https://github.com/sequelize/sequelize11778/pull/)
+- fix: properly select SRID if present [#11763](https://github.com/sequelize/sequelize/pull/11763)
+- feat(sqlite): automatic path provision for `options.storage` [#11853](https://github.com/sequelize/sequelize/pull/11853)
+- feat(postgres): `idle_in_transaction_session_timeout` connection option [#11775](https://github.com/sequelize/sequelize11775/pull/)
+- feat(index): improve to support multiple fields with operator [#11934](https://github.com/sequelize/sequelize/pull/11934)
+- docs(transactions): fix addIndex example and grammar [#11759](https://github.com/sequelize/sequelize/pull/11759)
+- docs(raw-queries): remove outdated info [#11833](https://github.com/sequelize/sequelize/pull/11833)
+- docs(optimistic-locking): fix missing manual [#11850](https://github.com/sequelize/sequelize/pull/11850)
+- docs(model): findOne return value for empty result [#11762](https://github.com/sequelize/sequelize/pull/11762)
+- docs(model-querying-basics.md): add some commas [#11891](https://github.com/sequelize/sequelize/pull/11891)
+- docs(manuals): fix missing models-definition page [#11838](https://github.com/sequelize/sequelize/pull/11838)
+- docs(manuals): extensive rewrite [#11825](https://github.com/sequelize/sequelize/pull/11825)
+- docs(dialect-specific): add MSSQL domain auth example [#11799](https://github.com/sequelize/sequelize/pull/11799)
+- docs(associations): fix typos in assocs manual [#11888](https://github.com/sequelize/sequelize/pull/11888)
+- docs(associations): fix typo [#11869](https://github.com/sequelize/sequelize/pull/11869)
+
 ### 6.0.0-beta.4
 
 - feat(sync): allow to bypass drop statements when sync with alter enabled [#11708](https://github.com/sequelize/sequelize/pull/11708)
