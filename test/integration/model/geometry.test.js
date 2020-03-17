@@ -59,6 +59,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(user.geometry).to.be.deep.eql(point2);
         });
       });
+
+      it('works with crs field', function() {
+        const Pub = this.sequelize.define('Pub', {
+            location: { field: 'coordinates', type: DataTypes.GEOMETRY }
+          }),
+          point = { type: 'Point', coordinates: [39.807222, -76.984722],
+            crs: {
+              type: 'name',
+              properties: {
+                name: 'EPSG:4326'
+              }
+            }
+          };
+
+        return Pub.sync({ force: true }).then(() => {
+          return Pub.create({ location: point });
+        }).then(pub => {
+          expect(pub).not.to.be.null;
+          expect(pub.location).to.be.deep.eql(point);
+        });
+      });
     });
 
     describe('GEOMETRY(POINT)', () => {
@@ -93,6 +114,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.findOne({ where: { username: props.username } });
         }).then(user => {
           expect(user.geometry).to.be.deep.eql(point2);
+        });
+      });
+      
+      it('works with crs field', function() {
+        const User = this.User;
+        const point = { type: 'Point', coordinates: [39.807222, -76.984722],
+          crs: {
+            type: 'name',
+            properties: {
+              name: 'EPSG:4326'
+            }
+          }
+        };
+
+        return User.create({ username: 'username', geometry: point }).then(newUser => {
+          expect(newUser).not.to.be.null;
+          expect(newUser.geometry).to.be.deep.eql(point);
         });
       });
     });
@@ -131,6 +169,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(user.geometry).to.be.deep.eql(point2);
         });
       });
+
+      it('works with crs field', function() {
+        const User = this.User;
+        const point = { type: 'LineString', 'coordinates': [[100.0, 0.0], [101.0, 1.0]],
+          crs: {
+            type: 'name',
+            properties: {
+              name: 'EPSG:4326'
+            }
+          } 
+        };
+
+        return User.create({ username: 'username', geometry: point }).then(newUser => {
+          expect(newUser).not.to.be.null;
+          expect(newUser.geometry).to.be.deep.eql(point);
+        });
+      });
+
     });
 
     describe('GEOMETRY(POLYGON)', () => {
@@ -149,6 +205,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
             [100.0, 1.0], [100.0, 0.0]]
         ] };
+
+        return User.create({ username: 'username', geometry: point }).then(newUser => {
+          expect(newUser).not.to.be.null;
+          expect(newUser.geometry).to.be.deep.eql(point);
+        });
+      });
+
+      it('works with crs field', function() {
+        const User = this.User;
+        const point = { type: 'Polygon', coordinates: [
+          [[100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
+            [100.0, 1.0], [100.0, 0.0]]],
+        crs: {
+          type: 'name',
+          properties: {
+            name: 'EPSG:4326'
+          }
+        } 
+        };
 
         return User.create({ username: 'username', geometry: point }).then(newUser => {
           expect(newUser).not.to.be.null;
@@ -202,7 +277,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         // MySQL 5.7, those guys finally fixed this
         if (dialect === 'mysql' && semver.gte(this.sequelize.options.databaseVersion, '5.7.0')) {
           return;
-        }
+        } 
 
         return this.Model.create({
           location: {

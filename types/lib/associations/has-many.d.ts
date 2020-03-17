@@ -67,7 +67,7 @@ export interface HasManyGetAssociationsMixinOptions extends FindOptions {
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-many/
+ * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
 export type HasManyGetAssociationsMixin<TModel> = (options?: HasManyGetAssociationsMixinOptions) => Promise<TModel[]>;
@@ -101,7 +101,7 @@ export interface HasManySetAssociationsMixinOptions extends FindOptions, Instanc
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-many/
+ * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
 export type HasManySetAssociationsMixin<TModel, TModelPrimaryKey> = (
@@ -138,7 +138,7 @@ export interface HasManyAddAssociationsMixinOptions extends InstanceUpdateOption
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-many/
+ * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
 export type HasManyAddAssociationsMixin<TModel, TModelPrimaryKey> = (
@@ -175,7 +175,7 @@ export interface HasManyAddAssociationMixinOptions extends InstanceUpdateOptions
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-many/
+ * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
 export type HasManyAddAssociationMixin<TModel, TModelPrimaryKey> = (
@@ -212,7 +212,7 @@ export interface HasManyCreateAssociationMixinOptions extends CreateOptions {}
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-many/
+ * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
 export type HasManyCreateAssociationMixin<TModel> = (
@@ -249,7 +249,7 @@ export interface HasManyRemoveAssociationMixinOptions extends InstanceUpdateOpti
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-many/
+ * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
 export type HasManyRemoveAssociationMixin<TModel, TModelPrimaryKey> = (
@@ -286,7 +286,7 @@ export interface HasManyRemoveAssociationsMixinOptions extends InstanceUpdateOpt
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-many/
+ * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
 export type HasManyRemoveAssociationsMixin<TModel, TModelPrimaryKey> = (
@@ -323,7 +323,7 @@ export interface HasManyHasAssociationMixinOptions extends HasManyGetAssociation
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-many/
+ * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
 export type HasManyHasAssociationMixin<TModel, TModelPrimaryKey> = (
@@ -360,7 +360,7 @@ export interface HasManyHasAssociationsMixinOptions extends HasManyGetAssociatio
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-many/
+ * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
 export type HasManyHasAssociationsMixin<TModel, TModelPrimaryKey> = (
@@ -402,7 +402,7 @@ export interface HasManyCountAssociationsMixinOptions extends Transactionable, F
  * }
  * ```
  *
- * @see http://docs.sequelizejs.com/en/latest/api/associations/has-many/
+ * @see https://sequelize.org/master/class/lib/associations/has-many.js~HasMany.html
  * @see Instance
  */
 export type HasManyCountAssociationsMixin = (options?: HasManyCountAssociationsMixinOptions) => Promise<number>;

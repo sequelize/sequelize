@@ -2,20 +2,22 @@
 # Configuration for probot-stale - https://github.com/probot/stale
 
 # Number of days of inactivity before an issue becomes stale
-daysUntilStale: 90
+# daysUntilStale: 90
+daysUntilStale: 900000 # Temporarily disable
 
 # Number of days of inactivity before a stale issue is closed
-daysUntilClose: 7
+# daysUntilClose: 7
+daysUntilClose: 70000 # Temporarily disable
 
 # Issues with these labels will never be considered stale
 exemptLabels:
   - pinned
-  - feature
-  - documentation
-  - bug
+  - type: feature
+  - type: docs
+  - type: bug
   - discussion
-  - performance
-  - semver:major
+  - type: performance
+  - breaking change
   - good first issue
   - suggestion
 

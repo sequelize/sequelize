@@ -467,6 +467,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
         });
       });
+
+      describe('Edit data via instance.update, retrieve updated instance via model.findAll', () => {
+        it('should be able to update data via instance update in both schemas, and retrieve it via findAll with where', function() {
+          const Restaurant = this.Restaurant;
+
+          return Promise.all([
+            Restaurant.create({ foo: 'one', bar: '1' }, { searchPath: SEARCH_PATH_ONE })
+              .then(rnt => rnt.update({ bar: 'x.1' }, { searchPath: SEARCH_PATH_ONE })),
+            Restaurant.create({ foo: 'one', bar: '2' }, { searchPath: SEARCH_PATH_ONE })
+              .then(rnt => rnt.update({ bar: 'x.2' }, { searchPath: SEARCH_PATH_ONE })),
+            Restaurant.create({ foo: 'two', bar: '1' }, { searchPath: SEARCH_PATH_TWO })
+              .then(rnt => rnt.update({ bar: 'x.1' }, { searchPath: SEARCH_PATH_TWO })),
+            Restaurant.create({ foo: 'two', bar: '2' }, { searchPath: SEARCH_PATH_TWO })
+              .then(rnt => rnt.update({ bar: 'x.2' }, { searchPath: SEARCH_PATH_TWO }))
+          ]).then(() => Promise.all([
+            Restaurant.findAll({
+              where: { bar: 'x.1' },
+              searchPath: SEARCH_PATH_ONE
+            }).then(restaurantsOne => {
+              expect(restaurantsOne.length).to.equal(1);
+              expect(restaurantsOne[0].foo).to.equal('one');
+              expect(restaurantsOne[0].bar).to.equal('x.1');
+            }),
+            Restaurant.findAll({
+              where: { bar: 'x.2' },
+              searchPath: SEARCH_PATH_TWO
+            }).then(restaurantsTwo => {
+              expect(restaurantsTwo.length).to.equal(1);
+              expect(restaurantsTwo[0].foo).to.equal('two');
+              expect(restaurantsTwo[0].bar).to.equal('x.2');
+            })
+          ]));
+        });
+      });
     });
   }
 });

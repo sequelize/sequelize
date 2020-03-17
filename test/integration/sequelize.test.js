@@ -294,19 +294,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     describe('logging', () => {
-      it('executes a query with global benchmarking option and default logger', () => {
-        const logger = sinon.stub(console, 'log');
-        const sequelize = Support.createSequelizeInstance({
-          logging: logger,
-          benchmark: true
-        });
-
-        return sequelize.query('select 1;').then(() => {
-          expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; Elapsed time: \d+ms/);
-        });
-      });
-
       it('executes a query with global benchmarking option and custom logger', () => {
         const logger = sinon.spy();
         const sequelize = Support.createSequelizeInstance({
@@ -318,17 +305,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           expect(logger.calledOnce).to.be.true;
           expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1/);
           expect(typeof logger.args[0][1] === 'number').to.be.true;
-        });
-      });
-
-      it('executes a query with benchmarking option and default logger', function() {
-        const logger = sinon.stub(console, 'log');
-        return this.sequelize.query('select 1;', {
-          logging: logger,
-          benchmark: true
-        }).then(() => {
-          expect(logger.calledOnce).to.be.true;
-          expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1; Elapsed time: \d+ms/);
         });
       });
 
@@ -344,6 +320,62 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           expect(typeof logger.args[0][1] === 'number').to.be.true;
         });
       });
+      describe('log sql when set logQueryParameters', () => {
+        beforeEach(function() {
+          this.sequelize = Support.createSequelizeInstance({
+            benchmark: true,
+            logQueryParameters: true
+          });
+          this.User = this.sequelize.define('User', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true
+            },
+            username: {
+              type: DataTypes.STRING
+            },
+            emailAddress: {
+              type: DataTypes.STRING
+            }
+          }, {
+            timestamps: false
+          });
+  
+          return this.User.sync({ force: true });
+        });
+        it('add parameters in log sql', function() {
+          let createSql, updateSql;
+          return this.User.create({
+            username: 'john',
+            emailAddress: 'john@gmail.com'
+          }, {
+            logging: s =>{
+              createSql = s;
+            }
+          }).then(user=>{
+            user.username = 'li';
+            return user.save({
+              logging: s =>{
+                updateSql = s;
+              }
+            });
+          }).then(()=>{
+            expect(createSql).to.match(/; ("john", "john@gmail.com"|{"(\$1|0)":"john","(\$2|1)":"john@gmail.com"})/);
+            expect(updateSql).to.match(/; ("li", 1|{"(\$1|0)":"li","(\$2|1)":1})/);
+          });
+        });
+  
+        it('add parameters in log sql when use bind value', function() {
+          let logSql;
+          const typeCast = dialect === 'postgres' ? '::text' : '';
+          return this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, { bind: ['foo', 'bar'], logging: s=>logSql = s })
+            .then(()=>{
+              expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
+            });
+        });
+      });
+      
     });
 
     it('executes select queries correctly', function() {
@@ -432,6 +464,18 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
       }).then(users => {
         expect(users[0].userName).to.be.equal('john');
+        expect(users[0].email).to.be.equal('john@gmail.com');
+      });
+    });
+
+    it('keeps field names that are mapped to the same name', function() {
+      return this.sequelize.query(this.insertQuery).then(() => {
+        return this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+          type: 'SELECT',
+          fieldMap: { username: 'username', email_address: 'email' }
+        });
+      }).then(users => {
+        expect(users[0].username).to.be.equal('john');
         expect(users[0].email).to.be.equal('john@gmail.com');
       });
     });
@@ -878,7 +922,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('adds a new dao to the dao manager', function() {
       const count = this.sequelize.modelManager.all.length;
       this.sequelize.define('foo', { title: DataTypes.STRING });
-      expect(this.sequelize.modelManager.all.length).to.equal(count+1);
+      expect(this.sequelize.modelManager.all.length).to.equal(count + 1);
     });
 
     it('adds a new dao to sequelize.models', function() {
@@ -1339,11 +1383,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         } else {
           it('correctly handles multiple transactions', function() {
             const TransactionTest = this.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false });
+            const aliasesMapping = new Map([['_0', 'cnt']]);
 
             const count = transaction => {
               const sql = this.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
 
-              return this.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then(result => {
+              return this.sequelizeWithTransaction.query(sql, { plain: true, transaction, aliasesMapping  }).then(result => {
                 return parseInt(result.cnt, 10);
               });
             };

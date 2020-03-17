@@ -1,0 +1,51 @@
+{
+  "Core Concepts": [
+    "core-concepts/getting-started.md",
+    "core-concepts/model-basics.md",
+    "core-concepts/model-instances.md",
+    "core-concepts/model-querying-basics.md",
+    "core-concepts/model-querying-finders.md",
+    "core-concepts/getters-setters-virtuals.md",
+    "core-concepts/validations-and-constraints.md",
+    "core-concepts/raw-queries.md",
+    "core-concepts/assocs.md",
+    "core-concepts/paranoid.md"
+  ],
+  "Advanced Association Concepts": [
+    "advanced-association-concepts/eager-loading.md",
+    "advanced-association-concepts/creating-with-associations.md",
+    "advanced-association-concepts/advanced-many-to-many.md",
+    "advanced-association-concepts/association-scopes.md",
+    "advanced-association-concepts/polymorphic-associations.md"
+  ],
+  "Other Topics": [
+    "other-topics/dialect-specific-things.md",
+    "other-topics/transactions.md",
+    "other-topics/hooks.md",
+    "other-topics/query-interface.md",
+    "other-topics/naming-strategies.md",
+    "other-topics/scopes.md",
+    "other-topics/sub-queries.md",
+    "other-topics/other-data-types.md",
+    "other-topics/constraints-and-circularities.md",
+    "other-topics/extending-data-types.md",
+    "other-topics/indexes.md",
+    "other-topics/optimistic-locking.md",
+    "other-topics/read-replication.md",
+    "other-topics/connection-pool.md",
+    "other-topics/legacy.md",
+    "other-topics/migrations.md",
+    "other-topics/typescript.md",
+    "other-topics/resources.md",
+    "other-topics/upgrade-to-v6.md",
+    "other-topics/whos-using.md",
+    "other-topics/legal.md"
+  ],
+  "__hidden__": [
+    "moved/associations.md",
+    "moved/data-types.md",
+    "moved/models-definition.md",
+    "moved/models-usage.md",
+    "moved/querying.md"
+  ]
+}

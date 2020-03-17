@@ -61,7 +61,8 @@ const Support = {
       dialect: options.dialect,
       port: options.port || process.env.SEQ_PORT || config.port,
       pool: config.pool,
-      dialectOptions: options.dialectOptions || config.dialectOptions || {}
+      dialectOptions: options.dialectOptions || config.dialectOptions || {},
+      minifyAliases: options.minifyAliases || config.minifyAliases
     });
 
     if (process.env.DIALECT === 'postgres-native') {
@@ -208,5 +209,6 @@ if (global.beforeEach) {
     this.sequelize = Support.sequelize;
   });
 }
+
 Support.sequelize = Support.createSequelizeInstance();
 module.exports = Support;

@@ -34,6 +34,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         no: { type: DataTypes.INTEGER, primaryKey: true },
         name: { type: DataTypes.STRING, allowNull: false }
       });
+      this.Car = this.sequelize.define('Car', {
+        plateNumber: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+          field: 'plate_number'
+        },
+        color: {
+          type: DataTypes.TEXT
+        }
+      });
 
       return this.sequelize.sync({ force: true });
     });
@@ -152,7 +162,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             if (dialect === 'postgres') {
               expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
             } else if (dialect === 'mssql') {
-              expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) VALUES');
+              expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
             } else { // mysql, sqlite
               expect(sql).to.include('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL');
             }
@@ -480,6 +490,216 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
+        describe('should support the updateOnDuplicate option with primary keys', () => {
+          it('when the primary key column names and model field names are the same', function() {
+            const data = [
+              { no: 1, name: 'Peter' },
+              { no: 2, name: 'Paul' }
+            ];
+
+            return this.Student.bulkCreate(data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
+              const new_data = [
+                { no: 1, name: 'Peterson' },
+                { no: 2, name: 'Paulson' },
+                { no: 3, name: 'Michael' }
+              ];
+              return this.Student.bulkCreate(new_data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] }).then(() => {
+                return this.Student.findAll({ order: ['no'] }).then(students => {
+                  expect(students.length).to.equal(3);
+                  expect(students[0].name).to.equal('Peterson');
+                  expect(students[0].no).to.equal(1);
+                  expect(students[1].name).to.equal('Paulson');
+                  expect(students[1].no).to.equal(2);
+                  expect(students[2].name).to.equal('Michael');
+                  expect(students[2].no).to.equal(3);
+                });
+              });
+            });
+          });
+
+          it('when the primary key column names and model field names are different', function() {
+            const data = [
+              { plateNumber: 'abc', color: 'Grey' },
+              { plateNumber: 'def', color: 'White' }
+            ];
+
+            return this.Car.bulkCreate(data, { fields: ['plateNumber', 'color'], updateOnDuplicate: ['color'] }).then(() => {
+              const new_data = [
+                { plateNumber: 'abc', color: 'Red' },
+                { plateNumber: 'def', color: 'Green' },
+                { plateNumber: 'ghi', color: 'Blue' }
+              ];
+              return this.Car.bulkCreate(new_data, { fields: ['plateNumber', 'color'], updateOnDuplicate: ['color'] }).then(() => {
+                return this.Car.findAll({ order: ['plateNumber'] }).then(cars => {
+                  expect(cars.length).to.equal(3);
+                  expect(cars[0].plateNumber).to.equal('abc');
+                  expect(cars[0].color).to.equal('Red');
+                  expect(cars[1].plateNumber).to.equal('def');
+                  expect(cars[1].color).to.equal('Green');
+                  expect(cars[2].plateNumber).to.equal('ghi');
+                  expect(cars[2].color).to.equal('Blue');
+                });
+              });
+            });
+          });
+
+          it('when the primary key column names and model field names are different and have unique constraints', function() {
+            const Person = this.sequelize.define('Person', {
+              emailAddress: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                primaryKey: true,
+                unique: true,
+                field: 'email_address'
+              },
+              name: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: 'name'
+              }
+            }, {});
+
+            return Person.sync({ force: true })
+              .then(() => {
+                const inserts = [
+                  { emailAddress: 'a@example.com', name: 'Alice' }
+                ];
+                return Person.bulkCreate(inserts);
+              })
+              .then(people => {
+                expect(people.length).to.equal(1);
+                expect(people[0].emailAddress).to.equal('a@example.com');
+                expect(people[0].name).to.equal('Alice');
+
+                const updates = [
+                  { emailAddress: 'a@example.com', name: 'CHANGED NAME' },
+                  { emailAddress: 'b@example.com', name: 'Bob' }
+                ];
+
+                return Person.bulkCreate(updates, { updateOnDuplicate: ['emailAddress', 'name'] });
+              })
+              .then(people => {
+                expect(people.length).to.equal(2);
+                expect(people[0].emailAddress).to.equal('a@example.com');
+                expect(people[0].name).to.equal('CHANGED NAME');
+                expect(people[1].emailAddress).to.equal('b@example.com');
+                expect(people[1].name).to.equal('Bob');
+              });
+          });
+
+          it('when the composite primary key column names and model field names are different', function() {
+            const Person = this.sequelize.define('Person', {
+              systemId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                primaryKey: true,
+                field: 'system_id'
+              },
+              system: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                primaryKey: true,
+                field: 'system'
+              },
+              name: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: 'name'
+              }
+            }, {});
+
+            return Person.sync({ force: true })
+              .then(() => {
+                const inserts = [
+                  { systemId: 1, system: 'system1', name: 'Alice' }
+                ];
+                return Person.bulkCreate(inserts);
+              })
+              .then(people => {
+                expect(people.length).to.equal(1);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('Alice');
+
+                const updates = [
+                  { systemId: 1, system: 'system1', name: 'CHANGED NAME' },
+                  { systemId: 1, system: 'system2', name: 'Bob' }
+                ];
+
+                return Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'] });
+              })
+              .then(people => {
+                expect(people.length).to.equal(2);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('CHANGED NAME');
+                expect(people[1].systemId).to.equal(1);
+                expect(people[1].system).to.equal('system2');
+                expect(people[1].name).to.equal('Bob');
+              });
+          });
+
+          it('when the primary key column names and model field names are different and have composite unique constraints', function() {
+            const Person = this.sequelize.define('Person', {
+              id: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                primaryKey: true,
+                field: 'id'
+              },
+              systemId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                unique: 'system_id_system_unique',
+                field: 'system_id'
+              },
+              system: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                unique: 'system_id_system_unique',
+                field: 'system'
+              },
+              name: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                field: 'name'
+              }
+            }, {});
+
+            return Person.sync({ force: true })
+              .then(() => {
+                const inserts = [
+                  { id: 1, systemId: 1, system: 'system1', name: 'Alice' }
+                ];
+                return Person.bulkCreate(inserts);
+              })
+              .then(people => {
+                expect(people.length).to.equal(1);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('Alice');
+
+                const updates = [
+                  { id: 1, systemId: 1, system: 'system1', name: 'CHANGED NAME' },
+                  { id: 2, systemId: 1, system: 'system2', name: 'Bob' }
+                ];
+
+                return Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'] });
+              })
+              .then(people => {
+                expect(people.length).to.equal(2);
+                expect(people[0].systemId).to.equal(1);
+                expect(people[0].system).to.equal('system1');
+                expect(people[0].name).to.equal('CHANGED NAME');
+                expect(people[1].systemId).to.equal(1);
+                expect(people[1].system).to.equal('system2');
+                expect(people[1].name).to.equal('Bob');
+              });
+          });
+
+        });
+
+
         it('should reject for non array updateOnDuplicate option', function() {
           const data = [
             { uniqueName: 'Peter', secretValue: '42' },
@@ -561,6 +781,56 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(user.get('maId')).to.be.ok;
                 expect(user.get('maId')).to.equal(actualUsers[i].get('maId'))
                   .and.to.equal(i + 1);
+              });
+            });
+        });
+
+        it('should only return fields that are not defined in the model (with returning: true)', function() {
+          const User = this.sequelize.define('user');
+
+          return User
+            .sync({ force: true })
+            .then(() => this.sequelize.queryInterface.addColumn('users', 'not_on_model', Sequelize.STRING))
+            .then(() => User.bulkCreate([
+              {},
+              {},
+              {}
+            ], {
+              returning: true
+            }))
+            .then(users =>
+              User.findAll()
+                .then(actualUsers => [users, actualUsers])
+            )
+            .then(([users, actualUsers]) => {
+              expect(users.length).to.eql(actualUsers.length);
+              users.forEach(user => {
+                expect(user.get()).not.to.have.property('not_on_model');
+              });
+            });
+        });
+
+        it('should return fields that are not defined in the model (with returning: ["*"])', function() {
+          const User = this.sequelize.define('user');
+
+          return User
+            .sync({ force: true })
+            .then(() => this.sequelize.queryInterface.addColumn('users', 'not_on_model', Sequelize.STRING))
+            .then(() => User.bulkCreate([
+              {},
+              {},
+              {}
+            ], {
+              returning: ['*']
+            }))
+            .then(users =>
+              User.findAll()
+                .then(actualUsers => [users, actualUsers])
+            )
+            .then(([users, actualUsers]) => {
+              expect(users.length).to.eql(actualUsers.length);
+              users.forEach(user => {
+                expect(user.get()).to.have.property('not_on_model');
               });
             });
         });

@@ -1,4 +1,4 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 // tslint:disable-next-line:no-submodule-imports
 import { QueryInterface } from 'sequelize/lib/query-interface';
 
@@ -50,6 +50,16 @@ queryInterface.createTable(
 );
 
 queryInterface.dropTable('nameOfTheExistingTable');
+
+queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
+
+const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
+
+queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar', as: 'baz', name: 'quz' }, {}, {});
+
+queryInterface.dropTrigger({ tableName: 'foo', as: 'bar', name: 'baz' }, 'foo', {});
+
+queryInterface.quoteTable({ tableName: 'foo', delimiter: 'bar' });
 
 queryInterface.dropAllTables();
 
@@ -135,6 +145,15 @@ queryInterface.addIndex('Person', ['firstname', 'lastname'], {
   type: 'UNIQUE',
 });
 
+queryInterface.addIndex('Foo', {
+  name: 'foo_a',
+  fields: [
+    { name: 'foo_b', order: 'DESC' },
+    'foo_c',
+    { name: 'foo_d', order: 'ASC', collate: 'foobar', length: 42 }
+  ],
+});
+
 queryInterface.removeIndex('Person', 'SuperDuperIndex');
 
 // or
@@ -160,3 +179,7 @@ queryInterface.delete(null, 'Person', {
     a: 1,
   },
 });
+
+queryInterface.upsert("test", {"a": 1}, {"b": 2}, {"c": 3}, Model, {});
+
+queryInterface.insert(null, 'test', {});

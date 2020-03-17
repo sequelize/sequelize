@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           validate: { isInt: true },
           set(val) {
             this.setDataValue('validateSideEffect', val);
-            this.setDataValue('validateSideAffected', val*2);
+            this.setDataValue('validateSideAffected', val * 2);
           }
         },
         validateSideAffected: {

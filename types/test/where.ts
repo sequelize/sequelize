@@ -1,4 +1,4 @@
-import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, WhereOptions, where as whereFn } from 'sequelize';
+import { AndOperator, fn, Model, Op, OrOperator, Sequelize, WhereOperators, WhereOptions, literal, where as whereFn } from 'sequelize';
 import Transaction from '../lib/transaction';
 
 class MyModel extends Model {
@@ -7,7 +7,23 @@ class MyModel extends Model {
 
 let where: WhereOptions;
 
-// From http://docs.sequelizejs.com/en/v4/docs/querying/
+// From https://sequelize.org/master/en/v4/docs/querying/
+
+/**
+ * Literal values
+ * @see WhereValue
+ */
+where = {
+  string: 'foo',
+  strings: ['foo'],
+  number: 1,
+  numbers: [1],
+  boolean: true,
+  buffer: Buffer.alloc(0),
+  buffers: [Buffer.alloc(0)],
+  null: null,
+  date: new Date()
+};
 
 // Operators
 
@@ -114,6 +130,12 @@ where = {
             },
         },
     },
+    meta2: {
+      [Op.contains]: ['stringValue1', 'stringValue2', 'stringValue3']
+    },
+    meta3: {
+      [Op.contains]: [1, 2, 3, 4]
+    },
 };
 
 // Relations / Associations
@@ -140,7 +162,7 @@ MyModel.findOne({
 MyModel.destroy({ where });
 MyModel.update({ hi: 1 }, { where });
 
-// From http://docs.sequelizejs.com/en/v4/docs/models-usage/
+// From https://sequelize.org/master/en/v4/docs/models-usage/
 
 // find multiple entries
 MyModel.findAll().then(projects => {
@@ -266,6 +288,13 @@ where = whereFn('test', {
   [Op.gt]: new Date(),
 });
 
+// Literal as where
+where = literal('true')
+
+MyModel.findAll({
+    where: literal('true')
+})
+
 // Where as having option
 MyModel.findAll({
   having: where
@@ -296,3 +325,13 @@ Sequelize.where(
         [Op.notILike]: Sequelize.literal('LIT')
     }
 )
+
+Sequelize.where(Sequelize.col("ABS"), Op.is, null);
+
+Sequelize.where(
+  Sequelize.fn("ABS", Sequelize.col("age")),
+  Op.like,
+  Sequelize.fn("ABS", Sequelize.col("age"))
+);
+
+Sequelize.where(Sequelize.col("ABS"), null);

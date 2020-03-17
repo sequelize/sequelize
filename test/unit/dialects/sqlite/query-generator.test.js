@@ -23,27 +23,27 @@ if (dialect === 'sqlite') {
       arithmeticQuery: [
         {
           title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', { foo: 'bar' }, {}],
+          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\''
         },
         {
           title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz' }],
+          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\''
         },
         {
           title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', { foo: 'bar' }],
+          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\''
         },
         {
           title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', { foo: -1 }],
+          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1'
         },
         {
           title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz' }],
+          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\''
         }
       ],
@@ -499,6 +499,9 @@ if (dialect === 'sqlite') {
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
           expectation: "INSERT OR IGNORE INTO `myTable` (`name`) VALUES ('foo'),('bar');"
+        }, {
+          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { updateOnDuplicate: ['name'], upsertKeys: ['name'] }],
+          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar') ON CONFLICT (`name`) DO UPDATE SET `name`=EXCLUDED.`name`;"
         }
       ],
 

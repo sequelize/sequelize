@@ -2091,5 +2091,29 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         });
       });
     });
+
+    it('should be able to generate a correct request for entity with 1:n and m:1 associations and limit', function() {
+      return this.fixtureA().then(() => {
+        return this.models.Product.findAll({
+          attributes: ['title'],
+          include: [
+            { model: this.models.User },
+            { model: this.models.Price }
+          ],
+          limit: 10
+        }).then( products => {
+          expect(products).to.be.an('array');
+          expect(products).to.be.lengthOf(10);
+          for (const product of products) {
+            expect(product.title).to.be.a('string');
+            // checking that internally added fields used to handle 'BelongsTo' associations are not leaked to result
+            expect(product.UserId).to.be.equal(undefined);
+            // checking that included models are on their places
+            expect(product.User).to.satisfy( User => User === null || User instanceof this.models.User );
+            expect(product.Prices).to.be.an('array');
+          }
+        });
+      });
+    });
   });
 });
