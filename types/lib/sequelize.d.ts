@@ -375,6 +375,12 @@ export interface Options extends Logging {
   logQueryParameters?: boolean;
 
   retry?: RetryOptions;
+  
+  /**
+    * Change to set the table which stores applies migrations.
+    * Defaults to `sequelize_meta`
+   */
+  migrationStorageTableName?: string
 }
 
 export interface QueryOptionsTransactionRequired { }
