@@ -2057,7 +2057,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M },
     field: K,
     options: IncrementDecrementOptionsWithBy
-  ): Promise<M>;
+  ): Promise<M[]> | Promise<[M[], number]>;
 
   /**
    * Increments multiple fields by the same value.
@@ -2066,7 +2066,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M },
     fields: K[],
     options: IncrementDecrementOptionsWithBy
-  ): Promise<M>;
+  ): Promise<M[]> | Promise<[M[], number]>;
 
   /**
    * Increments multiple fields by different values.
@@ -2075,7 +2075,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new (): M },
     fields: { [key in K]?: number },
     options: IncrementDecrementOptions
-  ): Promise<M>;
+  ): Promise<M[]> | Promise<[M[], number]>;
 
   /**
    * Decrements a single field.
@@ -2084,7 +2084,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new(): M },
     field: K,
     options: IncrementDecrementOptionsWithBy
-  ): Promise<M>;
+  ): Promise<M[]> | Promise<[M[], number]>;
 
   /**
    * Decrements multiple fields by the same value.
@@ -2093,7 +2093,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new(): M },
     fields: K[],
     options: IncrementDecrementOptionsWithBy
-  ): Promise<M>;
+  ): Promise<M[]> | Promise<[M[], number]>;
 
   /**
    * Decrements multiple fields by different values.
@@ -2102,7 +2102,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     this: { new(): M },
     fields: { [key in K]?: number },
     options: IncrementDecrementOptions
-  ): Promise<M>;
+  ): Promise<M[]> | Promise<[M[], number]>;
     
   /**
    * Run a describe query on the table. The result will be return to the listener as a hash of attributes and

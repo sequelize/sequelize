@@ -83,6 +83,20 @@ class StaticDecrementModel extends Model {
   public testIntegerC!: number;
 }
 
-StaticDecrementModel.decrement('testIntegerA', {});
-StaticDecrementModel.decrement(['testIntegerA', 'testIntegerB'], { by: 10 });
-StaticDecrementModel.decrement({ testIntegerA: 2, testIntegerB: -5, testIntegerC: 42}, {});
+async function testingIncrementDecrement() {
+  await StaticDecrementModel.create({ 
+    testIntegerA: 20,
+    testIntegerB: 20,
+    testIntegerC: 20,
+  });
+  
+  await StaticDecrementModel.increment('testIntegerA', {});
+  await StaticDecrementModel.increment(['testIntegerA', 'testIntegerB'], { by: 10 });
+  await StaticDecrementModel.increment({ testIntegerA: 2, testIntegerB: 10, testIntegerC: 5}, {});
+  
+  await StaticDecrementModel.decrement('testIntegerA', {});
+  await StaticDecrementModel.decrement(['testIntegerA', 'testIntegerB'], { by: 10 });
+  await StaticDecrementModel.decrement({ testIntegerA: 2, testIntegerB: -5, testIntegerC: 42}, {});
+}
+
+testingIncrementDecrement();
