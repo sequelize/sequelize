@@ -291,6 +291,8 @@ where = whereFn('test', {
 // Literal as where
 where = literal('true')
 
+where = fn('LOWER', 'asd')
+
 MyModel.findAll({
     where: literal('true')
 })
