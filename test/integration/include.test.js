@@ -273,7 +273,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           return Promise.join(
             props.task.setUser(props.user),
             props.user.setGroup(props.group)
-          ).return(props);
+          ).then(() => props);
         }).then(props => {
           return Task.findOne({
             where: {
