@@ -201,14 +201,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.map(_.range(50), i => {
+          return Promise.all(_.range(50).map(i => {
             return User.findOrCreate({
               where: {
                 email: `unique.email.${i}@sequelizejs.com`,
                 companyId: Math.floor(Math.random() * 5)
               }
             });
-          });
+          }));
         });
       });
 
@@ -225,22 +225,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.map(_.range(50), i => {
+          return Promise.all(_.range(50).map(i => {
             return User.findOrCreate({
               where: {
                 email: `unique.email.${i}@sequelizejs.com`,
                 companyId: 2
               }
             });
-          }).then(() => {
-            return Promise.map(_.range(50), i => {
+          })).then(() => {
+            return Promise.all(_.range(50).map(i => {
               return User.findOrCreate({
                 where: {
                   email: `unique.email.${i}@sequelizejs.com`,
                   companyId: 2
                 }
               });
-            });
+            }));
           });
         });
       });
@@ -258,14 +258,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.map(_.range(50), () => {
+          return Promise.all(_.range(50).map(() => {
             return User.findOrCreate({
               where: {
                 email: 'unique.email.1@sequelizejs.com',
                 companyId: 2
               }
             });
-          });
+          }));
         });
       });
     }

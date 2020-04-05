@@ -2467,12 +2467,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           for (let i = 0; i < 1000; i++) {
             tasks.push(testAsync);
           }
-          return Sequelize.Promise.resolve(tasks).map(entry => {
+          return Sequelize.Promise.all(tasks.map(entry => {
             return entry();
           }, {
             // Needs to be one less than ??? else the non transaction query won't ever get a connection
             concurrency: (sequelize.config.pool && sequelize.config.pool.max || 5) - 1
-          });
+          }));
         });
       });
     });

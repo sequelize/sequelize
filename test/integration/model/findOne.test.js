@@ -250,7 +250,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let count = 0;
 
         return this.User.bulkCreate([{ username: 'jack' }, { username: 'jack' }]).then(() => {
-          return Sequelize.Promise.map(permutations, perm => {
+          return Sequelize.Promise.all(permutations.map(perm => {
             return this.User.findByPk(perm, {
               logging(s) {
                 expect(s).to.include(0);
@@ -259,7 +259,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }).then(user => {
               expect(user).to.be.null;
             });
-          });
+          }));
         }).then(() => {
           expect(count).to.be.equal(permutations.length);
         });
