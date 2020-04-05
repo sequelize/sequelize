@@ -1173,7 +1173,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts simply', function() {
-          return Sequelize.Promise.map([['ASC', 'Asia'], ['DESC', 'Europe']], params => {
+          return Sequelize.Promise.all([['ASC', 'Asia'], ['DESC', 'Europe']].map(params => {
             return this.Continent.findAll({
               order: [['name', params[0]]]
             }).then(continents => {
@@ -1181,11 +1181,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
             });
-          });
+          }));
         });
 
         it('sorts by 1st degree association', function() {
-          return Sequelize.Promise.map([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']], params => {
+          return Sequelize.Promise.all([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']].map(params => {
             return this.Continent.findAll({
               include: [this.Country],
               order: [[this.Country, 'name', params[0]]]
@@ -1197,11 +1197,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0]).to.exist;
               expect(continents[0].countries[0].name).to.equal(params[2]);
             });
-          });
+          }));
         });
 
         it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', function() {
-          return Sequelize.Promise.map([['ASC', 'Asia', 'Europe', 'England']], params => {
+          return Sequelize.Promise.all([['ASC', 'Asia', 'Europe', 'England']].map(params => {
             return this.Continent.findAll({
               include: [{
                 model: this.Country,
@@ -1225,11 +1225,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[1].countries[0]).to.exist;
               expect(continents[1].countries[0].name).to.equal(params[3]);
             });
-          });
+          }));
         });
 
         it('sorts by 2nd degree association', function() {
-          return Sequelize.Promise.map([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']], params => {
+          return Sequelize.Promise.all([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']].map(params => {
             return this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person] }],
               order: [[this.Country, this.Person, 'lastName', params[0]]]
@@ -1244,11 +1244,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0].people[0]).to.exist;
               expect(continents[0].countries[0].people[0].name).to.equal(params[3]);
             });
-          });
+          }));
         });
 
         it('sorts by 2nd degree association with alias', function() {
-          return Sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
+          return Sequelize.Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(params => {
             return this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person, { model: this.Person, as: 'residents' }] }],
               order: [[this.Country, { model: this.Person, as: 'residents' }, 'lastName', params[0]]]
@@ -1263,11 +1263,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0].residents[0]).to.exist;
               expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
             });
-          });
+          }));
         });
 
         it('sorts by 2nd degree association with alias while using limit', function() {
-          return Sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
+          return Sequelize.Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(params => {
             return this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person, { model: this.Person, as: 'residents' }] }],
               order: [[{ model: this.Country }, { model: this.Person, as: 'residents' }, 'lastName', params[0]]],
@@ -1283,7 +1283,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0].residents[0]).to.exist;
               expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
             });
-          });
+          }));
         });
       });
 
