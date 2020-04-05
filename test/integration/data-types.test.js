@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         dateField: moment('2011 10 31', 'YYYY MM DD')
       });
     }).then(() => {
-      return User.findAll().get(0);
+      return User.findAll().then(obj => obj[0]);
     }).then(user => {
       expect(parse).to.have.been.called;
       expect(stringify).to.have.been.called;
@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         field: value
       });
     }).then(() => {
-      return User.findAll().get(0);
+      return User.findAll().then(obj => obj[0]);
     }).then(() => {
       expect(parse).to.have.been.called;
       if (options && options.useBindParam) {
