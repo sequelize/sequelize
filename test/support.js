@@ -44,7 +44,7 @@ const Support = {
       const options = Object.assign({}, sequelize.options, { storage: p }),
         _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
-      return _sequelize.sync({ force: true }).return(_sequelize);
+      return _sequelize.sync({ force: true }).then(() => _sequelize);
     }
     return Sequelize.Promise.resolve(sequelize);
   },
