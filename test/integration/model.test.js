@@ -287,7 +287,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Sequelize.Promise.all([
         User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
         User.create({ username: 'tobi', email: 'tobi@tobi.me' })
-      ]).catch(Sequelize.UniqueConstraintError, err => {
+      ]).catch(err => {
+        if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
         expect(err.message).to.equal('User and email must be unique');
       });
     });
@@ -321,7 +322,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Sequelize.Promise.all([
         User.create({ user_id: 1, email: 'tobi@tobi.me' }),
         User.create({ user_id: 1, email: 'tobi@tobi.me' })
-      ]).catch(Sequelize.UniqueConstraintError, err => {
+      ]).catch(err => {
+        if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
         expect(err.message).to.equal('User and email must be unique');
       });
     });

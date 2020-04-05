@@ -45,7 +45,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => {
           expect.fail('expected to fail');
         })
-        .catch(/abort/, () => {
+        .catch(err => {
+          if (!/abort/.test(err.message)) throw err;
           expect(this.clsStub.calledOnce).to.equal(true, 'expected to ask for transaction');
         });
 
@@ -63,7 +64,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => {
           expect.fail('expected to fail');
         })
-        .catch(/abort/, () => {
+        .catch(err => {
+          if (!/abort/.test(err.message)) throw err;
           expect(this.clsStub.called).to.equal(false);
         });
     });

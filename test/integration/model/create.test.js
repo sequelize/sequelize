@@ -417,10 +417,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           })
             .timeout(1000)
-            .catch(Promise.TimeoutError, e => {
+            .catch(e => {
+              if (!(e instanceof Promise.TimeoutError)) throw e;
               throw new Error(e);
             })
-            .catch(Sequelize.ValidationError, () => {
+            .catch(err => {
+              if (!(err instanceof Sequelize.ValidationError)) throw err;
               return test(times + 1);
             });
         };
@@ -1003,7 +1005,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return User.sync({ force: true }).then(() => {
         return User.create({ username: 'foo' }).then(() => {
-          return User.create({ username: 'foo' }).catch(Sequelize.UniqueConstraintError, err => {
+          return User.create({ username: 'foo' }).catch(err => {
+            if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
             expect(err).to.be.ok;
           });
         });
@@ -1020,7 +1023,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.create({ username: 'foo' });
         }).then(() => {
           return User.create({ username: 'fOO' });
-        }).catch(Sequelize.UniqueConstraintError, err => {
+        }).catch(err => {
+          if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
           expect(err).to.be.ok;
         });
       });
@@ -1040,7 +1044,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.create({ username: 'foo' });
         }).then(() => {
           return User.create({ username: 'foo' });
-        }).catch(Sequelize.UniqueConstraintError, err => {
+        }).catch(err => {
+          if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
           expect(err).to.be.ok;
         });
       });
@@ -1075,7 +1080,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return UserNull.sync({ force: true }).then(() => {
         return UserNull.create({ username: 'foo', smth: 'foo' }).then(() => {
-          return UserNull.create({ username: 'foo', smth: 'bar' }).catch(Sequelize.UniqueConstraintError, err => {
+          return UserNull.create({ username: 'foo', smth: 'bar' }).catch(err => {
+            if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
             expect(err).to.be.ok;
           });
         });
