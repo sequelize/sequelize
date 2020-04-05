@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should apply default scope when including an associations', function() {
           return this.Company.findAll({
             include: [this.UserAssociation]
-          }).get(0).then(company => {
+          }).then(a => a[0]).then(company => {
             expect(company.users).to.have.length(2);
           });
         });
@@ -135,7 +135,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should apply default scope when including a model', function() {
           return this.Company.findAll({
             include: [{ model: this.ScopeMe, as: 'users' }]
-          }).get(0).then(company => {
+          }).then(a => a[0]).then(company => {
             expect(company.users).to.have.length(2);
           });
         });
@@ -143,7 +143,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should be able to include a scoped model', function() {
           return this.Company.findAll({
             include: [{ model: this.ScopeMe.scope('isTony'), as: 'users' }]
-          }).get(0).then(company => {
+          }).then(a => a[0]).then(company => {
             expect(company.users).to.have.length(1);
             expect(company.users[0].get('username')).to.equal('tony');
           });
@@ -191,7 +191,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('belongsToMany', function() {
-            return this.Project.findAll().get(0).then(p => {
+            return this.Project.findAll().then(a => a[0]).then(p => {
               return p.getCompanies({ scope: false });
             }).then(companies => {
               expect(companies).to.have.length(2);
@@ -230,7 +230,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('belongsToMany', function() {
-            return this.Project.findAll().get(0).then(p => {
+            return this.Project.findAll().then(a => a[0]).then(p => {
               return p.getCompanies();
             }).then(companies => {
               expect(companies).to.have.length(1);
@@ -271,7 +271,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('belongsToMany', function() {
-            return this.Project.findAll().get(0).then(p => {
+            return this.Project.findAll().then(a => a[0]).then(p => {
               return p.getCompanies({ scope: 'reversed' });
             }).then(companies => {
               expect(companies).to.have.length(2);

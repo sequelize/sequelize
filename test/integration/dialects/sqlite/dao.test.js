@@ -52,7 +52,7 @@ if (dialect === 'sqlite') {
         return this.User.create({
           dateField: new Date(2010, 10, 10)
         }).then(() => {
-          return this.User.findAll().get(0);
+          return this.User.findAll().then(a => a[0]);
         }).then(user => {
           expect(user.get('dateField')).to.be.an.instanceof(Date);
           expect(user.get('dateField')).to.equalTime(new Date(2010, 10, 10));
@@ -67,7 +67,7 @@ if (dialect === 'sqlite') {
         }, { include: [this.Project] }).then(() => {
           return this.User.findAll({
             include: [this.Project]
-          }).get(0);
+          }).then(a => a[0]);
         }).then(user => {
           expect(user.projects[0].get('dateField')).to.be.an.instanceof(Date);
           expect(user.projects[0].get('dateField')).to.equalTime(new Date(1990, 5, 5));

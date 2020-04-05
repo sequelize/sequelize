@@ -590,7 +590,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const tickChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
         sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}`;
 
-      return expect(this.sequelize.query(sql, { raw: true, nest: false }).get(0)).to.eventually.deep.equal([{ 'foo.bar.baz': 1 }]);
+      return expect(this.sequelize.query(sql, { raw: true, nest: false }).then(a => a[0])).to.eventually.deep.equal([{ 'foo.bar.baz': 1 }]);
     });
 
     it('destructs dot separated attributes when doing a raw query using nest', function() {
@@ -609,22 +609,22 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('replaces named parameters with the passed object', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
+      return expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: 2 } }).then(a => a[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: 2 }]);
     });
 
     it('replaces named parameters with the passed object and ignore those which does not qualify', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
+      return expect(this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(a => a[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: '00:00' }]);
     });
 
     it('replaces named parameters with the passed object using the same key twice', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar, :one as baz', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
+      return expect(this.sequelize.query('select :one as foo, :two as bar, :one as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(a => a[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
     });
 
     it('replaces named parameters with the passed object having a null property', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: null } }).get(0))
+      return expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: null } }).then(a => a[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: null }]);
     });
 
@@ -789,12 +789,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     if (Support.getTestDialect() === 'postgres') {
       it('replaces named parameters with the passed object and ignores casts', function() {
-        return expect(this.sequelize.query('select :one as foo, :two as bar, \'1000\'::integer as baz', { raw: true, replacements: { one: 1, two: 2 } }).get(0))
+        return expect(this.sequelize.query('select :one as foo, :two as bar, \'1000\'::integer as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(a => a[0]))
           .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1000 }]);
       });
 
       it('supports WITH queries', function() {
-        return expect(this.sequelize.query('WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t').get(0))
+        return expect(this.sequelize.query('WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t').then(a => a[0]))
           .to.eventually.deep.equal([{ 'sum': '5050' }]);
       });
     }
