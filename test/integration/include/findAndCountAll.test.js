@@ -231,13 +231,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         return Foo.findAndCountAll({
           include: [{ model: Bar, required: true }],
           limit: 2
-        }).tap(() => {
-          return Foo.findAll({
+        }).then(result => {
+          return Promise.resolve(Foo.findAll({
             include: [{ model: Bar, required: true }],
             limit: 2
           }).then(items => {
             expect(items.length).to.equal(2);
-          });
+          })).then(() => result);
         });
       }).then(result => {
         expect(result.count).to.equal(4);

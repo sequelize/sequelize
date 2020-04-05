@@ -72,10 +72,11 @@ if (dialect.match(/^postgres/)) {
           }]
         });
       }).get('friends')
-        .tap(friends => {
-          expect(friends).to.have.length(1);
-          expect(friends[0].name).to.equal('John Smythe');
-        });
+        .then(friends => {
+        expect(friends).to.have.length(1);
+        expect(friends[0].name).to.equal('John Smythe');
+        return friends;
+      });
     });
 
     it('should be able to find a record while searching in an array', function() {
