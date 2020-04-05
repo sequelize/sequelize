@@ -12,7 +12,8 @@ const chai = require('chai'),
   Promise = require('bluebird'),
   current = Support.sequelize,
   Op = Sequelize.Op,
-  semver = require('semver');
+  semver = require('semver'),
+  pAll = require('p-all');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function() {
@@ -2467,7 +2468,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           for (let i = 0; i < 1000; i++) {
             tasks.push(testAsync);
           }
-          return Sequelize.Promise.all(tasks.map(entry => {
+          return pAll(tasks.map(entry => {
             return entry();
           }, {
             // Needs to be one less than ??? else the non transaction query won't ever get a connection
