@@ -11,7 +11,8 @@ const chai = require('chai'),
   Op = Sequelize.Op,
   _ = require('lodash'),
   assert = require('assert'),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  pTimeout = require('p-timeout');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(function() {
@@ -411,20 +412,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           if (times > 10) {
             return true;
           }
-          return this.Student.findOrCreate({
+          return pTimeout(this.Student.findOrCreate({
             where: {
               no: 1
             }
-          })
-            .timeout(1000)
+          }), 1000)
             .catch(e => {
-              if (!(e instanceof Promise.TimeoutError)) throw e;
-              throw new Error(e);
+              if (err instanceof Sequelize.ValidationError) return test(times + 1);
+              if (err instanceof pTimeout.TimeoutError) throw new Error(e);
+              throw e;
             })
-            .catch(err => {
-              if (!(err instanceof Sequelize.ValidationError)) throw err;
-              return test(times + 1);
-            });
         };
 
         return test(0);

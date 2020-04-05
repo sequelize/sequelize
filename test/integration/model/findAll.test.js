@@ -11,7 +11,8 @@ const chai = require('chai'),
   config = require('../../config/config'),
   _ = require('lodash'),
   moment = require('moment'),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  promiseProps = require('p-props');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(function() {
@@ -953,7 +954,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Person.belongsTo(this.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return Sequelize.Promise.props({
+            return promiseProps({
               europe: this.Continent.create({ name: 'Europe' }),
               england: this.Country.create({ name: 'England' }),
               coal: this.Industry.create({ name: 'Coal' }),
@@ -1138,7 +1139,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Person.belongsTo(this.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return Sequelize.Promise.props({
+            return promiseProps({
               europe: this.Continent.create({ name: 'Europe' }),
               asia: this.Continent.create({ name: 'Asia' }),
               england: this.Country.create({ name: 'England' }),
@@ -1297,7 +1298,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Industry.belongsToMany(this.Country, { through: this.IndustryCountry });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return Sequelize.Promise.props({
+            return promiseProps({
               england: this.Country.create({ name: 'England' }),
               france: this.Country.create({ name: 'France' }),
               korea: this.Country.create({ name: 'Korea' }),

@@ -6,6 +6,7 @@ const Support = require('./support');
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 const Sequelize = Support.Sequelize;
+const delay = require('delay');
 
 function assertSameConnection(newConnection, oldConnection) {
   switch (dialect) {
@@ -143,7 +144,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       await cm.releaseConnection(firstConnection);
 
       // Wait a little and then get next available connection
-      await Sequelize.Promise.delay(90);
+      await delay(90);
       const secondConnection = await cm.getConnection();
 
       assertSameConnection(secondConnection, firstConnection);
@@ -168,7 +169,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       await cm.releaseConnection(firstConnection);
 
       // Wait a little and then get next available connection
-      await Sequelize.Promise.delay(110);
+      await delay(110);
 
       const secondConnection = await cm.getConnection();
 
