@@ -110,14 +110,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       return this.User.create({
         aNumber: 1,
         bNumber: 1
-      }).tap(user => {
-        return this.User.update({
+      }).then(user => {
+        return Promise.resolve(this.User.update({
           bNumber: 2
         }, {
           where: {
             id: user.get('id')
           }
-        });
+        })).then(() => user);
       }).then(user => {
         return user.reload({
           attributes: ['bNumber']

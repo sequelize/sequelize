@@ -72,9 +72,10 @@ if (dialect.match(/^postgres/)) {
           }]
         });
       }).get('friends')
-        .tap(friends => {
+        .then(friends => {
           expect(friends).to.have.length(1);
           expect(friends[0].name).to.equal('John Smythe');
+          return friends;
         });
     });
 
