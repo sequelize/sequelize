@@ -71,7 +71,7 @@ if (dialect.match(/^postgres/)) {
             name: 'John Smythe'
           }]
         });
-      }).get('friends')
+      }).then(obj => obj['friends'])
         .then(friends => {
           expect(friends).to.have.length(1);
           expect(friends[0].name).to.equal('John Smythe');
