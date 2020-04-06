@@ -418,10 +418,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           }), 1000)
             .catch(e => {
-              if (err instanceof Sequelize.ValidationError) return test(times + 1);
-              if (err instanceof pTimeout.TimeoutError) throw new Error(e);
+              if (e instanceof Sequelize.ValidationError) return test(times + 1);
+              if (e instanceof pTimeout.TimeoutError) throw new Error(e);
               throw e;
-            })
+            });
         };
 
         return test(0);
