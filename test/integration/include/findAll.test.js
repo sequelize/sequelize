@@ -1200,7 +1200,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       GroupMember.belongsTo(Group);
       Group.hasMany(GroupMember, { as: 'Memberships' });
 
-<<<<<<< HEAD
       await this.sequelize.sync({ force: true });
       const [groups, ranks, tags] = await Promise.all([
         Group.bulkCreate([
@@ -1269,99 +1268,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         order: [
           ['id', 'ASC']
         ]
-=======
-      return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.all([
-          Group.bulkCreate([
-            { name: 'Developers' },
-            { name: 'Designers' }
-          ]).then(() => {
-            return Group.findAll();
-          }),
-          Rank.bulkCreate([
-            { name: 'Admin', canInvite: 1, canRemove: 1 },
-            { name: 'Member', canInvite: 1, canRemove: 0 }
-          ]).then(() => {
-            return Rank.findAll();
-          }),
-          Tag.bulkCreate([
-            { name: 'A' },
-            { name: 'B' },
-            { name: 'C' }
-          ]).then(() => {
-            return Tag.findAll();
-          })
-        ]).then(([groups, ranks, tags]) => {
-          return Promise.each([0, 1, 2, 3, 4], i => {
-            return promiseProps({
-              user: User.create({ name: 'FooBarzz' }),
-              products: Product.bulkCreate([
-                { title: 'Chair' },
-                { title: 'Desk' }
-              ]).then(() => {
-                return Product.findAll();
-              })
-            }).then(results => {
-              return Promise.join(
-                GroupMember.bulkCreate([
-                  { UserId: results.user.id, GroupId: groups[0].id, RankId: ranks[0].id },
-                  { UserId: results.user.id, GroupId: groups[1].id, RankId: ranks[1].id }
-                ]),
-                results.user.setProducts([
-                  results.products[i * 2 + 0],
-                  results.products[i * 2 + 1]
-                ]),
-                Promise.join(
-                  results.products[i * 2 + 0].setTags([
-                    tags[0],
-                    tags[2]
-                  ]),
-                  results.products[i * 2 + 1].setTags([
-                    tags[1]
-                  ]),
-                  results.products[i * 2 + 0].setCategory(tags[1])
-                ),
-                Price.bulkCreate([
-                  { ProductId: results.products[i * 2 + 0].id, value: 5 },
-                  { ProductId: results.products[i * 2 + 0].id, value: 10 },
-                  { ProductId: results.products[i * 2 + 1].id, value: 5 },
-                  { ProductId: results.products[i * 2 + 1].id, value: 10 },
-                  { ProductId: results.products[i * 2 + 1].id, value: 15 },
-                  { ProductId: results.products[i * 2 + 1].id, value: 20 }
-                ])
-              );
-            });
-          });
-        }).then(() => {
-          return User.findAll({
-            include: [
-              { model: GroupMember, as: 'Memberships', include: [
-                Group,
-                { model: Rank, where: { name: 'Admin' } }
-              ] },
-              { model: Product, include: [
-                Tag,
-                { model: Tag, as: 'Category' },
-                { model: Price, where: {
-                  value: {
-                    [Op.gt]: 15
-                  }
-                } }
-              ] }
-            ],
-            order: [
-              ['id', 'ASC']
-            ]
-          }).then(users => {
-            users.forEach(user => {
-              expect(user.Memberships.length).to.equal(1);
-              expect(user.Memberships[0].Rank.name).to.equal('Admin');
-              expect(user.Products.length).to.equal(1);
-              expect(user.Products[0].Prices.length).to.equal(1);
-            });
-          });
-        });
->>>>>>> refactor: replace misc bluebird API usage
       });
       for (const user of users) {
         expect(user.Memberships.length).to.equal(1);
