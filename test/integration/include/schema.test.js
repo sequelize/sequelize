@@ -8,7 +8,8 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types'),
   Promise = Sequelize.Promise,
   dialect = Support.getTestDialect(),
-  _ = require('lodash');
+  _ = require('lodash'),
+  promiseProps = require('p-props');
 
 const sortById = function(a, b) {
   return a.id < b.id ? -1 : 1;
@@ -1002,7 +1003,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       User.belongsTo(Group);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.props({
+        return promiseProps({
           groups: Group.bulkCreate([
             { name: 'A' },
             { name: 'B' }

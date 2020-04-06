@@ -7,7 +7,8 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   Sequelize = Support.Sequelize,
   fs = require('fs'),
-  path = require('path');
+  path = require('path'),
+  { promisify } = require('util');
 
 let sqlite3;
 if (dialect === 'sqlite') {
@@ -74,11 +75,11 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         const createTableFoo = 'CREATE TABLE foo (faz TEXT);';
         const createTableBar = 'CREATE TABLE bar (baz TEXT);';
 
-        const testAccess = Sequelize.Promise.method(() => {
-          return Sequelize.Promise.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
-        });
+        const testAccess = () => {
+          return promisify(fs.access)(p, fs.R_OK | fs.W_OK);
+        };
 
-        return Sequelize.Promise.promisify(fs.unlink)(p)
+        return promisify(fs.unlink)(p)
           .catch(err => {
             expect(err.code).to.equal('ENOENT');
           })
@@ -135,7 +136,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
             );
           })
           .finally(() => {
-            return Sequelize.Promise.promisify(fs.unlink)(p);
+            return promisify(fs.unlink)(p);
           });
       });
     }

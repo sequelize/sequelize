@@ -6,7 +6,8 @@ const chai      = require('chai'),
   Sequelize = Support.Sequelize,
   Promise   = Sequelize.Promise,
   cls       = require('cls-hooked'),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  delay     = require('delay');
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('CLS (Async hooks)'), () => {
@@ -73,7 +74,7 @@ if (current.dialect.supports.transactions) {
         this.sequelize.transaction(() => {
           transactionSetup = true;
 
-          return Promise.delay(500).then(() => {
+          return delay(500).then(() => {
             expect(this.ns.get('transaction')).to.be.ok;
             transactionEnded = true;
           });
