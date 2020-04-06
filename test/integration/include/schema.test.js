@@ -21,334 +21,301 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
     });
 
     beforeEach(function() {
-      this.fixtureA = function() {
-        return this.sequelize.dropSchema('account').then(() => {
-          return this.sequelize.createSchema('account').then(() => {
-            const AccUser = this.sequelize.define('AccUser', {}, { schema: 'account' }),
-              Company = this.sequelize.define('Company', {
-                name: DataTypes.STRING
-              }, { schema: 'account' }),
-              Product = this.sequelize.define('Product', {
-                title: DataTypes.STRING
-              }, { schema: 'account' }),
-              Tag = this.sequelize.define('Tag', {
-                name: DataTypes.STRING
-              }, { schema: 'account' }),
-              Price = this.sequelize.define('Price', {
-                value: DataTypes.FLOAT
-              }, { schema: 'account' }),
-              Customer = this.sequelize.define('Customer', {
-                name: DataTypes.STRING
-              }, { schema: 'account' }),
-              Group = this.sequelize.define('Group', {
-                name: DataTypes.STRING
-              }, { schema: 'account' }),
-              GroupMember = this.sequelize.define('GroupMember', {
+      this.fixtureA = async function() {
+        await this.sequelize.dropSchema('account');
+        await this.sequelize.createSchema('account');
+        const AccUser = this.sequelize.define('AccUser', {}, { schema: 'account' }),
+          Company = this.sequelize.define('Company', {
+            name: DataTypes.STRING
+          }, { schema: 'account' }),
+          Product = this.sequelize.define('Product', {
+            title: DataTypes.STRING
+          }, { schema: 'account' }),
+          Tag = this.sequelize.define('Tag', {
+            name: DataTypes.STRING
+          }, { schema: 'account' }),
+          Price = this.sequelize.define('Price', {
+            value: DataTypes.FLOAT
+          }, { schema: 'account' }),
+          Customer = this.sequelize.define('Customer', {
+            name: DataTypes.STRING
+          }, { schema: 'account' }),
+          Group = this.sequelize.define('Group', {
+            name: DataTypes.STRING
+          }, { schema: 'account' }),
+          GroupMember = this.sequelize.define('GroupMember', {
 
-              }, { schema: 'account' }),
-              Rank = this.sequelize.define('Rank', {
-                name: DataTypes.STRING,
-                canInvite: {
-                  type: DataTypes.INTEGER,
-                  defaultValue: 0
-                },
-                canRemove: {
-                  type: DataTypes.INTEGER,
-                  defaultValue: 0
-                },
-                canPost: {
-                  type: DataTypes.INTEGER,
-                  defaultValue: 0
-                }
-              }, { schema: 'account' });
+          }, { schema: 'account' }),
+          Rank = this.sequelize.define('Rank', {
+            name: DataTypes.STRING,
+            canInvite: {
+              type: DataTypes.INTEGER,
+              defaultValue: 0
+            },
+            canRemove: {
+              type: DataTypes.INTEGER,
+              defaultValue: 0
+            },
+            canPost: {
+              type: DataTypes.INTEGER,
+              defaultValue: 0
+            }
+          }, { schema: 'account' });
 
-            this.models = {
-              AccUser,
-              Company,
-              Product,
-              Tag,
-              Price,
-              Customer,
-              Group,
-              GroupMember,
-              Rank
-            };
+        this.models = {
+          AccUser,
+          Company,
+          Product,
+          Tag,
+          Price,
+          Customer,
+          Group,
+          GroupMember,
+          Rank
+        };
 
-            AccUser.hasMany(Product);
-            Product.belongsTo(AccUser);
+        AccUser.hasMany(Product);
+        Product.belongsTo(AccUser);
 
-            Product.belongsToMany(Tag, { through: 'product_tag' });
-            Tag.belongsToMany(Product, { through: 'product_tag' });
-            Product.belongsTo(Tag, { as: 'Category' });
-            Product.belongsTo(Company);
+        Product.belongsToMany(Tag, { through: 'product_tag' });
+        Tag.belongsToMany(Product, { through: 'product_tag' });
+        Product.belongsTo(Tag, { as: 'Category' });
+        Product.belongsTo(Company);
 
-            Product.hasMany(Price);
-            Price.belongsTo(Product);
+        Product.hasMany(Price);
+        Price.belongsTo(Product);
 
-            AccUser.hasMany(GroupMember, { as: 'Memberships' });
-            GroupMember.belongsTo(AccUser);
-            GroupMember.belongsTo(Rank);
-            GroupMember.belongsTo(Group);
-            Group.hasMany(GroupMember, { as: 'Memberships' });
+        AccUser.hasMany(GroupMember, { as: 'Memberships' });
+        GroupMember.belongsTo(AccUser);
+        GroupMember.belongsTo(Rank);
+        GroupMember.belongsTo(Group);
+        Group.hasMany(GroupMember, { as: 'Memberships' });
 
-            return this.sequelize.sync({ force: true }).then(() => {
-              return Promise.all([
-                Group.bulkCreate([
-                  { name: 'Developers' },
-                  { name: 'Designers' },
-                  { name: 'Managers' }
-                ]),
-                Company.bulkCreate([
-                  { name: 'Sequelize' },
-                  { name: 'Coca Cola' },
-                  { name: 'Bonanza' },
-                  { name: 'NYSE' },
-                  { name: 'Coshopr' }
-                ]),
-                Rank.bulkCreate([
-                  { name: 'Admin', canInvite: 1, canRemove: 1, canPost: 1 },
-                  { name: 'Trustee', canInvite: 1, canRemove: 0, canPost: 1 },
-                  { name: 'Member', canInvite: 1, canRemove: 0, canPost: 0 }
-                ]),
-                Tag.bulkCreate([
-                  { name: 'A' },
-                  { name: 'B' },
-                  { name: 'C' },
-                  { name: 'D' },
-                  { name: 'E' }
-                ])
-              ]).then(() => {
-                return Promise.all([
-                  Group.findAll(),
-                  Company.findAll(),
-                  Rank.findAll(),
-                  Tag.findAll()
-                ]);
-              }).then(([groups, companies, ranks, tags]) => {
-                return Promise.each([0, 1, 2, 3, 4], i => {
-                  return Promise.all([
-                    AccUser.create(),
-                    Product.bulkCreate([
-                      { title: 'Chair' },
-                      { title: 'Desk' },
-                      { title: 'Bed' },
-                      { title: 'Pen' },
-                      { title: 'Monitor' }
-                    ]).then(() => {
-                      return Product.findAll();
-                    })
-                  ]).then(([user, products]) => {
-                    const groupMembers = [
-                      { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
-                      { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id }
-                    ];
-                    if (i < 3) {
-                      groupMembers.push({ AccUserId: user.id, GroupId: groups[2].id, RankId: ranks[1].id });
-                    }
+        await this.sequelize.sync({ force: true });
+        const [groups, companies, ranks, tags] = await Promise.all([
+          Group.bulkCreate([
+            { name: 'Developers' },
+            { name: 'Designers' },
+            { name: 'Managers' }
+          ]).then(() => Group.findAll()),
+          Company.bulkCreate([
+            { name: 'Sequelize' },
+            { name: 'Coca Cola' },
+            { name: 'Bonanza' },
+            { name: 'NYSE' },
+            { name: 'Coshopr' }
+          ]).then(() => Company.findAll()),
+          Rank.bulkCreate([
+            { name: 'Admin', canInvite: 1, canRemove: 1, canPost: 1 },
+            { name: 'Trustee', canInvite: 1, canRemove: 0, canPost: 1 },
+            { name: 'Member', canInvite: 1, canRemove: 0, canPost: 0 }
+          ]).then(() => Rank.findAll()),
+          Tag.bulkCreate([
+            { name: 'A' },
+            { name: 'B' },
+            { name: 'C' },
+            { name: 'D' },
+            { name: 'E' }
+          ]).then(() => Tag.findAll())
+        ]);
+        for (const i of [0, 1, 2, 3, 4]) {
+          const [user, products] = await Promise.all([
+            AccUser.create(),
+            Product.bulkCreate([
+              { title: 'Chair' },
+              { title: 'Desk' },
+              { title: 'Bed' },
+              { title: 'Pen' },
+              { title: 'Monitor' }
+            ]).then(() => Product.findAll())
+          ]);
+          const groupMembers = [
+            { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
+            { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id }
+          ];
+          if (i < 3) {
+            groupMembers.push({ AccUserId: user.id, GroupId: groups[2].id, RankId: ranks[1].id });
+          }
 
-                    return Promise.join(
-                      GroupMember.bulkCreate(groupMembers),
-                      user.setProducts([
-                        products[i * 5 + 0],
-                        products[i * 5 + 1],
-                        products[i * 5 + 3]
-                      ]),
-                      Promise.join(
-                        products[i * 5 + 0].setTags([
-                          tags[0],
-                          tags[2]
-                        ]),
-                        products[i * 5 + 1].setTags([
-                          tags[1]
-                        ]),
-                        products[i * 5 + 0].setCategory(tags[1]),
-                        products[i * 5 + 2].setTags([
-                          tags[0]
-                        ]),
-                        products[i * 5 + 3].setTags([
-                          tags[0]
-                        ])
-                      ),
-                      Promise.join(
-                        products[i * 5 + 0].setCompany(companies[4]),
-                        products[i * 5 + 1].setCompany(companies[3]),
-                        products[i * 5 + 2].setCompany(companies[2]),
-                        products[i * 5 + 3].setCompany(companies[1]),
-                        products[i * 5 + 4].setCompany(companies[0])
-                      ),
-                      Price.bulkCreate([
-                        { ProductId: products[i * 5 + 0].id, value: 5 },
-                        { ProductId: products[i * 5 + 0].id, value: 10 },
-                        { ProductId: products[i * 5 + 1].id, value: 5 },
-                        { ProductId: products[i * 5 + 1].id, value: 10 },
-                        { ProductId: products[i * 5 + 1].id, value: 15 },
-                        { ProductId: products[i * 5 + 1].id, value: 20 },
-                        { ProductId: products[i * 5 + 2].id, value: 20 },
-                        { ProductId: products[i * 5 + 3].id, value: 20 }
-                      ])
-                    );
-                  });
-                });
-              });
-            });
-          });
-        });
+          await Promise.all([
+            GroupMember.bulkCreate(groupMembers),
+            user.setProducts([
+              products[i * 5 + 0],
+              products[i * 5 + 1],
+              products[i * 5 + 3]
+            ]),
+            products[i * 5 + 0].setTags([
+              tags[0],
+              tags[2]
+            ]),
+            products[i * 5 + 1].setTags([
+              tags[1]
+            ]),
+            products[i * 5 + 0].setCategory(tags[1]),
+            products[i * 5 + 2].setTags([
+              tags[0]
+            ]),
+            products[i * 5 + 3].setTags([
+              tags[0]
+            ]),
+            products[i * 5 + 0].setCompany(companies[4]),
+            products[i * 5 + 1].setCompany(companies[3]),
+            products[i * 5 + 2].setCompany(companies[2]),
+            products[i * 5 + 3].setCompany(companies[1]),
+            products[i * 5 + 4].setCompany(companies[0]),
+            Price.bulkCreate([
+              { ProductId: products[i * 5 + 0].id, value: 5 },
+              { ProductId: products[i * 5 + 0].id, value: 10 },
+              { ProductId: products[i * 5 + 1].id, value: 5 },
+              { ProductId: products[i * 5 + 1].id, value: 10 },
+              { ProductId: products[i * 5 + 1].id, value: 15 },
+              { ProductId: products[i * 5 + 1].id, value: 20 },
+              { ProductId: products[i * 5 + 2].id, value: 20 },
+              { ProductId: products[i * 5 + 3].id, value: 20 }
+            ])
+          ]);
+        }
       };
       return this.sequelize.createSchema('account');
     });
 
-    it('should support an include with multiple different association types', function() {
-      return this.sequelize.dropSchema('account').then(() => {
-        return this.sequelize.createSchema('account').then(() => {
-          const AccUser = this.sequelize.define('AccUser', {}, { schema: 'account' }),
-            Product = this.sequelize.define('Product', {
-              title: DataTypes.STRING
-            }, { schema: 'account' }),
-            Tag = this.sequelize.define('Tag', {
-              name: DataTypes.STRING
-            }, { schema: 'account' }),
-            Price = this.sequelize.define('Price', {
-              value: DataTypes.FLOAT
-            }, { schema: 'account' }),
-            Group = this.sequelize.define('Group', {
-              name: DataTypes.STRING
-            }, { schema: 'account' }),
-            GroupMember = this.sequelize.define('GroupMember', {
+    it('should support an include with multiple different association types', async function() {
+      await this.sequelize.dropSchema('account');
+      await this.sequelize.createSchema('account');
+      const AccUser = this.sequelize.define('AccUser', {}, { schema: 'account' }),
+        Product = this.sequelize.define('Product', {
+          title: DataTypes.STRING
+        }, { schema: 'account' }),
+        Tag = this.sequelize.define('Tag', {
+          name: DataTypes.STRING
+        }, { schema: 'account' }),
+        Price = this.sequelize.define('Price', {
+          value: DataTypes.FLOAT
+        }, { schema: 'account' }),
+        Group = this.sequelize.define('Group', {
+          name: DataTypes.STRING
+        }, { schema: 'account' }),
+        GroupMember = this.sequelize.define('GroupMember', {
 
-            }, { schema: 'account' }),
-            Rank = this.sequelize.define('Rank', {
-              name: DataTypes.STRING,
-              canInvite: {
-                type: DataTypes.INTEGER,
-                defaultValue: 0
-              },
-              canRemove: {
-                type: DataTypes.INTEGER,
-                defaultValue: 0
-              }
-            }, { schema: 'account' });
+        }, { schema: 'account' }),
+        Rank = this.sequelize.define('Rank', {
+          name: DataTypes.STRING,
+          canInvite: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+          },
+          canRemove: {
+            type: DataTypes.INTEGER,
+            defaultValue: 0
+          }
+        }, { schema: 'account' });
 
-          AccUser.hasMany(Product);
-          Product.belongsTo(AccUser);
+      AccUser.hasMany(Product);
+      Product.belongsTo(AccUser);
 
-          Product.belongsToMany(Tag, { through: 'product_tag' });
-          Tag.belongsToMany(Product, { through: 'product_tag' });
-          Product.belongsTo(Tag, { as: 'Category' });
+      Product.belongsToMany(Tag, { through: 'product_tag' });
+      Tag.belongsToMany(Product, { through: 'product_tag' });
+      Product.belongsTo(Tag, { as: 'Category' });
 
-          Product.hasMany(Price);
-          Price.belongsTo(Product);
+      Product.hasMany(Price);
+      Price.belongsTo(Product);
 
-          AccUser.hasMany(GroupMember, { as: 'Memberships' });
-          GroupMember.belongsTo(AccUser);
-          GroupMember.belongsTo(Rank);
-          GroupMember.belongsTo(Group);
-          Group.hasMany(GroupMember, { as: 'Memberships' });
+      AccUser.hasMany(GroupMember, { as: 'Memberships' });
+      GroupMember.belongsTo(AccUser);
+      GroupMember.belongsTo(Rank);
+      GroupMember.belongsTo(Group);
+      Group.hasMany(GroupMember, { as: 'Memberships' });
 
-          return this.sequelize.sync({ force: true }).then(() => {
-            return Promise.all([
-              Group.bulkCreate([
-                { name: 'Developers' },
-                { name: 'Designers' }
-              ]).then(() => {
-                return Group.findAll();
-              }),
-              Rank.bulkCreate([
-                { name: 'Admin', canInvite: 1, canRemove: 1 },
-                { name: 'Member', canInvite: 1, canRemove: 0 }
-              ]).then(() => {
-                return Rank.findAll();
-              }),
-              Tag.bulkCreate([
-                { name: 'A' },
-                { name: 'B' },
-                { name: 'C' }
-              ]).then(() => {
-                return Tag.findAll();
-              })
-            ]).then(([groups, ranks, tags]) => {
-              return Promise.each([0, 1, 2, 3, 4], i => {
-                return Promise.all([
-                  AccUser.create(),
-                  Product.bulkCreate([
-                    { title: 'Chair' },
-                    { title: 'Desk' }
-                  ]).then(() => {
-                    return Product.findAll();
-                  })
-                ]).then(([user, products]) => {
-                  return Promise.all([
-                    GroupMember.bulkCreate([
-                      { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
-                      { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id }
-                    ]),
-                    user.setProducts([
-                      products[i * 2 + 0],
-                      products[i * 2 + 1]
-                    ]),
-                    products[i * 2 + 0].setTags([
-                      tags[0],
-                      tags[2]
-                    ]),
-                    products[i * 2 + 1].setTags([
-                      tags[1]
-                    ]),
-                    products[i * 2 + 0].setCategory(tags[1]),
-                    Price.bulkCreate([
-                      { ProductId: products[i * 2 + 0].id, value: 5 },
-                      { ProductId: products[i * 2 + 0].id, value: 10 },
-                      { ProductId: products[i * 2 + 1].id, value: 5 },
-                      { ProductId: products[i * 2 + 1].id, value: 10 },
-                      { ProductId: products[i * 2 + 1].id, value: 15 },
-                      { ProductId: products[i * 2 + 1].id, value: 20 }
-                    ])
-                  ]);
-                });
-              });
-            }).then(() => {
-              return AccUser.findAll({
-                include: [
-                  { model: GroupMember, as: 'Memberships', include: [
-                    Group,
-                    Rank
-                  ] },
-                  { model: Product, include: [
-                    Tag,
-                    { model: Tag, as: 'Category' },
-                    Price
-                  ] }
-                ],
-                order: [
-                  [AccUser.rawAttributes.id, 'ASC']
-                ]
-              }).then(users => {
-                users.forEach(user => {
-                  expect(user.Memberships).to.be.ok;
-                  user.Memberships.sort(sortById);
-
-                  expect(user.Memberships.length).to.equal(2);
-                  expect(user.Memberships[0].Group.name).to.equal('Developers');
-                  expect(user.Memberships[0].Rank.canRemove).to.equal(1);
-                  expect(user.Memberships[1].Group.name).to.equal('Designers');
-                  expect(user.Memberships[1].Rank.canRemove).to.equal(0);
-
-                  user.Products.sort(sortById);
-                  expect(user.Products.length).to.equal(2);
-                  expect(user.Products[0].Tags.length).to.equal(2);
-                  expect(user.Products[1].Tags.length).to.equal(1);
-                  expect(user.Products[0].Category).to.be.ok;
-                  expect(user.Products[1].Category).not.to.be.ok;
-
-                  expect(user.Products[0].Prices.length).to.equal(2);
-                  expect(user.Products[1].Prices.length).to.equal(4);
-                });
-              });
-            });
-          });
+      await this.sequelize.sync({ force: true });
+      const [groups, ranks, tags] = await Promise.all([
+        Group.bulkCreate([
+          { name: 'Developers' },
+          { name: 'Designers' }
+        ]).then(() => Group.findAll()),
+        Rank.bulkCreate([
+          { name: 'Admin', canInvite: 1, canRemove: 1 },
+          { name: 'Member', canInvite: 1, canRemove: 0 }
+        ]).then(() => Rank.findAll()),
+        Tag.bulkCreate([
+          { name: 'A' },
+          { name: 'B' },
+          { name: 'C' }
+        ]).then(() => Tag.findAll())
+      ]);
+      for (const i of [0, 1, 2, 3, 4]) {
+        const [user, products] = await Promise.all([
+          AccUser.create(),
+          Product.bulkCreate([
+            { title: 'Chair' },
+            { title: 'Desk' }
+          ]).then(() => Product.findAll())
+        ]);
+        await Promise.all([
+          GroupMember.bulkCreate([
+            { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
+            { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id }
+          ]),
+          user.setProducts([
+            products[i * 2 + 0],
+            products[i * 2 + 1]
+          ]),
+          products[i * 2 + 0].setTags([
+            tags[0],
+            tags[2]
+          ]),
+          products[i * 2 + 1].setTags([
+            tags[1]
+          ]),
+          products[i * 2 + 0].setCategory(tags[1]),
+          Price.bulkCreate([
+            { ProductId: products[i * 2 + 0].id, value: 5 },
+            { ProductId: products[i * 2 + 0].id, value: 10 },
+            { ProductId: products[i * 2 + 1].id, value: 5 },
+            { ProductId: products[i * 2 + 1].id, value: 10 },
+            { ProductId: products[i * 2 + 1].id, value: 15 },
+            { ProductId: products[i * 2 + 1].id, value: 20 }
+          ])
+        ]);
+        const users = await AccUser.findAll({
+          include: [
+            { model: GroupMember, as: 'Memberships', include: [
+              Group,
+              Rank
+            ] },
+            { model: Product, include: [
+              Tag,
+              { model: Tag, as: 'Category' },
+              Price
+            ] }
+          ],
+          order: [
+            [AccUser.rawAttributes.id, 'ASC']
+          ]
         });
-      });
+        for (const user of users) {
+          expect(user.Memberships).to.be.ok;
+          user.Memberships.sort(sortById);
+
+          expect(user.Memberships.length).to.equal(2);
+          expect(user.Memberships[0].Group.name).to.equal('Developers');
+          expect(user.Memberships[0].Rank.canRemove).to.equal(1);
+          expect(user.Memberships[1].Group.name).to.equal('Designers');
+          expect(user.Memberships[1].Rank.canRemove).to.equal(0);
+
+          user.Products.sort(sortById);
+          expect(user.Products.length).to.equal(2);
+          expect(user.Products[0].Tags.length).to.equal(2);
+          expect(user.Products[1].Tags.length).to.equal(1);
+          expect(user.Products[0].Category).to.be.ok;
+          expect(user.Products[1].Category).not.to.be.ok;
+
+          expect(user.Products[0].Prices.length).to.equal(2);
+          expect(user.Products[1].Prices.length).to.equal(4);
+        }
+      }
     });
 
-    it('should support many levels of belongsTo', function() {
+    it('should support many levels of belongsTo', async function() {
       const A = this.sequelize.define('a', {}, { schema: 'account' }),
         B = this.sequelize.define('b', {}, { schema: 'account' }),
         C = this.sequelize.define('c', {}, { schema: 'account' }),
@@ -377,54 +344,42 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         H
       ];
 
-      return this.sequelize.sync().then(() => {
-        return A.bulkCreate([
-          {}, {}, {}, {}, {}, {}, {}, {}
-        ]).then(() => {
-          let previousInstance;
-          return Promise.each(singles, model => {
-            return model.create({}).then(instance => {
-              if (previousInstance) {
-                return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
-                  previousInstance = instance;
-                });
-              }
-              previousInstance = b = instance;
-              return void 0;
-            });
-          });
-        }).then(() => {
-          return A.findAll();
-        }).then(as => {
-          const promises = [];
-          as.forEach(a => {
-            promises.push(a.setB(b));
-          });
-          return Promise.all(promises);
-        }).then(() => {
-          return A.findAll({
-            include: [
-              { model: B, include: [
-                { model: C, include: [
-                  { model: D, include: [
-                    { model: E, include: [
-                      { model: F, include: [
-                        { model: G, include: [
-                          { model: H }
-                        ] }
-                      ] }
+      await this.sequelize.sync();
+      await A.bulkCreate([
+        {}, {}, {}, {}, {}, {}, {}, {}
+      ]);
+      let previousInstance;
+      for (const model of singles) {
+        const instance = await model.create({});
+        if (previousInstance) {
+          await previousInstance[`set${_.upperFirst(model.name)}`](instance);
+          previousInstance = instance;
+          continue;
+        }
+        previousInstance = b = instance;
+      }
+      let as = await A.findAll();
+      await Promise.all(as.map(a => a.setB(b)));
+      as = await A.findAll({
+        include: [
+          { model: B, include: [
+            { model: C, include: [
+              { model: D, include: [
+                { model: E, include: [
+                  { model: F, include: [
+                    { model: G, include: [
+                      { model: H }
                     ] }
                   ] }
                 ] }
               ] }
-            ]
-          }).then(as => {
-            expect(as.length).to.be.ok;
-            as.forEach(a => {
-              expect(a.b.c.d.e.f.g.h).to.be.ok;
-            });
-          });
-        });
+            ] }
+          ] }
+        ]
+      });
+      expect(as.length).to.be.ok;
+      as.forEach(a => {
+        expect(a.b.c.d.e.f.g.h).to.be.ok;
       });
     });
 
@@ -912,7 +867,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       });
     });
 
-    it('should be possible to extend the on clause with a where option on nested includes', function() {
+    it('should be possible to extend the on clause with a where option on nested includes', async function() {
       const User = this.sequelize.define('User', {
           name: DataTypes.STRING
         }, { schema: 'account' }),
@@ -959,96 +914,83 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       GroupMember.belongsTo(Group);
       Group.hasMany(GroupMember, { as: 'Memberships' });
 
-      return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.all([
-          Group.bulkCreate([
-            { name: 'Developers' },
-            { name: 'Designers' }
+      await this.sequelize.sync({ force: true });
+      const [groups, ranks, tags] = await Promise.all([
+        Group.bulkCreate([
+          { name: 'Developers' },
+          { name: 'Designers' }
+        ]).then(() => Group.findAll()),
+        Rank.bulkCreate([
+          { name: 'Admin', canInvite: 1, canRemove: 1 },
+          { name: 'Member', canInvite: 1, canRemove: 0 }
+        ]).then(() => Rank.findAll()),
+        Tag.bulkCreate([
+          { name: 'A' },
+          { name: 'B' },
+          { name: 'C' }
+        ]).then(() => Tag.findAll())
+      ]);
+      for (const i of [0, 1, 2, 3, 4]) {
+        const [user, products] = await Promise.all([
+          User.create({ name: 'FooBarzz' }),
+          Product.bulkCreate([
+            { title: 'Chair' },
+            { title: 'Desk' }
+          ]).then(() => Product.findAll())
+        ]);
+        await Promise.all([
+          GroupMember.bulkCreate([
+            { UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
+            { UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id }
           ]),
-          Rank.bulkCreate([
-            { name: 'Admin', canInvite: 1, canRemove: 1 },
-            { name: 'Member', canInvite: 1, canRemove: 0 }
+          user.setProducts([
+            products[i * 2 + 0],
+            products[i * 2 + 1]
           ]),
-          Tag.bulkCreate([
-            { name: 'A' },
-            { name: 'B' },
-            { name: 'C' }
+          products[i * 2 + 0].setTags([
+            tags[0],
+            tags[2]
+          ]),
+          products[i * 2 + 1].setTags([
+            tags[1]
+          ]),
+          products[i * 2 + 0].setCategory(tags[1]),
+          Price.bulkCreate([
+            { ProductId: products[i * 2 + 0].id, value: 5 },
+            { ProductId: products[i * 2 + 0].id, value: 10 },
+            { ProductId: products[i * 2 + 1].id, value: 5 },
+            { ProductId: products[i * 2 + 1].id, value: 10 },
+            { ProductId: products[i * 2 + 1].id, value: 15 },
+            { ProductId: products[i * 2 + 1].id, value: 20 }
           ])
-        ]).then(() => {
-          return Promise.all([
-            Group.findAll(),
-            Rank.findAll(),
-            Tag.findAll()
-          ]);
-        }).then(([groups, ranks, tags]) => {
-          return Promise.resolve([0, 1, 2, 3, 4]).each(i => {
-            return Promise.all([
-              User.create({ name: 'FooBarzz' }),
-              Product.bulkCreate([
-                { title: 'Chair' },
-                { title: 'Desk' }
-              ]).then(() => {
-                return Product.findAll();
-              })
-            ]).then(([user, products]) => {
-              return Promise.all([
-                GroupMember.bulkCreate([
-                  { UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
-                  { UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id }
-                ]),
-                user.setProducts([
-                  products[i * 2 + 0],
-                  products[i * 2 + 1]
-                ]),
-                products[i * 2 + 0].setTags([
-                  tags[0],
-                  tags[2]
-                ]),
-                products[i * 2 + 1].setTags([
-                  tags[1]
-                ]),
-                products[i * 2 + 0].setCategory(tags[1]),
-                Price.bulkCreate([
-                  { ProductId: products[i * 2 + 0].id, value: 5 },
-                  { ProductId: products[i * 2 + 0].id, value: 10 },
-                  { ProductId: products[i * 2 + 1].id, value: 5 },
-                  { ProductId: products[i * 2 + 1].id, value: 10 },
-                  { ProductId: products[i * 2 + 1].id, value: 15 },
-                  { ProductId: products[i * 2 + 1].id, value: 20 }
-                ])
-              ]);
-            });
-          });
-        }).then(() => {
-          return User.findAll({
-            include: [
-              { model: GroupMember, as: 'Memberships', include: [
-                Group,
-                { model: Rank, where: { name: 'Admin' } }
-              ] },
-              { model: Product, include: [
-                Tag,
-                { model: Tag, as: 'Category' },
-                { model: Price, where: {
-                  value: {
-                    [Op.gt]: 15
-                  }
-                } }
-              ] }
-            ],
-            order: [
-              ['id', 'ASC']
-            ]
-          }).then(users => {
-            users.forEach(user => {
-              expect(user.Memberships.length).to.equal(1);
-              expect(user.Memberships[0].Rank.name).to.equal('Admin');
-              expect(user.Products.length).to.equal(1);
-              expect(user.Products[0].Prices.length).to.equal(1);
-            });
-          });
+        ]);
+        const users = await User.findAll({
+          include: [
+            { model: GroupMember, as: 'Memberships', include: [
+              Group,
+              { model: Rank, where: { name: 'Admin' } }
+            ] },
+            { model: Product, include: [
+              Tag,
+              { model: Tag, as: 'Category' },
+              { model: Price, where: {
+                value: {
+                  [Op.gt]: 15
+                }
+              } }
+            ] }
+          ],
+          order: [
+            ['id', 'ASC']
+          ]
         });
-      });
+        users.forEach(user => {
+          expect(user.Memberships.length).to.equal(1);
+          expect(user.Memberships[0].Rank.name).to.equal('Admin');
+          expect(user.Products.length).to.equal(1);
+          expect(user.Products[0].Prices.length).to.equal(1);
+        });
+      }
     });
 
     it('should be possible to use limit and a where with a belongsTo include', function() {
