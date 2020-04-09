@@ -439,9 +439,9 @@ export class QueryInterface {
   public nameIndexes(indexes: string[], rawTablename: string): Promise<void>;
 
   /**
-   * Returns all foreign key constraints of a table
+   * Returns all foreign key constraints of requested tables
    */
-  public getForeignKeysForTables(tableNames: string, options?: QueryInterfaceOptions): Promise<object>;
+  public getForeignKeysForTables(tableNames: string[], options?: QueryInterfaceOptions): Promise<object>;
 
   /**
    * Get foreign key references details for the table
