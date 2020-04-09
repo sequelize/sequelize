@@ -28,7 +28,7 @@ export interface ThroughOptions {
    * If true the generated join table will be paranoid
    * @default false
    */
-  paranoid: boolean;
+  paranoid?: boolean;
 
   /**
    * A key/value set that will be used for association create and find defaults on the through model.
