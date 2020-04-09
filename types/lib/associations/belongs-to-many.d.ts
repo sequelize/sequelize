@@ -22,7 +22,13 @@ export interface ThroughOptions {
   /**
    * The model used to join both sides of the N:M association.
    */
-  model: typeof Model;
+  model: typeof Model | string;
+
+  /**
+   * If true the generated join table will be paranoid
+   * @default false
+   */
+  paranoid: boolean;
 
   /**
    * A key/value set that will be used for association create and find defaults on the through model.
