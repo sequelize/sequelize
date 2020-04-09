@@ -143,17 +143,17 @@ if (dialect.match(/^mssql/)) {
       freezeTableName: true
     });
 
-    const status = true;
+    const value = true;
 
     return BooleanTable.sync({ force: true })
       .then(() => {
         return BooleanTable.create({
-          status: status
+          status: value
         });
       })
       .then(() => BooleanTable.findOne())
       .then(record => {
-        expect(record.status).to.equals(status);
+        expect(record.status).to.equals(value);
       });
   });
 }
