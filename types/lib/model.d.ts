@@ -2601,7 +2601,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * @param options.reset Clear all previously set data values
    */
   public set<K extends keyof this>(key: K, value: this[K], options?: SetOptions): this;
-  public set(keys: Partial<Omit<this, keyof Model>>, options?: SetOptions): this;
+  public set(keys: Partial<this>, options?: SetOptions): this;
   public setAttributes<K extends keyof this>(key: K, value: this[K], options?: SetOptions): this;
   public setAttributes(keys: object, options?: SetOptions): this;
 
@@ -2660,7 +2660,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
     options?: InstanceUpdateOptions
   ): Promise<this>;
   public update(
-    keys: Partial<Omit<this, keyof Model>>, 
+    keys: Partial<this>, 
     options?: InstanceUpdateOptions
   ): Promise<this>;
 
