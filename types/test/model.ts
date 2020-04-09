@@ -115,3 +115,24 @@ const someInstance = new SomeModel()
 someInstance.getOthers({
     joinTableAttributes: { include: [ 'id' ] }
 })
+
+/** 
+ * Test for through options in creating a BelongsToMany association
+ */
+class Film extends Model {}
+
+class Actor extends Model {} 
+
+Film.belongsToMany(Actor, {
+  through: {
+    model: 'FilmActors',
+    paranoid: true
+  }
+})
+
+Actor.belongsToMany(Film, {
+  through: {
+    model: 'FilmActors',
+    paranoid: true
+  }
+})
