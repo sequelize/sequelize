@@ -2285,6 +2285,36 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(association.through.model.options.paranoid).not.to.be.ok;
       });
     });
+
+    it('should allow creation of a paranoid join table', () => {
+      const paranoidSequelize = Support.createSequelizeInstance({
+          define: {
+            paranoid: true
+          }
+        }),
+        ParanoidUser = paranoidSequelize.define('ParanoidUser', {}),
+        ParanoidTask = paranoidSequelize.define('ParanoidTask', {});
+
+      ParanoidUser.belongsToMany(ParanoidTask, {
+        through: {
+          model: 'UserTasks',
+          paranoid: true
+        }
+      });
+      ParanoidTask.belongsToMany(ParanoidUser, {
+        through: {
+          model: 'UserTasks',
+          paranoid: true
+        }
+      });
+
+      expect(ParanoidUser.options.paranoid).to.be.ok;
+      expect(ParanoidTask.options.paranoid).to.be.ok;
+
+      _.forEach(ParanoidUser.associations, association => {
+        expect(association.through.model.options.paranoid).to.be.ok;
+      });
+    });
   });
 
   describe('foreign keys', () => {
