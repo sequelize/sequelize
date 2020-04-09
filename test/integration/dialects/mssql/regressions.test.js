@@ -132,4 +132,28 @@ if (dialect.match(/^mssql/)) {
         expect(Number(record.business_id)).to.equals(bigIntValue);
       });
   });
+
+  it('saves boolean is true, #12090', function() {
+    const BooleanTable =  this.sequelize.define('BooleanTable', {
+      status: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false
+      }
+    }, {
+      freezeTableName: true
+    });
+
+    const status = true;
+
+    return BooleanTable.sync({ force: true })
+      .then(() => {
+        return BooleanTable.create({
+          status: status
+        });
+      })
+      .then(() => BooleanTable.findOne())
+      .then(record => {
+        expect(record.status).to.equals(status);
+      });
+  });
 }
