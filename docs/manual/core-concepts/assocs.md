@@ -73,7 +73,7 @@ In principle, both options are a valid way to establish a One-To-One relationshi
 
 ### Goal
 
-For the rest of this example, let's assume that we have two models, `Foo` and `Bar`. We want to setup a One-To-One relationship between them such that `Foo` gets a `barId` column.
+For the rest of this example, let's assume that we have two models, `Foo` and `Bar`. We want to setup a One-To-One relationship between them such that `Bar` gets a `fooId` column.
 
 ### Implementation
 
@@ -84,7 +84,7 @@ Foo.hasOne(Bar);
 Bar.belongsTo(Foo);
 ```
 
-Since no option was passed, Sequelize will infer what to do from the names of the models. In this case, Sequelize knows that a `barId` column must be added to `Foo`.
+Since no option was passed, Sequelize will infer what to do from the names of the models. In this case, Sequelize knows that a `fooId` column must be added to `Bar`.
 
 This way, calling `Bar.sync()` after the above will yield the following SQL (on PostgreSQL, for example):
 
@@ -192,7 +192,7 @@ This means that, unlike the One-To-One association, in which we had to choose wh
 
 ### Goal
 
-In this example, we have the models `Team` and `Player`. We want to tell Sequelize that there is a One-To-Many relationship between them, meaning that one Team has many Players, while each Playes belongs to a single Team.
+In this example, we have the models `Team` and `Player`. We want to tell Sequelize that there is a One-To-Many relationship between them, meaning that one Team has many Players, while each Player belongs to a single Team.
 
 ### Implementation
 

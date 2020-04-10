@@ -731,6 +731,85 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
+    it('supports non primary key attributes for joins for getting associations (sourceKey/targetKey)', function() {
+      const User = this.sequelize.define('User', {
+        userId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4
+        },
+        userSecondId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'user_second_id'
+        }
+      }, {
+        tableName: 'tbl_user',
+        indexes: [
+          {
+            unique: true,
+            fields: ['user_second_id']
+          }
+        ]
+      });
+
+      const Group = this.sequelize.define('Group', {
+        groupId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4
+        },
+        groupSecondId: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: DataTypes.UUIDV4,
+          field: 'group_second_id'
+        }
+      }, {
+        tableName: 'tbl_group',
+        indexes: [
+          {
+            unique: true,
+            fields: ['group_second_id']
+          }
+        ]
+      });
+
+      User.belongsToMany(Group, { through: 'usergroups', sourceKey: 'userSecondId', targetKey: 'groupSecondId' });
+      Group.belongsToMany(User, { through: 'usergroups', sourceKey: 'groupSecondId', targetKey: 'userSecondId' });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.join(
+          User.create(),
+          User.create(),
+          Group.create(),
+          Group.create()
+        ).then(([user1, user2, group1, group2]) => {
+          return Promise.join(user1.addGroup(group1), user2.addGroup(group2))
+            .then(() => {
+              return Promise.join(
+                user1.getGroups(),
+                user2.getGroups(),
+                group1.getUsers(),
+                group2.getUsers()
+              );
+            }).then(([groups1, groups2, users1, users2]) => {
+              expect(groups1.length).to.be.equal(1);
+              expect(groups1[0].id).to.be.equal(group1.id);
+              expect(groups2.length).to.be.equal(1);
+              expect(groups2[0].id).to.be.equal(group2.id);
+              expect(users1.length).to.be.equal(1);
+              expect(users1[0].id).to.be.equal(user1.id);
+              expect(users2.length).to.be.equal(1);
+              expect(users2[0].id).to.be.equal(user2.id);
+            });
+        });
+      });
+    });
+
     it('supports non primary key attributes for joins (custom foreignKey)', function() {
       const User = this.sequelize.define('User', {
         id: {
@@ -1358,19 +1437,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
-    it('should count all associations', function() {
-      return expect(this.user.countTasks({})).to.eventually.equal(2);
+    it('should count all associations', async function() {
+      expect(await this.user.countTasks({})).to.equal(2);
     });
 
-    it('should count filtered associations', function() {
-      return expect(this.user.countTasks({
-        where: {
-          active: true
-        }
-      })).to.eventually.equal(1);
+    it('should count filtered associations', async function() {
+      expect(await this.user.countTasks({ where: { active: true } })).to.equal(1);
     });
 
-    it('should count scoped associations', function() {
+    it('should count scoped associations', async function() {
       this.User.belongsToMany(this.Task, {
         as: 'activeTasks',
         through: this.UserTask,
@@ -1379,12 +1454,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }
       });
 
-      return expect(this.user.countActiveTasks({})).to.eventually.equal(1);
+      expect(await this.user.countActiveTasks({})).to.equal(1);
     });
 
-    it('should count scoped through associations', function() {
-      const user = this.user;
-
+    it('should count scoped through associations', async function() {
       this.User.belongsToMany(this.Task, {
         as: 'startedTasks',
         through: {
@@ -1395,20 +1468,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }
       });
 
-      return Promise.join(
-        this.Task.create().then(task => {
-          return user.addTask(task, {
-            through: { started: true }
-          });
-        }),
-        this.Task.create().then(task => {
-          return user.addTask(task, {
-            through: { started: true }
-          });
-        })
-      ).then(() => {
-        return expect(user.countStartedTasks({})).to.eventually.equal(2);
-      });
+      for (let i = 0; i < 2; i++) {
+        await this.user.addTask(await this.Task.create(), {
+          through: { started: true }
+        });
+      }
+
+      expect(await this.user.countStartedTasks({})).to.equal(2);
     });
   });
 
@@ -1490,7 +1556,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           Member.create({ member_id: 10, email: 'team@sequelizejs.com' })
         ]);
       }).then(([group, member]) => {
-        return group.addMember(member).return(group);
+        return group.addMember(member).then(() => group);
       }).then(group => {
         return group.getMembers();
       }).then(members => {
@@ -1662,7 +1728,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           Task.create({ id: 51, title: 'following up' })
         ]);
       }).then(([user, task1, task2]) => {
-        return user.setTasks([task1, task2]).return(user);
+        return user.setTasks([task1, task2]).then(() => user);
       }).then(user => {
         return user.getTasks();
       }).then(userTasks => {
@@ -1801,7 +1867,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return Promise.all([
           user.addTask(task1),
           user.addTask([task2])
-        ]).return(user);
+        ]).then(() => user);
       }).then(user => {
         return user.getTasks();
       }).then(tasks => {
@@ -1899,7 +1965,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           Task.create({ id: 50, title: 'get started' })
         ]);
       }).then(([user, task]) => {
-        return user.addTask(task.id).return(user);
+        return user.addTask(task.id).then(() => user);
       }).then(user => {
         return user.getTasks();
       }).then(tasks => {
@@ -1960,7 +2026,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           Task.create({ id: 50, title: 'get started' })
         ]);
       }).then(([user, task]) => {
-        return user.addTask(task).return(user);
+        return user.addTask(task).then(() => user);
       }).then(user => {
         return user.getTasks();
       }).then(tasks => {
@@ -2008,7 +2074,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return Promise.all([
           user.addTasks(task1),
           user.addTasks([task2])
-        ]).return(user);
+        ]).then(() => user);
       }).then(user => {
         return user.getTasks();
       }).then(tasks => {
@@ -2147,7 +2213,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         this.Task.create({ title: 'task1' }),
         this.Task.create({ title: 'task2' })
       ]).then(([user, task1, task2]) => {
-        return user.setTasks([task1, task2]).return(user);
+        return user.setTasks([task1, task2]).then(() => user);
       }).then(user => {
         return user.setTasks(null, {
           logging: spy
@@ -2217,6 +2283,36 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       _.forEach(ParanoidUser.associations, association => {
         expect(association.through.model.options.paranoid).not.to.be.ok;
+      });
+    });
+
+    it('should allow creation of a paranoid join table', () => {
+      const paranoidSequelize = Support.createSequelizeInstance({
+          define: {
+            paranoid: true
+          }
+        }),
+        ParanoidUser = paranoidSequelize.define('ParanoidUser', {}),
+        ParanoidTask = paranoidSequelize.define('ParanoidTask', {});
+
+      ParanoidUser.belongsToMany(ParanoidTask, {
+        through: {
+          model: 'UserTasks',
+          paranoid: true
+        }
+      });
+      ParanoidTask.belongsToMany(ParanoidUser, {
+        through: {
+          model: 'UserTasks',
+          paranoid: true
+        }
+      });
+
+      expect(ParanoidUser.options.paranoid).to.be.ok;
+      expect(ParanoidTask.options.paranoid).to.be.ok;
+
+      _.forEach(ParanoidUser.associations, association => {
+        expect(association.through.model.options.paranoid).to.be.ok;
       });
     });
   });
@@ -2325,7 +2421,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       }).then(([user, project1, project2]) => {
         return user.addProjects([project1, project2], {
           logging: spy
-        }).return(user);
+        }).then(() => user);
       }).then(user => {
         expect(spy).to.have.been.calledTwice;
         spy.resetHistory();
@@ -2339,7 +2435,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(spy.calledOnce).to.be.ok;
         const project = projects[0];
         expect(project).to.be.ok;
-        return project.destroy().return(user);
+        return project.destroy().then(() => user);
       }).then(user => {
         return this.User.findOne({
           where: { id: user.id },
@@ -2363,7 +2459,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       }).then(([user, project]) => {
         this.user = user;
         this.project = project;
-        return user.addProject(project, { logging: spy }).return(user);
+        return user.addProject(project, { logging: spy }).then(() => user);
       }).then(user => {
         expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for INSERT
         spy.resetHistory();
@@ -2378,7 +2474,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(project).to.be.ok;
         return this.user.removeProject(project, {
           logging: spy
-        }).return(project);
+        }).then(() => project);
       }).then(() => {
         expect(spy).to.have.been.calledOnce;
       });
@@ -2420,7 +2516,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         );
       }).then(([group, user, project]) => {
         return user.addProject(project).then(() => {
-          return group.addUser(user).return(group);
+          return group.addUser(user).then(() => group);
         });
       }).then(group => {
         // get the group and include both the users in the group and their project's
@@ -2525,7 +2621,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           this.User.create({ username: 'foo' }),
           this.Task.create({ title: 'foo' })
         ]).then(([user, task]) => {
-          return user.addTask(task).return(user);
+          return user.addTask(task).then(() => user);
         }).then(user => {
           return user.setTasks(null);
         }).then(result => {
@@ -2556,7 +2652,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           this.User.create(),
           this.Project.create()
         ]).then(([user, project]) => {
-          return user.addProject(project, { through: { status: 'active', data: 42 } }).return(user);
+          return user.addProject(project, { through: { status: 'active', data: 42 } }).then(() => user);
         }).then(user => {
           return user.getProjects();
         }).then(projects => {
@@ -2574,7 +2670,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           this.User.create(),
           this.Project.create()
         ]).then(([user, project]) => {
-          return user.addProject(project, { through: { status: 'active', data: 42 } }).return(user);
+          return user.addProject(project, { through: { status: 'active', data: 42 } }).then(() => user);
         }).then(() => {
           return this.User.findAll({
             include: [{
@@ -2600,7 +2696,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           this.User.create(),
           this.Project.create()
         ]).then(([user, project]) => {
-          return user.addProject(project, { through: { status: 'active', data: 42 } }).return(user);
+          return user.addProject(project, { through: { status: 'active', data: 42 } }).then(() => user);
         }).then(user => {
           return user.getProjects({ joinTableAttributes: ['status'] });
         }).then(projects => {
@@ -2801,7 +2897,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
               })
             ]);
           }).then(([worker, tasks]) => {
-            return worker.setTasks(tasks).return([worker, tasks]);
+            return worker.setTasks(tasks).then(() => [worker, tasks]);
           }).then(([worker, tasks]) => {
             return worker.setTasks(tasks);
           });

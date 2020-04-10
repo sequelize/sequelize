@@ -866,7 +866,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 return Sequelize.Promise.all([
                   task.addMiniTask(minitask),
                   project.addTask(task)
-                ]).return(project);
+                ]).then(() => project);
               }).then(project => {
                 return project.destroy();
               }).then(() => {
@@ -921,7 +921,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 return Sequelize.Promise.all([
                   task.addMiniTask(minitask),
                   project.addTask(task)
-                ]).return(project);
+                ]).then(() => project);
               }).then(project => {
                 return expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText).then(() => {
                   expect(beforeProject).to.be.true;

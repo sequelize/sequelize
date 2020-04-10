@@ -110,14 +110,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       return this.User.create({
         aNumber: 1,
         bNumber: 1
-      }).tap(user => {
-        return this.User.update({
+      }).then(user => {
+        return Promise.resolve(this.User.update({
           bNumber: 2
         }, {
           where: {
             id: user.get('id')
           }
-        });
+        })).then(() => user);
       }).then(user => {
         return user.reload({
           attributes: ['bNumber']
@@ -244,7 +244,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           include: [Shoe]
         }).then(lePlayer => {
           expect(lePlayer.Shoe).not.to.be.null;
-          return lePlayer.Shoe.destroy().return(lePlayer);
+          return lePlayer.Shoe.destroy().then(() => lePlayer);
         }).then(lePlayer => {
           return lePlayer.reload();
         }).then(lePlayer => {
@@ -277,7 +277,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           expect(leTeam.Players).not.to.be.empty;
           return leTeam.Players[1].destroy().then(() => {
             return leTeam.Players[0].destroy();
-          }).return(leTeam);
+          }).then(() => leTeam);
         }).then(leTeam => {
           return leTeam.reload();
         }).then(leTeam => {
@@ -309,7 +309,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           include: [Player]
         }).then(leTeam => {
           expect(leTeam.Players).to.have.length(2);
-          return leTeam.Players[0].destroy().return(leTeam);
+          return leTeam.Players[0].destroy().then(() => leTeam);
         }).then(leTeam => {
           return leTeam.reload();
         }).then(leTeam => {

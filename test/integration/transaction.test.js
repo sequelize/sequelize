@@ -9,7 +9,8 @@ const chai = require('chai'),
   QueryTypes = require('../../lib/query-types'),
   Transaction = require('../../lib/transaction'),
   sinon = require('sinon'),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  delay = require('delay');
 
 if (current.dialect.supports.transactions) {
 
@@ -393,7 +394,7 @@ if (current.dialect.supports.transactions) {
               lock: 'UPDATE',
               transaction
             })
-              .then(() => Promise.delay(10))
+              .then(() => delay(10))
               .then(() => {
                 return Task.update({ id: to }, {
                   where: {
@@ -513,7 +514,7 @@ if (current.dialect.supports.transactions) {
             const newTransactionFunc = function() {
               return sequelize.transaction({ type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE, retry: { match: ['NO_MATCH'] } }).then(t => {
               // introduce delay to force the busy state race condition to fail
-                return Promise.delay(1000).then(() => {
+                return delay(1000).then(() => {
                   return User.create({ id: null, username: `test ${t.id}` }, { transaction: t }).then(() => {
                     return t.commit();
                   });
@@ -586,7 +587,7 @@ if (current.dialect.supports.transactions) {
                       username: 'jan'
                     }
                   }).then(() => expect(transactionSpy).to.have.been.called ), // Update should not succeed before transaction has committed
-                  Promise.delay(2000)
+                  delay(2000)
                     .then(() => transaction.commit())
                     .then(transactionSpy)
                 ));
@@ -642,7 +643,7 @@ if (current.dialect.supports.transactions) {
                       transaction: t1
                     }).then(() => {
                       t1Spy();
-                      return Promise.delay(2000).then(() => {
+                      return delay(2000).then(() => {
                         return t1.commit();
                       });
                     })
@@ -827,7 +828,7 @@ if (current.dialect.supports.transactions) {
                       }, {
                         transaction: t1
                       }).then(() => {
-                        return Promise.delay(2000).then(() => {
+                        return delay(2000).then(() => {
                           t1Spy();
                           expect(t1Spy).to.have.been.calledAfter(t2Spy);
                           return t1.commit();
@@ -890,7 +891,7 @@ if (current.dialect.supports.transactions) {
                     }, {
                       transaction: t1
                     }).then(() => {
-                      return Promise.delay(2000).then(() => {
+                      return delay(2000).then(() => {
                         t1Spy();
                         return t1.commit();
                       });

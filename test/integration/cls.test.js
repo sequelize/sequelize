@@ -6,7 +6,8 @@ const chai      = require('chai'),
   Sequelize = Support.Sequelize,
   Promise   = Sequelize.Promise,
   cls       = require('cls-hooked'),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  delay     = require('delay');
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('CLS (Async hooks)'), () => {
@@ -19,46 +20,37 @@ if (current.dialect.supports.transactions) {
       delete Sequelize._cls;
     });
 
-    beforeEach(function() {
-      return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
-        this.sequelize = sequelize;
-        this.ns = cls.getNamespace('sequelize');
-        this.User = this.sequelize.define('user', {
-          name: Sequelize.STRING
-        });
-        return this.sequelize.sync({ force: true });
+    beforeEach(async function() {
+      this.sequelize = await Support.prepareTransactionTest(this.sequelize);
+      this.ns = cls.getNamespace('sequelize');
+      this.User = this.sequelize.define('user', {
+        name: Sequelize.STRING
       });
+      await this.sequelize.sync({ force: true });
     });
 
     describe('context', () => {
       it('does not use continuation storage on manually managed transactions', function() {
-        return Sequelize._clsRun(() => {
-          return this.sequelize.transaction().then(transaction => {
-            expect(this.ns.get('transaction')).not.to.be.ok;
-            return transaction.rollback();
-          });
+        return Sequelize._clsRun(async () => {
+          const transaction = await this.sequelize.transaction();
+          expect(this.ns.get('transaction')).not.to.be.ok;
+          await transaction.rollback();
         });
       });
 
-      it('supports several concurrent transactions', function() {
+      it('supports several concurrent transactions', async function() {
         let t1id, t2id;
-        return Promise.join(
-          this.sequelize.transaction(() => {
+        await Promise.all([
+          this.sequelize.transaction(async () => {
             t1id = this.ns.get('transaction').id;
-
-            return Promise.resolve();
           }),
-          this.sequelize.transaction(() => {
+          this.sequelize.transaction(async () => {
             t2id = this.ns.get('transaction').id;
-
-            return Promise.resolve();
-          }),
-          () => {
-            expect(t1id).to.be.ok;
-            expect(t2id).to.be.ok;
-            expect(t1id).not.to.equal(t2id);
-          }
-        );
+          })
+        ]);
+        expect(t1id).to.be.ok;
+        expect(t2id).to.be.ok;
+        expect(t1id).not.to.equal(t2id);
       });
 
       it('supports nested promise chains', function() {
@@ -82,7 +74,7 @@ if (current.dialect.supports.transactions) {
         this.sequelize.transaction(() => {
           transactionSetup = true;
 
-          return Promise.delay(500).then(() => {
+          return delay(500).then(() => {
             expect(this.ns.get('transaction')).to.be.ok;
             transactionEnded = true;
           });
@@ -145,8 +137,8 @@ if (current.dialect.supports.transactions) {
       it('automagically uses the transaction in all calls with async/await', function() {
         return this.sequelize.transaction(async () => {
           await this.User.create({ name: 'bob' });
-          await expect(this.User.findAll({ transaction: null })).to.eventually.have.length(0);
-          await expect(this.User.findAll({})).to.eventually.have.length(1);
+          expect(await this.User.findAll({ transaction: null })).to.have.length(0);
+          expect(await this.User.findAll({})).to.have.length(1);
         });
       });
     });

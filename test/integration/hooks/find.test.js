@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     it('allow changing attributes via beforeFind #5675', function() {
       this.User.beforeFind(options => {
         options.attributes = {
-          include: ['id']
+          include: [['id', 'my_id']]
         };
       });
       return this.User.findAll({});

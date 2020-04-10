@@ -95,6 +95,29 @@ const sequelize = new Sequelize('database', 'username', 'password', {
 });
 ```
 
+#### MSSQL Domain Account
+
+In order to connect with a domain account, use the following format.
+
+```js
+const sequelize = new Sequelize('database', null, null, {
+  dialect: 'mssql',
+  dialectOptions: {
+    authentication: {
+      type: 'ntlm',
+      options: {
+        domain: 'yourDomain',
+        userName: 'username',
+        password: 'password'
+      }
+    },
+    options: {
+      instanceName: 'SQLEXPRESS'
+    }
+  }
+})
+```
+
 ## Data type: TIMESTAMP WITHOUT TIME ZONE - PostgreSQL only
 
 If you are working with the PostgreSQL `TIMESTAMP WITHOUT TIME ZONE` and you need to parse it to a different timezone, please use the pg library's own parser:

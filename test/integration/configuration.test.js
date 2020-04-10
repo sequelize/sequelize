@@ -7,7 +7,8 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   Sequelize = Support.Sequelize,
   fs = require('fs'),
-  path = require('path');
+  path = require('path'),
+  { promisify } = require('util');
 
 let sqlite3;
 if (dialect === 'sqlite') {
@@ -17,12 +18,31 @@ if (dialect === 'sqlite') {
 describe(Support.getTestDialectTeaser('Configuration'), () => {
   describe('Connections problems should fail with a nice message', () => {
     it('when we don\'t have the correct server details', () => {
-      const seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, { storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect });
+      const options = {
+        logging: false,
+        host: '0.0.0.1',
+        port: config[dialect].port,
+        dialect
+      };
+
+      const constructorArgs = [
+        config[dialect].database,
+        config[dialect].username,
+        config[dialect].password,
+        options
+      ];
+
+      let willBeRejectedWithArgs = [[Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]];
+
       if (dialect === 'sqlite') {
+        options.storage = '/path/to/no/where/land';
+        options.dialectOptions = { mode: sqlite3.OPEN_READONLY };
         // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
-        return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file');
+        willBeRejectedWithArgs = [Sequelize.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file'];
       }
-      return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith([Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]);
+
+      const seq = new Sequelize(...constructorArgs);
+      return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
     });
 
     it('when we don\'t have the correct login information', () => {
@@ -55,11 +75,11 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         const createTableFoo = 'CREATE TABLE foo (faz TEXT);';
         const createTableBar = 'CREATE TABLE bar (baz TEXT);';
 
-        const testAccess = Sequelize.Promise.method(() => {
-          return Sequelize.Promise.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
-        });
+        const testAccess = () => {
+          return promisify(fs.access)(p, fs.R_OK | fs.W_OK);
+        };
 
-        return Sequelize.Promise.promisify(fs.unlink)(p)
+        return promisify(fs.unlink)(p)
           .catch(err => {
             expect(err.code).to.equal('ENOENT');
           })
@@ -88,7 +108,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
             );
           })
           .then(() => {
-          // By default, sqlite creates a connection that's READWRITE | CREATE
+            // By default, sqlite creates a connection that's READWRITE | CREATE
             const sequelize = new Sequelize('sqlite://foo', {
               storage: p
             });
@@ -116,7 +136,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
             );
           })
           .finally(() => {
-            return Sequelize.Promise.promisify(fs.unlink)(p);
+            return promisify(fs.unlink)(p);
           });
       });
     }

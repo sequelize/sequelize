@@ -18,7 +18,7 @@ if (dialect.match(/^postgres/)) {
     describe('createSchema', () => {
       beforeEach(function() {
         // make sure we don't have a pre-existing schema called testSchema.
-        return this.queryInterface.dropSchema('testschema').reflect();
+        return this.queryInterface.dropSchema('testschema').catch(() => {});
       });
 
       it('creates a schema', function() {
@@ -64,9 +64,9 @@ if (dialect.match(/^postgres/)) {
         // ensure the function names we'll use don't exist before we start.
         // then setup our function to rename
         return this.queryInterface.dropFunction('rftest1', [])
-          .reflect()
+          .catch(() => {})
           .then(() => this.queryInterface.dropFunction('rftest2', []))
-          .reflect()
+          .catch(() => {})
           .then(() => this.queryInterface.createFunction('rftest1', [], 'varchar', 'plpgsql', 'return \'testreturn\';', {}));
       });
 
@@ -87,14 +87,14 @@ if (dialect.match(/^postgres/)) {
         // test suite causing a failure of afterEach's cleanup to be called.
         return this.queryInterface.dropFunction('create_job', [{ type: 'varchar', name: 'test' }])
           // suppress errors here. if create_job doesn't exist thats ok.
-          .reflect();
+          .catch(() => {});
       });
 
       after(function() {
         // cleanup
         return this.queryInterface.dropFunction('create_job', [{ type: 'varchar', name: 'test' }])
           // suppress errors here. if create_job doesn't exist thats ok.
-          .reflect();
+          .catch(() => {});
       });
 
       it('creates a stored procedure', function() {
@@ -211,7 +211,7 @@ if (dialect.match(/^postgres/)) {
         // make sure we have a droptest function in place.
         return this.queryInterface.createFunction('droptest', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', body, options)
           // suppress errors.. this could fail if the function is already there.. thats ok.
-          .reflect();
+          .catch(() => {});
       });
 
       it('can drop a function', function() {
