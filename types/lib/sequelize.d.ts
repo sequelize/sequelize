@@ -109,6 +109,11 @@ export interface PoolOptions {
   evict?: number;
 
   /**
+   * The number of times to use a connection before closing and replacing it.  Default is Infinity
+   */
+  maxUses?: number;
+
+  /**
    * A function that validates a connection. Called with client. The default function checks that client is an
    * object, and that its state is not disconnected
    */
