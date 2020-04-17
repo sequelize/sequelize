@@ -92,6 +92,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       expect(obj[association.accessors.hasSingle]).to.be.an('function');
       expect(obj[association.accessors.hasAll]).to.be.an('function');
       expect(obj[association.accessors.count]).to.be.an('function');
+      expect(obj[association.accessors.getAndCount]).to.be.an('function');
     });
 
     it('should not override custom methods', () => {
@@ -105,7 +106,8 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
         addTasks: 'add',
         removeTask: 'remove',
         removeTasks: 'remove',
-        createTask: 'create'
+        createTask: 'create',
+        getAndCountsTasks: 'getAndCount'
       };
 
       _.each(methods, (alias, method) => {

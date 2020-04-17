@@ -1147,6 +1147,66 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
     });
 
+    describe('getAndCountAssociations', () => {
+      beforeEach(function() {
+        this.User = this.sequelize.define('User', { username: DataTypes.STRING });
+        this.Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
+
+        this.User.hasMany(this.Task, {
+          foreignKey: 'userId'
+        });
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Promise.all([
+            this.User.create({ username: 'John' }),
+            this.Task.create({ title: 'Get rich', active: true }),
+            this.Task.create({ title: 'Die trying', active: false })
+          ]);
+        }).then(([john, task1, task2]) => {
+          this.user = john;
+          return john.setTasks([task1, task2]);
+        });
+      });
+
+      it('should get and count all associations', function() {
+        return this.user.getAndCountTasks({}).then(result => {
+          expect(result.count).to.equal(2);
+          expect(result.rows.length).to.equal(2);
+          expect(result.rows[0].title).to.equal('Get rich');
+          expect(result.rows[1].title).to.equal('Die trying');
+        });
+      });
+
+      it('should get and count filtered associations', function() {
+        return this.user.getAndCountTasks({
+          where: {
+            active: true
+          }
+        }).then(result => {
+          expect(result.count).to.equal(1);
+          expect(result.rows.length).to.equal(1);
+          expect(result.rows[0].title).to.equal('Get rich');
+        });
+      });
+
+      it('should get and count scoped associations', function() {
+        this.User.hasMany(this.Task, {
+          foreignKey: 'userId',
+          as: 'activeTasks',
+          scope: {
+            active: true
+          }
+        });
+
+        return this.user.getAndCountTasks({}).then(result => {
+          expect(result.count).to.equal(2);
+          expect(result.rows.length).to.equal(2);
+          expect(result.rows[0].title).to.equal('Get rich');
+          expect(result.rows[1].title).to.equal('Die trying');
+        });
+      });
+    });
+
     describe('thisAssociations', () => {
       it('should work with alias', function() {
         const Person = this.sequelize.define('Group', {});
