@@ -1,6 +1,6 @@
 # TypeScript
 
-Since v5, Sequelize provides its own TypeScript definitions. Please note that only TS >= 3.1 is supported.
+Since v5, Sequelize provides its own TypeScript definitions. Please note that only TS >= 3.6.4 is supported.
 
 As Sequelize heavily relies on runtime property assignments, TypeScript won't be very useful out of the box. A decent amount of manual type declarations are needed to make models workable.
 
