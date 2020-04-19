@@ -128,34 +128,28 @@ if (dialect.match(/^postgres/)) {
 
         return Promise.all([
           // requires functionName
-          expect(() => {
-            return this.queryInterface.createFunction(null, [{ name: 'test' }], 'integer', 'plpgsql', body, options);
-          }).to.throw(/createFunction missing some parameters. Did you pass functionName, returnType, language and body/),
+          expect(this.queryInterface.createFunction(null, [{ name: 'test' }], 'integer', 'plpgsql', body, options))
+            .to.be.rejectedWith(/createFunction missing some parameters. Did you pass functionName, returnType, language and body/),
 
           // requires Parameters array
-          expect(() => {
-            return this.queryInterface.createFunction('create_job', null, 'integer', 'plpgsql', body, options);
-          }).to.throw(/function parameters array required/),
+          expect(this.queryInterface.createFunction('create_job', null, 'integer', 'plpgsql', body, options))
+            .to.be.rejectedWith(/function parameters array required/),
 
           // requires returnType
-          expect(() => {
-            return this.queryInterface.createFunction('create_job', [{ type: 'varchar', name: 'test' }], null, 'plpgsql', body, options);
-          }).to.throw(/createFunction missing some parameters. Did you pass functionName, returnType, language and body/),
+          expect(this.queryInterface.createFunction('create_job', [{ type: 'varchar', name: 'test' }], null, 'plpgsql', body, options))
+            .to.be.rejectedWith(/createFunction missing some parameters. Did you pass functionName, returnType, language and body/),
 
           // requires type in parameter array
-          expect(() => {
-            return this.queryInterface.createFunction('create_job', [{ name: 'test' }], 'integer', 'plpgsql', body, options);
-          }).to.throw(/function or trigger used with a parameter without any type/),
+          expect(this.queryInterface.createFunction('create_job', [{ name: 'test' }], 'integer', 'plpgsql', body, options))
+            .to.be.rejectedWith(/function or trigger used with a parameter without any type/),
 
           // requires language
-          expect(() => {
-            return this.queryInterface.createFunction('create_job', [{ type: 'varchar', name: 'test' }], 'varchar', null, body, options);
-          }).to.throw(/createFunction missing some parameters. Did you pass functionName, returnType, language and body/),
+          expect(this.queryInterface.createFunction('create_job', [{ type: 'varchar', name: 'test' }], 'varchar', null, body, options))
+            .to.be.rejectedWith(/createFunction missing some parameters. Did you pass functionName, returnType, language and body/),
 
           // requires body
-          expect(() => {
-            return this.queryInterface.createFunction('create_job', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', null, options);
-          }).to.throw(/createFunction missing some parameters. Did you pass functionName, returnType, language and body/)
+          expect(this.queryInterface.createFunction('create_job', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', null, options))
+            .to.be.rejectedWith(/createFunction missing some parameters. Did you pass functionName, returnType, language and body/)
         ]);
       });
 
@@ -176,20 +170,14 @@ if (dialect.match(/^postgres/)) {
 
       it('produces an error when options.variables is missing expected parameters', function() {
         const body = 'return 1;';
-        expect(() => {
-          const options = { variables: 100 };
-          return this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], options);
-        }).to.throw(/expandFunctionVariableList: function variables must be an array/);
+        expect(this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], { variables: 100 }))
+          .to.be.rejectedWith(/expandFunctionVariableList: function variables must be an array/);
 
-        expect(() => {
-          const options = { variables: [{ name: 'myVar' }] };
-          return this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], options);
-        }).to.throw(/function variable must have a name and type/);
+        expect(this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], { variables: [{ name: 'myVar' }] }))
+          .to.be.rejectedWith(/function variable must have a name and type/);
 
-        expect(() => {
-          const options = { variables: [{ type: 'integer' }] };
-          return this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], options);
-        }).to.throw(/function variable must have a name and type/);
+        expect(this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], { variables: [{ type: 'integer' }] }))
+          .to.be.rejectedWith(/function variable must have a name and type/);
       });
 
       it('uses declared variables', function() {
@@ -229,17 +217,14 @@ if (dialect.match(/^postgres/)) {
 
       it('produces an error when missing expected parameters', function() {
         return Promise.all([
-          expect(() => {
-            return this.queryInterface.dropFunction();
-          }).to.throw(/.*requires functionName/),
+          expect(this.queryInterface.dropFunction())
+            .to.be.rejectedWith(/.*requires functionName/),
 
-          expect(() => {
-            return this.queryInterface.dropFunction('droptest');
-          }).to.throw(/.*function parameters array required/),
+          expect(this.queryInterface.dropFunction('droptest'))
+            .to.be.rejectedWith(/.*function parameters array required/),
 
-          expect(() => {
-            return this.queryInterface.dropFunction('droptest', [{ name: 'test' }]);
-          }).to.be.throw(/.*function or trigger used with a parameter without any type/)
+          expect(this.queryInterface.dropFunction('droptest', [{ name: 'test' }]))
+            .to.be.rejectedWith(/.*function or trigger used with a parameter without any type/)
         ]);
       });
     });

@@ -339,16 +339,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }
       });
 
-      const testArgs = (...args) => {
-        expect(() => {
-          this.queryInterface.addColumn(...args);
-          throw new Error('Did not throw immediately...');
-        }).to.throw(Error, 'addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
-      };
+      const testArgs = (...args) => expect(this.queryInterface.addColumn(...args))
+        .to.be.rejectedWith(Error, 'addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
 
-      testArgs('users', 'level_id');
-      testArgs(null, 'level_id');
-      testArgs('users', null, {});
+      await testArgs('users', 'level_id');
+      await testArgs(null, 'level_id');
+      await testArgs('users', null, {});
     });
 
     it('should work with schemas', async function() {
@@ -539,14 +535,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(constraints).to.not.include('check_user_roles');
         });
 
-        it('addconstraint missing type', function() {
-          expect(() => {
+        it('addconstraint missing type', async function() {
+          await expect(
             this.queryInterface.addConstraint('users', ['roles'], {
               where: { roles: ['user', 'admin', 'guest', 'moderator'] },
               name: 'check_user_roles'
-            });
-            throw new Error('Did not throw immediately...');
-          }).to.throw(Error, 'Constraint type must be specified through options.type');
+            })
+          ).to.be.rejectedWith(Error, 'Constraint type must be specified through options.type');
         });
       });
     }
