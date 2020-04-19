@@ -143,7 +143,7 @@ if (current.dialect.supports.transactions) {
     });
 
     it('does not allow queries immediately after commit call', async function() {
-      await expect(this.sequelize.transaction(async t => {
+      await expect(this.sequelize.transaction().then(async t => {
         await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
         await Promise.all([
           expect(t.commit()).to.eventually.be.fulfilled,
