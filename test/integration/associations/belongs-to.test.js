@@ -369,10 +369,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         return Promise.join(
           Post.create(),
           Comment.create()
-        ).then(([post, comment]) => {
+        ).then(async ([post, comment]) => {
           expect(comment.get('post_id')).not.to.be.ok;
 
-          const setter = comment.setPost(post, { save: false });
+          const setter = await comment.setPost(post, { save: false });
 
           expect(setter).to.be.undefined;
           expect(comment.get('post_id')).to.equal(post.get('id'));
