@@ -1014,12 +1014,12 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             return User.findAll();
           })
         }).then(results => {
-          return Promise.join(
+          return Promise.all([
             results.users[1].setGroup(results.groups[0]),
             results.users[2].setGroup(results.groups[0]),
             results.users[3].setGroup(results.groups[1]),
             results.users[0].setGroup(results.groups[0])
-          );
+          ]);
         }).then(() => {
           return User.findAll({
             include: [

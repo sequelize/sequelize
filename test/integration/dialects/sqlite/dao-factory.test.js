@@ -110,7 +110,7 @@ if (dialect === 'sqlite') {
             });
           });
 
-          it.skip('should make aliased attributes available', function() {
+          it('should make aliased attributes available', function() {
             return this.User.findOne({
               where: { name: 'user' },
               attributes: ['id', ['name', 'username']]

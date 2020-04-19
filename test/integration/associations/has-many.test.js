@@ -45,10 +45,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           include: [Task]
         });
       }).then(user => {
-        return Promise.join(
+        return Promise.all([
           user.get('Tasks')[0].createSubtask({ title: 'Make a startup', active: false }),
           user.get('Tasks')[0].createSubtask({ title: 'Engage rock stars', active: true })
-        ).then(() => user);
+        ]).then(() => user);
       }).then(user => {
         return expect(user.countTasks({
           attributes: [Task.primaryKeyField, 'title'],
@@ -75,29 +75,25 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           User.Tasks = User.hasMany(Task, { as: 'tasks' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return Promise.join(
-              User.create({
-                id: 1,
-                tasks: [
-                  {},
-                  {},
-                  {}
-                ]
-              }, {
-                include: [User.Tasks]
-              }),
-              User.create({
-                id: 2,
-                tasks: [
-                  {}
-                ]
-              }, {
-                include: [User.Tasks]
-              }),
-              User.create({
-                id: 3
-              })
-            );
+            return Promise.all([User.create({
+              id: 1,
+              tasks: [
+                {},
+                {},
+                {}
+              ]
+            }, {
+              include: [User.Tasks]
+            }), User.create({
+              id: 2,
+              tasks: [
+                {}
+              ]
+            }, {
+              include: [User.Tasks]
+            }), User.create({
+              id: 3
+            })]);
           }).then(users => {
             return User.Tasks.get(users).then(result => {
               expect(result[users[0].id].length).to.equal(3);
@@ -116,27 +112,24 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           User.Tasks = User.hasMany(Task, { as: 'tasks' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return Promise.join(
-              User.create({
-                tasks: [
-                  { title: 'b' },
-                  { title: 'd' },
-                  { title: 'c' },
-                  { title: 'a' }
-                ]
-              }, {
-                include: [User.Tasks]
-              }),
-              User.create({
-                tasks: [
-                  { title: 'a' },
-                  { title: 'c' },
-                  { title: 'b' }
-                ]
-              }, {
-                include: [User.Tasks]
-              })
-            );
+            return Promise.all([User.create({
+              tasks: [
+                { title: 'b' },
+                { title: 'd' },
+                { title: 'c' },
+                { title: 'a' }
+              ]
+            }, {
+              include: [User.Tasks]
+            }), User.create({
+              tasks: [
+                { title: 'a' },
+                { title: 'c' },
+                { title: 'b' }
+              ]
+            }, {
+              include: [User.Tasks]
+            })]);
           }).then(users => {
             return User.Tasks.get(users, {
               limit: 2,
@@ -168,49 +161,46 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           Task.SubTasks = Task.hasMany(SubTask, { as: 'subtasks' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return Promise.join(
-              User.create({
-                id: 1,
-                tasks: [
-                  { title: 'b', subtasks: [
-                    { title: 'c' },
-                    { title: 'a' }
-                  ] },
-                  { title: 'd' },
-                  { title: 'c', subtasks: [
-                    { title: 'b' },
-                    { title: 'a' },
-                    { title: 'c' }
-                  ] },
-                  { title: 'a', subtasks: [
-                    { title: 'c' },
-                    { title: 'a' },
-                    { title: 'b' }
-                  ] }
-                ]
-              }, {
-                include: [{ association: User.Tasks, include: [Task.SubTasks] }]
-              }),
-              User.create({
-                id: 2,
-                tasks: [
-                  { title: 'a', subtasks: [
-                    { title: 'b' },
-                    { title: 'a' },
-                    { title: 'c' }
-                  ] },
-                  { title: 'c', subtasks: [
-                    { title: 'a' }
-                  ] },
-                  { title: 'b', subtasks: [
-                    { title: 'a' },
-                    { title: 'b' }
-                  ] }
-                ]
-              }, {
-                include: [{ association: User.Tasks, include: [Task.SubTasks] }]
-              })
-            );
+            return Promise.all([User.create({
+              id: 1,
+              tasks: [
+                { title: 'b', subtasks: [
+                  { title: 'c' },
+                  { title: 'a' }
+                ] },
+                { title: 'd' },
+                { title: 'c', subtasks: [
+                  { title: 'b' },
+                  { title: 'a' },
+                  { title: 'c' }
+                ] },
+                { title: 'a', subtasks: [
+                  { title: 'c' },
+                  { title: 'a' },
+                  { title: 'b' }
+                ] }
+              ]
+            }, {
+              include: [{ association: User.Tasks, include: [Task.SubTasks] }]
+            }), User.create({
+              id: 2,
+              tasks: [
+                { title: 'a', subtasks: [
+                  { title: 'b' },
+                  { title: 'a' },
+                  { title: 'c' }
+                ] },
+                { title: 'c', subtasks: [
+                  { title: 'a' }
+                ] },
+                { title: 'b', subtasks: [
+                  { title: 'a' },
+                  { title: 'b' }
+                ] }
+              ]
+            }, {
+              include: [{ association: User.Tasks, include: [Task.SubTasks] }]
+            })]);
           }).then(() => {
             return User.findAll({
               include: [{
@@ -275,27 +265,24 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           Task.Category = Task.belongsTo(Category, { as: 'category', foreignKey: 'categoryId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return Promise.join(
-              User.create({
-                tasks: [
-                  { title: 'b', category: {} },
-                  { title: 'd', category: {} },
-                  { title: 'c', category: {} },
-                  { title: 'a', category: {} }
-                ]
-              }, {
-                include: [{ association: User.Tasks, include: [Task.Category] }]
-              }),
-              User.create({
-                tasks: [
-                  { title: 'a', category: {} },
-                  { title: 'c', category: {} },
-                  { title: 'b', category: {} }
-                ]
-              }, {
-                include: [{ association: User.Tasks, include: [Task.Category] }]
-              })
-            );
+            return Promise.all([User.create({
+              tasks: [
+                { title: 'b', category: {} },
+                { title: 'd', category: {} },
+                { title: 'c', category: {} },
+                { title: 'a', category: {} }
+              ]
+            }, {
+              include: [{ association: User.Tasks, include: [Task.Category] }]
+            }), User.create({
+              tasks: [
+                { title: 'a', category: {} },
+                { title: 'c', category: {} },
+                { title: 'b', category: {} }
+              ]
+            }, {
+              include: [{ association: User.Tasks, include: [Task.Category] }]
+            })]);
           }).then(users => {
             return User.Tasks.get(users, {
               limit: 2,
@@ -340,49 +327,46 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           }).then(() => {
             return SubTask.sync({ force: true });
           }).then(() => {
-            return Promise.join(
-              User.create({
-                id: 1,
-                tasks: [
-                  { title: 'b', subtasks: [
-                    { title: 'c' },
-                    { title: 'a' }
-                  ] },
-                  { title: 'd' },
-                  { title: 'c', subtasks: [
-                    { title: 'b' },
-                    { title: 'a' },
-                    { title: 'c' }
-                  ] },
-                  { title: 'a', subtasks: [
-                    { title: 'c' },
-                    { title: 'a' },
-                    { title: 'b' }
-                  ] }
-                ]
-              }, {
-                include: [{ association: User.Tasks, include: [Task.SubTasks] }]
-              }),
-              User.create({
-                id: 2,
-                tasks: [
-                  { title: 'a', subtasks: [
-                    { title: 'b' },
-                    { title: 'a' },
-                    { title: 'c' }
-                  ] },
-                  { title: 'c', subtasks: [
-                    { title: 'a' }
-                  ] },
-                  { title: 'b', subtasks: [
-                    { title: 'a' },
-                    { title: 'b' }
-                  ] }
-                ]
-              }, {
-                include: [{ association: User.Tasks, include: [Task.SubTasks] }]
-              })
-            );
+            return Promise.all([User.create({
+              id: 1,
+              tasks: [
+                { title: 'b', subtasks: [
+                  { title: 'c' },
+                  { title: 'a' }
+                ] },
+                { title: 'd' },
+                { title: 'c', subtasks: [
+                  { title: 'b' },
+                  { title: 'a' },
+                  { title: 'c' }
+                ] },
+                { title: 'a', subtasks: [
+                  { title: 'c' },
+                  { title: 'a' },
+                  { title: 'b' }
+                ] }
+              ]
+            }, {
+              include: [{ association: User.Tasks, include: [Task.SubTasks] }]
+            }), User.create({
+              id: 2,
+              tasks: [
+                { title: 'a', subtasks: [
+                  { title: 'b' },
+                  { title: 'a' },
+                  { title: 'c' }
+                ] },
+                { title: 'c', subtasks: [
+                  { title: 'a' }
+                ] },
+                { title: 'b', subtasks: [
+                  { title: 'a' },
+                  { title: 'b' }
+                ] }
+              ]
+            }, {
+              include: [{ association: User.Tasks, include: [Task.SubTasks] }]
+            })]);
           }).then(() => {
             return User.findAll({
               include: [{
@@ -1719,9 +1703,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     it('should load with an alias', function() {
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
+        return Promise.all([
           this.Individual.create({ name: 'Foo Bar' }),
-          this.Hat.create({ name: 'Baz' }));
+          this.Hat.create({ name: 'Baz' })
+        ]);
       }).then(([individual, hat]) => {
         return individual.addPersonwearinghat(hat);
       }).then(() => {
@@ -1738,9 +1723,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     it('should load all', function() {
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
+        return Promise.all([
           this.Individual.create({ name: 'Foo Bar' }),
-          this.Hat.create({ name: 'Baz' }));
+          this.Hat.create({ name: 'Baz' })
+        ]);
       }).then(([individual, hat]) => {
         return individual.addPersonwearinghat(hat);
       }).then(() => {

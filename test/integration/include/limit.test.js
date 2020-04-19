@@ -128,15 +128,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      */
     it('supports many-to-many association with where clause', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
           this.User.bulkCreate(build('Alice', 'Bob'))
-        ))
-        .then(([projects, users]) => Promise.join(
+        ]))
+        .then(([projects, users]) => Promise.all([
           projects[0].addUser(users[0]),
           projects[1].addUser(users[1]),
           projects[2].addUser(users[0])
-        ))
+        ]))
         .then(() => this.Project.findAll({
           include: [{
             model: this.User,
@@ -156,17 +156,17 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports 2 levels of required many-to-many associations', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
           this.User.bulkCreate(build('Alice', 'Bob')),
           this.Hobby.bulkCreate(build('archery', 'badminton'))
-        ))
-        .then(([projects, users, hobbies]) => Promise.join(
+        ]))
+        .then(([projects, users, hobbies]) => Promise.all([
           projects[0].addUser(users[0]),
           projects[1].addUser(users[1]),
           projects[2].addUser(users[0]),
           users[0].addHobby(hobbies[0])
-        ))
+        ]))
         .then(() => this.Project.findAll({
           include: [{
             model: this.User,
@@ -188,18 +188,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports 2 levels of required many-to-many associations with where clause', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
           this.User.bulkCreate(build('Alice', 'Bob')),
           this.Hobby.bulkCreate(build('archery', 'badminton'))
-        ))
-        .then(([projects, users, hobbies]) => Promise.join(
+        ]))
+        .then(([projects, users, hobbies]) => Promise.all([
           projects[0].addUser(users[0]),
           projects[1].addUser(users[1]),
           projects[2].addUser(users[0]),
           users[0].addHobby(hobbies[0]),
           users[1].addHobby(hobbies[1])
-        ))
+        ]))
         .then(() => this.Project.findAll({
           include: [{
             model: this.User,
@@ -223,18 +223,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports 2 levels of required many-to-many associations with through.where clause', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
           this.User.bulkCreate(build('Alice', 'Bob')),
           this.Hobby.bulkCreate(build('archery', 'badminton'))
-        ))
-        .then(([projects, users, hobbies]) => Promise.join(
+        ]))
+        .then(([projects, users, hobbies]) => Promise.all([
           projects[0].addUser(users[0]),
           projects[1].addUser(users[1]),
           projects[2].addUser(users[0]),
           users[0].addHobby(hobbies[0]),
           users[1].addHobby(hobbies[1])
-        ))
+        ]))
         .then(() => this.Project.findAll({
           include: [{
             model: this.User,
@@ -261,13 +261,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports 3 levels of required many-to-many associations with where clause', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.Task.bulkCreate(build('alpha', 'bravo', 'charlie')),
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
           this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte')),
           this.Hobby.bulkCreate(build('archery', 'badminton'))
-        ))
-        .then(([tasks, projects, users, hobbies]) => Promise.join(
+        ]))
+        .then(([tasks, projects, users, hobbies]) => Promise.all([
           tasks[0].addProject(projects[0]),
           tasks[1].addProject(projects[1]),
           tasks[2].addProject(projects[2]),
@@ -276,7 +276,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           projects[2].addUser(users[0]),
           users[0].addHobby(hobbies[0]),
           users[1].addHobby(hobbies[1])
-        ))
+        ]))
         .then(() => this.Task.findAll({
           include: [{
             model: this.Project,
@@ -304,14 +304,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports required many-to-many association', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
           this.User.bulkCreate(build('Alice', 'Bob'))
-        ))
-        .then(([projects, users]) => Promise.join(
-          projects[0].addUser(users[0]), // alpha
-          projects[2].addUser(users[0]) // charlie
-        ))
+        ]))
+        .then(([projects, users]) => Promise.all([// alpha
+          projects[0].addUser(users[0]), // charlie
+          projects[2].addUser(users[0])]))
         .then(() => this.Project.findAll({
           include: [{
             model: this.User,
@@ -329,19 +328,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports 2 required many-to-many association', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie', 'delta')),
           this.User.bulkCreate(build('Alice', 'Bob', 'David')),
           this.Task.bulkCreate(build('a', 'c', 'd'))
-        ))
-        .then(([projects, users, tasks]) => Promise.join(
+        ]))
+        .then(([projects, users, tasks]) => Promise.all([
           projects[0].addUser(users[0]),
           projects[0].addTask(tasks[0]),
           projects[1].addUser(users[1]),
           projects[2].addTask(tasks[1]),
           projects[3].addUser(users[2]),
           projects[3].addTask(tasks[2])
-        ))
+        ]))
         .then(() => this.Project.findAll({
           include: [{
             model: this.User,
@@ -365,14 +364,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      */
     it('supports required one-to-many association', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.Post.bulkCreate(build('alpha', 'bravo', 'charlie')),
           this.Comment.bulkCreate(build('comment0', 'comment1'))
-        ))
-        .then(([posts, comments]) => Promise.join(
-          posts[0].addComment(comments[0]),
-          posts[2].addComment(comments[1])
-        ))
+        ]))
+        .then(([posts, comments]) => Promise.all([posts[0].addComment(comments[0]), posts[2].addComment(comments[1])]))
         .then(() => this.Post.findAll({
           include: [{
             model: this.Comment,
@@ -390,15 +386,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports required one-to-many association with where clause', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.Post.bulkCreate(build('alpha', 'bravo', 'charlie')),
           this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2'))
-        ))
-        .then(([posts, comments]) => Promise.join(
+        ]))
+        .then(([posts, comments]) => Promise.all([
           posts[0].addComment(comments[0]),
           posts[1].addComment(comments[1]),
           posts[2].addComment(comments[2])
-        ))
+        ]))
         .then(() => this.Post.findAll({
           include: [{
             model: this.Comment,
@@ -423,15 +419,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports required one-to-many association with where clause (findOne)', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.Post.bulkCreate(build('alpha', 'bravo', 'charlie')),
           this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2'))
-        ))
-        .then(([posts, comments]) => Promise.join(
+        ]))
+        .then(([posts, comments]) => Promise.all([
           posts[0].addComment(comments[0]),
           posts[1].addComment(comments[1]),
           posts[2].addComment(comments[2])
-        ))
+        ]))
         .then(() => this.Post.findOne({
           include: [{
             model: this.Comment,
@@ -448,18 +444,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports 2 levels of required one-to-many associations', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte', 'David')),
           this.Post.bulkCreate(build('post0', 'post1', 'post2')),
           this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2'))
-        ))
-        .then(([users, posts, comments]) => Promise.join(
+        ]))
+        .then(([users, posts, comments]) => Promise.all([
           users[0].addPost(posts[0]),
           users[1].addPost(posts[1]),
           users[3].addPost(posts[2]),
           posts[0].addComment(comments[0]),
           posts[2].addComment(comments[2])
-        ))
+        ]))
         .then(() => this.User.findAll({
           include: [{
             model: this.Post,
@@ -484,19 +480,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      */
     it('supports required one-to-many association with nested required many-to-many association', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte', 'David')),
           this.Post.bulkCreate(build('alpha', 'charlie', 'delta')),
           this.Tag.bulkCreate(build('atag', 'btag', 'dtag'))
-        ))
-        .then(([users, posts, tags]) => Promise.join(
+        ]))
+        .then(([users, posts, tags]) => Promise.all([
           users[0].addPost(posts[0]),
           users[2].addPost(posts[1]),
           users[3].addPost(posts[2]),
-
           posts[0].addTag([tags[0]]),
           posts[2].addTag([tags[2]])
-        ))
+        ]))
         .then(() => this.User.findAll({
           include: [{
             model: this.Post,
@@ -518,19 +513,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports required many-to-many association with nested required one-to-many association', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
+        .then(() => Promise.all([
           this.Project.bulkCreate(build('alpha', 'bravo', 'charlie', 'delta')),
           this.User.bulkCreate(build('Alice', 'Bob', 'David')),
           this.Post.bulkCreate(build('post0', 'post1', 'post2'))
-        ))
-        .then(([projects, users, posts]) => Promise.join(
+        ]))
+        .then(([projects, users, posts]) => Promise.all([
           projects[0].addUser(users[0]),
           projects[1].addUser(users[1]),
           projects[3].addUser(users[2]),
-
           users[0].addPost([posts[0]]),
           users[2].addPost([posts[2]])
-        ))
+        ]))
         .then(() => this.Project.findAll({
           include: [{
             model: this.User,
@@ -553,20 +547,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports required many-to-one association with nested many-to-many association with where clause', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
-
+        .then(() => Promise.all([
           this.Post.bulkCreate(build('post0', 'post1', 'post2', 'post3')),
           this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte', 'David')),
           this.Hobby.bulkCreate(build('archery', 'badminton'))
-        ))
-        .then(([posts, users, hobbies]) => Promise.join(
+        ]))
+        .then(([posts, users, hobbies]) => Promise.all([
           posts[0].setUser(users[0]),
           posts[1].setUser(users[1]),
           posts[3].setUser(users[3]),
           users[0].addHobby(hobbies[0]),
           users[1].addHobby(hobbies[1]),
           users[3].addHobby(hobbies[0])
-        ))
+        ]))
         .then(() => this.Post.findAll({
           include: [{
             model: this.User,
@@ -590,20 +583,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports required many-to-one association with nested many-to-many association with through.where clause', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
-
+        .then(() => Promise.all([
           this.Post.bulkCreate(build('post0', 'post1', 'post2', 'post3')),
           this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte', 'David')),
           this.Hobby.bulkCreate(build('archery', 'badminton'))
-        ))
-        .then(([posts, users, hobbies]) => Promise.join(
+        ]))
+        .then(([posts, users, hobbies]) => Promise.all([
           posts[0].setUser(users[0]),
           posts[1].setUser(users[1]),
           posts[3].setUser(users[3]),
           users[0].addHobby(hobbies[0]),
           users[1].addHobby(hobbies[1]),
           users[3].addHobby(hobbies[0])
-        ))
+        ]))
         .then(() => this.Post.findAll({
           include: [{
             model: this.User,
@@ -630,30 +622,27 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports required many-to-one association with multiple nested associations with where clause', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
-
+        .then(() => Promise.all([
           this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2', 'comment3', 'comment4', 'comment5')),
           this.Post.bulkCreate(build('post0', 'post1', 'post2', 'post3', 'post4')),
           this.User.bulkCreate(build('Alice', 'Bob')),
           this.Tag.bulkCreate(build('tag0', 'tag1'))
-        ))
-        .then(([comments, posts, users, tags]) => Promise.join(
+        ]))
+        .then(([comments, posts, users, tags]) => Promise.all([
           comments[0].setPost(posts[0]),
           comments[1].setPost(posts[1]),
           comments[3].setPost(posts[2]),
           comments[4].setPost(posts[3]),
           comments[5].setPost(posts[4]),
-
           posts[0].addTag(tags[0]),
           posts[3].addTag(tags[0]),
           posts[4].addTag(tags[0]),
           posts[1].addTag(tags[1]),
-
           posts[0].setUser(users[0]),
           posts[2].setUser(users[0]),
           posts[4].setUser(users[0]),
           posts[1].setUser(users[1])
-        ))
+        ]))
         .then(() => this.Comment.findAll({
           include: [{
             model: this.Post,
@@ -682,20 +671,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('supports required many-to-one association with nested one-to-many association with where clause', function() {
       return this.sequelize.sync({ force: true })
-        .then(() => Promise.join(
-
+        .then(() => Promise.all([
           this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2')),
           this.Post.bulkCreate(build('post0', 'post1', 'post2')),
           this.Footnote.bulkCreate(build('footnote0', 'footnote1', 'footnote2'))
-        ))
-        .then(([comments, posts, footnotes]) => Promise.join(
+        ]))
+        .then(([comments, posts, footnotes]) => Promise.all([
           comments[0].setPost(posts[0]),
           comments[1].setPost(posts[1]),
           comments[2].setPost(posts[2]),
           posts[0].addFootnote(footnotes[0]),
           posts[1].addFootnote(footnotes[1]),
           posts[2].addFootnote(footnotes[2])
-        ))
+        ]))
         .then(() => this.Comment.findAll({
           include: [{
             model: this.Post,
