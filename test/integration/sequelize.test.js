@@ -880,10 +880,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
   if (dialect === 'mysql') {
     describe('set', () => {
-      it("should return an promised error if transaction isn't defined", function() {
-        expect(() => {
-          this.sequelize.set({ foo: 'bar' });
-        }).to.throw(TypeError, 'options.transaction is required');
+      it("should return an promised error if transaction isn't defined", async function() {
+        await expect(this.sequelize.set({ foo: 'bar' }))
+          .to.be.rejectedWith(TypeError, 'options.transaction is required');
       });
 
       it('one value', function() {
