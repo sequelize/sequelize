@@ -651,10 +651,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   });
 
   describe('restore', () => {
-    it('returns an error if the model is not paranoid', function() {
-      return this.User.create({ username: 'Peter', secretValue: '42' }).then(user => {
-        expect(() => {user.restore();}).to.throw(Error, 'Model is not paranoid');
-      });
+    it('returns an error if the model is not paranoid', async function() {
+      const user = await this.User.create({ username: 'Peter', secretValue: '42' });
+      await expect(user.restore()).to.be.rejectedWith(Error, 'Model is not paranoid');
     });
 
     it('restores a previously deleted model', function() {
