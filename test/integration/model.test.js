@@ -1555,7 +1555,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('restore', () => {
-    it('synchronously throws an error if the model is not paranoid', async function() {
+    it('rejects with an error if the model is not paranoid', async function() {
       await expect(this.User.restore({ where: { secretValue: '42' } })).to.be.rejectedWith(Error, 'Model is not paranoid');
     });
 
