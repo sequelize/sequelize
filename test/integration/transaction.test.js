@@ -132,36 +132,27 @@ if (current.dialect.supports.transactions) {
 
     });
 
-    it('does not allow queries after commit', function() {
-      return this.sequelize.transaction().then(t => {
-        return this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }).then(() => {
-          return t.commit();
-        }).then(() => {
-          return this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
-        });
-      }).throw(new Error('Expected error not thrown'))
-        .catch(err => {
-          expect(err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
-          expect(err.sql).to.equal('SELECT 1+1');
-        });
+    it('does not allow queries after commit', async function() {
+      const t = await this.sequelize.transaction();
+      await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+      await t.commit();
+      await expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+        Error,
+        /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
+      ).and.have.deep.property('sql').that.equal('SELECT 1+1');
     });
 
-    it('does not allow queries immediately after commit call', function() {
-      return expect(
-        this.sequelize.transaction().then(t => {
-          return this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }).then(() => {
-            return Promise.join(
-              expect(t.commit()).to.eventually.be.fulfilled,
-              this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })
-                .throw(new Error('Expected error not thrown'))
-                .catch(err => {
-                  expect(err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
-                  expect(err.sql).to.equal('SELECT 1+1');
-                })
-            );
-          });
-        })
-      ).to.be.eventually.fulfilled;
+    it('does not allow queries immediately after commit call', async function() {
+      await expect(this.sequelize.transaction().then(async t => {
+        await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+        await Promise.all([
+          expect(t.commit()).to.eventually.be.fulfilled,
+          expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+            Error,
+            /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
+          ).and.have.deep.property('sql').that.equal('SELECT 1+1')
+        ]);
+      })).to.be.eventually.fulfilled;
     });
 
     it('does not allow queries after rollback', function() {
@@ -186,18 +177,16 @@ if (current.dialect.supports.transactions) {
         .to.eventually.be.rejectedWith('Transaction cannot be rolled back because it never started');
     });
 
-    it('does not allow queries immediately after rollback call', function() {
-      return expect(
-        this.sequelize.transaction().then(t => {
-          return Promise.join(
+    it('does not allow queries immediately after rollback call', async function() {
+      await expect(
+        this.sequelize.transaction().then(async t => {
+          await Promise.all([
             expect(t.rollback()).to.eventually.be.fulfilled,
-            this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })
-              .throw(new Error('Expected error not thrown'))
-              .catch(err => {
-                expect(err.message).to.match(/rollback has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
-                expect(err.sql).to.equal('SELECT 1+1');
-              })
-          );
+            expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+              Error,
+              /rollback has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
+            ).and.have.deep.property('sql').that.equal('SELECT 1+1')
+          ]);
         })
       ).to.eventually.be.fulfilled;
     });
