@@ -20,16 +20,16 @@ New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.or
 
 ## Installation
 
-```bash
-$ npm install --save sequelize # This will install v5
-$ npm install --save sequelize@next # This will install v6-beta
+```sh
+$ npm i sequelize # This will install v5
+$ npm i sequelize@next # This will install v6-beta
 
 # And one of the following:
-$ npm install --save pg pg-hstore # Postgres
-$ npm install --save mysql2
-$ npm install --save mariadb
-$ npm install --save sqlite3
-$ npm install --save tedious # Microsoft SQL Server
+$ npm i pg pg-hstore # Postgres
+$ npm i mysql2
+$ npm i mariadb
+$ npm i sqlite3
+$ npm i tedious # Microsoft SQL Server
 ```
 
 ## Documentation
