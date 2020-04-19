@@ -53,7 +53,7 @@ queryInterface.dropTable('nameOfTheExistingTable');
 
 queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
 
-queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
+const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
 
 queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar', as: 'baz', name: 'quz' }, {}, {});
 
@@ -145,6 +145,15 @@ queryInterface.addIndex('Person', ['firstname', 'lastname'], {
   type: 'UNIQUE',
 });
 
+queryInterface.addIndex('Foo', {
+  name: 'foo_a',
+  fields: [
+    { name: 'foo_b', order: 'DESC' },
+    'foo_c',
+    { name: 'foo_d', order: 'ASC', collate: 'foobar', length: 42 }
+  ],
+});
+
 queryInterface.removeIndex('Person', 'SuperDuperIndex');
 
 // or
@@ -172,3 +181,5 @@ queryInterface.delete(null, 'Person', {
 });
 
 queryInterface.upsert("test", {"a": 1}, {"b": 2}, {"c": 3}, Model, {});
+
+queryInterface.insert(null, 'test', {});

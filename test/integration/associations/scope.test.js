@@ -272,29 +272,25 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           expect(logs[0]).to.equal(logs[1]);
         });
       });
-      it('should created included association with scope values', function() {
-        return this.sequelize.sync({ force: true }).then(() => {
-          return this.Post.create({
-            comments: [{
-              title: 'I am a comment created with a post'
-            }, {
-              title: 'I am a second comment created with a post'
-            }]
+      it('should created included association with scope values', async function() {
+        await this.sequelize.sync({ force: true });
+        let post = await this.Post.create({
+          comments: [{
+            title: 'I am a comment created with a post'
           }, {
-            include: [{ model: this.Comment, as: 'comments' }]
-          });
-        }).then(post => {
-          this.post = post;
-          return post.comments;
-        }).each(comment => {
-          expect(comment.get('commentable')).to.equal('post');
-        }).then(() => {
-          return this.Post.scope('withComments').findByPk(this.post.id);
-        }).then(post => {
-          return post.getComments();
-        }).each(comment => {
-          expect(comment.get('commentable')).to.equal('post');
+            title: 'I am a second comment created with a post'
+          }]
+        }, {
+          include: [{ model: this.Comment, as: 'comments' }]
         });
+        this.post = post;
+        for (const comment of  post.comments) {
+          expect(comment.get('commentable')).to.equal('post');
+        }
+        post = await this.Post.scope('withComments').findByPk(this.post.id);
+        for (const comment of  post.comments) {
+          expect(comment.get('commentable')).to.equal('post');
+        }
       });
       it('should include associations with operator scope values', function() {
         return this.sequelize.sync({ force: true }).then(() => {

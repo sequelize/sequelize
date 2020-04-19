@@ -71,38 +71,38 @@ if (dialect === 'mariadb') {
         },
         {
           arguments: [{ skip: ['test'] }],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\',\'test\');'
+          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'test\');'
         },
         {
           arguments: [{ skip: ['test', 'Te\'st2'] }],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\',\'test\',\'Te\\\'st2\');'
+          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'test\', \'Te\\\'st2\');'
         }
 
       ],
       arithmeticQuery: [
         {
           title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
+          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\''
         },
         {
           title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz' }, {}],
+          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\''
         },
         {
           title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
+          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\''
         },
         {
           title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', { foo: -1 }, {}, {}],
+          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1'
         },
         {
           title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz' }, {}],
+          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\''
         }
       ],

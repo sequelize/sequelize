@@ -4,7 +4,8 @@ const ResourceLock = require('../../../../lib/dialects/mssql/resource-lock'),
   Promise = require('../../../../lib/promise'),
   assert = require('assert'),
   Support = require('../../support'),
-  dialect = Support.getTestDialect();
+  dialect = Support.getTestDialect(),
+  delay = require('delay');
 
 if (dialect === 'mssql') {
   describe('[MSSQL Specific] ResourceLock', () => {
@@ -23,7 +24,7 @@ if (dialect === 'mssql') {
           assert.equal(last, 0);
           last = 1;
 
-          return Promise.delay(15);
+          return delay(15);
         }),
         Promise.using(lock.lock(), resource => {
           validateResource(resource);
@@ -35,7 +36,7 @@ if (dialect === 'mssql') {
           assert.equal(last, 2);
           last = 3;
 
-          return Promise.delay(5);
+          return delay(5);
         })
       ]);
     });

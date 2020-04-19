@@ -247,11 +247,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             username: 'foo'
           }
         });
-      }).tap(user => {
+      }).then(user => {
         expect(user).to.be.ok;
         expect(moment.utc(user.deletedAt).startOf('second').toISOString())
           .to.equal(moment.utc(deletedAt).startOf('second').toISOString());
         expect(user.username).to.equal('foo');
+        return user;
       }).then(user => {
         // update model and delete again
         user.username = 'bar';
@@ -345,15 +346,17 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         afterSave.resetHistory();
 
         return user.destroy();
-      }).tap(() => {
+      }).then(result => {
         expect(beforeSave.callCount).to.equal(0, 'should not call beforeSave');
         expect(afterSave.callCount).to.equal(0, 'should not call afterSave');
+        return result;
       }).then(user => {
         // now try with `hooks: true`
         return user.destroy({ hooks: true });
-      }).tap(() => {
+      }).then(result => {
         expect(beforeSave.callCount).to.equal(0, 'should not call beforeSave even if `hooks: true`');
         expect(afterSave.callCount).to.equal(0, 'should not call afterSave even if `hooks: true`');
+        return result;
       });
     });
 

@@ -11,7 +11,8 @@ const chai = require('chai'),
   config = require('../../config/config'),
   _ = require('lodash'),
   moment = require('moment'),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  promiseProps = require('p-props');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(function() {
@@ -58,6 +59,38 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.User.findAll({
         where: []
       });
+    });
+
+    it('should throw on an attempt to fetch no attributes', function() {
+      return expect(this.User.findAll({ attributes: [] })).to.be.rejectedWith(
+        Sequelize.QueryError,
+        /^Attempted a SELECT query.+without selecting any columns$/
+      );
+    });
+
+    it('should not throw if overall attributes are nonempty', function() {
+      const Post = this.sequelize.define('Post', { foo: DataTypes.STRING });
+      const Comment = this.sequelize.define('Comment', { bar: DataTypes.STRING });
+      Post.hasMany(Comment, { as: 'comments' });
+      return Post.sync({ force: true })
+        .then(() => Comment.sync({ force: true }))
+        .then(() => {
+          // Should not throw in this case, even
+          // though `attributes: []` is set for the main model
+          return Post.findAll({
+            raw: true,
+            attributes: [],
+            include: [
+              {
+                model: Comment,
+                as: 'comments',
+                attributes: [
+                  [Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'commentCount']
+                ]
+              }
+            ]
+          });
+        });
     });
 
     describe('special where conditions/smartWhere object', () => {
@@ -921,7 +954,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Person.belongsTo(this.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return Sequelize.Promise.props({
+            return promiseProps({
               europe: this.Continent.create({ name: 'Europe' }),
               england: this.Country.create({ name: 'England' }),
               coal: this.Industry.create({ name: 'Coal' }),
@@ -1106,7 +1139,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Person.belongsTo(this.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return Sequelize.Promise.props({
+            return promiseProps({
               europe: this.Continent.create({ name: 'Europe' }),
               asia: this.Continent.create({ name: 'Asia' }),
               england: this.Country.create({ name: 'England' }),
@@ -1141,7 +1174,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts simply', function() {
-          return Sequelize.Promise.map([['ASC', 'Asia'], ['DESC', 'Europe']], params => {
+          return Sequelize.Promise.all([['ASC', 'Asia'], ['DESC', 'Europe']].map(params => {
             return this.Continent.findAll({
               order: [['name', params[0]]]
             }).then(continents => {
@@ -1149,11 +1182,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0]).to.exist;
               expect(continents[0].name).to.equal(params[1]);
             });
-          });
+          }));
         });
 
         it('sorts by 1st degree association', function() {
-          return Sequelize.Promise.map([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']], params => {
+          return Sequelize.Promise.all([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']].map(params => {
             return this.Continent.findAll({
               include: [this.Country],
               order: [[this.Country, 'name', params[0]]]
@@ -1165,11 +1198,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0]).to.exist;
               expect(continents[0].countries[0].name).to.equal(params[2]);
             });
-          });
+          }));
         });
 
         it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', function() {
-          return Sequelize.Promise.map([['ASC', 'Asia', 'Europe', 'England']], params => {
+          return Sequelize.Promise.all([['ASC', 'Asia', 'Europe', 'England']].map(params => {
             return this.Continent.findAll({
               include: [{
                 model: this.Country,
@@ -1193,11 +1226,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[1].countries[0]).to.exist;
               expect(continents[1].countries[0].name).to.equal(params[3]);
             });
-          });
+          }));
         });
 
         it('sorts by 2nd degree association', function() {
-          return Sequelize.Promise.map([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']], params => {
+          return Sequelize.Promise.all([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']].map(params => {
             return this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person] }],
               order: [[this.Country, this.Person, 'lastName', params[0]]]
@@ -1212,11 +1245,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0].people[0]).to.exist;
               expect(continents[0].countries[0].people[0].name).to.equal(params[3]);
             });
-          });
+          }));
         });
 
         it('sorts by 2nd degree association with alias', function() {
-          return Sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
+          return Sequelize.Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(params => {
             return this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person, { model: this.Person, as: 'residents' }] }],
               order: [[this.Country, { model: this.Person, as: 'residents' }, 'lastName', params[0]]]
@@ -1231,11 +1264,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0].residents[0]).to.exist;
               expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
             });
-          });
+          }));
         });
 
         it('sorts by 2nd degree association with alias while using limit', function() {
-          return Sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
+          return Sequelize.Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(params => {
             return this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person, { model: this.Person, as: 'residents' }] }],
               order: [[{ model: this.Country }, { model: this.Person, as: 'residents' }, 'lastName', params[0]]],
@@ -1251,7 +1284,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0].residents[0]).to.exist;
               expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
             });
-          });
+          }));
         });
       });
 
@@ -1265,7 +1298,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Industry.belongsToMany(this.Country, { through: this.IndustryCountry });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return Sequelize.Promise.props({
+            return promiseProps({
               england: this.Country.create({ name: 'England' }),
               france: this.Country.create({ name: 'France' }),
               korea: this.Country.create({ name: 'Korea' }),

@@ -764,7 +764,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT, Sequelize.STRING],
         Tasks = {};
 
-      return Promise.map(dataTypes, dataType => {
+      return Promise.all(dataTypes.map(dataType => {
         const tableName = `TaskXYZ_${dataType.key}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: Sequelize.STRING });
 
@@ -773,7 +773,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         return Tasks[dataType].sync({ force: true }).then(() => {
           expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
         });
-      });
+      }));
     });
 
     describe('allows the user to provide an attribute definition object as foreignKey', () => {

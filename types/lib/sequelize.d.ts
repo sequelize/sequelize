@@ -20,6 +20,7 @@ import {
   WhereAttributeHash,
   WhereOperators,
   ModelCtor,
+  Hookable,
 } from './model';
 import { ModelManager } from './model-manager';
 import * as Op from './operators';
@@ -46,7 +47,7 @@ export interface SyncAlterOptions {
 /**
  * Sync Options
  */
-export interface SyncOptions extends Logging {
+export interface SyncOptions extends Logging, Hookable {
   /**
    * If force is true, each DAO will do DROP TABLE IF EXISTS ..., before it tries to create its own table
    */
@@ -74,13 +75,9 @@ export interface SyncOptions extends Logging {
    */
   searchPath?: string;
 
-  /**
-   * If hooks is true then beforeSync, afterSync, beforeBulkSync, afterBulkSync hooks will be called
-   */
-  hooks?: boolean;
 }
 
-export interface DefaultSetOptions {}
+export interface DefaultSetOptions { }
 
 /**
  * Connection Pool options
@@ -110,6 +107,11 @@ export interface PoolOptions {
    * The time interval, in milliseconds, after which sequelize-pool will remove idle connections.
    */
   evict?: number;
+
+  /**
+   * The number of times to use a connection before closing and replacing it.  Default is Infinity
+   */
+  maxUses?: number;
 
   /**
    * A function that validates a connection. Called with client. The default function checks that client is an
@@ -170,7 +172,7 @@ export interface Config {
   };
 }
 
-export type Dialect =  'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql';
+export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql';
 
 export interface RetryOptions {
   match?: (RegExp | string | Function)[];
@@ -380,7 +382,7 @@ export interface Options extends Logging {
   retry?: RetryOptions;
 }
 
-export interface QueryOptionsTransactionRequired {}
+export interface QueryOptionsTransactionRequired { }
 
 /**
  * This is the main class, the entry point to sequelize. To use it, you just need to
@@ -1080,7 +1082,7 @@ export class Sequelize extends Hooks {
    * Returns the database name.
    */
 
-  public getDatabaseName() : string;
+  public getDatabaseName(): string;
 
   /**
    * Returns an instance of QueryInterface.
@@ -1220,7 +1222,9 @@ export class Sequelize extends Hooks {
     sql: string | { query: string; values: unknown[] },
     options: QueryOptionsWithModel
   ): Promise<M[]>;
+  public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T>;
   public query<T extends object>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
+  public query(sql: string | { query: string; values: unknown[] }, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown }>;
   public query(sql: string | { query: string; values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
 
   /**
@@ -1453,7 +1457,7 @@ export function or(...args: (WhereOperators | WhereAttributeHash | Where)[]): Or
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
 export type AttributeType = Fn | Col | Literal | ModelAttributeColumnOptions | string;
-export type LogicType = Fn | Col | Literal | OrOperator | AndOperator | WhereOperators | string;
+export type LogicType = Fn | Col | Literal | OrOperator | AndOperator | WhereOperators | string | symbol | null;
 
 /**
  * A way of specifying attr = condition.
@@ -1473,7 +1477,7 @@ export type LogicType = Fn | Col | Literal | OrOperator | AndOperator | WhereOpe
  * @param logic The condition. Can be both a simply type, or a further condition (`.or`, `.and`, `.literal`
  *   etc.)
  */
-export function where(attr: AttributeType, comparator: string, logic: LogicType): Where;
+export function where(attr: AttributeType, comparator: string | symbol, logic: LogicType): Where;
 export function where(attr: AttributeType, logic: LogicType): Where;
 
 export default Sequelize;

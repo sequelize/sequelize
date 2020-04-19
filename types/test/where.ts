@@ -291,6 +291,8 @@ where = whereFn('test', {
 // Literal as where
 where = literal('true')
 
+where = fn('LOWER', 'asd')
+
 MyModel.findAll({
     where: literal('true')
 })
@@ -325,3 +327,13 @@ Sequelize.where(
         [Op.notILike]: Sequelize.literal('LIT')
     }
 )
+
+Sequelize.where(Sequelize.col("ABS"), Op.is, null);
+
+Sequelize.where(
+  Sequelize.fn("ABS", Sequelize.col("age")),
+  Op.like,
+  Sequelize.fn("ABS", Sequelize.col("age"))
+);
+
+Sequelize.where(Sequelize.col("ABS"), null);

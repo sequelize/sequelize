@@ -11,7 +11,8 @@ const chai = require('chai'),
   Op = Sequelize.Op,
   _ = require('lodash'),
   assert = require('assert'),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  pTimeout = require('p-timeout');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(function() {
@@ -201,14 +202,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.map(_.range(50), i => {
+          return Promise.all(_.range(50).map(i => {
             return User.findOrCreate({
               where: {
                 email: `unique.email.${i}@sequelizejs.com`,
                 companyId: Math.floor(Math.random() * 5)
               }
             });
-          });
+          }));
         });
       });
 
@@ -225,22 +226,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.map(_.range(50), i => {
+          return Promise.all(_.range(50).map(i => {
             return User.findOrCreate({
               where: {
                 email: `unique.email.${i}@sequelizejs.com`,
                 companyId: 2
               }
             });
-          }).then(() => {
-            return Promise.map(_.range(50), i => {
+          })).then(() => {
+            return Promise.all(_.range(50).map(i => {
               return User.findOrCreate({
                 where: {
                   email: `unique.email.${i}@sequelizejs.com`,
                   companyId: 2
                 }
               });
-            });
+            }));
           });
         });
       });
@@ -258,14 +259,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.map(_.range(50), () => {
+          return Promise.all(_.range(50).map(() => {
             return User.findOrCreate({
               where: {
                 email: 'unique.email.1@sequelizejs.com',
                 companyId: 2
               }
             });
-          });
+          }));
         });
       });
     }
@@ -411,17 +412,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           if (times > 10) {
             return true;
           }
-          return this.Student.findOrCreate({
+          return pTimeout(this.Student.findOrCreate({
             where: {
               no: 1
             }
-          })
-            .timeout(1000)
-            .catch(Promise.TimeoutError, e => {
-              throw new Error(e);
-            })
-            .catch(Sequelize.ValidationError, () => {
-              return test(times + 1);
+          }), 1000)
+            .catch(e => {
+              if (e instanceof Sequelize.ValidationError) return test(times + 1);
+              if (e instanceof pTimeout.TimeoutError) throw new Error(e);
+              throw e;
             });
         };
 
@@ -1003,7 +1002,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return User.sync({ force: true }).then(() => {
         return User.create({ username: 'foo' }).then(() => {
-          return User.create({ username: 'foo' }).catch(Sequelize.UniqueConstraintError, err => {
+          return User.create({ username: 'foo' }).catch(err => {
+            if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
             expect(err).to.be.ok;
           });
         });
@@ -1020,7 +1020,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.create({ username: 'foo' });
         }).then(() => {
           return User.create({ username: 'fOO' });
-        }).catch(Sequelize.UniqueConstraintError, err => {
+        }).catch(err => {
+          if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
           expect(err).to.be.ok;
         });
       });
@@ -1040,7 +1041,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.create({ username: 'foo' });
         }).then(() => {
           return User.create({ username: 'foo' });
-        }).catch(Sequelize.UniqueConstraintError, err => {
+        }).catch(err => {
+          if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
           expect(err).to.be.ok;
         });
       });
@@ -1075,7 +1077,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return UserNull.sync({ force: true }).then(() => {
         return UserNull.create({ username: 'foo', smth: 'foo' }).then(() => {
-          return UserNull.create({ username: 'foo', smth: 'bar' }).catch(Sequelize.UniqueConstraintError, err => {
+          return UserNull.create({ username: 'foo', smth: 'bar' }).catch(err => {
+            if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
             expect(err).to.be.ok;
           });
         });

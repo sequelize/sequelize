@@ -97,6 +97,13 @@
     "no-self-compare": "error",
     "no-case-declarations": "off"
   },
+  "settings": {
+    "jsdoc": {
+      "tagNamePreference": {
+        "augments": "extends"
+      }
+    }
+  },
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "script"
