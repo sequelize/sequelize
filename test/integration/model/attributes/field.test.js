@@ -542,14 +542,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should work with a belongsTo association getter', function() {
         const userId = Math.floor(Math.random() * 100000);
-        return Promise.join(
-          this.User.create({
-            id: userId
-          }),
-          this.Task.create({
-            user_id: userId
-          })
-        ).then(([user, task]) => {
+        return Promise.all([this.User.create({
+          id: userId
+        }), this.Task.create({
+          user_id: userId
+        })]).then(([user, task]) => {
           return Promise.all([user, task.getUser()]);
         }).then(([userA, userB]) => {
           expect(userA.get('id')).to.equal(userB.get('id'));

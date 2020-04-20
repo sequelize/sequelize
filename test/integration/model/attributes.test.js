@@ -46,10 +46,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Course.belongsToMany(this.Student, { through: this.Score, foreignKey: 'CourseId' });
 
         return this.sequelize.sync({ force: true }).then(() => {
-          return Promise.join(
+          return Promise.all([
             this.Student.create({ no: 1, name: 'ryan' }),
             this.Course.create({ no: 100, name: 'history' })
-          ).then(([student, course]) => {
+          ]).then(([student, course]) => {
             return student.addCourse(course, { through: { score: 98, test_value: 1000 } });
           }).then(() => {
             expect(callCount).to.equal(1);
@@ -58,10 +58,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           })
             .then(() => {
-              return Promise.join(
+              return Promise.all([
                 this.Student.build({ no: 1 }).getCourses({ where: { no: 100 } }),
                 this.Score.findOne({ where: { StudentId: 1, CourseId: 100 } })
-              );
+              ]);
             })
             .then(([courses, score]) => {
               expect(score.test_value).to.equal(1001);

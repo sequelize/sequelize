@@ -32,28 +32,24 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       // Sync them
       return this.sequelize.sync({ force: true }).then(() => {
         // Create an enviroment
-        return Promise.join(
-          Project.bulkCreate([
-            { id: 1, name: 'No tasks' },
-            { id: 2, name: 'No tasks no employees' },
-            { id: 3, name: 'No employees' },
-            { id: 4, name: 'In progress A' },
-            { id: 5, name: 'In progress B' },
-            { id: 6, name: 'In progress C' }
-          ]),
-          Task.bulkCreate([
-            { name: 'Important task', fk: 3 },
-            { name: 'Important task', fk: 4 },
-            { name: 'Important task', fk: 5 },
-            { name: 'Important task', fk: 6 }
-          ]),
-          Employee.bulkCreate([
-            { name: 'Jane Doe', fk: 1 },
-            { name: 'John Doe', fk: 4 },
-            { name: 'Jane John Doe', fk: 5 },
-            { name: 'John Jane Doe', fk: 6 }
-          ])
-        ).then(() =>{
+        return Promise.all([Project.bulkCreate([
+          { id: 1, name: 'No tasks' },
+          { id: 2, name: 'No tasks no employees' },
+          { id: 3, name: 'No employees' },
+          { id: 4, name: 'In progress A' },
+          { id: 5, name: 'In progress B' },
+          { id: 6, name: 'In progress C' }
+        ]), Task.bulkCreate([
+          { name: 'Important task', fk: 3 },
+          { name: 'Important task', fk: 4 },
+          { name: 'Important task', fk: 5 },
+          { name: 'Important task', fk: 6 }
+        ]), Employee.bulkCreate([
+          { name: 'Jane Doe', fk: 1 },
+          { name: 'John Doe', fk: 4 },
+          { name: 'Jane John Doe', fk: 5 },
+          { name: 'John Jane Doe', fk: 6 }
+        ])]).then(() =>{
           //Find all projects with tasks and employees
           const availableProjects = 3;
           const limit = 2;
@@ -101,55 +97,49 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       return this.sequelize.sync({ force: true }).then(() => {
         // Create an enviroment
 
-        return Promise.join(
-          User.bulkCreate([
-            { name: 'Youtube' },
-            { name: 'Facebook' },
-            { name: 'Google' },
-            { name: 'Yahoo' },
-            { name: '404' }
-          ]),
-          SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
-            { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
-            { u: 2, m: 'A', fk: 1 },
-            { u: 3, m: 'A', fk: 1 },
-            { u: 4, m: 'A', fk: 1 },
-            { u: 5, m: 'A', fk: 1 },
-            { u: 1, m: 'B', fk: 1 },
-            { u: 2, m: 'B', fk: 1 },
-            { u: 3, m: 'B', fk: 1 },
-            { u: 4, m: 'B', fk: 1 },
-            { u: 5, m: 'B', fk: 1 },
-            { u: 1, m: 'C', fk: 1 },
-            { u: 2, m: 'C', fk: 1 },
-            { u: 3, m: 'C', fk: 1 },
-            { u: 4, m: 'C', fk: 1 },
-            { u: 5, m: 'C', fk: 1 },
-            { u: 1, m: 'A', fk: 2 }, // 2 // Will be deleted
-            { u: 4, m: 'A', fk: 2 },
-            { u: 2, m: 'A', fk: 2 },
-            { u: 1, m: 'A', fk: 3 }, // 3
-            { u: 2, m: 'A', fk: 3 },
-            { u: 3, m: 'A', fk: 3 },
-            { u: 2, m: 'B', fk: 2 },
-            { u: 1, m: 'A', fk: 4 }, // 4
-            { u: 4, m: 'A', fk: 2 }
-          ]),
-          A.bulkCreate([
-            { name: 'Just' },
-            { name: 'for' },
-            { name: 'testing' },
-            { name: 'proposes' },
-            { name: 'only' }
-          ]),
-          B.bulkCreate([
-            { name: 'this should not' },
-            { name: 'be loaded' }
-          ]),
-          C.bulkCreate([
-            { name: 'because we only want A' }
-          ])
-        ).then(() => {
+        return Promise.all([User.bulkCreate([
+          { name: 'Youtube' },
+          { name: 'Facebook' },
+          { name: 'Google' },
+          { name: 'Yahoo' },
+          { name: '404' }
+        ]), SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
+          { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
+          { u: 2, m: 'A', fk: 1 },
+          { u: 3, m: 'A', fk: 1 },
+          { u: 4, m: 'A', fk: 1 },
+          { u: 5, m: 'A', fk: 1 },
+          { u: 1, m: 'B', fk: 1 },
+          { u: 2, m: 'B', fk: 1 },
+          { u: 3, m: 'B', fk: 1 },
+          { u: 4, m: 'B', fk: 1 },
+          { u: 5, m: 'B', fk: 1 },
+          { u: 1, m: 'C', fk: 1 },
+          { u: 2, m: 'C', fk: 1 },
+          { u: 3, m: 'C', fk: 1 },
+          { u: 4, m: 'C', fk: 1 },
+          { u: 5, m: 'C', fk: 1 },
+          { u: 1, m: 'A', fk: 2 }, // 2 // Will be deleted
+          { u: 4, m: 'A', fk: 2 },
+          { u: 2, m: 'A', fk: 2 },
+          { u: 1, m: 'A', fk: 3 }, // 3
+          { u: 2, m: 'A', fk: 3 },
+          { u: 3, m: 'A', fk: 3 },
+          { u: 2, m: 'B', fk: 2 },
+          { u: 1, m: 'A', fk: 4 }, // 4
+          { u: 4, m: 'A', fk: 2 }
+        ]), A.bulkCreate([
+          { name: 'Just' },
+          { name: 'for' },
+          { name: 'testing' },
+          { name: 'proposes' },
+          { name: 'only' }
+        ]), B.bulkCreate([
+          { name: 'this should not' },
+          { name: 'be loaded' }
+        ]), C.bulkCreate([
+          { name: 'because we only want A' }
+        ])]).then(() => {
           // Delete some of conns to prove the concept
           return SomeConnection.destroy({ where: {
             m: 'A',
