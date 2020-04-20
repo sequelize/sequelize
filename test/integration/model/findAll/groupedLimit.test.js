@@ -181,10 +181,10 @@ if (current.dialect.supports['UNION ALL']) {
               expect(users).to.have.length(5);
               expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
 
-              return Promise.join(
+              return Promise.all([
                 this.projects[0].setParanoidMembers(users.slice(0, 2)),
                 this.projects[1].setParanoidMembers(users.slice(4))
-              );
+              ]);
             }).then(() => {
               return this.User.findAll({
                 attributes: ['id'],

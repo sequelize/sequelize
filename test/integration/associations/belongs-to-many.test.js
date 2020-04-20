@@ -3150,26 +3150,26 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         const ctx = {};
         return this.sequelize.sync({ force: true }).then(() => {
-          return Promise.join(
+          return Promise.all([
             this.User.create({ id: 67, username: 'foo' }),
             this.Task.create({ id: 52, title: 'task' }),
             this.User.create({ id: 89, username: 'bar' }),
             this.Task.create({ id: 42, title: 'kast' })
-          );
+          ]);
         }).then(([user1, task1, user2, task2]) => {
           ctx.user1 = user1;
           ctx.task1 = task1;
           ctx.user2 = user2;
           ctx.task2 = task2;
-          return Promise.join(
+          return Promise.all([
             user1.setTasks([task1]),
             task2.setUsers([user2])
-          );
+          ]);
         }).then(() => {
-          return Promise.join(
+          return Promise.all([
             expect(ctx.user1.destroy()).to.have.been.rejectedWith(Sequelize.ForeignKeyConstraintError), // Fails because of RESTRICT constraint
             ctx.task2.destroy()
-          );
+          ]);
         }).then(() => {
           return this.sequelize.model('tasksusers').findAll({ where: { taskId: ctx.task2.id } });
         }).then(usertasks => {
