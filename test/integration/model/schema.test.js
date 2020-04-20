@@ -6,8 +6,7 @@ const chai = require('chai'),
   dialect = Support.getTestDialect(),
   DataTypes = require('../../../lib/data-types'),
   current = Support.sequelize,
-  Op = Support.Sequelize.Op,
-  Promise = Support.Sequelize.Promise;
+  Op = Support.Sequelize.Op;
 
 const SCHEMA_ONE = 'schema_one';
 const SCHEMA_TWO = 'schema_two';

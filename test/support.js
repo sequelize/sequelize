@@ -8,9 +8,6 @@ const Config = require('./config/config');
 const chai = require('chai');
 const expect = chai.expect;
 const AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
-const sinon = require('sinon');
-
-sinon.usingPromise(require('bluebird'));
 
 chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));
@@ -24,11 +21,10 @@ process.on('uncaughtException', e => {
   console.error('An unhandled exception occurred:');
   throw e;
 });
-Sequelize.Promise.onPossiblyUnhandledRejection(e => {
+process.on('unhandledRejection', e => {
   console.error('An unhandled rejection occurred:');
   throw e;
 });
-Sequelize.Promise.longStackTraces();
 
 const Support = {
   Sequelize,
@@ -46,7 +42,7 @@ const Support = {
 
       return _sequelize.sync({ force: true }).then(() => _sequelize);
     }
-    return Sequelize.Promise.resolve(sequelize);
+    return Promise.resolve(sequelize);
   },
 
   createSequelizeInstance(options) {

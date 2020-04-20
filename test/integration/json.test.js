@@ -146,7 +146,7 @@ describe('model', () => {
       });
 
       it('should be able to retrieve a row based on the values of the json document', function() {
-        return Sequelize.Promise.all([
+        return Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ]).then(() => {
@@ -160,7 +160,7 @@ describe('model', () => {
       });
 
       it('should be able to query using the nested query language', function() {
-        return Sequelize.Promise.all([
+        return Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ]).then(() => {
@@ -173,7 +173,7 @@ describe('model', () => {
       });
 
       it('should be able to query using dot notation', function() {
-        return Sequelize.Promise.all([
+        return Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ]).then(() => {
@@ -184,7 +184,7 @@ describe('model', () => {
       });
 
       it('should be able to query using dot notation with uppercase name', function() {
-        return Sequelize.Promise.all([
+        return Promise.all([
           this.User.create({ username: 'swen', emergencyContact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })
         ]).then(() => {
@@ -198,7 +198,7 @@ describe('model', () => {
       });
 
       it('should be able to query array using property accessor', function() {
-        return Sequelize.Promise.all([
+        return Promise.all([
           this.User.create({ username: 'swen', emergency_contact: ['kate', 'joe'] }),
           this.User.create({ username: 'anna', emergency_contact: [{ name: 'joe' }] })
         ]).then(() => {

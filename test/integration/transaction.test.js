@@ -5,7 +5,6 @@ const chai = require('chai'),
   Support = require('./support'),
   dialect = Support.getTestDialect(),
   Sequelize = require('../../index'),
-  Promise = Sequelize.Promise,
   QueryTypes = require('../../lib/query-types'),
   Transaction = require('../../lib/transaction'),
   sinon = require('sinon'),
@@ -169,7 +168,7 @@ if (current.dialect.supports.transactions) {
 
     it('should not rollback if connection was not acquired', function() {
       this.sinon.stub(this.sequelize.connectionManager, '_connect')
-        .returns(new Sequelize.Promise(() => {}));
+        .returns(new Promise(() => {}));
 
       const transaction = new Transaction(this.sequelize);
 

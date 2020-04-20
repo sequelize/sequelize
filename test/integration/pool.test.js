@@ -190,7 +190,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       });
 
       this.sinon.stub(this.testInstance.connectionManager, '_connect')
-        .returns(new Sequelize.Promise(() => {}));
+        .returns(new Promise(() => {}));
 
       await expect(
         this.testInstance.authenticate()
@@ -208,7 +208,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       });
 
       this.sinon.stub(this.testInstance.connectionManager, '_connect')
-        .returns(new Sequelize.Promise(() => {}));
+        .returns(new Promise(() => {}));
 
       await expect(
         this.testInstance.transaction(async () => {

@@ -2,9 +2,7 @@
 
 const  chai = require('chai'),
   expect = chai.expect,
-  Support = require('../support'),
-  Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise;
+  Support = require('../support');
 
 describe(Support.getTestDialectTeaser('Alias'), () => {
   it('should uppercase the first letter in alias getter, but not in eager loading', function() {

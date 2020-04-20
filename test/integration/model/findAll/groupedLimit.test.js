@@ -5,7 +5,6 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../../support'),
   Sequelize = Support.Sequelize,
-  Promise = Sequelize.Promise,
   DataTypes = require('../../../../lib/data-types'),
   current = Support.sequelize,
   _ = require('lodash');
@@ -182,7 +181,7 @@ if (current.dialect.supports['UNION ALL']) {
               expect(users).to.have.length(5);
               expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
 
-              return Sequelize.Promise.join(
+              return Promise.join(
                 this.projects[0].setParanoidMembers(users.slice(0, 2)),
                 this.projects[1].setParanoidMembers(users.slice(4))
               );

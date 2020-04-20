@@ -4,11 +4,9 @@ const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
   Support = require('../support'),
-  Sequelize = require('../../../index'),
   DataTypes = require('../../../lib/data-types'),
   current = Support.sequelize,
-  dialect = Support.getTestDialect(),
-  Promise = Sequelize.Promise;
+  dialect = Support.getTestDialect();
 
 if (current.dialect.supports.groupedLimit) {
   describe(Support.getTestDialectTeaser('Include'), () => {

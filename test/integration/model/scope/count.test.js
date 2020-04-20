@@ -4,7 +4,6 @@ const chai = require('chai'),
   Sequelize = require('../../../../index'),
   Op = Sequelize.Op,
   expect = chai.expect,
-  Promise = require('../../../../lib/promise'),
   Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {

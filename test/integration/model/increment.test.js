@@ -3,7 +3,6 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  Sequelize = Support.Sequelize,
   DataTypes = require('../../../lib/data-types'),
   sinon = require('sinon');
 
@@ -77,7 +76,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should still work right with other concurrent increments', function() {
         return this.User.findAll().then(aUsers => {
-          return Sequelize.Promise.all([
+          return Promise.all([
             this.User[method](['aNumber'], { by: 2, where: {} }),
             this.User[method](['aNumber'], { by: 2, where: {} }),
             this.User[method](['aNumber'], { by: 2, where: {} })

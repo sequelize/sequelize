@@ -2,7 +2,6 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require('../../../index'),
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
   sinon = require('sinon'),
@@ -157,7 +156,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should still work right with other concurrent increments', function() {
       return this.User.findByPk(1).then(user1 => {
-        return Sequelize.Promise.all([
+        return Promise.all([
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 })

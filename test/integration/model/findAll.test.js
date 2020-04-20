@@ -963,7 +963,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               _.forEach(r, (item, itemName) => {
                 this[itemName] = item;
               });
-              return Sequelize.Promise.all([
+              return Promise.all([
                 this.england.setContinent(this.europe),
                 this.england.addIndustry(this.coal),
                 this.bob.setCountry(this.england),
@@ -1050,18 +1050,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Kingdom.belongsToMany(this.Animal, { through: this.AnimalKingdom });
 
           return this.sequelize.sync({ force: true })
-            .then(() => Sequelize.Promise.all([
+            .then(() => Promise.all([
               this.Animal.create({ name: 'Dog', age: 20 }),
               this.Animal.create({ name: 'Cat', age: 30 }),
               this.Animal.create({ name: 'Peacock', age: 25 }),
               this.Animal.create({ name: 'Fish', age: 100 })
             ]))
-            .then(([a1, a2, a3, a4]) => Sequelize.Promise.all([
+            .then(([a1, a2, a3, a4]) => Promise.all([
               this.Kingdom.create({ name: 'Earth' }),
               this.Kingdom.create({ name: 'Water' }),
               this.Kingdom.create({ name: 'Wind' })
             ]).then(([k1, k2, k3]) =>
-              Sequelize.Promise.all([
+              Promise.all([
                 k1.addAnimals([a1, a2]),
                 k2.addAnimals([a4]),
                 k3.addAnimals([a3])
@@ -1154,7 +1154,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 this[itemName] = item;
               });
 
-              return Sequelize.Promise.all([
+              return Promise.all([
                 this.england.setContinent(this.europe),
                 this.france.setContinent(this.europe),
                 this.korea.setContinent(this.asia),
@@ -1174,7 +1174,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts simply', function() {
-          return Sequelize.Promise.all([['ASC', 'Asia'], ['DESC', 'Europe']].map(params => {
+          return Promise.all([['ASC', 'Asia'], ['DESC', 'Europe']].map(params => {
             return this.Continent.findAll({
               order: [['name', params[0]]]
             }).then(continents => {
@@ -1186,7 +1186,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 1st degree association', function() {
-          return Sequelize.Promise.all([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']].map(params => {
+          return Promise.all([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']].map(params => {
             return this.Continent.findAll({
               include: [this.Country],
               order: [[this.Country, 'name', params[0]]]
@@ -1202,7 +1202,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', function() {
-          return Sequelize.Promise.all([['ASC', 'Asia', 'Europe', 'England']].map(params => {
+          return Promise.all([['ASC', 'Asia', 'Europe', 'England']].map(params => {
             return this.Continent.findAll({
               include: [{
                 model: this.Country,
@@ -1230,7 +1230,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 2nd degree association', function() {
-          return Sequelize.Promise.all([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']].map(params => {
+          return Promise.all([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']].map(params => {
             return this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person] }],
               order: [[this.Country, this.Person, 'lastName', params[0]]]
@@ -1249,7 +1249,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 2nd degree association with alias', function() {
-          return Sequelize.Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(params => {
+          return Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(params => {
             return this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person, { model: this.Person, as: 'residents' }] }],
               order: [[this.Country, { model: this.Person, as: 'residents' }, 'lastName', params[0]]]
@@ -1268,7 +1268,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 2nd degree association with alias while using limit', function() {
-          return Sequelize.Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(params => {
+          return Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(params => {
             return this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person, { model: this.Person, as: 'residents' }] }],
               order: [[{ model: this.Country }, { model: this.Person, as: 'residents' }, 'lastName', params[0]]],
@@ -1310,7 +1310,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 this[itemName] = item;
               });
 
-              return Sequelize.Promise.all([
+              return Promise.all([
                 this.england.addIndustry(this.energy, { through: { numYears: 20 } }),
                 this.england.addIndustry(this.media, { through: { numYears: 40 } }),
                 this.france.addIndustry(this.media, { through: { numYears: 80 } }),
@@ -1321,7 +1321,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 1st degree association', function() {
-          return Sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
+          return Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
             return this.Country.findAll({
               include: [this.Industry],
               order: [[this.Industry, 'name', params[0]]]
@@ -1337,7 +1337,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 1st degree association while using limit', function() {
-          return Sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
+          return Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
             return this.Country.findAll({
               include: [this.Industry],
               order: [
@@ -1356,7 +1356,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by through table attribute', function() {
-          return Sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']], params => {
+          return Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']], params => {
             return this.Country.findAll({
               include: [this.Industry],
               order: [[this.Industry, this.IndustryCountry, 'numYears', params[0]]]

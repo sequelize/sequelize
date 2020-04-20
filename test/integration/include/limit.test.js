@@ -5,7 +5,6 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  Promise = Sequelize.Promise,
   Op = Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Include'), () => {

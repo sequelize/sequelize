@@ -385,7 +385,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         return;
       }
 
-      return new Sequelize.Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         if (/^postgres/.test(dialect)) {
           current.query('SELECT PostGIS_Lib_Version();')
             .then(result => {

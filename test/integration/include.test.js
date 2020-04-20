@@ -2,7 +2,6 @@
 
 const chai = require('chai'),
   Sequelize = require('../../index'),
-  Promise = Sequelize.Promise,
   expect = chai.expect,
   Support = require('./support'),
   DataTypes = require('../../lib/data-types'),

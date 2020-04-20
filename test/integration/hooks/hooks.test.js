@@ -6,8 +6,7 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types'),
   Sequelize = Support.Sequelize,
   dialect = Support.getTestDialect(),
-  sinon = require('sinon'),
-  Promise = require('bluebird');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {

@@ -3,9 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise;
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Self'), () => {
   it('supports freezeTableName', function() {

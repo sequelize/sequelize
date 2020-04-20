@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
             expect(sequelizeReadOnly.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READONLY);
             expect(sequelizeReadWrite.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READWRITE);
 
-            return Sequelize.Promise.join(
+            return Promise.join(
               sequelizeReadOnly.query(createTableFoo)
                 .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
               sequelizeReadWrite.query(createTableFoo)
@@ -129,7 +129,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
               }
             });
 
-            return Sequelize.Promise.join(
+            return Promise.join(
               sequelizeReadOnly.query(createTableBar)
                 .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
               sequelizeReadWrite.query(createTableBar)
