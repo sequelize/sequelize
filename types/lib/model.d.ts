@@ -1852,7 +1852,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *   include: [
    *      { model: Profile, required: true}
    *   ],
-   *   limit 3
+   *   limit: 3
    * });
    * ```
    * Because the include for `Profile` has `required` set it will result in an inner join, and only the users
