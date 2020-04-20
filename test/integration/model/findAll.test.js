@@ -1321,7 +1321,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 1st degree association', function() {
-          return Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
+          return Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']].map(params => {
             return this.Country.findAll({
               include: [this.Industry],
               order: [[this.Industry, 'name', params[0]]]
@@ -1333,11 +1333,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(countries[0].industries[0]).to.exist;
               expect(countries[0].industries[0].name).to.equal(params[2]);
             });
-          });
+          }));
         });
 
         it('sorts by 1st degree association while using limit', function() {
-          return Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
+          return Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']].map(params => {
             return this.Country.findAll({
               include: [this.Industry],
               order: [
@@ -1352,11 +1352,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(countries[0].industries[0]).to.exist;
               expect(countries[0].industries[0].name).to.equal(params[2]);
             });
-          });
+          }));
         });
 
         it('sorts by through table attribute', function() {
-          return Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']], params => {
+          return Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']].map(params => {
             return this.Country.findAll({
               include: [this.Industry],
               order: [[this.Industry, this.IndustryCountry, 'numYears', params[0]]]
@@ -1368,7 +1368,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(countries[0].industries[0]).to.exist;
               expect(countries[0].industries[0].name).to.equal(params[2]);
             });
-          });
+          }));
         });
       });
     });
