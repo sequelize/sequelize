@@ -35,13 +35,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.stubDelete.restore();
     });
 
-    it('can detect complex objects', () => {
+    it('can detect complex objects', async () => {
       const Where = function() { this.secretValue = '1'; };
 
-      expect(() => {
-        User.destroy({ where: new Where() });
-      }).to.throw();
-
+      await expect(User.destroy({ where: new Where() })).to.be.rejected;
     });
   });
 });

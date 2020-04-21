@@ -151,10 +151,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       return this.sequelize
         .sync({ force: true })
         .then(() => {
-          return Promise.join(
-            A.create({}),
-            B.create({})
-          );
+          return Promise.all([A.create({}), B.create({})]);
         })
         .then(([a, b]) => {
           return a.addB(b, { through: { name: 'Foobar' } });
@@ -293,39 +290,36 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       G.belongsTo(H);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          A.create({}),
-          (function(singles) {
-            let promise = Promise.resolve(),
-              previousInstance,
-              b;
+        return Promise.all([A.create({}), (function(singles) {
+          let promise = Promise.resolve(),
+            previousInstance,
+            b;
 
-            singles.forEach(model => {
-              const values = {};
+          singles.forEach(model => {
+            const values = {};
 
-              if (model.name === 'g') {
-                values.name = 'yolo';
-              }
-
-              promise = promise.then(() => {
-                return model.create(values).then(instance => {
-                  if (previousInstance) {
-                    return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
-                      previousInstance = instance;
-                    });
-                  }
-                  previousInstance = b = instance;
-                });
-              });
-            });
+            if (model.name === 'g') {
+              values.name = 'yolo';
+            }
 
             promise = promise.then(() => {
-              return b;
+              return model.create(values).then(instance => {
+                if (previousInstance) {
+                  return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
+                    previousInstance = instance;
+                  });
+                }
+                previousInstance = b = instance;
+              });
             });
+          });
 
-            return promise;
-          })([B, C, D, E, F, G, H])
-        ).then(([a, b]) => {
+          promise = promise.then(() => {
+            return b;
+          });
+
+          return promise;
+        })([B, C, D, E, F, G, H])]).then(([a, b]) => {
           return a.setB(b);
         }).then(() => {
           return A.findOne({

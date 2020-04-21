@@ -257,10 +257,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { as: 'users', through: User_has_Group, foreignKey: 'id_group' });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          User.create(),
-          Group.create()
-        ).then(([user, group]) => {
+        return Promise.all([User.create(), Group.create()]).then(([user, group]) => {
           return user.addGroup(group);
         }).then(() => {
           return User.findOne({
@@ -307,21 +304,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { through: User_has_Group });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          User.create(),
-          Group.create()
-        ).then(([user, group]) => {
+        return Promise.all([User.create(), Group.create()]).then(([user, group]) => {
           return user.addGroup(group);
         }).then(() => {
-          return Promise.join(
-            User.findOne({
-              where: {},
-              include: [Group]
-            }),
-            User.findAll({
-              include: [Group]
-            })
-          );
+          return Promise.all([User.findOne({
+            where: {},
+            include: [Group]
+          }), User.findAll({
+            include: [Group]
+          })]);
         }).then(([user, users]) => {
           expect(user.Groups.length).to.be.equal(1);
           expect(user.Groups[0].User_has_Group.UserUserSecondId).to.be.ok;
@@ -387,23 +378,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { through: 'usergroups', sourceKey: 'groupSecondId' });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          User.create(),
-          User.create(),
-          Group.create(),
-          Group.create()
-        ).then(([user1, user2, group1, group2]) => {
-          return Promise.join(user1.addGroup(group1), user2.addGroup(group2));
+        return Promise.all([User.create(), User.create(), Group.create(), Group.create()]).then(([user1, user2, group1, group2]) => {
+          return Promise.all([user1.addGroup(group1), user2.addGroup(group2)]);
         }).then(() => {
-          return Promise.join(
-            User.findAll({
-              where: {},
-              include: [Group]
-            }),
-            Group.findAll({
-              include: [User]
-            })
-          );
+          return Promise.all([User.findAll({
+            where: {},
+            include: [Group]
+          }), Group.findAll({
+            include: [User]
+          })]);
         }).then(([users, groups]) => {
           expect(users.length).to.be.equal(2);
           expect(users[0].Groups.length).to.be.equal(1);
@@ -479,23 +462,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { through: 'usergroups', targetKey: 'userSecondId' });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          User.create(),
-          User.create(),
-          Group.create(),
-          Group.create()
-        ).then(([user1, user2, group1, group2]) => {
-          return Promise.join(user1.addGroup(group1), user2.addGroup(group2));
+        return Promise.all([User.create(), User.create(), Group.create(), Group.create()]).then(([user1, user2, group1, group2]) => {
+          return Promise.all([user1.addGroup(group1), user2.addGroup(group2)]);
         }).then(() => {
-          return Promise.join(
-            User.findAll({
-              where: {},
-              include: [Group]
-            }),
-            Group.findAll({
-              include: [User]
-            })
-          );
+          return Promise.all([User.findAll({
+            where: {},
+            include: [Group]
+          }), Group.findAll({
+            include: [User]
+          })]);
         }).then(([users, groups]) => {
           expect(users.length).to.be.equal(2);
           expect(users[0].Groups.length).to.be.equal(1);
@@ -577,23 +552,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { through: 'usergroups', sourceKey: 'groupSecondId', targetKey: 'userSecondId' });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          User.create(),
-          User.create(),
-          Group.create(),
-          Group.create()
-        ).then(([user1, user2, group1, group2]) => {
-          return Promise.join(user1.addGroup(group1), user2.addGroup(group2));
+        return Promise.all([User.create(), User.create(), Group.create(), Group.create()]).then(([user1, user2, group1, group2]) => {
+          return Promise.all([user1.addGroup(group1), user2.addGroup(group2)]);
         }).then(() => {
-          return Promise.join(
-            User.findAll({
-              where: {},
-              include: [Group]
-            }),
-            Group.findAll({
-              include: [User]
-            })
-          );
+          return Promise.all([User.findAll({
+            where: {},
+            include: [Group]
+          }), Group.findAll({
+            include: [User]
+          })]);
         }).then(([users, groups]) => {
           expect(users.length).to.be.equal(2);
           expect(users[0].Groups.length).to.be.equal(1);
@@ -686,23 +653,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { through: User_has_Group, sourceKey: 'groupSecondId' });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          User.create(),
-          User.create(),
-          Group.create(),
-          Group.create()
-        ).then(([user1, user2, group1, group2]) => {
-          return Promise.join(user1.addGroup(group1), user2.addGroup(group2));
+        return Promise.all([User.create(), User.create(), Group.create(), Group.create()]).then(([user1, user2, group1, group2]) => {
+          return Promise.all([user1.addGroup(group1), user2.addGroup(group2)]);
         }).then(() => {
-          return Promise.join(
-            User.findAll({
-              where: {},
-              include: [Group]
-            }),
-            Group.findAll({
-              include: [User]
-            })
-          );
+          return Promise.all([User.findAll({
+            where: {},
+            include: [Group]
+          }), Group.findAll({
+            include: [User]
+          })]);
         }).then(([users, groups]) => {
           expect(users.length).to.be.equal(2);
           expect(users[0].Groups.length).to.be.equal(1);
@@ -782,19 +741,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { through: 'usergroups', sourceKey: 'groupSecondId', targetKey: 'userSecondId' });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          User.create(),
-          User.create(),
-          Group.create(),
-          Group.create()
-        ).then(([user1, user2, group1, group2]) => {
-          return Promise.join(user1.addGroup(group1), user2.addGroup(group2))
+        return Promise.all([User.create(), User.create(), Group.create(), Group.create()]).then(([user1, user2, group1, group2]) => {
+          return Promise.all([user1.addGroup(group1), user2.addGroup(group2)])
             .then(() => {
-              return Promise.join(
-                user1.getGroups(),
-                user2.getGroups(),
-                group1.getUsers(),
-                group2.getUsers()
+              return Promise.all(
+                [user1.getGroups(), user2.getGroups(), group1.getUsers(), group2.getUsers()]
               );
             }).then(([groups1, groups2, users1, users2]) => {
               expect(groups1.length).to.be.equal(1);
@@ -863,23 +814,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { through: 'usergroups', foreignKey: 'groupId2', sourceKey: 'groupSecondId' });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          User.create(),
-          User.create(),
-          Group.create(),
-          Group.create()
-        ).then(([user1, user2, group1, group2]) => {
-          return Promise.join(user1.addGroup(group1), user2.addGroup(group2));
+        return Promise.all([User.create(), User.create(), Group.create(), Group.create()]).then(([user1, user2, group1, group2]) => {
+          return Promise.all([user1.addGroup(group1), user2.addGroup(group2)]);
         }).then(() => {
-          return Promise.join(
-            User.findAll({
-              where: {},
-              include: [Group]
-            }),
-            Group.findAll({
-              include: [User]
-            })
-          );
+          return Promise.all([User.findAll({
+            where: {},
+            include: [Group]
+          }), Group.findAll({
+            include: [User]
+          })]);
         }).then(([users, groups]) => {
           expect(users.length).to.be.equal(2);
           expect(users[0].Groups.length).to.be.equal(1);
@@ -982,23 +925,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { through: User_has_Group, foreignKey: 'groupId2', sourceKey: 'groupSecondId' });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          User.create(),
-          User.create(),
-          Group.create(),
-          Group.create()
-        ).then(([user1, user2, group1, group2]) => {
-          return Promise.join(user1.addGroup(group1), user2.addGroup(group2));
+        return Promise.all([User.create(), User.create(), Group.create(), Group.create()]).then(([user1, user2, group1, group2]) => {
+          return Promise.all([user1.addGroup(group1), user2.addGroup(group2)]);
         }).then(() => {
-          return Promise.join(
-            User.findAll({
-              where: {},
-              include: [Group]
-            }),
-            Group.findAll({
-              include: [User]
-            })
-          );
+          return Promise.all([User.findAll({
+            where: {},
+            include: [Group]
+          }), Group.findAll({
+            include: [User]
+          })]);
         }).then(([users, groups]) => {
           expect(users.length).to.be.equal(2);
           expect(users[0].Groups.length).to.be.equal(1);
@@ -1076,40 +1011,28 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(Company, { through: Company_has_Group });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          User.create(),
-          Group.create(),
-          Company.create()
-        ).then(([user, group, company]) => {
-          return Promise.join(
-            user.setCompany(company),
-            company.addGroup(group)
-          );
+        return Promise.all([User.create(), Group.create(), Company.create()]).then(([user, group, company]) => {
+          return Promise.all([user.setCompany(company), company.addGroup(group)]);
         }).then(() => {
-          return Promise.join(
-            User.findOne({
-              where: {},
-              include: [
-                { model: Company, include: [Group] }
-              ]
-            }),
-            User.findAll({
-              include: [
-                { model: Company, include: [Group] }
-              ]
-            }),
-            User.findOne({
-              where: {},
-              include: [
-                { model: Company, required: true, include: [Group] }
-              ]
-            }),
-            User.findAll({
-              include: [
-                { model: Company, required: true, include: [Group] }
-              ]
-            })
-          );
+          return Promise.all([User.findOne({
+            where: {},
+            include: [
+              { model: Company, include: [Group] }
+            ]
+          }), User.findAll({
+            include: [
+              { model: Company, include: [Group] }
+            ]
+          }), User.findOne({
+            where: {},
+            include: [
+              { model: Company, required: true, include: [Group] }
+            ]
+          }), User.findAll({
+            include: [
+              { model: Company, required: true, include: [Group] }
+            ]
+          })]);
         });
       });
     });
@@ -1808,13 +1731,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       return this.sequelize.sync({ force: true }).then(() => {
         return Group.create({});
       }).then(group => {
-        return Promise.join(
+        return Promise.all([
           group.createUser({ id: 1 }, { through: { isAdmin: true } }),
-          group.createUser({ id: 2 }, { through: { isAdmin: false } }),
-          () => {
-            return UserGroups.findAll();
-          }
-        );
+          group.createUser({ id: 2 }, { through: { isAdmin: false } })
+        ]).then(() => {
+          return UserGroups.findAll();
+        });
       }).then(userGroups => {
         userGroups.sort((a, b) => {
           return a.userId < b.userId ? - 1 : 1;
@@ -2413,11 +2335,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const spy = sinon.spy();
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
+        return Promise.all([
           this.User.create({ name: 'Matt' }),
           this.Project.create({ name: 'Good Will Hunting' }),
           this.Project.create({ name: 'The Departed' })
-        );
+        ]);
       }).then(([user, project1, project2]) => {
         return user.addProjects([project1, project2], {
           logging: spy
@@ -2425,12 +2347,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       }).then(user => {
         expect(spy).to.have.been.calledTwice;
         spy.resetHistory();
-        return Promise.join(
-          user,
-          user.getProjects({
-            logging: spy
-          })
-        );
+        return Promise.all([user, user.getProjects({
+          logging: spy
+        })]);
       }).then(([user, projects]) => {
         expect(spy.calledOnce).to.be.ok;
         const project = projects[0];
@@ -2509,11 +2428,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
+        return Promise.all([
           this.Group.create({ groupName: 'The Illuminati' }),
           this.User.create({ name: 'Matt' }),
           this.Project.create({ name: 'Good Will Hunting' })
-        );
+        ]);
       }).then(([group, user, project]) => {
         return user.addProject(project).then(() => {
           return group.addUser(user).then(() => group);
@@ -3479,9 +3398,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     it('should load with an alias', function() {
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
+        return Promise.all([
           this.Individual.create({ name: 'Foo Bar' }),
-          this.Hat.create({ name: 'Baz' }));
+          this.Hat.create({ name: 'Baz' })
+        ]);
       }).then(([individual, hat]) => {
         return individual.addPersonwearinghat(hat);
       }).then(() => {
@@ -3507,9 +3427,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     it('should load all', function() {
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
+        return Promise.all([
           this.Individual.create({ name: 'Foo Bar' }),
-          this.Hat.create({ name: 'Baz' }));
+          this.Hat.create({ name: 'Baz' })
+        ]);
       }).then(([individual, hat]) => {
         return individual.addPersonwearinghat(hat);
       }).then(() => {

@@ -46,12 +46,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('can detect complexe objects', function() {
+    it('can detect complexe objects', async function() {
       const Where = function() { this.secretValue = '1'; };
 
-      expect(() => {
-        this.User.update(this.updates, { where: new Where() });
-      }).to.throw();
+      await expect(this.User.update(this.updates, { where: new Where() })).to.be.rejected;
     });
   });
 });

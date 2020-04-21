@@ -168,10 +168,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       };
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          Person.create(),
-          Company.create()
-        ).then(([person, company]) => {
+        return Promise.all([Person.create(), Company.create()]).then(([person, company]) => {
           return person.setEmployer(company);
         });
       }).then(() => {
@@ -214,14 +211,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         return User.create().then(user => {
-          return Promise.join(
-            user.createTask({
-              title: 'trivial'
-            }),
-            user.createTask({
-              title: 'pursuit'
-            })
-          );
+          return Promise.all([user.createTask({
+            title: 'trivial'
+          }), user.createTask({
+            title: 'pursuit'
+          })]);
         }).then(() => {
           return User.findOne({
             include: [
@@ -271,10 +265,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           user: User.create(),
           group: Group.create()
         }).then(props => {
-          return Promise.join(
-            props.task.setUser(props.user),
-            props.user.setGroup(props.group)
-          ).then(() => props);
+          return Promise.all([props.task.setUser(props.user), props.user.setGroup(props.group)]).then(() => props);
         }).then(props => {
           return Task.findOne({
             where: {

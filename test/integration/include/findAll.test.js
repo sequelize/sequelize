@@ -250,28 +250,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Tag.belongsToMany(Product, { through: ProductTag });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          Set.bulkCreate([
-            { title: 'office' }
-          ]),
-          Product.bulkCreate([
-            { title: 'Chair' },
-            { title: 'Desk' },
-            { title: 'Dress' }
-          ]),
-          Tag.bulkCreate([
-            { name: 'A' },
-            { name: 'B' },
-            { name: 'C' }
-          ])
-        ).then(() => {
-          return Promise.join(
-            Set.findAll(),
-            Product.findAll(),
-            Tag.findAll()
-          );
+        return Promise.all([Set.bulkCreate([
+          { title: 'office' }
+        ]), Product.bulkCreate([
+          { title: 'Chair' },
+          { title: 'Desk' },
+          { title: 'Dress' }
+        ]), Tag.bulkCreate([
+          { name: 'A' },
+          { name: 'B' },
+          { name: 'C' }
+        ])]).then(() => {
+          return Promise.all([Set.findAll(), Product.findAll(), Tag.findAll()]);
         }).then(([sets, products, tags]) => {
-          return Promise.join(
+          return Promise.all([
             sets[0].addProducts([products[0], products[1]]),
             products[0].addTag(tags[0], { priority: 1 }).then(() => {
               return products[0].addTag(tags[1], { priority: 2 });
@@ -283,7 +275,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             }).then(() => {
               return products[2].addTag(tags[2], { priority: 0 });
             })
-          );
+          ]);
         }).then(() => {
           return Set.findAll({
             include: [{
@@ -453,44 +445,41 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       G.belongsTo(H);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          A.bulkCreate([
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
-            {}
-          ]).then(() => {
-            return A.findAll();
-          }),
-          (function(singles) {
-            let promise = Promise.resolve(),
-              previousInstance,
-              b;
+        return Promise.all([A.bulkCreate([
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {}
+        ]).then(() => {
+          return A.findAll();
+        }), (function(singles) {
+          let promise = Promise.resolve(),
+            previousInstance,
+            b;
 
-            singles.forEach(model => {
-              promise = promise.then(() => {
-                return model.create({}).then(instance => {
-                  if (previousInstance) {
-                    return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
-                      previousInstance = instance;
-                    });
-                  }
-                  previousInstance = b = instance;
-                });
+          singles.forEach(model => {
+            promise = promise.then(() => {
+              return model.create({}).then(instance => {
+                if (previousInstance) {
+                  return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
+                    previousInstance = instance;
+                  });
+                }
+                previousInstance = b = instance;
               });
             });
+          });
 
-            promise = promise.then(() => {
-              return b;
-            });
+          promise = promise.then(() => {
+            return b;
+          });
 
-            return promise;
-          })([B, C, D, E, F, G, H])
-        ).then(([as, b]) => {
+          return promise;
+        })([B, C, D, E, F, G, H])]).then(([as, b]) => {
           return Promise.all(as.map(a => {
             return a.setB(b);
           }));
@@ -545,50 +534,47 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       G.belongsTo(H);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
-          A.bulkCreate([
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
-            {},
-            {}
-          ]).then(() => {
-            return A.findAll();
-          }),
-          (function(singles) {
-            let promise = Promise.resolve(),
-              previousInstance,
-              b;
+        return Promise.all([A.bulkCreate([
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {},
+          {}
+        ]).then(() => {
+          return A.findAll();
+        }), (function(singles) {
+          let promise = Promise.resolve(),
+            previousInstance,
+            b;
 
-            singles.forEach(model => {
-              const values = {};
+          singles.forEach(model => {
+            const values = {};
 
-              if (model.name === 'g') {
-                values.name = 'yolo';
-              }
-
-              promise = promise.then(() => {
-                return model.create(values).then(instance => {
-                  if (previousInstance) {
-                    return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
-                      previousInstance = instance;
-                    });
-                  }
-                  previousInstance = b = instance;
-                });
-              });
-            });
+            if (model.name === 'g') {
+              values.name = 'yolo';
+            }
 
             promise = promise.then(() => {
-              return b;
+              return model.create(values).then(instance => {
+                if (previousInstance) {
+                  return previousInstance[`set${_.upperFirst(model.name)}`](instance).then(() => {
+                    previousInstance = instance;
+                  });
+                }
+                previousInstance = b = instance;
+              });
             });
+          });
 
-            return promise;
-          })([B, C, D, E, F, G, H])
-        ).then(([as, b]) => {
+          promise = promise.then(() => {
+            return b;
+          });
+
+          return promise;
+        })([B, C, D, E, F, G, H])]).then(([as, b]) => {
           return Promise.all(as.map(a => {
             return a.setB(b);
           }));
@@ -665,7 +651,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           const order2 = results.orders[1];
           const order3 = results.orders[2];
 
-          return Promise.join(
+          return Promise.all([
             user1.setItemA(item1),
             user1.setItemB(item2),
             user1.setOrder(order3),
@@ -675,7 +661,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             user3.setItemA(item1),
             user3.setItemB(item4),
             user3.setOrder(order1)
-          );
+          ]);
         }).then(() => {
           return User.findAll({
             'include': [
@@ -729,14 +715,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Tag.findAll();
           })
         }).then(results => {
-          return Promise.join(
+          return Promise.all([
             results.products[0].addTag(results.tags[0], { through: { priority: 1 } }),
             results.products[0].addTag(results.tags[1], { through: { priority: 2 } }),
             results.products[1].addTag(results.tags[1], { through: { priority: 1 } }),
             results.products[2].addTag(results.tags[0], { through: { priority: 3 } }),
             results.products[2].addTag(results.tags[1], { through: { priority: 1 } }),
             results.products[2].addTag(results.tags[2], { through: { priority: 2 } })
-          );
+          ]);
         }).then(() => {
           return Product.findAll({
             include: [
@@ -809,10 +795,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return User.findAll();
           })
         }).then(results => {
-          return Promise.join(
+          return Promise.all([
             results.users[0].setGroup(results.groups[1]),
             results.users[1].setGroup(results.groups[0])
-          );
+          ]);
         }).then(() => {
           return User.findAll({
             include: [
@@ -847,10 +833,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return User.findAll();
           })
         }).then(results => {
-          return Promise.join(
+          return Promise.all([
             results.users[0].setGroup(results.groups[1]),
             results.users[1].setGroup(results.groups[0])
-          );
+          ]);
         }).then(() => {
           return User.findAll({
             include: [
@@ -931,13 +917,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Category.findAll();
           })
         }).then(results => {
-          return Promise.join(
+          return Promise.all([
             results.users[0].setGroup(results.groups[1]),
             results.users[1].setGroup(results.groups[0]),
             Promise.all(results.groups.map(group => {
               return group.setCategories(results.categories);
             }))
-          );
+          ]);
         }).then(() => {
           return User.findAll({
             include: [
@@ -984,13 +970,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Category.findAll();
           })
         }).then(results => {
-          return Promise.join(
+          return Promise.all([
             results.users[0].setTeam(results.groups[1]),
             results.users[1].setTeam(results.groups[0]),
             Promise.all(results.groups.map(group => {
               return group.setTags(results.categories);
             }))
-          );
+          ]);
         }).then(() => {
           return User.findAll({
             include: [
@@ -1037,13 +1023,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Category.findAll();
           })
         }).then(results => {
-          return Promise.join(
+          return Promise.all([
             results.users[0].setGroup(results.groups[1]),
             results.users[1].setGroup(results.groups[0]),
             Promise.all(results.groups.map(group => {
               return group.setCategories(results.categories);
             }))
-          );
+          ]);
         }).then(() => {
           return User.findAll({
             include: [
@@ -1083,10 +1069,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return User.findAll();
           })
         }).then(results => {
-          return Promise.join(
+          return Promise.all([
             results.users[1].setLeaderOf(results.projects[1]),
             results.users[0].setLeaderOf(results.projects[0])
-          );
+          ]);
         }).then(() => {
           return User.findAll({
             include: [
@@ -1132,14 +1118,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Tag.findAll();
           })
         }).then(results => {
-          return Promise.join(
+          return Promise.all([
             results.products[0].addTag(results.tags[0], { priority: 1 }),
             results.products[0].addTag(results.tags[1], { priority: 2 }),
             results.products[1].addTag(results.tags[1], { priority: 1 }),
             results.products[2].addTag(results.tags[0], { priority: 3 }),
             results.products[2].addTag(results.tags[1], { priority: 1 }),
             results.products[2].addTag(results.tags[2], { priority: 2 })
-          );
+          ]);
         }).then(() => {
           return Product.findAll({
             include: [
@@ -1297,12 +1283,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return User.findAll();
           })
         }).then(results => {
-          return Promise.join(
+          return Promise.all([
             results.users[0].setGroup(results.groups[0]),
             results.users[1].setGroup(results.groups[0]),
             results.users[2].setGroup(results.groups[0]),
             results.users[3].setGroup(results.groups[1])
-          );
+          ]);
         }).then(() => {
           return User.findAll({
             include: [
@@ -1639,12 +1625,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Category.belongsTo(Post);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
+        return Promise.all([
           Post.create({ 'public': true }),
           Post.create({ 'public': true }),
           Post.create({ 'public': true }),
           Post.create({ 'public': true })
-        ).then(posts => {
+        ]).then(posts => {
           return Promise.all(posts.slice(1, 3).map(post => {
             return post.createCategory({ slug: 'food' });
           }));
@@ -1779,18 +1765,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Company.hasMany(User);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
+        return Promise.all([
           User.create({ lastName: 'Albertsen' }),
           User.create({ lastName: 'Zenith' }),
           User.create({ lastName: 'Hansen' }),
           Company.create({ rank: 1 }),
           Company.create({ rank: 2 })
-        ).then(([albertsen, zenith, hansen, company1, company2]) => {
-          return Promise.join(
+        ]).then(([albertsen, zenith, hansen, company1, company2]) => {
+          return Promise.all([
             albertsen.setCompany(company1),
             zenith.setCompany(company2),
             hansen.setCompany(company2)
-          );
+          ]);
         }).then(() => {
           return User.findAll({
             include: [

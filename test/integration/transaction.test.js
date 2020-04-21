@@ -132,36 +132,27 @@ if (current.dialect.supports.transactions) {
 
     });
 
-    it('does not allow queries after commit', function() {
-      return this.sequelize.transaction().then(t => {
-        return this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }).then(() => {
-          return t.commit();
-        }).then(() => {
-          return this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
-        });
-      }).throw(new Error('Expected error not thrown'))
-        .catch(err => {
-          expect(err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
-          expect(err.sql).to.equal('SELECT 1+1');
-        });
+    it('does not allow queries after commit', async function() {
+      const t = await this.sequelize.transaction();
+      await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+      await t.commit();
+      await expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+        Error,
+        /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
+      ).and.have.deep.property('sql').that.equal('SELECT 1+1');
     });
 
-    it('does not allow queries immediately after commit call', function() {
-      return expect(
-        this.sequelize.transaction().then(t => {
-          return this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }).then(() => {
-            return Promise.join(
-              expect(t.commit()).to.eventually.be.fulfilled,
-              this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })
-                .throw(new Error('Expected error not thrown'))
-                .catch(err => {
-                  expect(err.message).to.match(/commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
-                  expect(err.sql).to.equal('SELECT 1+1');
-                })
-            );
-          });
-        })
-      ).to.be.eventually.fulfilled;
+    it('does not allow queries immediately after commit call', async function() {
+      await expect(this.sequelize.transaction().then(async t => {
+        await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+        await Promise.all([
+          expect(t.commit()).to.eventually.be.fulfilled,
+          expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+            Error,
+            /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
+          ).and.have.deep.property('sql').that.equal('SELECT 1+1')
+        ]);
+      })).to.be.eventually.fulfilled;
     });
 
     it('does not allow queries after rollback', function() {
@@ -186,18 +177,16 @@ if (current.dialect.supports.transactions) {
         .to.eventually.be.rejectedWith('Transaction cannot be rolled back because it never started');
     });
 
-    it('does not allow queries immediately after rollback call', function() {
-      return expect(
-        this.sequelize.transaction().then(t => {
-          return Promise.join(
+    it('does not allow queries immediately after rollback call', async function() {
+      await expect(
+        this.sequelize.transaction().then(async t => {
+          await Promise.all([
             expect(t.rollback()).to.eventually.be.fulfilled,
-            this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })
-              .throw(new Error('Expected error not thrown'))
-              .catch(err => {
-                expect(err.message).to.match(/rollback has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/);
-                expect(err.sql).to.equal('SELECT 1+1');
-              })
-          );
+            expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+              Error,
+              /rollback has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
+            ).and.have.deep.property('sql').that.equal('SELECT 1+1')
+          ]);
         })
       ).to.eventually.be.fulfilled;
     });
@@ -498,7 +487,7 @@ if (current.dialect.supports.transactions) {
                 });
               });
             };
-            return Promise.join(newTransactionFunc(), newTransactionFunc()).then(() => {
+            return Promise.all([newTransactionFunc(), newTransactionFunc()]).then(() => {
               return User.findAll().then(users => {
                 expect(users.length).to.equal(2);
               });
@@ -521,7 +510,7 @@ if (current.dialect.supports.transactions) {
                 });
               });
             };
-            return expect(Promise.join(newTransactionFunc(), newTransactionFunc())).to.be.rejectedWith('SQLITE_BUSY: database is locked');
+            return expect(Promise.all([newTransactionFunc(), newTransactionFunc()])).to.be.rejectedWith('SQLITE_BUSY: database is locked');
           });
         });
       });
@@ -581,16 +570,14 @@ if (current.dialect.supports.transactions) {
           }).then(() => {
             return this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE }).then(transaction => {
               return User.findAll( { transaction } )
-                .then(() => Promise.join(
+                .then(() => Promise.all([// Update should not succeed before transaction has committed
                   User.update({ username: 'joe' }, {
                     where: {
                       username: 'jan'
                     }
-                  }).then(() => expect(transactionSpy).to.have.been.called ), // Update should not succeed before transaction has committed
-                  delay(2000)
+                  }).then(() => expect(transactionSpy).to.have.been.called ), delay(2000)
                     .then(() => transaction.commit())
-                    .then(transactionSpy)
-                ));
+                    .then(transactionSpy)]));
             });
           });
         });
@@ -623,31 +610,27 @@ if (current.dialect.supports.transactions) {
                 return this.sequelize.transaction({
                   isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
                 }).then(t2 => {
-                  return Promise.join(
-                    User.findOne({
-                      where: {
-                        username: 'jan'
-                      },
-                      lock: t2.LOCK.UPDATE,
-                      transaction: t2
-                    }).then(() => {
-                      t2Spy();
-                      return t2.commit().then(() => {
-                        expect(t2Spy).to.have.been.calledAfter(t1Spy); // Find should not succeed before t1 has committed
-                      });
-                    }),
-
-                    t1Jan.update({
-                      awesome: true
-                    }, {
-                      transaction: t1
-                    }).then(() => {
-                      t1Spy();
-                      return delay(2000).then(() => {
-                        return t1.commit();
-                      });
-                    })
-                  );
+                  return Promise.all([User.findOne({
+                    where: {
+                      username: 'jan'
+                    },
+                    lock: t2.LOCK.UPDATE,
+                    transaction: t2
+                  }).then(() => {
+                    t2Spy();
+                    return t2.commit().then(() => {
+                      expect(t2Spy).to.have.been.calledAfter(t1Spy); // Find should not succeed before t1 has committed
+                    });
+                  }), t1Jan.update({
+                    awesome: true
+                  }, {
+                    transaction: t1
+                  }).then(() => {
+                    t1Spy();
+                    return delay(2000).then(() => {
+                      return t1.commit();
+                    });
+                  })]);
                 });
               });
             });
@@ -706,12 +689,12 @@ if (current.dialect.supports.transactions) {
           Task.belongsToMany(User, { through: 'UserTasks' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return Promise.join(
+            return Promise.all([
               User.create({ username: 'John' }),
-              Task.create({ title: 'Get rich', active: false }),
-              (john, task1) => {
-                return john.setTasks([task1]);
-              })
+              Task.create({ title: 'Get rich', active: false })
+            ]).then(([john, task1]) => {
+              return john.setTasks([task1]);
+            })
               .then(() => {
                 return this.sequelize.transaction(t1 => {
 
@@ -749,13 +732,13 @@ if (current.dialect.supports.transactions) {
             Task.belongsToMany(User, { through: 'UserTasks' });
 
             return this.sequelize.sync({ force: true }).then(() => {
-              return Promise.join(
+              return Promise.all([
                 User.create({ username: 'John' }),
                 Task.create({ title: 'Get rich', active: false }),
-                Task.create({ title: 'Die trying', active: false }),
-                (john, task1) => {
-                  return john.setTasks([task1]);
-                })
+                Task.create({ title: 'Die trying', active: false })
+              ]).then(([john, task1]) => {
+                return john.setTasks([task1]);
+              })
                 .then(() => {
                   return this.sequelize.transaction(t1 => {
                     return User.findOne({
@@ -812,29 +795,26 @@ if (current.dialect.supports.transactions) {
                   transaction: t1
                 }).then(t1Jan => {
                   return this.sequelize.transaction().then(t2 => {
-                    return Promise.join(
-                      User.findOne({
-                        where: {
-                          username: 'jan'
-                        },
-                        lock: t2.LOCK.KEY_SHARE,
-                        transaction: t2
-                      }).then(() => {
-                        t2Spy();
-                        return t2.commit();
-                      }),
-                      t1Jan.update({
-                        awesome: true
-                      }, {
-                        transaction: t1
-                      }).then(() => {
-                        return delay(2000).then(() => {
-                          t1Spy();
-                          expect(t1Spy).to.have.been.calledAfter(t2Spy);
-                          return t1.commit();
-                        });
-                      })
-                    );
+                    return Promise.all([User.findOne({
+                      where: {
+                        username: 'jan'
+                      },
+                      lock: t2.LOCK.KEY_SHARE,
+                      transaction: t2
+                    }).then(() => {
+                      t2Spy();
+                      return t2.commit();
+                    }), t1Jan.update({
+                      awesome: true
+                    }, {
+                      transaction: t1
+                    }).then(() => {
+                      return delay(2000).then(() => {
+                        t1Spy();
+                        expect(t1Spy).to.have.been.calledAfter(t2Spy);
+                        return t1.commit();
+                      });
+                    })]);
                   });
                 });
               });
@@ -865,38 +845,34 @@ if (current.dialect.supports.transactions) {
                 return this.sequelize.transaction({
                   isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
                 }).then(t2 => {
-                  return Promise.join(
-                    User.findOne({
-                      where: {
-                        username: 'jan'
-                      },
-                      transaction: t2
-                    }).then(t2Jan => {
-                      t2FindSpy();
-                      return t2Jan.update({
-                        awesome: false
-                      }, {
-                        transaction: t2
-                      }).then(() => {
-                        t2UpdateSpy();
-                        return t2.commit().then(() => {
-                          expect(t2FindSpy).to.have.been.calledBefore(t1Spy); // The find call should have returned
-                          expect(t2UpdateSpy).to.have.been.calledAfter(t1Spy); // But the update call should not happen before the first transaction has committed
-                        });
-                      });
-                    }),
-
-                    t1Jan.update({
-                      awesome: true
+                  return Promise.all([User.findOne({
+                    where: {
+                      username: 'jan'
+                    },
+                    transaction: t2
+                  }).then(t2Jan => {
+                    t2FindSpy();
+                    return t2Jan.update({
+                      awesome: false
                     }, {
-                      transaction: t1
+                      transaction: t2
                     }).then(() => {
-                      return delay(2000).then(() => {
-                        t1Spy();
-                        return t1.commit();
+                      t2UpdateSpy();
+                      return t2.commit().then(() => {
+                        expect(t2FindSpy).to.have.been.calledBefore(t1Spy); // The find call should have returned
+                        expect(t2UpdateSpy).to.have.been.calledAfter(t1Spy); // But the update call should not happen before the first transaction has committed
                       });
-                    })
-                  );
+                    });
+                  }), t1Jan.update({
+                    awesome: true
+                  }, {
+                    transaction: t1
+                  }).then(() => {
+                    return delay(2000).then(() => {
+                      t1Spy();
+                      return t1.commit();
+                    });
+                  })]);
                 });
               });
             });
