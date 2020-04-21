@@ -5,6 +5,7 @@ const chai = require('chai'),
   Promise = require('../../../../lib/promise'),
   DataTypes = require('../../../../lib/data-types'),
   Support = require('../../support'),
+  Sequelize = require('../../../../lib/sequelize'),
   dialect = Support.getTestDialect();
 
 if (dialect.match(/^mssql/)) {
@@ -88,6 +89,42 @@ if (dialect.match(/^mssql/)) {
       })).to.be.rejectedWith('the connection was closed before this query could be executed');     
 
       await expect(promise).not.to.be.rejected;
+    });
+
+    describe('unhandled rejections', () => {
+      let onUnhandledRejection;
+
+      afterEach(() => {
+        process.removeListener('unhandledRejection', onUnhandledRejection);
+      });
+
+      it("unhandled rejection should occur if user doesn't catch promise returned from query", async function() {
+        const User = this.User;
+        const rejectionPromise = new Promise((resolve, reject) => {
+          onUnhandledRejection = reject;
+        });
+        process.on('unhandledRejection', onUnhandledRejection);
+        User.create({
+          username: new Date()
+        });
+        await expect(rejectionPromise).to.be.rejectedWith(
+          Sequelize.ValidationError, 'string violation: username cannot be an array or an object');
+      });
+    });
+
+    it('no unhandled rejections should occur as long as user catches promise returned from query', async function() {
+      const User = this.User;
+      const unhandledRejections = [];
+      const onUnhandledRejection = error => unhandledRejections.push(error);
+      process.on('unhandledRejection', onUnhandledRejection);
+      try {
+        expect(User.create({
+          username: new Date()
+        })).to.be.rejectedWith(Sequelize.ValidationError);
+      } finally {
+        process.removeListener('unhandledRejection', onUnhandledRejection);
+        expect(unhandledRejections).to.deep.equal([]);
+      }
     });
   });
 }
