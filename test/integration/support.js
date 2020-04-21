@@ -21,7 +21,9 @@ afterEach(function() {
   if (runningQueries.size === 0) {
     return;
   }
-  throw new Error(`Expected 0 running queries. ${runningQueries.size} queries still running in ${this.currentTest.fullTitle()}`);
+  let msg = `Expected 0 running queries. ${runningQueries.size} queries still running in ${this.currentTest.fullTitle()}\n`;
+  msg += `Queries:\n${[...runningQueries].map(query => `${query.uuid}: ${query.sql}`).join('\n')}`;
+  throw new Error(msg);
 });
 
 module.exports = Support;
