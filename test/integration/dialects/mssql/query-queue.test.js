@@ -39,14 +39,12 @@ if (dialect.match(/^mssql/)) {
       const User = this.User;
 
       await expect(this.sequelize.transaction(async t => {
-        await Promise.all([
-          expect(User.create({
-            username: new Date()
-          })).to.be.rejected,
-          expect(User.findOne({
-            transaction: t
-          })).not.to.be.rejected
-        ]);
+        await expect(User.create({
+          username: new Date()
+        })).to.be.rejected;
+        await expect(User.findOne({
+          transaction: t
+        })).not.to.be.rejected;
       })).not.to.be.rejected;     
     });
 
