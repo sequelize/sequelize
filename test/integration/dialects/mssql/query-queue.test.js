@@ -33,5 +33,61 @@ if (dialect.match(/^mssql/)) {
         ]);
       })).not.to.be.rejected;
     });
+
+    it('requests that reject should not affect future requests', async function() {
+      const User = this.User;
+
+      await expect(this.sequelize.transaction(async t => {
+        await Promise.all([
+          expect(User.create({
+            username: new Date()
+          })).to.be.rejected,
+          expect(User.findOne({
+            transaction: t
+          })).not.to.be.rejected
+        ]);
+      })).not.to.be.rejected;     
+    });
+
+    it('closing the connection should reject pending requests', async function() {
+      const User = this.User;
+
+      let promise;
+
+      await expect(this.sequelize.transaction(t =>
+        promise = Promise.all([
+          expect(this.sequelize.dialect.connectionManager.disconnect(t.connection)).to.be.fulfilled,
+          expect(User.findOne({
+            transaction: t
+          })).to.be.rejectedWith(Error, 'the connection was closed before this query could be executed'),
+          expect(User.findOne({
+            transaction: t
+          })).to.be.rejectedWith(Error, 'the connection was closed before this query could be executed')
+        ])
+      )).to.be.rejectedWith('the connection was closed before this query could be executed');     
+
+      await expect(promise).not.to.be.rejected;
+    });
+
+    it('closing the connection should reject in-progress requests', async function() {
+      const User = this.User;
+
+      let promise;
+
+      await expect(this.sequelize.transaction(async t => {
+        const wrappedExecSql = t.connection.execSql;
+        t.connection.execSql = (...args) => {
+          this.sequelize.dialect.connectionManager.disconnect(t.connection);
+          return wrappedExecSql(...args);
+        };
+        return promise = Promise.all([
+          expect(User.findOne({
+            transaction: t
+          })).to.be.rejectedWith(Error, 'the connection was closed before this query could finish executing')
+        ]);
+      })).to.be.rejectedWith('the connection was closed before this query could be executed');     
+
+      await expect(promise).not.to.be.rejected;
+    });
   });
 }
