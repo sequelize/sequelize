@@ -503,7 +503,7 @@ if (current.dialect.supports.groupedLimit) {
               separate: true,
               include: [{
                 association: Task.User,
-                attributes: [],
+                attributes: ['id'],
                 required: true,
                 include: [{
                   association: User.Company
@@ -517,6 +517,7 @@ if (current.dialect.supports.groupedLimit) {
         expect(results[0].id).to.equal(1);
         expect(results[0].User.id).to.equal(2);
         expect(results[0].User.Tasks.length).to.equal(1);
+        expect(results[0].User.Tasks[0].User.id).to.equal(2);
         expect(results[0].User.Tasks[0].User.Company.id).to.equal(3);
       });
     });
