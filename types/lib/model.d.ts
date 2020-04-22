@@ -1591,8 +1591,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *  An object, where each attribute is a column of the table. Each column can be either a DataType, a
    *  string or a type-description object, with the properties described below:
    * @param options These options are merged with the default define options provided to the Sequelize constructor
+   * @return Return the initialized model
    */
-  public static init<M extends Model = Model>(this: ModelCtor<M>, attributes: ModelAttributes<M>, options: InitOptions<M>): void;
+  public static init<M extends Model = Model>(this: ModelCtor<M>, attributes: ModelAttributes<M>, options: InitOptions<M>): Model;
 
   /**
    * Remove attribute from model definition
