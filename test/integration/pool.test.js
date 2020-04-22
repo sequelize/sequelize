@@ -20,7 +20,7 @@ function assertSameConnection(newConnection, oldConnection) {
       break;
 
     case 'mssql':
-      expect(newConnection.unwrap().dummyId).to.equal(oldConnection.unwrap().dummyId).and.to.be.ok;
+      expect(newConnection.dummyId).to.equal(oldConnection.dummyId).and.to.be.ok;
       break;
 
     default:
@@ -40,8 +40,8 @@ function assertNewConnection(newConnection, oldConnection) {
       break;
 
     case 'mssql':
-      expect(newConnection.unwrap().dummyId).to.not.be.ok;
-      expect(oldConnection.unwrap().dummyId).to.be.ok;
+      expect(newConnection.dummyId).to.not.be.ok;
+      expect(oldConnection.dummyId).to.be.ok;
       break;
 
     default:
@@ -49,9 +49,8 @@ function assertNewConnection(newConnection, oldConnection) {
   }
 }
 
-function unwrapAndAttachMSSQLUniqueId(connection) {
+function attachMSSQLUniqueId(connection) {
   if (dialect === 'mssql') {
-    connection = connection.unwrap();
     connection.dummyId = Math.random();
   }
 
@@ -74,7 +73,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       function simulateUnexpectedError(connection) {
         // should never be returned again
         if (dialect === 'mssql') {
-          connection = unwrapAndAttachMSSQLUniqueId(connection);
+          connection = attachMSSQLUniqueId(connection);
         }
         connection.emit('error', { code: 'ECONNRESET' });
       }
@@ -100,7 +99,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       function simulateUnexpectedError(connection) {
         // should never be returned again
         if (dialect === 'mssql') {
-          unwrapAndAttachMSSQLUniqueId(connection).close();
+          attachMSSQLUniqueId(connection).close();
         } else if (dialect === 'postgres') {
           connection.end();
         } else {
@@ -138,7 +137,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       const firstConnection = await cm.getConnection();
 
       // TODO - Do we really need this call?
-      unwrapAndAttachMSSQLUniqueId(firstConnection);
+      attachMSSQLUniqueId(firstConnection);
 
       // returning connection back to pool
       await cm.releaseConnection(firstConnection);
@@ -163,7 +162,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       const firstConnection = await cm.getConnection();
 
       // TODO - Do we really need this call?
-      unwrapAndAttachMSSQLUniqueId(firstConnection);
+      attachMSSQLUniqueId(firstConnection);
 
       // returning connection back to pool
       await cm.releaseConnection(firstConnection);
