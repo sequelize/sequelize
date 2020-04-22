@@ -498,7 +498,7 @@ if (current.dialect.supports.groupedLimit) {
             association: Task.User,
             required: true,
             include: [{
-              association: User.Task,
+              association: User.Tasks,
               attributes: ['UserId'],
               separate: true,
               include: [{
