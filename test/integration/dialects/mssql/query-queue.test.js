@@ -93,18 +93,9 @@ if (dialect.match(/^mssql/)) {
     });
 
     describe('unhandled rejections', () => {
-      let onUnhandledRejection;
-
-      afterEach(() => {
-        process.removeListener('unhandledRejection', onUnhandledRejection);
-      });
-
       it("unhandled rejection should occur if user doesn't catch promise returned from query", async function() {
         const User = this.User;
-        const rejectionPromise = new Promise((resolve, reject) => {
-          onUnhandledRejection = reject;
-        });
-        process.on('unhandledRejection', onUnhandledRejection);
+        const rejectionPromise = Support.nextUnhandledRejection();
         User.create({
           username: new Date()
         });
@@ -114,9 +105,7 @@ if (dialect.match(/^mssql/)) {
 
       it('no unhandled rejections should occur as long as user catches promise returned from query', async function() {
         const User = this.User;
-        const unhandledRejections = [];
-        onUnhandledRejection = error => unhandledRejections.push(error);
-        process.on('unhandledRejection', onUnhandledRejection);
+        const unhandledRejections = Support.captureUnhandledRejections();
         await expect(User.create({
           username: new Date()
         })).to.be.rejectedWith(Sequelize.ValidationError);
