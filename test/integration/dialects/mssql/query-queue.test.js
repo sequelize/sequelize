@@ -6,7 +6,8 @@ const chai = require('chai'),
   DataTypes = require('../../../../lib/data-types'),
   Support = require('../../support'),
   Sequelize = require('../../../../lib/sequelize'),
-  ConnectionClosedError = require('../../../../lib/errors/connection/connection-closed-error'),
+  ConnectionError = require('../../../../lib/errors/connection-error'),
+  { AsyncQueueError } = require('../../../../lib/dialects/mssql/async-queue'),
   dialect = Support.getTestDialect();
 
 if (dialect.match(/^mssql/)) {
@@ -59,12 +60,14 @@ if (dialect.match(/^mssql/)) {
           expect(this.sequelize.dialect.connectionManager.disconnect(t.connection)).to.be.fulfilled,
           expect(User.findOne({
             transaction: t
-          })).to.be.rejectedWith(ConnectionClosedError, 'the connection was closed before this query could be executed'),
+          })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
+            .and.have.property('parent').that.instanceOf(AsyncQueueError),
           expect(User.findOne({
             transaction: t
-          })).to.be.rejectedWith(ConnectionClosedError, 'the connection was closed before this query could be executed')
+          })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
+            .and.have.property('parent').that.instanceOf(AsyncQueueError)
         ])
-      )).to.be.rejectedWith(ConnectionClosedError, 'the connection was closed before this query could be executed');     
+      )).to.be.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed');     
 
       await expect(promise).not.to.be.rejected;
     });
@@ -80,12 +83,12 @@ if (dialect.match(/^mssql/)) {
           this.sequelize.dialect.connectionManager.disconnect(t.connection);
           return wrappedExecSql(...args);
         };
-        return promise = Promise.all([
-          expect(User.findOne({
-            transaction: t
-          })).to.be.rejectedWith(ConnectionClosedError, 'the connection was closed before this query could finish executing')
-        ]);
-      })).to.be.rejectedWith(ConnectionClosedError, 'the connection was closed before this query could be executed');     
+        return promise = expect(User.findOne({
+          transaction: t
+        })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could finish executing')
+          .and.have.property('parent').that.instanceOf(AsyncQueueError);
+      })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
+        .and.have.property('parent').that.instanceOf(AsyncQueueError);
 
       await expect(promise).not.to.be.rejected;
     });
