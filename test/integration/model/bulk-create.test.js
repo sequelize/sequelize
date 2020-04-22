@@ -321,13 +321,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { name: 'foo', code: '123' },
           { code: '1234' },
           { name: 'bar', code: '1' }
-        ], { validate: true }).catch(errors => {
+        ], { validate: true }).catch(error => {
           const expectedValidationError = 'Validation len on code failed';
           const expectedNotNullError = 'notNull Violation: Task.name cannot be null';
 
-          expect(errors).to.be.instanceof(AggregateError);
-          expect(errors.toString()).to.include(expectedValidationError)
+          expect(error).to.be.instanceof(AggregateError);
+          expect(error.toString()).to.include(expectedValidationError)
             .and.to.include(expectedNotNullError);
+          const { errors } = error;
           expect(errors).to.have.length(2);
 
           const e0name0 = errors[0].errors.get('name')[0];
