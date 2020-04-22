@@ -549,7 +549,7 @@ if (current.dialect.supports.transactions) {
                 return User.findAll({ transaction })
                   .then(users => expect( users ).to.have.lengthOf(0))
                   .then(() => User.create({ username: 'jan' })) // Create a User outside of the transaction
-                  .then(() => User.findAll({ transaction })) 
+                  .then(() => User.findAll({ transaction }))
                   .then(users => expect( users ).to.have.lengthOf(0)); // We SHOULD NOT see the created user inside the transaction
               });
             })
