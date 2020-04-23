@@ -34,7 +34,7 @@ afterEach(function() {
     return;
   }
   let msg = `Expected 0 running queries. ${runningQueries.size} queries still running in ${this.currentTest.fullTitle()}\n`;
-  msg += 'Queries:\n\n      ';
+  msg += 'Queries:\n\n       ';
   for (const [query, options] of runningQueries) {
     msg += `${query.uuid}: ${query.sql}\n`;
     if (options.transaction) {
