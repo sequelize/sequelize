@@ -6,6 +6,9 @@ const runningQueries = new Map();
 const runningTransactions = new Map(); // map transaction option to queries.
 
 before(function() {
+  this.sequelize.addHook('transactionCreated', t => { // tracking race condition, remove me if no longer present.
+    t.trace = new Error().stack;
+  });
   this.sequelize.addHook('beforeQuery', (options, query, sql) => {
     runningQueries.set(query, options);
     if (options.transaction) {
@@ -20,7 +23,7 @@ before(function() {
   this.sequelize.addHook('afterQuery', (options, query, sql) => {
     runningQueries.delete(query);
     if (options.transaction && sql.includes('COMMIT')) {
-      runningTransactions.delete(options.transaction);
+      runningTransactions.delete(options.transaction.id);
     }
   });
 });
@@ -34,7 +37,7 @@ afterEach(function() {
     return;
   }
   let msg = `Expected 0 running queries. ${runningQueries.size} queries still running in ${this.currentTest.fullTitle()}\n`;
-  msg += 'Queries:\n\n       ';
+  msg += 'Queries:\n\n';
   for (const [query, options] of runningQueries) {
     msg += `${query.uuid}: ${query.sql}\n`;
     if (options.transaction) {
