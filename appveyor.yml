@@ -14,12 +14,7 @@ environment:
 
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
-  - ps: |
-      $pkg = ConvertFrom-Json (Get-Content -Raw package.json)
-      $pkg.devDependencies.PSObject.Properties.Remove('sqlite3')
-      $pkg.devDependencies.PSObject.Properties.Remove('pg-native')
-      ConvertTo-Json $pkg | Out-File package.json -Encoding UTF8
-  - npm install
+  - npm ci
 
 build: off
 
