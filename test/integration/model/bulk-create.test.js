@@ -984,8 +984,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             expect.fail();
           }, error => {
-            expect(error.length).to.equal(1);
-            expect(error[0].message).to.match(/.*always invalid.*/);
+            expect(error.errors.length).to.equal(1);
+            expect(error.errors[0].message).to.match(/.*always invalid.*/);
           });
       });
 
