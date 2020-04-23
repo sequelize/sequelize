@@ -13,7 +13,7 @@ branches:
 cache: npm
 
 install:
-  - npm install
+  - npm ci
   - |-
     if [ "$DIALECT" = "postgres-native" ]; then npm install pg-native; fi
 

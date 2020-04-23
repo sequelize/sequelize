@@ -36,11 +36,11 @@ Here comes a little surprise: You need [Node.JS](http://nodejs.org).
 
 ### 2. Install the dependencies
 
-Just "cd" into sequelize directory and run `npm install`, see an example below:
+Just "cd" into sequelize directory and run `npm ci`, see an example below:
 
 ```sh
 $ cd path/to/sequelize
-$ npm install
+$ npm ci
 ```
 
 ### 3. Database
