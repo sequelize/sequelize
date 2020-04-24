@@ -7,11 +7,15 @@ const runningQueries = new Set();
 before(function() {
   this.sequelize.addHook('beforeQuery', (options, query) => {
     runningQueries.add(query);
-    console.log('Added to running: ', query);
+    if (options.transaction) {
+      console.log('Added to running: ', query.sql);
+    }
   });
   this.sequelize.addHook('afterQuery', (options, query) => {
     runningQueries.delete(query);
-    console.log('Removed from running: ', query);
+    if (options.transaction) {
+      console.log('Removed from running: ', query.sql);
+    }
   });
 });
 
