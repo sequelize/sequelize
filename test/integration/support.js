@@ -12,7 +12,6 @@ before(function() {
   this.sequelize.addHook('afterQuery', (options, query) => {
     runningQueries.delete(query);
     console.log('Removed from running: ', query);
-    console.log(query);
   });
 });
 
