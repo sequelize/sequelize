@@ -64,23 +64,21 @@ if (current.dialect.supports.transactions) {
         });
       });
 
-      it('does not leak variables to the outer scope', function() {
+      it('does not leak variables to the outer scope', async function() {
         // This is a little tricky. We want to check the values in the outer scope, when the transaction has been successfully set up, but before it has been comitted.
         // We can't just call another function from inside that transaction, since that would transfer the context to that function - exactly what we are trying to prevent;
 
         let transactionSetup = false,
           transactionEnded = false;
 
-        this.sequelize.transaction(() => {
+        const clsTask = this.sequelize.transaction(async () => {
           transactionSetup = true;
-
-          return delay(500).then(() => {
-            expect(this.ns.get('transaction')).to.be.ok;
-            transactionEnded = true;
-          });
+          await delay(500);
+          expect(this.ns.get('transaction')).to.be.ok;
+          transactionEnded = true;
         });
 
-        return new Promise(resolve => {
+        await new Promise(resolve => {
           // Wait for the transaction to be setup
           const interval = setInterval(() => {
             if (transactionSetup) {
@@ -88,22 +86,19 @@ if (current.dialect.supports.transactions) {
               resolve();
             }
           }, 200);
-        }).then(() => {
-          expect(transactionEnded).not.to.be.ok;
-
-          expect(this.ns.get('transaction')).not.to.be.ok;
-
-          // Just to make sure it didn't change between our last check and the assertion
-          expect(transactionEnded).not.to.be.ok;
         });
+        expect(transactionEnded).not.to.be.ok;
+
+        expect(this.ns.get('transaction')).not.to.be.ok;
+
+        // Just to make sure it didn't change between our last check and the assertion
+        expect(transactionEnded).not.to.be.ok;
+        await clsTask; // ensure we don't leak the promise
       });
 
-      it('does not leak variables to the following promise chain', function() {
-        return this.sequelize.transaction(() => {
-          return Promise.resolve();
-        }).then(() => {
-          expect(this.ns.get('transaction')).not.to.be.ok;
-        });
+      it('does not leak variables to the following promise chain', async function() {
+        await this.sequelize.transaction(() => {});
+        expect(this.ns.get('transaction')).not.to.be.ok;
       });
 
       it('does not leak outside findOrCreate', function() {

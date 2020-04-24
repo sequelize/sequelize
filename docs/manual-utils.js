@@ -7,7 +7,7 @@ const assert = require('assert');
 
 function getDeclaredManuals() {
   const declaredManualGroups = require('./manual-groups.json');
-  return _.flatten(_.values(declaredManualGroups)).map(file => {
+  return _.flatten(Object.values(declaredManualGroups)).map(file => {
     return normalize(`./docs/manual/${file}`);
   });
 }
