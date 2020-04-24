@@ -22,7 +22,7 @@ before(function() {
   });
   this.sequelize.addHook('afterQuery', (options, query, sql) => {
     runningQueries.delete(query);
-    if (options.transaction && sql.includes('COMMIT')) {
+    if (options.transaction && ['COMMIT', 'ROLLBACK'].includes(sql)) {
       runningTransactions.delete(options.transaction.id);
     }
   });
