@@ -2,29 +2,14 @@
 
 const Support = require('../support');
 
-const runningQueries = new Map();
-const runningTransactions = new Map(); // map transaction option to queries.
+const runningQueries = new Set();
 
 before(function() {
-  this.sequelize.addHook('transactionCreated', t => { // tracking race condition, remove me if no longer present.
-    t.trace = new Error().stack;
+  this.sequelize.addHook('beforeQuery', (options, query) => {
+    runningQueries.add(query);
   });
-  this.sequelize.addHook('beforeQuery', (options, query, sql) => {
-    runningQueries.set(query, options);
-    if (options.transaction) {
-      const queryList = runningTransactions.get(options.transaction.id);
-      if (queryList) {
-        queryList.push(sql);
-      } else {
-        runningTransactions.set(options.transaction.id, [sql]);
-      }
-    }
-  });
-  this.sequelize.addHook('afterQuery', (options, query, sql) => {
+  this.sequelize.addHook('afterQuery', (options, query) => {
     runningQueries.delete(query);
-    if (options.transaction && ['COMMIT', 'ROLLBACK'].includes(sql)) {
-      runningTransactions.delete(options.transaction.id);
-    }
   });
 });
 
@@ -38,17 +23,7 @@ afterEach(function() {
   }
   let msg = `Expected 0 running queries. ${runningQueries.size} queries still running in ${this.currentTest.fullTitle()}\n`;
   msg += 'Queries:\n\n';
-  for (const [query, options] of runningQueries) {
-    msg += `${query.uuid}: ${query.sql}\n`;
-    if (options.transaction) {
-      const relatedTransaction = runningTransactions.get(options.transaction.id);
-      if (relatedTransaction) {
-        msg += options.transaction.trace;
-        msg += 'In transaction:\n\n';
-        msg += relatedTransaction.join('\n');
-      }
-    }
-  }
+  msg += [...runningQueries].map(query => `${query.uuid}: ${query.sql}`).join('\n');
   throw new Error(msg);
 });
 
