@@ -15,6 +15,5 @@ export * from './lib/associations/index';
 export * from './lib/errors';
 export { BaseError as Error } from './lib/errors';
 export { useInflection } from './lib/utils';
-export { Promise } from './lib/promise';
 export { Utils, QueryTypes, Op, TableHints, IndexHints, DataTypes, Deferrable };
 export { Validator as validator } from './lib/utils/validator-extras';

@@ -1,5 +1,4 @@
 import * as DataTypes from './data-types';
-import * as Deferrable from './deferrable';
 import { HookReturn, Hooks, SequelizeHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import {
@@ -23,15 +22,10 @@ import {
   Hookable,
 } from './model';
 import { ModelManager } from './model-manager';
-import * as Op from './operators';
-import { Promise } from './promise';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType } from './query-interface';
 import QueryTypes = require('./query-types');
 import { Transaction, TransactionOptions } from './transaction';
 import { Cast, Col, Fn, Json, Literal, Where } from './utils';
-// tslint:disable-next-line:no-duplicate-imports
-import * as Utils from './utils';
-import { validator } from './utils/validator-extras';
 import { ConnectionManager } from './connection-manager';
 
 /**
@@ -777,7 +771,7 @@ export class Sequelize extends Hooks {
   /**
    * Use CLS with Sequelize.
    * CLS namespace provided is stored as `Sequelize._cls`
-   * and bluebird Promise is patched to use the namespace, using `cls-bluebird` module.
+   * and Promise is patched to use the namespace, using `cls-hooked` module.
    *
    * @param namespace
    */

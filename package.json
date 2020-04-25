@@ -47,7 +47,6 @@
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-angular": "^8.3.4",
-    "@types/bluebird": "^3.5.26",
     "@types/node": "^12.12.37",
     "@types/validator": "^10.11.0",
     "acorn": "^7.1.1",

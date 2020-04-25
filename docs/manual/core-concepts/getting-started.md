@@ -104,8 +104,8 @@ const sequelize = new Sequelize('sqlite::memory:', {
 });
 ```
 
-## Bluebird Promises and async/await
+## Promises and async/await
 
-Most of the methods provided by Sequelize are asynchronous and therefore return Promises. They are all [Bluebird](http://bluebirdjs.com) Promises, so you can use the rich Bluebird API (for example, using `finally`, `tap`, `tapCatch`, `map`, `mapSeries`, etc) out of the box. You can access the Bluebird constructor used internally by Sequelize with `Sequelize.Promise`, if you want to set any Bluebird specific options.
+Most of the methods provided by Sequelize are asynchronous and therefore return Promises. They are all [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) , so you can use the Promise API (for example, using `then`, `catch`, `finally`) out of the box.
 
 Of course, using `async` and `await` works normally as well.
