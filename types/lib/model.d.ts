@@ -157,7 +157,7 @@ export interface WhereOperators {
   [Op.not]?: null | boolean | string | number | Literal | WhereOperators;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
-  [Op.between]?: [number, number];
+  [Op.between]?: Rangable;
 
   /** Example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
   [Op.in]?: (string | number | Literal)[] | Literal;
@@ -222,7 +222,7 @@ export interface WhereOperators {
   [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
 
   /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
-  [Op.notBetween]?: [number, number];
+  [Op.notBetween]?: Rangable;
 
   /**
    * Strings starts with value.
