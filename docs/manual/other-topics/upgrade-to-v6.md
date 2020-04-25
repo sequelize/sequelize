@@ -20,7 +20,9 @@ You should now use [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked) packag
   Sequelize.useCLS(namespace);
 ```
 
-[Bluebird now supports `async_hooks`](https://github.com/petkaantonov/bluebird/issues/1403). This configuration will automatically be enabled when invoking `Sequelize.useCLS`. This way, using [`cls-bluebird`](https://www.npmjs.com/package/cls-bluebird) is no longer necessary.
+### Promise
+
+Bluebird has been removed. Public API now returns native promises. `Sequelize.Promise` is no longer available.
 
 ### Model
 
@@ -45,6 +47,10 @@ This method now tests for equality with [`_.isEqual`](https://lodash.com/docs/4.
 
   await instance.save(); // will save
 ```
+
+#### `Model.bulkCreate()`
+
+This method now throws `Sequelize.AggregateError` instead of `Bluebird.AggregateError`. All errors are now exposed as `errors` key.
 
 ## Changelog
 
