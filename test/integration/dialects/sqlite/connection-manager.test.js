@@ -33,8 +33,17 @@ if (dialect === 'sqlite') {
             return User.create({ username: 'user2' }, { transaction });
           });
         })
-        .then(() => {
+        .then(async () => {
           expect(jetpack.exists(fileName)).to.be.equal('file');
+          expect(jetpack.exists(`${fileName}-shm`), 'shm file should exists').to.be.equal('file');
+          expect(jetpack.exists(`${fileName}-wal`), 'wal file should exists').to.be.equal('file');
+
+          // move wal file content to main database
+          // so those files can be removed on connection close
+          // https://www.sqlite.org/wal.html#ckpt
+          await sequelize.query('PRAGMA wal_checkpoint');
+
+          // wal, shm files exist after checkpoint
           expect(jetpack.exists(`${fileName}-shm`), 'shm file should exists').to.be.equal('file');
           expect(jetpack.exists(`${fileName}-wal`), 'wal file should exists').to.be.equal('file');
 

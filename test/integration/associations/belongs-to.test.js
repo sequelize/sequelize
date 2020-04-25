@@ -6,7 +6,6 @@ const chai = require('chai'),
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
   Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
   current = Support.sequelize,
   dialect = Support.getTestDialect();
 

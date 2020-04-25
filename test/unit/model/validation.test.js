@@ -4,7 +4,6 @@ const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
   Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
   Op = Sequelize.Op,
   Support = require('../support'),
   current = Support.sequelize,
@@ -273,7 +272,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     before(function() {
-      this.stub = sinon.stub(current, 'query').callsFake(() => new Promise.resolve([User.build({}), 1]));
+      this.stub = sinon.stub(current, 'query').callsFake(() => Promise.resolve([User.build({}), 1]));
     });
 
     after(function() {

@@ -30,7 +30,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "bluebird": "^3.7.1",
     "debug": "^4.1.1",
     "dottie": "^2.0.0",
     "inflection": "1.12.0",

@@ -3,9 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('./support'),
-  dialect = Support.getTestDialect(),
-  Sequelize = require('../../index'),
-  Promise = Sequelize.Promise;
+  dialect = Support.getTestDialect();
 
 if (dialect !== 'sqlite') {
   // Sqlite does not support setting timezone

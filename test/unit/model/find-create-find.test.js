@@ -5,8 +5,7 @@ const chai = require('chai'),
   Support = require('../support'),
   UniqueConstraintError = require('../../../lib/errors').UniqueConstraintError,
   current = Support.sequelize,
-  sinon = require('sinon'),
-  Promise = require('bluebird');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findCreateFind', () => {
@@ -14,7 +13,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     beforeEach(function() {
       this.sinon = sinon.createSandbox();
-      this.sinon.usingPromise(Promise);
     });
 
     afterEach(function() {

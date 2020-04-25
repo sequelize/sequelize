@@ -4,7 +4,6 @@ const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
   Support = require('../support'),
-  Sequelize = require('../../../index'),
   DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Paranoid'), () => {
@@ -106,7 +105,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
     X.hasMany(Y);
 
     return this.sequelize.sync({ force: true }).then(() => {
-      return Sequelize.Promise.all([
+      return Promise.all([
         X.create(),
         Y.create()
       ]);

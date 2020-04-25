@@ -53,7 +53,7 @@ if (dialect.match(/^mssql/)) {
           { UserName: 'Aryamaan' }
         ], { returning: true }))
         .then(([vyom, shakti, nikita, arya]) => {
-          return Sequelize.Promise.all([
+          return Promise.all([
             vyom.createLoginLog(),
             shakti.createLoginLog(),
             nikita.createLoginLog(),

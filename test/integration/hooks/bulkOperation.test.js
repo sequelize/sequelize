@@ -4,8 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  sinon = require('sinon'),
-  Promise = require('bluebird');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {

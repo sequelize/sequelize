@@ -47,7 +47,7 @@ describe('Transaction', () => {
     };
     return current.transaction(() => {
       expect(this.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
-      return Sequelize.Promise.resolve();
+      return Promise.resolve();
     });
   });
 
@@ -71,7 +71,7 @@ describe('Transaction', () => {
     };
     return current.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED }, () => {
       expect(this.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
-      return Sequelize.Promise.resolve();
+      return Promise.resolve();
     });
   });
 });

@@ -8,9 +8,6 @@ const Config = require('./config/config');
 const chai = require('chai');
 const expect = chai.expect;
 const AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
-const sinon = require('sinon');
-
-sinon.usingPromise(require('bluebird'));
 
 chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));
@@ -24,14 +21,52 @@ process.on('uncaughtException', e => {
   console.error('An unhandled exception occurred:');
   throw e;
 });
-Sequelize.Promise.onPossiblyUnhandledRejection(e => {
+
+let onNextUnhandledRejection = null;
+let unhandledRejections = null;
+
+process.on('unhandledRejection', e => {
+  if (unhandledRejections) {
+    unhandledRejections.push(e);
+  }
+  const onNext = onNextUnhandledRejection;
+  if (onNext) {
+    onNextUnhandledRejection = null;
+    onNext(e);
+  }
+  if (onNext || unhandledRejections) return;
   console.error('An unhandled rejection occurred:');
   throw e;
 });
-Sequelize.Promise.longStackTraces();
+
+afterEach(() => {
+  onNextUnhandledRejection = null;
+  unhandledRejections = null;
+});
 
 const Support = {
   Sequelize,
+
+  /**
+   * Returns a Promise that will reject with the next unhandled rejection that occurs
+   * during this test (instead of failing the test)
+   */
+  nextUnhandledRejection() {
+    return new Promise((resolve, reject) => onNextUnhandledRejection = reject);
+  },
+
+  /**
+   * Pushes all unhandled rejections that occur during this test onto destArray
+   * (instead of failing the test).
+   *
+   * @param {Error[]} destArray the array to push unhandled rejections onto.  If you omit this,
+   * one will be created and returned for you.
+   * 
+   * @returns {Error[]} destArray
+   */ 
+  captureUnhandledRejections(destArray = []) {
+    return unhandledRejections = destArray;
+  },
 
   prepareTransactionTest(sequelize) {
     const dialect = Support.getTestDialect();
@@ -46,7 +81,7 @@ const Support = {
 
       return _sequelize.sync({ force: true }).then(() => _sequelize);
     }
-    return Sequelize.Promise.resolve(sequelize);
+    return Promise.resolve(sequelize);
   },
 
   createSequelizeInstance(options) {

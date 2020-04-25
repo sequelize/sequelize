@@ -4,7 +4,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
 const DataTypes = require('../../../../lib/data-types');
-const Sequelize = require('../../../../lib/sequelize');
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -24,13 +23,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         LevelThree.belongsTo(LevelTwo);
 
         return current.sync({ force: true }).then(() => {
-          return Sequelize.Promise.all([
+          return Promise.all([
             Project.create({ name: 'testProject' }),
             LevelTwo.create({ name: 'testL21' }),
             LevelTwo.create({ name: 'testL22' })
           ]);
         }).then(([project, level21, level22]) => {
-          return Sequelize.Promise.all([
+          return Promise.all([
             project.addLevelTwo(level21),
             project.addLevelTwo(level22)
           ]);

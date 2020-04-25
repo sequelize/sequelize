@@ -4,7 +4,6 @@ const chai      = require('chai'),
   expect    = chai.expect,
   Support   = require('./support'),
   Sequelize = Support.Sequelize,
-  Promise   = Sequelize.Promise,
   cls       = require('cls-hooked'),
   current = Support.sequelize,
   delay     = require('delay');

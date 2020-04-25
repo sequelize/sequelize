@@ -3,7 +3,6 @@
 const chai = require('chai'),
   Sequelize = require('../../../index'),
   Op = Sequelize.Op,
-  Promise = Sequelize.Promise,
   moment = require('moment'),
   expect = chai.expect,
   Support = require('../support'),

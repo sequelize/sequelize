@@ -3,7 +3,6 @@
 const chai = require('chai'),
   sinon = require('sinon'),
   Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
   expect = chai.expect,
   Support = require('../support'),
   dialect = Support.getTestDialect(),
@@ -250,7 +249,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let count = 0;
 
         return this.User.bulkCreate([{ username: 'jack' }, { username: 'jack' }]).then(() => {
-          return Sequelize.Promise.all(permutations.map(perm => {
+          return Promise.all(permutations.map(perm => {
             return this.User.findByPk(perm, {
               logging(s) {
                 expect(s).to.include(0);

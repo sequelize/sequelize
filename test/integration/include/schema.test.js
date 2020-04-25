@@ -6,7 +6,6 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  Promise = Sequelize.Promise,
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
   promiseProps = require('p-props');

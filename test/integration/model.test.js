@@ -6,10 +6,10 @@ const chai = require('chai'),
   Support = require('./support'),
   DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect(),
+  errors = require('../../lib/errors'),
   sinon = require('sinon'),
   _ = require('lodash'),
   moment = require('moment'),
-  Promise = require('bluebird'),
   current = Support.sequelize,
   Op = Sequelize.Op,
   semver = require('semver'),
@@ -284,7 +284,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       await User.sync({ force: true });
-      await Sequelize.Promise.all([
+      await Promise.all([
         User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
         User.create({ username: 'tobi', email: 'tobi@tobi.me' })
       ]).catch(err => {
@@ -319,7 +319,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         email: { type: Sequelize.STRING, unique: 'user_and_email_index' }
       });
 
-      await Sequelize.Promise.all([
+      await Promise.all([
         User.create({ user_id: 1, email: 'tobi@tobi.me' }),
         User.create({ user_id: 1, email: 'tobi@tobi.me' })
       ]).catch(err => {
@@ -2558,7 +2558,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user.bulkCreate(data, {
           validate: true,
           individualHooks: true
-        })).to.be.rejectedWith(Promise.AggregateError);
+        })).to.be.rejectedWith(errors.AggregateError);
       });
     });
 

@@ -5,7 +5,6 @@ const chai = require('chai'),
   Support = require('../../support'),
   Sequelize = Support.Sequelize,
   Op = Sequelize.Op,
-  Promise = Sequelize.Promise,
   dialect = Support.getTestDialect(),
   DataTypes = require('../../../../lib/data-types'),
   sequelize = require('../../../../lib/sequelize');
@@ -94,7 +93,7 @@ if (dialect.match(/^postgres/)) {
 
     describe('json', () => {
       it('should be able to retrieve a row with ->> operator', function() {
-        return Sequelize.Promise.all([
+        return Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
           .then(() => {
@@ -106,7 +105,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should be able to query using the nested query language', function() {
-        return Sequelize.Promise.all([
+        return Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
           .then(() => {
@@ -120,7 +119,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should be able to query using dot syntax', function() {
-        return Sequelize.Promise.all([
+        return Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })])
           .then(() => {
@@ -132,7 +131,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should be able to query using dot syntax with uppercase name', function() {
-        return Sequelize.Promise.all([
+        return Promise.all([
           this.User.create({ username: 'swen', emergencyContact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })])
           .then(() => {

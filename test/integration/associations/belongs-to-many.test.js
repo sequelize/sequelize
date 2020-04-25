@@ -7,7 +7,6 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   _ = require('lodash'),
   sinon = require('sinon'),
-  Promise = Sequelize.Promise,
   Op = Sequelize.Op,
   current = Support.sequelize,
   dialect = Support.getTestDialect();
@@ -2855,7 +2854,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         // Test setup
         return this.sequelize.sync({ force: true }).then(() => {
-          return Sequelize.Promise.all([
+          return Promise.all([
             Worker.create({}),
             Task.bulkCreate([{}, {}, {}]).then(() => {
               return Task.findAll();
@@ -2885,7 +2884,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         // Test setup
         return this.sequelize.sync({ force: true }).then(() => {
-          return Sequelize.Promise.all([
+          return Promise.all([
             Worker.create({}),
             Task.bulkCreate([{}, {}, {}, {}, {}]).then(() => {
               return Task.findAll();
@@ -3151,26 +3150,26 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         const ctx = {};
         return this.sequelize.sync({ force: true }).then(() => {
-          return Sequelize.Promise.join(
+          return Promise.all([
             this.User.create({ id: 67, username: 'foo' }),
             this.Task.create({ id: 52, title: 'task' }),
             this.User.create({ id: 89, username: 'bar' }),
             this.Task.create({ id: 42, title: 'kast' })
-          );
+          ]);
         }).then(([user1, task1, user2, task2]) => {
           ctx.user1 = user1;
           ctx.task1 = task1;
           ctx.user2 = user2;
           ctx.task2 = task2;
-          return Sequelize.Promise.join(
+          return Promise.all([
             user1.setTasks([task1]),
             task2.setUsers([user2])
-          );
+          ]);
         }).then(() => {
-          return Sequelize.Promise.join(
+          return Promise.all([
             expect(ctx.user1.destroy()).to.have.been.rejectedWith(Sequelize.ForeignKeyConstraintError), // Fails because of RESTRICT constraint
             ctx.task2.destroy()
-          );
+          ]);
         }).then(() => {
           return this.sequelize.model('tasksusers').findAll({ where: { taskId: ctx.task2.id } });
         }).then(usertasks => {
@@ -3289,14 +3288,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true })
         .then(() => {
-          return Sequelize.Promise.all([
+          return Promise.all([
             User.create({ name: 'Khsama' }),
             User.create({ name: 'Vivek' }),
             User.create({ name: 'Satya' })
           ]);
         })
         .then(users => {
-          return Sequelize.Promise.all([
+          return Promise.all([
             users[0].addFan(users[1]),
             users[1].addUser(users[2]),
             users[2].addFan(users[0])
@@ -3329,13 +3328,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true })
         .then(() => {
-          return Sequelize.Promise.all([
+          return Promise.all([
             User.create({ name: 'Jalrangi' }),
             User.create({ name: 'Sargrahi' })
           ]);
         })
         .then(users => {
-          return Sequelize.Promise.all([
+          return Promise.all([
             users[0].addFollower(users[1]),
             users[1].addFollower(users[0]),
             users[0].addInvitee(users[1]),
