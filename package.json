@@ -88,7 +88,7 @@
     "semantic-release": "^17.0.7",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.3.0",
-    "sqlite3": "^4.0.6",
+    "sqlite3": "^4.1.1",
     "tedious": "6.0.0",
     "typescript": "^3.6.3"
   },
