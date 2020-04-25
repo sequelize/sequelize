@@ -38,10 +38,12 @@ process.on('unhandledRejection', e => {
   throw e;
 });
 
-afterEach(() => {
-  onNextUnhandledRejection = null;
-  unhandledRejections = null;
-});
+if (global.afterEach) {
+  afterEach(() => {
+    onNextUnhandledRejection = null;
+    unhandledRejections = null;
+  });
+}
 
 const Support = {
   Sequelize,
