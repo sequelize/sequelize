@@ -1,6 +1,5 @@
 import { Deferrable } from './deferrable';
 import { Logging } from './model';
-import { Promise } from './promise';
 import { Sequelize } from './sequelize';
 
 /**

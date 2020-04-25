@@ -120,7 +120,6 @@ Address.belongsTo(User, {targetKey: 'id'});
 User.hasOne(Address,{sourceKey: 'id'});
 
 async function stuff() {
-  // Please note that when using async/await you lose the `bluebird` promise context
   // and you fall back to native
   const newUser = await User.create({
     name: 'Johnny',
