@@ -30,7 +30,6 @@
     "new-cap": [
       "error",
       {
-        "capIsNewExceptionPattern": "^BigInt",
         "properties": false
       }
     ],
@@ -105,13 +104,14 @@
     }
   },
   "parserOptions": {
-    "ecmaVersion": 2018,
+    "ecmaVersion": 2020,
     "sourceType": "script"
   },
   "plugins": ["mocha", "jsdoc"],
   "env": {
     "node": true,
     "mocha": true,
-    "es6": true
+    "es6": true,
+    "es2020": true
   }
 }

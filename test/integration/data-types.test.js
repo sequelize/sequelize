@@ -12,7 +12,6 @@ const chai = require('chai'),
   uuid = require('uuid'),
   DataTypes = require('../../lib/data-types'),
   dialect = Support.getTestDialect(),
-  BigInt = require('big-integer'),
   semver = require('semver');
 
 describe(Support.getTestDialectTeaser('DataTypes'), () => {
@@ -233,7 +232,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       age: Sequelize.BIGINT
     });
 
-    const age = BigInt(Number.MAX_SAFE_INTEGER).add(Number.MAX_SAFE_INTEGER);
+    const age = BigInt(Number.MAX_SAFE_INTEGER) * 2n;
 
     return User.sync({ force: true }).then(() => {
       return User.create({ age });
