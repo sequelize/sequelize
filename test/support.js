@@ -9,7 +9,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
 
-chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
@@ -61,9 +60,9 @@ const Support = {
    *
    * @param {Error[]} destArray the array to push unhandled rejections onto.  If you omit this,
    * one will be created and returned for you.
-   * 
+   *
    * @returns {Error[]} destArray
-   */ 
+   */
   captureUnhandledRejections(destArray = []) {
     return unhandledRejections = destArray;
   },
