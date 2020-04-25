@@ -120,7 +120,6 @@ Address.belongsTo(User, {targetKey: 'id'});
 User.hasOne(Address,{sourceKey: 'id'});
 
 async function stuff() {
-  // and you fall back to native
   const newUser = await User.create({
     name: 'Johnny',
     preferredName: 'John',
