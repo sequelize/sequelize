@@ -20,9 +20,11 @@ You should now use [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked) packag
   Sequelize.useCLS(namespace);
 ```
 
-### Promise
+### Sequelize
 
-Bluebird has been removed. Public API now returns native promises. `Sequelize.Promise` is no longer available.
+- Bluebird has been removed. Public API now returns native promises.
+- `Sequelize.Promise` is no longer available.
+- `sequelize.import` method has been removed.
 
 ### Model
 
