@@ -846,6 +846,9 @@ if (current.dialect.supports.transactions) {
             ]
           });
 
+          this.sequelize.options.logging = console.log;
+          this.sequelize.options.benchmark = true;
+
           const t1UpdateSpy = sinon.spy();
           const t2FindSpy = sinon.spy();
           const t2UpdateSpy = sinon.spy();
