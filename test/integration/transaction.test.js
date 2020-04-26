@@ -835,30 +835,19 @@ if (current.dialect.supports.transactions) {
           const User = this.sequelize.define('user', {
             username: Support.Sequelize.STRING,
             awesome: Support.Sequelize.BOOLEAN
-          }, {
-            indexes: [
-              /**
-               * For MySQL we need unique index on username
-               * Any field that is used for locking if not indexed will lock entire table
-               * See https://stackoverflow.com/a/5704927
-               */
-              { fields: ['username'], unique: true }
-            ]
-          });
+          }, { timestamps: false });
 
           this.sequelize.options.logging = console.log;
-          this.sequelize.options.benchmark = true;
 
-          const t1UpdateSpy = sinon.spy();
+          const t1CommitSpy = sinon.spy();
           const t2FindSpy = sinon.spy();
           const t2UpdateSpy = sinon.spy();
 
           await this.sequelize.sync({ force: true });
-          await User.create({ username: 'jan' });
+          const user = await User.create({ username: 'jan' });
 
           const t1 = await this.sequelize.transaction();
-          const [t1Jan] = await User.findAll({
-            where: { username: 'jan' },
+          const t1Jan = await User.findByPk(user.id, {
             lock: t1.LOCK.SHARE,
             transaction: t1
           });
@@ -868,10 +857,9 @@ if (current.dialect.supports.transactions) {
           });
 
           await Promise.all([
-            User.findAll({
-              where: { username: 'jan' },
+            User.findByPk(user.id, {
               transaction: t2
-            }).then(async ([t2Jan]) => {
+            }).then(async t2Jan => {
               t2FindSpy();
 
               await t2Jan.update({ awesome: false }, { transaction: t2 });
@@ -879,21 +867,18 @@ if (current.dialect.supports.transactions) {
 
               await t2.commit();
             }),
-            t1Jan.update({
-              awesome: true
-            }, {
-              transaction: t1
-            }).then(async () => {
-              t1UpdateSpy();
+            t1Jan.update({ awesome: true }, { transaction: t1 }).then(async () => {
+              await delay(2000);
+              t1CommitSpy();
               await t1.commit();
             })
           ]);
 
-          // (t2) find call should have returned before (t1) update
-          expect(t2FindSpy).to.have.been.calledBefore(t1UpdateSpy);
+          // (t2) find call should have returned before (t1) commit
+          expect(t2FindSpy).to.have.been.calledBefore(t1CommitSpy);
 
-          // But (t2) update call should not happen before (t1) first transaction commit
-          expect(t2UpdateSpy).to.have.been.calledAfter(t1UpdateSpy);
+          // But (t2) update call should not happen before (t1) commit
+          expect(t2UpdateSpy).to.have.been.calledAfter(t1CommitSpy);
         });
       });
     }
