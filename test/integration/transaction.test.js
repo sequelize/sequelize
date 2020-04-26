@@ -837,8 +837,6 @@ if (current.dialect.supports.transactions) {
             awesome: Support.Sequelize.BOOLEAN
           }, { timestamps: false });
 
-          this.sequelize.options.logging = console.log;
-
           const t1CommitSpy = sinon.spy();
           const t2FindSpy = sinon.spy();
           const t2UpdateSpy = sinon.spy();
