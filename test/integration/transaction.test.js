@@ -835,6 +835,15 @@ if (current.dialect.supports.transactions) {
           const User = this.sequelize.define('user', {
             username: Support.Sequelize.STRING,
             awesome: Support.Sequelize.BOOLEAN
+          }, {
+            indexes: [
+              /**
+               * For MySQL we need unique index on username
+               * Any field that is used for locking if not indexed will lock entire table
+               * See https://stackoverflow.com/a/5704927
+               */
+              { fields: ['username'], unique: true }
+            ]
           });
 
           const t1UpdateSpy = sinon.spy();
@@ -848,8 +857,7 @@ if (current.dialect.supports.transactions) {
           const [t1Jan] = await User.findAll({
             where: { username: 'jan' },
             lock: t1.LOCK.SHARE,
-            transaction: t1,
-            order: ['id']
+            transaction: t1
           });
 
           const t2 = await this.sequelize.transaction({
@@ -859,8 +867,7 @@ if (current.dialect.supports.transactions) {
           await Promise.all([
             User.findAll({
               where: { username: 'jan' },
-              transaction: t2,
-              order: ['id']
+              transaction: t2
             }).then(async ([t2Jan]) => {
               t2FindSpy();
 
@@ -873,11 +880,12 @@ if (current.dialect.supports.transactions) {
               awesome: true
             }, {
               transaction: t1
-            }).then(() => {
-              return delay(2000).then(() => {
-                t1UpdateSpy();
-                return t1.commit();
-              });
+            }).then(async () => {
+              await delay(2000);
+
+              t1UpdateSpy();
+
+              await t1.commit();
             })
           ]);
 
