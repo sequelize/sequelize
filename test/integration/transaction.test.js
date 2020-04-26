@@ -108,24 +108,34 @@ if (current.dialect.supports.transactions) {
 
       //Promise rejection test is specific to postgres
       if (dialect === 'postgres') {
-        it('do not rollback if already committed', function() {
+        it('do not rollback if already committed', async function() {
           const SumSumSum = this.sequelize.define('transaction', {
-              value: {
-                type: Support.Sequelize.DECIMAL(10, 3),
-                field: 'value'
-              }
-            }),
-            transTest = val => {
-              return this.sequelize.transaction({ isolationLevel: 'SERIALIZABLE' }, t => {
-                return SumSumSum.sum('value', { transaction: t }).then(() => {
-                  return SumSumSum.create({ value: -val }, { transaction: t });
-                });
-              });
-            };
-          // Attention: this test is a bit racy. If you find a nicer way to test this: go ahead
-          return SumSumSum.sync({ force: true }).then(() => {
-            return expect(Promise.all([transTest(80), transTest(80), transTest(80)])).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions');
+            value: {
+              type: Support.Sequelize.DECIMAL(10, 3),
+              field: 'value'
+            }
           });
+
+          const transTest = val => {
+            return this.sequelize.transaction({
+              isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE
+            }, async t => {
+              await SumSumSum.sum('value', { transaction: t });
+              await SumSumSum.create({ value: -val }, { transaction: t });
+            });
+          };
+
+          await SumSumSum.sync({ force: true });
+
+          await expect(
+            Promise.all([
+              transTest(80),
+              transTest(80)
+            ])
+          ).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions');
+
+          // one row was created, another was rejected due to rollback
+          expect(await SumSumSum.count()).to.equal(1);
         });
       }
 
@@ -862,15 +872,17 @@ if (current.dialect.supports.transactions) {
             }, {
               transaction: t1
             }).then(() => {
-              t1UpdateSpy();
-              return t1.commit();
+              return delay(2000).then(() => {
+                t1UpdateSpy();
+                return t1.commit();
+              });
             })
           ]);
 
           // (t2) find call should have returned before (t1) update
           expect(t2FindSpy).to.have.been.calledBefore(t1UpdateSpy);
 
-          // But the update call should not happen before the first transaction has committed
+          // But (t2) update call should not happen before (t1) first transaction commit
           expect(t2UpdateSpy).to.have.been.calledAfter(t1UpdateSpy);
         });
       });
