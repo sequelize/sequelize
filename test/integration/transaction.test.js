@@ -881,10 +881,7 @@ if (current.dialect.supports.transactions) {
             }, {
               transaction: t1
             }).then(async () => {
-              await delay(2000);
-
               t1UpdateSpy();
-
               await t1.commit();
             })
           ]);
