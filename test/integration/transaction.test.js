@@ -821,64 +821,59 @@ if (current.dialect.supports.transactions) {
           });
         }
 
-        it('supports for share', function() {
+        it('supports for share', async function() {
           const User = this.sequelize.define('user', {
-              username: Support.Sequelize.STRING,
-              awesome: Support.Sequelize.BOOLEAN
-            }),
-            t1Spy = sinon.spy(),
-            t2FindSpy = sinon.spy(),
-            t2UpdateSpy = sinon.spy();
-
-          return this.sequelize.sync({ force: true }).then(() => {
-            return User.create({ username: 'jan' });
-          }).then(() => {
-            return this.sequelize.transaction().then(t1 => {
-              return User.findOne({
-                where: {
-                  username: 'jan'
-                },
-                lock: t1.LOCK.SHARE,
-                transaction: t1
-              }).then(t1Jan => {
-                return this.sequelize.transaction({
-                  isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
-                }).then(t2 => {
-                  return Promise.all([User.findOne({
-                    where: {
-                      username: 'jan'
-                    },
-                    transaction: t2
-                  }).then(t2Jan => {
-                    t2FindSpy();
-                    return t2Jan.update({
-                      awesome: false
-                    }, {
-                      transaction: t2
-                    }).then(() => {
-                      t2UpdateSpy();
-                      return t2.commit().then(() => {
-                        expect(t2FindSpy).to.have.been.calledBefore(t1Spy); // The find call should have returned
-                        expect(t2UpdateSpy).to.have.been.calledAfter(t1Spy); // But the update call should not happen before the first transaction has committed
-                      });
-                    });
-                  }), t1Jan.update({
-                    awesome: true
-                  }, {
-                    transaction: t1
-                  }).then(() => {
-                    return delay(2000).then(() => {
-                      t1Spy();
-                      return t1.commit();
-                    });
-                  })]);
-                });
-              });
-            });
+            username: Support.Sequelize.STRING,
+            awesome: Support.Sequelize.BOOLEAN
           });
+
+          const t1UpdateSpy = sinon.spy();
+          const t2FindSpy = sinon.spy();
+          const t2UpdateSpy = sinon.spy();
+
+          await this.sequelize.sync({ force: true });
+          await User.create({ username: 'jan' });
+
+          const t1 = await this.sequelize.transaction();
+          const t1Jan = await User.findOne({
+            where: { username: 'jan' },
+            lock: t1.LOCK.SHARE,
+            transaction: t1
+          });
+
+          const t2 = await this.sequelize.transaction({
+            isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
+          });
+
+          await Promise.all([
+            User.findOne({
+              where: { username: 'jan' },
+              transaction: t2
+            }).then(async t2Jan => {
+              t2FindSpy();
+
+              await t2Jan.update({ awesome: false }, { transaction: t2 });
+              t2UpdateSpy();
+
+              await t2.commit();
+            }),
+            t1Jan.update({
+              awesome: true
+            }, {
+              transaction: t1
+            }).then(() => {
+              t1UpdateSpy();
+              return t1.commit();
+            })
+          ]);
+
+          // (t2) find call should have returned before (t1) update
+          expect(t2FindSpy).to.have.been.calledBefore(t1UpdateSpy);
+
+          // But the update call should not happen before the first transaction has committed
+          expect(t2UpdateSpy).to.have.been.calledAfter(t1UpdateSpy);
         });
       });
     }
   });
-
 }
