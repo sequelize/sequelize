@@ -27,8 +27,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeDestroy(beforeHook);
-        this.User.afterDestroy(afterHook);
+        this.User.hooks.add('beforeDestroy', beforeHook);
+        this.User.hooks.add('afterDestroy', afterHook);
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then(user => {
           return user.destroy().then(() => {
@@ -44,11 +44,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeDestroy(() => {
+        this.User.hooks.add('beforeDestroy', () => {
           beforeHook();
           throw new Error('Whoops!');
         });
-        this.User.afterDestroy(afterHook);
+        this.User.hooks.add('afterDestroy', afterHook);
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then(user => {
           return expect(user.destroy()).to.be.rejected.then(() => {
@@ -62,8 +62,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
-        this.User.beforeDestroy(beforeHook);
-        this.User.afterDestroy(() => {
+        this.User.hooks.add('beforeDestroy', beforeHook);
+        this.User.hooks.add('afterDestroy', () => {
           afterHook();
           throw new Error('Whoops!');
         });
@@ -107,7 +107,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should not throw error when a beforeDestroy hook changes a virtual column', function() {
-        this.ParanoidUser.beforeDestroy(instance => instance.virtualField = 2);
+        this.ParanoidUser.hooks.add('beforeDestroy', instance => instance.virtualField = 2);
 
         return this.ParanoidUser.sync({ force: true })
           .then(() => this.ParanoidUser.create({ username: 'user1' }))

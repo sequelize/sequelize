@@ -5,11 +5,14 @@ import { ModelHooks } from "../lib/hooks";
  * covers types/lib/sequelize.d.ts
  */
 
-Sequelize.beforeSave((t: TestModel, options: SaveOptions) => {});
-Sequelize.afterSave((t: TestModel, options: SaveOptions) => {});
-Sequelize.afterFind((t: TestModel[] | TestModel | null, options: FindOptions) => {});
-Sequelize.afterFind('namedAfterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => {});
+Sequelize.hooks.add('beforeSave', (t: TestModel, options: SaveOptions) => {});
+Sequelize.hooks.add('afterSave', (t: TestModel, options: SaveOptions) => {});
+Sequelize.hooks.add('afterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => {});
+Sequelize.hooks.add('afterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => {});
 
+Sequelize.hooks.add('beforeSave', m => {
+
+});
 /*
  * covers types/lib/hooks.d.ts
  */
@@ -33,14 +36,7 @@ const hooks: Partial<ModelHooks> = {
 
 TestModel.init({}, {sequelize, hooks })
 
-TestModel.addHook('beforeSave', (t: TestModel, options: SaveOptions) => { });
-TestModel.addHook('afterSave', (t: TestModel, options: SaveOptions) => { });
-TestModel.addHook('afterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => { });
+TestModel.hooks.add('beforeSave', (t: TestModel, options: SaveOptions) => { });
+TestModel.hooks.add('afterSave', (t: TestModel, options: SaveOptions) => { });
+TestModel.hooks.add('afterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => { });
 
-/*
- * covers types/lib/model.d.ts
- */
-
-TestModel.beforeSave((t: TestModel, options: SaveOptions) => { });
-TestModel.afterSave((t: TestModel, options: SaveOptions) => { });
-TestModel.afterFind((t: TestModel | TestModel[] | null, options: FindOptions) => { });

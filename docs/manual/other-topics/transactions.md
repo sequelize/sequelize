@@ -247,19 +247,19 @@ A `transaction` object allows tracking if and when it is committed.
 An `afterCommit` hook can be added to both managed and unmanaged transaction objects:
 
 ```js
-// Managed transaction:
-await sequelize.transaction(async (t) => {
-  t.afterCommit(() => {
+sequelize.transaction(t => {
+  t.hooks.add('afterCommit', (transaction) => {
     // Your logic
   });
 });
 
-// Unmanaged transaction:
-const t = await sequelize.transaction();
-t.afterCommit(() => {
-  // Your logic
-});
-await t.commit();
+sequelize.transaction().then(t => {
+  t.hooks.add('afterCommit', (transaction) => {
+    // Your logic
+  });
+
+  return t.commit();
+})
 ```
 
 The callback passed to `afterCommit` can be `async`. In this case:
