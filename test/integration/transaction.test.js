@@ -847,7 +847,7 @@ if (current.dialect.supports.transactions) {
           await User.create({ username: 'jan' });
 
           const t1 = await this.sequelize.transaction();
-          const t1Jan = await User.findOne({
+          const [t1Jan] = await User.findAll({
             where: { username: 'jan' },
             lock: t1.LOCK.SHARE,
             transaction: t1
@@ -858,10 +858,10 @@ if (current.dialect.supports.transactions) {
           });
 
           await Promise.all([
-            User.findOne({
+            User.findAll({
               where: { username: 'jan' },
               transaction: t2
-            }).then(async t2Jan => {
+            }).then(async ([t2Jan]) => {
               t2FindSpy();
 
               await t2Jan.update({ awesome: false }, { transaction: t2 });
