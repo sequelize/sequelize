@@ -108,24 +108,34 @@ if (current.dialect.supports.transactions) {
 
       //Promise rejection test is specific to postgres
       if (dialect === 'postgres') {
-        it('do not rollback if already committed', function() {
+        it('do not rollback if already committed', async function() {
           const SumSumSum = this.sequelize.define('transaction', {
-              value: {
-                type: Support.Sequelize.DECIMAL(10, 3),
-                field: 'value'
-              }
-            }),
-            transTest = val => {
-              return this.sequelize.transaction({ isolationLevel: 'SERIALIZABLE' }, t => {
-                return SumSumSum.sum('value', { transaction: t }).then(() => {
-                  return SumSumSum.create({ value: -val }, { transaction: t });
-                });
-              });
-            };
-          // Attention: this test is a bit racy. If you find a nicer way to test this: go ahead
-          return SumSumSum.sync({ force: true }).then(() => {
-            return expect(Promise.all([transTest(80), transTest(80), transTest(80)])).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions');
+            value: {
+              type: Support.Sequelize.DECIMAL(10, 3),
+              field: 'value'
+            }
           });
+
+          const transTest = val => {
+            return this.sequelize.transaction({
+              isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE
+            }, async t => {
+              await SumSumSum.sum('value', { transaction: t });
+              await SumSumSum.create({ value: -val }, { transaction: t });
+            });
+          };
+
+          await SumSumSum.sync({ force: true });
+
+          await expect(
+            Promise.all([
+              transTest(80),
+              transTest(80)
+            ])
+          ).to.eventually.be.rejectedWith('could not serialize access due to read/write dependencies among transactions');
+
+          // one row was created, another was rejected due to rollback
+          expect(await SumSumSum.count()).to.equal(1);
         });
       }
 
@@ -821,64 +831,54 @@ if (current.dialect.supports.transactions) {
           });
         }
 
-        it('supports for share', function() {
+        it('supports for share', async function() {
           const User = this.sequelize.define('user', {
-              username: Support.Sequelize.STRING,
-              awesome: Support.Sequelize.BOOLEAN
-            }),
-            t1Spy = sinon.spy(),
-            t2FindSpy = sinon.spy(),
-            t2UpdateSpy = sinon.spy();
+            username: Support.Sequelize.STRING,
+            awesome: Support.Sequelize.BOOLEAN
+          }, { timestamps: false });
 
-          return this.sequelize.sync({ force: true }).then(() => {
-            return User.create({ username: 'jan' });
-          }).then(() => {
-            return this.sequelize.transaction().then(t1 => {
-              return User.findOne({
-                where: {
-                  username: 'jan'
-                },
-                lock: t1.LOCK.SHARE,
-                transaction: t1
-              }).then(t1Jan => {
-                return this.sequelize.transaction({
-                  isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
-                }).then(t2 => {
-                  return Promise.all([User.findOne({
-                    where: {
-                      username: 'jan'
-                    },
-                    transaction: t2
-                  }).then(t2Jan => {
-                    t2FindSpy();
-                    return t2Jan.update({
-                      awesome: false
-                    }, {
-                      transaction: t2
-                    }).then(() => {
-                      t2UpdateSpy();
-                      return t2.commit().then(() => {
-                        expect(t2FindSpy).to.have.been.calledBefore(t1Spy); // The find call should have returned
-                        expect(t2UpdateSpy).to.have.been.calledAfter(t1Spy); // But the update call should not happen before the first transaction has committed
-                      });
-                    });
-                  }), t1Jan.update({
-                    awesome: true
-                  }, {
-                    transaction: t1
-                  }).then(() => {
-                    return delay(2000).then(() => {
-                      t1Spy();
-                      return t1.commit();
-                    });
-                  })]);
-                });
-              });
-            });
+          const t1CommitSpy = sinon.spy();
+          const t2FindSpy = sinon.spy();
+          const t2UpdateSpy = sinon.spy();
+
+          await this.sequelize.sync({ force: true });
+          const user = await User.create({ username: 'jan' });
+
+          const t1 = await this.sequelize.transaction();
+          const t1Jan = await User.findByPk(user.id, {
+            lock: t1.LOCK.SHARE,
+            transaction: t1
           });
+
+          const t2 = await this.sequelize.transaction({
+            isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
+          });
+
+          await Promise.all([
+            User.findByPk(user.id, {
+              transaction: t2
+            }).then(async t2Jan => {
+              t2FindSpy();
+
+              await t2Jan.update({ awesome: false }, { transaction: t2 });
+              t2UpdateSpy();
+
+              await t2.commit();
+            }),
+            t1Jan.update({ awesome: true }, { transaction: t1 }).then(async () => {
+              await delay(2000);
+              t1CommitSpy();
+              await t1.commit();
+            })
+          ]);
+
+          // (t2) find call should have returned before (t1) commit
+          expect(t2FindSpy).to.have.been.calledBefore(t1CommitSpy);
+
+          // But (t2) update call should not happen before (t1) commit
+          expect(t2UpdateSpy).to.have.been.calledAfter(t1CommitSpy);
         });
       });
     }
   });
-
 }
