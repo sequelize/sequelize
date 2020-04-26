@@ -841,8 +841,6 @@ if (current.dialect.supports.transactions) {
           const t2FindSpy = sinon.spy();
           const t2UpdateSpy = sinon.spy();
 
-          this.sequelize.options.logging = console.log;
-
           await this.sequelize.sync({ force: true });
           await User.create({ username: 'jan' });
 
