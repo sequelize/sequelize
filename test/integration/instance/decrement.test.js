@@ -61,161 +61,129 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
-          const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
+      it('supports transactions', async function() {
+        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
 
-          return User.sync({ force: true }).then(() => {
-            return User.create({ number: 3 }).then(user => {
-              return sequelize.transaction().then(t => {
-                return user.decrement('number', { by: 2, transaction: t }).then(() => {
-                  return User.findAll().then(users1 => {
-                    return User.findAll({ transaction: t }).then(users2 => {
-                      expect(users1[0].number).to.equal(3);
-                      expect(users2[0].number).to.equal(1);
-                      return t.rollback();
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
+        await User.sync({ force: true });
+        const user = await User.create({ number: 3 });
+        const t = await sequelize.transaction();
+        await user.decrement('number', { by: 2, transaction: t });
+        const users1 = await User.findAll();
+        const users2 = await User.findAll({ transaction: t });
+        expect(users1[0].number).to.equal(3);
+        expect(users2[0].number).to.equal(1);
+        return t.rollback();
       });
     }
 
     if (current.dialect.supports.returnValues.returning) {
-      it('supports returning', function() {
-        return this.User.findByPk(1).then(user1 => {
-          return user1.decrement('aNumber', { by: 2 }).then(() => {
-            expect(user1.aNumber).to.be.equal(-2);
-            return user1.decrement('bNumber', { by: 2, returning: false }).then(user3 => {
-              expect(user3.bNumber).to.be.equal(0);
-            });
-          });
-        });
+      it('supports returning', async function() {
+        const user1 = await this.User.findByPk(1);
+        await user1.decrement('aNumber', { by: 2 });
+        expect(user1.aNumber).to.be.equal(-2);
+        const user3 = await user1.decrement('bNumber', { by: 2, returning: false });
+        expect(user3.bNumber).to.be.equal(0);
       });
     }
 
-    it('with array', function() {
-      return this.User.findByPk(1).then(user1 => {
-        return user1.decrement(['aNumber'], { by: 2 }).then(() => {
-          return this.User.findByPk(1).then(user3 => {
-            expect(user3.aNumber).to.be.equal(-2);
-          });
-        });
-      });
+    it('with array', async function() {
+      const user1 = await this.User.findByPk(1);
+      await user1.decrement(['aNumber'], { by: 2 });
+      const user3 = await this.User.findByPk(1);
+      expect(user3.aNumber).to.be.equal(-2);
     });
 
-    it('with single field', function() {
-      return this.User.findByPk(1).then(user1 => {
-        return user1.decrement('aNumber', { by: 2 }).then(() => {
-          return this.User.findByPk(1).then(user3 => {
-            expect(user3.aNumber).to.be.equal(-2);
-          });
-        });
-      });
+    it('with single field', async function() {
+      const user1 = await this.User.findByPk(1);
+      await user1.decrement('aNumber', { by: 2 });
+      const user3 = await this.User.findByPk(1);
+      expect(user3.aNumber).to.be.equal(-2);
     });
 
-    it('with single field and no value', function() {
-      return this.User.findByPk(1).then(user1 => {
-        return user1.decrement('aNumber').then(() => {
-          return this.User.findByPk(1).then(user2 => {
-            expect(user2.aNumber).to.be.equal(-1);
-          });
-        });
-      });
+    it('with single field and no value', async function() {
+      const user1 = await this.User.findByPk(1);
+      await user1.decrement('aNumber');
+      const user2 = await this.User.findByPk(1);
+      expect(user2.aNumber).to.be.equal(-1);
     });
 
-    it('should still work right with other concurrent updates', function() {
-      return this.User.findByPk(1).then(user1 => {
-        // Select the user again (simulating a concurrent query)
-        return this.User.findByPk(1).then(user2 => {
-          return user2.update({
-            aNumber: user2.aNumber + 1
-          }).then(() => {
-            return user1.decrement(['aNumber'], { by: 2 }).then(() => {
-              return this.User.findByPk(1).then(user5 => {
-                expect(user5.aNumber).to.be.equal(-1);
-              });
-            });
-          });
-        });
+    it('should still work right with other concurrent updates', async function() {
+      const user1 = await this.User.findByPk(1);
+
+      // Select the user again (simulating a concurrent query)
+      const user2 = await this.User.findByPk(1);
+
+      await user2.update({
+        aNumber: user2.aNumber + 1
       });
+
+      await user1.decrement(['aNumber'], { by: 2 });
+      const user5 = await this.User.findByPk(1);
+      expect(user5.aNumber).to.be.equal(-1);
     });
 
-    it('should still work right with other concurrent increments', function() {
-      return this.User.findByPk(1).then(user1 => {
-        return Promise.all([
-          user1.decrement(['aNumber'], { by: 2 }),
-          user1.decrement(['aNumber'], { by: 2 }),
-          user1.decrement(['aNumber'], { by: 2 })
-        ]).then(() => {
-          return this.User.findByPk(1).then(user2 => {
-            expect(user2.aNumber).to.equal(-6);
-          });
-        });
-      });
+    it('should still work right with other concurrent increments', async function() {
+      const user1 = await this.User.findByPk(1);
+
+      await Promise.all([
+        user1.decrement(['aNumber'], { by: 2 }),
+        user1.decrement(['aNumber'], { by: 2 }),
+        user1.decrement(['aNumber'], { by: 2 })
+      ]);
+
+      const user2 = await this.User.findByPk(1);
+      expect(user2.aNumber).to.equal(-6);
     });
 
-    it('with key value pair', function() {
-      return this.User.findByPk(1).then(user1 => {
-        return user1.decrement({ 'aNumber': 1, 'bNumber': 2 }).then(() => {
-          return this.User.findByPk(1).then(user3 => {
-            expect(user3.aNumber).to.be.equal(-1);
-            expect(user3.bNumber).to.be.equal(-2);
-          });
-        });
-      });
+    it('with key value pair', async function() {
+      const user1 = await this.User.findByPk(1);
+      await user1.decrement({ 'aNumber': 1, 'bNumber': 2 });
+      const user3 = await this.User.findByPk(1);
+      expect(user3.aNumber).to.be.equal(-1);
+      expect(user3.bNumber).to.be.equal(-2);
     });
 
-    it('with negative value', function() {
-      return this.User.findByPk(1).then(user1 => {
-        return Promise.all([
-          user1.decrement('aNumber', { by: -2 }),
-          user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
-          user1.decrement({ 'aNumber': -1, 'bNumber': -2 })
-        ]).then(() => {
-          return this.User.findByPk(1).then(user3 => {
-            expect(user3.aNumber).to.be.equal(+5);
-            expect(user3.bNumber).to.be.equal(+4);
-          });
-        });
-      });
+    it('with negative value', async function() {
+      const user1 = await this.User.findByPk(1);
+
+      await Promise.all([
+        user1.decrement('aNumber', { by: -2 }),
+        user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
+        user1.decrement({ 'aNumber': -1, 'bNumber': -2 })
+      ]);
+
+      const user3 = await this.User.findByPk(1);
+      expect(user3.aNumber).to.be.equal(+5);
+      expect(user3.bNumber).to.be.equal(+4);
     });
 
-    it('with timestamps set to true', function() {
+    it('with timestamps set to true', async function() {
       const User = this.sequelize.define('IncrementUser', {
         aNumber: DataTypes.INTEGER
       }, { timestamps: true });
-      let oldDate;
 
-      return User.sync({ force: true }).then(() => {
-        return User.create({ aNumber: 1 });
-      }).then(user => {
-        oldDate = user.updatedAt;
-        this.clock.tick(1000);
-        return user.decrement('aNumber', { by: 1 });
-      }).then(() => {
-        return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
-      });
+      await User.sync({ force: true });
+      const user = await User.create({ aNumber: 1 });
+      const oldDate = user.updatedAt;
+      this.clock.tick(1000);
+      await user.decrement('aNumber', { by: 1 });
+
+      return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
     });
 
-    it('with timestamps set to true and options.silent set to true', function() {
+    it('with timestamps set to true and options.silent set to true', async function() {
       const User = this.sequelize.define('IncrementUser', {
         aNumber: DataTypes.INTEGER
       }, { timestamps: true });
-      let oldDate;
 
-      return User.sync({ force: true }).then(() => {
-        return User.create({ aNumber: 1 });
-      }).then(user => {
-        oldDate = user.updatedAt;
-        this.clock.tick(1000);
-        return user.decrement('aNumber', { by: 1, silent: true });
-      }).then(() => {
-        return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
-      });
+      await User.sync({ force: true });
+      const user = await User.create({ aNumber: 1 });
+      const oldDate = user.updatedAt;
+      this.clock.tick(1000);
+      await user.decrement('aNumber', { by: 1, silent: true });
+
+      return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
     });
   });
 });

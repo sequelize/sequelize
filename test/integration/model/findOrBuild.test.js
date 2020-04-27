@@ -23,36 +23,38 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
 
   describe('findOrBuild', () => {
-    it('initialize with includes', function() {
-      return this.User.bulkCreate([
+    it('initialize with includes', async function() {
+      const [, user2] = await this.User.bulkCreate([
         { username: 'Mello', age: 10 },
         { username: 'Mello', age: 20 }
-      ], { returning: true }).then(([, user2]) => {
-        return this.Project.create({
-          name: 'Investigate'
-        }).then(project => user2.setProjects([project]));
-      }).then(() => {
-        return this.User.findOrBuild({
-          defaults: {
-            username: 'Mello',
-            age: 10
-          },
-          where: {
-            age: 20
-          },
-          include: [{
-            model: this.Project
-          }]
-        });
-      }).then(([user, created]) => {
-        expect(created).to.be.false;
-        expect(user.get('id')).to.be.ok;
-        expect(user.get('username')).to.equal('Mello');
-        expect(user.get('age')).to.equal(20);
+      ], { returning: true });
 
-        expect(user.Projects).to.have.length(1);
-        expect(user.Projects[0].get('name')).to.equal('Investigate');
+      const project = await this.Project.create({
+        name: 'Investigate'
       });
+
+      await user2.setProjects([project]);
+
+      const [user, created] = await this.User.findOrBuild({
+        defaults: {
+          username: 'Mello',
+          age: 10
+        },
+        where: {
+          age: 20
+        },
+        include: [{
+          model: this.Project
+        }]
+      });
+
+      expect(created).to.be.false;
+      expect(user.get('id')).to.be.ok;
+      expect(user.get('username')).to.equal('Mello');
+      expect(user.get('age')).to.equal(20);
+
+      expect(user.Projects).to.have.length(1);
+      expect(user.Projects[0].get('name')).to.equal('Investigate');
     });
   });
 });

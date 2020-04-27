@@ -11,20 +11,20 @@ const chai = require('chai'),
 
 if (dialect.match(/^mssql/)) {
   describe('[MSSQL Specific] Query Queue', () => {
-    beforeEach(function() {
+    beforeEach(async function() {
       const User = this.User = this.sequelize.define('User', {
         username: DataTypes.STRING
       });
 
-      return this.sequelize.sync({ force: true }).then(() => {
-        return User.create({ username: 'John' });
-      });
+      await this.sequelize.sync({ force: true });
+
+      return User.create({ username: 'John' });
     });
 
     it('should queue concurrent requests to a connection', function() {
       const User = this.User;
 
-      return expect(this.sequelize.transaction(t => {
+      return expect(this.sequelize.transaction(async t => {
         return Promise.all([
           User.findOne({
             transaction: t

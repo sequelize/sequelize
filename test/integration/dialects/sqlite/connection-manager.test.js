@@ -18,52 +18,49 @@ if (dialect === 'sqlite') {
       jetpack.remove(directoryName);
     });
 
-    it('close connection and remove journal and wal files', function() {
+    it('close connection and remove journal and wal files', async function() {
       const sequelize = Support.createSequelizeInstance({
         storage: jetpack.path(fileName)
       });
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
-      return User
-        .sync({ force: true })
-        .then(() => sequelize.query('PRAGMA journal_mode = WAL'))
-        .then(() => User.create({ username: 'user1' }))
-        .then(() => {
-          return sequelize.transaction(transaction => {
-            return User.create({ username: 'user2' }, { transaction });
-          });
-        })
-        .then(async () => {
-          expect(jetpack.exists(fileName)).to.be.equal('file');
-          expect(jetpack.exists(`${fileName}-shm`), 'shm file should exists').to.be.equal('file');
-          expect(jetpack.exists(`${fileName}-wal`), 'wal file should exists').to.be.equal('file');
+      await User
+        .sync({ force: true });
 
-          // move wal file content to main database
-          // so those files can be removed on connection close
-          // https://www.sqlite.org/wal.html#ckpt
-          await sequelize.query('PRAGMA wal_checkpoint');
+      await sequelize.query('PRAGMA journal_mode = WAL');
+      await User.create({ username: 'user1' });
 
-          // wal, shm files exist after checkpoint
-          expect(jetpack.exists(`${fileName}-shm`), 'shm file should exists').to.be.equal('file');
-          expect(jetpack.exists(`${fileName}-wal`), 'wal file should exists').to.be.equal('file');
+      await sequelize.transaction(transaction => {
+        return User.create({ username: 'user2' }, { transaction });
+      });
 
-          return sequelize.close();
-        })
-        .then(() => {
-          expect(jetpack.exists(fileName)).to.be.equal('file');
-          expect(jetpack.exists(`${fileName}-shm`), 'shm file exists').to.be.false;
-          expect(jetpack.exists(`${fileName}-wal`), 'wal file exists').to.be.false;
+      expect(jetpack.exists(fileName)).to.be.equal('file');
+      expect(jetpack.exists(`${fileName}-shm`), 'shm file should exists').to.be.equal('file');
+      expect(jetpack.exists(`${fileName}-wal`), 'wal file should exists').to.be.equal('file');
 
-          return this.sequelize.query('PRAGMA journal_mode = DELETE');
-        });
+      // move wal file content to main database
+      // so those files can be removed on connection close
+      // https://www.sqlite.org/wal.html#ckpt
+      await sequelize.query('PRAGMA wal_checkpoint');
+
+      // wal, shm files exist after checkpoint
+      expect(jetpack.exists(`${fileName}-shm`), 'shm file should exists').to.be.equal('file');
+      expect(jetpack.exists(`${fileName}-wal`), 'wal file should exists').to.be.equal('file');
+
+      await sequelize.close();
+      expect(jetpack.exists(fileName)).to.be.equal('file');
+      expect(jetpack.exists(`${fileName}-shm`), 'shm file exists').to.be.false;
+      expect(jetpack.exists(`${fileName}-wal`), 'wal file exists').to.be.false;
+
+      return this.sequelize.query('PRAGMA journal_mode = DELETE');
     });
 
-    it('automatic path provision for `options.storage`', () => {
-      return Support.createSequelizeInstance({ storage: nestedFileName })
+    it('automatic path provision for `options.storage`', async () => {
+      await Support.createSequelizeInstance({ storage: nestedFileName })
         .define('User', { username: DataTypes.STRING })
-        .sync({ force: true }).then(() => {
-          expect(jetpack.exists(nestedFileName)).to.be.equal('file');
-        });
+        .sync({ force: true });
+
+      expect(jetpack.exists(nestedFileName)).to.be.equal('file');
     });
   });
 }

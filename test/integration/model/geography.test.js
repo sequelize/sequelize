@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.sync({ force: true });
       });
 
-      it('works with aliases fields', function() {
+      it('works with aliases fields', async function() {
         const Pub = this.sequelize.define('Pub', {
             location: { field: 'coordinates', type: DataTypes.GEOGRAPHY }
           }),
@@ -33,15 +33,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           };
 
-        return Pub.sync({ force: true }).then(() => {
-          return Pub.create({ location: point });
-        }).then(pub => {
-          expect(pub).not.to.be.null;
-          expect(pub.location).to.be.deep.eql(point);
-        });
+        await Pub.sync({ force: true });
+        const pub = await Pub.create({ location: point });
+        expect(pub).not.to.be.null;
+        expect(pub.location).to.be.deep.eql(point);
       });
 
-      it('should create a geography object', function() {
+      it('should create a geography object', async function() {
         const User = this.User;
         const point = {
           type: 'Point', coordinates: [39.807222, -76.984722],
@@ -53,13 +51,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         };
 
-        return User.create({ username: 'username', geography: point }).then(newUser => {
-          expect(newUser).not.to.be.null;
-          expect(newUser.geography).to.be.deep.eql(point);
-        });
+        const newUser = await User.create({ username: 'username', geography: point });
+        expect(newUser).not.to.be.null;
+        expect(newUser.geography).to.be.deep.eql(point);
       });
 
-      it('should update a geography object', function() {
+      it('should update a geography object', async function() {
         const User = this.User;
         const point1 = {
             type: 'Point', coordinates: [39.807222, -76.984722],
@@ -81,13 +78,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           };
         const props = { username: 'username', geography: point1 };
 
-        return User.create(props).then(() => {
-          return User.update({ geography: point2 }, { where: { username: props.username } });
-        }).then(() => {
-          return User.findOne({ where: { username: props.username } });
-        }).then(user => {
-          expect(user.geography).to.be.deep.eql(point2);
-        });
+        await User.create(props);
+        await User.update({ geography: point2 }, { where: { username: props.username } });
+        const user = await User.findOne({ where: { username: props.username } });
+        expect(user.geography).to.be.deep.eql(point2);
       });
     });
 
@@ -101,7 +95,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.sync({ force: true });
       });
 
-      it('should create a geography object', function() {
+      it('should create a geography object', async function() {
         const User = this.User;
         const point = {
           type: 'Point', coordinates: [39.807222, -76.984722],
@@ -113,13 +107,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         };
 
-        return User.create({ username: 'username', geography: point }).then(newUser => {
-          expect(newUser).not.to.be.null;
-          expect(newUser.geography).to.be.deep.eql(point);
-        });
+        const newUser = await User.create({ username: 'username', geography: point });
+        expect(newUser).not.to.be.null;
+        expect(newUser.geography).to.be.deep.eql(point);
       });
 
-      it('should update a geography object', function() {
+      it('should update a geography object', async function() {
         const User = this.User;
         const point1 = {
             type: 'Point', coordinates: [39.807222, -76.984722],
@@ -141,13 +134,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           };
         const props = { username: 'username', geography: point1 };
 
-        return User.create(props).then(() => {
-          return User.update({ geography: point2 }, { where: { username: props.username } });
-        }).then(() => {
-          return User.findOne({ where: { username: props.username } });
-        }).then(user => {
-          expect(user.geography).to.be.deep.eql(point2);
-        });
+        await User.create(props);
+        await User.update({ geography: point2 }, { where: { username: props.username } });
+        const user = await User.findOne({ where: { username: props.username } });
+        expect(user.geography).to.be.deep.eql(point2);
       });
     });
 
@@ -161,7 +151,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.sync({ force: true });
       });
 
-      it('should create a geography object', function() {
+      it('should create a geography object', async function() {
         const User = this.User;
         const point = {
           type: 'LineString', 'coordinates': [[100.0, 0.0], [101.0, 1.0]],
@@ -173,13 +163,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         };
 
-        return User.create({ username: 'username', geography: point }).then(newUser => {
-          expect(newUser).not.to.be.null;
-          expect(newUser.geography).to.be.deep.eql(point);
-        });
+        const newUser = await User.create({ username: 'username', geography: point });
+        expect(newUser).not.to.be.null;
+        expect(newUser.geography).to.be.deep.eql(point);
       });
 
-      it('should update a geography object', function() {
+      it('should update a geography object', async function() {
         const User = this.User;
         const point1 = {
             type: 'LineString', coordinates: [[100.0, 0.0], [101.0, 1.0]],
@@ -201,13 +190,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           };
         const props = { username: 'username', geography: point1 };
 
-        return User.create(props).then(() => {
-          return User.update({ geography: point2 }, { where: { username: props.username } });
-        }).then(() => {
-          return User.findOne({ where: { username: props.username } });
-        }).then(user => {
-          expect(user.geography).to.be.deep.eql(point2);
-        });
+        await User.create(props);
+        await User.update({ geography: point2 }, { where: { username: props.username } });
+        const user = await User.findOne({ where: { username: props.username } });
+        expect(user.geography).to.be.deep.eql(point2);
       });
     });
 
@@ -221,7 +207,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.sync({ force: true });
       });
 
-      it('should create a geography object', function() {
+      it('should create a geography object', async function() {
         const User = this.User;
         const point = {
           type: 'Polygon', coordinates: [
@@ -236,13 +222,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         };
 
-        return User.create({ username: 'username', geography: point }).then(newUser => {
-          expect(newUser).not.to.be.null;
-          expect(newUser.geography).to.be.deep.eql(point);
-        });
+        const newUser = await User.create({ username: 'username', geography: point });
+        expect(newUser).not.to.be.null;
+        expect(newUser.geography).to.be.deep.eql(point);
       });
 
-      it('should update a geography object', function() {
+      it('should update a geography object', async function() {
         const User = this.User;
         const polygon1 = {
             type: 'Polygon', coordinates: [
@@ -269,13 +254,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           };
         const props = { username: 'username', geography: polygon1 };
 
-        return User.create(props).then(() => {
-          return User.update({ geography: polygon2 }, { where: { username: props.username } });
-        }).then(() => {
-          return User.findOne({ where: { username: props.username } });
-        }).then(user => {
-          expect(user.geography).to.be.deep.eql(polygon2);
-        });
+        await User.create(props);
+        await User.update({ geography: polygon2 }, { where: { username: props.username } });
+        const user = await User.findOne({ where: { username: props.username } });
+        expect(user.geography).to.be.deep.eql(polygon2);
       });
     });
 
@@ -290,7 +272,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.User.sync({ force: true });
         });
 
-        it('should create a geography object', function() {
+        it('should create a geography object', async function() {
           const User = this.User;
           const point = {
             type: 'Polygon', coordinates: [
@@ -305,13 +287,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           };
 
-          return User.create({ username: 'username', geography: point }).then(newUser => {
-            expect(newUser).not.to.be.null;
-            expect(newUser.geography).to.be.deep.eql(point);
-          });
+          const newUser = await User.create({ username: 'username', geography: point });
+          expect(newUser).not.to.be.null;
+          expect(newUser.geography).to.be.deep.eql(point);
         });
 
-        it('should update a geography object', function() {
+        it('should update a geography object', async function() {
           const User = this.User;
           const polygon1 = {
               type: 'Polygon', coordinates: [
@@ -338,13 +319,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             };
           const props = { username: 'username', geography: polygon1 };
 
-          return User.create(props).then(() => {
-            return User.update({ geography: polygon2 }, { where: { username: props.username } });
-          }).then(() => {
-            return User.findOne({ where: { username: props.username } });
-          }).then(user => {
-            expect(user.geography).to.be.deep.eql(polygon2);
-          });
+          await User.create(props);
+          await User.update({ geography: polygon2 }, { where: { username: props.username } });
+          const user = await User.findOne({ where: { username: props.username } });
+          expect(user.geography).to.be.deep.eql(polygon2);
         });
       });
     }

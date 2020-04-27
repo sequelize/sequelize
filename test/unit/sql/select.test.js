@@ -1,14 +1,14 @@
 'use strict';
 
-const Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  Model = require('../../../lib/model'),
-  util = require('util'),
-  chai = require('chai'),
-  expect = chai.expect,
-  expectsql = Support.expectsql,
-  current = Support.sequelize,
-  sql = current.dialect.QueryGenerator,
+const Support = require('../support'), 
+  DataTypes = require('../../../lib/data-types'), 
+  Model = require('../../../lib/model'), 
+  util = require('util'), 
+  chai = require('chai'), 
+  expect = chai.expect, 
+  expectsql = Support.expectsql, 
+  current = Support.sequelize, 
+  sql = current.dialect.QueryGenerator, 
   Op = Support.Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation

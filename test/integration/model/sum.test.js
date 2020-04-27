@@ -6,7 +6,7 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(function() {
+  beforeEach(async function() {
     this.Payment = this.sequelize.define('Payment', {
       amount: DataTypes.DECIMAL,
       mood: {
@@ -15,14 +15,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    return this.sequelize.sync({ force: true }).then(() => {
-      return this.Payment.bulkCreate([
-        { amount: 5, mood: 'neutral' },
-        { amount: -5, mood: 'neutral' },
-        { amount: 10, mood: 'happy' },
-        { amount: 90, mood: 'happy' }
-      ]);
-    });
+    await this.sequelize.sync({ force: true });
+
+    return this.Payment.bulkCreate([
+      { amount: 5, mood: 'neutral' },
+      { amount: -5, mood: 'neutral' },
+      { amount: 10, mood: 'happy' },
+      { amount: 90, mood: 'happy' }
+    ]);
   });
 
   describe('sum', () => {

@@ -104,163 +104,151 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('passing DAO instances', () => {
     describe('beforeValidate / afterValidate', () => {
-      it('should pass a DAO instance to the hook', function() {
+      it('should pass a DAO instance to the hook', async function() {
         let beforeHooked = false;
         let afterHooked = false;
         const User = this.sequelize.define('User', {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeValidate(user) {
+            async beforeValidate(user) {
               expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              return Promise.resolve();
+              return;
             },
-            afterValidate(user) {
+            async afterValidate(user) {
               expect(user).to.be.instanceof(User);
               afterHooked = true;
-              return Promise.resolve();
+              return;
             }
           }
         });
 
-        return User.sync({ force: true }).then(() => {
-          return User.create({ username: 'bob' }).then(() => {
-            expect(beforeHooked).to.be.true;
-            expect(afterHooked).to.be.true;
-          });
-        });
+        await User.sync({ force: true });
+        await User.create({ username: 'bob' });
+        expect(beforeHooked).to.be.true;
+        expect(afterHooked).to.be.true;
       });
     });
 
     describe('beforeCreate / afterCreate', () => {
-      it('should pass a DAO instance to the hook', function() {
+      it('should pass a DAO instance to the hook', async function() {
         let beforeHooked = false;
         let afterHooked = false;
         const User = this.sequelize.define('User', {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeCreate(user) {
+            async beforeCreate(user) {
               expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              return Promise.resolve();
+              return;
             },
-            afterCreate(user) {
+            async afterCreate(user) {
               expect(user).to.be.instanceof(User);
               afterHooked = true;
-              return Promise.resolve();
+              return;
             }
           }
         });
 
-        return User.sync({ force: true }).then(() => {
-          return User.create({ username: 'bob' }).then(() => {
-            expect(beforeHooked).to.be.true;
-            expect(afterHooked).to.be.true;
-          });
-        });
+        await User.sync({ force: true });
+        await User.create({ username: 'bob' });
+        expect(beforeHooked).to.be.true;
+        expect(afterHooked).to.be.true;
       });
     });
 
     describe('beforeDestroy / afterDestroy', () => {
-      it('should pass a DAO instance to the hook', function() {
+      it('should pass a DAO instance to the hook', async function() {
         let beforeHooked = false;
         let afterHooked = false;
         const User = this.sequelize.define('User', {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeDestroy(user) {
+            async beforeDestroy(user) {
               expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              return Promise.resolve();
+              return;
             },
-            afterDestroy(user) {
+            async afterDestroy(user) {
               expect(user).to.be.instanceof(User);
               afterHooked = true;
-              return Promise.resolve();
+              return;
             }
           }
         });
 
-        return User.sync({ force: true }).then(() => {
-          return User.create({ username: 'bob' }).then(user => {
-            return user.destroy().then(() => {
-              expect(beforeHooked).to.be.true;
-              expect(afterHooked).to.be.true;
-            });
-          });
-        });
+        await User.sync({ force: true });
+        const user = await User.create({ username: 'bob' });
+        await user.destroy();
+        expect(beforeHooked).to.be.true;
+        expect(afterHooked).to.be.true;
       });
     });
 
     describe('beforeUpdate / afterUpdate', () => {
-      it('should pass a DAO instance to the hook', function() {
+      it('should pass a DAO instance to the hook', async function() {
         let beforeHooked = false;
         let afterHooked = false;
         const User = this.sequelize.define('User', {
           username: DataTypes.STRING
         }, {
           hooks: {
-            beforeUpdate(user) {
+            async beforeUpdate(user) {
               expect(user).to.be.instanceof(User);
               beforeHooked = true;
-              return Promise.resolve();
+              return;
             },
-            afterUpdate(user) {
+            async afterUpdate(user) {
               expect(user).to.be.instanceof(User);
               afterHooked = true;
-              return Promise.resolve();
+              return;
             }
           }
         });
 
-        return User.sync({ force: true }).then(() => {
-          return User.create({ username: 'bob' }).then(user => {
-            user.username = 'bawb';
-            return user.save({ fields: ['username'] }).then(() => {
-              expect(beforeHooked).to.be.true;
-              expect(afterHooked).to.be.true;
-            });
-          });
-        });
+        await User.sync({ force: true });
+        const user = await User.create({ username: 'bob' });
+        user.username = 'bawb';
+        await user.save({ fields: ['username'] });
+        expect(beforeHooked).to.be.true;
+        expect(afterHooked).to.be.true;
       });
     });
   });
 
   describe('Model#sync', () => {
     describe('on success', () => {
-      it('should run hooks', function() {
+      it('should run hooks', async function() {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
         this.User.beforeSync(beforeHook);
         this.User.afterSync(afterHook);
 
-        return this.User.sync().then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).to.have.been.calledOnce;
-        });
+        await this.User.sync();
+        expect(beforeHook).to.have.been.calledOnce;
+        expect(afterHook).to.have.been.calledOnce;
       });
 
-      it('should not run hooks when "hooks = false" option passed', function() {
+      it('should not run hooks when "hooks = false" option passed', async function() {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
         this.User.beforeSync(beforeHook);
         this.User.afterSync(afterHook);
 
-        return this.User.sync({ hooks: false }).then(() => {
-          expect(beforeHook).to.not.have.been.called;
-          expect(afterHook).to.not.have.been.called;
-        });
+        await this.User.sync({ hooks: false });
+        expect(beforeHook).to.not.have.been.called;
+        expect(afterHook).to.not.have.been.called;
       });
 
     });
 
     describe('on error', () => {
-      it('should return an error from before', function() {
+      it('should return an error from before', async function() {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
@@ -270,13 +258,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
         this.User.afterSync(afterHook);
 
-        return expect(this.User.sync()).to.be.rejected.then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).not.to.have.been.called;
-        });
+        await expect(this.User.sync()).to.be.rejected;
+        expect(beforeHook).to.have.been.calledOnce;
+        expect(afterHook).not.to.have.been.called;
       });
 
-      it('should return an error from after', function() {
+      it('should return an error from after', async function() {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
@@ -286,17 +273,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.User.sync()).to.be.rejected.then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).to.have.been.calledOnce;
-        });
+        await expect(this.User.sync()).to.be.rejected;
+        expect(beforeHook).to.have.been.calledOnce;
+        expect(afterHook).to.have.been.calledOnce;
       });
     });
   });
 
   describe('sequelize#sync', () => {
     describe('on success', () => {
-      it('should run hooks', function() {
+      it('should run hooks', async function() {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy(),
           modelBeforeHook = sinon.spy(),
@@ -307,15 +293,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterSync(modelAfterHook);
         this.sequelize.afterBulkSync(afterHook);
 
-        return this.sequelize.sync().then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(modelBeforeHook).to.have.been.calledOnce;
-          expect(modelAfterHook).to.have.been.calledOnce;
-          expect(afterHook).to.have.been.calledOnce;
-        });
+        await this.sequelize.sync();
+        expect(beforeHook).to.have.been.calledOnce;
+        expect(modelBeforeHook).to.have.been.calledOnce;
+        expect(modelAfterHook).to.have.been.calledOnce;
+        expect(afterHook).to.have.been.calledOnce;
       });
 
-      it('should not run hooks if "hooks = false" option passed', function() {
+      it('should not run hooks if "hooks = false" option passed', async function() {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy(),
           modelBeforeHook = sinon.spy(),
@@ -326,12 +311,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterSync(modelAfterHook);
         this.sequelize.afterBulkSync(afterHook);
 
-        return this.sequelize.sync({ hooks: false }).then(() => {
-          expect(beforeHook).to.not.have.been.called;
-          expect(modelBeforeHook).to.not.have.been.called;
-          expect(modelAfterHook).to.not.have.been.called;
-          expect(afterHook).to.not.have.been.called;
-        });
+        await this.sequelize.sync({ hooks: false });
+        expect(beforeHook).to.not.have.been.called;
+        expect(modelBeforeHook).to.not.have.been.called;
+        expect(modelAfterHook).to.not.have.been.called;
+        expect(afterHook).to.not.have.been.called;
       });
 
       afterEach(function() {
@@ -342,7 +326,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
 
-      it('should return an error from before', function() {
+      it('should return an error from before', async function() {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
         this.sequelize.beforeBulkSync(() => {
@@ -351,13 +335,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
         this.sequelize.afterBulkSync(afterHook);
 
-        return expect(this.sequelize.sync()).to.be.rejected.then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).not.to.have.been.called;
-        });
+        await expect(this.sequelize.sync()).to.be.rejected;
+        expect(beforeHook).to.have.been.calledOnce;
+        expect(afterHook).not.to.have.been.called;
       });
 
-      it('should return an error from after', function() {
+      it('should return an error from after', async function() {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy();
 
@@ -367,10 +350,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.sequelize.sync()).to.be.rejected.then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).to.have.been.calledOnce;
-        });
+        await expect(this.sequelize.sync()).to.be.rejected;
+        expect(beforeHook).to.have.been.calledOnce;
+        expect(afterHook).to.have.been.calledOnce;
       });
 
       afterEach(function() {
@@ -381,58 +363,52 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   });
 
   describe('#removal', () => {
-    it('should be able to remove by name', function() {
+    it('should be able to remove by name', async function() {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();
 
       this.User.addHook('beforeCreate', 'sasuke', sasukeHook);
       this.User.addHook('beforeCreate', 'naruto', narutoHook);
 
-      return this.User.create({ username: 'makunouchi' }).then(() => {
-        expect(sasukeHook).to.have.been.calledOnce;
-        expect(narutoHook).to.have.been.calledOnce;
-        this.User.removeHook('beforeCreate', 'sasuke');
-        return this.User.create({ username: 'sendo' });
-      }).then(() => {
-        expect(sasukeHook).to.have.been.calledOnce;
-        expect(narutoHook).to.have.been.calledTwice;
-      });
+      await this.User.create({ username: 'makunouchi' });
+      expect(sasukeHook).to.have.been.calledOnce;
+      expect(narutoHook).to.have.been.calledOnce;
+      this.User.removeHook('beforeCreate', 'sasuke');
+      await this.User.create({ username: 'sendo' });
+      expect(sasukeHook).to.have.been.calledOnce;
+      expect(narutoHook).to.have.been.calledTwice;
     });
 
-    it('should be able to remove by reference', function() {
+    it('should be able to remove by reference', async function() {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();
 
       this.User.addHook('beforeCreate', sasukeHook);
       this.User.addHook('beforeCreate', narutoHook);
 
-      return this.User.create({ username: 'makunouchi' }).then(() => {
-        expect(sasukeHook).to.have.been.calledOnce;
-        expect(narutoHook).to.have.been.calledOnce;
-        this.User.removeHook('beforeCreate', sasukeHook);
-        return this.User.create({ username: 'sendo' });
-      }).then(() => {
-        expect(sasukeHook).to.have.been.calledOnce;
-        expect(narutoHook).to.have.been.calledTwice;
-      });
+      await this.User.create({ username: 'makunouchi' });
+      expect(sasukeHook).to.have.been.calledOnce;
+      expect(narutoHook).to.have.been.calledOnce;
+      this.User.removeHook('beforeCreate', sasukeHook);
+      await this.User.create({ username: 'sendo' });
+      expect(sasukeHook).to.have.been.calledOnce;
+      expect(narutoHook).to.have.been.calledTwice;
     });
 
-    it('should be able to remove proxies', function() {
+    it('should be able to remove proxies', async function() {
       const sasukeHook = sinon.spy(),
         narutoHook = sinon.spy();
 
       this.User.addHook('beforeSave', sasukeHook);
       this.User.addHook('beforeSave', narutoHook);
 
-      return this.User.create({ username: 'makunouchi' }).then(user => {
-        expect(sasukeHook).to.have.been.calledOnce;
-        expect(narutoHook).to.have.been.calledOnce;
-        this.User.removeHook('beforeSave', sasukeHook);
-        return user.update({ username: 'sendo' });
-      }).then(() => {
-        expect(sasukeHook).to.have.been.calledOnce;
-        expect(narutoHook).to.have.been.calledTwice;
-      });
+      const user = await this.User.create({ username: 'makunouchi' });
+      expect(sasukeHook).to.have.been.calledOnce;
+      expect(narutoHook).to.have.been.calledOnce;
+      this.User.removeHook('beforeSave', sasukeHook);
+      await user.update({ username: 'sendo' });
+      expect(sasukeHook).to.have.been.calledOnce;
+      expect(narutoHook).to.have.been.calledTwice;
     });
   });
 });

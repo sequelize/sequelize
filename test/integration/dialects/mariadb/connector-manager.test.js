@@ -13,17 +13,15 @@ if (dialect !== 'mariadb') {
 
 describe('[MARIADB Specific] Connection Manager', () => {
 
-  it('has existing init SQL', () => {
+  it('has existing init SQL', async () => {
     const sequelize = Support.createSequelizeInstance(
       { dialectOptions: { initSql: 'SET @myUserVariable=\'myValue\'' } });
-    return sequelize.query('SELECT @myUserVariable')
-      .then(res => {
-        expect(res[0]).to.deep.equal([{ '@myUserVariable': 'myValue' }]);
-        sequelize.close();
-      });
+    const res = await sequelize.query('SELECT @myUserVariable');
+    expect(res[0]).to.deep.equal([{ '@myUserVariable': 'myValue' }]);
+    sequelize.close();
   });
 
-  it('has existing init SQL array', () => {
+  it('has existing init SQL array', async () => {
     const sequelize = Support.createSequelizeInstance(
       {
         dialectOptions: {
@@ -31,12 +29,10 @@ describe('[MARIADB Specific] Connection Manager', () => {
             'SET @myUserVariable2=\'myValue\'']
         }
       });
-    return sequelize.query('SELECT @myUserVariable1, @myUserVariable2')
-      .then(res => {
-        expect(res[0]).to.deep.equal(
-          [{ '@myUserVariable1': 'myValue', '@myUserVariable2': 'myValue' }]);
-        sequelize.close();
-      });
+    const res = await sequelize.query('SELECT @myUserVariable1, @myUserVariable2');
+    expect(res[0]).to.deep.equal(
+      [{ '@myUserVariable1': 'myValue', '@myUserVariable2': 'myValue' }]);
+    sequelize.close();
   });
 
 

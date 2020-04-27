@@ -30,17 +30,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on success', () => {
-      it('hook runs', function() {
+      it('hook runs', async function() {
         let beforeHook = false;
 
         this.User.beforeCount(() => {
           beforeHook = true;
         });
 
-        return this.User.count().then(count => {
-          expect(count).to.equal(3);
-          expect(beforeHook).to.be.true;
-        });
+        const count = await this.User.count();
+        expect(count).to.equal(3);
+        expect(beforeHook).to.be.true;
       });
 
       it('beforeCount hook can change options', function() {

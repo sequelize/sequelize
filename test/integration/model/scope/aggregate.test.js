@@ -9,7 +9,7 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     describe('aggregate', () => {
-      beforeEach(function() {
+      beforeEach(async function() {
         this.Child = this.sequelize.define('Child', {
           priority: Sequelize.INTEGER
         });
@@ -50,26 +50,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Child.belongsTo(this.ScopeMe);
         this.ScopeMe.hasMany(this.Child);
 
-        return this.sequelize.sync({ force: true }).then(() => {
-          const records = [
-            { username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7 },
-            { username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11 },
-            { username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10 },
-            { username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7 }
-          ];
-          return this.ScopeMe.bulkCreate(records);
-        }).then(() => {
-          return this.ScopeMe.findAll();
-        }).then(records => {
-          return Promise.all([
-            records[0].createChild({
-              priority: 1
-            }),
-            records[1].createChild({
-              priority: 2
-            })
-          ]);
-        });
+        await this.sequelize.sync({ force: true });
+        const records0 = [
+          { username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7 },
+          { username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11 },
+          { username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10 },
+          { username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7 }
+        ];
+        await this.ScopeMe.bulkCreate(records0);
+        const records = await this.ScopeMe.findAll();
+
+        return Promise.all([
+          records[0].createChild({
+            priority: 1
+          }),
+          records[1].createChild({
+            priority: 2
+          })
+        ]);
       });
 
       it('should apply defaultScope', function() {
@@ -105,27 +103,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       if (Support.sequelize.dialect.supports.schemas) {
-        it('aggregate with schema', function() {
+        it('aggregate with schema', async function() {
           this.Hero = this.sequelize.define('Hero', {
             codename: Sequelize.STRING
           }, { schema: 'heroschema' });
-          return this.sequelize.createSchema('heroschema')
-            .then(() => {
-              return this.sequelize.sync({ force: true });
-            })
-            .then(() => {
-              const records = [
-                { codename: 'hulk' },
-                { codename: 'rantanplan' }
-              ];
-              return this.Hero.bulkCreate(records);
-            })
-            .then(() => {
-              return expect(
-                this.Hero.unscoped().aggregate('*', 'count',
-                  { schema: 'heroschema' })).to.eventually.equal(
-                2);
-            });
+          await this.sequelize.createSchema('heroschema');
+          await this.sequelize.sync({ force: true });
+          const records = [
+            { codename: 'hulk' },
+            { codename: 'rantanplan' }
+          ];
+          await this.Hero.bulkCreate(records);
+          return expect(
+            this.Hero.unscoped().aggregate('*', 'count',
+              { schema: 'heroschema' })).to.eventually.equal(2);
         });
       }
     });

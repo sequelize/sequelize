@@ -37,7 +37,7 @@ if (dialect === 'mssql') {
       this.connectionStub.restore();
     });
 
-    it('connectionManager._connect() does not delete `domain` from config.dialectOptions', function() {
+    it('connectionManager._connect() does not delete `domain` from config.dialectOptions', async function() {
       this.connectionStub.returns({
         once(event, cb) {
           if (event === 'connect') {
@@ -51,12 +51,11 @@ if (dialect === 'mssql') {
       });
 
       expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
-      return this.instance.dialect.connectionManager._connect(this.config).then(() => {
-        expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
-      });
+      await this.instance.dialect.connectionManager._connect(this.config);
+      expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
     });
 
-    it('connectionManager._connect() should reject if end was called and connect was not', function() {
+    it('connectionManager._connect() should reject if end was called and connect was not', async function() {
       this.connectionStub.returns({
         once(event, cb) {
           if (event === 'end') {
@@ -69,11 +68,12 @@ if (dialect === 'mssql') {
         on: () => {}
       });
 
-      return this.instance.dialect.connectionManager._connect(this.config)
-        .catch(err => {
-          expect(err.name).to.equal('SequelizeConnectionError');
-          expect(err.parent.message).to.equal('Connection was closed by remote server');
-        });
+      try {
+        return await this.instance.dialect.connectionManager._connect(this.config);
+      } catch (err) {
+        expect(err.name).to.equal('SequelizeConnectionError');
+        expect(err.parent.message).to.equal('Connection was closed by remote server');
+      }
     });
   });
 }

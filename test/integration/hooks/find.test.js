@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on success', () => {
-      it('all hooks run', function() {
+      it('all hooks run', async function() {
         let beforeHook = false,
           beforeHook2 = false,
           beforeHook3 = false,
@@ -61,95 +61,98 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           afterHook = true;
         });
 
-        return this.User.findOne({ where: { username: 'adam' } }).then(user => {
-          expect(user.mood).to.equal('happy');
-          expect(beforeHook).to.be.true;
-          expect(beforeHook2).to.be.true;
-          expect(beforeHook3).to.be.true;
-          expect(afterHook).to.be.true;
-        });
+        const user = await this.User.findOne({ where: { username: 'adam' } });
+        expect(user.mood).to.equal('happy');
+        expect(beforeHook).to.be.true;
+        expect(beforeHook2).to.be.true;
+        expect(beforeHook3).to.be.true;
+        expect(afterHook).to.be.true;
       });
 
-      it('beforeFind hook can change options', function() {
+      it('beforeFind hook can change options', async function() {
         this.User.beforeFind(options => {
           options.where.username = 'joe';
         });
 
-        return this.User.findOne({ where: { username: 'adam' } }).then(user => {
-          expect(user.mood).to.equal('sad');
-        });
+        const user = await this.User.findOne({ where: { username: 'adam' } });
+        expect(user.mood).to.equal('sad');
       });
 
-      it('beforeFindAfterExpandIncludeAll hook can change options', function() {
+      it('beforeFindAfterExpandIncludeAll hook can change options', async function() {
         this.User.beforeFindAfterExpandIncludeAll(options => {
           options.where.username = 'joe';
         });
 
-        return this.User.findOne({ where: { username: 'adam' } }).then(user => {
-          expect(user.mood).to.equal('sad');
-        });
+        const user = await this.User.findOne({ where: { username: 'adam' } });
+        expect(user.mood).to.equal('sad');
       });
 
-      it('beforeFindAfterOptions hook can change options', function() {
+      it('beforeFindAfterOptions hook can change options', async function() {
         this.User.beforeFindAfterOptions(options => {
           options.where.username = 'joe';
         });
 
-        return this.User.findOne({ where: { username: 'adam' } }).then(user => {
-          expect(user.mood).to.equal('sad');
-        });
+        const user = await this.User.findOne({ where: { username: 'adam' } });
+        expect(user.mood).to.equal('sad');
       });
 
-      it('afterFind hook can change results', function() {
+      it('afterFind hook can change results', async function() {
         this.User.afterFind(user => {
           user.mood = 'sad';
         });
 
-        return this.User.findOne({ where: { username: 'adam' } }).then(user => {
-          expect(user.mood).to.equal('sad');
-        });
+        const user = await this.User.findOne({ where: { username: 'adam' } });
+        expect(user.mood).to.equal('sad');
       });
     });
 
     describe('on error', () => {
-      it('in beforeFind hook returns error', function() {
+      it('in beforeFind hook returns error', async function() {
         this.User.beforeFind(() => {
           throw new Error('Oops!');
         });
 
-        return this.User.findOne({ where: { username: 'adam' } }).catch(err => {
+        try {
+          return await this.User.findOne({ where: { username: 'adam' } });
+        } catch (err) {
           expect(err.message).to.equal('Oops!');
-        });
+        }
       });
 
-      it('in beforeFindAfterExpandIncludeAll hook returns error', function() {
+      it('in beforeFindAfterExpandIncludeAll hook returns error', async function() {
         this.User.beforeFindAfterExpandIncludeAll(() => {
           throw new Error('Oops!');
         });
 
-        return this.User.findOne({ where: { username: 'adam' } }).catch(err => {
+        try {
+          return await this.User.findOne({ where: { username: 'adam' } });
+        } catch (err) {
           expect(err.message).to.equal('Oops!');
-        });
+        }
       });
 
-      it('in beforeFindAfterOptions hook returns error', function() {
+      it('in beforeFindAfterOptions hook returns error', async function() {
         this.User.beforeFindAfterOptions(() => {
           throw new Error('Oops!');
         });
 
-        return this.User.findOne({ where: { username: 'adam' } }).catch(err => {
+        try {
+          return await this.User.findOne({ where: { username: 'adam' } });
+        } catch (err) {
           expect(err.message).to.equal('Oops!');
-        });
+        }
       });
 
-      it('in afterFind hook returns error', function() {
+      it('in afterFind hook returns error', async function() {
         this.User.afterFind(() => {
           throw new Error('Oops!');
         });
 
-        return this.User.findOne({ where: { username: 'adam' } }).catch(err => {
+        try {
+          return await this.User.findOne({ where: { username: 'adam' } });
+        } catch (err) {
           expect(err.message).to.equal('Oops!');
-        });
+        }
       });
     });
   });

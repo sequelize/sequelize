@@ -40,7 +40,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
     this.clock.restore();
   });
 
-  it('paranoid with timestamps: false should be ignored / not crash', function() {
+  it('paranoid with timestamps: false should be ignored / not crash', async function() {
     const S = this.sequelize,
       Test = S.define('Test', {
         name: DataTypes.STRING
@@ -49,12 +49,12 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
         paranoid: true
       });
 
-    return S.sync({ force: true }).then(() => {
-      return Test.findByPk(1);
-    });
+    await S.sync({ force: true });
+
+    return Test.findByPk(1);
   });
 
-  it('test if non required is marked as false', function( ) {
+  it('test if non required is marked as false', async function() {
     const A = this.A,
       B = this.B,
       options = {
@@ -66,12 +66,11 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
         ]
       };
 
-    return A.findOne(options).then(() => {
-      expect(options.include[0].required).to.be.equal(false);
-    });
+    await A.findOne(options);
+    expect(options.include[0].required).to.be.equal(false);
   });
 
-  it('test if required is marked as true', function( ) {
+  it('test if required is marked as true', async function() {
     const A = this.A,
       B = this.B,
       options = {
@@ -83,12 +82,11 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
         ]
       };
 
-    return A.findOne(options).then(() => {
-      expect(options.include[0].required).to.be.equal(true);
-    });
+    await A.findOne(options);
+    expect(options.include[0].required).to.be.equal(true);
   });
 
-  it('should not load paranoid, destroyed instances, with a non-paranoid parent', function() {
+  it('should not load paranoid, destroyed instances, with a non-paranoid parent', async function() {
     const X = this.sequelize.define('x', {
       name: DataTypes.STRING
     }, {
@@ -104,27 +102,26 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
     X.hasMany(Y);
 
-    return this.sequelize.sync({ force: true }).then(() => {
-      return Promise.all([
-        X.create(),
-        Y.create()
-      ]);
-    }).then(([x, y]) => {
-      this.x = x;
-      this.y = y;
+    await this.sequelize.sync({ force: true });
 
-      return x.addY(y);
-    }).then(() => {
-      return this.y.destroy();
-    }).then(() => {
-      //prevent CURRENT_TIMESTAMP to be same
-      this.clock.tick(1000);
+    const [x0, y] = await Promise.all([
+      X.create(),
+      Y.create()
+    ]);
 
-      return X.findAll({
-        include: [Y]
-      }).then(obj => obj[0]);
-    }).then(x => {
-      expect(x.ys).to.have.length(0);
+    this.x = x0;
+    this.y = y;
+
+    await x0.addY(y);
+    await this.y.destroy();
+    //prevent CURRENT_TIMESTAMP to be same
+    this.clock.tick(1000);
+
+    const obj = await X.findAll({
+      include: [Y]
     });
+
+    const x = await obj[0];
+    expect(x.ys).to.have.length(0);
   });
 });
