@@ -39,6 +39,8 @@ if (dialect === 'mssql') {
 
     it('connectionManager._connect() does not delete `domain` from config.dialectOptions', function() {
       this.connectionStub.returns({
+        STATE: {},
+        state: '',
         once(event, cb) {
           if (event === 'connect') {
             setTimeout(() => {
@@ -58,6 +60,8 @@ if (dialect === 'mssql') {
 
     it('connectionManager._connect() should reject if end was called and connect was not', function() {
       this.connectionStub.returns({
+        STATE: {},
+        state: '',
         once(event, cb) {
           if (event === 'end') {
             setTimeout(() => {
