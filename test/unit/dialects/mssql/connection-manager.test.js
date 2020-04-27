@@ -79,5 +79,29 @@ if (dialect === 'mssql') {
           expect(err.parent.message).to.equal('Connection was closed by remote server');
         });
     });
+
+    it('connectionManager._connect() should call connect if state is initialized', function() {
+      const connectStub = sinon.stub();
+      const INITIALIZED = { name: 'INITIALIZED' };
+      this.connectionStub.returns({
+        STATE: { INITIALIZED },
+        state: INITIALIZED,
+        connect: connectStub,
+        once(event, cb) {
+          if (event === 'connect') {
+            setTimeout(() => {
+              cb();
+            }, 500);
+          }
+        },
+        removeListener: () => {},
+        on: () => {}
+      });
+
+      return this.instance.dialect.connectionManager._connect(this.config)
+        .then(() => {
+          expect(connectStub.called).to.equal(true);
+        });
+    });
   });
 }
