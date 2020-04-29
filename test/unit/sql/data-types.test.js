@@ -1062,10 +1062,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT(11)', DataTypes.FLOAT(11), {
         default: 'FLOAT(11)',
-        postgres: 'FLOAT(11)',
-        // 1-24 = 4 bytes; 35-53 = 8 bytes
-        // 1-24 = 4 bytes; 35-53 = 8 bytes
-        mssql: 'FLOAT(11)'
+        postgres: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
+        mssql: 'FLOAT(11)' // 1-24 = 4 bytes; 35-53 = 8 bytes
       });
 
       testsql('FLOAT(11).UNSIGNED', DataTypes.FLOAT(11).UNSIGNED, {

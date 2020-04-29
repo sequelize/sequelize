@@ -271,7 +271,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     before(function() {
-      this.stub = sinon.stub(current, 'query').callsFake(async () => Promise.resolve([User.build({}), 1]));
+      this.stub = sinon.stub(current, 'query').resolves([User.build({}), 1]);
     });
 
     after(function() {

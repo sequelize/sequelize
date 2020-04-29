@@ -166,8 +166,8 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
     });
 
     it('should fetch associations for multiple source instances', async () => {
-      const findAll = stub(Task, 'findAll').returns(
-        Promise.resolve([
+      const findAll = stub(Task, 'findAll').resolves(
+        [
           Task.build({
             'user_id': idA
           }),
@@ -180,7 +180,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
           Task.build({
             'user_id': idB
           })
-        ]));
+        ]);
 
       User.Tasks = User.hasMany(Task, { foreignKey });
       const actual = User.Tasks.get([
