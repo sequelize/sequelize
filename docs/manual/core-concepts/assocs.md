@@ -229,7 +229,7 @@ Team.hasMany(Player, {
 Player.belongsTo(Team);
 ```
 
-Like One-To-One relationships, `ON DELETE` defaults to `SET NULL`a nd `ON UPDATE` defaults to `CASCADE`.
+Like One-To-One relationships, `ON DELETE` defaults to `SET NULL` and `ON UPDATE` defaults to `CASCADE`.
 
 ## Many-To-Many relationships
 
