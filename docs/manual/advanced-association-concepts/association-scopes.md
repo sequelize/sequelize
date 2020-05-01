@@ -58,7 +58,7 @@ Bar.addScope('open', {
     }
 });
 Foo.hasMany(Bar);
-Foo.hasMany(Bar.scope('testTitleScope'), { as: 'openBars' });
+Foo.hasMany(Bar.scope('open'), { as: 'openBars' });
 ```
 
 With the above code, `myFoo.getOpenBars()` yields the same SQL shown above.
