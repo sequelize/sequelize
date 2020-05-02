@@ -9,7 +9,7 @@ const chai = require('chai'),
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES] Sequelize', () => {
     function checkTimezoneParsing(baseOptions) {
-      const options = Object.assign({}, baseOptions, { timezone: 'Asia/Kolkata', timestamps: true });
+      const options = { ...baseOptions, timezone: 'Asia/Kolkata', timestamps: true };
       const sequelize = Support.createSequelizeInstance(options);
 
       const tzTable = sequelize.define('tz_table', { foo: DataTypes.STRING });

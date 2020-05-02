@@ -77,7 +77,7 @@ const Support = {
       if (fs.existsSync(p)) {
         fs.unlinkSync(p);
       }
-      const options = Object.assign({}, sequelize.options, { storage: p }),
+      const options = { ...sequelize.options, storage: p },
         _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
       return _sequelize.sync({ force: true }).then(() => _sequelize);

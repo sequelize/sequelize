@@ -49,7 +49,7 @@ if (dialect.match(/^postgres/)) {
     };
 
     it('should throw due to alias being truncated', function() {
-      const options = Object.assign({}, this.sequelize.options, { minifyAliases: false });
+      const options = { ...this.sequelize.options, minifyAliases: false };
 
       return executeTest(options, res => {
         expect(res[taskAlias]).to.not.exist;
@@ -57,7 +57,7 @@ if (dialect.match(/^postgres/)) {
     });
 
     it('should be able to retrieve include due to alias minifying', function() {
-      const options = Object.assign({}, this.sequelize.options, { minifyAliases: true });
+      const options = { ...this.sequelize.options, minifyAliases: true };
 
       return executeTest(options, res => {
         expect(res[taskAlias].title).to.be.equal('SuperTask');

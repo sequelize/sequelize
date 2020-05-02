@@ -11,7 +11,7 @@ if (dialect === 'mysql') {
   describe('[MYSQL Specific] Errors', () => {
 
     const validateError = (promise, errClass, errValues) => {
-      const wanted = Object.assign({}, errValues);
+      const wanted = { ...errValues };
 
       return expect(promise).to.have.been.rejectedWith(errClass).then(() =>
         promise.catch(err => Object.keys(wanted).forEach(k => expect(err[k]).to.eql(wanted[k]))));

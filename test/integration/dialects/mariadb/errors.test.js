@@ -10,7 +10,7 @@ if (dialect !== 'mariadb') return;
 describe('[MariaDB Specific] Errors', () => {
 
   const validateError = (promise, errClass, errValues) => {
-    const wanted = Object.assign({}, errValues);
+    const wanted = { ...errValues };
 
     return expect(promise).to.have.been.rejectedWith(errClass).then(() =>
       promise.catch(err => Object.keys(wanted).forEach(

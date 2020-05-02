@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         options = options || {};
 
         const taskTableName      = options.taskTableName || `tasks_${config.rand()}`;
-        const transactionOptions = Object.assign({}, { deferrable: Sequelize.Deferrable.SET_DEFERRED }, options);
+        const transactionOptions = { deferrable: Sequelize.Deferrable.SET_DEFERRED, ...options };
         const userTableName      = `users_${config.rand()}`;
 
         const User = this.sequelize.define(
