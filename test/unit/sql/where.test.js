@@ -441,6 +441,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: "[username] LIKE 'swagger%'",
         mssql: "[username] LIKE N'swagger%'"
       });
+
+      testsql('username', {
+        [Op.startsWith]: current.literal('swagger')
+      }, {
+        default: "[username] LIKE 'swagger%'",
+        mssql: "[username] LIKE N'swagger%'"
+      });
     });
 
     describe('Op.endsWith', () => {
@@ -450,11 +457,25 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: "[username] LIKE '%swagger'",
         mssql: "[username] LIKE N'%swagger'"
       });
+
+      testsql('username', {
+        [Op.endsWith]: current.literal('swagger')
+      }, {
+        default: "[username] LIKE '%swagger'",
+        mssql: "[username] LIKE N'%swagger'"
+      });
     });
 
     describe('Op.substring', () => {
       testsql('username', {
         [Op.substring]: 'swagger'
+      }, {
+        default: "[username] LIKE '%swagger%'",
+        mssql: "[username] LIKE N'%swagger%'"
+      });
+
+      testsql('username', {
+        [Op.substring]: current.literal('swagger')
       }, {
         default: "[username] LIKE '%swagger%'",
         mssql: "[username] LIKE N'%swagger%'"
