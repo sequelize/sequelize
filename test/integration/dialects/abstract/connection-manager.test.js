@@ -6,8 +6,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   Config = require('../../../config/config'),
   ConnectionManager = require('../../../../lib/dialects/abstract/connection-manager'),
-  Pool = require('sequelize-pool').Pool,
-  _ = require('lodash');
+  Pool = require('sequelize-pool').Pool;
 
 const baseConf = Config[Support.getTestDialect()];
 const poolEntry = {
@@ -43,8 +42,8 @@ describe('Connection Manager', () => {
   it('should initialize a multiple pools with replication', () => {
     const options = {
       replication: {
-        write: _.clone(poolEntry),
-        read: [_.clone(poolEntry), _.clone(poolEntry)]
+        write: { ...poolEntry },
+        read: [{ ...poolEntry }, { ...poolEntry }]
       }
     };
     const sequelize = Support.createSequelizeInstance(options);
@@ -60,14 +59,14 @@ describe('Connection Manager', () => {
       return;
     }
 
-    const slave1 = _.clone(poolEntry);
-    const slave2 = _.clone(poolEntry);
+    const slave1 = { ...poolEntry };
+    const slave2 = { ...poolEntry };
     slave1.host = 'slave1';
     slave2.host = 'slave2';
 
     const options = {
       replication: {
-        write: _.clone(poolEntry),
+        write: { ...poolEntry },
         read: [slave1, slave2]
       }
     };
@@ -106,13 +105,13 @@ describe('Connection Manager', () => {
   });
 
   it('should allow forced reads from the write pool', () => {
-    const master = _.clone(poolEntry);
+    const master = { ...poolEntry };
     master.host = 'the-boss';
 
     const options = {
       replication: {
         write: master,
-        read: [_.clone(poolEntry)]
+        read: [{ ...poolEntry }]
       }
     };
     const sequelize = Support.createSequelizeInstance(options);
