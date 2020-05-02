@@ -1180,6 +1180,28 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     });
 
+    it('options.raw default value can be overwritten', function() {
+      return Promise.all([
+        this.Article.create({ title: 'Article' }),
+        this.Label.create({ text: 'Awesomeness' }),
+        this.Label.create({ text: 'Epicness' })
+      ]).then(([article, label1, label2]) => {
+        return article.setLabels([label1, label2]).then(() => {
+          DataTypes.INTEGER.prototype._sanitize = DataTypes.INTEGER.prototype._sanitize || (value => value);
+          sinon.spy(DataTypes.INTEGER.prototype, '_sanitize');
+          this.Label.refreshAttributes();
+          return article.hasLabels([
+            label1[this.Label.primaryKeyAttribute],
+            label2[this.Label.primaryKeyAttribute]
+          ], { raw: false }).then(() => {
+            expect(DataTypes.INTEGER.prototype._sanitize).calledTwice;
+          }).finally(() => {
+            DataTypes.INTEGER.prototype._sanitize.restore();
+          });
+        });
+      });
+    });
+
     it('answers true for labels that have been assigned multitple times', function() {
       this.ArticleLabel = this.sequelize.define('ArticleLabel', {
         id: {

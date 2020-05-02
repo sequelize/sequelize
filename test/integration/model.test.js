@@ -782,6 +782,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await user.save({ id2: 8877 });
       expect((await User.findByPk(94)).id2).to.equal(8877);
     });
+
+    it('should use PK attribute DataType', function() {
+      const User = this.sequelize.define('User', {
+        id: {
+          type: Sequelize.INTEGER,
+          primaryKey: true
+        },
+        data: {
+          type: Sequelize.STRING
+        }
+      });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({ id: 1, data: 'foo' });
+      })
+        .then(user => {
+          sinon.spy(Sequelize.INTEGER.prototype, 'stringify');
+          user.data = 'bar';
+          return user.save();
+        })
+        .then(() => {
+          expect(Sequelize.INTEGER.prototype.stringify).calledOnce;
+        }).finally(() => {
+          Sequelize.INTEGER.prototype.stringify.restore();
+        });
+    });
   });
 
   describe('update', () => {
