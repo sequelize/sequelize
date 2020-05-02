@@ -8,6 +8,8 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types'),
   current   = Support.sequelize;
 
+const { inspect } = require('util');
+
 describe(Support.getTestDialectTeaser('Model'), () => {
   const Project = current.define('project'),
     User = current.define('user');
@@ -43,6 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { model: User, where: { something: 42 } }
       ]
     },
+
     projects: {
       include: [Project]
     },
@@ -81,6 +84,478 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('.scope', () => {
+    describe('chaining scopes', () => {
+      const scopes = {
+        orSomething() {
+          return {
+            where: {
+              [Op.or]: {
+                something: {
+                  [Op.gte]: 97
+                }
+              }
+            }
+          };
+        },
+        orSomethingAnotherCondition() {
+          return {
+            where: {
+              [Op.or]: {
+                something: {
+                  [Op.lte]: 500
+                }
+              }
+            }
+          };
+        },
+        andSomething() {
+          return {
+            where: {
+              [Op.and]: {
+                something: {
+                  [Op.gte]: 4
+                }
+              }
+            }
+          };
+        },
+        andSomethingAnotherCondition() {
+          return {
+            where: {
+              [Op.and]: {
+                something: {
+                  [Op.lte]: 15
+                }
+              }
+            }
+          };
+        },
+        something() {
+          return {
+            where: {
+              something: {
+                [Op.gte]: 4
+              }
+
+            }
+          };
+        },
+        somethingAnotherCondition() {
+          return {
+            where: {
+
+              something: {
+                [Op.lte]: 15
+              }
+
+            }
+          };
+        },
+        somethingNoOperator() {
+          return {
+            where: {
+              something: 13
+            }
+          };
+        },
+        somethingAnotherConditionNoOperator() {
+          return {
+            where: {
+              something: 8
+            }
+          };
+        },
+        somethingMixed() {
+          return {
+            where: {
+              something: {
+                [Op.and]: [
+                  { [Op.gte]: 18 },
+                  { [Op.lte]: 45 }
+                ],
+                [Op.gte]: 11
+              }
+            }
+          };
+        },
+        somethingWithNestedOr() {
+          return {
+            where: {
+              something: {
+                [Op.or]: [
+                  { [Op.gte]: 188 },
+                  { [Op.lte]: 145 }
+                ],
+                [Op.gte]: 11
+              }
+            }
+          };
+        },
+        somethingAnotherWithNestedOr() {
+          return {
+            where: {
+              something: {
+                [Op.or]: [
+                  { [Op.gte]: 5 },
+                  { [Op.lte]: 700 }
+                ]
+              }
+            }
+          };
+        }
+      };
+
+      inspect.defaultOptions.showHidden = true;
+      inspect.defaultOptions.depth = null;
+
+      // TODO: Add more tests covering different cases
+
+      describe('when enableExtendedScopeWhereMerges option is false or not set explicitly', () => {
+        const User = current.define('user', {
+          password: DataTypes.STRING,
+          something: DataTypes.INTEGER,
+          name: DataTypes.STRING
+        }, {
+          scopes
+        });
+
+        it('should not merge scopes and apply only the last scope', () => {
+          expect(
+            inspect(
+              User.scope([
+                { method: ['andSomething'] },
+                { method: ['andSomethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  [Op.and]: {
+                    something: {
+                      [Op.lte]: 15
+                    }
+                  }
+                }
+              }
+            )
+          );
+        });
+      });
+
+      describe('when enableExtendedScopeWhereMerges is true', () => {
+        const User = current.define('user', {
+          password: DataTypes.STRING,
+          value: DataTypes.INTEGER,
+          name: DataTypes.STRING
+        }, {
+          enableExtendedScopeWhereMerges: true,
+          scopes
+        });
+
+        it('should merge scopes defined on OR', () => {
+
+          expect(
+            inspect(
+              User.scope([
+                { method: ['orSomething'] },
+                { method: ['orSomethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(inspect({
+            where: {
+              [Op.or]: [
+                {
+                  something: {
+                    [Op.gte]: 97
+                  }
+                },
+                {
+                  something: {
+                    [Op.lte]: 500
+                  }
+                }
+              ]
+            }
+          }));
+        });
+
+        it('should merge scopes defined on AND', () => {
+
+          expect(
+            inspect(
+              User.scope([
+                { method: ['andSomething'] },
+                { method: ['andSomethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(inspect({
+            where: {
+              [Op.and]: [
+                {
+                  something: {
+                    [Op.gte]: 4
+                  }
+                },
+                {
+                  something: {
+                    [Op.lte]: 15
+                  }
+                }
+              ]
+            }
+          }));
+        });
+
+        it('should properly handle scopes defined on both OR and AND', () => {
+
+          expect(
+            inspect(
+              User.scope([
+                { method: ['andSomething'] },
+                { method: ['orSomethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(inspect({
+            where: {
+              [Op.and]: {
+                something: {
+                  [Op.gte]: 4
+                }
+              },
+              [Op.or]: {
+                something: {
+                  [Op.lte]: 500
+                }
+              }
+            }
+          }));
+        });
+
+        it('should properly merge scopes defined on both OR and AND', () => {
+
+          expect(
+            inspect(
+              User.scope([
+                { method: ['andSomething'] },
+                { method: ['orSomething'] },
+                { method: ['andSomethingAnotherCondition'] },
+                { method: ['orSomethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(inspect({
+            where: {
+              [Op.and]: [
+                {
+                  something: {
+                    [Op.gte]: 4
+                  }
+                },
+                {
+                  something: {
+                    [Op.lte]: 15
+                  }
+                }
+              ],
+              [Op.or]: [
+                {
+                  something: {
+                    [Op.gte]: 97
+                  }
+                },
+                {
+                  something: {
+                    [Op.lte]: 500
+                  }
+                }
+              ]
+            }
+          }));
+        });
+
+        it('should merge scopes defined on field name', () => {
+
+          expect(
+            inspect(
+              User.scope([
+                { method: ['something'] },
+                { method: ['somethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      { [Op.gte]: 4 },
+                      { [Op.lte]: 15 }
+                    ]
+                  }
+                }
+              }
+            ));
+        });
+
+        it('should merge scopes defined on field name without operators', () => {
+          // Not a very helpful feature because obviously the resulting query is mutually exclusive
+          // but that's more a question to the end user of why she would use it.
+          // Better to keep it like this just for consistency.
+          // For the future maybe it worth raising kind of warning here.
+          expect(
+            inspect(
+              User.scope([
+                { method: ['somethingNoOperator'] },
+                { method: ['somethingAnotherConditionNoOperator'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      { [Op.eq]: 13 },
+                      { [Op.eq]: 8 }
+                    ]
+                  }
+                }
+              }
+            )
+          );
+        });
+
+        it('should merge scope defined on field name without operators with another scope defined with operartor', () => {
+          expect(
+            inspect(
+              User.scope([
+                { method: ['somethingNoOperator'] },
+                { method: ['something'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      { [Op.eq]: 13 },
+                      { [Op.gte]: 4 }
+                    ]
+                  }
+                }
+              }
+            )
+          );
+        });
+
+        it('should merge scopes defined in mixed style', () => {
+          expect(
+            inspect(
+              User.scope([
+                { method: ['something'] },
+                { method: ['somethingMixed'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      { [Op.gte]: 4 },
+                      { [Op.gte]: 18 },
+                      { [Op.lte]: 45 },
+                      { [Op.gte]: 11 }
+                    ]
+                  }
+                }
+              }
+            )
+          );
+        });
+
+        it('should merge scopes defined in different style', () => {
+          expect(
+            inspect(
+              User.scope([
+                { method: ['andSomething'] },
+                { method: ['andSomethingAnotherCondition'] },
+                { method: ['somethingNoOperator'] },
+                { method: ['something'] },
+                { method: ['somethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      { [Op.eq]: 13 },
+                      { [Op.gte]: 4 },
+                      { [Op.lte]: 15 }
+                    ]
+                  },
+                  [Op.and]: [
+                    {
+                      something: {
+                        [Op.gte]: 4
+                      }
+                    },
+                    {
+                      something: {
+                        [Op.lte]: 15
+                      }
+                    }
+                  ]
+                }
+              }
+            )
+          );
+        });
+
+        it('should keep nested OR conditions when merging', () => {
+          expect(
+            inspect(
+              User.scope([
+                { method: ['somethingWithNestedOr'] },
+                { method: ['somethingAnotherWithNestedOr'] },
+                { method: ['something'] },
+                { method: ['somethingAnotherCondition'] }
+              ])._scope
+            )
+          ).to.equal(
+            inspect(
+              {
+                where: {
+                  something: {
+                    [Op.and]: [
+                      {
+                        [Op.or]: [
+                          { [Op.gte]: 188 },
+                          { [Op.lte]: 145 }
+                        ],
+                        [Op.gte]: 11
+                      },
+                      {
+                        [Op.or]: [
+                          { [Op.gte]: 5 },
+                          { [Op.lte]: 700 }
+                        ]
+                      },
+                      { [Op.gte]: 4 },
+                      { [Op.lte]: 15 }
+                    ]
+                  }
+                }
+              }
+            )
+          );
+        });
+      });
+    });
+
     describe('attribute exclude / include', () => {
       const User = current.define('user', {
         password: DataTypes.STRING,
