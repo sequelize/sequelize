@@ -91,6 +91,20 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
+    it('should use default internal where', async function() {
+      const user = await this.User.create({ username: 'Balak Bukhara' });
+      const anotherUser = await this.User.create({ username: 'John Smith' });
+
+      const primaryKey = user.get('id');
+
+      await user.reload();
+      expect(user.get('id')).to.equal(primaryKey);
+
+      // options.where should be ignored
+      await user.reload({ where: { id: anotherUser.get('id') } });
+      expect(user.get('id')).to.equal(primaryKey).and.not.equal(anotherUser.get('id'));
+    });
+
     it('should update the values on all references to the DAO', function() {
       return this.User.create({ username: 'John Doe' }).then(originalUser => {
         return this.User.findByPk(originalUser.id).then(updater => {
