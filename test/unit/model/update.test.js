@@ -5,8 +5,7 @@ const chai = require('chai'),
   Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require('../../../lib/data-types'),
-  _ = require('lodash');
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method update', () => {
@@ -20,7 +19,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     beforeEach(function() {
       this.stubUpdate = sinon.stub(current.getQueryInterface(), 'bulkUpdate').resolves([]);
       this.updates = { name: 'Batman', secretValue: '7' };
-      this.cloneUpdates = _.clone(this.updates);
+      this.cloneUpdates = { ...this.updates };
     });
 
     afterEach(function() {

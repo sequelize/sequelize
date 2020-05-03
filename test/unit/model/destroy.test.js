@@ -5,8 +5,7 @@ const chai = require('chai'),
   Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require('../../../lib/data-types'),
-  _ = require('lodash');
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
 
@@ -22,7 +21,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     beforeEach(function() {
       this.deloptions = { where: { secretValue: '1' } };
-      this.cloneOptions = _.clone(this.deloptions);
+      this.cloneOptions = { ...this.deloptions };
       this.stubDelete.resetHistory();
     });
 
