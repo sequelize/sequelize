@@ -37,14 +37,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(sequelize.config.host).to.equal('127.0.0.1');
     });
 
-    it('should set operators aliases on dialect QueryGenerator', () => {
+    it('should set operators aliases on dialect queryGenerator', () => {
       const operatorsAliases = { fake: true };
       const sequelize = Support.createSequelizeInstance({ operatorsAliases });
 
       expect(sequelize).to.have.property('dialect');
-      expect(sequelize.dialect).to.have.property('QueryGenerator');
-      expect(sequelize.dialect.QueryGenerator).to.have.property('OperatorsAliasMap');
-      expect(sequelize.dialect.QueryGenerator.OperatorsAliasMap).to.be.eql(operatorsAliases);
+      expect(sequelize.dialect).to.have.property('queryGenerator');
+      expect(sequelize.dialect.queryGenerator).to.have.property('OperatorsAliasMap');
+      expect(sequelize.dialect.queryGenerator.OperatorsAliasMap).to.be.eql(operatorsAliases);
     });
 
     if (dialect === 'sqlite') {
@@ -1335,7 +1335,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             const TransactionTest = this.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false });
 
             const count = transaction => {
-              const sql = this.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
+              const sql = this.sequelizeWithTransaction.getQueryInterface().queryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
 
               return this.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then(result => {
                 return result.cnt;
@@ -1363,7 +1363,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             const aliasesMapping = new Map([['_0', 'cnt']]);
 
             const count = transaction => {
-              const sql = this.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
+              const sql = this.sequelizeWithTransaction.getQueryInterface().queryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
 
               return this.sequelizeWithTransaction.query(sql, { plain: true, transaction, aliasesMapping  }).then(result => {
                 return parseInt(result.cnt, 10);

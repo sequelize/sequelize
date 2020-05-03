@@ -59,6 +59,7 @@
     "dtslint": "^3.4.2",
     "env-cmd": "^10.1.0",
     "esdoc": "^1.1.0",
+    "esdoc-ecmascript-proposal-plugin": "^1.0.0",
     "esdoc-inject-style-plugin": "^1.0.0",
     "esdoc-standard-plugin": "^1.0.0",
     "eslint": "^6.8.0",
