@@ -1047,7 +1047,7 @@ if (dialect.match(/^postgres/)) {
     describe('[POSTGRES] Unquoted identifiers', () => {
       it('can insert and select', function() {
         this.sequelize.options.quoteIdentifiers = false;
-        this.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = false;
+        this.sequelize.getQueryInterface().queryGenerator.options.quoteIdentifiers = false;
 
         this.User = this.sequelize.define('Userxs', {
           username: DataTypes.STRING,
@@ -1082,7 +1082,7 @@ if (dialect.match(/^postgres/)) {
                   })
                   .then(count => {
                     this.sequelize.options.quoteIndentifiers = true;
-                    this.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = true;
+                    this.sequelize.getQueryInterface().queryGenerator.options.quoteIdentifiers = true;
                     this.sequelize.options.logging = false;
                     expect(count).to.equal(1);
                   });
@@ -1093,7 +1093,7 @@ if (dialect.match(/^postgres/)) {
 
       it('can select nested include', function() {
         this.sequelize.options.quoteIdentifiers = false;
-        this.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = false;
+        this.sequelize.getQueryInterface().queryGenerator.options.quoteIdentifiers = false;
         this.Professor = this.sequelize.define('Professor', {
           fullName: DataTypes.STRING
         }, {
@@ -1225,7 +1225,7 @@ if (dialect.match(/^postgres/)) {
             expect(professors[0].Classes[0].Students.length).to.eql(3);
           })
           .finally(() => {
-            this.sequelize.getQueryInterface().QueryGenerator.options.quoteIdentifiers = true;
+            this.sequelize.getQueryInterface().queryGenerator.options.quoteIdentifiers = true;
           });
       });
     });

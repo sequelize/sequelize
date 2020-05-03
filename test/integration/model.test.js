@@ -1361,7 +1361,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(users.length).to.equal(1);
       expect(users[0].username).to.equal('Bob');
 
-      const queryGenerator = this.sequelize.queryInterface.QueryGenerator;
+      const queryGenerator = this.sequelize.queryInterface.queryGenerator;
       const qi = queryGenerator.quoteIdentifier.bind(queryGenerator);
       const query = `SELECT * FROM ${qi('ParanoidUsers')} WHERE ${qi('deletedAt')} IS NOT NULL ORDER BY ${qi('id')}`;
       [users] = await this.sequelize.query(query);
@@ -2382,7 +2382,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not fail with an include', function() {
       return this.User.findAll({
-        where: this.sequelize.literal(`${this.sequelize.queryInterface.QueryGenerator.quoteIdentifiers('Projects.title')} = ${this.sequelize.queryInterface.QueryGenerator.escape('republic')}`),
+        where: this.sequelize.literal(`${this.sequelize.queryInterface.queryGenerator.quoteIdentifiers('Projects.title')} = ${this.sequelize.queryInterface.queryGenerator.escape('republic')}`),
         include: [
           { model: this.Project }
         ]
@@ -2395,11 +2395,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should not overwrite a specified deletedAt by setting paranoid: false', function() {
       let tableName = '';
       if (this.User.name) {
-        tableName = `${this.sequelize.queryInterface.QueryGenerator.quoteIdentifier(this.User.name)}.`;
+        tableName = `${this.sequelize.queryInterface.queryGenerator.quoteIdentifier(this.User.name)}.`;
       }
       return this.User.findAll({
         paranoid: false,
-        where: this.sequelize.literal(`${tableName + this.sequelize.queryInterface.QueryGenerator.quoteIdentifier('deletedAt')} IS NOT NULL `),
+        where: this.sequelize.literal(`${tableName + this.sequelize.queryInterface.queryGenerator.quoteIdentifier('deletedAt')} IS NOT NULL `),
         include: [
           { model: this.Project }
         ]
