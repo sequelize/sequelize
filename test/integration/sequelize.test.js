@@ -62,12 +62,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     if (dialect === 'postgres') {
       const getConnectionUri = o => `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}`;
       it('should work with connection strings (postgres protocol)', () => {
-        const connectionUri = getConnectionUri(Object.assign(config[dialect], { protocol: 'postgres' }));
+        const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgres' });
         // postgres://...
         new Sequelize(connectionUri);
       });
       it('should work with connection strings (postgresql protocol)', () => {
-        const connectionUri = getConnectionUri(Object.assign(config[dialect], { protocol: 'postgresql' }));
+        const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgresql' });
         // postgresql://...
         new Sequelize(connectionUri);
       });
@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       describe('with an invalid connection', () => {
         beforeEach(function() {
-          const options = Object.assign({}, this.sequelize.options, { port: '99999' });
+          const options = { ...this.sequelize.options, port: '99999' };
           this.sequelizeWithInvalidConnection = new Sequelize('wat', 'trololo', 'wow', options);
         });
 
@@ -341,7 +341,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           }, {
             timestamps: false
           });
-  
+
           return this.User.sync({ force: true });
         });
         it('add parameters in log sql', function() {
@@ -365,7 +365,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(updateSql).to.match(/; ("li", 1|{"(\$1|0)":"li","(\$2|1)":1})/);
           });
         });
-  
+
         it('add parameters in log sql when use bind value', function() {
           let logSql;
           const typeCast = dialect === 'postgres' ? '::text' : '';
@@ -375,7 +375,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             });
         });
       });
-      
+
     });
 
     it('executes select queries correctly', function() {
