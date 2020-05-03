@@ -1985,11 +1985,9 @@ class Model {
     options = Utils.cloneDeep(options);
 
     if (options.limit === undefined) {
-      const uniqueSingleColumns = _.chain(this.uniqueKeys)
-        .values()
+      const uniqueSingleColumns = Object.values(this.uniqueKeys)
         .filter(c => c.fields.length === 1)
-        .map('column')
-        .value();
+        .map(c => c.column);
 
       // Don't add limit if querying directly on the pk or a unique column
       if (
@@ -2807,14 +2805,13 @@ class Model {
         if (options.updateOnDuplicate) {
           options.updateOnDuplicate = options.updateOnDuplicate.map(attr => model.rawAttributes[attr].field || attr);
           // Get primary keys for postgres to enable updateOnDuplicate
-          options.upsertKeys = _.chain(model.primaryKeys).values().map('field').value();
           if (Object.keys(model.uniqueKeys).length > 0) {
-            options.upsertKeys = _.chain(model.uniqueKeys)
-              .values()
+            options.upsertKeys = Object.values(model.uniqueKeys)
               .filter(c => c.fields.length >= 1)
               .map(c => c.fields)
-              .reduce(c => c[0])
-              .value();
+              .reduce((next, prev) => next.concat(prev), []);
+          } else {
+            options.upsertKeys = Object.values(model.primaryKeys).map(k => k.field);
           }
         }
 
