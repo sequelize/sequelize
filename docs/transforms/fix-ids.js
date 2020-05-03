@@ -1,46 +1,55 @@
 'use strict';
 
+const _ = require('lodash');
+const assert = require('assert');
+
 module.exports = function transform($, filePath) {
 
-  if (!filePath.endsWith('assocs.html')) {
-    return;
+  // Detect every heading with an ID
+  const headingsWithId = $('h1,h2,h3,h4,h5').filter('[id]');
+
+  // Find duplicate IDs among them
+  const headingsWithDuplicateId = _.chain(headingsWithId)
+    .groupBy(h => $(h).attr('id'))
+    .filter(g => g.length > 1)
+    .value();
+
+  // console.log(headingsWithDuplicateId);
+
+  // Replace their IDs with the following rule
+  // #original-header --> #original-header
+  // #original-header --> #original-header-2
+  // #original-header --> #original-header-3
+  for (const group of headingsWithDuplicateId) {
+    const id = $(group[0]).attr('id');
+
+    // Fix the headings
+    for (const ith in group) {
+      const heading = group[ith];
+      if (ith > 0) {
+        const newId = `${id}-${Number(ith) + 1}`;
+        $(heading).attr('id', newId);
+      }
+    }
+
+    // Find the corresponding nav links
+    const urlPath = filePath.replace('esdoc/', '');
+    const navLinks = $(`li[data-ice="manualNav"] > a[href="${urlPath}#${id}"]`);
+    // console.log(navLinks);
+
+    // make sure there are same number of headings and links
+    assert(group.length === navLinks.length,
+      `not every heading is linked to in nav:
+      ${group.length} headings but ${navLinks.length} links
+      heading id is ${id} in file ${filePath}`);
+
+    // Fix the nav links
+    for (const ith in navLinks) {
+      const link = navLinks[ith];
+      if (ith > 0) {
+        const newId = `${id}-${Number(ith) + 1}`;
+        $(link).attr('href', `${urlPath}#${newId}`);
+      }
+    }
   }
-
-  let target;
-
-  // Change id of later synonymous headers
-  const oneToManyHeader = $('#one-to-many-relationships');
-  const manyToManyHeader = $('#many-to-many-relationships');
-  
-  target = oneToManyHeader.nextUntil(manyToManyHeader, '#philosophy');
-  target.attr('id', 'philosophy-1');
-  target = oneToManyHeader.nextUntil(manyToManyHeader, '#goal');
-  target.attr('id', 'goal-1');
-  target = oneToManyHeader.nextUntil(manyToManyHeader, '#implementation');
-  target.attr('id', 'implementation-1');
-  target = oneToManyHeader.nextUntil(manyToManyHeader, '#options');
-  target.attr('id', 'options-1');
-
-  target = manyToManyHeader.nextAll('#philosophy');
-  target.attr('id', 'philosophy-2');
-  target = manyToManyHeader.nextAll('#goal');
-  target.attr('id', 'goal-2');
-  target = manyToManyHeader.nextAll('#implementation');
-  target.attr('id', 'implementation-2');
-  target = manyToManyHeader.nextAll('#options');
-  target.attr('id', 'options-2');
-
-  // Change links in nav
-  target = $('a[href="manual/assocs.html#philosophy"]');
-  $( target.get(1) ).attr('href', 'manual/assocs.html#philosophy-1');
-  $( target.get(2) ).attr('href', 'manual/assocs.html#philosophy-2');
-  target = $('a[href="manual/assocs.html#goal"]');
-  $( target.get(1) ).attr('href', 'manual/assocs.html#goal-1');
-  $( target.get(2) ).attr('href', 'manual/assocs.html#goal-2');
-  target = $('a[href="manual/assocs.html#implementation"]');
-  $( target.get(1) ).attr('href', 'manual/assocs.html#implementation-1');
-  $( target.get(2) ).attr('href', 'manual/assocs.html#implementation-2');
-  target = $('a[href="manual/assocs.html#options"]');
-  $( target.get(1) ).attr('href', 'manual/assocs.html#options-1');
-  $( target.get(2) ).attr('href', 'manual/assocs.html#options-2');
 };
