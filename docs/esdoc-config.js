@@ -10,6 +10,12 @@ module.exports = {
   includes: ['\\.js$'],
   plugins: [
     {
+      name: 'esdoc-ecmascript-proposal-plugin',
+      option: {
+        all: true
+      }
+    },
+    {
       name: 'esdoc-inject-style-plugin',
       option: {
         enable: true,
