@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           const task = await this.Tasks.create({ title: 'New Task' });
 
           try {
-            return await project.setTask(task);
+            await project.setTask(task);
           } catch (err) {
             expect(err).to.be.instanceOf(Error);
           }
@@ -210,7 +210,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           const project = await this.Projects.create({ title: 'New Project' });
           const task = await this.Tasks.create({ title: 'New Task' });
 
-          return expect(project.setTask(task)).to.be.rejected;
+          await expect(project.setTask(task)).to.be.rejected;
         });
       });
 
@@ -272,7 +272,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             const task = await this.Tasks.create({ title: 'New Task' });
 
             try {
-              return await project.addTask(task);
+              await project.addTask(task);
             } catch (err) {
               expect(err).to.be.instanceOf(Error);
               expect(beforeProject).to.have.been.calledOnce;
@@ -357,7 +357,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             await project.addTask(task);
 
             try {
-              return await project.destroy();
+              await project.destroy();
             } catch (err) {
               expect(err).to.be.instanceOf(Error);
               expect(beforeProject).to.be.true;
@@ -437,7 +437,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             const task = await this.Tasks.create({ title: 'New Task' });
 
             try {
-              return await project.addTask(task);
+              await project.addTask(task);
             } catch (err) {
               expect(err).to.be.instanceOf(Error);
               expect(beforeProject).to.be.true;
@@ -733,7 +733,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 ]);
 
                 const project = await project0.addMiniTask(minitask);
-                return await project.destroy();
+                await project.destroy();
               } catch (err) {
                 expect(beforeProject).to.be.true;
                 expect(afterProject).to.be.true;

@@ -636,7 +636,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
           await this.Event.destroy(conditionSearch);
 
-          return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
+          await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
         });
       });
 
@@ -648,8 +648,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.sequelize.sync({ force: true });
         });
 
-        it('should properly escape the single quotes', function() {
-          return this.Model.create({
+        it('should properly escape the single quotes', async function() {
+          await this.Model.create({
             data: {
               type: 'Point',
               properties: {
@@ -659,8 +659,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should properly escape path keys', function() {
-          return this.Model.findAll({
+        it('should properly escape path keys', async function() {
+          await this.Model.findAll({
             raw: true,
             attributes: ['id'],
             where: {
@@ -671,16 +671,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should properly escape path keys with sequelize.json', function() {
-          return this.Model.findAll({
+        it('should properly escape path keys with sequelize.json', async function() {
+          await this.Model.findAll({
             raw: true,
             attributes: ['id'],
             where: this.sequelize.json("data.id')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ", '1')
           });
         });
 
-        it('should properly escape the single quotes in array', function() {
-          return this.Model.create({
+        it('should properly escape the single quotes in array', async function() {
+          await this.Model.create({
             data: {
               type: 'Point',
               coordinates: [39.807222, "'); DELETE YOLO INJECTIONS; --"]
@@ -770,7 +770,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           }
           if (current.options.dialect === 'postgres') {
-            return expect(this.Event.findAll({
+            await expect(this.Event.findAll({
               where: {
                 data: {
                   name: {

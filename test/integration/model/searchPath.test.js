@@ -71,8 +71,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('enum case', () => {
-        it('able to refresh enum when searchPath is used', function() {
-          return this.Location.sync({ force: true });
+        it('able to refresh enum when searchPath is used', async function() {
+          await this.Location.sync({ force: true });
         });
       });
 
@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const Restaurant = this.Restaurant;
 
           try {
-            return await Restaurant.create({
+            await Restaurant.create({
               foo: 'test'
             }, { searchPath: SEARCH_PATH_TWO });
           } catch (err) {
@@ -448,7 +448,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               .then(rnt => rnt.update({ bar: 'x.2' }, { searchPath: SEARCH_PATH_TWO }))
           ]);
 
-          return Promise.all([
+          await Promise.all([
             (async () => {
               const restaurantsOne = await Restaurant.findAll({
                 where: { bar: 'x.1' },

@@ -196,7 +196,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      return User.findOne({
+      await User.findOne({
         include: [
           {
             model: SubscriptionForm,
@@ -276,7 +276,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         })
       ]);
 
-      return Set.findAll({
+      await Set.findAll({
         include: [{
           model: Product,
           include: [{
@@ -1343,7 +1343,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await parent0.addChild1(child);
       const parent = parent0;
 
-      return Child1.findOne({
+      await Child1.findOne({
         include: [
           {
             model: Parent,
@@ -1703,7 +1703,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      return Person.findAll({
+      await Person.findAll({
         offset: 0,
         limit: 20,
         attributes: ['id', 'name'],
@@ -1731,7 +1731,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      return User.findAll({
+      await User.findAll({
         include: [
           { model: Group, where: {} },
           { model: Company, where: {} }
@@ -1996,7 +1996,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      return Shipment.findOne({
+      await Shipment.findOne({
         include: [{
           model: Order,
           required: true,

@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         expect(associatedUser0).not.to.be.null;
         expect(associatedUser0.id).to.equal(user.id);
         expect(associatedUser0.id).not.to.equal(fakeUser.id);
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -145,7 +145,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const groups = await Group.findAll();
         const associatedUser = await groups[0].getUser();
         expect(associatedUser).to.be.null;
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -198,7 +198,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       await expect(Task.create({ title: 'task', UserXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
       const task = await Task.create({ title: 'task' });
 
-      return expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      await expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
     });
 
     it('supports passing the primary key instead of an object', async function() {
@@ -260,7 +260,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       ctx.user = user;
       await user.setHome(home);
       await ctx.user.setHome(ctx.home);
-      return expect(ctx.user.getHome()).to.eventually.have.property('id', ctx.home.get('id'));
+      await expect(ctx.user.getHome()).to.eventually.have.property('id', ctx.home.get('id'));
     });
   });
 
@@ -297,7 +297,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const users0 = await User.findAll({ transaction: t });
         const group0 = await users0[0].getGroup({ transaction: t });
         expect(group0).to.be.not.null;
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -435,7 +435,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       await Task.sync({ force: true });
       const user = await User.create({ username: 'foo' });
 
-      return user.destroy();
+      await user.destroy();
     });
 
     // NOTE: mssql does not support changing an autoincrement primary key
@@ -615,7 +615,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         dataTypes = [Sequelize.INTEGER, Sequelize.BIGINT, Sequelize.STRING],
         Tasks = {};
 
-      return Promise.all(dataTypes.map(async dataType => {
+      await Promise.all(dataTypes.map(async dataType => {
         const tableName = `TaskXYZ_${dataType.key}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: Sequelize.STRING });
 

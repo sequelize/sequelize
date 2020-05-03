@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to unscope destroy', async function() {
         await this.ScopeMe.unscoped().destroy({ where: {} });
-        return expect(this.ScopeMe.unscoped().findAll()).to.eventually.have.length(0);
+        await expect(this.ScopeMe.unscoped().findAll()).to.eventually.have.length(0);
       });
 
       it('should be able to apply other scopes', async function() {

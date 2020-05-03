@@ -27,16 +27,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('sum', () => {
 
-    it('should sum without rows', function() {
-      return expect(this.Payment.sum('amount', { where: { mood: 'sad' } })).to.eventually.be.equal(0);
+    it('should sum without rows', async function() {
+      await expect(this.Payment.sum('amount', { where: { mood: 'sad' } })).to.eventually.be.equal(0);
     });
 
-    it('should sum when is 0', function() {
-      return expect(this.Payment.sum('amount', { where: { mood: 'neutral' } })).to.eventually.be.equal(0);
+    it('should sum when is 0', async function() {
+      await expect(this.Payment.sum('amount', { where: { mood: 'neutral' } })).to.eventually.be.equal(0);
     });
 
-    it('should sum', function() {
-      return expect(this.Payment.sum('amount', { where: { mood: 'happy' } })).to.eventually.be.equal(100);
+    it('should sum', async function() {
+      await expect(this.Payment.sum('amount', { where: { mood: 'happy' } })).to.eventually.be.equal(100);
     });
   });
 });

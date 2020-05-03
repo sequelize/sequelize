@@ -50,7 +50,7 @@ if (dialect.match(/^postgres/)) {
           period: [new Date(2015, 0, 1), new Date(2015, 0, 3)]
         });
 
-      return expect(Booking
+      await expect(Booking
         .create({
           roomNo: 1,
           guestName: 'Frequent Visitor',

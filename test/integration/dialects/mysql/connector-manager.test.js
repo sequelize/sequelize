@@ -21,8 +21,7 @@ if (dialect === 'mysql') {
         }
       });
 
-      // https://github.com/sequelize/sequelize/issues/7184
-      return affectedCount.should.equal(1);
+      await affectedCount.should.equal(1);
     });
 
     it('should acquire a valid connection when keepDefaultTimezone is true', async () => {
@@ -34,7 +33,7 @@ if (dialect === 'mysql') {
 
       const connection = await cm.getConnection();
       expect(cm.validate(connection)).to.be.ok;
-      return cm.releaseConnection(connection);
+      await cm.releaseConnection(connection);
     });
   });
 }

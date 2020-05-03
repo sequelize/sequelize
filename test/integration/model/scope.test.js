@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(records).to.have.length(2);
       expect(records[0].get('access_level')).to.equal(3);
       expect(records[1].get('access_level')).to.equal(3);
-      return this.ScopeMe.scope('issue8473').findAll();
+      await this.ScopeMe.scope('issue8473').findAll();
     });
 
     it('should not throw error with sequelize.where', async function() {

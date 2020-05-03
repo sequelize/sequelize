@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { username: 'bar' }
       ]);
 
-      return expect(this.User.count()).to.eventually.equal(2);
+      await expect(this.User.count()).to.eventually.equal(2);
     });
 
     it('should support include', async function() {
@@ -39,7 +39,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       const user = await this.User.findOne();
       await user.createProject({ name: 'project1' });
-      return expect(this.User.count({
+
+      await expect(this.User.count({
         include: [{
           model: this.Project,
           where: { name: 'project1' }

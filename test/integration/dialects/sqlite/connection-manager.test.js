@@ -52,7 +52,7 @@ if (dialect === 'sqlite') {
       expect(jetpack.exists(`${fileName}-shm`), 'shm file exists').to.be.false;
       expect(jetpack.exists(`${fileName}-wal`), 'wal file exists').to.be.false;
 
-      return this.sequelize.query('PRAGMA journal_mode = DELETE');
+      await this.sequelize.query('PRAGMA journal_mode = DELETE');
     });
 
     it('automatic path provision for `options.storage`', async () => {

@@ -67,7 +67,7 @@ describe('[MariaDB Specific] DAO', () => {
         expect(user.aNumber).to.equal('9223372036854775807');
         const _user = await User.findOne({ where: { aNumber: '9223372036854775807' } });
 
-        return expect(_user.aNumber.toString()).to.equal('9223372036854775807');
+        await expect(_user.aNumber.toString()).to.equal('9223372036854775807');
       });
 
       it('negative', async function() {
@@ -79,7 +79,7 @@ describe('[MariaDB Specific] DAO', () => {
         const _user = await User.findOne(
           { where: { aNumber: '-9223372036854775807' } });
 
-        return expect(_user.aNumber.toString()).to.equal('-9223372036854775807');
+        await expect(_user.aNumber.toString()).to.equal('-9223372036854775807');
       });
     });
   });

@@ -51,21 +51,21 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       expect(_validateAndRunHooks).to.not.have.been.called;
     });
 
-    it('fulfills when validation is successful', function() {
+    it('fulfills when validation is successful', async function() {
       const instanceValidator = new InstanceValidator(this.User.build());
       const result = instanceValidator.validate();
 
-      return expect(result).to.be.fulfilled;
+      await expect(result).to.be.fulfilled;
     });
 
-    it('rejects with a validation error when validation fails', function() {
+    it('rejects with a validation error when validation fails', async function() {
       const instanceValidator = new InstanceValidator(this.User.build({ fails: true }));
       const result = instanceValidator.validate();
 
-      return expect(result).to.be.rejectedWith(SequelizeValidationError);
+      await expect(result).to.be.rejectedWith(SequelizeValidationError);
     });
 
-    it('has a useful default error message for not null validation failures', () => {
+    it('has a useful default error message for not null validation failures', async () => {
       const User = Support.sequelize.define('user', {
         name: {
           type: Support.Sequelize.STRING,
@@ -76,7 +76,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       const instanceValidator = new InstanceValidator(User.build());
       const result = instanceValidator.validate();
 
-      return expect(result).to.be.rejectedWith(SequelizeValidationError, /user\.name cannot be null/);
+      await expect(result).to.be.rejectedWith(SequelizeValidationError, /user\.name cannot be null/);
     });
   });
 
@@ -110,12 +110,12 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       expect(afterValidate).to.not.have.been.called;
     });
 
-    it('should emit an error from after hook when afterValidate fails', function() {
+    it('should emit an error from after hook when afterValidate fails', async function() {
       this.User.afterValidate(() => {
         throw new Error('after validation error');
       });
 
-      return expect(this.successfulInstanceValidator._validateAndRunHooks()).to.be.rejectedWith('after validation error');
+      await expect(this.successfulInstanceValidator._validateAndRunHooks()).to.be.rejectedWith('after validation error');
     });
 
     describe('validatedFailed hook', () => {

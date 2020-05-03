@@ -46,7 +46,8 @@ if (dialect === 'mysql') {
         ctx.user1 = user1;
         ctx.task1 = task1;
         await user1.setTasks([task1]);
-        return Promise.all([
+
+        await Promise.all([
           validateError(ctx.user1.destroy(), Sequelize.ForeignKeyConstraintError, {
             fields: ['userId'],
             table: 'users',
@@ -66,7 +67,8 @@ if (dialect === 'mysql') {
 
       it('in context of missing relation', async function() {
         await this.sequelize.sync({ force: true });
-        return validateError(
+
+        await validateError(
           this.Task.create({ title: 'task', primaryUserId: 5 }),
           Sequelize.ForeignKeyConstraintError,
           {

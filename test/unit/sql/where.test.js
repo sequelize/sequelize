@@ -20,9 +20,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(util.inspect(params, { depth: 10 }) + (options && `, ${util.inspect(options)}` || ''), () => {
+      it(util.inspect(params, { depth: 10 }) + (options && `, ${util.inspect(options)}` || ''), async () => {
         const sqlOrError = _.attempt(sql.whereQuery.bind(sql), params, options);
-        return expectsql(sqlOrError, expectation);
+        await expectsql(sqlOrError, expectation);
       });
     };
 
@@ -103,8 +103,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(`${String(key)}: ${util.inspect(value, { depth: 10 })}${options && `, ${util.inspect(options)}` || ''}`, () => {
-        return expectsql(sql.whereItemQuery(key, value, options), expectation);
+      it(`${String(key)}: ${util.inspect(value, { depth: 10 })}${options && `, ${util.inspect(options)}` || ''}`, async () => {
+        await expectsql(sql.whereItemQuery(key, value, options), expectation);
       });
     };
 
@@ -1199,8 +1199,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = function(value, expectation) {
       const User = current.define('user', {});
 
-      it(util.inspect(value, { depth: 10 }), () => {
-        return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
+      it(util.inspect(value, { depth: 10 }), async () => {
+        await expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
       });
     };
 

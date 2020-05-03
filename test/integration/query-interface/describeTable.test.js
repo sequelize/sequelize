@@ -35,12 +35,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         const metadata = await this.queryInterface.describeTable('my_tables');
         expect(metadata.username1).not.to.be.undefined;
 
-        return this.sequelize.dropSchema('test_meta');
+        await this.sequelize.dropSchema('test_meta');
       });
     }
 
-    it('rejects when no data is available', function() {
-      return expect(
+    it('rejects when no data is available', async function() {
+      await expect(
         this.queryInterface.describeTable('_some_random_missing_table')
       ).to.be.rejectedWith('No description found for "_some_random_missing_table" table. Check the table name and schema; remember, they _are_ case sensitive.');
     });

@@ -335,8 +335,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.sequelize.sync({ force: true });
       });
 
-      it('should properly escape the single quotes', function() {
-        return this.Model.create({
+      it('should properly escape the single quotes', async function() {
+        await this.Model.create({
           location: {
             type: 'Point',
             properties: {

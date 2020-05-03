@@ -15,7 +15,7 @@ if (dialect.match(/^mariadb/)) {
         await this.sequelize.getQueryInterface().createDatabase('myDB');
         const databases = await this.sequelize.query('SHOW DATABASES');
         expect(databases[0]).to.have.length(databaseNumber + 1);
-        return this.sequelize.getQueryInterface().dropDatabase('myDB');
+        await this.sequelize.getQueryInterface().dropDatabase('myDB');
       });
     });
   });

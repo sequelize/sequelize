@@ -118,7 +118,8 @@ if (current.dialect.supports.transactions) {
           const t1 = await this.sequelize.transaction();
           const t2 = await this.sequelize.transaction();
           await this.Model.create({ name: 'omnom' }, { transaction: t1 });
-          return Promise.all([
+
+          await Promise.all([
             (async () => {
               try {
                 return await this.Model.create({ name: 'omnom' }, { transaction: t2 });

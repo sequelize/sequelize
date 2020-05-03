@@ -835,8 +835,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(result[0].Item.test).to.eql('def');
     });
 
-    it('should support Sequelize.or()', function() {
-      return expect(this.User.findAll({
+    it('should support Sequelize.or()', async function() {
+      await expect(this.User.findAll({
         include: [
           { model: this.Item, where: Sequelize.or({
             test: 'def'
@@ -882,7 +882,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
       const questionnaire = await Questionnaire.create();
 
-      return questionnaire.getQuestions({
+      await questionnaire.getQuestions({
         include: Answer
       });
     });

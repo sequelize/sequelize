@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const articles = await ctx.Article.findAll({ transaction: ctx.t });
         const labels = await articles[0].getLabels({ transaction: ctx.t });
         expect(labels).to.have.length(1);
-        return ctx.t.rollback();
+        await ctx.t.rollback();
       });
     }
 
@@ -243,7 +243,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         where: {}
       });
 
-      return user.getGroups();
+      await user.getGroups();
     });
 
     it('supports primary key attributes with different field and attribute names', async function() {
@@ -974,7 +974,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const [user, group, company] = await Promise.all([User.create(), Group.create(), Company.create()]);
       await Promise.all([user.setCompany(company), company.addGroup(group)]);
 
-      return Promise.all([User.findOne({
+      await Promise.all([User.findOne({
         where: {},
         include: [
           { model: Company, include: [Group] }
@@ -1070,7 +1070,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(hasLabel1).to.be.false;
         expect(hasLabel2).to.be.true;
 
-        return ctx.t.rollback();
+        await ctx.t.rollback();
       });
     }
 
@@ -1175,7 +1175,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       const result = await article.hasLabels([label1, label2]);
 
-      return expect(result).to.be.true;
+      await expect(result).to.be.true;
     });
 
     it('answers true for labels that have been assigned multitple times when passing a primary key instead of an object', async function() {
@@ -1224,7 +1224,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         label2[this.Label.primaryKeyAttribute]
       ]);
 
-      return expect(result).to.be.true;
+      await expect(result).to.be.true;
     });
   });
 
@@ -1270,7 +1270,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       ]);
 
       const result = await article.hasLabels([label]);
-      return expect(result).to.be.true;
+      await expect(result).to.be.true;
     });
 
     it('answer false for labels that have not been assigned', async function() {
@@ -1284,7 +1284,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       ]);
 
       const result = await article.hasLabels([label]);
-      return expect(result).to.be.false;
+      await expect(result).to.be.false;
     });
   });
 
@@ -1657,7 +1657,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         const users = await ctx.task.getUsers({ transaction: ctx.t });
         expect(users).to.have.length(1);
-        return ctx.t.rollback();
+        await ctx.t.rollback();
       });
     }
 
@@ -1763,7 +1763,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(hasUser0).to.be.false;
         const hasUser = await ctx.task.hasUser(ctx.user, { transaction: ctx.t });
         expect(hasUser).to.be.true;
-        return ctx.t.rollback();
+        await ctx.t.rollback();
       });
 
       it('supports transactions when updating a through model', async function() {
@@ -1803,7 +1803,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(tasks[0].UserTask.status).to.equal('pending');
         expect(transactionTasks[0].UserTask.status).to.equal('completed');
 
-        return ctx.t.rollback();
+        await ctx.t.rollback();
       });
     }
 
@@ -1828,7 +1828,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
 
-    it('should not pass indexes to the join table', function() {
+    it('should not pass indexes to the join table', async function() {
       const User = this.sequelize.define(
         'User',
         { username: DataTypes.STRING },
@@ -1857,7 +1857,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       //create associations
       User.belongsToMany(Task, { through: 'UserTasks' });
       Task.belongsToMany(User, { through: 'UserTasks' });
-      return this.sequelize.sync({ force: true });
+      await this.sequelize.sync({ force: true });
     });
 
     it('should catch EmptyResultError when rejectOnEmpty is set', async function() {
@@ -2014,16 +2014,16 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       this.employee = employee;
     });
 
-    it('runs on add', function() {
-      return expect(this.project.addParticipant(this.employee, { through: { role: '' } })).to.be.rejected;
+    it('runs on add', async function() {
+      await expect(this.project.addParticipant(this.employee, { through: { role: '' } })).to.be.rejected;
     });
 
-    it('runs on set', function() {
-      return expect(this.project.setParticipants([this.employee], { through: { role: '' } })).to.be.rejected;
+    it('runs on set', async function() {
+      await expect(this.project.setParticipants([this.employee], { through: { role: '' } })).to.be.rejected;
     });
 
-    it('runs on create', function() {
-      return expect(this.project.createParticipant({ name: 'employee 2' }, { through: { role: '' } })).to.be.rejected;
+    it('runs on create', async function() {
+      await expect(this.project.createParticipant({ name: 'employee 2' }, { through: { role: '' } })).to.be.rejected;
     });
   });
 
@@ -2091,7 +2091,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       return this.sequelize.sync({ force: true });
     });
 
-    it('should work with non integer primary keys', function() {
+    it('should work with non integer primary keys', async function() {
       const Beacons = this.sequelize.define('Beacon', {
         id: {
           primaryKey: true,
@@ -2113,7 +2113,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Beacons.belongsToMany(Users, { through: 'UserBeacons' });
       Users.belongsToMany(Beacons, { through: 'UserBeacons' });
 
-      return this.sequelize.sync({ force: true });
+      await this.sequelize.sync({ force: true });
     });
 
     it('makes join table non-paranoid by default', () => {
@@ -2614,7 +2614,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           ctx.worker = worker;
           await Task.create({ id: 7331 });
           await ctx.worker.addTask(ctx.task);
-          return ctx.worker.addTask(ctx.task);
+          await ctx.worker.addTask(ctx.task);
         });
 
         it('should be able to add twice (second call result in UPDATE call) with custom primary keys and without any attributes (and timestamps off) on the through model', async function() {
@@ -2653,7 +2653,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           const task = await Task.create({ id: 7331 });
           ctx.task = task;
           await ctx.worker.addTask(ctx.task);
-          return ctx.worker.addTask(ctx.task);
+          await ctx.worker.addTask(ctx.task);
         });
 
         it('should be able to create an instance along with its many-to-many association which has an extra column in the junction table', async function() {
@@ -2741,7 +2741,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           await worker0.setTasks(tasks0);
           const [worker, tasks] = [worker0, tasks0];
 
-          return worker.setTasks(tasks);
+          await worker.setTasks(tasks);
         });
       });
 
@@ -2966,7 +2966,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await u2.save();
         await p1.setUsers([u1]);
 
-        return p1.setOwners([u2]);
+        await p1.setOwners([u2]);
       });
     });
   });
@@ -3053,7 +3053,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           task2.setUsers([user2])
         ]);
 
-        return Promise.all([
+        await Promise.all([
           expect(ctx.user1.destroy()).to.have.been.rejectedWith(Sequelize.ForeignKeyConstraintError), // Fails because of RESTRICT constraint
           expect(ctx.task2.destroy()).to.have.been.rejectedWith(Sequelize.ForeignKeyConstraintError)
         ]);
@@ -3209,7 +3209,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         User.create({ name: 'Satya' })
       ]);
 
-      return Promise.all([
+      await Promise.all([
         users[0].addFan(users[1]),
         users[1].addUser(users[2]),
         users[2].addFan(users[0])
@@ -3246,7 +3246,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         User.create({ name: 'Sargrahi' })
       ]);
 
-      return Promise.all([
+      await Promise.all([
         users[0].addFollower(users[1]),
         users[1].addFollower(users[0]),
         users[0].addInvitee(users[1]),

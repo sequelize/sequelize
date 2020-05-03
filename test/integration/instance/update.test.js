@@ -74,7 +74,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const users2 = await User.findAll({ transaction: t });
         expect(users1[0].username).to.equal('foo');
         expect(users2[0].username).to.equal('bar');
-        return t.rollback();
+        await t.rollback();
       });
     }
 

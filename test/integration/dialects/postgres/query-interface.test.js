@@ -120,7 +120,7 @@ if (dialect.match(/^postgres/)) {
         const body = 'return 1;';
         const options = {};
 
-        return Promise.all([
+        await Promise.all([
           // requires functionName
           expect(this.queryInterface.createFunction(null, [{ name: 'test' }], 'integer', 'plpgsql', body, options))
             .to.be.rejectedWith(/createFunction missing some parameters. Did you pass functionName, returnType, language and body/),
@@ -206,8 +206,8 @@ if (dialect.match(/^postgres/)) {
         ).catch(() => {}); // suppress errors.. this could fail if the function is already there.. thats ok.
       });
 
-      it('can drop a function', function() {
-        return expect(
+      it('can drop a function', async function() {
+        await expect(
           // call drop function
           this.queryInterface.dropFunction('droptest', [{ type: 'varchar', name: 'test' }])
             .then(() => { // now call the function we attempted to drop.. if dropFunction worked as expect it should produce an error.
@@ -219,7 +219,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('produces an error when missing expected parameters', async function() {
-        return Promise.all([
+        await Promise.all([
           expect(this.queryInterface.dropFunction())
             .to.be.rejectedWith(/.*requires functionName/),
 

@@ -61,7 +61,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const count2 = await User.count({ transaction });
         expect(count1).to.equal(0);
         expect(count2).to.equal(2);
-        return transaction.rollback();
+        await transaction.rollback();
       });
     }
 
@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await User.sync({ force: true });
 
-      return User.bulkCreate([
+      await User.bulkCreate([
         { name: 'James' }
       ], { validate: true, individualHooks: true });
     });
@@ -132,7 +132,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await User.sync({ force: true });
 
-      return User.bulkCreate([
+      await User.bulkCreate([
         { name: 'James', type: 'A' },
         { name: 'Alan', type: 'Z' }
       ], { individualHooks: true });
@@ -146,7 +146,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await Beer.sync({ force: true });
 
-      return Beer.bulkCreate([{
+      await Beer.bulkCreate([{
         style: 'ipa'
       }], {
         logging(sql) {
@@ -260,7 +260,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await UserWithLength.sync({ force: true });
 
-      return UserWithLength.bulkCreate([{ length: 42 }, { length: 11 }]);
+      await UserWithLength.bulkCreate([{ length: 42 }, { length: 11 }]);
     });
 
     it('stores the current date in createdAt', async function() {
@@ -293,7 +293,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Tasks.sync({ force: true });
 
       try {
-        return await Tasks.bulkCreate([
+        await Tasks.bulkCreate([
           { name: 'foo', code: '123' },
           { code: '1234' },
           { name: 'bar', code: '1' }
@@ -337,7 +337,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await Tasks.sync({ force: true });
 
-      return Tasks.bulkCreate([
+      await Tasks.bulkCreate([
         { name: 'foo', code: '123' },
         { code: '1234' }
       ], { fields: ['code'], validate: true });
@@ -385,7 +385,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.sequelize.createSchema('space1');
       await Dummy.sync({ force: true });
 
-      return Dummy.bulkCreate([
+      await Dummy.bulkCreate([
         { foo: 'a', bar: 'b' },
         { foo: 'c', bar: 'd' }
       ]);
@@ -423,7 +423,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         data.push({ uniqueName: 'Michael', secretValue: '26' });
 
         try {
-          return await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
+          await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
         } catch (err) {
           expect(err.message).to.equal(`${dialect} does not support the ignoreDuplicates option.`);
         }
@@ -641,24 +641,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
 
-        it('should reject for non array updateOnDuplicate option', function() {
+        it('should reject for non array updateOnDuplicate option', async function() {
           const data = [
             { uniqueName: 'Peter', secretValue: '42' },
             { uniqueName: 'Paul', secretValue: '23' }
           ];
 
-          return expect(
+          await expect(
             this.User.bulkCreate(data, { updateOnDuplicate: true })
           ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
         });
 
-        it('should reject for empty array updateOnDuplicate option', function() {
+        it('should reject for empty array updateOnDuplicate option', async function() {
           const data = [
             { uniqueName: 'Peter', secretValue: '42' },
             { uniqueName: 'Paul', secretValue: '23' }
           ];
 
-          return expect(
+          await expect(
             this.User.bulkCreate(data, { updateOnDuplicate: [] })
           ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
         });

@@ -29,13 +29,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       ]);
     });
 
-    it('allow changing attributes via beforeFind #5675', function() {
+    it('allow changing attributes via beforeFind #5675', async function() {
       this.User.beforeFind(options => {
         options.attributes = {
           include: [['id', 'my_id']]
         };
       });
-      return this.User.findAll({});
+      await this.User.findAll({});
     });
 
     describe('on success', () => {
@@ -113,7 +113,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         try {
-          return await this.User.findOne({ where: { username: 'adam' } });
+          await this.User.findOne({ where: { username: 'adam' } });
         } catch (err) {
           expect(err.message).to.equal('Oops!');
         }
@@ -125,7 +125,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         try {
-          return await this.User.findOne({ where: { username: 'adam' } });
+          await this.User.findOne({ where: { username: 'adam' } });
         } catch (err) {
           expect(err.message).to.equal('Oops!');
         }
@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         try {
-          return await this.User.findOne({ where: { username: 'adam' } });
+          await this.User.findOne({ where: { username: 'adam' } });
         } catch (err) {
           expect(err.message).to.equal('Oops!');
         }
@@ -149,7 +149,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         try {
-          return await this.User.findOne({ where: { username: 'adam' } });
+          await this.User.findOne({ where: { username: 'adam' } });
         } catch (err) {
           expect(err.message).to.equal('Oops!');
         }

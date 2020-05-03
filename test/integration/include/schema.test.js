@@ -1218,7 +1218,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         }]
       });
 
-      return this.sequelize.dropSchema('hero');
+      await this.sequelize.dropSchema('hero');
     });
   });
 });

@@ -21,10 +21,10 @@ if (dialect.match(/^mssql/)) {
       return User.create({ username: 'John' });
     });
 
-    it('should queue concurrent requests to a connection', function() {
+    it('should queue concurrent requests to a connection', async function() {
       const User = this.User;
 
-      return expect(this.sequelize.transaction(async t => {
+      await expect(this.sequelize.transaction(async t => {
         return Promise.all([
           User.findOne({
             transaction: t

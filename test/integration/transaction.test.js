@@ -55,8 +55,8 @@ if (current.dialect.supports.transactions) {
     });
 
     describe('autoCallback', () => {
-      it('supports automatically committing', function() {
-        return this.sequelize.transaction(async () => {
+      it('supports automatically committing', async function() {
+        await this.sequelize.transaction(async () => {
           return;
         });
       });
@@ -83,10 +83,11 @@ if (current.dialect.supports.transactions) {
         expect(t.finished).to.be.equal('rollback');
       });
 
-      it('supports running hooks when a transaction is committed', function() {
+      it('supports running hooks when a transaction is committed', async function() {
         const hook = sinon.spy();
         let transaction;
-        return expect((async () => {
+
+        await expect((async () => {
           await this.sequelize.transaction(t => {
             transaction = t;
             transaction.afterCommit(hook);
@@ -170,8 +171,8 @@ if (current.dialect.supports.transactions) {
       })()).to.be.eventually.fulfilled;
     });
 
-    it('does not allow queries after rollback', function() {
-      return expect(
+    it('does not allow queries after rollback', async function() {
+      await expect(
         (async () => {
           const t = await this.sequelize.transaction();
           await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
@@ -181,13 +182,13 @@ if (current.dialect.supports.transactions) {
       ).to.eventually.be.rejected;
     });
 
-    it('should not rollback if connection was not acquired', function() {
+    it('should not rollback if connection was not acquired', async function() {
       this.sinon.stub(this.sequelize.connectionManager, '_connect')
         .returns(new Promise(() => {}));
 
       const transaction = new Transaction(this.sequelize);
 
-      return expect(transaction.rollback())
+      await expect(transaction.rollback())
         .to.eventually.be.rejectedWith('Transaction cannot be rolled back because it never started');
     });
 
@@ -205,8 +206,8 @@ if (current.dialect.supports.transactions) {
       ).to.eventually.be.fulfilled;
     });
 
-    it('does not allow commits after commit', function() {
-      return expect(
+    it('does not allow commits after commit', async function() {
+      await expect(
         (async () => {
           const t = await this.sequelize.transaction();
           await t.commit();
@@ -215,10 +216,11 @@ if (current.dialect.supports.transactions) {
       ).to.be.rejectedWith('Transaction cannot be committed because it has been finished with state: commit');
     });
 
-    it('should run hooks if a non-auto callback transaction is committed', function() {
+    it('should run hooks if a non-auto callback transaction is committed', async function() {
       const hook = sinon.spy();
       let transaction;
-      return expect(
+
+      await expect(
         (async () => {
           try {
             const t = await this.sequelize.transaction();
@@ -240,9 +242,10 @@ if (current.dialect.supports.transactions) {
       ).to.eventually.be.fulfilled;
     });
 
-    it('should not run hooks if a non-auto callback transaction is rolled back', function() {
+    it('should not run hooks if a non-auto callback transaction is rolled back', async function() {
       const hook = sinon.spy();
-      return expect(
+
+      await expect(
         (async () => {
           const t = await this.sequelize.transaction();
           t.afterCommit(hook);
@@ -252,10 +255,11 @@ if (current.dialect.supports.transactions) {
       ).to.eventually.be.fulfilled;
     });
 
-    it('should throw an error if null is passed to afterCommit', function() {
+    it('should throw an error if null is passed to afterCommit', async function() {
       const hook = null;
       let transaction;
-      return expect(
+
+      await expect(
         (async () => {
           try {
             const t = await this.sequelize.transaction();
@@ -275,10 +279,11 @@ if (current.dialect.supports.transactions) {
       ).to.eventually.be.rejectedWith('"fn" must be a function');
     });
 
-    it('should throw an error if undefined is passed to afterCommit', function() {
+    it('should throw an error if undefined is passed to afterCommit', async function() {
       const hook = undefined;
       let transaction;
-      return expect(
+
+      await expect(
         (async () => {
           try {
             const t = await this.sequelize.transaction();
@@ -298,10 +303,11 @@ if (current.dialect.supports.transactions) {
       ).to.eventually.be.rejectedWith('"fn" must be a function');
     });
 
-    it('should throw an error if an object is passed to afterCommit', function() {
+    it('should throw an error if an object is passed to afterCommit', async function() {
       const hook = {};
       let transaction;
-      return expect(
+
+      await expect(
         (async () => {
           try {
             const t = await this.sequelize.transaction();
@@ -321,24 +327,24 @@ if (current.dialect.supports.transactions) {
       ).to.eventually.be.rejectedWith('"fn" must be a function');
     });
 
-    it('does not allow commits after rollback', function() {
-      return expect((async () => {
+    it('does not allow commits after rollback', async function() {
+      await expect((async () => {
         const t = await this.sequelize.transaction();
         await t.rollback();
         return await t.commit();
       })()).to.be.rejectedWith('Transaction cannot be committed because it has been finished with state: rollback');
     });
 
-    it('does not allow rollbacks after commit', function() {
-      return expect((async () => {
+    it('does not allow rollbacks after commit', async function() {
+      await expect((async () => {
         const t = await this.sequelize.transaction();
         await t.commit();
         return await t.rollback();
       })()).to.be.rejectedWith('Transaction cannot be rolled back because it has been finished with state: commit');
     });
 
-    it('does not allow rollbacks after rollback', function() {
-      return expect((async () => {
+    it('does not allow rollbacks after rollback', async function() {
+      await expect((async () => {
         const t = await this.sequelize.transaction();
         await t.rollback();
         return await t.rollback();
@@ -461,7 +467,7 @@ if (current.dialect.supports.transactions) {
         const users = await User.findAll({ transaction: persistentTransaction });
         expect(users.length).to.equal(1);
 
-        return persistentTransaction.commit();
+        await persistentTransaction.commit();
       });
     }
 
@@ -518,18 +524,18 @@ if (current.dialect.supports.transactions) {
           await User.create({ id: null, username: `test ${t.id}` }, { transaction: t });
           return t.commit();
         };
-        return expect(Promise.all([newTransactionFunc(), newTransactionFunc()])).to.be.rejectedWith('SQLITE_BUSY: database is locked');
+        await expect(Promise.all([newTransactionFunc(), newTransactionFunc()])).to.be.rejectedWith('SQLITE_BUSY: database is locked');
       });
 
     }
 
     describe('isolation levels', () => {
-      it('should read the most recent committed rows when using the READ COMMITTED isolation level', function() {
+      it('should read the most recent committed rows when using the READ COMMITTED isolation level', async function() {
         const User = this.sequelize.define('user', {
           username: Support.Sequelize.STRING
         });
 
-        return expect(
+        await expect(
           this.sequelize.sync({ force: true }).then(() => {
             return this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED }, async transaction => {
               const users0 = await User.findAll({ transaction });
@@ -544,12 +550,12 @@ if (current.dialect.supports.transactions) {
 
       // mssql is excluded because it implements REPREATABLE READ using locks rather than a snapshot, and will see the new row
       if (!['sqlite', 'mssql'].includes(dialect)) {
-        it('should not read newly committed rows when using the REPEATABLE READ isolation level', function() {
+        it('should not read newly committed rows when using the REPEATABLE READ isolation level', async function() {
           const User = this.sequelize.define('user', {
             username: Support.Sequelize.STRING
           });
 
-          return expect(
+          await expect(
             this.sequelize.sync({ force: true }).then(() => {
               return this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ }, async transaction => {
                 const users0 = await User.findAll({ transaction });
@@ -576,7 +582,7 @@ if (current.dialect.supports.transactions) {
           const transaction = await this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE });
           await User.findAll( { transaction } );
 
-          return Promise.all([// Update should not succeed before transaction has committed
+          await Promise.all([// Update should not succeed before transaction has committed
             User.update({ username: 'joe' }, {
               where: {
                 username: 'jan'
@@ -616,7 +622,7 @@ if (current.dialect.supports.transactions) {
             isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
           });
 
-          return Promise.all([(async () => {
+          await Promise.all([(async () => {
             await User.findOne({
               where: {
                 username: 'jan'
@@ -679,7 +685,7 @@ if (current.dialect.supports.transactions) {
 
             expect(secondResults[0].id).to.not.equal(firstUserId);
 
-            return Promise.all([
+            await Promise.all([
               t1.commit(),
               t2.commit()
             ]);
@@ -702,7 +708,7 @@ if (current.dialect.supports.transactions) {
 
           await john.setTasks([task1]);
 
-          return this.sequelize.transaction(t1 => {
+          await this.sequelize.transaction(t1 => {
 
             if (current.dialect.supports.lockOuterJoinFailure) {
 
@@ -745,7 +751,7 @@ if (current.dialect.supports.transactions) {
 
             await john.setTasks([task1]);
 
-            return this.sequelize.transaction(async t1 => {
+            await this.sequelize.transaction(async t1 => {
               const t1John = await User.findOne({
                 where: {
                   username: 'John'
@@ -800,7 +806,7 @@ if (current.dialect.supports.transactions) {
 
             const t2 = await this.sequelize.transaction();
 
-            return Promise.all([(async () => {
+            await Promise.all([(async () => {
               await User.findOne({
                 where: {
                   username: 'jan'

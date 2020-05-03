@@ -69,7 +69,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const count2 = await User.count({ transaction: t });
         expect(count1).to.equal(0);
         expect(count2).to.equal(1);
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -122,8 +122,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(box.get('height')).to.equal(6);
     });
 
-    it('only validates fields in passed array', function() {
-      return this.User.build({
+    it('only validates fields in passed array', async function() {
+      await this.User.build({
         validateTest: 'cake', // invalid, but not saved
         validateCustom: '1'
       }).save({
@@ -325,7 +325,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const updatedAt = user.updatedAt;
 
       this.clock.tick(1000);
-      return expect(user.update({
+
+      await expect(user.update({
         username: 'userman'
       }, {
         silent: true
@@ -378,7 +379,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
         await User.sync({ force: true });
         const user = await User.create({ name: 'John', bio: 'swag 1' });
-        return user.update({ bio: 'swag 2' }).should.be.fulfilled;
+        await user.update({ bio: 'swag 2' }).should.be.fulfilled;
       });
     });
 
@@ -468,7 +469,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should fail a validation upon creating', async function() {
       try {
-        return await this.User.create({ aNumber: 0, validateTest: 'hello' });
+        await this.User.create({ aNumber: 0, validateTest: 'hello' });
       } catch (err) {
         expect(err).to.exist;
         expect(err).to.be.instanceof(Object);
@@ -480,7 +481,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should fail a validation upon creating with hooks false', async function() {
       try {
-        return await this.User.create({ aNumber: 0, validateTest: 'hello' }, { hooks: false });
+        await this.User.create({ aNumber: 0, validateTest: 'hello' }, { hooks: false });
       } catch (err) {
         expect(err).to.exist;
         expect(err).to.be.instanceof(Object);
@@ -492,7 +493,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should fail a validation upon building', async function() {
       try {
-        return await this.User.build({ aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa' }).save();
+        await this.User.build({ aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa' }).save();
       } catch (err) {
         expect(err).to.exist;
         expect(err).to.be.instanceof(Object);
@@ -507,7 +508,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await this.User.create({ aNumber: 0 });
 
       try {
-        return await user.update({ validateTest: 'hello' });
+        await user.update({ validateTest: 'hello' });
       } catch (err) {
         expect(err).to.exist;
         expect(err).to.be.instanceof(Object);

@@ -73,7 +73,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const users2 = await User.findAll({ transaction: t });
         expect(users1[0].number).to.equal(3);
         expect(users2[0].number).to.equal(1);
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -169,7 +169,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       this.clock.tick(1000);
       await user.decrement('aNumber', { by: 1 });
 
-      return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
+      await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
     });
 
     it('with timestamps set to true and options.silent set to true', async function() {
@@ -183,7 +183,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       this.clock.tick(1000);
       await user.decrement('aNumber', { by: 1, silent: true });
 
-      return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+      await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
     });
   });
 });

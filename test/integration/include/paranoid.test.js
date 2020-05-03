@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
     await S.sync({ force: true });
 
-    return Test.findByPk(1);
+    await Test.findByPk(1);
   });
 
   it('test if non required is marked as false', async function() {

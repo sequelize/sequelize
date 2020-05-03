@@ -237,8 +237,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.sequelize.sync({ force: true });
       });
 
-      it('should properly escape the single quotes', function() {
-        return this.Model.create({
+      it('should properly escape the single quotes', async function() {
+        await this.Model.create({
           location: {
             type: 'Point',
             properties: {
@@ -249,14 +249,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should properly escape the single quotes in coordinates', function() {
-
+      it('should properly escape the single quotes in coordinates', async function() {
         // MySQL 5.7, those guys finally fixed this
         if (dialect === 'mysql' && semver.gte(this.sequelize.options.databaseVersion, '5.7.0')) {
           return;
-        } 
+        }
 
-        return this.Model.create({
+        await this.Model.create({
           location: {
             type: 'Point',
             properties: {

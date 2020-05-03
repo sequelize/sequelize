@@ -53,23 +53,23 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
   }
 
   it('should be able to make a write', async function() {
-    return expectWriteCalls(await this.User.create({
+    await expectWriteCalls(await this.User.create({
       firstName: Math.random().toString()
     }));
   });
 
   it('should be able to make a read', async function() {
-    return expectReadCalls(await this.User.findAll());
+    await expectReadCalls(await this.User.findAll());
   });
 
   it('should run read-only transactions on the replica', async function() {
-    return expectReadCalls(await this.sequelize.transaction({ readOnly: true }, transaction => {
+    await expectReadCalls(await this.sequelize.transaction({ readOnly: true }, transaction => {
       return this.User.findAll({ transaction });
     }));
   });
 
   it('should run non-read-only transactions on the primary', async function() {
-    return expectWriteCalls(await this.sequelize.transaction(transaction => {
+    await expectWriteCalls(await this.sequelize.transaction(transaction => {
       return this.User.findAll({ transaction });
     }));
   });

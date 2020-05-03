@@ -77,8 +77,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   if (dialect !== 'sqlite') {
     describe('authenticate', () => {
       describe('with valid credentials', () => {
-        it('triggers the success event', function() {
-          return this.sequelize.authenticate();
+        it('triggers the success event', async function() {
+          await this.sequelize.authenticate();
         });
       });
 
@@ -90,7 +90,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         it('triggers the error event', async function() {
           try {
-            return await this
+            await this
               .sequelizeWithInvalidConnection
               .authenticate();
           } catch (err) {
@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         it('triggers an actual RangeError or ConnectionError', async function() {
           try {
-            return await this
+            await this
               .sequelizeWithInvalidConnection
               .authenticate();
           } catch (err) {
@@ -113,7 +113,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         it('triggers the actual adapter error', async function() {
           try {
-            return await this
+            await this
               .sequelizeWithInvalidConnection
               .authenticate();
           } catch (err) {
@@ -136,7 +136,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         it('triggers the error event', async function() {
           try {
-            return await this
+            await this
               .sequelizeWithInvalidCredentials
               .authenticate();
           } catch (err) {
@@ -146,7 +146,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         it('triggers an actual sequlize error', async function() {
           try {
-            return await this
+            await this
               .sequelizeWithInvalidCredentials
               .authenticate();
           } catch (err) {
@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         it('triggers the error event when using replication', async () => {
           try {
-            return await new Sequelize('sequelize', null, null, {
+            await new Sequelize('sequelize', null, null, {
               dialect,
               replication: {
                 read: {
@@ -246,12 +246,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       return this.User.sync({ force: true });
     });
 
-    it('executes a query the internal way', function() {
-      return this.sequelize.query(this.insertQuery, { raw: true });
+    it('executes a query the internal way', async function() {
+      await this.sequelize.query(this.insertQuery, { raw: true });
     });
 
-    it('executes a query if only the sql is passed', function() {
-      return this.sequelize.query(this.insertQuery);
+    it('executes a query if only the sql is passed', async function() {
+      await this.sequelize.query(this.insertQuery);
     });
 
     it('executes a query if a placeholder value is an array', async function() {
@@ -475,33 +475,33 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(users[0].email).to.be.equal('john@gmail.com');
     });
 
-    it('reject if `values` and `options.replacements` are both passed', function() {
-      return this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { raw: true, replacements: [1, 2] })
+    it('reject if `values` and `options.replacements` are both passed', async function() {
+      await this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { raw: true, replacements: [1, 2] })
         .should.be.rejectedWith(Error, 'Both `sql.values` and `options.replacements` cannot be set at the same time');
     });
 
-    it('reject if `sql.bind` and `options.bind` are both passed', function() {
-      return this.sequelize.query({ query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2] }, { raw: true, bind: [1, 2] })
+    it('reject if `sql.bind` and `options.bind` are both passed', async function() {
+      await this.sequelize.query({ query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2] }, { raw: true, bind: [1, 2] })
         .should.be.rejectedWith(Error, 'Both `sql.bind` and `options.bind` cannot be set at the same time');
     });
 
-    it('reject if `options.replacements` and `options.bind` are both passed', function() {
-      return this.sequelize.query('select $1 + ? as foo, $2 + ? as bar', { raw: true, bind: [1, 2], replacements: [1, 2] })
+    it('reject if `options.replacements` and `options.bind` are both passed', async function() {
+      await this.sequelize.query('select $1 + ? as foo, $2 + ? as bar', { raw: true, bind: [1, 2], replacements: [1, 2] })
         .should.be.rejectedWith(Error, 'Both `replacements` and `bind` cannot be set at the same time');
     });
 
-    it('reject if `sql.bind` and `sql.values` are both passed', function() {
-      return this.sequelize.query({ query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2], values: [1, 2] }, { raw: true })
+    it('reject if `sql.bind` and `sql.values` are both passed', async function() {
+      await this.sequelize.query({ query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2], values: [1, 2] }, { raw: true })
         .should.be.rejectedWith(Error, 'Both `replacements` and `bind` cannot be set at the same time');
     });
 
-    it('reject if `sql.bind` and `options.replacements`` are both passed', function() {
-      return this.sequelize.query({ query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2] }, { raw: true, replacements: [1, 2] })
+    it('reject if `sql.bind` and `options.replacements`` are both passed', async function() {
+      await this.sequelize.query({ query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2] }, { raw: true, replacements: [1, 2] })
         .should.be.rejectedWith(Error, 'Both `replacements` and `bind` cannot be set at the same time');
     });
 
-    it('reject if `options.bind` and `sql.replacements` are both passed', function() {
-      return this.sequelize.query({ query: 'select $1 + ? as foo, $1 _ ? as bar', values: [1, 2] }, { raw: true, bind: [1, 2] })
+    it('reject if `options.bind` and `sql.replacements` are both passed', async function() {
+      await this.sequelize.query({ query: 'select $1 + ? as foo, $1 _ ? as bar', values: [1, 2] }, { raw: true, bind: [1, 2] })
         .should.be.rejectedWith(Error, 'Both `replacements` and `bind` cannot be set at the same time');
     });
 
@@ -579,11 +579,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       }
     });
 
-    it('dot separated attributes when doing a raw query without nest', function() {
+    it('dot separated attributes when doing a raw query without nest', async function() {
       const tickChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
         sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}`;
 
-      return expect(this.sequelize.query(sql, { raw: true, nest: false }).then(obj => obj[0])).to.eventually.deep.equal([{ 'foo.bar.baz': 1 }]);
+      await expect(this.sequelize.query(sql, { raw: true, nest: false }).then(obj => obj[0])).to.eventually.deep.equal([{ 'foo.bar.baz': 1 }]);
     });
 
     it('destructs dot separated attributes when doing a raw query using nest', async function() {
@@ -599,48 +599,48 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
     });
 
-    it('replaces named parameters with the passed object', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
+    it('replaces named parameters with the passed object', async function() {
+      await expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: 2 }]);
     });
 
-    it('replaces named parameters with the passed object and ignore those which does not qualify', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
+    it('replaces named parameters with the passed object and ignore those which does not qualify', async function() {
+      await expect(this.sequelize.query('select :one as foo, :two as bar, \'00:00\' as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: '00:00' }]);
     });
 
-    it('replaces named parameters with the passed object using the same key twice', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar, :one as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
+    it('replaces named parameters with the passed object using the same key twice', async function() {
+      await expect(this.sequelize.query('select :one as foo, :two as bar, :one as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
     });
 
-    it('replaces named parameters with the passed object having a null property', function() {
-      return expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: null } }).then(obj => obj[0]))
+    it('replaces named parameters with the passed object having a null property', async function() {
+      await expect(this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: null } }).then(obj => obj[0]))
         .to.eventually.deep.equal([{ foo: 1, bar: null }]);
     });
 
-    it('reject when key is missing in the passed object', function() {
-      return this.sequelize.query('select :one as foo, :two as bar, :three as baz', { raw: true, replacements: { one: 1, two: 2 } })
+    it('reject when key is missing in the passed object', async function() {
+      await this.sequelize.query('select :one as foo, :two as bar, :three as baz', { raw: true, replacements: { one: 1, two: 2 } })
         .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
-    it('reject with the passed number', function() {
-      return this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: 2 })
+    it('reject with the passed number', async function() {
+      await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: 2 })
         .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
-    it('reject with the passed empty object', function() {
-      return this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: {} })
+    it('reject with the passed empty object', async function() {
+      await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: {} })
         .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
-    it('reject with the passed string', function() {
-      return this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: 'foobar' })
+    it('reject with the passed string', async function() {
+      await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: 'foobar' })
         .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
-    it('reject with the passed date', function() {
-      return this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: new Date() })
+    it('reject with the passed date', async function() {
+      await this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: new Date() })
         .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
     });
 
@@ -708,55 +708,57 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     }
 
-    it('reject when binds passed with object and numeric $1 is also present', function() {
+    it('reject when binds passed with object and numeric $1 is also present', async function() {
       const typeCast = dialect === 'postgres' ? '::int' : '';
-      return this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, '$1' as baz`, {  raw: true, bind: { one: 1, two: 2 } })
+
+      await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, '$1' as baz`, {  raw: true, bind: { one: 1, two: 2 } })
         .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
 
-    it('reject when binds passed as array and $alpha is also present', function() {
+    it('reject when binds passed as array and $alpha is also present', async function() {
       const typeCast = dialect === 'postgres' ? '::int' : '';
-      return this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar, '$foo' as baz`, { raw: true, bind: [1, 2] })
+
+      await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar, '$foo' as baz`, { raw: true, bind: [1, 2] })
         .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
 
-    it('reject when bind key is $0 with the passed array', function() {
-      return this.sequelize.query('select $1 as foo, $0 as bar, $3 as baz', { raw: true, bind: [1, 2] })
+    it('reject when bind key is $0 with the passed array', async function() {
+      await this.sequelize.query('select $1 as foo, $0 as bar, $3 as baz', { raw: true, bind: [1, 2] })
         .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
 
-    it('reject when bind key is $01 with the passed array', function() {
-      return this.sequelize.query('select $1 as foo, $01 as bar, $3 as baz', { raw: true, bind: [1, 2] })
+    it('reject when bind key is $01 with the passed array', async function() {
+      await this.sequelize.query('select $1 as foo, $01 as bar, $3 as baz', { raw: true, bind: [1, 2] })
         .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
 
-    it('reject when bind key is missing in the passed array', function() {
-      return this.sequelize.query('select $1 as foo, $2 as bar, $3 as baz', { raw: true, bind: [1, 2] })
+    it('reject when bind key is missing in the passed array', async function() {
+      await this.sequelize.query('select $1 as foo, $2 as bar, $3 as baz', { raw: true, bind: [1, 2] })
         .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
 
-    it('reject when bind key is missing in the passed object', function() {
-      return this.sequelize.query('select $one as foo, $two as bar, $three as baz', { raw: true, bind: { one: 1, two: 2 } })
+    it('reject when bind key is missing in the passed object', async function() {
+      await this.sequelize.query('select $one as foo, $two as bar, $three as baz', { raw: true, bind: { one: 1, two: 2 } })
         .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
 
-    it('reject with the passed number for bind', function() {
-      return this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: 2 })
+    it('reject with the passed number for bind', async function() {
+      await this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: 2 })
         .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
 
-    it('reject with the passed empty object for bind', function() {
-      return this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: {} })
+    it('reject with the passed empty object for bind', async function() {
+      await this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: {} })
         .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
 
-    it('reject with the passed string for bind', function() {
-      return this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: 'foobar' })
+    it('reject with the passed string for bind', async function() {
+      await this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: 'foobar' })
         .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
 
-    it('reject with the passed date for bind', function() {
-      return this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: new Date() })
+    it('reject with the passed date for bind', async function() {
+      await this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: new Date() })
         .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
     });
 
@@ -771,13 +773,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     if (Support.getTestDialect() === 'postgres') {
-      it('replaces named parameters with the passed object and ignores casts', function() {
-        return expect(this.sequelize.query('select :one as foo, :two as bar, \'1000\'::integer as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
+      it('replaces named parameters with the passed object and ignores casts', async function() {
+        await expect(this.sequelize.query('select :one as foo, :two as bar, \'1000\'::integer as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
           .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1000 }]);
       });
 
-      it('supports WITH queries', function() {
-        return expect(this.sequelize.query('WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t').then(obj => obj[0]))
+      it('supports WITH queries', async function() {
+        await expect(this.sequelize.query('WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t').then(obj => obj[0]))
           .to.eventually.deep.equal([{ 'sum': '5050' }]);
       });
     }
@@ -873,7 +875,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         const data = await this.sequelize.query('SELECT @foo as `foo`', { plain: true, transaction: this.t });
         expect(data).to.be.ok;
         expect(data.foo).to.be.equal('bar');
-        return this.t.commit();
+        await this.t.commit();
       });
 
       it('multiple values', async function() {
@@ -889,7 +891,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         expect(data).to.be.ok;
         expect(data.foo).to.be.equal('bar');
         expect(data.foos).to.be.equal('bars');
-        return this.t.commit();
+        await this.t.commit();
       });
     });
   }
@@ -984,7 +986,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(true).to.be.true;
     });
 
-    it('fails with incorrect match condition', function() {
+    it('fails with incorrect match condition', async function() {
       const sequelize = new Sequelize('cyber_bird', 'user', 'pass', {
         dialect: this.sequelize.options.dialect
       });
@@ -992,17 +994,17 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       sequelize.define('Project', { title: Sequelize.STRING });
       sequelize.define('Task', { title: Sequelize.STRING });
 
-      return expect(sequelize.sync({ force: true, match: /$phoenix/ }))
+      await expect(sequelize.sync({ force: true, match: /$phoenix/ }))
         .to.be.rejectedWith('Database "cyber_bird" does not match sync match parameter "/$phoenix/"');
     });
 
     if (dialect !== 'sqlite') {
-      it('fails for incorrect connection even when no models are defined', function() {
+      it('fails for incorrect connection even when no models are defined', async function() {
         const sequelize = new Sequelize('cyber_bird', 'user', 'pass', {
           dialect: this.sequelize.options.dialect
         });
 
-        return expect(sequelize.sync({ force: true })).to.be.rejected;
+        await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
 
       it('fails with incorrect database credentials (1)', async function() {
@@ -1029,7 +1031,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         }
       });
 
-      it('fails with incorrect database credentials (2)', function() {
+      it('fails with incorrect database credentials (2)', async function() {
         const sequelize = new Sequelize('db', 'user', 'pass', {
           dialect: this.sequelize.options.dialect
         });
@@ -1037,10 +1039,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         sequelize.define('Project', { title: Sequelize.STRING });
         sequelize.define('Task', { title: Sequelize.STRING });
 
-        return expect(sequelize.sync({ force: true })).to.be.rejected;
+        await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
 
-      it('fails with incorrect database credentials (3)', function() {
+      it('fails with incorrect database credentials (3)', async function() {
         const sequelize = new Sequelize('db', 'user', 'pass', {
           dialect: this.sequelize.options.dialect,
           port: 99999
@@ -1049,10 +1051,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         sequelize.define('Project', { title: Sequelize.STRING });
         sequelize.define('Task', { title: Sequelize.STRING });
 
-        return expect(sequelize.sync({ force: true })).to.be.rejected;
+        await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
 
-      it('fails with incorrect database credentials (4)', function() {
+      it('fails with incorrect database credentials (4)', async function() {
         const sequelize = new Sequelize('db', 'user', 'pass', {
           dialect: this.sequelize.options.dialect,
           port: 99999,
@@ -1062,10 +1064,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         sequelize.define('Project', { title: Sequelize.STRING });
         sequelize.define('Task', { title: Sequelize.STRING });
 
-        return expect(sequelize.sync({ force: true })).to.be.rejected;
+        await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
 
-      it('returns an error correctly if unable to sync a foreign key referenced model', function() {
+      it('returns an error correctly if unable to sync a foreign key referenced model', async function() {
         this.sequelize.define('Application', {
           authorID: {
             type: Sequelize.BIGINT,
@@ -1077,10 +1079,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           }
         });
 
-        return expect(this.sequelize.sync()).to.be.rejected;
+        await expect(this.sequelize.sync()).to.be.rejected;
       });
 
-      it('handles this dependant foreign key constraints', function() {
+      it('handles this dependant foreign key constraints', async function() {
         const block = this.sequelize.define('block', {
           id: { type: DataTypes.INTEGER, primaryKey: true },
           name: DataTypes.STRING
@@ -1105,7 +1107,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           foreignKeyConstraint: true
         });
 
-        return this.sequelize.sync();
+        await this.sequelize.sync();
       });
     }
 
@@ -1128,7 +1130,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(result).to.deep.equal(block);
     });
 
-    it('handles alter: true with underscore correctly', function() {
+    it('handles alter: true with underscore correctly', async function() {
       this.sequelize.define('access_metric', {
         user_id: {
           type: DataTypes.INTEGER
@@ -1137,7 +1139,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         underscored: true
       });
 
-      return this.sequelize.sync({
+      await this.sequelize.sync({
         alter: true
       });
     });
@@ -1182,7 +1184,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('correctly succeeds', async function() {
       const User = this.sequelize.define('Users', { username: DataTypes.STRING });
       await User.sync({ force: true });
-      return User.drop();
+      await User.drop();
     });
   });
 
@@ -1232,7 +1234,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         it("doesn't save an instance if value is not in the range of enums", async function() {
           try {
-            return await this.Review.create({ status: 'fnord' });
+            await this.Review.create({ status: 'fnord' });
           } catch (err) {
             expect(err).to.be.instanceOf(Error);
             expect(err.message).to.equal('"fnord" is not a valid choice in ["scheduled","active","finished"]');
@@ -1284,7 +1286,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         it('allows me to define a callback on the result', async function() {
           const t = await this.sequelizeWithTransaction.transaction();
-          return t.commit();
+          await t.commit();
         });
 
         if (dialect === 'sqlite') {
@@ -1307,7 +1309,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             await expect(count(this.t1)).to.eventually.equal(1);
             await this.t1.commit();
 
-            return expect(count()).to.eventually.equal(1);
+            await expect(count()).to.eventually.equal(1);
           });
         } else {
           it('correctly handles multiple transactions', async function() {
@@ -1336,7 +1338,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             await expect(count()).to.eventually.equal(0);
             await this.t1.commit();
 
-            return expect(count()).to.eventually.equal(1);
+            await expect(count()).to.eventually.equal(1);
           });
         }
 
@@ -1352,7 +1354,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           const newUser = await user.reload({ transaction: t1 });
           expect(newUser.username).to.equal('bar');
 
-          return t1.commit();
+          await t1.commit();
         });
 
         describe('supports rolling back to savepoints', () => {
@@ -1378,7 +1380,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             const users = await this.User.findAll({ transaction: this.transaction });
             expect(users).to.have.length(0);
 
-            return this.transaction.rollback();
+            await this.transaction.rollback();
           });
 
           it('rolls back to the most recent savepoint, only undoing recent changes', async function() {
@@ -1398,7 +1400,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             const users = await this.User.findAll({ transaction: this.transaction });
             expect(users).to.have.length(1);
 
-            return this.transaction.rollback();
+            await this.transaction.rollback();
           });
         });
 
@@ -1414,7 +1416,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           const newUser = await user.reload({ transaction: t1 });
           expect(newUser.username).to.equal('foo');
 
-          return t1.commit();
+          await t1.commit();
         });
 
         it('supports rolling back outermost transaction', async function() {

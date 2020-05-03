@@ -111,7 +111,7 @@ if (dialect === 'sqlite') {
 
         await Payments.sync({ force: true });
 
-        return expect(Payments.bulkCreate([{ id: 1 }, { id: 1 }], { ignoreDuplicates: false })).to.eventually.be.rejected;
+        await expect(Payments.bulkCreate([{ id: 1 }, { id: 1 }], { ignoreDuplicates: false })).to.eventually.be.rejected;
       });
     });
   });

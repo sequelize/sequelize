@@ -31,8 +31,8 @@ describe('model', () => {
         }
       });
 
-      it('should use a placeholder for json with insert', function() {
-        return this.User.create({
+      it('should use a placeholder for json with insert', async function() {
+        await this.User.create({
           username: 'bob',
           emergency_contact: { name: 'joe', phones: [1337, 42] }
         }, {

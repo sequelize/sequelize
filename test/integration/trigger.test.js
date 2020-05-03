@@ -42,7 +42,7 @@ if (current.dialect.supports.tmpTableTrigger) {
           username: 'triggertest'
         });
 
-        return expect(User.findOne({ username: 'triggertest' })).to.eventually.have.property('username').which.equals('triggertest');
+        await expect(User.findOne({ username: 'triggertest' })).to.eventually.have.property('username').which.equals('triggertest');
       });
 
       it('should return output rows after instance update', async () => {
@@ -52,7 +52,7 @@ if (current.dialect.supports.tmpTableTrigger) {
 
         user.username = 'usernamechanged';
         await user.save();
-        return expect(User.findOne({ username: 'usernamechanged' })).to.eventually.have.property('username').which.equals('usernamechanged');
+        await expect(User.findOne({ username: 'usernamechanged' })).to.eventually.have.property('username').which.equals('usernamechanged');
       });
 
       it('should return output rows after Model update', async () => {
@@ -68,7 +68,7 @@ if (current.dialect.supports.tmpTableTrigger) {
           }
         });
 
-        return expect(User.findOne({ username: 'usernamechanged' })).to.eventually.have.property('username').which.equals('usernamechanged');
+        await expect(User.findOne({ username: 'usernamechanged' })).to.eventually.have.property('username').which.equals('usernamechanged');
       });
 
       it('should successfully delete with a trigger on the table', async () => {
@@ -77,7 +77,7 @@ if (current.dialect.supports.tmpTableTrigger) {
         });
 
         await user.destroy();
-        return expect(User.findOne({ username: 'triggertest' })).to.eventually.be.null;
+        await expect(User.findOne({ username: 'triggertest' })).to.eventually.be.null;
       });
     });
   });

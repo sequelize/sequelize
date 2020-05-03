@@ -100,44 +100,44 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
       });
 
-      it('should apply defaultScope', function() {
-        return expect(this.ScopeMe.count()).to.eventually.equal(2);
+      it('should apply defaultScope', async function() {
+        await expect(this.ScopeMe.count()).to.eventually.equal(2);
       });
 
-      it('should be able to override default scope', function() {
-        return expect(this.ScopeMe.count({ where: { access_level: { [Op.gt]: 5 } } })).to.eventually.equal(1);
+      it('should be able to override default scope', async function() {
+        await expect(this.ScopeMe.count({ where: { access_level: { [Op.gt]: 5 } } })).to.eventually.equal(1);
       });
 
-      it('should be able to unscope', function() {
-        return expect(this.ScopeMe.unscoped().count()).to.eventually.equal(4);
+      it('should be able to unscope', async function() {
+        await expect(this.ScopeMe.unscoped().count()).to.eventually.equal(4);
       });
 
-      it('should be able to apply other scopes', function() {
-        return expect(this.ScopeMe.scope('lowAccess').count()).to.eventually.equal(3);
+      it('should be able to apply other scopes', async function() {
+        await expect(this.ScopeMe.scope('lowAccess').count()).to.eventually.equal(3);
       });
 
-      it('should be able to merge scopes with where', function() {
-        return expect(this.ScopeMe.scope('lowAccess').count({ where: { username: 'dan' } })).to.eventually.equal(1);
+      it('should be able to merge scopes with where', async function() {
+        await expect(this.ScopeMe.scope('lowAccess').count({ where: { username: 'dan' } })).to.eventually.equal(1);
       });
 
-      it('should be able to merge scopes with where on aliased fields', function() {
-        return expect(this.ScopeMe.scope('withAliasedField').count({ where: { aliasValue: 5 } })).to.eventually.equal(1);
+      it('should be able to merge scopes with where on aliased fields', async function() {
+        await expect(this.ScopeMe.scope('withAliasedField').count({ where: { aliasValue: 5 } })).to.eventually.equal(1);
       });
 
-      it('should ignore the order option if it is found within the scope', function() {
-        return expect(this.ScopeMe.scope('withOrder').count()).to.eventually.equal(4);
+      it('should ignore the order option if it is found within the scope', async function() {
+        await expect(this.ScopeMe.scope('withOrder').count()).to.eventually.equal(4);
       });
 
-      it('should be able to use where on include', function() {
-        return expect(this.ScopeMe.scope('withInclude').count()).to.eventually.equal(1);
+      it('should be able to use where on include', async function() {
+        await expect(this.ScopeMe.scope('withInclude').count()).to.eventually.equal(1);
       });
 
-      it('should be able to use include with function scope', function() {
-        return expect(this.ScopeMe.scope('withIncludeFunction').count()).to.eventually.equal(1);
+      it('should be able to use include with function scope', async function() {
+        await expect(this.ScopeMe.scope('withIncludeFunction').count()).to.eventually.equal(1);
       });
 
-      it('should be able to use include with function scope and string association', function() {
-        return expect(this.ScopeMe.scope('withIncludeFunctionAndStringAssociation').count()).to.eventually.equal(1);
+      it('should be able to use include with function scope and string association', async function() {
+        await expect(this.ScopeMe.scope('withIncludeFunctionAndStringAssociation').count()).to.eventually.equal(1);
       });
     });
   });

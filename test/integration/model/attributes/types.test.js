@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be ignored in find, findAll and includes', async function() {
-          return Promise.all([
+          await Promise.all([
             this.User.findOne({
               logging: this.sqlAssert
             }),

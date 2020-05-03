@@ -38,8 +38,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(account.version).to.eq(2);
     });
 
-    it('prevents stale instances from being saved', () => {
-      return expect((async () => {
+    it('prevents stale instances from being saved', async () => {
+      await expect((async () => {
         const accountA = await Account.create({ number: 1 });
         const accountB0 = await Account.findByPk(accountA.id);
         accountA.number += 1;

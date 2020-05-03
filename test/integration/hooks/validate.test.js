@@ -99,13 +99,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on error', () => {
-      it('should emit an error from after hook', function() {
+      it('should emit an error from after hook', async function() {
         this.User.afterValidate(user => {
           user.mood = 'ecstatic';
           throw new Error('Whoops! Changed user.mood!');
         });
 
-        return expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejectedWith('Whoops! Changed user.mood!');
+        await expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejectedWith('Whoops! Changed user.mood!');
       });
 
       it('should call validationFailed hook', async function() {

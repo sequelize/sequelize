@@ -44,18 +44,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users1.length).to.equal(0);
         expect(users2.length).to.equal(1);
         expect(users3.length).to.equal(1);
-        return t.rollback();
+        await t.rollback();
       });
     }
 
-    it('should not crash on an empty where array', function() {
-      return this.User.findAll({
+    it('should not crash on an empty where array', async function() {
+      await this.User.findAll({
         where: []
       });
     });
 
-    it('should throw on an attempt to fetch no attributes', function() {
-      return expect(this.User.findAll({ attributes: [] })).to.be.rejectedWith(
+    it('should throw on an attempt to fetch no attributes', async function() {
+      await expect(this.User.findAll({ attributes: [] })).to.be.rejectedWith(
         Sequelize.QueryError,
         /^Attempted a SELECT query.+without selecting any columns$/
       );
@@ -67,9 +67,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Post.hasMany(Comment, { as: 'comments' });
       await Post.sync({ force: true });
       await Comment.sync({ force: true });
-      // Should not throw in this case, even
-      // though `attributes: []` is set for the main model
-      return Post.findAll({
+
+      await Post.findAll({
         raw: true,
         attributes: [],
         include: [
@@ -104,8 +103,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users).to.have.length(2);
       });
 
-      it('should not break when trying to find rows using an array of primary keys', function() {
-        return this.User.findAll({
+      it('should not break when trying to find rows using an array of primary keys', async function() {
+        await this.User.findAll({
           where: {
             id: [1, 2, 3]
           }
@@ -543,7 +542,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error about unexpected input if include contains a non-object', async function() {
           try {
-            return await this.Worker.findAll({ include: [1] });
+            await this.Worker.findAll({ include: [1] });
           } catch (err) {
             expect(err.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
           }
@@ -551,7 +550,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if included DaoFactory is not associated', async function() {
           try {
-            return await this.Worker.findAll({ include: [this.Task] });
+            await this.Worker.findAll({ include: [this.Task] });
           } catch (err) {
             expect(err.message).to.equal('TaskBelongsTo is not associated to Worker!');
           }
@@ -598,7 +597,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if included DaoFactory is not associated', async function() {
           try {
-            return await this.Task.findAll({ include: [this.Worker] });
+            await this.Task.findAll({ include: [this.Worker] });
           } catch (err) {
             expect(err.message).to.equal('Worker is not associated to TaskHasOne!');
           }
@@ -632,7 +631,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if included DaoFactory is not referenced by alias', async function() {
           try {
-            return await this.Worker.findAll({ include: [this.Task] });
+            await this.Worker.findAll({ include: [this.Task] });
           } catch (err) {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You must use the \'as\' keyword to specify the alias within your include statement.');
@@ -641,7 +640,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if alias is not associated', async function() {
           try {
-            return await this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] });
+            await this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] });
           } catch (err) {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDo).');
@@ -685,7 +684,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if included DaoFactory is not associated', async function() {
           try {
-            return await this.Task.findAll({ include: [this.Worker] });
+            await this.Task.findAll({ include: [this.Worker] });
           } catch (err) {
             expect(err.message).to.equal('worker is not associated to task!');
           }
@@ -827,7 +826,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if included DaoFactory is not referenced by alias', async function() {
           try {
-            return await this.Worker.findAll({ include: [this.Task] });
+            await this.Worker.findAll({ include: [this.Task] });
           } catch (err) {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You must use the \'as\' keyword to specify the alias within your include statement.');
@@ -836,7 +835,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if alias is not associated', async function() {
           try {
-            return await this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] });
+            await this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] });
           } catch (err) {
             expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
             'You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDos).');
@@ -1128,7 +1127,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts simply', async function() {
-          return Promise.all([['ASC', 'Asia'], ['DESC', 'Europe']].map(async params => {
+          await Promise.all([['ASC', 'Asia'], ['DESC', 'Europe']].map(async params => {
             const continents = await this.Continent.findAll({
               order: [['name', params[0]]]
             });
@@ -1140,7 +1139,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 1st degree association', async function() {
-          return Promise.all([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']].map(async params => {
+          await Promise.all([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']].map(async params => {
             const continents = await this.Continent.findAll({
               include: [this.Country],
               order: [[this.Country, 'name', params[0]]]
@@ -1156,7 +1155,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', async function() {
-          return Promise.all([['ASC', 'Asia', 'Europe', 'England']].map(async params => {
+          await Promise.all([['ASC', 'Asia', 'Europe', 'England']].map(async params => {
             const continents = await this.Continent.findAll({
               include: [{
                 model: this.Country,
@@ -1184,7 +1183,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 2nd degree association', async function() {
-          return Promise.all([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']].map(async params => {
+          await Promise.all([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']].map(async params => {
             const continents = await this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person] }],
               order: [[this.Country, this.Person, 'lastName', params[0]]]
@@ -1203,7 +1202,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 2nd degree association with alias', async function() {
-          return Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(async params => {
+          await Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(async params => {
             const continents = await this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person, { model: this.Person, as: 'residents' }] }],
               order: [[this.Country, { model: this.Person, as: 'residents' }, 'lastName', params[0]]]
@@ -1222,7 +1221,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 2nd degree association with alias while using limit', async function() {
-          return Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(async params => {
+          await Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(async params => {
             const continents = await this.Continent.findAll({
               include: [{ model: this.Country, include: [this.Person, { model: this.Person, as: 'residents' }] }],
               order: [[{ model: this.Country }, { model: this.Person, as: 'residents' }, 'lastName', params[0]]],
@@ -1275,7 +1274,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 1st degree association', async function() {
-          return Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']].map(async params => {
+          await Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']].map(async params => {
             const countries = await this.Country.findAll({
               include: [this.Industry],
               order: [[this.Industry, 'name', params[0]]]
@@ -1291,7 +1290,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by 1st degree association while using limit', async function() {
-          return Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']].map(async params => {
+          await Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']].map(async params => {
             const countries = await this.Country.findAll({
               include: [this.Industry],
               order: [
@@ -1310,7 +1309,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('sorts by through table attribute', async function() {
-          return Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']].map(async params => {
+          await Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']].map(async params => {
             const countries = await this.Country.findAll({
               include: [this.Industry],
               order: [[this.Industry, this.IndustryCountry, 'numYears', params[0]]]
@@ -1389,7 +1388,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await Company.sync();
 
-        return Company.findAll({
+        await Company.findAll({
           order: [this.sequelize.col('name')]
         });
       });
@@ -1503,7 +1502,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const info2 = await User.findAndCountAll({ transaction: t });
         expect(info1.count).to.equal(0);
         expect(info2.count).to.equal(1);
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -1612,7 +1611,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const users2 = await User.findAll({ transaction: t });
         expect(users1.length).to.equal(0);
         expect(users2.length).to.equal(1);
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -1643,7 +1642,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await Model.sync({ force: true });
 
-      return expect(Model.findAll({
+      await expect(Model.findAll({
         where: {
           username: 'some-username-that-is-not-used-anywhere'
         }
@@ -1659,7 +1658,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await Model.sync({ force: true });
 
-      return expect(Model.findAll({
+      await expect(Model.findAll({
         where: {
           username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
         }
@@ -1675,7 +1674,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await Model.sync({ force: true });
 
-      return expect(Model.findAll({
+      await expect(Model.findAll({
         where: {
           username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
         }

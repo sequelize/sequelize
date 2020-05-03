@@ -113,116 +113,116 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   };
 
   if (current.dialect.supports.JSON) {
-    it('calls parse and stringify for JSON', () => {
+    it('calls parse and stringify for JSON', async () => {
       const Type = new Sequelize.JSON();
 
-      return testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
+      await testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
     });
   }
 
   if (current.dialect.supports.JSONB) {
-    it('calls parse and stringify for JSONB', () => {
+    it('calls parse and stringify for JSONB', async () => {
       const Type = new Sequelize.JSONB();
 
-      return testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
+      await testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
     });
   }
 
   if (current.dialect.supports.HSTORE) {
-    it('calls parse and bindParam for HSTORE', () => {
+    it('calls parse and bindParam for HSTORE', async () => {
       const Type = new Sequelize.HSTORE();
 
-      return testSuccess(Type, { test: 42, nested: false }, { useBindParam: true });
+      await testSuccess(Type, { test: 42, nested: false }, { useBindParam: true });
     });
   }
 
   if (current.dialect.supports.RANGE) {
-    it('calls parse and bindParam for RANGE', () => {
+    it('calls parse and bindParam for RANGE', async () => {
       const Type = new Sequelize.RANGE(new Sequelize.INTEGER());
 
-      return testSuccess(Type, [1, 2], { useBindParam: true });
+      await testSuccess(Type, [1, 2], { useBindParam: true });
     });
   }
 
-  it('calls parse and stringify for DATE', () => {
+  it('calls parse and stringify for DATE', async () => {
     const Type = new Sequelize.DATE();
 
-    return testSuccess(Type, new Date());
+    await testSuccess(Type, new Date());
   });
 
-  it('calls parse and stringify for DATEONLY', () => {
+  it('calls parse and stringify for DATEONLY', async () => {
     const Type = new Sequelize.DATEONLY();
 
-    return testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
+    await testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
   });
 
-  it('calls parse and stringify for TIME', () => {
+  it('calls parse and stringify for TIME', async () => {
     const Type = new Sequelize.TIME();
 
-    return testSuccess(Type, moment(new Date()).format('HH:mm:ss'));
+    await testSuccess(Type, moment(new Date()).format('HH:mm:ss'));
   });
 
-  it('calls parse and stringify for BLOB', () => {
+  it('calls parse and stringify for BLOB', async () => {
     const Type = new Sequelize.BLOB();
 
-    return testSuccess(Type, 'foobar', { useBindParam: true });
+    await testSuccess(Type, 'foobar', { useBindParam: true });
   });
 
-  it('calls parse and stringify for CHAR', () => {
+  it('calls parse and stringify for CHAR', async () => {
     const Type = new Sequelize.CHAR();
 
-    return testSuccess(Type, 'foobar');
+    await testSuccess(Type, 'foobar');
   });
 
-  it('calls parse and stringify/bindParam for STRING', () => {
+  it('calls parse and stringify/bindParam for STRING', async () => {
     const Type = new Sequelize.STRING();
 
     // mssql has a _bindParam function that checks if STRING was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
     if (dialect === 'mssql') {
-      return testSuccess(Type, 'foobar',  { useBindParam: true });
+      await testSuccess(Type, 'foobar',  { useBindParam: true });
     }
-    return testSuccess(Type, 'foobar');
+    await testSuccess(Type, 'foobar');
   });
 
-  it('calls parse and stringify for TEXT', () => {
+  it('calls parse and stringify for TEXT', async () => {
     const Type = new Sequelize.TEXT();
 
     if (dialect === 'mssql') {
       // Text uses nvarchar, same type as string
       testFailure(Type);
     } else {
-      return testSuccess(Type, 'foobar');
+      await testSuccess(Type, 'foobar');
     }
   });
 
-  it('calls parse and stringify for BOOLEAN', () => {
+  it('calls parse and stringify for BOOLEAN', async () => {
     const Type = new Sequelize.BOOLEAN();
 
-    return testSuccess(Type, true);
+    await testSuccess(Type, true);
   });
 
-  it('calls parse and stringify for INTEGER', () => {
+  it('calls parse and stringify for INTEGER', async () => {
     const Type = new Sequelize.INTEGER();
 
-    return testSuccess(Type, 1);
+    await testSuccess(Type, 1);
   });
 
-  it('calls parse and stringify for DECIMAL', () => {
+  it('calls parse and stringify for DECIMAL', async () => {
     const Type = new Sequelize.DECIMAL();
 
-    return testSuccess(Type, 1.5);
+    await testSuccess(Type, 1.5);
   });
 
-  it('calls parse and stringify for BIGINT', () => {
+  it('calls parse and stringify for BIGINT', async () => {
     const Type = new Sequelize.BIGINT();
 
     if (dialect === 'mssql') {
       // Same type as integer
       testFailure(Type);
     } else {
-      return testSuccess(Type, 1);
+      await testSuccess(Type, 1);
     }
   });
 
@@ -281,59 +281,59 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  it('calls parse and bindParam for DOUBLE', () => {
+  it('calls parse and bindParam for DOUBLE', async () => {
     const Type = new Sequelize.DOUBLE();
 
-    return testSuccess(Type, 1.5, { useBindParam: true });
+    await testSuccess(Type, 1.5, { useBindParam: true });
   });
 
-  it('calls parse and bindParam for FLOAT', () => {
+  it('calls parse and bindParam for FLOAT', async () => {
     const Type = new Sequelize.FLOAT();
 
     if (dialect === 'postgres') {
       // Postgres doesn't have float, maps to either decimal or double
       testFailure(Type);
     } else {
-      return testSuccess(Type, 1.5, { useBindParam: true });
+      await testSuccess(Type, 1.5, { useBindParam: true });
     }
   });
 
-  it('calls parse and bindParam for REAL', () => {
+  it('calls parse and bindParam for REAL', async () => {
     const Type = new Sequelize.REAL();
 
-    return testSuccess(Type, 1.5, { useBindParam: true });
+    await testSuccess(Type, 1.5, { useBindParam: true });
   });
 
-  it('calls parse and stringify for UUID', () => {
+  it('calls parse and stringify for UUID', async () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
     if (['postgres', 'sqlite'].includes(dialect)) {
-      return testSuccess(Type, uuid.v4());
+      await testSuccess(Type, uuid.v4());
     }
     // No native uuid type
     testFailure(Type);
   });
 
-  it('calls parse and stringify for CIDR', () => {
+  it('calls parse and stringify for CIDR', async () => {
     const Type = new Sequelize.CIDR();
 
     if (['postgres'].includes(dialect)) {
-      return testSuccess(Type, '10.1.2.3/32');
+      await testSuccess(Type, '10.1.2.3/32');
     }
     testFailure(Type);
   });
 
-  it('calls parse and stringify for INET', () => {
+  it('calls parse and stringify for INET', async () => {
     const Type = new Sequelize.INET();
 
     if (['postgres'].includes(dialect)) {
-      return testSuccess(Type, '127.0.0.1');
+      await testSuccess(Type, '127.0.0.1');
     }
     testFailure(Type);
   });
 
-  it('calls parse and stringify for CITEXT', () => {
+  it('calls parse and stringify for CITEXT', async () => {
     const Type = new Sequelize.CITEXT();
 
     if (dialect === 'sqlite') {
@@ -342,35 +342,35 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }
 
     if (dialect === 'postgres') {
-      return testSuccess(Type, 'foobar');
+      await testSuccess(Type, 'foobar');
     }
     testFailure(Type);
   });
 
-  it('calls parse and stringify for MACADDR', () => {
+  it('calls parse and stringify for MACADDR', async () => {
     const Type = new Sequelize.MACADDR();
 
     if (['postgres'].includes(dialect)) {
-      return testSuccess(Type, '01:23:45:67:89:ab');
+      await testSuccess(Type, '01:23:45:67:89:ab');
     }
     testFailure(Type);
 
   });
 
-  it('calls parse and stringify for ENUM', () => {
+  it('calls parse and stringify for ENUM', async () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
     if (['postgres'].includes(dialect)) {
-      return testSuccess(Type, 'hat');
+      await testSuccess(Type, 'hat');
     }
     testFailure(Type);
   });
 
   if (current.dialect.supports.GEOMETRY) {
-    it('calls parse and bindParam for GEOMETRY', () => {
+    it('calls parse and bindParam for GEOMETRY', async () => {
       const Type = new Sequelize.GEOMETRY();
 
-      return testSuccess(Type, { type: 'Point', coordinates: [125.6, 10.1] }, { useBindParam: true });
+      await testSuccess(Type, { type: 'Point', coordinates: [125.6, 10.1] }, { useBindParam: true });
     });
 
     it('should parse an empty GEOMETRY field', async () => {

@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const t = await this.sequelize.transaction();
         await this.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }, transaction: t });
         await this.Account.findOrCreate({ where: { accountName: 'accountName' }, transaction: t });
-        return t.commit();
+        await t.commit();
       });
     }
 
@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         username: 'gottlieb'
       });
 
-      return expect(User.findOrCreate({
+      await expect(User.findOrCreate({
         where: {
           objectId: 'asdasdasd'
         },
@@ -114,7 +114,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         username: 'gottlieb'
       });
 
-      return expect(User.findOrCreate({
+      await expect(User.findOrCreate({
         where: {
           objectId: 'asdasdasd'
         },
@@ -142,7 +142,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await User.create({ username: 'gottlieb' });
 
       try {
-        return await User.findOrCreate({
+        await User.findOrCreate({
           where: {
             [Op.or]: [{
               objectId: 'asdasdasd1'
@@ -175,7 +175,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await User.sync({ force: true });
 
-      return User.findOrCreate({
+      await User.findOrCreate({
         where: {},
         defaults: {
           name: Math.random().toString()
@@ -198,7 +198,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
 
-        return Promise.all(_.range(50).map(i => {
+        await Promise.all(_.range(50).map(i => {
           return User.findOrCreate({
             where: {
               email: `unique.email.${i}@sequelizejs.com`,
@@ -231,7 +231,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         }));
 
-        return Promise.all(_.range(50).map(i => {
+        await Promise.all(_.range(50).map(i => {
           return User.findOrCreate({
             where: {
               email: `unique.email.${i}@sequelizejs.com`,
@@ -255,7 +255,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
 
-        return Promise.all(_.range(50).map(() => {
+        await Promise.all(_.range(50).map(() => {
           return User.findOrCreate({
             where: {
               email: 'unique.email.1@sequelizejs.com',
@@ -279,7 +279,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await User.sync({ force: true });
 
-      return User.findOrCreate({
+      await User.findOrCreate({
         where: {
           objectId: 1
         },
@@ -300,7 +300,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await User.sync({ force: true });
 
-      return User.findOrCreate({
+      await User.findOrCreate({
         where: {
           objectId: 1
         },
@@ -399,7 +399,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     if (current.dialect.supports.transactions) {
-      it('should release transaction when meeting errors', function() {
+      it('should release transaction when meeting errors', async function() {
         const test = async times => {
           if (times > 10) {
             return true;
@@ -418,7 +418,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         };
 
-        return test(0);
+        await test(0);
       });
     }
 
@@ -445,7 +445,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(firstInstance.id).to.equal(secondInstance.id);
 
-          return transaction.commit();
+          await transaction.commit();
         });
       }
 
@@ -908,8 +908,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(user0.year).to.equal(`${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`);
       }
-      // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
-      return void 0;
+      await void 0;
     });
 
     if (dialect === 'postgres') {
@@ -964,7 +963,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await User.create({ username: 'foo' });
 
       try {
-        return await User.create({ username: 'foo' });
+        await User.create({ username: 'foo' });
       } catch (err) {
         if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
         expect(err).to.be.ok;
@@ -980,7 +979,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         try {
           await User.sync({ force: true });
           await User.create({ username: 'foo' });
-          return await User.create({ username: 'fOO' });
+          await User.create({ username: 'fOO' });
         } catch (err) {
           if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
           expect(err).to.be.ok;
@@ -1000,7 +999,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const tableName = User.getTableName();
           await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON "${tableName}" ((lower(username)))`);
           await User.create({ username: 'foo' });
-          return await User.create({ username: 'foo' });
+          await User.create({ username: 'foo' });
         } catch (err) {
           if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
           expect(err).to.be.ok;
@@ -1019,7 +1018,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await UserNull.sync({ force: true });
 
       try {
-        return await UserNull.create({ username: 'foo2', smth: null });
+        await UserNull.create({ username: 'foo2', smth: null });
       } catch (err) {
         expect(err).to.exist;
 
@@ -1041,7 +1040,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await UserNull.create({ username: 'foo', smth: 'foo' });
 
       try {
-        return await UserNull.create({ username: 'foo', smth: 'bar' });
+        await UserNull.create({ username: 'foo', smth: 'bar' });
       } catch (err) {
         if (!(err instanceof Sequelize.UniqueConstraintError)) throw err;
         expect(err).to.be.ok;
@@ -1062,7 +1061,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(str2.str).to.equal('http://sequelizejs.org');
 
       try {
-        return await StringIsNullOrUrl.create({ str: '' });
+        await StringIsNullOrUrl.create({ str: '' });
       } catch (err) {
         expect(err).to.exist;
         expect(err.get('str')[0].message).to.match(/Validation isURL on str failed/);
@@ -1189,7 +1188,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })());
       });
 
-      return Promise.all(promises);
+      await Promise.all(promises);
     });
 
     it('saves data with single quote', async function() {
@@ -1325,7 +1324,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await Enum.sync({ force: true });
 
-          return Enum.create({ state: 'happy' });
+          await Enum.create({ state: 'happy' });
         });
 
         it('allows values passed as an array', async function() {
@@ -1335,7 +1334,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await Enum.sync({ force: true });
 
-          return Enum.create({ state: 'happy' });
+          await Enum.create({ state: 'happy' });
         });
       });
 
@@ -1349,7 +1348,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await Enum.sync({ force: true });
 
-          return Enum.create({ state: 'happy' });
+          await Enum.create({ state: 'happy' });
         });
 
         it('allows values passed as an array', async function() {
@@ -1361,7 +1360,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await Enum.sync({ force: true });
 
-          return Enum.create({ state: 'happy' });
+          await Enum.create({ state: 'happy' });
         });
       });
 
@@ -1378,7 +1377,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Enum.sync({ force: true });
           await Enum.sync();
 
-          return Enum.sync({ force: true });
+          await Enum.sync({ force: true });
         });
 
         it('through sequelize', async function() {
@@ -1393,7 +1392,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.sequelize.sync({ force: true });
           await this.sequelize.sync();
 
-          return this.sequelize.sync({ force: true });
+          await this.sequelize.sync({ force: true });
         });
       });
     });

@@ -23,8 +23,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       const include = _.at(options, path)[0];
 
-      it(name, () => {
-
+      it(name, async () => {
         const join = sql.generateJoin(include,
           {
             options,
@@ -32,7 +31,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         );
 
-        return expectsql(`${join.join} ${join.body} ON ${join.condition}`, expectation);
+        await expectsql(`${join.join} ${join.body} ON ${join.condition}`, expectation);
       });
     };
 

@@ -77,7 +77,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const groups0 = await Group.findAll({ transaction: t });
         const associatedUser0 = await groups0[0].getUser({ transaction: t });
         expect(associatedUser0).to.be.not.null;
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const user = await task.getUserXYZ();
       expect(user).to.be.ok;
 
-      return this.sequelize.dropSchema('archive');
+      await this.sequelize.dropSchema('archive');
     });
   });
 
@@ -178,7 +178,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const groups = await Group.findAll();
         const associatedUser = await groups[0].getUser();
         expect(associatedUser).to.be.null;
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -228,7 +228,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       await expect(Task.create({ title: 'task', UserXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
       const task = await Task.create({ title: 'task' });
 
-      return expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      await expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
     });
 
     it('supports passing the primary key instead of an object', async function() {
@@ -357,7 +357,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const user0 = await group.getUser({ transaction: t });
         expect(user0).not.to.be.null;
 
-        return t.rollback();
+        await t.rollback();
       });
     }
   });

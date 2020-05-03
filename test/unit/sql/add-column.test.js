@@ -19,8 +19,8 @@ if (['mysql', 'mariadb'].includes(current.dialect.name)) {
         }
       }, { timestamps: false });
 
-      it('properly generate alter queries', () => {
-        return expectsql(sql.addColumnQuery(Model.getTableName(), 'level_id', current.normalizeAttribute({
+      it('properly generate alter queries', async () => {
+        await expectsql(sql.addColumnQuery(Model.getTableName(), 'level_id', current.normalizeAttribute({
           type: DataTypes.FLOAT,
           allowNull: false
         })), {
@@ -29,8 +29,8 @@ if (['mysql', 'mariadb'].includes(current.dialect.name)) {
         });
       });
 
-      it('properly generate alter queries for foreign keys', () => {
-        return expectsql(sql.addColumnQuery(Model.getTableName(), 'level_id', current.normalizeAttribute({
+      it('properly generate alter queries for foreign keys', async () => {
+        await expectsql(sql.addColumnQuery(Model.getTableName(), 'level_id', current.normalizeAttribute({
           type: DataTypes.INTEGER,
           references: {
             model: 'level',
@@ -44,8 +44,8 @@ if (['mysql', 'mariadb'].includes(current.dialect.name)) {
         });
       });
 
-      it('properly generate alter queries with FIRST', () => {
-        return expectsql(sql.addColumnQuery(Model.getTableName(), 'test_added_col_first', current.normalizeAttribute({
+      it('properly generate alter queries with FIRST', async () => {
+        await expectsql(sql.addColumnQuery(Model.getTableName(), 'test_added_col_first', current.normalizeAttribute({
           type: DataTypes.STRING,
           first: true
         })), {
@@ -54,8 +54,8 @@ if (['mysql', 'mariadb'].includes(current.dialect.name)) {
         });
       });
 
-      it('properly generates alter queries with column level comment', () => {
-        return expectsql(sql.addColumnQuery(Model.getTableName(), 'column_with_comment', current.normalizeAttribute({
+      it('properly generates alter queries with column level comment', async () => {
+        await expectsql(sql.addColumnQuery(Model.getTableName(), 'column_with_comment', current.normalizeAttribute({
           type: DataTypes.STRING,
           comment: 'This is a comment'
         })), {

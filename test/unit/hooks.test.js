@@ -122,31 +122,31 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(this.hook3).to.have.been.calledOnce;
       });
 
-      it('using addHook', function() {
+      it('using addHook', async function() {
         this.Model.addHook('beforeCreate', this.hook1);
         this.Model.addHook('beforeCreate', this.hook2);
         this.Model.addHook('beforeCreate', this.hook3);
 
-        return this.Model.runHooks('beforeCreate');
+        await this.Model.runHooks('beforeCreate');
       });
 
-      it('using function', function() {
+      it('using function', async function() {
         this.Model.beforeCreate(this.hook1);
         this.Model.beforeCreate(this.hook2);
         this.Model.beforeCreate(this.hook3);
 
-        return this.Model.runHooks('beforeCreate');
+        await this.Model.runHooks('beforeCreate');
       });
 
-      it('using define', function() {
-        return current.define('M', {}, {
+      it('using define', async function() {
+        await current.define('M', {}, {
           hooks: {
             beforeCreate: [this.hook1, this.hook2, this.hook3]
           }
         }).runHooks('beforeCreate');
       });
 
-      it('using a mixture', function() {
+      it('using a mixture', async function() {
         const Model = current.define('M', {}, {
           hooks: {
             beforeCreate: this.hook1
@@ -155,7 +155,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         Model.beforeCreate(this.hook2);
         Model.addHook('beforeCreate', this.hook3);
 
-        return Model.runHooks('beforeCreate');
+        await Model.runHooks('beforeCreate');
       });
     });
 
@@ -334,35 +334,35 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   });
 
   describe('promises', () => {
-    it('can return a promise', function() {
+    it('can return a promise', async function() {
       this.Model.beforeBulkCreate(async () => {
         return;
       });
 
-      return expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;
+      await expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;
     });
 
-    it('can return undefined', function() {
+    it('can return undefined', async function() {
       this.Model.beforeBulkCreate(() => {
         // This space intentionally left blank
       });
-      return expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;
+      await expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;
     });
 
-    it('can return an error by rejecting', function() {
+    it('can return an error by rejecting', async function() {
       this.Model.beforeCreate(async () => {
         throw new Error('Forbidden');
       });
 
-      return expect(this.Model.runHooks('beforeCreate')).to.be.rejectedWith('Forbidden');
+      await expect(this.Model.runHooks('beforeCreate')).to.be.rejectedWith('Forbidden');
     });
 
-    it('can return an error by throwing', function() {
+    it('can return an error by throwing', async function() {
       this.Model.beforeCreate(() => {
         throw new Error('Forbidden');
       });
 
-      return expect(this.Model.runHooks('beforeCreate')).to.be.rejectedWith('Forbidden');
+      await expect(this.Model.runHooks('beforeCreate')).to.be.rejectedWith('Forbidden');
     });
   });
 

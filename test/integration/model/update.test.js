@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const account = await this.Account
         .create({ ownerId: 2 });
 
-      return this.Account.update({
+      await this.Account.update({
         name: Math.random().toString()
       }, {
         where: {

@@ -194,12 +194,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should support instance.destroy()', async function() {
           const user = await this.User.create();
-          return user.destroy();
+          await user.destroy();
         });
 
         it('should support Model.destroy()', async function() {
           const user = await this.User.create();
-          return this.User.destroy({
+
+          await this.User.destroy({
             where: {
               id: user.get('id')
             }
@@ -229,7 +230,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('reload should work', async function() {
           const comment = await this.Comment.findByPk(1);
-          return comment.reload();
+          await comment.reload();
         });
 
         it('save should work', async function() {
@@ -401,7 +402,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should work with increment', async function() {
         const user = await this.User.create();
-        return user.increment('taskCount');
+        await user.increment('taskCount');
       });
 
       it('should work with a simple where', async function() {
@@ -570,7 +571,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         const commentCount = await user.countComments();
-        return expect(commentCount).to.equal(0);
+        await expect(commentCount).to.equal(0);
       });
 
       it('should work with `hasMany` association `count`', async function() {
@@ -579,7 +580,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         const taskCount = await user.countTasks();
-        return expect(taskCount).to.equal(0);
+        await expect(taskCount).to.equal(0);
       });
     });
   });

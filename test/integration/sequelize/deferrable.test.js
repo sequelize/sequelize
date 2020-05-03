@@ -57,8 +57,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     describe('NOT', () => {
-      it('does not allow the violation of the foreign key constraint', function() {
-        return expect(this.run(Sequelize.Deferrable.NOT)).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      it('does not allow the violation of the foreign key constraint', async function() {
+        await expect(this.run(Sequelize.Deferrable.NOT)).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
       });
     });
 
@@ -71,8 +71,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         expect(task.user_id).to.equal(1);
       });
 
-      it('does not allow the violation of the foreign key constraint if the transaction is not deffered', function() {
-        return expect(this.run(Sequelize.Deferrable.INITIALLY_IMMEDIATE, {
+      it('does not allow the violation of the foreign key constraint if the transaction is not deffered', async function() {
+        await expect(this.run(Sequelize.Deferrable.INITIALLY_IMMEDIATE, {
           deferrable: undefined
         })).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
       });

@@ -267,7 +267,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('complete', () => {
     it('gets triggered if an error occurs', async function() {
       try {
-        return await this.User.findOne({ where: ['asdasdasd'] });
+        await this.User.findOne({ where: ['asdasdasd'] });
       } catch (err) {
         expect(err).to.exist;
         expect(err.message).to.exist;
@@ -397,7 +397,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await UserDestroy.create({ newId: '123ABC', email: 'hello' });
       const user = await UserDestroy.findOne({ where: { email: 'hello' } });
 
-      return user.destroy();
+      await user.destroy();
     });
 
     it('sets deletedAt property to a specific date when deleting an instance', async function() {

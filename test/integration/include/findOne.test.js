@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      return A.findOne({
+      await A.findOne({
         include: [
           { model: B, required: false, include: [
             { model: C, required: false },
@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      return Model.findOne({
+      await Model.findOne({
         include: [
           { model: Model2, include: [
             { model: Model4, where: { something: 2 } }
@@ -350,7 +350,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      return User.findOne({
+      await User.findOne({
         where: { id: 2 },
         include: [
           { model: Post, as: 'UserPosts', where: { 'private': true } }

@@ -16,7 +16,8 @@ describe(Support.getTestDialectTeaser('Self'), () => {
 
     Group.belongsTo(Group, { as: 'Parent', foreignKey: 'parent_id' });
     await Group.sync({ force: true });
-    return Group.findAll({
+
+    await Group.findAll({
       include: [{
         model: Group,
         as: 'Parent'
@@ -39,7 +40,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
       Person.create({ name: 'Chris' })
     ]);
 
-    return mary.setChildren([john, chris]);
+    await mary.setChildren([john, chris]);
   });
 
   it('can handle n:m associations', async function() {

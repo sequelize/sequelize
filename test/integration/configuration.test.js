@@ -17,7 +17,7 @@ if (dialect === 'sqlite') {
 
 describe(Support.getTestDialectTeaser('Configuration'), () => {
   describe('Connections problems should fail with a nice message', () => {
-    it('when we don\'t have the correct server details', () => {
+    it('when we don\'t have the correct server details', async () => {
       const options = {
         logging: false,
         host: '0.0.0.1',
@@ -42,10 +42,10 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       }
 
       const seq = new Sequelize(...constructorArgs);
-      return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
+      await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
     });
 
-    it('when we don\'t have the correct login information', () => {
+    it('when we don\'t have the correct login information', async () => {
       if (dialect === 'mssql') {
         // NOTE: Travis seems to be having trouble with this test against the
         //       AWS instance. Works perfectly fine on a local setup.
@@ -55,10 +55,9 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
 
       const seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', { logging: false, host: config[dialect].host, port: 1, dialect });
       if (dialect === 'sqlite') {
-        // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
-        return expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
+        await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
       }
-      return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
+      await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
     });
 
     it('when we don\'t have a valid dialect.', () => {
@@ -127,7 +126,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
             }
           });
 
-          return await Promise.all([
+          await Promise.all([
             sequelizeReadOnly.query(createTableBar)
               .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
             sequelizeReadWrite.query(createTableBar)

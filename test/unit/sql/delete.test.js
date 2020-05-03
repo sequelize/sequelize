@@ -28,8 +28,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
+      it(util.inspect(options, { depth: 2 }), async () => {
+        await expectsql(
           sql.truncateTableQuery(
             options.table,
             options
@@ -55,8 +55,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
+      it(util.inspect(options, { depth: 2 }), async () => {
+        await expectsql(
           sql.truncateTableQuery(
             options.table,
             options
@@ -79,8 +79,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
+      it(util.inspect(options, { depth: 2 }), async () => {
+        await expectsql(
           sql.deleteQuery(
             options.table,
             options.where,
@@ -105,8 +105,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
+      it(util.inspect(options, { depth: 2 }), async () => {
+        await expectsql(
           sql.deleteQuery(
             options.table,
             options.where,
@@ -131,7 +131,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, { depth: 2 }), () => {
+      it(util.inspect(options, { depth: 2 }), async () => {
         let query;
         try {
           query = sql.deleteQuery(
@@ -144,7 +144,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query = err;
         }
 
-        return expectsql(
+        await expectsql(
           query, {
             postgres: new Error('Cannot LIMIT delete without a model.'),
             mariadb: "DELETE FROM `public`.`test_users` WHERE `name` = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10",
@@ -174,8 +174,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: QueryTypes.BULKDELETE
       };
 
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
+      it(util.inspect(options, { depth: 2 }), async () => {
+        await expectsql(
           sql.deleteQuery(
             options.table,
             options.where,
@@ -199,7 +199,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         limit: null
       };
 
-      it(util.inspect(options, { depth: 2 }), () => {
+      it(util.inspect(options, { depth: 2 }), async () => {
         const sqlOrError = _.attempt(
           sql.deleteQuery.bind(sql),
           options.table,
@@ -207,7 +207,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           options,
           User
         );
-        return expectsql(sqlOrError, {
+
+        await expectsql(sqlOrError, {
           default: new Error('WHERE parameter "name" has invalid "undefined" value')
         });
       });

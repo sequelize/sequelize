@@ -18,8 +18,8 @@ if (dialect.match(/^postgres/)) {
       expect(row).to.be.not.null;
     }
 
-    it('should correctly parse the moment based timezone while fetching hstore oids', function() {
-      return checkTimezoneParsing(this.sequelize.options);
+    it('should correctly parse the moment based timezone while fetching hstore oids', async function() {
+      await checkTimezoneParsing(this.sequelize.options);
     });
 
     it('should set client_min_messages to warning by default', async () => {

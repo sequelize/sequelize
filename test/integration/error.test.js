@@ -275,7 +275,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         return await accountB.save();
       })();
 
-      return Promise.all([
+      await Promise.all([
         expect(result).to.eventually.be.rejectedWith(Support.Sequelize.OptimisticLockError),
         expect(result).to.eventually.be.rejectedWith('Attempting to update a stale model instance: Account')
       ]);
@@ -365,7 +365,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       // And when the model is not passed at all
       await expect(User.create({ name: 'jan' })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
 
-      return expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+      await expect(this.sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(Sequelize.UniqueConstraintError);
     });
 
     it('adds parent and sql properties', async function() {

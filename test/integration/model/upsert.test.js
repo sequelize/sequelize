@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
 
-        return User.upsert({ name: 'John Doe' });
+        await User.upsert({ name: 'John Doe' });
       });
 
       it('works with upsert on a composite primary key', async function() {
@@ -173,7 +173,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user2.updatedAt).to.equalTime(user2.createdAt);
       });
 
-      it('supports validations', function() {
+      it('supports validations', async function() {
         const User = this.sequelize.define('user', {
           email: {
             type: Sequelize.STRING,
@@ -183,7 +183,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        return expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(Sequelize.ValidationError);
+        await expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(Sequelize.ValidationError);
       });
 
       it('supports skipping validations', async function() {
@@ -450,7 +450,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           Posts.belongsTo(User, { foreignKey: 'username' });
           await this.sequelize.sync({ force: true });
           await User.create({ username: 'user1' });
-          return expect(Posts.upsert({ title: 'Title', username: 'user2' })).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+          await expect(Posts.upsert({ title: 'Title', username: 'user2' })).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
         });
       }
 

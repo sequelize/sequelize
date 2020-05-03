@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       const user = user0;
 
-      return expect(user.countTasks({
+      await expect(user.countTasks({
         attributes: [Task.primaryKeyField, 'title'],
         include: [{
           attributes: [],
@@ -480,7 +480,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const articles = await Article.findAll({ transaction: t });
           const hasLabel = await articles[0].hasLabel(label, { transaction: t });
           expect(hasLabel).to.be.true;
-          return t.rollback();
+          await t.rollback();
         });
       }
 
@@ -594,7 +594,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(hasLabel1).to.be.false;
           expect(hasLabel2).to.be.true;
 
-          return ctx.t.rollback();
+          await ctx.t.rollback();
         });
       }
 
@@ -684,7 +684,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           const labels = await ctx.Label.findAll({ where: { ArticleId: ctx.article.id }, transaction: ctx.t });
           expect(labels.length).to.equal(1);
-          return ctx.t.rollback();
+          await ctx.t.rollback();
         });
       }
 
@@ -765,7 +765,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           const labels = await ctx.Label.findAll({ where: { ArticleId: ctx.article.id }, transaction: ctx.t });
           expect(labels.length).to.equal(1);
-          return ctx.t.rollback();
+          await ctx.t.rollback();
         });
       }
 
@@ -919,7 +919,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(labels0.length).to.equal(0);
           const labels = await ctx.Label.findAll({ where: { ArticleId: ctx.article.id }, transaction: ctx.t });
           expect(labels.length).to.equal(1);
-          return ctx.t.rollback();
+          await ctx.t.rollback();
         });
       }
 
@@ -1029,19 +1029,19 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         return john.setTasks([task1, task2]);
       });
 
-      it('should count all associations', function() {
-        return expect(this.user.countTasks({})).to.eventually.equal(2);
+      it('should count all associations', async function() {
+        await expect(this.user.countTasks({})).to.eventually.equal(2);
       });
 
-      it('should count filtered associations', function() {
-        return expect(this.user.countTasks({
+      it('should count filtered associations', async function() {
+        await expect(this.user.countTasks({
           where: {
             active: true
           }
         })).to.eventually.equal(1);
       });
 
-      it('should count scoped associations', function() {
+      it('should count scoped associations', async function() {
         this.User.hasMany(this.Task, {
           foreignKey: 'userId',
           as: 'activeTasks',
@@ -1050,17 +1050,17 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           }
         });
 
-        return expect(this.user.countActiveTasks({})).to.eventually.equal(1);
+        await expect(this.user.countActiveTasks({})).to.eventually.equal(1);
       });
     });
 
     describe('thisAssociations', () => {
-      it('should work with alias', function() {
+      it('should work with alias', async function() {
         const Person = this.sequelize.define('Group', {});
 
         Person.hasMany(Person, { as: 'Children' });
 
-        return this.sequelize.sync();
+        await this.sequelize.sync();
       });
     });
   });

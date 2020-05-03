@@ -43,18 +43,18 @@ if (dialect.match(/^postgres/)) {
       }));
     };
 
-    it('should throw due to alias being truncated', function() {
+    it('should throw due to alias being truncated', async function() {
       const options = Object.assign({}, this.sequelize.options, { minifyAliases: false });
 
-      return executeTest(options, res => {
+      await executeTest(options, res => {
         expect(res[taskAlias]).to.not.exist;
       });
     });
 
-    it('should be able to retrieve include due to alias minifying', function() {
+    it('should be able to retrieve include due to alias minifying', async function() {
       const options = Object.assign({}, this.sequelize.options, { minifyAliases: true });
 
-      return executeTest(options, res => {
+      await executeTest(options, res => {
         expect(res[taskAlias].title).to.be.equal('SuperTask');
       });
     });
@@ -95,7 +95,7 @@ if (dialect.match(/^postgres/)) {
       const user = await User.create({ name: 'standard user' });
       await Project.create({ name: 'Manhattan', companyId: comp.id, userId: user.id });
 
-      return User.findAll({
+      await User.findAll({
         include: {
           model: Project,
           include: Company

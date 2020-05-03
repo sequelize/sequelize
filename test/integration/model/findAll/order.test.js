@@ -73,8 +73,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         if (current.dialect.supports['ORDER NULLS']) {
-          it('should not throw with on NULLS LAST/NULLS FIRST', function() {
-            return this.User.findAll({
+          it('should not throw with on NULLS LAST/NULLS FIRST', async function() {
+            await this.User.findAll({
               include: [this.Group],
               order: [
                 ['id', 'ASC NULLS LAST'],
@@ -84,16 +84,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         }
 
-        it('should not throw on a literal', function() {
-          return this.User.findAll({
+        it('should not throw on a literal', async function() {
+          await this.User.findAll({
             order: [
               ['id', this.sequelize.literal('ASC, name DESC')]
             ]
           });
         });
 
-        it('should not throw with include when last order argument is a field', function() {
-          return this.User.findAll({
+        it('should not throw with include when last order argument is a field', async function() {
+          await this.User.findAll({
             include: [this.Group],
             order: [
               [this.Group, 'id']

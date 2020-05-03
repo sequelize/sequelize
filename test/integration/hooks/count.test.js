@@ -42,22 +42,22 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(beforeHook).to.be.true;
       });
 
-      it('beforeCount hook can change options', function() {
+      it('beforeCount hook can change options', async function() {
         this.User.beforeCount(options => {
           options.where.username = 'adam';
         });
 
-        return expect(this.User.count({ where: { username: 'joe' } })).to.eventually.equal(1);
+        await expect(this.User.count({ where: { username: 'joe' } })).to.eventually.equal(1);
       });
     });
 
     describe('on error', () => {
-      it('in beforeCount hook returns error', function() {
+      it('in beforeCount hook returns error', async function() {
         this.User.beforeCount(() => {
           throw new Error('Oops!');
         });
 
-        return expect(this.User.count({ where: { username: 'adam' } })).to.be.rejectedWith('Oops!');
+        await expect(this.User.count({ where: { username: 'adam' } })).to.be.rejectedWith('Oops!');
       });
     });
   });

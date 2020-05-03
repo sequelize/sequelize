@@ -13,8 +13,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = function(options, expectation) {
       const model = options.model;
 
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
+      it(util.inspect(options, { depth: 2 }), async () => {
+        await expectsql(
           sql.addLimitAndOffset(
             options,
             model

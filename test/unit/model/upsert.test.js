@@ -51,8 +51,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.stub.restore();
       });
 
-      it('skip validations for missing fields', function() {
-        return expect(this.User.upsert({
+      it('skip validations for missing fields', async function() {
+        await expect(this.User.upsert({
           name: 'Grumpy Cat'
         })).not.to.be.rejectedWith(Sequelize.ValidationError);
       });

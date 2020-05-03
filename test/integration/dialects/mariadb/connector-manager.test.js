@@ -40,29 +40,29 @@ describe('[MARIADB Specific] Connection Manager', () => {
   describe('Errors', () => {
     const testHost = env.MARIADB_PORT_3306_TCP_ADDR || env.SEQ_MARIADB_HOST || env.SEQ_HOST || '127.0.0.1';
 
-    it('Connection timeout', () => {
+    it('Connection timeout', async () => {
       const sequelize = Support.createSequelizeInstance({ host: testHost, port: 65535, dialectOptions: { connectTimeout: 500 } });
-      return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.SequelizeConnectionError);
+      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.SequelizeConnectionError);
     });
 
-    it('ECONNREFUSED', () => {
+    it('ECONNREFUSED', async () => {
       const sequelize = Support.createSequelizeInstance({ host: testHost, port: 65535 });
-      return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.ConnectionRefusedError);
+      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.ConnectionRefusedError);
     });
 
-    it('ENOTFOUND', () => {
+    it('ENOTFOUND', async () => {
       const sequelize = Support.createSequelizeInstance({ host: 'http://wowow.example.com' });
-      return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.HostNotFoundError);
+      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.HostNotFoundError);
     });
 
-    it('EHOSTUNREACH', () => {
+    it('EHOSTUNREACH', async () => {
       const sequelize = Support.createSequelizeInstance({ host: '255.255.255.255' });
-      return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.HostNotReachableError);
+      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.HostNotReachableError);
     });
 
-    it('ER_ACCESS_DENIED_ERROR | ELOGIN', () => {
+    it('ER_ACCESS_DENIED_ERROR | ELOGIN', async () => {
       const sequelize = new Support.Sequelize('localhost', 'was', 'ddsd', Support.sequelize.options);
-      return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
+      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
     });
   });
 

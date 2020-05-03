@@ -2145,7 +2145,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.Author.sync();
     });
 
-    it('uses an existing dao factory and references the author table', function() {
+    it('uses an existing dao factory and references the author table', async function() {
       const authorIdColumn = { type: Sequelize.INTEGER, references: { model: this.Author, key: 'id' } };
 
       const Post = this.sequelize.define('post', {
@@ -2156,8 +2156,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Author.hasMany(Post);
       Post.belongsTo(this.Author);
 
-      // The posts table gets dropped in the before filter.
-      return Post.sync({ logging: _.once(sql => {
+      await Post.sync({ logging: _.once(sql => {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
         } else if (dialect === 'mysql' || dialect === 'mariadb') {
@@ -2172,7 +2171,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }) });
     });
 
-    it('uses a table name as a string and references the author table', function() {
+    it('uses a table name as a string and references the author table', async function() {
       const authorIdColumn = { type: Sequelize.INTEGER, references: { model: 'authors', key: 'id' } };
 
       const Post = this.sequelize.define('post', { title: Sequelize.STRING, authorId: authorIdColumn });
@@ -2180,8 +2179,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Author.hasMany(Post);
       Post.belongsTo(this.Author);
 
-      // The posts table gets dropped in the before filter.
-      return Post.sync({ logging: _.once(sql => {
+      await Post.sync({ logging: _.once(sql => {
         if (dialect === 'postgres') {
           expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
         } else if (dialect === 'mysql' || dialect === 'mariadb') {
@@ -2239,7 +2237,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    it('works with comments', function() {
+    it('works with comments', async function() {
       // Test for a case where the comment was being moved to the end of the table when there was also a reference on the column, see #1521
       const Member = this.sequelize.define('Member', {});
       const idColumn = {
@@ -2253,7 +2251,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       this.sequelize.define('Profile', { id: idColumn });
 
-      return this.sequelize.sync({ force: true });
+      await this.sequelize.sync({ force: true });
     });
   });
 
@@ -2372,8 +2370,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(res).to.have.length(2);
     });
 
-    it('should fail when array contains strings', function() {
-      return expect(this.User.findAll({
+    it('should fail when array contains strings', async function() {
+      await expect(this.User.findAll({
         where: ['this is a mistake', ['dont do it!']]
       })).to.eventually.be.rejectedWith(Error, 'Support for literal replacements in the `where` object has been removed.');
     });
@@ -2463,7 +2461,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       for (let i = 0; i < 1000; i++) {
         tasks.push(testAsync);
       }
-      return pMap(tasks, entry => {
+
+      await pMap(tasks, entry => {
         return entry();
       }, {
         // Needs to be one less than ??? else the non transaction query won't ever get a connection
@@ -2473,38 +2472,38 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   }
 
   describe('Unique', () => {
-    it('should set unique when unique is true', function() {
+    it('should set unique when unique is true', async function() {
       const uniqueTrue = this.sequelize.define('uniqueTrue', {
         str: { type: Sequelize.STRING, unique: true }
       });
 
-      return uniqueTrue.sync({ force: true, logging: _.after(2, _.once(s => {
+      await uniqueTrue.sync({ force: true, logging: _.after(2, _.once(s => {
         expect(s).to.match(/UNIQUE/);
       })) });
     });
 
-    it('should not set unique when unique is false', function() {
+    it('should not set unique when unique is false', async function() {
       const uniqueFalse = this.sequelize.define('uniqueFalse', {
         str: { type: Sequelize.STRING, unique: false }
       });
 
-      return uniqueFalse.sync({ force: true, logging: _.after(2, _.once(s => {
+      await uniqueFalse.sync({ force: true, logging: _.after(2, _.once(s => {
         expect(s).not.to.match(/UNIQUE/);
       })) });
     });
 
-    it('should not set unique when unique is unset', function() {
+    it('should not set unique when unique is unset', async function() {
       const uniqueUnset = this.sequelize.define('uniqueUnset', {
         str: { type: Sequelize.STRING }
       });
 
-      return uniqueUnset.sync({ force: true, logging: _.after(2, _.once(s => {
+      await uniqueUnset.sync({ force: true, logging: _.after(2, _.once(s => {
         expect(s).not.to.match(/UNIQUE/);
       })) });
     });
   });
 
-  it('should be possible to use a key named UUID as foreign key', function() {
+  it('should be possible to use a key named UUID as foreign key', async function() {
     this.sequelize.define('project', {
       UserId: {
         type: Sequelize.STRING,
@@ -2528,7 +2527,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    return this.sequelize.sync({ force: true });
+    await this.sequelize.sync({ force: true });
   });
 
   describe('bulkCreate', () => {

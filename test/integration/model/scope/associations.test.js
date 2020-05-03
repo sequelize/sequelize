@@ -115,9 +115,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('include', () => {
-        it('should scope columns properly', function() {
-          // Will error with ambigous column if id is not scoped properly to `Company`.`id`
-          return expect(this.Company.findAll({
+        it('should scope columns properly', async function() {
+          await expect(this.Company.findAll({
             where: { id: 1 },
             include: [this.UserAssociation]
           })).not.to.be.rejected;
@@ -274,8 +273,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return c.setProjects([p1, p2]);
         });
 
-        it('should scope columns properly', function() {
-          return expect(this.ScopeMe.scope('includeActiveProjects').findAll()).not.to.be.rejected;
+        it('should scope columns properly', async function() {
+          await expect(this.ScopeMe.scope('includeActiveProjects').findAll()).not.to.be.rejected;
         });
 
         it('should apply scope conditions', async function() {
@@ -307,7 +306,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             const [child, parent] = await Promise.all([Child.create(), Parent.create()]);
             await parent.setChild(child);
 
-            return Parent.scope('children', 'alsoChildren').findOne();
+            await Parent.scope('children', 'alsoChildren').findOne();
           });
         });
 
@@ -413,7 +412,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ]
           });
 
-          return Clientfile.findAll({
+          await Clientfile.findAll({
             include: [
               {
                 association: MissionAssociation,

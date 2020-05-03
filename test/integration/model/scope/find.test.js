@@ -126,8 +126,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(user.username).to.equal('fake');
     });
 
-    it('should work when included with default scope', function() {
-      return this.ScopeMe.findOne({
+    it('should work when included with default scope', async function() {
+      await this.ScopeMe.findOne({
         include: [this.DefaultScopeExclude]
       });
     });

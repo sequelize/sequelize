@@ -23,7 +23,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const count2 = await User.count({ transaction: t });
         expect(count1).to.equal(1);
         expect(count2).to.equal(0);
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -316,7 +316,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(beforeSave.callCount).to.equal(0, 'should not call beforeSave even if `hooks: true`');
       expect(afterSave.callCount).to.equal(0, 'should not call afterSave even if `hooks: true`');
 
-      return result;
+      await result;
     });
 
     it('delete a record of multiple primary keys table', async function() {
@@ -373,7 +373,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const date = await Date.build({ date: Infinity })
           .save();
 
-        return date.destroy();
+        await date.destroy();
       });
     }
   });

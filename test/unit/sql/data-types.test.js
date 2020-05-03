@@ -17,8 +17,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
   describe('DataTypes', () => {
     const testsql = function(description, dataType, expectation) {
-      it(description, () => {
-        return expectsql(current.normalizeDataType(dataType).toSql(), expectation);
+      it(description, async () => {
+        await expectsql(current.normalizeDataType(dataType).toSql(), expectation);
       });
     };
 

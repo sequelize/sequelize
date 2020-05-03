@@ -144,7 +144,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.clock.tick(1000);
         await User[method]('aNumber', { by: 1, where: {} });
 
-        return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
+        await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
       });
 
       it('with timestamps set to true and options.silent set to true', async function() {
@@ -158,7 +158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.clock.tick(1000);
         await User[method]('aNumber', { by: 1, silent: true, where: { } });
 
-        return expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+        await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
       });
 
       it('should work with scopes', async function() {

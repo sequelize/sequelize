@@ -89,7 +89,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           firstName: DataTypes.STRING
         });
 
-        return this.queryInterface.changeColumn('users', 'firstName', {
+        await this.queryInterface.changeColumn('users', 'firstName', {
           type: DataTypes.ENUM(['value1', 'value2', 'value3'])
         });
       });
@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           firstName: DataTypes.STRING
         });
 
-        return this.queryInterface.changeColumn('users', 'firstName', {
+        await this.queryInterface.changeColumn('users', 'firstName', {
           type: DataTypes.ENUM,
           values: ['value1', 'value2', 'value3']
         });
@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           firstName: DataTypes.STRING
         });
 
-        return this.queryInterface.changeColumn({
+        await this.queryInterface.changeColumn({
           tableName: 'users',
           schema: 'archive'
         }, 'firstName', {

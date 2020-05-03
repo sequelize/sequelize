@@ -164,7 +164,7 @@ if (current.dialect.supports.groupedLimit) {
         await this.sequelize.sync({ force: true });
         await User.create({});
 
-        return User.findAll({
+        await User.findAll({
           include: [
             { association: User.Team, include: [Team.Company] }
           ]

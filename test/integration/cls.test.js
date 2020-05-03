@@ -29,8 +29,8 @@ if (current.dialect.supports.transactions) {
     });
 
     describe('context', () => {
-      it('does not use continuation storage on manually managed transactions', function() {
-        return Sequelize._clsRun(async () => {
+      it('does not use continuation storage on manually managed transactions', async function() {
+        await Sequelize._clsRun(async () => {
           const transaction = await this.sequelize.transaction();
           expect(this.ns.get('transaction')).not.to.be.ok;
           await transaction.rollback();
@@ -52,8 +52,8 @@ if (current.dialect.supports.transactions) {
         expect(t1id).not.to.equal(t2id);
       });
 
-      it('supports nested promise chains', function() {
-        return this.sequelize.transaction(async () => {
+      it('supports nested promise chains', async function() {
+        await this.sequelize.transaction(async () => {
           const tid = this.ns.get('transaction').id;
 
           await this.User.findAll();
@@ -111,13 +111,13 @@ if (current.dialect.supports.transactions) {
           }
         });
 
-        return this.User.findAll();
+        await this.User.findAll();
       });
     });
 
     describe('sequelize.query integration', () => {
-      it('automagically uses the transaction in all calls', function() {
-        return this.sequelize.transaction(async () => {
+      it('automagically uses the transaction in all calls', async function() {
+        await this.sequelize.transaction(async () => {
           await this.User.create({ name: 'bob' });
           return Promise.all([
             expect(this.User.findAll({ transaction: null })).to.eventually.have.length(0),
@@ -126,8 +126,8 @@ if (current.dialect.supports.transactions) {
         });
       });
 
-      it('automagically uses the transaction in all calls with async/await', function() {
-        return this.sequelize.transaction(async () => {
+      it('automagically uses the transaction in all calls with async/await', async function() {
+        await this.sequelize.transaction(async () => {
           await this.User.create({ name: 'bob' });
           expect(await this.User.findAll({ transaction: null })).to.have.length(0);
           expect(await this.User.findAll({})).to.have.length(1);
@@ -139,8 +139,8 @@ if (current.dialect.supports.transactions) {
       expect(Sequelize._cls).to.equal(this.ns);
     });
 
-    it('promises returned by sequelize.query are correctly patched', function() {
-      return this.sequelize.transaction(async t => {
+    it('promises returned by sequelize.query are correctly patched', async function() {
+      await this.sequelize.transaction(async t => {
         await this.sequelize.query('select 1', { type: Sequelize.QueryTypes.SELECT });
         return expect(this.ns.get('transaction')).to.equal(t);
       }

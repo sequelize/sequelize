@@ -163,9 +163,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.sequelize.sync();
         await testSync.create({ name: 'test', age: '1' });
         const data = await testSync.create({ name: 'test', age: '1' });
-        return await expect(data).not.to.be.ok;
+        await expect(data).not.to.be.ok;
       } catch (error) {
-        return expect(error).to.be.ok;
+        await expect(error).to.be.ok;
       }
     });
 
@@ -183,7 +183,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await this.sequelize.sync({ alter: true });
 
-      return this.sequelize.sync({ alter: true });
+      await this.sequelize.sync({ alter: true });
     });
 
     describe('indexes', () => {

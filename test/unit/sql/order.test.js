@@ -17,8 +17,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = (options, expectation) => {
       const model = options.model;
 
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
+      it(util.inspect(options, { depth: 2 }), async () => {
+        await expectsql(
           sql.selectQuery(
             options.table || model && model.getTableName(),
             options,
@@ -359,30 +359,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('Invalid', () => {
-      it('Error on invalid association', () => {
-        return expect(Subtask.findAll({
+      it('Error on invalid association', async () => {
+        await expect(Subtask.findAll({
           order: [
             [Project, 'createdAt', 'ASC']
           ]
         })).to.eventually.be.rejectedWith(Error, 'Unable to find a valid association for model, \'Project\'');
       });
 
-      it('Error on invalid structure', () => {
-        return expect(Subtask.findAll({
+      it('Error on invalid structure', async () => {
+        await expect(Subtask.findAll({
           order: [
             [Subtask.associations.Task, 'createdAt', Task.associations.Project, 'ASC']
           ]
         })).to.eventually.be.rejectedWith(Error, 'Unknown structure passed to order / group: Project');
       });
 
-      it('Error when the order is a string', () => {
-        return expect(Subtask.findAll({
+      it('Error when the order is a string', async () => {
+        await expect(Subtask.findAll({
           order: 'i am a silly string'
         })).to.eventually.be.rejectedWith(Error, 'Order must be type of array or instance of a valid sequelize method.');
       });
 
-      it('Error when the order contains a `{raw: "..."}` object', () => {
-        return expect(Subtask.findAll({
+      it('Error when the order contains a `{raw: "..."}` object', async () => {
+        await expect(Subtask.findAll({
           order: [
             {
               raw: 'this should throw an error'
@@ -391,8 +391,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         })).to.eventually.be.rejectedWith(Error, 'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.');
       });
 
-      it('Error when the order contains a `{raw: "..."}` object wrapped in an array', () => {
-        return expect(Subtask.findAll({
+      it('Error when the order contains a `{raw: "..."}` object wrapped in an array', async () => {
+        await expect(Subtask.findAll({
           order: [
             [
               {

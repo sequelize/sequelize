@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(user1.username).to.equal('foo');
         const user0 = await user1.reload({ transaction: t });
         expect(user0.username).to.equal('bar');
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -191,7 +191,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should return an error when reload fails', async function() {
       const user = await this.User.create({ username: 'John Doe' });
       await user.destroy();
-      return expect(user.reload()).to.be.rejectedWith(
+
+      await expect(user.reload()).to.be.rejectedWith(
         Sequelize.InstanceError,
         'Instance could not be reloaded because it does not exist anymore (find call returned null)'
       );

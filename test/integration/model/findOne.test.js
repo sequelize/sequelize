@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(user1).to.be.null;
         expect(user2).to.not.be.null;
-        return t.rollback();
+        await t.rollback();
       });
     }
 
@@ -295,7 +295,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         describe('generic', () => {
           it('throws an error about unexpected input if include contains a non-object', async function() {
             try {
-              return await this.Worker.findOne({ include: [1] });
+              await this.Worker.findOne({ include: [1] });
             } catch (err) {
               expect(err.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
             }
@@ -303,15 +303,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('throws an error if included DaoFactory is not associated', async function() {
             try {
-              return await this.Worker.findOne({ include: [this.Task] });
+              await this.Worker.findOne({ include: [this.Task] });
             } catch (err) {
               expect(err.message).to.equal('Task is not associated to Worker!');
             }
           });
 
-          it('returns the associated worker via task.worker', function() {
+          it('returns the associated worker via task.worker', async function() {
             this.Task.belongsTo(this.Worker);
-            return this.init(async () => {
+
+            await this.init(async () => {
               await this.task.setWorker(this.worker);
 
               const task = await this.Task.findOne({
@@ -425,10 +426,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(messages[1].User.username).to.equal('test_testerson');
         });
 
-        it('allows mulitple assocations of the same model with different alias', function() {
+        it('allows mulitple assocations of the same model with different alias', async function() {
           this.Worker.belongsTo(this.Task, { as: 'ToDo' });
           this.Worker.belongsTo(this.Task, { as: 'DoTo' });
-          return this.init(() => {
+
+          await this.init(() => {
             return this.Worker.findOne({
               include: [
                 { model: this.Task, as: 'ToDo' },
@@ -449,7 +451,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if included DaoFactory is not associated', async function() {
           try {
-            return await this.Task.findOne({ include: [this.Worker] });
+            await this.Task.findOne({ include: [this.Worker] });
           } catch (err) {
             expect(err.message).to.equal('Worker is not associated to Task!');
           }
@@ -501,7 +503,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('hasOne with alias', () => {
         it('throws an error if included DaoFactory is not referenced by alias', async function() {
           try {
-            return await this.Worker.findOne({ include: [this.Task] });
+            await this.Worker.findOne({ include: [this.Task] });
           } catch (err) {
             expect(err.message).to.equal('Task is not associated to Worker!');
           }
@@ -517,7 +519,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', async function() {
             try {
-              return await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
+              await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
             } catch (err) {
               expect(err.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDo).');
             }
@@ -543,9 +545,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(worker.ToDo.title).to.equal('homework');
           });
 
-          it('allows mulitple assocations of the same model with different alias', function() {
+          it('allows mulitple assocations of the same model with different alias', async function() {
             this.Worker.hasOne(this.Task, { as: 'DoTo' });
-            return this.init(() => {
+
+            await this.init(() => {
               return this.Worker.findOne({
                 include: [
                   { model: this.Task, as: 'ToDo' },
@@ -567,7 +570,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('throws an error if included DaoFactory is not associated', async function() {
           try {
-            return await this.Task.findOne({ include: [this.Worker] });
+            await this.Task.findOne({ include: [this.Worker] });
           } catch (err) {
             expect(err.message).to.equal('Worker is not associated to Task!');
           }
@@ -649,7 +652,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('hasMany with alias', () => {
         it('throws an error if included DaoFactory is not referenced by alias', async function() {
           try {
-            return await this.Worker.findOne({ include: [this.Task] });
+            await this.Worker.findOne({ include: [this.Task] });
           } catch (err) {
             expect(err.message).to.equal('Task is not associated to Worker!');
           }
@@ -665,7 +668,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', async function() {
             try {
-              return await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
+              await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
             } catch (err) {
               expect(err.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDos).');
             }
@@ -691,9 +694,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(worker.ToDos[0].title).to.equal('homework');
           });
 
-          it('allows mulitple assocations of the same model with different alias', function() {
+          it('allows mulitple assocations of the same model with different alias', async function() {
             this.Worker.hasMany(this.Task, { as: 'DoTos' });
-            return this.init(() => {
+
+            await this.init(() => {
               return this.Worker.findOne({
                 include: [
                   { model: this.Task, as: 'ToDos' },
@@ -748,7 +752,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             products[4].setTags([tags[2]])
           ]);
 
-          return Promise.all([
+          await Promise.all([
             (async () => {
               const tag = await this.Tag.findOne({
                 where: {
@@ -824,7 +828,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             products[4].setTags([tags[2]])
           ]);
 
-          return Promise.all([
+          await Promise.all([
             expect(this.Tag.findOne({
               where: {
                 id: this.tags[0].id
@@ -883,8 +887,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('rejectOnEmpty mode', () => {
-      it('throws error when record not found by findOne', function() {
-        return expect(this.User.findOne({
+      it('throws error when record not found by findOne', async function() {
+        await expect(this.User.findOne({
           where: {
             username: 'ath-kantam-pradakshnami'
           },
@@ -892,14 +896,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
-      it('throws error when record not found by findByPk', function() {
-        return expect(this.User.findByPk(4732322332323333232344334354234, {
+      it('throws error when record not found by findByPk', async function() {
+        await expect(this.User.findByPk(4732322332323333232344334354234, {
           rejectOnEmpty: true
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
-      it('throws error when record not found by find', function() {
-        return expect(this.User.findOne({
+      it('throws error when record not found by find', async function() {
+        await expect(this.User.findOne({
           where: {
             username: 'some-username-that-is-not-used-anywhere'
           },
@@ -916,7 +920,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await Model.sync({ force: true });
 
-        return expect(Model.findOne({
+        await expect(Model.findOne({
           where: {
             username: 'some-username-that-is-not-used-anywhere'
           }
@@ -932,7 +936,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await Model.sync({ force: true });
 
-        return expect(Model.findOne({
+        await expect(Model.findOne({
           rejectOnEmpty: false,
           where: {
             username: 'some-username-that-is-not-used-anywhere'
@@ -947,7 +951,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await Model.sync({ force: true });
 
-        return expect(Model.findOne({
+        await expect(Model.findOne({
           where: {
             username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
           }
