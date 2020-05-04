@@ -32,16 +32,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('properly clones input values', () => {
-      it('with default options', function() {
-        return this.User.update(this.updates, { where: { secretValue: '1' } }).then(() => {
-          expect(this.updates).to.be.deep.eql(this.cloneUpdates);
-        });
+      it('with default options', async function() {
+        await this.User.update(this.updates, { where: { secretValue: '1' } });
+        expect(this.updates).to.be.deep.eql(this.cloneUpdates);
       });
 
-      it('when using fields option', function() {
-        return this.User.update(this.updates, { where: { secretValue: '1' }, fields: ['name'] }).then(() => {
-          expect(this.updates).to.be.deep.eql(this.cloneUpdates);
-        });
+      it('when using fields option', async function() {
+        await this.User.update(this.updates, { where: { secretValue: '1' }, fields: ['name'] });
+        expect(this.updates).to.be.deep.eql(this.cloneUpdates);
       });
     });
 

@@ -8,7 +8,7 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('build', () => {
-    it('should populate NOW default values', () => {
+    it('should populate NOW default values', async () => {
       const Model = current.define('Model', {
           created_time: {
             type: DataTypes.DATE,
@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(instance.get('updated_time')).to.be.ok;
       expect(instance.get('updated_time')).to.be.an.instanceof(Date);
 
-      return instance.validate();
+      await instance.validate();
     });
 
     it('should populate explicitly undefined UUID primary keys', () => {

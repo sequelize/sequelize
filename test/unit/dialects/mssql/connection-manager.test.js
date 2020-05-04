@@ -37,7 +37,7 @@ if (dialect === 'mssql') {
       this.connectionStub.restore();
     });
 
-    it('connectionManager._connect() does not delete `domain` from config.dialectOptions', function() {
+    it('connectionManager._connect() does not delete `domain` from config.dialectOptions', async function() {
       this.connectionStub.returns({
         STATE: {},
         state: '',
@@ -53,12 +53,11 @@ if (dialect === 'mssql') {
       });
 
       expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
-      return this.instance.dialect.connectionManager._connect(this.config).then(() => {
-        expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
-      });
+      await this.instance.dialect.connectionManager._connect(this.config);
+      expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
     });
 
-    it('connectionManager._connect() should reject if end was called and connect was not', function() {
+    it('connectionManager._connect() should reject if end was called and connect was not', async function() {
       this.connectionStub.returns({
         STATE: {},
         state: '',
@@ -73,14 +72,15 @@ if (dialect === 'mssql') {
         on: () => {}
       });
 
-      return this.instance.dialect.connectionManager._connect(this.config)
-        .catch(err => {
-          expect(err.name).to.equal('SequelizeConnectionError');
-          expect(err.parent.message).to.equal('Connection was closed by remote server');
-        });
+      try {
+        await this.instance.dialect.connectionManager._connect(this.config);
+      } catch (err) {
+        expect(err.name).to.equal('SequelizeConnectionError');
+        expect(err.parent.message).to.equal('Connection was closed by remote server');
+      }
     });
 
-    it('connectionManager._connect() should call connect if state is initialized', function() {
+    it('connectionManager._connect() should call connect if state is initialized', async function() {
       const connectStub = sinon.stub();
       const INITIALIZED = { name: 'INITIALIZED' };
       this.connectionStub.returns({
@@ -98,10 +98,8 @@ if (dialect === 'mssql') {
         on: () => {}
       });
 
-      return this.instance.dialect.connectionManager._connect(this.config)
-        .then(() => {
-          expect(connectStub.called).to.equal(true);
-        });
+      await this.instance.dialect.connectionManager._connect(this.config);
+      expect(connectStub.called).to.equal(true);
     });
   });
 }

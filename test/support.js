@@ -89,7 +89,7 @@ const Support = {
       lastSqliteInstance = _sequelize;
       return _sequelize;
     }
-    return Promise.resolve(sequelize);
+    return sequelize;
   },
 
   createSequelizeInstance(options) {
@@ -145,24 +145,22 @@ const Support = {
     await this.dropTestSchemas(sequelize);
   },
 
-  dropTestSchemas(sequelize) {
-
+  async dropTestSchemas(sequelize) {
     const queryInterface = sequelize.getQueryInterface();
     if (!queryInterface.queryGenerator._dialect.supports.schemas) {
       return this.sequelize.drop({});
     }
 
-    return sequelize.showAllSchemas().then(schemas => {
-      const schemasPromise = [];
-      schemas.forEach(schema => {
-        const schemaName = schema.name ? schema.name : schema;
-        if (schemaName !== sequelize.config.database) {
-          schemasPromise.push(sequelize.dropSchema(schemaName));
-        }
-      });
-      return Promise.all(schemasPromise.map(p => p.catch(e => e)))
-        .then(() => {}, () => {});
+    const schemas = await sequelize.showAllSchemas();
+    const schemasPromise = [];
+    schemas.forEach(schema => {
+      const schemaName = schema.name ? schema.name : schema;
+      if (schemaName !== sequelize.config.database) {
+        schemasPromise.push(sequelize.dropSchema(schemaName));
+      }
     });
+
+    await Promise.all(schemasPromise.map(p => p.catch(e => e)));
   },
 
   getSupportedDialects() {

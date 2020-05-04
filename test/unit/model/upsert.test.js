@@ -51,48 +51,45 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.stub.restore();
       });
 
-      it('skip validations for missing fields', function() {
-        return expect(this.User.upsert({
+      it('skip validations for missing fields', async function() {
+        await expect(this.User.upsert({
           name: 'Grumpy Cat'
         })).not.to.be.rejectedWith(Sequelize.ValidationError);
       });
 
-      it('creates new record with correct field names', function() {
-        return this.User
+      it('creates new record with correct field names', async function() {
+        await this.User
           .upsert({
             name: 'Young Cat',
             virtualValue: 999
-          })
-          .then(() => {
-            expect(Object.keys(this.stub.getCall(0).args[1])).to.deep.equal([
-              'name', 'value', 'created_at', 'updatedAt'
-            ]);
           });
+
+        expect(Object.keys(this.stub.getCall(0).args[1])).to.deep.equal([
+          'name', 'value', 'created_at', 'updatedAt'
+        ]);
       });
 
-      it('creates new record with timestamps disabled', function() {
-        return this.UserNoTime
+      it('creates new record with timestamps disabled', async function() {
+        await this.UserNoTime
           .upsert({
             name: 'Young Cat'
-          })
-          .then(() => {
-            expect(Object.keys(this.stub.getCall(0).args[1])).to.deep.equal([
-              'name'
-            ]);
           });
+
+        expect(Object.keys(this.stub.getCall(0).args[1])).to.deep.equal([
+          'name'
+        ]);
       });
 
-      it('updates all changed fields by default', function() {
-        return this.User
+      it('updates all changed fields by default', async function() {
+        await this.User
           .upsert({
             name: 'Old Cat',
             virtualValue: 111
-          })
-          .then(() => {
-            expect(Object.keys(this.stub.getCall(0).args[2])).to.deep.equal([
-              'name', 'value', 'updatedAt'
-            ]);
           });
+
+        expect(Object.keys(this.stub.getCall(0).args[2])).to.deep.equal([
+          'name', 'value', 'updatedAt'
+        ]);
       });
     });
   }
