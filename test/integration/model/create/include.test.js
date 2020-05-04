@@ -1,6 +1,7 @@
 'use strict';
 
 const chai = require('chai'),
+  sinon = require('sinon'),
   Sequelize = require('../../../../index'),
   expect = chai.expect,
   Support = require('../../support'),
@@ -460,6 +461,161 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }).then(persistedUser => {
               expect(persistedUser.jobs).to.be.ok;
               expect(persistedUser.jobs.length).to.equal(2);
+            });
+          });
+        });
+      });
+
+      describe('observation', () => {
+        const spy1 = sinon.spy();
+        const spy2 = sinon.spy();
+        const spy3 = sinon.spy();
+        
+        beforeEach(function() {
+          this.sequelize.observer.on('beforeQuery', spy1);
+          this.sequelize.observer.on('querySuccess', spy2);
+          this.sequelize.observer.on('queryError', spy2);
+        });
+        afterEach(function() {
+          this.sequelize.observer.off('beforeQuery', spy1);
+          this.sequelize.observer.off('querySuccess', spy2);
+          this.sequelize.observer.off('queryError', spy2);
+          this.sequelize.options.observe = undefined;
+          spy1.resetHistory();
+          spy2.resetHistory();
+          spy3.resetHistory();
+        });
+        it('should observe creation for BelongsTo relations', function() {
+          const Product = this.sequelize.define('Product', {
+            title: Sequelize.STRING
+          }, {
+            tableName: 'product_table'
+          });
+          const User = this.sequelize.define('User', {
+            first_name: Sequelize.STRING,
+            last_name: Sequelize.STRING
+          }, {
+            tableName: 'user_table'
+          });
+  
+          Product.belongsTo(User);
+          return this.sequelize.sync({ force: true }).then(() => {
+            return Product.create({
+              title: 'Chair',
+              User: {
+                first_name: 'Mick',
+                last_name: 'Broadstone'
+              }
+            }, {
+              include: [{
+                model: User,
+                myOption: 'option'
+              }],
+              observe: {}
+            }).then(() => {
+              expect(spy1.callCount).to.equal(2);
+              expect(spy2.callCount).to.equal(2);
+              expect(spy3.callCount).to.equal(0);
+              const userKeywords = ['INSERT', 'user_table', 'first_name', 'last_name'];
+              userKeywords.forEach(keyword => {
+                expect(spy1.getCall(0).args[0].sql).to.include(keyword);
+              });
+              const productKeyworks = ['INSERT', 'product_table', 'title', 'UserId'];
+              productKeyworks.forEach(keyword => {
+                expect(spy1.getCall(1).args[0].sql).to.include(keyword);
+              });
+            });
+          });
+        });
+
+        it('should observe creation for HasMany relations', function() {
+          const Product = this.sequelize.define('Product', {
+            title: Sequelize.STRING
+          }, {});
+          const Tag = this.sequelize.define('Tag', {
+            name: Sequelize.STRING
+          }, {});
+  
+          Product.hasMany(Tag);
+          return this.sequelize.sync({ force: true }).then(() => {
+            return Product.create({
+              id: 1,
+              title: 'Chair',
+              Tags: [
+                { id: 1, name: 'Alpha' },
+                { id: 2, name: 'Beta' }
+              ]
+            }, {
+              include: [{
+                model: Tag,
+                myOption: 'option'
+              }],
+              observe: true
+            }).then(() => {
+              expect(spy1.callCount).to.equal(3);
+              expect(spy2.callCount).to.equal(3);
+              expect(spy3.callCount).to.equal(0);
+            });
+          });
+        });
+
+        it('should observe creation for HasOne relations', function() {
+          const User = this.sequelize.define('User', {
+            username: Sequelize.STRING
+          });
+  
+          const Task = this.sequelize.define('Task', {
+            title: Sequelize.STRING
+          });
+  
+          User.hasOne(Task);
+  
+          return this.sequelize.sync({ force: true }).then(() => {
+            return User.create({
+              username: 'Muzzy',
+              Task: {
+                title: 'Eat Clocks'
+              }
+            }, {
+              include: [Task],
+              observe: true
+            }).then(() => {
+              expect(spy1.callCount).to.equal(2);
+              expect(spy2.callCount).to.equal(2);
+              expect(spy3.callCount).to.equal(0);
+            });
+          });
+        });
+
+        it('should observe creation for BelongsToMany relations', function() {
+          const User = this.sequelize.define('User', {
+            username: DataTypes.STRING
+          });
+  
+          const Task = this.sequelize.define('Task', {
+            title: DataTypes.STRING,
+            active: DataTypes.BOOLEAN
+          });
+  
+          User.belongsToMany(Task, { through: 'user_task' });
+          Task.belongsToMany(User, { through: 'user_task' });
+  
+          return this.sequelize.sync({ force: true }).then(() => {
+            return User.create({
+              username: 'John',
+              Tasks: [
+                { title: 'Get rich', active: true },
+                { title: 'Die trying', active: false }
+              ]
+            }, {
+              include: [{
+                model: Task
+              }],
+              observe: true
+            }).then(() => {
+              expect(spy1.callCount).to.equal(5);
+              expect(spy2.callCount).to.equal(5);
+              expect(spy3.callCount).to.equal(0);
             });
           });
         });

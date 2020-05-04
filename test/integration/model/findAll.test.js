@@ -1535,6 +1535,84 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
     });
+
+    describe('observation', () => {
+      const spy1 = sinon.spy();
+      const spy2 = sinon.spy();
+      const spy3 = sinon.spy();
+      beforeEach(function() {
+        this.sequelize.observer.on('beforeQuery', spy1);
+        this.sequelize.observer.on('querySuccess', spy2);
+        this.sequelize.observer.on('queryError', spy2);
+      });
+      afterEach(function() {
+        this.sequelize.observer.off('beforeQuery', spy1);
+        this.sequelize.observer.off('querySuccess', spy2);
+        this.sequelize.observer.off('queryError', spy2);
+        spy1.resetHistory();
+        spy2.resetHistory();
+        spy3.resetHistory();
+      });
+      it('should support observation', function() {
+        return this.User.findAll({
+          where: {},
+          observe: true
+        }).then(() => {
+          expect(spy1.called).to.be.ok;
+          expect(spy2.called).to.be.ok;
+          expect(spy3.called).not.to.be.ok;
+        });
+      });
+  
+      it('should not trigger observation if options.observe set to false', function() {
+    
+        return this.User.findAll({
+          where: {},
+          observe: false
+        }).then(() => {
+          expect(spy1.called).not.to.be.ok;
+          expect(spy2.called).not.to.be.ok;
+          expect(spy3.called).not.to.be.ok;
+        });
+      });
+  
+      it('should return the correct data in observation', function() {
+        this.sequelize.options.observe = {
+          globalLabel: 'global_value',
+          name: 'global_name'
+        };
+    
+        return this.User.findAll({
+          where: {},
+          observe: {
+            name: 'my_pretty_query'
+          }
+        }).then(() => {
+          const beforeObservationObject = spy1.getCall(0).args[0];
+          expect(beforeObservationObject).to.have.property('name', 'my_pretty_query');
+          expect(beforeObservationObject).to.have.property('globalLabel', 'global_value');
+          expect(beforeObservationObject).to.have.property('type', Support.Sequelize.QueryTypes.SELECT);
+          expect(beforeObservationObject).to.have.property('connection', 'default');
+          expect(beforeObservationObject).to.have.property('sql');
+          expect(beforeObservationObject.sql).to.be.a('string');
+          expect(beforeObservationObject.sql.indexOf('SELECT')).to.equal(0);
+          expect(beforeObservationObject).to.have.property('parameters', undefined);
+          expect(beforeObservationObject).not.to.have.property('queryDuration');
+  
+          const afterObservationObject = spy2.getCall(0).args[0];
+          expect(afterObservationObject).to.have.property('name', 'my_pretty_query');
+          expect(afterObservationObject).to.have.property('globalLabel', 'global_value');
+          expect(afterObservationObject).to.have.property('type', Support.Sequelize.QueryTypes.SELECT);
+          expect(afterObservationObject).to.have.property('connection', 'default');
+          expect(afterObservationObject).to.have.property('sql');
+          expect(afterObservationObject.sql).to.be.a('string');
+          expect(afterObservationObject).to.have.property('parameters', undefined);
+          expect(afterObservationObject).to.have.property('queryDuration');
+          expect(afterObservationObject.queryDuration).to.be.a('number');
+          expect(afterObservationObject.queryDuration).to.be.greaterThan(0);
+        });
+      });
+    });
   });
 
   describe('findAndCountAll', () => {
@@ -1667,6 +1745,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(info.rows[1].dataValues).to.not.have.property('username');
       });
     });
+    describe('observation', () => {
+      const spy1 = sinon.spy();
+      const spy2 = sinon.spy();
+      const spy3 = sinon.spy();
+      beforeEach(function() {
+        this.sequelize.observer.on('beforeQuery', spy1);
+        this.sequelize.observer.on('querySuccess', spy2);
+        this.sequelize.observer.on('queryError', spy2);
+      });
+      afterEach(function() {
+        this.sequelize.observer.off('beforeQuery', spy1);
+        this.sequelize.observer.off('querySuccess', spy2);
+        this.sequelize.observer.off('queryError', spy2);
+        spy1.resetHistory();
+        spy2.resetHistory();
+        spy3.resetHistory();
+      });
+      it('should observe find and count queries', function() {
+        return this.User.findAndCountAll({
+          observe: true
+        }).then(() => {
+          expect(spy1.callCount).to.equal(2);
+          expect(spy2.callCount).to.equal(2);
+          expect(spy3.callCount).to.equal(0);
+        });
+      });
+    });
   });
 
   describe('all', () => {
@@ -1717,6 +1822,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
   });
 
+  
+  
   describe('rejectOnEmpty mode', () => {
     it('works from model options', () => {
       const Model = current.define('Test', {

@@ -1,6 +1,7 @@
 'use strict';
 
 const chai = require('chai'),
+  sinon = require('sinon'),
   Sequelize = require('../../../index'),
   AggregateError = require('../../../lib/errors/aggregate-error'),
   Op = Sequelize.Op,
@@ -1004,6 +1005,85 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(users => {
             expect(users.length).to.equal(1);
           });
+      });
+    });
+
+    describe('observation', () => {
+      const spy1 = sinon.spy();
+      const spy2 = sinon.spy();
+      const spy3 = sinon.spy();
+      const values = [...Array(10).keys()].map(key => ({
+        uniqueName: `${key}`
+      }));
+      beforeEach(function() {
+        this.sequelize.observer.on('beforeQuery', spy1);
+        this.sequelize.observer.on('querySuccess', spy2);
+        this.sequelize.observer.on('queryError', spy2);
+      });
+      afterEach(function() {
+        this.sequelize.observer.off('beforeQuery', spy1);
+        this.sequelize.observer.off('querySuccess', spy2);
+        this.sequelize.observer.off('queryError', spy2);
+        this.sequelize.options.observe = undefined;
+        this.sequelize.options.logQueryParameters = false;
+        spy1.resetHistory();
+        spy2.resetHistory();
+        spy3.resetHistory();
+      });
+      it('should support observation', function() {
+        return this.User.bulkCreate(values, {
+          observe: {}
+        }).then(() => {
+          expect(spy3.called).not.to.be.ok;
+          expect(spy1.callCount).to.equal(1);
+          expect(spy2.callCount).to.equal(1);
+        });
+      });
+  
+      it('should not trigger observation if options.observe set to false', function() {
+        return this.User.bulkCreate(values, {
+          observe: false
+        }).then(() => {
+          expect(spy1.called).not.to.be.ok;
+          expect(spy2.called).not.to.be.ok;
+          expect(spy3.called).not.to.be.ok;
+        });
+      });
+  
+      it('should return the correct data in observation', function() {
+        this.sequelize.options.observe = {
+          globalLabel: 'global_value',
+          name: 'global_name'
+        };
+        return this.User.bulkCreate(values, {
+          observe: {
+            name: 'my_pretty_query'
+          },
+          logQueryParameters: true
+        }).then(() => {
+          const beforeObservationObject = spy1.getCall(0).args[0];
+          expect(beforeObservationObject).to.have.property('name', 'my_pretty_query');
+          expect(beforeObservationObject).to.have.property('globalLabel', 'global_value');
+          expect(beforeObservationObject).to.have.property('type', Support.Sequelize.QueryTypes.INSERT);
+          expect(beforeObservationObject).to.have.property('connection', 'default');
+          expect(beforeObservationObject).to.have.property('sql');
+          expect(beforeObservationObject.sql).to.be.a('string');
+          expect(beforeObservationObject.sql.indexOf('INSERT')).to.equal(0);
+          expect(beforeObservationObject).to.have.property('parameters', undefined);
+          expect(beforeObservationObject).not.to.have.property('queryDuration');
+  
+          const afterObservationObject = spy2.getCall(0).args[0];
+          expect(afterObservationObject).to.have.property('name', 'my_pretty_query');
+          expect(afterObservationObject).to.have.property('globalLabel', 'global_value');
+          expect(afterObservationObject).to.have.property('type', Support.Sequelize.QueryTypes.INSERT);
+          expect(afterObservationObject).to.have.property('connection', 'default');
+          expect(afterObservationObject).to.have.property('sql');
+          expect(afterObservationObject.sql).to.be.a('string');
+          expect(afterObservationObject).to.have.property('parameters', undefined);
+          expect(afterObservationObject).to.have.property('queryDuration');
+          expect(afterObservationObject.queryDuration).to.be.a('number');
+          expect(afterObservationObject.queryDuration).to.be.greaterThan(0);
+        });
       });
     });
   });

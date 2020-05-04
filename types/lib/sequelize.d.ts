@@ -27,6 +27,7 @@ import QueryTypes = require('./query-types');
 import { Transaction, TransactionOptions } from './transaction';
 import { Cast, Col, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './connection-manager';
+import { EventEmitter } from 'events';
 
 /**
  * Additional options for table altering during sync
@@ -374,6 +375,13 @@ export interface Options extends Logging {
   logQueryParameters?: boolean;
 
   retry?: RetryOptions;
+
+  /**
+   * Set to `true` or an object conaining key / value labels to observe all queries
+   *
+   * @default false
+   */
+  observe?: boolean | object;
 }
 
 export interface QueryOptionsTransactionRequired { }
@@ -790,6 +798,8 @@ export class Sequelize extends Hooks {
   public readonly modelManager: ModelManager;
 
   public readonly connectionManager: ConnectionManager;
+
+  public readonly observer: EventEmitter
 
   /**
    * Dictionary of all models linked with this instance.
