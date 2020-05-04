@@ -1609,7 +1609,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(afterObservationObject).to.have.property('parameters', undefined);
           expect(afterObservationObject).to.have.property('queryDuration');
           expect(afterObservationObject.queryDuration).to.be.a('number');
-          expect(afterObservationObject.queryDuration).to.be.greaterThan(0);
+          expect(afterObservationObject.queryDuration).to.be.gte(0);
         });
       });
     });
