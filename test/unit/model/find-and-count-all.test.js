@@ -30,14 +30,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.count.resetBehavior();
       });
 
-      it('with errors in count and findAll both', function() {
-        return this.User.findAndCountAll({})
-          .then(() => {
-            throw new Error();
-          })
-          .catch(() => {
-            expect(this.stub.callCount).to.eql(0);
-          });
+      it('with errors in count and findAll both', async function() {
+        try {
+          await this.User.findAndCountAll({});
+          throw new Error();
+        } catch (err) {
+          expect(this.stub.callCount).to.eql(0);
+        }
       });
     });
   });
