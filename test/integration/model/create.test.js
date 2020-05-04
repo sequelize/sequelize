@@ -567,7 +567,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       beforeEach(function() {
         this.sequelize.observer.on('beforeQuery', spy1);
         this.sequelize.observer.on('querySuccess', spy2);
-        this.sequelize.observer.on('queryError', spy2);
+        this.sequelize.observer.on('queryError', spy3);
       });
       afterEach(function() {
         this.sequelize.observer.off('beforeQuery', spy1);
@@ -1618,12 +1618,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     beforeEach(function() {
       this.sequelize.observer.on('beforeQuery', spy1);
       this.sequelize.observer.on('querySuccess', spy2);
-      this.sequelize.observer.on('queryError', spy2);
+      this.sequelize.observer.on('queryError', spy3);
     });
     afterEach(function() {
       this.sequelize.observer.off('beforeQuery', spy1);
       this.sequelize.observer.off('querySuccess', spy2);
-      this.sequelize.observer.off('queryError', spy2);
+      this.sequelize.observer.off('queryError', spy3);
       this.sequelize.options.observe = undefined;
       spy1.resetHistory();
       spy2.resetHistory();
@@ -1720,8 +1720,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(beforeObservationObject.sql.indexOf('INSERT')).to.equal(0);
         expect(beforeObservationObject).to.have.property('parameters', undefined);
         expect(beforeObservationObject).not.to.have.property('queryDuration');
+        
+        expect(spy2.callCount).to.equal(1);
+        expect(spy3.callCount).to.equal(1);
 
-        const afterObservationObject = spy2.getCall(0).args[0];
+        const afterObservationObject = spy3.getCall(0).args[0];
         expect(afterObservationObject).to.have.property('name', 'my_pretty_query');
         expect(afterObservationObject).to.have.property('globalLabel', 'global_value');
         expect(afterObservationObject).to.have.property('type', Support.Sequelize.QueryTypes.INSERT);

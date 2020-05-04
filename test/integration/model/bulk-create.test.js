@@ -1018,7 +1018,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       beforeEach(function() {
         this.sequelize.observer.on('beforeQuery', spy1);
         this.sequelize.observer.on('querySuccess', spy2);
-        this.sequelize.observer.on('queryError', spy2);
+        this.sequelize.observer.on('queryError', spy3);
       });
       afterEach(function() {
         this.sequelize.observer.off('beforeQuery', spy1);
