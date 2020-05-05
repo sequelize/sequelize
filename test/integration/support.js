@@ -11,6 +11,9 @@ before(function() {
   this.sequelize.addHook('afterQuery', (options, query) => {
     runningQueries.delete(query);
   });
+  this.sequelize.addHook('afterQueryError', (options, query) => {
+    runningQueries.delete(query);
+  });
 });
 
 beforeEach(function() {

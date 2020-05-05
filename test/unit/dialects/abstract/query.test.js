@@ -478,7 +478,12 @@ describe('[ABSTRACT]', () => {
       this.cls = class MyQuery extends Query { };
       this.sequelizeStub = {
         log: stub(),
-        options: {}
+        options: {
+          labels: {
+            global: 'label',
+            override: 'global'
+          }
+        }
       };
       this.connectionStub = {
         uuid: 'test'
@@ -507,6 +512,62 @@ describe('[ABSTRACT]', () => {
 
       expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1');
       expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1');
+    });
+
+    it('add query duration to statistics after query success', function() {
+      const debugStub = stub();
+      const qry = new this.cls(this.connectionStub, this.sequelizeStub, {});
+      const complete = qry._logQuery('SELECT 1', debugStub);
+      complete();
+
+      expect(qry).to.have.nested.property('statistics.duration');
+      expect(qry.statistics.duration).to.be.a('number');
+      expect(qry.statistics.duration).to.be.gte(0);
+    });
+
+    it('add query labels to statistics', function() {
+      const debugStub = stub();
+      const qry = new this.cls(this.connectionStub, this.sequelizeStub, { labels: { override: 'local' } });
+      const complete = qry._logQuery('SELECT 1', debugStub);
+      complete();
+
+      expect(qry).to.have.nested.property('statistics.labels');
+      expect(qry.statistics.labels).to.be.a('object');
+      expect(qry.statistics.labels).to.deep.equal({
+        global: 'label',
+        override: 'local'
+      });
+    });
+
+    it('add query sql to statistics', function() {
+      const debugStub = stub();
+      const qry = new this.cls(this.connectionStub, this.sequelizeStub, {});
+      const complete = qry._logQuery('SELECT 1', debugStub);
+      complete();
+
+      expect(qry).to.have.nested.property('statistics.sql');
+      expect(qry.statistics.sql).to.be.a('string');
+      expect(qry.statistics.sql).to.equal('SELECT 1');
+    });
+
+    it('does not add query parameters to statistics', function() {
+      const debugStub = stub();
+      const qry = new this.cls(this.connectionStub, this.sequelizeStub, { logQueryParameters: false });
+      const complete = qry._logQuery('SELECT 1', debugStub, { field: 'value' });
+      complete();
+
+      expect(qry.statistics.parameters).not.to.be.ok;
+    });
+
+    it('add query parameters to statistics', function() {
+      const debugStub = stub();
+      const qry = new this.cls(this.connectionStub, this.sequelizeStub, { logQueryParameters: true });
+      const complete = qry._logQuery('SELECT 1', debugStub, { field: 'value' });
+      complete();
+
+      expect(qry).to.have.nested.property('statistics.parameters');
+      expect(qry.statistics.parameters).to.be.a('string');
+      expect(qry.statistics.parameters).to.equal(JSON.stringify({ field: 'value' }));
     });
   });
 });

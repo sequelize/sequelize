@@ -1591,4 +1591,270 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
   });
+
+  describe('Query hooks', () => {
+    describe('beforeQuery', () => {
+      const spy = sinon.spy();
+      afterEach(function() {
+        spy.resetHistory();
+        try {
+          this.sequelize.removeHook('beforeQuery', 'tempHook');
+        } catch (e) {
+          // Do nothing
+        }
+      });
+      it('Should execute beforeQuery hook once when defined globally', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('beforeQuery', 'tempHook', spy);
+        await User.create({ username: 'user1' });
+        expect(spy.callCount).to.equal(1);
+      });
+      it('Should not execute beforeQuery hook once when defined globally if hooks are disable in request', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('beforeQuery', 'tempHook', spy);
+        await User.create({ username: 'user1' }, { hooks: false });
+        expect(spy.callCount).to.equal(0);
+      });
+      
+      it('Should execute beforeQuery hook with correct args when defined globally', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('beforeQuery', 'tempHook', spy);
+        await User.create({ username: 'user1' }, { labels: { name: 'myQuery' } } );
+        expect(spy.getCall(0).args).to.have.lengthOf(2);
+        expect(spy.getCall(0).args[0]).to.have.nested.property('labels.name', 'myQuery');
+        expect(spy.getCall(0).args[1]).to.have.property('statistics');
+        const statistics = spy.getCall(0).args[1].statistics;
+        expect(statistics).to.have.property('sql');
+        expect(statistics).to.have.deep.property('labels', { name: 'myQuery' });
+      });
+
+      it('Should execute beforeQuery hook once when defined in model', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        }, {
+          hooks: { beforeQuery: spy } 
+        });
+        await this.sequelize.sync({ force: true });
+        await User.create({ username: 'user1' });
+        expect(spy.callCount).to.equal(1);
+      });
+    });
+    describe('afterQuery', () => {
+      const spy = sinon.spy();
+      afterEach(function() {
+        spy.resetHistory();
+        try {
+          this.sequelize.removeHook('afterQuery', 'tempHook');
+        } catch (e) {
+          // Do nothing
+        }
+      });
+      it('Should execute afterQuery hook once when defined globally', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('afterQuery', 'tempHook', spy);
+        await User.create({ username: 'user1' });
+        expect(spy.callCount).to.equal(1);
+      });
+      it('Should not execute afterQuery hook when defined globally if hooks are disable in request', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('afterQuery', 'tempHook', spy);
+        await User.create({ username: 'user1' }, { hooks: false });
+        expect(spy.callCount).to.equal(0);
+      });
+      it('Should execute afterQuery hook once when defined in model', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        }, {
+          hooks: { afterQuery: spy } 
+        });
+        await this.sequelize.sync({ force: true });
+        await User.create({ username: 'user1' });
+        expect(spy.callCount).to.equal(1);
+      });
+      it('Should execute afterQuery hook with correct args when defined globally', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('afterQuery', 'tempHook', spy);
+        await User.create({ username: 'user1' }, { labels: { name: 'myQuery' } } );
+        expect(spy.getCall(0).args).to.have.lengthOf(2);
+        expect(spy.getCall(0).args[0]).to.have.nested.property('labels.name', 'myQuery');
+        expect(spy.getCall(0).args[1]).to.have.property('statistics');
+        const statistics = spy.getCall(0).args[1].statistics;
+        expect(statistics).to.have.property('sql');
+        expect(statistics).to.have.deep.property('labels', { name: 'myQuery' });
+        expect(statistics).to.have.property('duration');
+        expect(statistics.duration).to.be.a('number');
+        expect(statistics.duration).to.be.gte(0);
+      });
+    });
+    describe('afterQuerySuccess', () => {
+      const spy = sinon.spy();
+      afterEach(function() {
+        spy.resetHistory();
+        try {
+          this.sequelize.removeHook('afterQuerySuccess', 'tempHook');
+        } catch (e) {
+          // Do nothing
+        }
+      });
+      it('Should execute afterQuerySuccess hook once when defined globally', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('afterQuerySuccess', 'tempHook', spy);
+        await User.create({ username: 'user1' });
+        expect(spy.callCount).to.equal(1);
+      });
+      it('Should not execute afterQuerySuccess hook when defined globally if hooks are disabled in request', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('afterQuerySuccess', 'tempHook', spy);
+        await User.create({ username: 'user1' }, { hooks: false });
+        expect(spy.callCount).to.equal(0);
+      });
+      it('Should execute afterQuerySuccess hook once when defined globally', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        }, {
+          hooks: {
+            afterQuerySuccess: spy
+          }
+        });
+        await this.sequelize.sync({ force: true });
+        await User.create({ username: 'user1' });
+        expect(spy.callCount).to.equal(1);
+      });
+      it('Should execute afterQuerySuccess hook with correct args when defined globally', async function() {
+        const User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('afterQuerySuccess', 'tempHook', spy);
+        await User.create({ username: 'user1' }, { labels: { name: 'myQuery' } } );
+        expect(spy.getCall(0).args).to.have.lengthOf(2);
+        expect(spy.getCall(0).args[0]).to.have.nested.property('labels.name', 'myQuery');
+        expect(spy.getCall(0).args[1]).to.have.property('statistics');
+        const statistics = spy.getCall(0).args[1].statistics;
+        expect(statistics).to.have.property('sql');
+        expect(statistics).to.have.deep.property('labels', { name: 'myQuery' });
+        expect(statistics).to.have.property('duration');
+        expect(statistics.duration).to.be.a('number');
+        expect(statistics.duration).to.be.gte(0);
+      });
+    });
+    describe('afterQueryError', () => {
+      const spy = sinon.spy();
+      afterEach(async function() {
+        spy.resetHistory();
+        try {
+          await this.sequelize.removeHook('afterQueryError', 'tempHook');
+        } catch (e) {
+          // Do nothing
+        }
+      });
+      
+      it('Should execute afterQueryError hook once when defined globally', async function() {
+        const User = this.sequelize.define('user', {
+          username: {
+            type: DataTypes.STRING,
+            unique: true
+          }
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('afterQueryError', 'tempHook', spy);
+        await User.create({ username: 'user1' });
+        try {
+          await User.create({ username: 'user1' });
+          throw new Error('Shouldn\'t be here');
+        } catch (e) {
+          // do nothing
+        }
+        expect(spy.callCount).to.equal(1);
+      });
+      it('Should not execute afterQueryError hook when defined globally if hooks are disabled in request', async function() {
+        const User = this.sequelize.define('user', {
+          username: {
+            type: DataTypes.STRING,
+            unique: true
+          }
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('afterQueryError', 'tempHook', spy);
+        await User.create({ username: 'user1' });
+        try {
+          await User.create({ username: 'user1' }, { hooks: false });
+          throw new Error('Shouldn\'t be here');
+        } catch (e) {
+          // do nothing
+        }
+        expect(spy.callCount).to.equal(0);
+      });
+      it('Should execute afterQueryError hook once when defined globally', async function() {
+        const User = this.sequelize.define('user', {
+          username: {
+            type: DataTypes.STRING,
+            unique: true
+          }
+        }, {
+          hooks: {
+            afterQueryError: spy
+          }
+        });
+        await this.sequelize.sync({ force: true });
+        await User.create({ username: 'user1' });
+        try {
+          await User.create({ username: 'user1' });
+          throw new Error('Shouldn\'t be here');
+        } catch (e) {
+          // do nothing
+        }
+        expect(spy.callCount).to.equal(1);
+      });
+      it('Should execute afterQueryError hook with correct args when defined globally', async function() {
+        const User = this.sequelize.define('user', {
+          username: {
+            type: DataTypes.STRING,
+            unique: true
+          }
+        });
+        await this.sequelize.sync({ force: true });
+        this.sequelize.addHook('afterQueryError', 'tempHook', spy);
+        await User.create({ username: 'user1' }, { labels: { name: 'myQuery' } });
+        try {
+          await User.create({ username: 'user1' }, { labels: { type: 'myError' } });
+          throw new Error('Shouldn\'t be here');
+        } catch (e) {
+          // do nothing
+        }
+        expect(spy.getCall(0).args).to.have.lengthOf(3);
+        expect(spy.getCall(0).args[0]).to.have.nested.property('labels.type', 'myError');
+        expect(spy.getCall(0).args[0]).not.to.have.nested.property('labels.name');
+        expect(spy.getCall(0).args[1]).to.have.property('statistics');
+        const statistics = spy.getCall(0).args[1].statistics;
+        expect(statistics).to.have.property('sql');
+        expect(statistics).to.have.deep.property('labels', { type: 'myError' });
+        expect(spy.getCall(0).args[2]).to.be.an.instanceOf(Sequelize.UniqueConstraintError);
+      });
+    });
+  });
 });
