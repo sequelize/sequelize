@@ -71,63 +71,63 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('attributes include / exclude', () => {
-      it('allows me to include additional attributes', function() {
-        return Model.findAll({
+      it('allows me to include additional attributes', async function() {
+        await Model.findAll({
           attributes: {
             include: ['foobar']
           }
-        }).then(() => {
-          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-            'id',
-            'name',
-            'foobar'
-          ]);
         });
+
+        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
+          'id',
+          'name',
+          'foobar'
+        ]);
       });
 
-      it('allows me to exclude attributes', function() {
-        return Model.findAll({
+      it('allows me to exclude attributes', async function() {
+        await Model.findAll({
           attributes: {
             exclude: ['name']
           }
-        }).then(() => {
-          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-            'id'
-          ]);
         });
+
+        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
+          'id'
+        ]);
       });
 
-      it('include takes precendence over exclude', function() {
-        return Model.findAll({
+      it('include takes precendence over exclude', async function() {
+        await Model.findAll({
           attributes: {
             exclude: ['name'],
             include: ['name']
           }
-        }).then(() => {
-          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-            'id',
-            'name'
-          ]);
         });
+
+        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
+          'id',
+          'name'
+        ]);
       });
 
-      it('works for models without PK #4607', function() {
+      it('works for models without PK #4607', async function() {
         const Model = current.define('model', {}, { timestamps: false });
         const Foo = current.define('foo');
         Model.hasOne(Foo);
 
         Model.removeAttribute('id');
 
-        return Model.findAll({
+        await Model.findAll({
           attributes: {
             include: ['name']
           },
           include: [Foo]
-        }).then(() => {
-          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-            'name'
-          ]);
         });
+
+        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
+          'name'
+        ]);
       });
 
     });

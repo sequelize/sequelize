@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
+  deprecations = require('../../../../lib/utils/deprecations'),
   Support = require('../../support'),
   sinon = require('sinon'),
   Config = require('../../../config/config'),
@@ -15,7 +16,7 @@ const poolEntry = {
   pool: {}
 };
 
-describe('Connection Manager', () => {
+describe(Support.getTestDialectTeaser('Connection Manager'), () => {
   let sandbox;
 
   beforeEach(() => {
@@ -31,7 +32,7 @@ describe('Connection Manager', () => {
       replication: null
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
 
     connectionManager.initPools();
     expect(connectionManager.pool).to.be.instanceOf(Pool);
@@ -47,7 +48,7 @@ describe('Connection Manager', () => {
       }
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
 
     connectionManager.initPools();
     expect(connectionManager.pool.read).to.be.instanceOf(Pool);
@@ -71,7 +72,7 @@ describe('Connection Manager', () => {
       }
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
 
     const res = {
       queryType: 'read'
@@ -79,7 +80,7 @@ describe('Connection Manager', () => {
 
     const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
     sandbox.stub(connectionManager, '_disconnect').resolves(res);
-    sandbox.stub(sequelize, 'databaseVersion').resolves(res);
+    sandbox.stub(sequelize, 'databaseVersion').resolves(sequelize.dialect.defaultVersion);
     connectionManager.initPools();
 
     const queryOptions = {
@@ -104,6 +105,34 @@ describe('Connection Manager', () => {
       });
   });
 
+  it('should trigger deprecation for non supported engine version', () => {
+    const deprecationStub = sandbox.stub(deprecations, 'unsupportedEngine');
+    const sequelize = Support.createSequelizeInstance();
+    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
+
+    sandbox.stub(sequelize, 'databaseVersion').resolves('0.0.1');
+
+    const res = {
+      queryType: 'read'
+    };
+
+    sandbox.stub(connectionManager, '_connect').resolves(res);
+    sandbox.stub(connectionManager, '_disconnect').resolves(res);
+    connectionManager.initPools();
+
+    const queryOptions = {
+      priority: 0,
+      type: 'SELECT',
+      useMaster: true
+    };
+
+    return connectionManager.getConnection(queryOptions)
+      .then(() => {
+        chai.expect(deprecationStub).to.have.been.calledOnce;
+      });
+  });
+
+
   it('should allow forced reads from the write pool', () => {
     const master = { ...poolEntry };
     master.host = 'the-boss';
@@ -115,14 +144,15 @@ describe('Connection Manager', () => {
       }
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
 
     const res = {
       queryType: 'read'
     };
+
     const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
     sandbox.stub(connectionManager, '_disconnect').resolves(res);
-    sandbox.stub(sequelize, 'databaseVersion').resolves(res);
+    sandbox.stub(sequelize, 'databaseVersion').resolves(sequelize.dialect.defaultVersion);
     connectionManager.initPools();
 
     const queryOptions = {
@@ -144,7 +174,7 @@ describe('Connection Manager', () => {
       replication: null
     };
     const sequelize = Support.createSequelizeInstance(options);
-    const connectionManager = new ConnectionManager(Support.getTestDialect(), sequelize);
+    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
 
     connectionManager.initPools();
 
@@ -156,5 +186,4 @@ describe('Connection Manager', () => {
       expect(poolClearSpy.calledOnce).to.be.true;
     });
   });
-
 });
