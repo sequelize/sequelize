@@ -566,6 +566,11 @@ export interface FindOptions extends QueryOptions, Filterable, Projectable, Para
    * Use sub queries (internal)
    */
   subQuery?: boolean;
+
+  /**
+   * Add labels to query
+   */
+  labels?: {[key: string]: any};
 }
 
 export interface NonNullFindOptions extends FindOptions {
@@ -600,6 +605,11 @@ export interface CountOptions extends Logging, Transactionable, Filterable, Proj
    * The column to aggregate on.
    */
   col?: string;
+
+  /**
+   * Add labels to query
+   */
+  labels?: {[key: string]: any};
 }
 
 /**
@@ -668,6 +678,10 @@ export interface CreateOptions extends BuildOptions, Logging, Silent, Transactio
    */
   validate?: boolean;
 
+  /**
+   * Add labels to query
+   */
+  labels?: {[key: string]: any};
 }
 
 export interface Hookable {
@@ -693,6 +707,11 @@ export interface FindOrCreateOptions extends Logging, Transactionable {
    * Default values to use if building a new instance
    */
   defaults?: object;
+
+  /**
+   * Add labels to query
+   */
+  labels?: {[key: string]: any};
 }
 
 /**
@@ -713,6 +732,11 @@ export interface UpsertOptions extends Logging, Transactionable, SearchPathable,
    * Run validations before the row is inserted
    */
   validate?: boolean;
+
+  /**
+   * Add labels to query
+   */
+  labels?: {[key: string]: any};
 }
 
 /**
@@ -758,6 +782,11 @@ export interface BulkCreateOptions extends Logging, Transactionable, Hookable {
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
   returning?: boolean | string[];
+
+  /**
+   * Add labels to query
+   */
+  labels?: {[key: string]: any};
 }
 
 /**
@@ -793,6 +822,11 @@ export interface TruncateOptions extends Logging, Transactionable, Filterable, H
    * Automatically restart sequences owned by columns of the truncated table
    */
   restartIdentity?: boolean;
+
+  /**
+   * Add labels to query
+   */
+  labels?: {[key: string]: any};
 }
 
 /**
@@ -821,6 +855,11 @@ export interface RestoreOptions extends Logging, Transactionable, Filterable, Ho
    * How many rows to undelete
    */
   limit?: number;
+
+  /**
+   * Add labels to query
+   */
+  labels?: {[key: string]: any};
 }
 
 /**
@@ -874,6 +913,11 @@ export interface UpdateOptions extends Logging, Transactionable, Paranoid, Hooka
    * If true, the updatedAt timestamp will not be updated.
    */
   silent?: boolean;
+
+  /**
+   * Add labels to query
+   */
+  labels?: {[key: string]: any};
 }
 
 /**
@@ -890,6 +934,11 @@ export interface AggregateOptions<T extends DataType | unknown> extends QueryOpt
    * Applies DISTINCT to the field being aggregated over
    */
   distinct?: boolean;
+
+  /**
+   * Add labels to query
+   */
+  labels?: {[key: string]: any};
 }
 
 // instance
@@ -962,6 +1011,11 @@ export interface SaveOptions extends Logging, Transactionable, Silent {
    * @default true
    */
   validate?: boolean;
+
+  /**
+   * Add labels to query
+   */
+  labels?: {[key: string]: any};
 }
 
 /**

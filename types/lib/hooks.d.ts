@@ -14,6 +14,7 @@ import Model, {
   UpdateOptions,
 } from './model';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
+import { Query } from './query';
 
 export type HookReturn = Promise<void> | void;
 
@@ -51,6 +52,10 @@ export interface ModelHooks<M extends Model = Model> {
   afterSync(options: SyncOptions): HookReturn;
   beforeBulkSync(options: SyncOptions): HookReturn;
   afterBulkSync(options: SyncOptions): HookReturn;
+  beforeQuery(options: FindOptions|UpdateOptions|CountOptions|CreateOptions|RestoreOptions|DestroyOptions|BulkCreateOptions, query: Query): HookReturn;
+  afterQuery(options: FindOptions|UpdateOptions|CountOptions|CreateOptions|RestoreOptions|DestroyOptions|BulkCreateOptions, query: Query): HookReturn;
+  afterQuerySuccess(options: FindOptions|UpdateOptions|CountOptions|CreateOptions|RestoreOptions|DestroyOptions|BulkCreateOptions, query: Query): HookReturn;
+  afterQueryError(options: FindOptions|UpdateOptions|CountOptions|CreateOptions|RestoreOptions|DestroyOptions|BulkCreateOptions, query: Query, error: Error): HookReturn;
 }
 
 export interface SequelizeHooks extends ModelHooks {

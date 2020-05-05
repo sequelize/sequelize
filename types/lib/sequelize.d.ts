@@ -374,6 +374,11 @@ export interface Options extends Logging {
   logQueryParameters?: boolean;
 
   retry?: RetryOptions;
+
+  /**
+   * Define Sequelize-wide key / value labels
+   */
+  labels?: {[key: string]: any}
 }
 
 export interface QueryOptionsTransactionRequired { }
