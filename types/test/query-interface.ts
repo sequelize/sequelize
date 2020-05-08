@@ -1,4 +1,4 @@
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model, fn, literal, col } from 'sequelize';
 // tslint:disable-next-line:no-submodule-imports
 import { QueryInterface } from 'sequelize/lib/query-interface';
 
@@ -153,6 +153,20 @@ queryInterface.addIndex('Foo', {
     { name: 'foo_d', order: 'ASC', collate: 'foobar', length: 42 }
   ],
 });
+
+queryInterface.addIndex('Foo', {
+  name: 'foo_b_lower',
+  fields: [
+    fn('lower', col('foo_b'))
+  ],
+});
+
+queryInterface.addIndex('Foo', {
+  name: 'foo_c_lower',
+  fields: [
+    literal('LOWER(foo_c)')
+  ]
+})
 
 queryInterface.removeIndex('Person', 'SuperDuperIndex');
 
