@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     expect(connectionManager.pool.write).to.be.instanceOf(Pool);
   });
 
-  it('should round robin calls to the read pool', () => {
+  it('should round robin calls to the read pool', async () => {
     if (Support.getTestDialect() === 'sqlite') {
       return;
     }
@@ -91,21 +91,19 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
 
     const _getConnection = connectionManager.getConnection.bind(connectionManager, queryOptions);
 
-    return _getConnection()
-      .then(_getConnection)
-      .then(_getConnection)
-      .then(() => {
-        chai.expect(connectStub.callCount).to.equal(4);
+    await _getConnection();
+    await _getConnection();
+    await _getConnection();
+    chai.expect(connectStub.callCount).to.equal(4);
 
-        // First call is the get connection for DB versions - ignore
-        const calls = connectStub.getCalls();
-        chai.expect(calls[1].args[0].host).to.eql('slave1');
-        chai.expect(calls[2].args[0].host).to.eql('slave2');
-        chai.expect(calls[3].args[0].host).to.eql('slave1');
-      });
+    // First call is the get connection for DB versions - ignore
+    const calls = connectStub.getCalls();
+    chai.expect(calls[1].args[0].host).to.eql('slave1');
+    chai.expect(calls[2].args[0].host).to.eql('slave2');
+    chai.expect(calls[3].args[0].host).to.eql('slave1');
   });
 
-  it('should trigger deprecation for non supported engine version', () => {
+  it('should trigger deprecation for non supported engine version', async () => {
     const deprecationStub = sandbox.stub(deprecations, 'unsupportedEngine');
     const sequelize = Support.createSequelizeInstance();
     const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
@@ -126,14 +124,12 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
       useMaster: true
     };
 
-    return connectionManager.getConnection(queryOptions)
-      .then(() => {
-        chai.expect(deprecationStub).to.have.been.calledOnce;
-      });
+    await connectionManager.getConnection(queryOptions);
+    chai.expect(deprecationStub).to.have.been.calledOnce;
   });
 
 
-  it('should allow forced reads from the write pool', () => {
+  it('should allow forced reads from the write pool', async () => {
     const master = { ...poolEntry };
     master.host = 'the-boss';
 
@@ -161,15 +157,13 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
       useMaster: true
     };
 
-    return connectionManager.getConnection(queryOptions)
-      .then(() => {
-        chai.expect(connectStub).to.have.been.calledTwice; // Once to get DB version, and once to actually get the connection.
-        const calls = connectStub.getCalls();
-        chai.expect(calls[1].args[0].host).to.eql('the-boss');
-      });
+    await connectionManager.getConnection(queryOptions);
+    chai.expect(connectStub).to.have.been.calledTwice; // Once to get DB version, and once to actually get the connection.
+    const calls = connectStub.getCalls();
+    chai.expect(calls[1].args[0].host).to.eql('the-boss');
   });
 
-  it('should clear the pool after draining it', () => {
+  it('should clear the pool after draining it', async () => {
     const options = {
       replication: null
     };
@@ -181,9 +175,8 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     const poolDrainSpy = sandbox.spy(connectionManager.pool, 'drain');
     const poolClearSpy = sandbox.spy(connectionManager.pool, 'destroyAllNow');
 
-    return connectionManager.close().then(() => {
-      expect(poolDrainSpy.calledOnce).to.be.true;
-      expect(poolClearSpy.calledOnce).to.be.true;
-    });
+    await connectionManager.close();
+    expect(poolDrainSpy.calledOnce).to.be.true;
+    expect(poolClearSpy.calledOnce).to.be.true;
   });
 });
