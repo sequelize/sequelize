@@ -53,6 +53,7 @@
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
     "chai-datetime": "^1.x",
+    "cheerio": "^1.0.0-rc.2",
     "cls-hooked": "^4.2.2",
     "cross-env": "^7.0.2",
     "delay": "^4.3.0",
