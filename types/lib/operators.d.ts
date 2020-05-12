@@ -10,7 +10,7 @@ declare const Op: {
    * ```
    * In SQL
    * ```sql
-   * -|- [1, 2)
+   * -|- [1, 2]
    * ```
    */
   readonly adjacent: unique symbol;
@@ -94,7 +94,7 @@ declare const Op: {
    * ```
    * In SQL
    * ```sql
-   * <@ [1, 2)
+   * <@ [1, 2]
    * ```
    */
   readonly contained: unique symbol;
@@ -106,7 +106,7 @@ declare const Op: {
    * ```
    * In SQL
    * ```sql
-   * @> [1, 2)
+   * @> [1, 2]
    * ```
    */
   readonly contains: unique symbol;
@@ -263,7 +263,7 @@ declare const Op: {
    * ```
    * In SQL
    * ```sql
-   * &> [1, 2)
+   * &> [1, 2]
    * ```
    */
   readonly noExtendLeft: unique symbol;
@@ -275,7 +275,7 @@ declare const Op: {
    * ```
    * In SQL
    * ```sql
-   * &< [1, 2)
+   * &< [1, 2]
    * ```
    */
   readonly noExtendRight: unique symbol;
@@ -383,12 +383,12 @@ declare const Op: {
    * ```
    * In SQL
    * ```sql
-   * && [1, 2)
+   * && [1, 2]
    * ```
    */
   readonly overlap: unique symbol;
   /**
-   * Internal placeholder 
+   * Internal placeholder
    *
    * ```js
    * [Op.placeholder]: true
@@ -427,7 +427,7 @@ declare const Op: {
    * ```
    * In SQL
    * ```sql
-   * << [1, 2)
+   * << [1, 2]
    * ```
    */
   readonly strictLeft: unique symbol;
@@ -439,7 +439,7 @@ declare const Op: {
    * ```
    * In SQL
    * ```sql
-   * >> [1, 2)
+   * >> [1, 2]
    * ```
    */
   readonly strictRight: unique symbol;
@@ -457,7 +457,7 @@ declare const Op: {
   readonly substring: unique symbol;
   /**
    * Operator VALUES
-   * 
+   *
    * ```js
    * [Op.values]: [4, 5, 6]
    * ```

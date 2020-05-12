@@ -427,14 +427,14 @@ Keep in mind, the provided range value can [define the bound inclusion/exclusion
 
 ```js
 [Op.contains]: 2,            // @> '2'::integer  (PG range contains element operator)
-[Op.contains]: [1, 2],       // @> [1, 2)        (PG range contains range operator)
-[Op.contained]: [1, 2],      // <@ [1, 2)        (PG range is contained by operator)
-[Op.overlap]: [1, 2],        // && [1, 2)        (PG range overlap (have points in common) operator)
-[Op.adjacent]: [1, 2],       // -|- [1, 2)       (PG range is adjacent to operator)
-[Op.strictLeft]: [1, 2],     // << [1, 2)        (PG range strictly left of operator)
-[Op.strictRight]: [1, 2],    // >> [1, 2)        (PG range strictly right of operator)
-[Op.noExtendRight]: [1, 2],  // &< [1, 2)        (PG range does not extend to the right of operator)
-[Op.noExtendLeft]: [1, 2],   // &> [1, 2)        (PG range does not extend to the left of operator)
+[Op.contains]: [1, 2],       // @> [1, 2]        (PG range contains range operator)
+[Op.contained]: [1, 2],      // <@ [1, 2]        (PG range is contained by operator)
+[Op.overlap]: [1, 2],        // && [1, 2]        (PG range overlap (have points in common) operator)
+[Op.adjacent]: [1, 2],       // -|- [1, 2]       (PG range is adjacent to operator)
+[Op.strictLeft]: [1, 2],     // << [1, 2]        (PG range strictly left of operator)
+[Op.strictRight]: [1, 2],    // >> [1, 2]        (PG range strictly right of operator)
+[Op.noExtendRight]: [1, 2],  // &< [1, 2]        (PG range does not extend to the right of operator)
+[Op.noExtendLeft]: [1, 2],   // &> [1, 2]        (PG range does not extend to the left of operator)
 ```
 
 ### Deprecated: Operator Aliases

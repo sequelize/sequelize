@@ -290,14 +290,14 @@ export interface WhereOperators {
   /**
    * PG only
    *
-   * Forces the operator to not extend the left eg. `&> [1, 2)`
+   * Forces the operator to not extend the left eg. `&> [1, 2]`
    */
   [Op.noExtendLeft]?: Rangable;
 
   /**
    * PG only
    *
-   * Forces the operator to not extend the left eg. `&< [1, 2)`
+   * Forces the operator to not extend the left eg. `&< [1, 2]`
    */
   [Op.noExtendRight]?: Rangable;
 
@@ -1778,12 +1778,12 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * always be called with a single instance.
    */
   public static findByPk<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     identifier: Identifier,
     options: Omit<NonNullFindOptions, 'where'>
   ): Promise<M>;
   public static findByPk<M extends Model>(
-    this: { new (): M } & typeof Model,
+    this: { new(): M } & typeof Model,
     identifier?: Identifier,
     options?: Omit<FindOptions, 'where'>
   ): Promise<M | null>;
@@ -1791,7 +1791,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   /**
    * Search for a single instance. Returns the first instance found, or null if none can be found.
    */
-  public static findOne<M extends Model>(this: { new (): M } & typeof Model, options: NonNullFindOptions): Promise<M>;
+  public static findOne<M extends Model>(this: { new(): M } & typeof Model, options: NonNullFindOptions): Promise<M>;
   public static findOne<M extends Model>(
     this: { new(): M } & typeof Model,
     options?: FindOptions
