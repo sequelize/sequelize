@@ -54,6 +54,12 @@ This method now tests for equality with [`_.isEqual`](https://lodash.com/docs/4.
 
 This method now throws `Sequelize.AggregateError` instead of `Bluebird.AggregateError`. All errors are now exposed as `errors` key.
 
+### QueryInterface
+
+#### `addConstraint`
+
+This method now only takes 2 parameters, `tableName` and `options`. Previously the second parameter could be a list of column names to apply the constraint to, this list must now be passed as `options.fields` property.
+
 ## Changelog
 
 ### 6.0.0-beta.5

@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.sequelize.query('CREATE DATABASE my_test_db');
         await this.sequelize.query('CREATE TABLE my_test_db.my_test_table2 (id INT)');
         let tableNames = await this.sequelize.query(
-          this.queryInterface.QueryGenerator.showTablesQuery(),
+          this.queryInterface.queryGenerator.showTablesQuery(),
           {
             raw: true,
             type: this.sequelize.QueryTypes.SHOWTABLES
@@ -124,7 +124,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(
         await showAllTablesIgnoringSpecialMSSQLTable()
       ).to.be.empty;
-  
+
       await this.queryInterface.createTable('table', { name: DataTypes.STRING });
 
       expect(
@@ -427,7 +427,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('should get a list of foreign keys for the table', async function() {
 
       const foreignKeys = await this.sequelize.query(
-        this.queryInterface.QueryGenerator.getForeignKeysQuery(
+        this.queryInterface.queryGenerator.getForeignKeysQuery(
           'hosts',
           this.sequelize.config.database
         ),
@@ -450,7 +450,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       if (dialect === 'mysql') {
         const [foreignKeysViaDirectMySQLQuery] = await this.sequelize.query(
-          this.queryInterface.QueryGenerator.getForeignKeyQuery('hosts', 'admin')
+          this.queryInterface.queryGenerator.getForeignKeyQuery('hosts', 'admin')
         );
         expect(foreignKeysViaDirectMySQLQuery[0]).to.deep.equal(foreignKeys[0]);
       }
@@ -486,7 +486,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     describe('unique', () => {
       it('should add, read & remove unique constraint', async function() {
-        await this.queryInterface.addConstraint('users', ['email'], { type: 'unique' });
+        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['email'] });
         let constraints = await this.queryInterface.showConstraint('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('users_email_uk');
@@ -497,8 +497,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       it('should add a constraint after another', async function() {
-        await this.queryInterface.addConstraint('users', ['username'], { type: 'unique' });
-        await this.queryInterface.addConstraint('users', ['email'], { type: 'unique' });
+        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['username'] });
+        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['email'] });
         let constraints = await this.queryInterface.showConstraint('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('users_email_uk');
@@ -519,8 +519,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     if (current.dialect.supports.constraints.check) {
       describe('check', () => {
         it('should add, read & remove check constraint', async function() {
-          await this.queryInterface.addConstraint('users', ['roles'], {
+          await this.queryInterface.addConstraint('users', {
             type: 'check',
+            fields: ['roles'],
             where: {
               roles: ['user', 'admin', 'guest', 'moderator']
             },
@@ -537,7 +538,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         it('addconstraint missing type', async function() {
           await expect(
-            this.queryInterface.addConstraint('users', ['roles'], {
+            this.queryInterface.addConstraint('users', {
+              fields: ['roles'],
               where: { roles: ['user', 'admin', 'guest', 'moderator'] },
               name: 'check_user_roles'
             })
@@ -549,7 +551,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     if (current.dialect.supports.constraints.default) {
       describe('default', () => {
         it('should add, read & remove default constraint', async function() {
-          await this.queryInterface.addConstraint('users', ['roles'], {
+          await this.queryInterface.addConstraint('users', {
+            fields: ['roles'],
             type: 'default',
             defaultValue: 'guest'
           });
@@ -571,7 +574,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: DataTypes.STRING,
           allowNull: false
         });
-        await this.queryInterface.addConstraint('users', ['username'], {
+        await this.queryInterface.addConstraint('users', {
+          fields: ['username'],
           type: 'PRIMARY KEY'
         });
         let constraints = await this.queryInterface.showConstraint('users');
@@ -599,7 +603,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: 'PRIMARY KEY',
           fields: ['username']
         });
-        await this.queryInterface.addConstraint('posts', ['username'], {
+        await this.queryInterface.addConstraint('posts', {
+          fields: ['username'],
           references: {
             table: 'users',
             field: 'username'

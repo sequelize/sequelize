@@ -4,6 +4,7 @@ import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
 import { SetRequired } from './../type-helpers/set-required';
+import { Fn, Literal } from './utils';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
@@ -172,7 +173,7 @@ export interface IndexesOptions {
    * (field name), `length` (create a prefix index of length chars), `order` (the direction the column
    * should be sorted in), `collate` (the collation (sort order) for the column), `operator` (likes IndexesOptions['operator'])
    */
-  fields?: (string | { name: string; length?: number; order?: 'ASC' | 'DESC'; collate?: string; operator?: string })[];
+  fields?: (string | { name: string; length?: number; order?: 'ASC' | 'DESC'; collate?: string; operator?: string } | Fn | Literal)[];
 
   /**
    * The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and
@@ -198,31 +199,31 @@ export interface IndexesOptions {
 
 export interface QueryInterfaceIndexOptions extends IndexesOptions, QueryInterfaceOptions {}
 
-export interface AddUniqueConstraintOptions {
-  type: 'unique';
+export interface BaseConstraintOptions {
   name?: string;
+  fields: string[];
 }
 
-export interface AddDefaultConstraintOptions {
+export interface AddUniqueConstraintOptions extends BaseConstraintOptions {
+  type: 'unique';
+}
+
+export interface AddDefaultConstraintOptions extends BaseConstraintOptions {
   type: 'default';
-  name?: string;
   defaultValue?: unknown;
 }
 
-export interface AddCheckConstraintOptions {
+export interface AddCheckConstraintOptions extends BaseConstraintOptions {
   type: 'check';
-  name?: string;
   where?: WhereOptions;
 }
 
-export interface AddPrimaryKeyConstraintOptions {
+export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
   type: 'primary key';
-  name?: string;
 }
 
-export interface AddForeignKeyConstraintOptions {
+export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
   type: 'foreign key';
-  name?: string;
   references?: {
     table: string;
     field: string;
@@ -251,7 +252,7 @@ export interface FunctionParam {
 /**
 * The interface that Sequelize uses to talk to all databases.
 *
-* This interface is available through sequelize.QueryInterface. It should not be commonly used, but it's
+* This interface is available through sequelize.queryInterface. It should not be commonly used, but it's
 * referenced anyway, so it can be used.
 */
 export class QueryInterface {
@@ -326,7 +327,7 @@ export class QueryInterface {
    *
    * @param options
    */
-  public dropAllTables(options?: QueryInterfaceDropTableOptions): Promise<void>;
+  public dropAllTables(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
 
   /**
    * Drops all defined enums
@@ -418,7 +419,6 @@ export class QueryInterface {
    */
   public addConstraint(
     tableName: string,
-    attributes: string[],
     options?: AddConstraintOptions & QueryInterfaceOptions
   ): Promise<void>;
 

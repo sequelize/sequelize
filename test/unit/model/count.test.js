@@ -38,32 +38,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('should pass the same options to model.aggregate as findAndCountAll', () => {
-      it('with includes', function() {
+      it('with includes', async function() {
         const queryObject = {
           include: [this.Project]
         };
-        return this.User.count(queryObject)
-          .then(() => this.User.findAndCountAll(queryObject))
-          .then(() => {
-            const count = this.stub.getCall(0).args;
-            const findAndCountAll = this.stub.getCall(1).args;
-            expect(count).to.eql(findAndCountAll);
-          });
+        await this.User.count(queryObject);
+        await this.User.findAndCountAll(queryObject);
+        const count = this.stub.getCall(0).args;
+        const findAndCountAll = this.stub.getCall(1).args;
+        expect(count).to.eql(findAndCountAll);
       });
 
-      it('attributes should be stripped in case of findAndCountAll', function() {
+      it('attributes should be stripped in case of findAndCountAll', async function() {
         const queryObject = {
           attributes: ['username']
         };
-        return this.User.count(queryObject)
-          .then(() => this.User.findAndCountAll(queryObject))
-          .then(() => {
-            const count = this.stub.getCall(0).args;
-            const findAndCountAll = this.stub.getCall(1).args;
-            expect(count).not.to.eql(findAndCountAll);
-            count[2].attributes = undefined;
-            expect(count).to.eql(findAndCountAll);
-          });
+        await this.User.count(queryObject);
+        await this.User.findAndCountAll(queryObject);
+        const count = this.stub.getCall(0).args;
+        const findAndCountAll = this.stub.getCall(1).args;
+        expect(count).not.to.eql(findAndCountAll);
+        count[2].attributes = undefined;
+        expect(count).to.eql(findAndCountAll);
       });
     });
 

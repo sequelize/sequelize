@@ -6,6 +6,7 @@
 
 * [ssacl](https://github.com/pumpupapp/ssacl)
 * [ssacl-attribute-roles](https://github.com/mickhansen/ssacl-attribute-roles)
+* [SequelizeGuard](https://github.com/lotivo/sequelize-acl) - Role, Permission based Authorization for Sequelize.
 
 ### Auto Code Generation & Scaffolding
 

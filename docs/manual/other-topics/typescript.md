@@ -68,7 +68,7 @@ class Address extends Model {
 
 Project.init({
   id: {
-    type: DataTypes.INTEGER.UNSIGNED, // you can omit the `new` but this is discouraged
+    type: DataTypes.INTEGER.UNSIGNED,
     autoIncrement: true,
     primaryKey: true,
   },
@@ -101,7 +101,7 @@ User.init({
   }
 }, {
   tableName: 'users',
-  sequelize: sequelize, // this bit is important
+  sequelize: sequelize, // passing the `sequelize` instance is required
 });
 
 Address.init({
@@ -114,7 +114,7 @@ Address.init({
   }
 }, {
   tableName: 'address',
-  sequelize: sequelize, // this bit is important
+  sequelize: sequelize, // passing the `sequelize` instance is required
 });
 
 // Here we associate which actually populates out pre-declared `association` static and other methods.

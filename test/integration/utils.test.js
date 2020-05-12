@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   if (Support.getTestDialect() === 'postgres') {
     describe('json', () => {
       beforeEach(function() {
-        this.queryGenerator = this.sequelize.getQueryInterface().QueryGenerator;
+        this.queryGenerator = this.sequelize.getQueryInterface().queryGenerator;
       });
 
       it('successfully parses a complex nested condition hash', function() {

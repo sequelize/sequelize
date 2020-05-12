@@ -45,6 +45,8 @@ if (global.afterEach) {
   });
 }
 
+let lastSqliteInstance;
+
 const Support = {
   Sequelize,
 
@@ -69,20 +71,25 @@ const Support = {
     return unhandledRejections = destArray;
   },
 
-  prepareTransactionTest(sequelize) {
+  async prepareTransactionTest(sequelize) {
     const dialect = Support.getTestDialect();
 
     if (dialect === 'sqlite') {
       const p = path.join(__dirname, 'tmp', 'db.sqlite');
+      if (lastSqliteInstance) {
+        await lastSqliteInstance.close();
+      }
       if (fs.existsSync(p)) {
         fs.unlinkSync(p);
       }
-      const options = Object.assign({}, sequelize.options, { storage: p }),
+      const options = { ...sequelize.options, storage: p },
         _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
-      return _sequelize.sync({ force: true }).then(() => _sequelize);
+      await _sequelize.sync({ force: true });
+      lastSqliteInstance = _sequelize;
+      return _sequelize;
     }
-    return Promise.resolve(sequelize);
+    return sequelize;
   },
 
   createSequelizeInstance(options) {
@@ -126,41 +133,34 @@ const Support = {
     return new Sequelize(db, user, pass, options);
   },
 
-  clearDatabase(sequelize) {
-    return sequelize
-      .getQueryInterface()
-      .dropAllTables()
-      .then(() => {
-        sequelize.modelManager.models = [];
-        sequelize.models = {};
+  async clearDatabase(sequelize) {
+    const qi = sequelize.getQueryInterface();
+    await qi.dropAllTables();
+    sequelize.modelManager.models = [];
+    sequelize.models = {};
 
-        return sequelize
-          .getQueryInterface()
-          .dropAllEnums();
-      })
-      .then(() => {
-        return this.dropTestSchemas(sequelize);
-      });
+    if (qi.dropAllEnums) {
+      await qi.dropAllEnums();
+    }
+    await this.dropTestSchemas(sequelize);
   },
 
-  dropTestSchemas(sequelize) {
-
+  async dropTestSchemas(sequelize) {
     const queryInterface = sequelize.getQueryInterface();
-    if (!queryInterface.QueryGenerator._dialect.supports.schemas) {
+    if (!queryInterface.queryGenerator._dialect.supports.schemas) {
       return this.sequelize.drop({});
     }
 
-    return sequelize.showAllSchemas().then(schemas => {
-      const schemasPromise = [];
-      schemas.forEach(schema => {
-        const schemaName = schema.name ? schema.name : schema;
-        if (schemaName !== sequelize.config.database) {
-          schemasPromise.push(sequelize.dropSchema(schemaName));
-        }
-      });
-      return Promise.all(schemasPromise.map(p => p.catch(e => e)))
-        .then(() => {}, () => {});
+    const schemas = await sequelize.showAllSchemas();
+    const schemasPromise = [];
+    schemas.forEach(schema => {
+      const schemaName = schema.name ? schema.name : schema;
+      if (schemaName !== sequelize.config.database) {
+        schemasPromise.push(sequelize.dropSchema(schemaName));
+      }
     });
+
+    await Promise.all(schemasPromise.map(p => p.catch(e => e)));
   },
 
   getSupportedDialects() {
