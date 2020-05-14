@@ -716,6 +716,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
+    it('escape where has $ on the middle of characters', function() {
+      const typeCast = dialect === 'postgres' ? '::int' : '';
+      return this.sequelize.query(`select $one${typeCast} as foo$bar`, { raw: true, bind: { one: 1 } }).then(result => {
+        expect(result[0]).to.deep.equal([{ foo$bar: 1 }]);
+      });
+    });
+
     if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
       it('does not improperly escape arrays of strings bound to named parameters', function() {
         return this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: ['"string"'] } }).then(result => {
