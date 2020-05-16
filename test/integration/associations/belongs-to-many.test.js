@@ -2446,21 +2446,99 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   });
 
   describe('through', () => {
-    beforeEach(function() {
-      this.User = this.sequelize.define('User', {});
-      this.Project = this.sequelize.define('Project', {});
-      this.UserProjects = this.sequelize.define('UserProjects', {
-        status: DataTypes.STRING,
-        data: DataTypes.INTEGER
+    describe('paranoid', () => {
+      beforeEach(async function() {
+        this.User = this.sequelize.define('User', {});
+        this.Project = this.sequelize.define('Project', {});
+        this.UserProjects = this.sequelize.define('UserProjects', {}, {
+          paranoid: true
+        });
+
+        this.User.belongsToMany(this.Project, { through: this.UserProjects });
+        this.Project.belongsToMany(this.User, { through: this.UserProjects });
+
+        await this.sequelize.sync();
+
+        this.users = await Promise.all([
+          this.User.create(),
+          this.User.create(),
+          this.User.create()
+        ]);
+
+        this.projects = await Promise.all([
+          this.Project.create(),
+          this.Project.create(),
+          this.Project.create()
+        ]);
       });
 
-      this.User.belongsToMany(this.Project, { through: this.UserProjects });
-      this.Project.belongsToMany(this.User, { through: this.UserProjects });
+      it('gets only non-deleted records by default', async function() {
+        await this.users[0].addProjects(this.projects);
+        await this.UserProjects.destroy({
+          where: {
+            ProjectId: this.projects[0].id
+          }
+        });
 
-      return this.sequelize.sync();
+        const result = await this.users[0].getProjects();
+
+        expect(result.length).to.equal(2);
+      });
+
+      it('returns both deleted and non-deleted records with paranoid=false', async function() {
+        await this.users[0].addProjects(this.projects);
+        await this.UserProjects.destroy({
+          where: {
+            ProjectId: this.projects[0].id
+          }
+        });
+
+        const result = await this.users[0].getProjects({ through: { paranoid: false } });
+
+        expect(result.length).to.equal(3);
+      });
+
+      it('hasAssociation also respects paranoid option', async function() {
+        await this.users[0].addProjects(this.projects);
+        await this.UserProjects.destroy({
+          where: {
+            ProjectId: this.projects[0].id
+          }
+        });
+
+        expect(
+          await this.users[0].hasProjects(this.projects[0], { through: { paranoid: false } })
+        ).to.equal(true);
+
+        expect(
+          await this.users[0].hasProjects(this.projects[0])
+        ).to.equal(false);
+
+        expect(
+          await this.users[0].hasProjects(this.projects[1])
+        ).to.equal(true);
+
+        expect(
+          await this.users[0].hasProjects(this.projects)
+        ).to.equal(false);
+      });
     });
 
     describe('fetching from join table', () => {
+      beforeEach(function() {
+        this.User = this.sequelize.define('User', {});
+        this.Project = this.sequelize.define('Project', {});
+        this.UserProjects = this.sequelize.define('UserProjects', {
+          status: DataTypes.STRING,
+          data: DataTypes.INTEGER
+        });
+
+        this.User.belongsToMany(this.Project, { through: this.UserProjects });
+        this.Project.belongsToMany(this.User, { through: this.UserProjects });
+
+        return this.sequelize.sync();
+      });
+
       it('should contain the data from the join table on .UserProjects a DAO', async function() {
         const [user0, project0] = await Promise.all([
           this.User.create(),
@@ -2523,6 +2601,20 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     describe('inserting in join table', () => {
+      beforeEach(function() {
+        this.User = this.sequelize.define('User', {});
+        this.Project = this.sequelize.define('Project', {});
+        this.UserProjects = this.sequelize.define('UserProjects', {
+          status: DataTypes.STRING,
+          data: DataTypes.INTEGER
+        });
+
+        this.User.belongsToMany(this.Project, { through: this.UserProjects });
+        this.Project.belongsToMany(this.User, { through: this.UserProjects });
+
+        return this.sequelize.sync();
+      });
+
       describe('add', () => {
         it('should insert data provided on the object into the join table', async function() {
           const [u, p] = await Promise.all([
