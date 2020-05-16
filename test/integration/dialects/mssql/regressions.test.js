@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
+  sinon =  require('sinon'),
   Support = require('../../support'),
   Sequelize = Support.Sequelize,
   Op = Sequelize.Op,
@@ -128,6 +129,59 @@ if (dialect.match(/^mssql/)) {
       expect(separateUsers[0].get('LoginLogs')).to.have.length(1);
       expect(separateUsers[1].get('UserName')).to.equal('Shaktimaan');
       expect(separateUsers[1].get('LoginLogs')).to.have.length(1);
+    });
+
+    it('allow referencing FK to different tables in a schema with onDelete, #10125', async function() {
+      const Child = this.sequelize.define(
+        'Child',
+        {},
+        {
+          timestamps: false
+        }
+      );
+      const Toys = this.sequelize.define(
+        'Toys',
+        {},
+        {
+          timestamps: false,
+          freezeTableName: true,
+          schema: 'a'
+        }
+      );
+      const Parent = this.sequelize.define(
+        'Parent',
+        {},
+        {
+          timestamps: false,
+          freezeTableName: true,
+          schema: 'a'
+        }
+      );
+
+      Child.hasOne(Toys, {
+        foreignKey: {
+          onDelete: 'CASCADE'
+        }
+      });
+
+      Parent.hasOne(Toys, {
+        foreignKey: {
+          onDelete: 'CASCADE'
+        }
+      });
+
+      const spy = sinon.spy();
+
+      await this.sequelize.queryInterface.createSchema('a');
+      await this.sequelize.sync({
+        force: true,
+        logging: spy
+      });
+
+      expect(spy).to.have.been.called;
+      const log = spy.args.find(arg => arg[0].includes('IF OBJECT_ID(\'[a].[Toys]\', \'U\') IS NULL CREATE TABLE'))[0];
+
+      expect(log.match(/ON DELETE CASCADE/g).length).to.equal(2);
     });
 
     it('sets the varchar(max) length correctly on describeTable', async function() {
