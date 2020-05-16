@@ -136,7 +136,9 @@ if (dialect.match(/^mssql/)) {
         'Child',
         {},
         {
-          timestamps: false
+          timestamps: false,
+          freezeTableName: true,
+          schema: 'a'
         }
       );
       const Toys = this.sequelize.define(
@@ -159,15 +161,11 @@ if (dialect.match(/^mssql/)) {
       );
 
       Child.hasOne(Toys, {
-        foreignKey: {
-          onDelete: 'CASCADE'
-        }
+        onDelete: 'CASCADE'
       });
 
       Parent.hasOne(Toys, {
-        foreignKey: {
-          onDelete: 'CASCADE'
-        }
+        onDelete: 'CASCADE'
       });
 
       const spy = sinon.spy();
