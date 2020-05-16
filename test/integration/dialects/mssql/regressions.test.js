@@ -101,6 +101,33 @@ if (dialect.match(/^mssql/)) {
       expect(otherLogs).to.have.length(2);
       expect(otherLogs[0].User.get('UserName')).to.equal('Aryamaan');
       expect(otherLogs[1].User.get('UserName')).to.equal('Shaktimaan');
+
+      // Separate queries can apply order freely
+      const separateUsers = await User.findAll({
+        include: [
+          {
+            model: LoginLog,
+            separate: true,
+            order: [
+              'id'
+            ]
+          }
+        ],
+        where: {
+          UserName: {
+            [Op.like]: '%maan%'
+          }
+        },
+        order: ['UserName', ['UserID', 'DESC']],
+        offset: 0,
+        limit: 10
+      });
+
+      expect(separateUsers).to.have.length(2);
+      expect(separateUsers[0].get('UserName')).to.equal('Aryamaan');
+      expect(separateUsers[0].get('LoginLogs')).to.have.length(1);
+      expect(separateUsers[1].get('UserName')).to.equal('Shaktimaan');
+      expect(separateUsers[1].get('LoginLogs')).to.have.length(1);
     });
 
     it('sets the varchar(max) length correctly on describeTable', async function() {
