@@ -380,6 +380,23 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         values: ['value1', 'value2', 'value3']
       });
     });
+
+    if (dialect === 'postgres') {
+      it('should be able to add a column of type of array of enums', async function() {
+        await this.queryInterface.addColumn('users', 'tags', {
+          allowNull: false,
+          type: Sequelize.ARRAY(Sequelize.ENUM(
+            'Value1',
+            'Value2',
+            'Value3'
+          ))
+        });
+        const result = await this.queryInterface.describeTable('users');
+        expect(result).to.have.property('tags');
+        expect(result.tags.type).to.equal('ARRAY');
+        expect(result.tags.allowNull).to.be.false;
+      });
+    }
   });
 
   describe('describeForeignKeys', () => {
