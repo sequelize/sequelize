@@ -405,6 +405,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(options.include[0].subQueryFilter).to.equal(false);
       });
 
+      it('should not tag a separate hasMany association with subQuery true', function() {
+        const options = Sequelize.Model._validateIncludedElements({
+          model: this.Company,
+          include: [
+            {
+              association: this.Company.Employees,
+              separate: true,
+              include: [
+                { association: this.User.Tasks, required: true }
+              ]
+            }
+          ],
+          required: true
+        });
+
+        expect(options.subQuery).to.equal(false);
+        expect(options.include[0].subQuery).to.equal(false);
+        expect(options.include[0].subQueryFilter).to.equal(false);
+      });
+
       it('should tag a hasMany association with where', function() {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
