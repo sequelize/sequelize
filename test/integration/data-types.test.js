@@ -378,11 +378,30 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     it('should parse an empty GEOMETRY field', () => {
       const Type = new Sequelize.GEOMETRY();
-
       // MySQL 5.7 or above doesn't support POINT EMPTY
       if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '5.7.0')) {
         return;
       }
+
+      it('should return parenteses when default values is a function', function() {
+        const Model = this.sequelize.define('model', {
+          uuid: {
+            type: 'BINARY(16)',
+            defaultValue: Sequelize.fn('UUID_TO_BIN', Sequelize.fn('UUID')),
+            primaryKey: true
+          }
+        });
+
+        return Model.sync({ force: true }).then(() => {
+          return Model.create({
+            id: 1
+          });
+        }).then(() => {
+          return Model.findOne({ where: { id: 1 } });
+        }).then(user => {
+          expect(user.get('double')).to.eq(Infinity);
+        });
+      });
 
       return new Promise((resolve, reject) => {
         if (/^postgres/.test(dialect)) {
