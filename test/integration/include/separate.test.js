@@ -494,6 +494,53 @@ if (current.dialect.supports.groupedLimit) {
           });
         });
       });
+
+      it('should work with required non-separate parent and required child', function() {
+        const User = this.sequelize.define('User', {});
+        const Task = this.sequelize.define('Task', {});
+        const Company = this.sequelize.define('Company', {});
+
+        Task.User = Task.belongsTo(User);
+        User.Tasks = User.hasMany(Task);
+        User.Company = User.belongsTo(Company);
+
+        return this.sequelize.sync({ force: true }).then(() => {
+          return Task.create({ id: 1 }).then(task => {
+            return task.createUser({ id: 2 });
+          }).then(user => {
+            return user.createCompany({ id: 3 });
+          }).then(() => {
+
+            return Task.findAll({
+              include: [{
+                association: Task.User,
+                required: true,
+                include: [{
+                  association: User.Tasks,
+                  attributes: ['UserId'],
+                  separate: true,
+                  include: [{
+                    association: Task.User,
+                    attributes: ['id'],
+                    required: true,
+                    include: [{
+                      association: User.Company
+                    }]
+                  }]
+                }]
+              }]
+            });
+          }).then(results => {
+
+            expect(results.length).to.equal(1);
+            expect(results[0].id).to.equal(1);
+            expect(results[0].User.id).to.equal(2);
+            expect(results[0].User.Tasks.length).to.equal(1);
+            expect(results[0].User.Tasks[0].User.id).to.equal(2);
+            expect(results[0].User.Tasks[0].User.Company.id).to.equal(3);
+          });
+        });
+      });
     });
   });
 }
