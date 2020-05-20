@@ -1233,6 +1233,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await User.findAll()).to.have.lengthOf(0);
     });
 
+    it('`truncate` option returns 0 afftectedRows', async function() {
+      const User = this.sequelize.define('User', { username: DataTypes.STRING });
+      await this.sequelize.sync({ force: true });
+      await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
+      const affectedRows = await User.destroy({ truncate: true });
+      expect(await User.findAll()).to.have.lengthOf(0);
+      expect(affectedRows).to.equal(0);
+    });
+
     it('throws an error if no where clause is given', async function() {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
       await this.sequelize.sync({ force: true });
