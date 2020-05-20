@@ -1239,7 +1239,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
       const affectedRows = await User.destroy({ truncate: true });
       expect(await User.findAll()).to.have.lengthOf(0);
-      expect(affectedRows).to.be.a('number')
+      expect(affectedRows).to.be.a('number');
     });
 
     it('throws an error if no where clause is given', async function() {
