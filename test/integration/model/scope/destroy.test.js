@@ -9,7 +9,7 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     describe('destroy', () => {
-      beforeEach(function() {
+      beforeEach(async function() {
         this.ScopeMe = this.sequelize.define('ScopeMe', {
           username: Sequelize.STRING,
           email: Sequelize.STRING,
@@ -34,70 +34,59 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
 
-        return this.sequelize.sync({ force: true }).then(() => {
-          const records = [
-            { username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7 },
-            { username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11 },
-            { username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10 },
-            { username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7 }
-          ];
-          return this.ScopeMe.bulkCreate(records);
-        });
+        await this.sequelize.sync({ force: true });
+        const records = [
+          { username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7 },
+          { username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11 },
+          { username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10 },
+          { username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7 }
+        ];
+
+        await this.ScopeMe.bulkCreate(records);
       });
 
-      it('should apply defaultScope', function() {
-        return this.ScopeMe.destroy({ where: {} }).then(() => {
-          return this.ScopeMe.unscoped().findAll();
-        }).then(users => {
-          expect(users).to.have.length(2);
-          expect(users[0].get('username')).to.equal('tony');
-          expect(users[1].get('username')).to.equal('fred');
-        });
+      it('should apply defaultScope', async function() {
+        await this.ScopeMe.destroy({ where: {} });
+        const users = await this.ScopeMe.unscoped().findAll();
+        expect(users).to.have.length(2);
+        expect(users[0].get('username')).to.equal('tony');
+        expect(users[1].get('username')).to.equal('fred');
       });
 
-      it('should be able to override default scope', function() {
-        return this.ScopeMe.destroy({ where: { access_level: { [Op.lt]: 5 } } }).then(() => {
-          return this.ScopeMe.unscoped().findAll();
-        }).then(users => {
-          expect(users).to.have.length(2);
-          expect(users[0].get('username')).to.equal('tobi');
-          expect(users[1].get('username')).to.equal('dan');
-        });
+      it('should be able to override default scope', async function() {
+        await this.ScopeMe.destroy({ where: { access_level: { [Op.lt]: 5 } } });
+        const users = await this.ScopeMe.unscoped().findAll();
+        expect(users).to.have.length(2);
+        expect(users[0].get('username')).to.equal('tobi');
+        expect(users[1].get('username')).to.equal('dan');
       });
 
-      it('should be able to unscope destroy', function() {
-        return this.ScopeMe.unscoped().destroy({ where: {} }).then(() => {
-          return expect(this.ScopeMe.unscoped().findAll()).to.eventually.have.length(0);
-        });
+      it('should be able to unscope destroy', async function() {
+        await this.ScopeMe.unscoped().destroy({ where: {} });
+        await expect(this.ScopeMe.unscoped().findAll()).to.eventually.have.length(0);
       });
 
-      it('should be able to apply other scopes', function() {
-        return this.ScopeMe.scope('lowAccess').destroy({ where: {} }).then(() => {
-          return this.ScopeMe.unscoped().findAll();
-        }).then(users => {
-          expect(users).to.have.length(1);
-          expect(users[0].get('username')).to.equal('tobi');
-        });
+      it('should be able to apply other scopes', async function() {
+        await this.ScopeMe.scope('lowAccess').destroy({ where: {} });
+        const users = await this.ScopeMe.unscoped().findAll();
+        expect(users).to.have.length(1);
+        expect(users[0].get('username')).to.equal('tobi');
       });
 
-      it('should be able to merge scopes with where', function() {
-        return this.ScopeMe.scope('lowAccess').destroy({ where: { username: 'dan' } }).then(() => {
-          return this.ScopeMe.unscoped().findAll();
-        }).then(users => {
-          expect(users).to.have.length(3);
-          expect(users[0].get('username')).to.equal('tony');
-          expect(users[1].get('username')).to.equal('tobi');
-          expect(users[2].get('username')).to.equal('fred');
-        });
+      it('should be able to merge scopes with where', async function() {
+        await this.ScopeMe.scope('lowAccess').destroy({ where: { username: 'dan' } });
+        const users = await this.ScopeMe.unscoped().findAll();
+        expect(users).to.have.length(3);
+        expect(users[0].get('username')).to.equal('tony');
+        expect(users[1].get('username')).to.equal('tobi');
+        expect(users[2].get('username')).to.equal('fred');
       });
 
-      it('should work with empty where', function() {
-        return this.ScopeMe.scope('lowAccess').destroy().then(() => {
-          return this.ScopeMe.unscoped().findAll();
-        }).then(users => {
-          expect(users).to.have.length(1);
-          expect(users[0].get('username')).to.equal('tobi');
-        });
+      it('should work with empty where', async function() {
+        await this.ScopeMe.scope('lowAccess').destroy();
+        const users = await this.ScopeMe.unscoped().findAll();
+        expect(users).to.have.length(1);
+        expect(users[0].get('username')).to.equal('tobi');
       });
     });
   });
