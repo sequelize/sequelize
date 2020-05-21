@@ -1733,6 +1733,35 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
+    it('should work when including additional required table and limit on a n:m association', function() {
+      const User = this.sequelize.define('User', {});
+      const Project = this.sequelize.define('Project', {});
+
+      User.belongsToMany(Project, { through: 'Assignment' });
+      Project.belongsToMany(User, { through: 'Assignment' });
+
+      const Deadline = this.sequelize.define('Deadline', {
+        label: {
+          type: Sequelize.STRING
+        }
+      });
+      Project.hasOne(Deadline);
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.findAll({
+          limit: 1,
+          include: {
+            required: true,
+            model: Project,
+            include: {
+              model: Deadline,
+              required: true
+            }
+          }
+        });
+      });
+    });
+
     it('should work with an empty include.where', function() {
       const User = this.sequelize.define('User', {}),
         Company = this.sequelize.define('Company', {}),
