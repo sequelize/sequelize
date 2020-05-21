@@ -7,7 +7,7 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {
-    beforeEach(function() {
+    beforeEach(async function() {
       this.User = this.sequelize.define('User', {
         username: { type: DataTypes.STRING },
         age: DataTypes.INTEGER,
@@ -26,45 +26,41 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       this.User.hasMany(this.Project, { as: 'Projects', foreignKey: 'lovelyUserId' });
       this.Project.belongsTo(this.User, { as: 'LovelyUser', foreignKey: 'lovelyUserId' });
 
-      return this.User.sync({ force: true }).then(() => {
-        return this.Project.sync({ force: true });
+      await this.User.sync({ force: true });
+
+      await this.Project.sync({ force: true });
+    });
+
+    it("doesn't return instance that isn't defined", async function() {
+      const project0 = await this.Project.create({ lovelyUserId: null });
+
+      const project = await this.Project.findOne({
+        where: {
+          id: project0.id
+        },
+        include: [
+          { model: this.User, as: 'LovelyUser' }
+        ]
       });
+
+      const json = project.toJSON();
+      expect(json.LovelyUser).to.be.equal(null);
     });
 
-    it("doesn't return instance that isn't defined", function() {
-      return this.Project.create({ lovelyUserId: null })
-        .then(project => {
-          return this.Project.findOne({
-            where: {
-              id: project.id
-            },
-            include: [
-              { model: this.User, as: 'LovelyUser' }
-            ]
-          });
-        })
-        .then(project => {
-          const json = project.toJSON();
-          expect(json.LovelyUser).to.be.equal(null);
-        });
-    });
+    it("doesn't return instances that aren't defined", async function() {
+      const user0 = await this.User.create({ username: 'cuss' });
 
-    it("doesn't return instances that aren't defined", function() {
-      return this.User.create({ username: 'cuss' })
-        .then(user => {
-          return this.User.findOne({
-            where: {
-              id: user.id
-            },
-            include: [
-              { model: this.Project, as: 'Projects' }
-            ]
-          });
-        })
-        .then(user => {
-          expect(user.Projects).to.be.instanceof(Array);
-          expect(user.Projects).to.be.length(0);
-        });
+      const user = await this.User.findOne({
+        where: {
+          id: user0.id
+        },
+        include: [
+          { model: this.Project, as: 'Projects' }
+        ]
+      });
+
+      expect(user.Projects).to.be.instanceof(Array);
+      expect(user.Projects).to.be.length(0);
     });
 
     describe('build', () => {
@@ -104,125 +100,123 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('create', () => {
-      it('returns an object containing all values', function() {
-        return this.User.create({
+      it('returns an object containing all values', async function() {
+        const user = await this.User.create({
           username: 'Adam',
           age: 22,
           level: -1,
           isUser: false,
           isAdmin: true
-        }).then(user => {
-          expect(user.toJSON()).to.deep.equal({
-            id: user.get('id'),
-            username: 'Adam',
-            age: 22,
-            isUser: false,
-            isAdmin: true,
-            level: -1
-          });
+        });
+
+        expect(user.toJSON()).to.deep.equal({
+          id: user.get('id'),
+          username: 'Adam',
+          age: 22,
+          isUser: false,
+          isAdmin: true,
+          level: -1
         });
       });
 
-      it('returns a response that can be stringified', function() {
-        return this.User.create({
+      it('returns a response that can be stringified', async function() {
+        const user = await this.User.create({
           username: 'test.user',
           age: 99,
           isAdmin: true,
           isUser: false,
           level: null
-        }).then(user => {
-          expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`);
         });
+
+        expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`);
       });
 
-      it('returns a response that can be stringified and then parsed', function() {
-        return this.User.create({
+      it('returns a response that can be stringified and then parsed', async function() {
+        const user = await this.User.create({
           username: 'test.user',
           age: 99,
           isAdmin: true,
           level: null
-        }).then(user => {
-          expect(JSON.parse(JSON.stringify(user))).to.deep.equal({
-            age: 99,
-            id: user.get('id'),
-            isAdmin: true,
-            isUser: false,
-            level: null,
-            username: 'test.user'
-          });
+        });
+
+        expect(JSON.parse(JSON.stringify(user))).to.deep.equal({
+          age: 99,
+          id: user.get('id'),
+          isAdmin: true,
+          isUser: false,
+          level: null,
+          username: 'test.user'
         });
       });
     });
 
     describe('find', () => {
-      it('returns an object containing all values', function() {
-        return this.User.create({
+      it('returns an object containing all values', async function() {
+        const user0 = await this.User.create({
           username: 'Adam',
           age: 22,
           level: -1,
           isUser: false,
           isAdmin: true
-        }).then(user => this.User.findByPk(user.get('id'))).then(user => {
-          expect(user.toJSON()).to.deep.equal({
-            id: user.get('id'),
-            username: 'Adam',
-            age: 22,
-            level: -1,
-            isUser: false,
-            isAdmin: true
-          });
+        });
+
+        const user = await this.User.findByPk(user0.get('id'));
+        expect(user.toJSON()).to.deep.equal({
+          id: user.get('id'),
+          username: 'Adam',
+          age: 22,
+          level: -1,
+          isUser: false,
+          isAdmin: true
         });
       });
 
-      it('returns a response that can be stringified', function() {
-        return this.User.create({
+      it('returns a response that can be stringified', async function() {
+        const user0 = await this.User.create({
           username: 'test.user',
           age: 99,
           isAdmin: true,
           isUser: false
-        }).then(user => this.User.findByPk(user.get('id'))).then(user => {
-          expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);
         });
+
+        const user = await this.User.findByPk(user0.get('id'));
+        expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);
       });
 
-      it('returns a response that can be stringified and then parsed', function() {
-        return this.User.create({
+      it('returns a response that can be stringified and then parsed', async function() {
+        const user0 = await this.User.create({
           username: 'test.user',
           age: 99,
           isAdmin: true
-        }).then(user => this.User.findByPk(user.get('id'))).then(user => {
-          expect(JSON.parse(JSON.stringify(user))).to.deep.equal({
-            id: user.get('id'),
-            username: 'test.user',
-            age: 99,
-            isAdmin: true,
-            isUser: false,
-            level: null
-          });
+        });
+
+        const user = await this.User.findByPk(user0.get('id'));
+        expect(JSON.parse(JSON.stringify(user))).to.deep.equal({
+          id: user.get('id'),
+          username: 'test.user',
+          age: 99,
+          isAdmin: true,
+          isUser: false,
+          level: null
         });
       });
     });
 
-    it('includes the eagerly loaded associations', function() {
-      return this.User.create({ username: 'fnord', age: 1, isAdmin: true }).then(user => {
-        return this.Project.create({ title: 'fnord' }).then(project => {
-          return user.setProjects([project]).then(() => {
-            return this.User.findAll({ include: [{ model: this.Project, as: 'Projects' }] }).then(users => {
-              const _user = users[0];
+    it('includes the eagerly loaded associations', async function() {
+      const user = await this.User.create({ username: 'fnord', age: 1, isAdmin: true });
+      const project = await this.Project.create({ title: 'fnord' });
+      await user.setProjects([project]);
+      const users = await this.User.findAll({ include: [{ model: this.Project, as: 'Projects' }] });
+      const _user = users[0];
 
-              expect(_user.Projects).to.exist;
-              expect(JSON.parse(JSON.stringify(_user)).Projects).to.exist;
+      expect(_user.Projects).to.exist;
+      expect(JSON.parse(JSON.stringify(_user)).Projects).to.exist;
 
-              return this.Project.findAll({ include: [{ model: this.User, as: 'LovelyUser' }] }).then(projects => {
-                const _project = projects[0];
+      const projects = await this.Project.findAll({ include: [{ model: this.User, as: 'LovelyUser' }] });
+      const _project = projects[0];
 
-                expect(_project.LovelyUser).to.exist;
-                expect(JSON.parse(JSON.stringify(_project)).LovelyUser).to.exist;
-              });
-            });
-          });
-        });
-      });
+      expect(_project.LovelyUser).to.exist;
+      expect(JSON.parse(JSON.stringify(_project)).LovelyUser).to.exist;
     });
   });
 });
