@@ -284,7 +284,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         await this.User.create(payload);
 
-        await expect(await this.sequelize.query(`
+        await expect(this.sequelize.query(`
           INSERT INTO ${qq(this.User.tableName)} (username,${qq('createdAt')},${qq('updatedAt')}) VALUES ($username,$createdAt,$updatedAt);
         `, {
           bind: payload,
