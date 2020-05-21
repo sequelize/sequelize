@@ -57,8 +57,9 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       if (dialect === 'sqlite') {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
+      } else {
+        await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
       }
-      await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
     });
 
     it('when we don\'t have a valid dialect.', () => {

@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
 
     const obj = await User.findAll();
-    const user = await obj[0];
+    const user = obj[0];
     expect(parse).to.have.been.called;
     expect(stringify).to.have.been.called;
 
@@ -86,8 +86,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       field: value
     });
 
-    const obj = await User.findAll();
-    await obj[0];
+    await User.findAll();
     expect(parse).to.have.been.called;
     if (options && options.useBindParam) {
       expect(bindParam).to.have.been.called;
@@ -182,8 +181,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     // isn't needed for other dialects
     if (dialect === 'mssql') {
       await testSuccess(Type, 'foobar',  { useBindParam: true });
+    } else {
+      await testSuccess(Type, 'foobar');
     }
-    await testSuccess(Type, 'foobar');
   });
 
   it('calls parse and stringify for TEXT', async () => {
@@ -310,9 +310,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     // there is no dialect.supports.UUID yet
     if (['postgres', 'sqlite'].includes(dialect)) {
       await testSuccess(Type, uuid.v4());
+    } else {
+      // No native uuid type
+      testFailure(Type);
     }
-    // No native uuid type
-    testFailure(Type);
   });
 
   it('calls parse and stringify for CIDR', async () => {
@@ -320,8 +321,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     if (['postgres'].includes(dialect)) {
       await testSuccess(Type, '10.1.2.3/32');
+    } else {
+      testFailure(Type);
     }
-    testFailure(Type);
   });
 
   it('calls parse and stringify for INET', async () => {
@@ -329,8 +331,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     if (['postgres'].includes(dialect)) {
       await testSuccess(Type, '127.0.0.1');
+    } else {
+      testFailure(Type);
     }
-    testFailure(Type);
   });
 
   it('calls parse and stringify for CITEXT', async () => {
@@ -343,8 +346,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     if (dialect === 'postgres') {
       await testSuccess(Type, 'foobar');
+    } else {
+      testFailure(Type);
     }
-    testFailure(Type);
   });
 
   it('calls parse and stringify for MACADDR', async () => {
@@ -352,8 +356,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     if (['postgres'].includes(dialect)) {
       await testSuccess(Type, '01:23:45:67:89:ab');
+    } else {
+      testFailure(Type);
     }
-    testFailure(Type);
 
   });
 
@@ -362,8 +367,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     if (['postgres'].includes(dialect)) {
       await testSuccess(Type, 'hat');
+    } else {
+      testFailure(Type);
     }
-    testFailure(Type);
   });
 
   if (current.dialect.supports.GEOMETRY) {

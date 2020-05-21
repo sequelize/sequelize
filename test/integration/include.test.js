@@ -724,7 +724,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const user = await User.findOne({
         where: {
-          id: user.id
+          id: user0.id
         },
         include: [Group]
       });
