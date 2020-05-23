@@ -14,7 +14,7 @@ import {
 } from 'sequelize';
 import { sequelize } from '../connection';
 
-export class UserGroup extends Model {
+export class UserGroup extends Model<UserGroup> {
     public static associations: {
         users: HasMany<UserGroup, User>
     };

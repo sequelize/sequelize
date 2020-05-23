@@ -498,8 +498,6 @@ export interface IndexHintable {
   indexHints?: IndexHint[];
 }
 
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
-
 /**
  * Options that are passed to any model creating a SELECT query
  *
@@ -647,6 +645,57 @@ export interface Silent {
   silent?: boolean;
 }
 
+type FunctionKeys<T> = ({[P in keyof T]: T[P] extends Function ? P : never })[keyof T];
+type ArrayType<T> = NonNullable<T> extends Array<infer R> ? R : any;
+
+/**
+ * Model attribute keys of M.
+ * (Construct a union type of keys of M excluding keys of Model and function keys)
+ *
+ * ```ts
+ * class User extends Model {
+ *   name!: string;
+ *   age!: number;
+ *   toString() {
+ *     return `This is ${this.name} (${this.age})`;
+ *   }
+ * }
+ *
+ * type UserAttributeKeys = ModelAttributeKeys<User>; // 'name' | 'age'
+ * ```
+ */
+export type ModelAttributeKeys<M> = Exclude<keyof M, keyof Model | FunctionKeys<M>>;
+
+/**
+ * Model values of M.
+ *
+ * ```ts
+ * class Group extends Model {
+ *   title!: string;
+ *   users: User[];
+ * }
+ * class User extends Model {
+ *   name!: string;
+ *   age!: number;
+ *   group?: Group;
+ *   toString() {
+ *     return `This is ${this.name} (${this.age})`;
+ *   }
+ * }
+ * type UserModelValues = ModelValues<User>; // {name?: string; age?: number, group?: {title?: string, users: UserModelValues[]}};
+ * ```
+ */
+export type ModelValues<M> = {
+  // Maps inferred model attribute keys of M
+  [P in ModelAttributeKeys<M>]?:
+    // Maps properties which are type of Model to ModelValues
+    NonNullable<M[P]> extends Model ? ModelValues<NonNullable<M[P]>> :
+      // Maps properties which are type of Array<Model> to Array<ModelValues>
+      NonNullable<M[P]> extends Array<Model> ? Array<ModelValues<ArrayType<M[P]>>> :
+        // Keeps type as it is for all other properties
+        M[P];
+};
+
 /**
  * Options for Model.create method
  */
@@ -683,7 +732,7 @@ export interface Hookable {
 /**
  * Options for Model.findOrCreate method
  */
-export interface FindOrCreateOptions extends Logging, Transactionable {
+export interface FindOrCreateOptions<M> extends Logging, Transactionable {
   /**
    * A hash of search attributes.
    */
@@ -692,7 +741,7 @@ export interface FindOrCreateOptions extends Logging, Transactionable {
   /**
    * Default values to use if building a new instance
    */
-  defaults?: object;
+  defaults?: ModelValues<M>;
 }
 
 /**
@@ -1897,7 +1946,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static build<M extends Model>(
     this: { new(): M } & typeof Model,
-    record?: object,
+    record?: ModelValues<M>,
     options?: BuildOptions
   ): M;
 
@@ -1906,7 +1955,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static bulkBuild<M extends Model>(
     this: { new(): M } & typeof Model,
-    records: object[],
+    records: Array<ModelValues<M>>,
     options?: BuildOptions
   ): M[];
 
@@ -1915,10 +1964,14 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static create<M extends Model>(
     this: { new(): M } & typeof Model,
-    values?: object,
+    values?: ModelValues<M>,
     options?: CreateOptions
   ): Promise<M>;
-  public static create(values: object, options: CreateOptions & { returning: false }): Promise<void>;
+  public static create<M extends Model>(
+    this: { new (): M } & typeof Model,
+    values: ModelValues<M>,
+    options: CreateOptions & { returning: false }
+  ): Promise<void>;
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
@@ -1926,7 +1979,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static findOrBuild<M extends Model>(
     this: { new(): M } & typeof Model,
-    options: FindOrCreateOptions
+    options: FindOrCreateOptions<M>
   ): Promise<[M, boolean]>;
 
   /**
@@ -1942,7 +1995,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static findOrCreate<M extends Model>(
     this: { new(): M } & typeof Model,
-    options: FindOrCreateOptions
+    options: FindOrCreateOptions<M>
   ): Promise<[M, boolean]>;
 
   /**
@@ -1951,7 +2004,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static findCreateFind<M extends Model>(
     this: { new(): M } & typeof Model,
-    options: FindOrCreateOptions
+    options: FindOrCreateOptions<M>
   ): Promise<[M, boolean]>;
 
   /**
@@ -1975,13 +2028,13 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static upsert<M extends Model>(
     this: { new(): M } & typeof Model,
-    values: object,
+    values: ModelValues<M>,
     options?: UpsertOptions & { returning?: false | undefined }
   ): Promise<boolean>;
 
   public static upsert<M extends Model>(
     this: { new(): M } & typeof Model,
-    values: object,
+    values: ModelValues<M>,
     options?: UpsertOptions & { returning: true }
   ): Promise<[M, boolean]>;
 
@@ -1998,7 +2051,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    */
   public static bulkCreate<M extends Model>(
     this: { new(): M } & typeof Model,
-    records: object[],
+    records: Array<ModelValues<M>>,
     options?: BulkCreateOptions
   ): Promise<M[]>;
 
@@ -2526,7 +2579,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Builds a new model instance.
    * @param values an object of key value pairs
    */
-  constructor(values?: object, options?: BuildOptions);
+  constructor(values?: ModelValues<T>, options?: BuildOptions);
 
   /**
    * Get an object representing the query for this instance, use with `options.where`
