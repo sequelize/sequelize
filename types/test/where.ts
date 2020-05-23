@@ -164,31 +164,22 @@ MyModel.update({ hi: 1 }, { where });
 
 // From https://sequelize.org/master/en/v4/docs/models-usage/
 
-// find multiple entries
-MyModel.findAll().then(projects => {
-    // projects will be an array of all MyModel instances
-});
+async function test() {
+  // find multiple entries
+  let projects: MyModel[] = await MyModel.findAll();
 
-// search for specific attributes - hash usage
-MyModel.findAll({ where: { name: 'A MyModel', enabled: true } }).then(projects => {
-    // projects will be an array of MyModel instances with the specified name
-});
+  // search for specific attributes - hash usage
+  projects = await MyModel.findAll({ where: { name: 'A MyModel', enabled: true } })
 
-// search within a specific range
-MyModel.findAll({ where: { id: [1, 2, 3] } }).then(projects => {
-    // projects will be an array of MyModels having the id 1, 2 or 3
-    // this is actually doing an IN query
-});
+  // search within a specific range
+  projects = await MyModel.findAll({ where: { id: [1, 2, 3] } });
 
-// locks
-MyModel.findAll({ lock: Transaction.LOCK.KEY_SHARE }).then(projects => {
-    // noop
-});
+  // locks
+  projects = await MyModel.findAll({ lock: Transaction.LOCK.KEY_SHARE });
 
-// locks on model
-MyModel.findAll({ lock: { level: Transaction.LOCK.KEY_SHARE, of: MyModel} }).then(projects => {
-    // noop
-});
+  // locks on model
+  projects = await MyModel.findAll({ lock: { level: Transaction.LOCK.KEY_SHARE, of: MyModel} });
+}
 
 MyModel.findAll({
     where: {
