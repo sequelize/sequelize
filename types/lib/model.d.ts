@@ -705,7 +705,7 @@ export interface UpsertOptions extends Logging, Transactionable, SearchPathable,
   fields?: string[];
 
   /**
-   * Return the affected rows (only for postgres)
+   * Return the affected rows
    */
   returning?: boolean;
 
@@ -1959,28 +1959,18 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *
    * **Implementation details:**
    *
-   * * MySQL - Implemented as a single query `INSERT values ON DUPLICATE KEY UPDATE values`
-   * * PostgreSQL - Implemented as a temporary function with exception handling: INSERT EXCEPTION WHEN
-   *   unique_constraint UPDATE
-   * * SQLite - Implemented as two queries `INSERT; UPDATE`. This means that the update is executed
-   * regardless
-   *   of whether the row already existed or not
+   * * MySQL - Implemented with ON DUPLICATE KEY UPDATE
+   * * PostgreSQL - Implemented with ON CONFLICT DO UPDATE
+   * * SQLite - Implemented with ON CONFLICT DO UPDATE
+   * * MSSQL - Implemented with MERGE statement
    *
-   * **Note** that SQLite returns undefined for created, no matter if the row was created or updated. This is
-   * because SQLite always runs INSERT OR IGNORE + UPDATE, in a single query, so there is no way to know
-   * whether the row was inserted or not.
+   * **Note** that PostgreSQL/SQLite returns null for created, no matter if the row was created or updated.
    */
   public static upsert<M extends Model>(
     this: { new(): M } & typeof Model,
     values: object,
-    options?: UpsertOptions & { returning?: false | undefined }
-  ): Promise<boolean>;
-
-  public static upsert<M extends Model>(
-    this: { new(): M } & typeof Model,
-    values: object,
-    options?: UpsertOptions & { returning: true }
-  ): Promise<[M, boolean]>;
+    options?: UpsertOptions
+  ): Promise<[M, boolean | null]>;
 
   /**
    * Create and insert multiple instances in bulk.
