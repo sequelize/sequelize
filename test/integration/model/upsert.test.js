@@ -60,19 +60,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.upserts) {
     describe('upsert', () => {
       it('works with upsert on id', async function() {
-        const created0 = await this.User.upsert({ id: 42, username: 'john' });
+        const [, created0] = await this.User.upsert({ id: 42, username: 'john' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created0[1]).to.be.null;
+          expect(created0).to.be.null;
         } else {
-          expect(created0[1]).to.be.true;
+          expect(created0).to.be.true;
         }
 
         this.clock.tick(1000);
-        const created = await this.User.upsert({ id: 42, username: 'doe' });
+        const [, created] = await this.User.upsert({ id: 42, username: 'doe' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
-          expect(created[1]).to.be.false;
+          expect(created).to.be.false;
         }
 
         const user = await this.User.findByPk(42);
@@ -82,19 +82,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works with upsert on a composite key', async function() {
-        const created0 = await this.User.upsert({ foo: 'baz', bar: 19, username: 'john' });
+        const [, created0] = await this.User.upsert({ foo: 'baz', bar: 19, username: 'john' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created0[1]).to.be.null;
+          expect(created0).to.be.null;
         } else {
-          expect(created0[1]).to.be.true;
+          expect(created0).to.be.true;
         }
 
         this.clock.tick(1000);
-        const created = await this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
+        const [, created] = await this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
-          expect(created[1]).to.be.false;
+          expect(created).to.be.false;
         }
 
         const user = await this.User.findOne({ where: { foo: 'baz', bar: 19 } });
@@ -152,11 +152,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         this.clock.tick(1000);
         // Update the first one
-        const created = await User.upsert({ a: 'a', b: 'b', username: 'doe' });
+        const [, created] = await User.upsert({ a: 'a', b: 'b', username: 'doe' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
-          expect(created[1]).to.be.false;
+          expect(created).to.be.false;
         }
 
         const user1 = await User.findOne({ where: { a: 'a', b: 'b' } });
@@ -197,28 +197,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = { validate: false };
 
         await User.sync({ force: true });
-        const created = await User.upsert({ id: 1, email: 'notanemail' }, options);
+        const [, created] = await User.upsert({ id: 1, email: 'notanemail' }, options);
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
-          expect(created[1]).to.be.true;
+          expect(created).to.be.true;
         }
       });
 
       it('works with BLOBs', async function() {
-        const created0 = await this.User.upsert({ id: 42, username: 'john', blob: Buffer.from('kaj') });
+        const [, created0] = await this.User.upsert({ id: 42, username: 'john', blob: Buffer.from('kaj') });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created0[1]).to.be.null;
+          expect(created0).to.be.null;
         } else {
-          expect(created0[1]).to.be.ok;
+          expect(created0).to.be.ok;
         }
 
         this.clock.tick(1000);
-        const created = await this.User.upsert({ id: 42, username: 'doe', blob: Buffer.from('andrea') });
+        const [, created] = await this.User.upsert({ id: 42, username: 'doe', blob: Buffer.from('andrea') });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
-          expect(created[1]).to.be.false;
+          expect(created).to.be.false;
         }
 
         const user = await this.User.findByPk(42);
@@ -229,18 +229,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works with .field', async function() {
-        const created0 = await this.User.upsert({ id: 42, baz: 'foo' });
+        const [, created0] = await this.User.upsert({ id: 42, baz: 'foo' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created0[1]).to.be.null;
+          expect(created0).to.be.null;
         } else {
-          expect(created0[1]).to.be.ok;
+          expect(created0).to.be.ok;
         }
 
-        const created = await this.User.upsert({ id: 42, baz: 'oof' });
+        const [, created] = await this.User.upsert({ id: 42, baz: 'oof' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
-          expect(created[1]).to.be.false;
+          expect(created).to.be.false;
         }
 
         const user = await this.User.findByPk(42);
@@ -248,19 +248,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works with primary key using .field', async function() {
-        const created0 = await this.ModelWithFieldPK.upsert({ userId: 42, foo: 'first' });
+        const [, created0] = await this.ModelWithFieldPK.upsert({ userId: 42, foo: 'first' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created0[1]).to.be.null;
+          expect(created0).to.be.null;
         } else {
-          expect(created0[1]).to.be.ok;
+          expect(created0).to.be.ok;
         }
 
         this.clock.tick(1000);
-        const created = await this.ModelWithFieldPK.upsert({ userId: 42, foo: 'second' });
+        const [, created] = await this.ModelWithFieldPK.upsert({ userId: 42, foo: 'second' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
-          expect(created[1]).to.be.false;
+          expect(created).to.be.false;
         }
 
         const instance = await this.ModelWithFieldPK.findOne({ where: { userId: 42 } });
@@ -268,19 +268,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works with database functions', async function() {
-        const created0 = await this.User.upsert({ id: 42, username: 'john', foo: this.sequelize.fn('upper', 'mixedCase1') });
+        const [, created0] = await this.User.upsert({ id: 42, username: 'john', foo: this.sequelize.fn('upper', 'mixedCase1') });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created0[1]).to.be.null;
+          expect(created0).to.be.null;
         } else {
-          expect(created0[1]).to.be.ok;
+          expect(created0).to.be.ok;
         }
 
         this.clock.tick(1000);
-        const created = await this.User.upsert({ id: 42, username: 'doe', foo: this.sequelize.fn('upper', 'mixedCase2') });
+        const [, created] = await this.User.upsert({ id: 42, username: 'doe', foo: this.sequelize.fn('upper', 'mixedCase2') });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
-          expect(created[1]).to.be.false;
+          expect(created).to.be.false;
         }
         const user = await this.User.findByPk(42);
         expect(user.createdAt).to.be.ok;
@@ -320,14 +320,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('does not update when setting current values', async function() {
         await this.User.create({ id: 42, username: 'john' });
         const user = await this.User.findByPk(42);
-        const created = await this.User.upsert({ id: user.id, username: user.username });
+        const [, created] = await this.User.upsert({ id: user.id, username: user.username });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
           // After set node-mysql flags = '-FOUND_ROWS' / foundRows=false
           // result from upsert should be false when upsert a row to its current value
           // https://dev.mysql.com/doc/refman/5.7/en/insert-on-duplicate.html
-          expect(created[1]).to.equal(false);
+          expect(created).to.equal(false);
         }
       });
 
@@ -347,18 +347,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
         const clock = sinon.useFakeTimers();
         await User.sync({ force: true });
-        const created0 = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' });
+        const [, created0] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created0[1]).to.be.null;
+          expect(created0).to.be.null;
         } else {
-          expect(created0[1]).to.be.ok;
+          expect(created0).to.be.ok;
         }
         clock.tick(1000);
-        const created = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
+        const [, created] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
-          expect(created[1]).to.be.false;
+          expect(created).to.be.false;
         }
         clock.tick(1000);
         const user = await User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' } });
@@ -383,17 +383,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         await User.sync({ force: true });
-        const created0 = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' });
+        const [, created0] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created0[1]).to.be.null;
+          expect(created0).to.be.null;
         } else {
-          expect(created0[1]).to.be.ok;
+          expect(created0).to.be.ok;
         }
-        const created = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
+        const [, created] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
-          expect(created[1]).to.be.false;
+          expect(created).to.be.false;
         }
         const user = await User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' } });
         expect(user.createdAt).to.be.ok;
@@ -413,17 +413,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         await User.sync({ force: true });
-        const created0 = await User.upsert({ name: 'user1', address: 'address', city: 'City' });
+        const [, created0] = await User.upsert({ name: 'user1', address: 'address', city: 'City' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created0[1]).to.be.null;
+          expect(created0).to.be.null;
         } else {
-          expect(created0[1]).to.be.ok;
+          expect(created0).to.be.ok;
         }
-        const created = await User.upsert({ name: 'user1', address: 'address', city: 'New City' });
+        const [, created] = await User.upsert({ name: 'user1', address: 'address', city: 'New City' });
         if (dialect === 'sqlite' || dialect === 'postgres') {
-          expect(created[1]).to.be.null;
+          expect(created).to.be.null;
         } else {
-          expect(created[1]).not.to.be.ok;
+          expect(created).not.to.be.ok;
         }
         const user = await User.findOne({ where: { name: 'user1', address: 'address' } });
         expect(user.createdAt).to.be.ok;
