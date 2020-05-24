@@ -16,7 +16,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     await Support.dropTestSchemas(this.sequelize);
   });
 
-  // FIXME: These tests should make assertions against the created table using describeTable
   describe('createTable', () => {
     it('should create a auto increment primary key', async function() {
       await this.queryInterface.createTable('TableWithPK', {
@@ -27,8 +26,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }
       });
 
-      const [response] = await this.queryInterface.insert(null, 'TableWithPK', {}, { raw: true, returning: true, plain: true });
-      expect(response.table_id || typeof response !== 'object' && response).to.be.ok;
+      const result = await this.queryInterface.describeTable('TableWithPK');
+
+      if (dialect === 'mssql' || dialect === 'mysql' || dialect === 'mariadb') {
+        expect(result.table_id.autoIncrement).to.be.true;
+      } else if (dialect === 'postgres') {
+        expect(result.table_id.defaultValue).to.equal('nextval("TableWithPK_table_id_seq"::regclass)');
+      }
     });
 
     it('should create unique constraint with uniqueKeys', async function() {
