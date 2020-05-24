@@ -65,6 +65,10 @@ div.sequelize {
   max-width: 300px;
 }
 
+.search-result {
+  right: 0;
+}
+
 .content {
   position: initial;
   margin: 0;
