@@ -16,8 +16,7 @@
   });
 
   // Each link in the navigation bar - closes the navigation bar
-  const navigationLinks = document.querySelectorAll('.navigation a[data-ice="link"]');
-  console.log(navigationLinks);
+  const navigationLinks = document.querySelectorAll('.navigation a');
   for (let i = 0; i < navigationLinks.length; ++i) {
     const linkElement = navigationLinks[i];
     linkElement.addEventListener('click', () => {

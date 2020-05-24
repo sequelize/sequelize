@@ -28,13 +28,13 @@ div.sequelize {
   overflow: hidden;
 }
 
-.manual-root .navigation {
+.layout-container .navigation {
   position: initial;
   margin: 0;
   padding: 0 0.25em;
   flex-grow: 1;
   flex-shrink: 1;
-  max-width: 16em;
+  max-width: 18em;
   height: calc(100% - 4.6em - 40px);
   overflow: auto;
 }
@@ -110,7 +110,7 @@ code {
 }
 
 @media only screen and (max-width: 660px) {
-  .manual-root .navigation {
+  .layout-container .navigation {
     width: auto;
     height: auto;
     max-width: 100%;
@@ -121,19 +121,19 @@ code {
     box-shadow: 1px 2px 4px #aaa;
   }
 
-  .manual-root .navigation.open {
+  .layout-container .navigation.open {
     height: calc(100% - 40px);
   }
 
-  .manual-root .navigation .hamburger {
+  .layout-container .navigation .hamburger {
     display: inline-block;
   }
 
-  .manual-root .navigation .manual-toc-root {
+  .layout-container .navigation>div {
     display: none;
   }
 
-  .manual-root .navigation.open .manual-toc-root {
+  .layout-container .navigation.open>div {
     display: block;
   }
 
