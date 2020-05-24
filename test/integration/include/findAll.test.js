@@ -1928,7 +1928,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           projects: [
             { title: Math.random().toString() },
             { title: Math.random().toString() },
-            { title: Math.random().toString() },
+            { title: Math.random().toString() }
           ]
         }, {
           include: [User.associations.projects]
@@ -1952,7 +1952,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
         expect(user.projects).not.to.be.ok;
         expect(parseInt(user.get('projectsCount'), 10)).to.equal(3);
-      })
+      });
     });
 
     it('should not add primary key when including and aggregating with raw: true', function() {
