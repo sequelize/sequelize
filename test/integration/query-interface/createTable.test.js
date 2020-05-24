@@ -28,10 +28,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       const result = await this.queryInterface.describeTable('TableWithPK');
 
-      if (dialect === 'mssql') {
-        expect(result[0].Name).to.equal('table_id');
-        expect(result[0].IsIdentity).to.equal(1);
-      } else if (dialect === 'mysql' || dialect === 'mariadb') {
+      if (dialect === 'mssql' || dialect === 'mysql' || dialect === 'mariadb') {
         expect(result.table_id.autoIncrement).to.be.true;
       } else if (dialect === 'postgres') {
         expect(result.table_id.defaultValue).to.equal('nextval("TableWithPK_table_id_seq"::regclass)');
