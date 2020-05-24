@@ -1094,29 +1094,6 @@ if (dialect.startsWith('postgres')) {
         }
       ],
 
-      upsertQuery: [
-        {
-          arguments: [
-            'myTable',
-            { name: 'foo' },
-            { name: 'foo' },
-            { id: 2 },
-            { primaryKeyField: 'id' }
-          ],
-          expectation: 'CREATE OR REPLACE FUNCTION pg_temp.sequelize_upsert(OUT created boolean, OUT primary_key text)  AS $func$ BEGIN INSERT INTO "myTable" ("name") VALUES (\'foo\') RETURNING "id" INTO primary_key; created := true; EXCEPTION WHEN unique_violation THEN UPDATE "myTable" SET "name"=\'foo\' WHERE "id" = 2 RETURNING "id" INTO primary_key; created := false; END; $func$ LANGUAGE plpgsql; SELECT * FROM pg_temp.sequelize_upsert();'
-        },
-        {
-          arguments: [
-            'myTable',
-            { name: 'RETURNING *', json: '{"foo":"RETURNING *"}' },
-            { name: 'RETURNING *', json: '{"foo":"RETURNING *"}' },
-            { id: 2 },
-            { primaryKeyField: 'id' }
-          ],
-          expectation: 'CREATE OR REPLACE FUNCTION pg_temp.sequelize_upsert(OUT created boolean, OUT primary_key text)  AS $func$ BEGIN INSERT INTO "myTable" ("name","json") VALUES (\'RETURNING *\',\'{"foo":"RETURNING *"}\') RETURNING "id" INTO primary_key; created := true; EXCEPTION WHEN unique_violation THEN UPDATE "myTable" SET "name"=\'RETURNING *\',"json"=\'{"foo":"RETURNING *"}\' WHERE "id" = 2 RETURNING "id" INTO primary_key; created := false; END; $func$ LANGUAGE plpgsql; SELECT * FROM pg_temp.sequelize_upsert();'
-        }
-      ],
-
       removeIndexQuery: [
         {
           arguments: ['User', 'user_foo_bar'],

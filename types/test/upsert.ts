@@ -7,7 +7,7 @@ class TestModel extends Model {
 TestModel.init({}, {sequelize})
 
 sequelize.transaction(async trx => {
-  const res: [TestModel, boolean] = await TestModel.upsert<TestModel>({}, {
+  const res1: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
     benchmark: true,
     fields: ['testField'],
     hooks: true,
@@ -18,7 +18,7 @@ sequelize.transaction(async trx => {
     validate: true,
   });
 
-  let created: boolean = await TestModel.upsert<TestModel>({}, {
+  const res2: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
     benchmark: true,
     fields: ['testField'],
     hooks: true,
@@ -29,7 +29,7 @@ sequelize.transaction(async trx => {
     validate: true,
   });
 
-  created = await TestModel.upsert<TestModel>({}, {
+  const res3: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
     benchmark: true,
     fields: ['testField'],
     hooks: true,
