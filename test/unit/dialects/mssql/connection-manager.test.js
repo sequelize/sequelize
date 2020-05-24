@@ -39,6 +39,8 @@ if (dialect === 'mssql') {
 
     it('connectionManager._connect() does not delete `domain` from config.dialectOptions', function() {
       this.connectionStub.returns({
+        STATE: {},
+        state: '',
         once(event, cb) {
           if (event === 'connect') {
             setTimeout(() => {
@@ -58,6 +60,8 @@ if (dialect === 'mssql') {
 
     it('connectionManager._connect() should reject if end was called and connect was not', function() {
       this.connectionStub.returns({
+        STATE: {},
+        state: '',
         once(event, cb) {
           if (event === 'end') {
             setTimeout(() => {
@@ -73,6 +77,30 @@ if (dialect === 'mssql') {
         .catch(err => {
           expect(err.name).to.equal('SequelizeConnectionError');
           expect(err.parent.message).to.equal('Connection was closed by remote server');
+        });
+    });
+
+    it('connectionManager._connect() should call connect if state is initialized', function() {
+      const connectStub = sinon.stub();
+      const INITIALIZED = { name: 'INITIALIZED' };
+      this.connectionStub.returns({
+        STATE: { INITIALIZED },
+        state: INITIALIZED,
+        connect: connectStub,
+        once(event, cb) {
+          if (event === 'connect') {
+            setTimeout(() => {
+              cb();
+            }, 500);
+          }
+        },
+        removeListener: () => {},
+        on: () => {}
+      });
+
+      return this.instance.dialect.connectionManager._connect(this.config)
+        .then(() => {
+          expect(connectStub.called).to.equal(true);
         });
     });
   });
