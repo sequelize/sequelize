@@ -52,7 +52,7 @@ const amidala = User.create({ username: 'p4dm3', points: 1000 });
 const queen = Profile.create({ name: 'Queen' });
 await amidala.addProfile(queen, { through: { selfGranted: false } });
 const result = await User.findOne({
-  where: { username: 'p4dm3' }
+  where: { username: 'p4dm3' },
   include: Profile
 });
 console.log(result);
@@ -73,6 +73,53 @@ Output:
         "userId": 4,
         "profileId": 6,
         "selfGranted": false
+      }
+    }
+  ]
+}
+```
+
+You can create all relationship in single `create` call too.
+
+Example:
+
+```js
+const amidala = await User.create({
+  username: 'p4dm3',
+  points: 1000,
+  profiles: [{
+    name: 'Queen',
+    User_Profile: {
+      selfGranted: true
+    }
+  }]
+}, {
+  include: Profile
+});
+
+const result = await User.findOne({
+  where: { username: 'p4dm3' },
+  include: Profile
+});
+
+console.log(result);
+```
+
+Output:
+
+```json
+{
+  "id": 1,
+  "username": "p4dm3",
+  "points": 1000,
+  "profiles": [
+    {
+      "id": 1,
+      "name": "Queen",
+      "User_Profile": {
+        "selfGranted": true,
+        "userId": 1,
+        "profileId": 1
       }
     }
   ]
