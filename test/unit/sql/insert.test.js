@@ -4,7 +4,7 @@ const Support   = require('../support'),
   DataTypes = require('../../../lib/data-types'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
-  sql       = current.dialect.QueryGenerator;
+  sql       = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false
       });
 
-      expectsql(timezoneSequelize.dialect.QueryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.rawAttributes, {}),
+      expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.rawAttributes, {}),
         {
           query: {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
@@ -81,7 +81,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false
       });
 
-      expectsql(timezoneSequelize.dialect.QueryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.rawAttributes, {}),
+      expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.rawAttributes, {}),
         {
           query: {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',

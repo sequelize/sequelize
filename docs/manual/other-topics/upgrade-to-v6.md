@@ -20,7 +20,15 @@ You should now use [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked) packag
   Sequelize.useCLS(namespace);
 ```
 
-[Bluebird now supports `async_hooks`](https://github.com/petkaantonov/bluebird/issues/1403). This configuration will automatically be enabled when invoking `Sequelize.useCLS`. This way, using [`cls-bluebird`](https://www.npmjs.com/package/cls-bluebird) is no longer necessary.
+### Database Engine Support
+
+We have updated our minimum supported database engine versions. Using older database engine will show `SEQUELIZE0006` deprecation warning. Please check [ENGINE.md](https://github.com/sequelize/sequelize/blob/master/ENGINE.md) for version table.
+
+### Sequelize
+
+- Bluebird has been removed. Internally all methods are now using async/await. Public API now returns native promises. Thanks to [Andy Edwards](https://github.com/jedwards1211) for this refactor work.
+- `Sequelize.Promise` is no longer available.
+- `sequelize.import` method has been removed.
 
 ### Model
 
@@ -46,7 +54,72 @@ This method now tests for equality with [`_.isEqual`](https://lodash.com/docs/4.
   await instance.save(); // will save
 ```
 
+#### `Model.bulkCreate()`
+
+This method now throws `Sequelize.AggregateError` instead of `Bluebird.AggregateError`. All errors are now exposed as `errors` key.
+
+### QueryInterface
+
+#### `addConstraint`
+
+This method now only takes 2 parameters, `tableName` and `options`. Previously the second parameter could be a list of column names to apply the constraint to, this list must now be passed as `options.fields` property.
+
 ## Changelog
+
+### 6.0.0-beta.6
+
+- docs(add-constraint): options.fields support
+- docs(association): document uniqueKey for belongs to many [#12166](https://github.com/sequelize/sequelize/pull/12166)
+- docs(association): options.through.where support
+- docs(association): use and instead of 'a nd' [#12191](https://github.com/sequelize/sequelize/pull/12191)
+- docs(association): use correct scope name [#12204](https://github.com/sequelize/sequelize/pull/12204)
+- docs(manuals): avoid duplicate header ids [#12201](https://github.com/sequelize/sequelize/pull/12201)
+- docs(model): correct syntax error in example code [#12137](https://github.com/sequelize/sequelize/pull/12137)
+- docs(query-interface): removeIndex indexNameOrAttributes [#11947](https://github.com/sequelize/sequelize/pull/11947)
+- docs(resources): add sequelize-guard library [#12235](https://github.com/sequelize/sequelize/pull/12235)
+- docs(typescript): fix confusing comments [#12226](https://github.com/sequelize/sequelize/pull/12226)
+- docs(v6-guide): bluebird removal API changes
+- docs: database version support info [#12168](https://github.com/sequelize/sequelize/pull/12168)
+- docs: remove remaining bluebird references [#12167](https://github.com/sequelize/sequelize/pull/12167)
+- feat(belongs-to-many): allow creation of paranoid join tables [#12088](https://github.com/sequelize/sequelize/pull/12088)
+- feat(belongs-to-many): get/has/count for paranoid join table [#12256](https://github.com/sequelize/sequelize/pull/12256)
+- feat(pool): expose maxUses pool config option [#12101](https://github.com/sequelize/sequelize/pull/12101)
+- feat(postgres): minify include aliases over limit [#11940](https://github.com/sequelize/sequelize/pull/11940)
+- feat(sequelize): handle query string host value [#12041](https://github.com/sequelize/sequelize/pull/12041)
+- fix(associations): ensure correct schema on all generated attributes [#12258](https://github.com/sequelize/sequelize/pull/12258)
+- fix(docs/instances): use correct variable for increment [#12087](https://github.com/sequelize/sequelize/pull/12087)
+- fix(include): separate queries are not sub-queries [#12144](https://github.com/sequelize/sequelize/pull/12144)
+- fix(model): fix unchained promise in association logic in bulkCreate [#12163](https://github.com/sequelize/sequelize/pull/12163)
+- fix(model): updateOnDuplicate handles composite keys [#11984](https://github.com/sequelize/sequelize/pull/11984)
+- fix(model.count): distinct without any column generates invalid SQL [#11946](https://github.com/sequelize/sequelize/pull/11946)
+- fix(model.reload): ignore options.where and always use this.where() [#12211](https://github.com/sequelize/sequelize/pull/12211)
+- fix(mssql) insert record failure because of BOOLEAN column type [#12090](https://github.com/sequelize/sequelize/pull/12090)
+- fix(mssql): cast sql_variant in query generator [#11994](https://github.com/sequelize/sequelize/pull/11994)
+- fix(mssql): dont use OUTPUT INSERTED for update without returning [#12260](https://github.com/sequelize/sequelize/pull/12260)
+- fix(mssql): duplicate order in FETCH/NEXT queries [#12257](https://github.com/sequelize/sequelize/pull/12257)
+- fix(mssql): set correct scale for float [#11962](https://github.com/sequelize/sequelize/pull/11962)
+- fix(mssql): tedious v9 requires connect call [#12182](https://github.com/sequelize/sequelize/pull/12182)
+- fix(mssql): use uppercase for engine table and columns [#12212](https://github.com/sequelize/sequelize/pull/12212)
+- fix(pool): show deprecation when engine is not supported [#12218](https://github.com/sequelize/sequelize/pull/12218)
+- fix(postgres): addColumn support ARRAY(ENUM) [#12259](https://github.com/sequelize/sequelize/pull/12259)
+- fix(query): do not bind $ used within a whole-word  [#12250](https://github.com/sequelize/sequelize/pull/12250)
+- fix(query-generator): handle literal for substring based operators [#12210](https://github.com/sequelize/sequelize/pull/12210)
+- fix(query-interface): allow passing null for query interface insert [#11931](https://github.com/sequelize/sequelize/pull/11931)
+- fix(query-interface): allow sequelize.fn and sequelize.literal in fields of IndexesOptions [#12224](https://github.com/sequelize/sequelize/pull/12224)
+- fix(scope): don't modify original scope definition [#12207](https://github.com/sequelize/sequelize/pull/12207)
+- fix(sqlite): multiple primary keys results in syntax error [#12237](https://github.com/sequelize/sequelize/pull/12237)
+- fix(sync): pass options to all query methods [#12208](https://github.com/sequelize/sequelize/pull/12208)
+- fix(typings): add type_helpers to file list [#12000](https://github.com/sequelize/sequelize/pull/12000)
+- fix(typings): correct Model.init return type [#12148](https://github.com/sequelize/sequelize/pull/12148)
+- fix(typings): fn is assignable to where [#12040](https://github.com/sequelize/sequelize/pull/12040)
+- fix(typings): getForeignKeysForTables argument definition [#12084](https://github.com/sequelize/sequelize/pull/12084)
+- fix(typings): make between operator accept date ranges [#12162](https://github.com/sequelize/sequelize/pull/12162)
+- refactor(ci): improve database wait script [#12132](https://github.com/sequelize/sequelize/pull/12132)
+- refactor(tsd-test-setup): add & setup dtslint [#11879](https://github.com/sequelize/sequelize/pull/11879)
+- refactor: move all dialect conditional logic into subclass [#12217](https://github.com/sequelize/sequelize/pull/12217)
+- refactor: remove sequelize.import helper [#12175](https://github.com/sequelize/sequelize/pull/12175)
+- refactor: use native versions [#12159](https://github.com/sequelize/sequelize/pull/12159)
+- refactor: use object spread instead of Object.assign [#12213](https://github.com/sequelize/sequelize/pull/12213)
 
 ### 6.0.0-beta.5
 

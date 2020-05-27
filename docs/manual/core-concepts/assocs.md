@@ -229,7 +229,7 @@ Team.hasMany(Player, {
 Player.belongsTo(Team);
 ```
 
-Like One-To-One relationships, `ON DELETE` defaults to `SET NULL`a nd `ON UPDATE` defaults to `CASCADE`.
+Like One-To-One relationships, `ON DELETE` defaults to `SET NULL` and `ON UPDATE` defaults to `CASCADE`.
 
 ## Many-To-Many relationships
 
@@ -307,6 +307,12 @@ CREATE TABLE IF NOT EXISTS "ActorMovies" (
 ### Options
 
 Unlike One-To-One and One-To-Many relationships, the defaults for both `ON UPDATE` and `ON DELETE` are `CASCADE` for Many-To-Many relationships.
+
+Belongs-To-Many creates a unique key when primary key is not present on through model. This unique key name can be overridden using **uniqueKey** option.
+
+```js
+Project.belongsToMany(User, { through: UserProjects, uniqueKey: 'my_custom_unique' })
+```
 
 ## Basics of queries involving associations
 

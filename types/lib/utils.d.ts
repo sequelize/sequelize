@@ -115,5 +115,3 @@ export class Where extends SequelizeMethod {
   constructor(attr: object, comparator: string, logic: string | object);
   constructor(attr: object, logic: string | object);
 }
-
-export { Promise } from './promise';

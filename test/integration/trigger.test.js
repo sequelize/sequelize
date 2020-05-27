@@ -22,7 +22,7 @@ if (current.dialect.supports.tmpTableTrigger) {
                               'select * from deleted\n' +
                             'end\n';
 
-      beforeEach(function() {
+      beforeEach(async function() {
         User = this.sequelize.define('user', {
           username: {
             type: Sequelize.STRING,
@@ -32,56 +32,52 @@ if (current.dialect.supports.tmpTableTrigger) {
           hasTrigger: true
         });
 
-        return User.sync({ force: true }).then(() => {
-          return this.sequelize.query(triggerQuery, { type: this.sequelize.QueryTypes.RAW });
+        await User.sync({ force: true });
+
+        await this.sequelize.query(triggerQuery, { type: this.sequelize.QueryTypes.RAW });
+      });
+
+      it('should return output rows after insert', async () => {
+        await User.create({
+          username: 'triggertest'
         });
+
+        await expect(User.findOne({ username: 'triggertest' })).to.eventually.have.property('username').which.equals('triggertest');
       });
 
-      it('should return output rows after insert', () => {
-        return User.create({
+      it('should return output rows after instance update', async () => {
+        const user = await User.create({
           username: 'triggertest'
-        }).then(() => {
-          return expect(User.findOne({ username: 'triggertest' })).to.eventually.have.property('username').which.equals('triggertest');
         });
+
+        user.username = 'usernamechanged';
+        await user.save();
+        await expect(User.findOne({ username: 'usernamechanged' })).to.eventually.have.property('username').which.equals('usernamechanged');
       });
 
-      it('should return output rows after instance update', () => {
-        return User.create({
+      it('should return output rows after Model update', async () => {
+        const user = await User.create({
           username: 'triggertest'
-        }).then(user => {
-          user.username = 'usernamechanged';
-          return user.save();
-        })
-          .then(() => {
-            return expect(User.findOne({ username: 'usernamechanged' })).to.eventually.have.property('username').which.equals('usernamechanged');
-          });
-      });
-
-      it('should return output rows after Model update', () => {
-        return User.create({
-          username: 'triggertest'
-        }).then(user => {
-          return User.update({
-            username: 'usernamechanged'
-          }, {
-            where: {
-              id: user.get('id')
-            }
-          });
-        })
-          .then(() => {
-            return expect(User.findOne({ username: 'usernamechanged' })).to.eventually.have.property('username').which.equals('usernamechanged');
-          });
-      });
-
-      it('should successfully delete with a trigger on the table', () => {
-        return User.create({
-          username: 'triggertest'
-        }).then(user => {
-          return user.destroy();
-        }).then(() => {
-          return expect(User.findOne({ username: 'triggertest' })).to.eventually.be.null;
         });
+
+        await User.update({
+          username: 'usernamechanged'
+        }, {
+          where: {
+            id: user.get('id')
+          }
+        });
+
+        await expect(User.findOne({ username: 'usernamechanged' })).to.eventually.have.property('username').which.equals('usernamechanged');
+      });
+
+      it('should successfully delete with a trigger on the table', async () => {
+        const user = await User.create({
+          username: 'triggertest'
+        });
+
+        await user.destroy();
+        await expect(User.findOne({ username: 'triggertest' })).to.eventually.be.null;
       });
     });
   });

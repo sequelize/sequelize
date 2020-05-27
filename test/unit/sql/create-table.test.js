@@ -4,7 +4,7 @@ const Support   = require('../support'),
   DataTypes = require('../../../lib/data-types'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
-  sql       = current.dialect.QueryGenerator,
+  sql       = current.dialect.queryGenerator,
   _         = require('lodash');
 
 describe(Support.getTestDialectTeaser('SQL'), () => {

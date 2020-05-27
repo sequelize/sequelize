@@ -1,6 +1,5 @@
 import { Deferrable } from './deferrable';
 import { Logging } from './model';
-import { Promise } from './promise';
 import { Sequelize } from './sequelize';
 
 /**
@@ -60,15 +59,14 @@ export namespace Transaction {
    * Pass in the desired level as the first argument:
    *
    * ```js
-   * return sequelize.transaction({isolationLevel: Sequelize.Transaction.SERIALIZABLE}, transaction => {
-   *
-   *  // your transactions
-   *
-   * }).then(result => {
+   * try {
+   *   await sequelize.transaction({isolationLevel: Sequelize.Transaction.SERIALIZABLE}, transaction => {
+   *      // your transactions
+   *   });
    *   // transaction has been committed. Do something after the commit if required.
-   * }).catch(err => {
+   * } catch(err) {
    *   // do something with the err.
-   * });
+   * }
    * ```
    */
   enum ISOLATION_LEVELS {

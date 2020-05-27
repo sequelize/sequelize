@@ -147,7 +147,7 @@ In order to increment/decrement values of an instance without running into concu
 
 ```js
 const jane = await User.create({ name: "Jane", age: 100 });
-const incrementResult = await user.increment('age', { by: 2 });
+const incrementResult = await jane.increment('age', { by: 2 });
 // Note: to increment by 1 you can omit the `by` option and just do `user.increment('age')`
 
 // In PostgreSQL, `incrementResult` will be the updated user, unless the option

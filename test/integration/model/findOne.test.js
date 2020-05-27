@@ -3,7 +3,6 @@
 const chai = require('chai'),
   sinon = require('sinon'),
   Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
   expect = chai.expect,
   Support = require('../support'),
   dialect = Support.getTestDialect(),
@@ -12,7 +11,7 @@ const chai = require('chai'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(function() {
+  beforeEach(async function() {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
       secretValue: DataTypes.STRING,
@@ -22,60 +21,54 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       aBool: DataTypes.BOOLEAN
     });
 
-    return this.User.sync({ force: true });
+    await this.User.sync({ force: true });
   });
 
   describe('findOne', () => {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
-          const User = sequelize.define('User', { username: Sequelize.STRING });
+      it('supports transactions', async function() {
+        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const User = sequelize.define('User', { username: Sequelize.STRING });
 
-          return User.sync({ force: true }).then(() => {
-            return sequelize.transaction().then(t => {
-              return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                return User.findOne({
-                  where: { username: 'foo' }
-                }).then(user1 => {
-                  return User.findOne({
-                    where: { username: 'foo' },
-                    transaction: t
-                  }).then(user2 => {
-                    expect(user1).to.be.null;
-                    expect(user2).to.not.be.null;
-                    return t.rollback();
-                  });
-                });
-              });
-            });
-          });
+        await User.sync({ force: true });
+        const t = await sequelize.transaction();
+        await User.create({ username: 'foo' }, { transaction: t });
+
+        const user1 = await User.findOne({
+          where: { username: 'foo' }
         });
+
+        const user2 = await User.findOne({
+          where: { username: 'foo' },
+          transaction: t
+        });
+
+        expect(user1).to.be.null;
+        expect(user2).to.not.be.null;
+        await t.rollback();
       });
     }
 
     describe('general / basic function', () => {
-      beforeEach(function() {
-        return this.User.create({ username: 'barfooz' }).then(user => {
-          this.UserPrimary = this.sequelize.define('UserPrimary', {
-            specialkey: {
-              type: DataTypes.STRING,
-              primaryKey: true
-            }
-          });
-
-          return this.UserPrimary.sync({ force: true }).then(() => {
-            return this.UserPrimary.create({ specialkey: 'a string' }).then(() => {
-              this.user = user;
-            });
-          });
+      beforeEach(async function() {
+        const user = await this.User.create({ username: 'barfooz' });
+        this.UserPrimary = this.sequelize.define('UserPrimary', {
+          specialkey: {
+            type: DataTypes.STRING,
+            primaryKey: true
+          }
         });
+
+        await this.UserPrimary.sync({ force: true });
+        await this.UserPrimary.create({ specialkey: 'a string' });
+        this.user = user;
       });
 
       if (dialect === 'mysql') {
         // Bit fields interpreted as boolean need conversion from buffer / bool.
         // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
 
-        it('allows bit fields as booleans', function() {
+        it('allows bit fields as booleans', async function() {
           let bitUser = this.sequelize.define('bituser', {
             bool: 'BIT(1)'
           }, {
@@ -83,69 +76,65 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           // First use a custom data type def to create the bit field
-          return bitUser.sync({ force: true }).then(() => {
-            // Then change the definition to BOOLEAN
-            bitUser = this.sequelize.define('bituser', {
-              bool: DataTypes.BOOLEAN
-            }, {
-              timestamps: false
-            });
-
-            return bitUser.bulkCreate([
-              { bool: 0 },
-              { bool: 1 }
-            ]);
-          }).then(() => {
-            return bitUser.findAll();
-          }).then(bitUsers => {
-            expect(bitUsers[0].bool).not.to.be.ok;
-            expect(bitUsers[1].bool).to.be.ok;
+          await bitUser.sync({ force: true });
+          // Then change the definition to BOOLEAN
+          bitUser = this.sequelize.define('bituser', {
+            bool: DataTypes.BOOLEAN
+          }, {
+            timestamps: false
           });
+
+          await bitUser.bulkCreate([
+            { bool: 0 },
+            { bool: 1 }
+          ]);
+
+          const bitUsers = await bitUser.findAll();
+          expect(bitUsers[0].bool).not.to.be.ok;
+          expect(bitUsers[1].bool).to.be.ok;
         });
       }
 
-      it('treats questionmarks in an array', function() {
+      it('treats questionmarks in an array', async function() {
         let test = false;
-        return this.UserPrimary.findOne({
+
+        await this.UserPrimary.findOne({
           where: { 'specialkey': 'awesome' },
           logging(sql) {
             test = true;
             expect(sql).to.match(/WHERE ["|`|[]UserPrimary["|`|\]]\.["|`|[]specialkey["|`|\]] = N?'awesome'/);
           }
-        }).then(() => {
-          expect(test).to.be.true;
         });
+
+        expect(test).to.be.true;
       });
 
-      it('doesn\'t throw an error when entering in a non integer value for a specified primary field', function() {
-        return this.UserPrimary.findByPk('a string').then(user => {
-          expect(user.specialkey).to.equal('a string');
-        });
+      it('doesn\'t throw an error when entering in a non integer value for a specified primary field', async function() {
+        const user = await this.UserPrimary.findByPk('a string');
+        expect(user.specialkey).to.equal('a string');
       });
 
-      it('returns a single dao', function() {
-        return this.User.findByPk(this.user.id).then(user => {
-          expect(Array.isArray(user)).to.not.be.ok;
-          expect(user.id).to.equal(this.user.id);
-          expect(user.id).to.equal(1);
-        });
+      it('returns a single dao', async function() {
+        const user = await this.User.findByPk(this.user.id);
+        expect(Array.isArray(user)).to.not.be.ok;
+        expect(user.id).to.equal(this.user.id);
+        expect(user.id).to.equal(1);
       });
 
-      it('returns a single dao given a string id', function() {
-        return this.User.findByPk(this.user.id.toString()).then(user => {
-          expect(Array.isArray(user)).to.not.be.ok;
-          expect(user.id).to.equal(this.user.id);
-          expect(user.id).to.equal(1);
-        });
+      it('returns a single dao given a string id', async function() {
+        const user = await this.User.findByPk(this.user.id.toString());
+        expect(Array.isArray(user)).to.not.be.ok;
+        expect(user.id).to.equal(this.user.id);
+        expect(user.id).to.equal(1);
       });
 
-      it('should make aliased attributes available', function() {
-        return this.User.findOne({
+      it('should make aliased attributes available', async function() {
+        const user = await this.User.findOne({
           where: { id: 1 },
           attributes: ['id', ['username', 'name']]
-        }).then(user => {
-          expect(user.dataValues.name).to.equal('barfooz');
         });
+
+        expect(user.dataValues.name).to.equal('barfooz');
       });
 
       it('should fail with meaningful error message on invalid attributes definition', function() {
@@ -155,146 +144,133 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })).to.be.rejectedWith('["username"] is not a valid attribute definition. Please use the following format: [\'attribute definition\', \'alias\']');
       });
 
-      it('should not try to convert boolean values if they are not selected', function() {
+      it('should not try to convert boolean values if they are not selected', async function() {
         const UserWithBoolean = this.sequelize.define('UserBoolean', {
           active: Sequelize.BOOLEAN
         });
 
-        return UserWithBoolean.sync({ force: true }).then(() => {
-          return UserWithBoolean.create({ active: true }).then(user => {
-            return UserWithBoolean.findOne({ where: { id: user.id }, attributes: ['id'] }).then(user => {
-              expect(user.active).not.to.exist;
-            });
-          });
-        });
+        await UserWithBoolean.sync({ force: true });
+        const user = await UserWithBoolean.create({ active: true });
+        const user0 = await UserWithBoolean.findOne({ where: { id: user.id }, attributes: ['id'] });
+        expect(user0.active).not.to.exist;
       });
 
-      it('finds a specific user via where option', function() {
-        return this.User.findOne({ where: { username: 'barfooz' } }).then(user => {
-          expect(user.username).to.equal('barfooz');
-        });
+      it('finds a specific user via where option', async function() {
+        const user = await this.User.findOne({ where: { username: 'barfooz' } });
+        expect(user.username).to.equal('barfooz');
       });
 
-      it('doesn\'t find a user if conditions are not matching', function() {
-        return this.User.findOne({ where: { username: 'foo' } }).then(user => {
-          expect(user).to.be.null;
-        });
+      it('doesn\'t find a user if conditions are not matching', async function() {
+        const user = await this.User.findOne({ where: { username: 'foo' } });
+        expect(user).to.be.null;
       });
 
-      it('allows sql logging', function() {
+      it('allows sql logging', async function() {
         let test = false;
-        return this.User.findOne({
+
+        await this.User.findOne({
           where: { username: 'foo' },
           logging(sql) {
             test = true;
             expect(sql).to.exist;
             expect(sql.toUpperCase()).to.include('SELECT');
           }
-        }).then(() => {
-          expect(test).to.be.true;
         });
+
+        expect(test).to.be.true;
       });
 
-      it('ignores passed limit option', function() {
-        return this.User.findOne({ limit: 10 }).then(user => {
-          // it returns an object instead of an array
-          expect(Array.isArray(user)).to.not.be.ok;
-          expect(user.dataValues.hasOwnProperty('username')).to.be.ok;
-        });
+      it('ignores passed limit option', async function() {
+        const user = await this.User.findOne({ limit: 10 });
+        // it returns an object instead of an array
+        expect(Array.isArray(user)).to.not.be.ok;
+        expect(user.dataValues.hasOwnProperty('username')).to.be.ok;
       });
 
-      it('finds entries via primary keys', function() {
+      it('finds entries via primary keys', async function() {
         const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
           identifier: { type: Sequelize.STRING, primaryKey: true },
           name: Sequelize.STRING
         });
 
-        return UserPrimary.sync({ force: true }).then(() => {
-          return UserPrimary.create({
-            identifier: 'an identifier',
-            name: 'John'
-          }).then(u => {
-            expect(u.id).not.to.exist;
-            return UserPrimary.findByPk('an identifier').then(u2 => {
-              expect(u2.identifier).to.equal('an identifier');
-              expect(u2.name).to.equal('John');
-            });
-          });
+        await UserPrimary.sync({ force: true });
+
+        const u = await UserPrimary.create({
+          identifier: 'an identifier',
+          name: 'John'
         });
+
+        expect(u.id).not.to.exist;
+        const u2 = await UserPrimary.findByPk('an identifier');
+        expect(u2.identifier).to.equal('an identifier');
+        expect(u2.name).to.equal('John');
       });
 
-      it('finds entries via a string primary key called id', function() {
+      it('finds entries via a string primary key called id', async function() {
         const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
           id: { type: Sequelize.STRING, primaryKey: true },
           name: Sequelize.STRING
         });
 
-        return UserPrimary.sync({ force: true }).then(() => {
-          return UserPrimary.create({
-            id: 'a string based id',
-            name: 'Johnno'
-          }).then(() => {
-            return UserPrimary.findByPk('a string based id').then(u2 => {
-              expect(u2.id).to.equal('a string based id');
-              expect(u2.name).to.equal('Johnno');
-            });
-          });
+        await UserPrimary.sync({ force: true });
+
+        await UserPrimary.create({
+          id: 'a string based id',
+          name: 'Johnno'
         });
+
+        const u2 = await UserPrimary.findByPk('a string based id');
+        expect(u2.id).to.equal('a string based id');
+        expect(u2.name).to.equal('Johnno');
       });
 
-      it('always honors ZERO as primary key', function() {
+      it('always honors ZERO as primary key', async function() {
         const permutations = [
           0,
           '0'
         ];
         let count = 0;
 
-        return this.User.bulkCreate([{ username: 'jack' }, { username: 'jack' }]).then(() => {
-          return Sequelize.Promise.map(permutations, perm => {
-            return this.User.findByPk(perm, {
-              logging(s) {
-                expect(s).to.include(0);
-                count++;
-              }
-            }).then(user => {
-              expect(user).to.be.null;
-            });
+        await this.User.bulkCreate([{ username: 'jack' }, { username: 'jack' }]);
+
+        await Promise.all(permutations.map(async perm => {
+          const user = await this.User.findByPk(perm, {
+            logging(s) {
+              expect(s).to.include(0);
+              count++;
+            }
           });
-        }).then(() => {
-          expect(count).to.be.equal(permutations.length);
-        });
+
+          expect(user).to.be.null;
+        }));
+
+        expect(count).to.be.equal(permutations.length);
       });
 
-      it('should allow us to find IDs using capital letters', function() {
+      it('should allow us to find IDs using capital letters', async function() {
         const User = this.sequelize.define(`User${config.rand()}`, {
           ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
           Login: { type: Sequelize.STRING }
         });
 
-        return User.sync({ force: true }).then(() => {
-          return User.create({ Login: 'foo' }).then(() => {
-            return User.findByPk(1).then(user => {
-              expect(user).to.exist;
-              expect(user.ID).to.equal(1);
-            });
-          });
-        });
+        await User.sync({ force: true });
+        await User.create({ Login: 'foo' });
+        const user = await User.findByPk(1);
+        expect(user).to.exist;
+        expect(user.ID).to.equal(1);
       });
 
       if (dialect === 'postgres' || dialect === 'sqlite') {
-        it('should allow case-insensitive find on CITEXT type', function() {
+        it('should allow case-insensitive find on CITEXT type', async function() {
           const User = this.sequelize.define('UserWithCaseInsensitiveName', {
             username: Sequelize.CITEXT
           });
 
-          return User.sync({ force: true }).then(() => {
-            return User.create({ username: 'longUserNAME' });
-          }).then(() => {
-            return User.findOne({ where: { username: 'LONGusername' } });
-          }).then(user => {
-            expect(user).to.exist;
-            expect(user.username).to.equal('longUserNAME');
-          });
+          await User.sync({ force: true });
+          await User.create({ username: 'longUserNAME' });
+          const user = await User.findOne({ where: { username: 'LONGusername' } });
+          expect(user).to.exist;
+          expect(user.username).to.equal('longUserNAME');
         });
       }
     });
@@ -304,87 +280,83 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Task = this.sequelize.define('Task', { title: Sequelize.STRING });
         this.Worker = this.sequelize.define('Worker', { name: Sequelize.STRING });
 
-        this.init = function(callback) {
-          return this.sequelize.sync({ force: true }).then(() => {
-            return this.Worker.create({ name: 'worker' }).then(worker => {
-              return this.Task.create({ title: 'homework' }).then(task => {
-                this.worker = worker;
-                this.task = task;
-                return callback();
-              });
-            });
-          });
+        this.init = async function(callback) {
+          await this.sequelize.sync({ force: true });
+          const worker = await this.Worker.create({ name: 'worker' });
+          const task = await this.Task.create({ title: 'homework' });
+          this.worker = worker;
+          this.task = task;
+          return callback();
         };
       });
 
       describe('belongsTo', () => {
         describe('generic', () => {
-          it('throws an error about unexpected input if include contains a non-object', function() {
-            return this.Worker.findOne({ include: [1] }).catch(err => {
+          it('throws an error about unexpected input if include contains a non-object', async function() {
+            try {
+              await this.Worker.findOne({ include: [1] });
+            } catch (err) {
               expect(err.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
-            });
+            }
           });
 
-          it('throws an error if included DaoFactory is not associated', function() {
-            return this.Worker.findOne({ include: [this.Task] }).catch(err => {
+          it('throws an error if included DaoFactory is not associated', async function() {
+            try {
+              await this.Worker.findOne({ include: [this.Task] });
+            } catch (err) {
               expect(err.message).to.equal('Task is not associated to Worker!');
-            });
+            }
           });
 
-          it('returns the associated worker via task.worker', function() {
+          it('returns the associated worker via task.worker', async function() {
             this.Task.belongsTo(this.Worker);
-            return this.init(() => {
-              return this.task.setWorker(this.worker).then(() => {
-                return this.Task.findOne({
-                  where: { title: 'homework' },
-                  include: [this.Worker]
-                }).then(task => {
-                  expect(task).to.exist;
-                  expect(task.Worker).to.exist;
-                  expect(task.Worker.name).to.equal('worker');
-                });
+
+            await this.init(async () => {
+              await this.task.setWorker(this.worker);
+
+              const task = await this.Task.findOne({
+                where: { title: 'homework' },
+                include: [this.Worker]
               });
+
+              expect(task).to.exist;
+              expect(task.Worker).to.exist;
+              expect(task.Worker.name).to.equal('worker');
             });
           });
         });
 
-        it('returns the private and public ip', function() {
+        it('returns the private and public ip', async function() {
           const ctx = Object.create(this);
           ctx.Domain = ctx.sequelize.define('Domain', { ip: Sequelize.STRING });
           ctx.Environment = ctx.sequelize.define('Environment', { name: Sequelize.STRING });
           ctx.Environment.belongsTo(ctx.Domain, { as: 'PrivateDomain', foreignKey: 'privateDomainId' });
           ctx.Environment.belongsTo(ctx.Domain, { as: 'PublicDomain', foreignKey: 'publicDomainId' });
 
-          return ctx.Domain.sync({ force: true }).then(() => {
-            return ctx.Environment.sync({ force: true }).then(() => {
-              return ctx.Domain.create({ ip: '192.168.0.1' }).then(privateIp => {
-                return ctx.Domain.create({ ip: '91.65.189.19' }).then(publicIp => {
-                  return ctx.Environment.create({ name: 'environment' }).then(env => {
-                    return env.setPrivateDomain(privateIp).then(() => {
-                      return env.setPublicDomain(publicIp).then(() => {
-                        return ctx.Environment.findOne({
-                          where: { name: 'environment' },
-                          include: [
-                            { model: ctx.Domain, as: 'PrivateDomain' },
-                            { model: ctx.Domain, as: 'PublicDomain' }
-                          ]
-                        }).then(environment => {
-                          expect(environment).to.exist;
-                          expect(environment.PrivateDomain).to.exist;
-                          expect(environment.PrivateDomain.ip).to.equal('192.168.0.1');
-                          expect(environment.PublicDomain).to.exist;
-                          expect(environment.PublicDomain.ip).to.equal('91.65.189.19');
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
+          await ctx.Domain.sync({ force: true });
+          await ctx.Environment.sync({ force: true });
+          const privateIp = await ctx.Domain.create({ ip: '192.168.0.1' });
+          const publicIp = await ctx.Domain.create({ ip: '91.65.189.19' });
+          const env = await ctx.Environment.create({ name: 'environment' });
+          await env.setPrivateDomain(privateIp);
+          await env.setPublicDomain(publicIp);
+
+          const environment = await ctx.Environment.findOne({
+            where: { name: 'environment' },
+            include: [
+              { model: ctx.Domain, as: 'PrivateDomain' },
+              { model: ctx.Domain, as: 'PublicDomain' }
+            ]
           });
+
+          expect(environment).to.exist;
+          expect(environment.PrivateDomain).to.exist;
+          expect(environment.PrivateDomain.ip).to.equal('192.168.0.1');
+          expect(environment.PublicDomain).to.exist;
+          expect(environment.PublicDomain.ip).to.equal('91.65.189.19');
         });
 
-        it('eager loads with non-id primary keys', function() {
+        it('eager loads with non-id primary keys', async function() {
           this.User = this.sequelize.define('UserPKeagerbelong', {
             username: {
               type: Sequelize.STRING,
@@ -399,25 +371,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
           this.User.belongsTo(this.Group);
 
-          return this.sequelize.sync({ force: true }).then(() => {
-            return this.Group.create({ name: 'people' }).then(() => {
-              return this.User.create({ username: 'someone', GroupPKeagerbelongName: 'people' }).then(() => {
-                return this.User.findOne({
-                  where: {
-                    username: 'someone'
-                  },
-                  include: [this.Group]
-                }).then(someUser => {
-                  expect(someUser).to.exist;
-                  expect(someUser.username).to.equal('someone');
-                  expect(someUser.GroupPKeagerbelong.name).to.equal('people');
-                });
-              });
-            });
+          await this.sequelize.sync({ force: true });
+          await this.Group.create({ name: 'people' });
+          await this.User.create({ username: 'someone', GroupPKeagerbelongName: 'people' });
+
+          const someUser = await this.User.findOne({
+            where: {
+              username: 'someone'
+            },
+            include: [this.Group]
           });
+
+          expect(someUser).to.exist;
+          expect(someUser.username).to.equal('someone');
+          expect(someUser.GroupPKeagerbelong.name).to.equal('people');
         });
 
-        it('getting parent data in many to one relationship', function() {
+        it('getting parent data in many to one relationship', async function() {
           const User = this.sequelize.define('User', {
             id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
             username: { type: Sequelize.STRING }
@@ -432,36 +402,34 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           User.hasMany(Message);
           Message.belongsTo(User, { foreignKey: 'user_id' });
 
-          return this.sequelize.sync({ force: true }).then(() => {
-            return User.create({ username: 'test_testerson' }).then(user => {
-              return Message.create({ user_id: user.id, message: 'hi there!' }).then(() => {
-                return Message.create({ user_id: user.id, message: 'a second message' }).then(() => {
-                  return Message.findAll({
-                    where: { user_id: user.id },
-                    attributes: [
-                      'user_id',
-                      'message'
-                    ],
-                    include: [{ model: User, attributes: ['username'] }]
-                  }).then(messages => {
-                    expect(messages.length).to.equal(2);
+          await this.sequelize.sync({ force: true });
+          const user = await User.create({ username: 'test_testerson' });
+          await Message.create({ user_id: user.id, message: 'hi there!' });
+          await Message.create({ user_id: user.id, message: 'a second message' });
 
-                    expect(messages[0].message).to.equal('hi there!');
-                    expect(messages[0].User.username).to.equal('test_testerson');
-
-                    expect(messages[1].message).to.equal('a second message');
-                    expect(messages[1].User.username).to.equal('test_testerson');
-                  });
-                });
-              });
-            });
+          const messages = await Message.findAll({
+            where: { user_id: user.id },
+            attributes: [
+              'user_id',
+              'message'
+            ],
+            include: [{ model: User, attributes: ['username'] }]
           });
+
+          expect(messages.length).to.equal(2);
+
+          expect(messages[0].message).to.equal('hi there!');
+          expect(messages[0].User.username).to.equal('test_testerson');
+
+          expect(messages[1].message).to.equal('a second message');
+          expect(messages[1].User.username).to.equal('test_testerson');
         });
 
-        it('allows mulitple assocations of the same model with different alias', function() {
+        it('allows mulitple assocations of the same model with different alias', async function() {
           this.Worker.belongsTo(this.Task, { as: 'ToDo' });
           this.Worker.belongsTo(this.Task, { as: 'DoTo' });
-          return this.init(() => {
+
+          await this.init(() => {
             return this.Worker.findOne({
               include: [
                 { model: this.Task, as: 'ToDo' },
@@ -473,31 +441,34 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('hasOne', () => {
-        beforeEach(function() {
+        beforeEach(async function() {
           this.Worker.hasOne(this.Task);
-          return this.init(() => {
+
+          await this.init(() => {
             return this.worker.setTask(this.task);
           });
         });
 
-        it('throws an error if included DaoFactory is not associated', function() {
-          return this.Task.findOne({ include: [this.Worker] }).catch(err => {
+        it('throws an error if included DaoFactory is not associated', async function() {
+          try {
+            await this.Task.findOne({ include: [this.Worker] });
+          } catch (err) {
             expect(err.message).to.equal('Worker is not associated to Task!');
-          });
+          }
         });
 
-        it('returns the associated task via worker.task', function() {
-          return this.Worker.findOne({
+        it('returns the associated task via worker.task', async function() {
+          const worker = await this.Worker.findOne({
             where: { name: 'worker' },
             include: [this.Task]
-          }).then(worker => {
-            expect(worker).to.exist;
-            expect(worker.Task).to.exist;
-            expect(worker.Task.title).to.equal('homework');
           });
+
+          expect(worker).to.exist;
+          expect(worker.Task).to.exist;
+          expect(worker.Task.title).to.equal('homework');
         });
 
-        it('eager loads with non-id primary keys', function() {
+        it('eager loads with non-id primary keys', async function() {
           this.User = this.sequelize.define('UserPKeagerone', {
             username: {
               type: Sequelize.STRING,
@@ -512,69 +483,73 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
           this.Group.hasOne(this.User);
 
-          return this.sequelize.sync({ force: true }).then(() => {
-            return this.Group.create({ name: 'people' }).then(() => {
-              return this.User.create({ username: 'someone', GroupPKeageroneName: 'people' }).then(() => {
-                return this.Group.findOne({
-                  where: {
-                    name: 'people'
-                  },
-                  include: [this.User]
-                }).then(someGroup => {
-                  expect(someGroup).to.exist;
-                  expect(someGroup.name).to.equal('people');
-                  expect(someGroup.UserPKeagerone.username).to.equal('someone');
-                });
-              });
-            });
+          await this.sequelize.sync({ force: true });
+          await this.Group.create({ name: 'people' });
+          await this.User.create({ username: 'someone', GroupPKeageroneName: 'people' });
+
+          const someGroup = await this.Group.findOne({
+            where: {
+              name: 'people'
+            },
+            include: [this.User]
           });
+
+          expect(someGroup).to.exist;
+          expect(someGroup.name).to.equal('people');
+          expect(someGroup.UserPKeagerone.username).to.equal('someone');
         });
       });
 
       describe('hasOne with alias', () => {
-        it('throws an error if included DaoFactory is not referenced by alias', function() {
-          return this.Worker.findOne({ include: [this.Task] }).catch(err => {
+        it('throws an error if included DaoFactory is not referenced by alias', async function() {
+          try {
+            await this.Worker.findOne({ include: [this.Task] });
+          } catch (err) {
             expect(err.message).to.equal('Task is not associated to Worker!');
-          });
+          }
         });
 
         describe('alias', () => {
-          beforeEach(function() {
+          beforeEach(async function() {
             this.Worker.hasOne(this.Task, { as: 'ToDo' });
-            return this.init(() => {
+
+            await this.init(() => {
               return this.worker.setToDo(this.task);
             });
           });
 
-          it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', function() {
-            return this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] }).catch(err => {
+          it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', async function() {
+            try {
+              await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
+            } catch (err) {
               expect(err.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDo).');
-            });
+            }
           });
 
-          it('returns the associated task via worker.task', function() {
-            return this.Worker.findOne({
+          it('returns the associated task via worker.task', async function() {
+            const worker = await this.Worker.findOne({
               where: { name: 'worker' },
               include: [{ model: this.Task, as: 'ToDo' }]
-            }).then(worker => {
-              expect(worker).to.exist;
-              expect(worker.ToDo).to.exist;
-              expect(worker.ToDo.title).to.equal('homework');
             });
+
+            expect(worker).to.exist;
+            expect(worker.ToDo).to.exist;
+            expect(worker.ToDo.title).to.equal('homework');
           });
 
-          it('returns the associated task via worker.task when daoFactory is aliased with model', function() {
-            return this.Worker.findOne({
+          it('returns the associated task via worker.task when daoFactory is aliased with model', async function() {
+            const worker = await this.Worker.findOne({
               where: { name: 'worker' },
               include: [{ model: this.Task, as: 'ToDo' }]
-            }).then(worker => {
-              expect(worker.ToDo.title).to.equal('homework');
             });
+
+            expect(worker.ToDo.title).to.equal('homework');
           });
 
-          it('allows mulitple assocations of the same model with different alias', function() {
+          it('allows mulitple assocations of the same model with different alias', async function() {
             this.Worker.hasOne(this.Task, { as: 'DoTo' });
-            return this.init(() => {
+
+            await this.init(() => {
               return this.Worker.findOne({
                 include: [
                   { model: this.Task, as: 'ToDo' },
@@ -587,31 +562,34 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('hasMany', () => {
-        beforeEach(function() {
+        beforeEach(async function() {
           this.Worker.hasMany(this.Task);
-          return this.init(() => {
+
+          await this.init(() => {
             return this.worker.setTasks([this.task]);
           });
         });
 
-        it('throws an error if included DaoFactory is not associated', function() {
-          return this.Task.findOne({ include: [this.Worker] }).catch(err => {
+        it('throws an error if included DaoFactory is not associated', async function() {
+          try {
+            await this.Task.findOne({ include: [this.Worker] });
+          } catch (err) {
             expect(err.message).to.equal('Worker is not associated to Task!');
-          });
+          }
         });
 
-        it('returns the associated tasks via worker.tasks', function() {
-          return this.Worker.findOne({
+        it('returns the associated tasks via worker.tasks', async function() {
+          const worker = await this.Worker.findOne({
             where: { name: 'worker' },
             include: [this.Task]
-          }).then(worker => {
-            expect(worker).to.exist;
-            expect(worker.Tasks).to.exist;
-            expect(worker.Tasks[0].title).to.equal('homework');
           });
+
+          expect(worker).to.exist;
+          expect(worker.Tasks).to.exist;
+          expect(worker.Tasks[0].title).to.equal('homework');
         });
 
-        it('including two has many relations should not result in duplicate values', function() {
+        it('including two has many relations should not result in duplicate values', async function() {
           this.Contact = this.sequelize.define('Contact', { name: DataTypes.STRING });
           this.Photo = this.sequelize.define('Photo', { img: DataTypes.TEXT });
           this.PhoneNumber = this.sequelize.define('PhoneNumber', { phone: DataTypes.TEXT });
@@ -619,33 +597,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Contact.hasMany(this.Photo, { as: 'Photos' });
           this.Contact.hasMany(this.PhoneNumber);
 
-          return this.sequelize.sync({ force: true }).then(() => {
-            return this.Contact.create({ name: 'Boris' }).then(someContact => {
-              return this.Photo.create({ img: 'img.jpg' }).then(somePhoto => {
-                return this.PhoneNumber.create({ phone: '000000' }).then(somePhone1 => {
-                  return this.PhoneNumber.create({ phone: '111111' }).then(somePhone2 => {
-                    return someContact.setPhotos([somePhoto]).then(() => {
-                      return someContact.setPhoneNumbers([somePhone1, somePhone2]).then(() => {
-                        return this.Contact.findOne({
-                          where: {
-                            name: 'Boris'
-                          },
-                          include: [this.PhoneNumber, { model: this.Photo, as: 'Photos' }]
-                        }).then(fetchedContact => {
-                          expect(fetchedContact).to.exist;
-                          expect(fetchedContact.Photos.length).to.equal(1);
-                          expect(fetchedContact.PhoneNumbers.length).to.equal(2);
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
+          await this.sequelize.sync({ force: true });
+          const someContact = await this.Contact.create({ name: 'Boris' });
+          const somePhoto = await this.Photo.create({ img: 'img.jpg' });
+          const somePhone1 = await this.PhoneNumber.create({ phone: '000000' });
+          const somePhone2 = await this.PhoneNumber.create({ phone: '111111' });
+          await someContact.setPhotos([somePhoto]);
+          await someContact.setPhoneNumbers([somePhone1, somePhone2]);
+
+          const fetchedContact = await this.Contact.findOne({
+            where: {
+              name: 'Boris'
+            },
+            include: [this.PhoneNumber, { model: this.Photo, as: 'Photos' }]
           });
+
+          expect(fetchedContact).to.exist;
+          expect(fetchedContact.Photos.length).to.equal(1);
+          expect(fetchedContact.PhoneNumbers.length).to.equal(2);
         });
 
-        it('eager loads with non-id primary keys', function() {
+        it('eager loads with non-id primary keys', async function() {
           this.User = this.sequelize.define('UserPKeagerone', {
             username: {
               type: Sequelize.STRING,
@@ -661,71 +633,74 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Group.belongsToMany(this.User, { through: 'group_user' });
           this.User.belongsToMany(this.Group, { through: 'group_user' });
 
-          return this.sequelize.sync({ force: true }).then(() => {
-            return this.User.create({ username: 'someone' }).then(someUser => {
-              return this.Group.create({ name: 'people' }).then(someGroup => {
-                return someUser.setGroupPKeagerones([someGroup]).then(() => {
-                  return this.User.findOne({
-                    where: {
-                      username: 'someone'
-                    },
-                    include: [this.Group]
-                  }).then(someUser => {
-                    expect(someUser).to.exist;
-                    expect(someUser.username).to.equal('someone');
-                    expect(someUser.GroupPKeagerones[0].name).to.equal('people');
-                  });
-                });
-              });
-            });
+          await this.sequelize.sync({ force: true });
+          const someUser = await this.User.create({ username: 'someone' });
+          const someGroup = await this.Group.create({ name: 'people' });
+          await someUser.setGroupPKeagerones([someGroup]);
+
+          const someUser0 = await this.User.findOne({
+            where: {
+              username: 'someone'
+            },
+            include: [this.Group]
           });
+
+          expect(someUser0).to.exist;
+          expect(someUser0.username).to.equal('someone');
+          expect(someUser0.GroupPKeagerones[0].name).to.equal('people');
         });
       });
 
       describe('hasMany with alias', () => {
-        it('throws an error if included DaoFactory is not referenced by alias', function() {
-          return this.Worker.findOne({ include: [this.Task] }).catch(err => {
+        it('throws an error if included DaoFactory is not referenced by alias', async function() {
+          try {
+            await this.Worker.findOne({ include: [this.Task] });
+          } catch (err) {
             expect(err.message).to.equal('Task is not associated to Worker!');
-          });
+          }
         });
 
         describe('alias', () => {
-          beforeEach(function() {
+          beforeEach(async function() {
             this.Worker.hasMany(this.Task, { as: 'ToDos' });
-            return this.init(() => {
+
+            await this.init(() => {
               return this.worker.setToDos([this.task]);
             });
           });
 
-          it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', function() {
-            return this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] }).catch(err => {
+          it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', async function() {
+            try {
+              await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
+            } catch (err) {
               expect(err.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDos).');
-            });
+            }
           });
 
-          it('returns the associated task via worker.task', function() {
-            return this.Worker.findOne({
+          it('returns the associated task via worker.task', async function() {
+            const worker = await this.Worker.findOne({
               where: { name: 'worker' },
               include: [{ model: this.Task, as: 'ToDos' }]
-            }).then(worker => {
-              expect(worker).to.exist;
-              expect(worker.ToDos).to.exist;
-              expect(worker.ToDos[0].title).to.equal('homework');
             });
+
+            expect(worker).to.exist;
+            expect(worker.ToDos).to.exist;
+            expect(worker.ToDos[0].title).to.equal('homework');
           });
 
-          it('returns the associated task via worker.task when daoFactory is aliased with model', function() {
-            return this.Worker.findOne({
+          it('returns the associated task via worker.task when daoFactory is aliased with model', async function() {
+            const worker = await this.Worker.findOne({
               where: { name: 'worker' },
               include: [{ model: this.Task, as: 'ToDos' }]
-            }).then(worker => {
-              expect(worker.ToDos[0].title).to.equal('homework');
             });
+
+            expect(worker.ToDos[0].title).to.equal('homework');
           });
 
-          it('allows mulitple assocations of the same model with different alias', function() {
+          it('allows mulitple assocations of the same model with different alias', async function() {
             this.Worker.hasMany(this.Task, { as: 'DoTos' });
-            return this.init(() => {
+
+            await this.init(() => {
               return this.Worker.findOne({
                 include: [
                   { model: this.Task, as: 'ToDos' },
@@ -743,179 +718,180 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Tag = this.sequelize.define('Tag', { name: Sequelize.STRING });
         });
 
-        it('returns the associated models when using through as string and alias', function() {
+        it('returns the associated models when using through as string and alias', async function() {
           this.Product.belongsToMany(this.Tag, { as: 'tags', through: 'product_tag' });
           this.Tag.belongsToMany(this.Product, { as: 'products', through: 'product_tag' });
 
-          return this.sequelize.sync().then(() => {
-            return Promise.all([
-              this.Product.bulkCreate([
-                { title: 'Chair' },
-                { title: 'Desk' },
-                { title: 'Handbag' },
-                { title: 'Dress' },
-                { title: 'Jan' }
-              ]),
-              this.Tag.bulkCreate([
-                { name: 'Furniture' },
-                { name: 'Clothing' },
-                { name: 'People' }
-              ])
-            ]).then(() => {
-              return Promise.all([
-                this.Product.findAll(),
-                this.Tag.findAll()
-              ]);
-            }).then(([products, tags]) => {
-              this.products = products;
-              this.tags = tags;
-              return Promise.all([
-                products[0].setTags([tags[0], tags[1]]),
-                products[1].addTag(tags[0]),
-                products[2].addTag(tags[1]),
-                products[3].setTags([tags[1]]),
-                products[4].setTags([tags[2]])
-              ]).then(() => {
-                return Promise.all([
-                  this.Tag.findOne({
-                    where: {
-                      id: tags[0].id
-                    },
-                    include: [
-                      { model: this.Product, as: 'products' }
-                    ]
-                  }).then(tag => {
-                    expect(tag).to.exist;
-                    expect(tag.products.length).to.equal(2);
-                  }),
-                  tags[1].getProducts().then(products => {
-                    expect(products.length).to.equal(3);
-                  }),
-                  this.Product.findOne({
-                    where: {
-                      id: products[0].id
-                    },
-                    include: [
-                      { model: this.Tag, as: 'tags' }
-                    ]
-                  }).then(product => {
-                    expect(product).to.exist;
-                    expect(product.tags.length).to.equal(2);
-                  }),
-                  products[1].getTags().then(tags => {
-                    expect(tags.length).to.equal(1);
-                  })
-                ]);
+          await this.sequelize.sync();
+
+          await Promise.all([
+            this.Product.bulkCreate([
+              { title: 'Chair' },
+              { title: 'Desk' },
+              { title: 'Handbag' },
+              { title: 'Dress' },
+              { title: 'Jan' }
+            ]),
+            this.Tag.bulkCreate([
+              { name: 'Furniture' },
+              { name: 'Clothing' },
+              { name: 'People' }
+            ])
+          ]);
+
+          const [products, tags] = await Promise.all([
+            this.Product.findAll(),
+            this.Tag.findAll()
+          ]);
+
+          this.products = products;
+          this.tags = tags;
+
+          await Promise.all([
+            products[0].setTags([tags[0], tags[1]]),
+            products[1].addTag(tags[0]),
+            products[2].addTag(tags[1]),
+            products[3].setTags([tags[1]]),
+            products[4].setTags([tags[2]])
+          ]);
+
+          await Promise.all([
+            (async () => {
+              const tag = await this.Tag.findOne({
+                where: {
+                  id: tags[0].id
+                },
+                include: [
+                  { model: this.Product, as: 'products' }
+                ]
               });
-            });
-          });
+
+              expect(tag).to.exist;
+              expect(tag.products.length).to.equal(2);
+            })(),
+            tags[1].getProducts().then(products => {
+              expect(products.length).to.equal(3);
+            }),
+            (async () => {
+              const product = await this.Product.findOne({
+                where: {
+                  id: products[0].id
+                },
+                include: [
+                  { model: this.Tag, as: 'tags' }
+                ]
+              });
+
+              expect(product).to.exist;
+              expect(product.tags.length).to.equal(2);
+            })(),
+            products[1].getTags().then(tags => {
+              expect(tags.length).to.equal(1);
+            })
+          ]);
         });
 
-        it('returns the associated models when using through as model and alias', function() {
+        it('returns the associated models when using through as model and alias', async function() {
           // Exactly the same code as the previous test, just with a through model instance, and promisified
           const ProductTag = this.sequelize.define('product_tag');
 
           this.Product.belongsToMany(this.Tag, { as: 'tags', through: ProductTag });
           this.Tag.belongsToMany(this.Product, { as: 'products', through: ProductTag });
 
-          return this.sequelize.sync().then(() => {
-            return Promise.all([
-              this.Product.bulkCreate([
-                { title: 'Chair' },
-                { title: 'Desk' },
-                { title: 'Handbag' },
-                { title: 'Dress' },
-                { title: 'Jan' }
-              ]),
-              this.Tag.bulkCreate([
-                { name: 'Furniture' },
-                { name: 'Clothing' },
-                { name: 'People' }
-              ])
-            ]);
-          }).then(() => {
-            return Promise.all([
-              this.Product.findAll(),
-              this.Tag.findAll()
-            ]);
-          }).then(([products, tags]) => {
-            this.products = products;
-            this.tags = tags;
+          await this.sequelize.sync();
 
-            return Promise.all([
-              products[0].setTags([tags[0], tags[1]]),
-              products[1].addTag(tags[0]),
-              products[2].addTag(tags[1]),
-              products[3].setTags([tags[1]]),
-              products[4].setTags([tags[2]])
-            ]);
-          }).then(() => {
-            return Promise.all([
-              expect(this.Tag.findOne({
-                where: {
-                  id: this.tags[0].id
-                },
-                include: [
-                  { model: this.Product, as: 'products' }
-                ]
-              })).to.eventually.have.property('products').to.have.length(2),
-              expect(this.Product.findOne({
-                where: {
-                  id: this.products[0].id
-                },
-                include: [
-                  { model: this.Tag, as: 'tags' }
-                ]
-              })).to.eventually.have.property('tags').to.have.length(2),
-              expect(this.tags[1].getProducts()).to.eventually.have.length(3),
-              expect(this.products[1].getTags()).to.eventually.have.length(1)
-            ]);
-          });
+          await Promise.all([
+            this.Product.bulkCreate([
+              { title: 'Chair' },
+              { title: 'Desk' },
+              { title: 'Handbag' },
+              { title: 'Dress' },
+              { title: 'Jan' }
+            ]),
+            this.Tag.bulkCreate([
+              { name: 'Furniture' },
+              { name: 'Clothing' },
+              { name: 'People' }
+            ])
+          ]);
+
+          const [products, tags] = await Promise.all([
+            this.Product.findAll(),
+            this.Tag.findAll()
+          ]);
+
+          this.products = products;
+          this.tags = tags;
+
+          await Promise.all([
+            products[0].setTags([tags[0], tags[1]]),
+            products[1].addTag(tags[0]),
+            products[2].addTag(tags[1]),
+            products[3].setTags([tags[1]]),
+            products[4].setTags([tags[2]])
+          ]);
+
+          await Promise.all([
+            expect(this.Tag.findOne({
+              where: {
+                id: this.tags[0].id
+              },
+              include: [
+                { model: this.Product, as: 'products' }
+              ]
+            })).to.eventually.have.property('products').to.have.length(2),
+            expect(this.Product.findOne({
+              where: {
+                id: this.products[0].id
+              },
+              include: [
+                { model: this.Tag, as: 'tags' }
+              ]
+            })).to.eventually.have.property('tags').to.have.length(2),
+            expect(this.tags[1].getProducts()).to.eventually.have.length(3),
+            expect(this.products[1].getTags()).to.eventually.have.length(1)
+          ]);
         });
       });
     });
 
     describe('queryOptions', () => {
-      beforeEach(function() {
-        return this.User.create({ username: 'barfooz' }).then(user => {
-          this.user = user;
-        });
+      beforeEach(async function() {
+        const user = await this.User.create({ username: 'barfooz' });
+        this.user = user;
       });
 
-      it('should return a DAO when queryOptions are not set', function() {
-        return this.User.findOne({ where: { username: 'barfooz' } }).then(user => {
-          expect(user).to.be.instanceOf(this.User);
-        });
+      it('should return a DAO when queryOptions are not set', async function() {
+        const user = await this.User.findOne({ where: { username: 'barfooz' } });
+        expect(user).to.be.instanceOf(this.User);
       });
 
-      it('should return a DAO when raw is false', function() {
-        return this.User.findOne({ where: { username: 'barfooz' }, raw: false }).then(user => {
-          expect(user).to.be.instanceOf(this.User);
-        });
+      it('should return a DAO when raw is false', async function() {
+        const user = await this.User.findOne({ where: { username: 'barfooz' }, raw: false });
+        expect(user).to.be.instanceOf(this.User);
       });
 
-      it('should return raw data when raw is true', function() {
-        return this.User.findOne({ where: { username: 'barfooz' }, raw: true }).then(user => {
-          expect(user).to.not.be.instanceOf(this.User);
-          expect(user).to.be.instanceOf(Object);
-        });
+      it('should return raw data when raw is true', async function() {
+        const user = await this.User.findOne({ where: { username: 'barfooz' }, raw: true });
+        expect(user).to.not.be.instanceOf(this.User);
+        expect(user).to.be.instanceOf(Object);
       });
     });
 
-    it('should support logging', function() {
+    it('should support logging', async function() {
       const spy = sinon.spy();
 
-      return this.User.findOne({
+      await this.User.findOne({
         where: {},
         logging: spy
-      }).then(() => {
-        expect(spy.called).to.be.ok;
       });
+
+      expect(spy.called).to.be.ok;
     });
 
     describe('rejectOnEmpty mode', () => {
-      it('throws error when record not found by findOne', function() {
-        return expect(this.User.findOne({
+      it('throws error when record not found by findOne', async function() {
+        await expect(this.User.findOne({
           where: {
             username: 'ath-kantam-pradakshnami'
           },
@@ -923,14 +899,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
-      it('throws error when record not found by findByPk', function() {
-        return expect(this.User.findByPk(4732322332323333232344334354234, {
+      it('throws error when record not found by findByPk', async function() {
+        await expect(this.User.findByPk(4732322332323333232344334354234, {
           rejectOnEmpty: true
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
-      it('throws error when record not found by find', function() {
-        return expect(this.User.findOne({
+      it('throws error when record not found by find', async function() {
+        await expect(this.User.findOne({
           where: {
             username: 'some-username-that-is-not-used-anywhere'
           },
@@ -938,54 +914,51 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
-      it('works from model options', () => {
+      it('works from model options', async () => {
         const Model = current.define('Test', {
           username: Sequelize.STRING(100)
         }, {
           rejectOnEmpty: true
         });
 
-        return Model.sync({ force: true })
-          .then(() => {
-            return expect(Model.findOne({
-              where: {
-                username: 'some-username-that-is-not-used-anywhere'
-              }
-            })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
-          });
+        await Model.sync({ force: true });
+
+        await expect(Model.findOne({
+          where: {
+            username: 'some-username-that-is-not-used-anywhere'
+          }
+        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
-      it('override model options', () => {
+      it('override model options', async () => {
         const Model = current.define('Test', {
           username: Sequelize.STRING(100)
         }, {
           rejectOnEmpty: true
         });
 
-        return Model.sync({ force: true })
-          .then(() => {
-            return expect(Model.findOne({
-              rejectOnEmpty: false,
-              where: {
-                username: 'some-username-that-is-not-used-anywhere'
-              }
-            })).to.eventually.be.deep.equal(null);
-          });
+        await Model.sync({ force: true });
+
+        await expect(Model.findOne({
+          rejectOnEmpty: false,
+          where: {
+            username: 'some-username-that-is-not-used-anywhere'
+          }
+        })).to.eventually.be.deep.equal(null);
       });
 
-      it('resolve null when disabled', () => {
+      it('resolve null when disabled', async () => {
         const Model = current.define('Test', {
           username: Sequelize.STRING(100)
         });
 
-        return Model.sync({ force: true })
-          .then(() => {
-            return expect(Model.findOne({
-              where: {
-                username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
-              }
-            })).to.eventually.be.equal(null);
-          });
+        await Model.sync({ force: true });
+
+        await expect(Model.findOne({
+          where: {
+            username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
+          }
+        })).to.eventually.be.equal(null);
       });
     });
   });

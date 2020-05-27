@@ -11,7 +11,7 @@ const chai = require('chai'),
 describe('model', () => {
   if (current.dialect.supports.JSON) {
     describe('json', () => {
-      beforeEach(function() {
+      beforeEach(async function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           emergency_contact: DataTypes.JSON,
@@ -20,21 +20,19 @@ describe('model', () => {
         this.Order = this.sequelize.define('Order');
         this.Order.belongsTo(this.User);
 
-        return this.sequelize.sync({ force: true });
+        await this.sequelize.sync({ force: true });
       });
 
-      it('should tell me that a column is json', function() {
-        return this.sequelize.queryInterface.describeTable('Users')
-          .then(table => {
-            // expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
-            if (dialect !== 'mariadb') {
-              expect(table.emergency_contact.type).to.equal('JSON');
-            }
-          });
+      it('should tell me that a column is json', async function() {
+        const table = await this.sequelize.queryInterface.describeTable('Users');
+        // expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
+        if (dialect !== 'mariadb') {
+          expect(table.emergency_contact.type).to.equal('JSON');
+        }
       });
 
-      it('should use a placeholder for json with insert', function() {
-        return this.User.create({
+      it('should use a placeholder for json with insert', async function() {
+        await this.User.create({
           username: 'bob',
           emergency_contact: { name: 'joe', phones: [1337, 42] }
         }, {
@@ -49,246 +47,226 @@ describe('model', () => {
         });
       });
 
-      it('should insert json using a custom field name', function() {
+      it('should insert json using a custom field name', async function() {
         this.UserFields = this.sequelize.define('UserFields', {
           emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' }
         });
-        return this.UserFields.sync({ force: true }).then(() => {
-          return this.UserFields.create({
-            emergencyContact: { name: 'joe', phones: [1337, 42] }
-          }).then(user => {
-            expect(user.emergencyContact.name).to.equal('joe');
-          });
+        await this.UserFields.sync({ force: true });
+
+        const user = await this.UserFields.create({
+          emergencyContact: { name: 'joe', phones: [1337, 42] }
         });
+
+        expect(user.emergencyContact.name).to.equal('joe');
       });
 
-      it('should update json using a custom field name', function() {
+      it('should update json using a custom field name', async function() {
         this.UserFields = this.sequelize.define('UserFields', {
           emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' }
         });
-        return this.UserFields.sync({ force: true }).then(() => {
-          return this.UserFields.create({
-            emergencyContact: { name: 'joe', phones: [1337, 42] }
-          }).then(user => {
-            user.emergencyContact = { name: 'larry' };
-            return user.save();
-          }).then(user => {
-            expect(user.emergencyContact.name).to.equal('larry');
-          });
+        await this.UserFields.sync({ force: true });
+
+        const user0 = await this.UserFields.create({
+          emergencyContact: { name: 'joe', phones: [1337, 42] }
         });
+
+        user0.emergencyContact = { name: 'larry' };
+        const user = await user0.save();
+        expect(user.emergencyContact.name).to.equal('larry');
       });
 
-      it('should be able retrieve json value as object', function() {
+      it('should be able retrieve json value as object', async function() {
         const emergencyContact = { name: 'kate', phone: 1337 };
 
-        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then(user => {
-            expect(user.emergency_contact).to.eql(emergencyContact);
-            return this.User.findOne({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
-          })
-          .then(user => {
-            expect(user.emergency_contact).to.eql(emergencyContact);
-          });
+        const user0 = await this.User.create({ username: 'swen', emergency_contact: emergencyContact });
+        expect(user0.emergency_contact).to.eql(emergencyContact);
+        const user = await this.User.findOne({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
+        expect(user.emergency_contact).to.eql(emergencyContact);
       });
 
-      it('should be able to retrieve element of array by index', function() {
+      it('should be able to retrieve element of array by index', async function() {
         const emergencyContact = { name: 'kate', phones: [1337, 42] };
 
-        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then(user => {
-            expect(user.emergency_contact).to.eql(emergencyContact);
-            return this.User.findOne({
-              where: { username: 'swen' },
-              attributes: [[Sequelize.json('emergency_contact.phones[1]'), 'firstEmergencyNumber']]
-            });
-          })
-          .then(user => {
-            expect(parseInt(user.getDataValue('firstEmergencyNumber'), 10)).to.equal(42);
-          });
+        const user0 = await this.User.create({ username: 'swen', emergency_contact: emergencyContact });
+        expect(user0.emergency_contact).to.eql(emergencyContact);
+
+        const user = await this.User.findOne({
+          where: { username: 'swen' },
+          attributes: [[Sequelize.json('emergency_contact.phones[1]'), 'firstEmergencyNumber']]
+        });
+
+        expect(parseInt(user.getDataValue('firstEmergencyNumber'), 10)).to.equal(42);
       });
 
-      it('should be able to retrieve root level value of an object by key', function() {
+      it('should be able to retrieve root level value of an object by key', async function() {
         const emergencyContact = { kate: 1337 };
 
-        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then(user => {
-            expect(user.emergency_contact).to.eql(emergencyContact);
-            return this.User.findOne({
-              where: { username: 'swen' },
-              attributes: [[Sequelize.json('emergency_contact.kate'), 'katesNumber']]
-            });
-          })
-          .then(user => {
-            expect(parseInt(user.getDataValue('katesNumber'), 10)).to.equal(1337);
-          });
+        const user0 = await this.User.create({ username: 'swen', emergency_contact: emergencyContact });
+        expect(user0.emergency_contact).to.eql(emergencyContact);
+
+        const user = await this.User.findOne({
+          where: { username: 'swen' },
+          attributes: [[Sequelize.json('emergency_contact.kate'), 'katesNumber']]
+        });
+
+        expect(parseInt(user.getDataValue('katesNumber'), 10)).to.equal(1337);
       });
 
-      it('should be able to retrieve nested value of an object by path', function() {
+      it('should be able to retrieve nested value of an object by path', async function() {
         const emergencyContact = { kate: { email: 'kate@kate.com', phones: [1337, 42] } };
 
-        return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then(user => {
-            expect(user.emergency_contact).to.eql(emergencyContact);
-            return this.User.findOne({
-              where: { username: 'swen' },
-              attributes: [[Sequelize.json('emergency_contact.kate.email'), 'katesEmail']]
-            });
-          }).then(user => {
-            expect(user.getDataValue('katesEmail')).to.equal('kate@kate.com');
-          }).then(() => {
-            return this.User.findOne({
-              where: { username: 'swen' },
-              attributes: [[Sequelize.json('emergency_contact.kate.phones[1]'), 'katesFirstPhone']]
-            });
-          }).then(user => {
-            expect(parseInt(user.getDataValue('katesFirstPhone'), 10)).to.equal(42);
-          });
+        const user1 = await this.User.create({ username: 'swen', emergency_contact: emergencyContact });
+        expect(user1.emergency_contact).to.eql(emergencyContact);
+
+        const user0 = await this.User.findOne({
+          where: { username: 'swen' },
+          attributes: [[Sequelize.json('emergency_contact.kate.email'), 'katesEmail']]
+        });
+
+        expect(user0.getDataValue('katesEmail')).to.equal('kate@kate.com');
+
+        const user = await this.User.findOne({
+          where: { username: 'swen' },
+          attributes: [[Sequelize.json('emergency_contact.kate.phones[1]'), 'katesFirstPhone']]
+        });
+
+        expect(parseInt(user.getDataValue('katesFirstPhone'), 10)).to.equal(42);
       });
 
-      it('should be able to retrieve a row based on the values of the json document', function() {
-        return Sequelize.Promise.all([
+      it('should be able to retrieve a row based on the values of the json document', async function() {
+        await Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
-        ]).then(() => {
-          return this.User.findOne({
-            where: Sequelize.json('emergency_contact.name', 'kate'),
-            attributes: ['username', 'emergency_contact']
-          });
-        }).then(user => {
-          expect(user.emergency_contact.name).to.equal('kate');
+        ]);
+
+        const user = await this.User.findOne({
+          where: Sequelize.json('emergency_contact.name', 'kate'),
+          attributes: ['username', 'emergency_contact']
         });
+
+        expect(user.emergency_contact.name).to.equal('kate');
       });
 
-      it('should be able to query using the nested query language', function() {
-        return Sequelize.Promise.all([
+      it('should be able to query using the nested query language', async function() {
+        await Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
-        ]).then(() => {
-          return this.User.findOne({
-            where: Sequelize.json({ emergency_contact: { name: 'kate' } })
-          });
-        }).then(user => {
-          expect(user.emergency_contact.name).to.equal('kate');
+        ]);
+
+        const user = await this.User.findOne({
+          where: Sequelize.json({ emergency_contact: { name: 'kate' } })
         });
+
+        expect(user.emergency_contact.name).to.equal('kate');
       });
 
-      it('should be able to query using dot notation', function() {
-        return Sequelize.Promise.all([
+      it('should be able to query using dot notation', async function() {
+        await Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
-        ]).then(() => {
-          return this.User.findOne({ where: Sequelize.json('emergency_contact.name', 'joe') });
-        }).then(user => {
-          expect(user.emergency_contact.name).to.equal('joe');
-        });
+        ]);
+
+        const user = await this.User.findOne({ where: Sequelize.json('emergency_contact.name', 'joe') });
+        expect(user.emergency_contact.name).to.equal('joe');
       });
 
-      it('should be able to query using dot notation with uppercase name', function() {
-        return Sequelize.Promise.all([
+      it('should be able to query using dot notation with uppercase name', async function() {
+        await Promise.all([
           this.User.create({ username: 'swen', emergencyContact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })
-        ]).then(() => {
-          return this.User.findOne({
-            attributes: [[Sequelize.json('emergencyContact.name'), 'contactName']],
-            where: Sequelize.json('emergencyContact.name', 'joe')
-          });
-        }).then(user => {
-          expect(user.get('contactName')).to.equal('joe');
+        ]);
+
+        const user = await this.User.findOne({
+          attributes: [[Sequelize.json('emergencyContact.name'), 'contactName']],
+          where: Sequelize.json('emergencyContact.name', 'joe')
         });
+
+        expect(user.get('contactName')).to.equal('joe');
       });
 
-      it('should be able to query array using property accessor', function() {
-        return Sequelize.Promise.all([
+      it('should be able to query array using property accessor', async function() {
+        await Promise.all([
           this.User.create({ username: 'swen', emergency_contact: ['kate', 'joe'] }),
           this.User.create({ username: 'anna', emergency_contact: [{ name: 'joe' }] })
-        ]).then(() => {
-          return this.User.findOne({ where: Sequelize.json('emergency_contact.0', 'kate') });
-        }).then(user => {
-          expect(user.username).to.equal('swen');
-        }).then(() => {
-          return this.User.findOne({ where: Sequelize.json('emergency_contact[0].name', 'joe') });
-        }).then(user => {
-          expect(user.username).to.equal('anna');
-        });
+        ]);
+
+        const user0 = await this.User.findOne({ where: Sequelize.json('emergency_contact.0', 'kate') });
+        expect(user0.username).to.equal('swen');
+        const user = await this.User.findOne({ where: Sequelize.json('emergency_contact[0].name', 'joe') });
+        expect(user.username).to.equal('anna');
       });
 
-      it('should be able to store values that require JSON escaping', function() {
+      it('should be able to store values that require JSON escaping', async function() {
         const text = 'Multi-line \'$string\' needing "escaping" for $$ and $1 type values';
 
-        return this.User.create({
+        const user0 = await this.User.create({
           username: 'swen',
           emergency_contact: { value: text }
-        }).then(user => {
-          expect(user.isNewRecord).to.equal(false);
-        }).then(() => {
-          return this.User.findOne({ where: { username: 'swen' } });
-        }).then(() => {
-          return this.User.findOne({ where: Sequelize.json('emergency_contact.value', text) });
-        }).then(user => {
-          expect(user.username).to.equal('swen');
         });
+
+        expect(user0.isNewRecord).to.equal(false);
+        await this.User.findOne({ where: { username: 'swen' } });
+        const user = await this.User.findOne({ where: Sequelize.json('emergency_contact.value', text) });
+        expect(user.username).to.equal('swen');
       });
 
-      it('should be able to findOrCreate with values that require JSON escaping', function() {
+      it('should be able to findOrCreate with values that require JSON escaping', async function() {
         const text = 'Multi-line \'$string\' needing "escaping" for $$ and $1 type values';
 
-        return this.User.findOrCreate({
+        const user0 = await this.User.findOrCreate({
           where: { username: 'swen' },
           defaults: { emergency_contact: { value: text } }
-        }).then(user => {
-          expect(!user.isNewRecord).to.equal(true);
-        }).then(() => {
-          return this.User.findOne({ where: { username: 'swen' } });
-        }).then(() => {
-          return this.User.findOne({ where: Sequelize.json('emergency_contact.value', text) });
-        }).then(user => {
-          expect(user.username).to.equal('swen');
         });
+
+        expect(!user0.isNewRecord).to.equal(true);
+        await this.User.findOne({ where: { username: 'swen' } });
+        const user = await this.User.findOne({ where: Sequelize.json('emergency_contact.value', text) });
+        expect(user.username).to.equal('swen');
       });
 
       // JSONB Supports this, but not JSON in postgres/mysql
       if (current.dialect.name === 'sqlite') {
-        it('should be able to find with just string', function() {
-          return this.User.create({
+        it('should be able to find with just string', async function() {
+          await this.User.create({
             username: 'swen123',
             emergency_contact: 'Unknown'
-          }).then(() => {
-            return this.User.findOne({ where: {
-              emergency_contact: 'Unknown'
-            } });
-          }).then(user => {
-            expect(user.username).to.equal('swen123');
           });
+
+          const user = await this.User.findOne({ where: {
+            emergency_contact: 'Unknown'
+          } });
+
+          expect(user.username).to.equal('swen123');
         });
       }
 
-      it('should be able retrieve json value with nested include', function() {
-        return this.User.create({
+      it('should be able retrieve json value with nested include', async function() {
+        const user = await this.User.create({
           emergency_contact: {
             name: 'kate'
           }
-        }).then(user => {
-          return this.Order.create({ UserId: user.id });
-        }).then(() => {
-          return this.Order.findAll({
-            attributes: ['id'],
-            include: [{
-              model: this.User,
-              attributes: [
-                [this.sequelize.json('emergency_contact.name'), 'katesName']
-              ]
-            }]
-          });
-        }).then(orders => {
-          expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
         });
+
+        await this.Order.create({ UserId: user.id });
+
+        const orders = await this.Order.findAll({
+          attributes: ['id'],
+          include: [{
+            model: this.User,
+            attributes: [
+              [this.sequelize.json('emergency_contact.name'), 'katesName']
+            ]
+          }]
+        });
+
+        expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
       });
     });
   }
 
   if (current.dialect.supports.JSONB) {
     describe('jsonb', () => {
-      beforeEach(function() {
+      beforeEach(async function() {
         this.User = this.sequelize.define('User', {
           username: DataTypes.STRING,
           emergency_contact: DataTypes.JSONB
@@ -296,29 +274,29 @@ describe('model', () => {
         this.Order = this.sequelize.define('Order');
         this.Order.belongsTo(this.User);
 
-        return this.sequelize.sync({ force: true });
+        await this.sequelize.sync({ force: true });
       });
 
-      it('should be able retrieve json value with nested include', function() {
-        return this.User.create({
+      it('should be able retrieve json value with nested include', async function() {
+        const user = await this.User.create({
           emergency_contact: {
             name: 'kate'
           }
-        }).then(user => {
-          return this.Order.create({ UserId: user.id });
-        }).then(() => {
-          return this.Order.findAll({
-            attributes: ['id'],
-            include: [{
-              model: this.User,
-              attributes: [
-                [this.sequelize.json('emergency_contact.name'), 'katesName']
-              ]
-            }]
-          });
-        }).then(orders => {
-          expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
         });
+
+        await this.Order.create({ UserId: user.id });
+
+        const orders = await this.Order.findAll({
+          attributes: ['id'],
+          include: [{
+            model: this.User,
+            attributes: [
+              [this.sequelize.json('emergency_contact.name'), 'katesName']
+            ]
+          }]
+        });
+
+        expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
       });
     });
   }

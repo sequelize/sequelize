@@ -8,9 +8,8 @@ As Sequelize heavily relies on runtime property assignments, TypeScript won't be
 
 In order to avoid installation bloat for non TS users, you must install the following typing packages manually:
 
-- `@types/node` (this is universally required)
+- `@types/node` (this is universally required in node projects)
 - `@types/validator`
-- `@types/bluebird`
 
 ## Usage
 
@@ -69,7 +68,7 @@ class Address extends Model {
 
 Project.init({
   id: {
-    type: DataTypes.INTEGER.UNSIGNED, // you can omit the `new` but this is discouraged
+    type: DataTypes.INTEGER.UNSIGNED,
     autoIncrement: true,
     primaryKey: true,
   },
@@ -102,7 +101,7 @@ User.init({
   }
 }, {
   tableName: 'users',
-  sequelize: sequelize, // this bit is important
+  sequelize: sequelize, // passing the `sequelize` instance is required
 });
 
 Address.init({
@@ -115,7 +114,7 @@ Address.init({
   }
 }, {
   tableName: 'address',
-  sequelize: sequelize, // this bit is important
+  sequelize: sequelize, // passing the `sequelize` instance is required
 });
 
 // Here we associate which actually populates out pre-declared `association` static and other methods.
@@ -129,8 +128,6 @@ Address.belongsTo(User, {targetKey: 'id'});
 User.hasOne(Address,{sourceKey: 'id'});
 
 async function stuff() {
-  // Please note that when using async/await you lose the `bluebird` promise context
-  // and you fall back to native
   const newUser = await User.create({
     name: 'Johnny',
     preferredName: 'John',

@@ -8,7 +8,6 @@ import {
   ModelCtor,
   Transactionable,
 } from '../model';
-import { Promise } from '../promise';
 import { Association, ManyToManyOptions, MultiAssociationAccessors } from './base';
 
 /**

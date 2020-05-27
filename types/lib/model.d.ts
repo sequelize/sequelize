@@ -4,9 +4,8 @@ import { DataType } from './data-types';
 import { Deferrable } from './deferrable';
 import { HookReturn, Hooks, ModelHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
-import { Promise } from './promise';
 import { QueryOptions, IndexesOptions } from './query-interface';
-import { Config, Options, Sequelize, SyncOptions } from './sequelize';
+import { Sequelize, SyncOptions } from './sequelize';
 import { Transaction, LOCK } from './transaction';
 import { Col, Fn, Literal, Where } from './utils';
 import Op = require('./operators');
@@ -110,7 +109,7 @@ export interface ScopeOptions {
 /**
  * The type accepted by every `where` option
  */
-export type WhereOptions = WhereAttributeHash | AndOperator | OrOperator | Literal | Where;
+export type WhereOptions = WhereAttributeHash | AndOperator | OrOperator | Literal | Fn | Where;
 
 /**
  * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
@@ -157,7 +156,7 @@ export interface WhereOperators {
   [Op.not]?: null | boolean | string | number | Literal | WhereOperators;
 
   /** Example: `[Op.between]: [6, 10],` becomes `BETWEEN 6 AND 10` */
-  [Op.between]?: [number, number];
+  [Op.between]?: Rangable;
 
   /** Example: `[Op.in]: [1, 2],` becomes `IN [1, 2]` */
   [Op.in]?: (string | number | Literal)[] | Literal;
@@ -222,7 +221,7 @@ export interface WhereOperators {
   [Op.notILike]?: string | Literal | AnyOperator | AllOperator;
 
   /** Example: `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
-  [Op.notBetween]?: [number, number];
+  [Op.notBetween]?: Rangable;
 
   /**
    * Strings starts with value.
@@ -706,7 +705,7 @@ export interface UpsertOptions extends Logging, Transactionable, SearchPathable,
   fields?: string[];
 
   /**
-   * Return the affected rows (only for postgres)
+   * Return the affected rows
    */
   returning?: boolean;
 
@@ -1591,8 +1590,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *  An object, where each attribute is a column of the table. Each column can be either a DataType, a
    *  string or a type-description object, with the properties described below:
    * @param options These options are merged with the default define options provided to the Sequelize constructor
+   * @return Return the initialized model
    */
-  public static init<M extends Model = Model>(this: ModelCtor<M>, attributes: ModelAttributes<M>, options: InitOptions<M>): void;
+  public static init<M extends Model = Model>(this: ModelCtor<M>, attributes: ModelAttributes<M>, options: InitOptions<M>): Model;
 
   /**
    * Remove attribute from model definition
@@ -1830,17 +1830,14 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * rows matching your query. This is very usefull for paging
    *
    * ```js
-   * Model.findAndCountAll({
+   * const { rows, count } = await Model.findAndCountAll({
    *   where: ...,
    *   limit: 12,
    *   offset: 12
-   * }).then(result => {
-   *   ...
-   * })
+   * });
    * ```
-   * In the above example, `result.rows` will contain rows 13 through 24, while `result.count` will return
-   * the
-   * total number of rows that matched your query.
+   * In the above example, `rows` will contain rows 13 through 24, while `count` will return
+   * the total number of rows that matched your query.
    *
    * When you add includes, only those which are required (either because they have a where clause, or
    * because
@@ -1852,7 +1849,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *   include: [
    *      { model: Profile, required: true}
    *   ],
-   *   limit 3
+   *   limit: 3
    * });
    * ```
    * Because the include for `Profile` has `required` set it will result in an inner join, and only the users
@@ -1922,7 +1919,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
-   * The successfull result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
+   * The successful result of the promise will be [instance, initialized] - Make sure to use destructuring such as `const [instance, wasBuilt] = ...`
    */
   public static findOrBuild<M extends Model>(
     this: { new(): M } & typeof Model,
@@ -1931,7 +1928,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
   /**
    * Find a row that matches the query, or build and save the row if none is found
-   * The successful result of the promise will be (instance, created) - Make sure to use `.then(([...]))`
+   * The successful result of the promise will be [instance, created] - Make sure to use destructuring such as `const [instance, wasCreated] = ...`
    *
    * If no transaction is passed in the `options` object, a new transaction will be created internally, to
    * prevent the race condition where a matching row is created by another connection after the find but
@@ -1962,28 +1959,18 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *
    * **Implementation details:**
    *
-   * * MySQL - Implemented as a single query `INSERT values ON DUPLICATE KEY UPDATE values`
-   * * PostgreSQL - Implemented as a temporary function with exception handling: INSERT EXCEPTION WHEN
-   *   unique_constraint UPDATE
-   * * SQLite - Implemented as two queries `INSERT; UPDATE`. This means that the update is executed
-   * regardless
-   *   of whether the row already existed or not
+   * * MySQL - Implemented with ON DUPLICATE KEY UPDATE
+   * * PostgreSQL - Implemented with ON CONFLICT DO UPDATE
+   * * SQLite - Implemented with ON CONFLICT DO UPDATE
+   * * MSSQL - Implemented with MERGE statement
    *
-   * **Note** that SQLite returns undefined for created, no matter if the row was created or updated. This is
-   * because SQLite always runs INSERT OR IGNORE + UPDATE, in a single query, so there is no way to know
-   * whether the row was inserted or not.
+   * **Note** that PostgreSQL/SQLite returns null for created, no matter if the row was created or updated.
    */
   public static upsert<M extends Model>(
     this: { new(): M } & typeof Model,
     values: object,
-    options?: UpsertOptions & { returning?: false | undefined }
-  ): Promise<boolean>;
-
-  public static upsert<M extends Model>(
-    this: { new(): M } & typeof Model,
-    values: object,
-    options?: UpsertOptions & { returning: true }
-  ): Promise<[M, boolean]>;
+    options?: UpsertOptions
+  ): Promise<[M, boolean | null]>;
 
   /**
    * Create and insert multiple instances in bulk.
@@ -2446,10 +2433,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Similarily, when fetching through a join table with custom attributes, these attributes will be
    * available as an object with the name of the through model.
    * ```js
-   * user.getProjects().then(projects => {
-   *   const p1 = projects[0]
-   *   p1.userprojects.started // Is this project started yet?
-   * })
+   * const projects = await user.getProjects();
+   * const p1 = projects[0];
+   * p1.UserProjects.started // Is this project started yet?
    * ```
    *
    * @param target The model that will be associated with hasOne relationship
@@ -2498,10 +2484,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Similarily, when fetching through a join table with custom attributes, these attributes will be
    * available as an object with the name of the through model.
    * ```js
-   * user.getProjects().then(projects => {
-   *   const p1 = projects[0]
-   *   p1.userprojects.started // Is this project started yet?
-   * })
+   * const porjects = await user.getProjects();
+   * const p1 = projects[0];
+   * p1.userprojects.started // Is this project started yet?
    * ```
    *
    * @param target The model that will be associated with hasOne relationship

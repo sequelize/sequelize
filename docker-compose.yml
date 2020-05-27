@@ -31,8 +31,18 @@ services:
       POSTGRES_PASSWORD: sequelize_test
       POSTGRES_DB: sequelize_test
     ports:
-    - "8991:5432"
+      - "8991:5432"
     container_name: postgres-10
+
+  postgres-12:
+    image: sushantdhiman/postgres:12
+    environment:
+      POSTGRES_USER: sequelize_test
+      POSTGRES_PASSWORD: sequelize_test
+      POSTGRES_DB: sequelize_test
+    ports:
+      - "8992:5432"
+    container_name: postgres-12
 
   # MariaDB
   mariadb-103:

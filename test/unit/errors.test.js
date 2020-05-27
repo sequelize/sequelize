@@ -52,4 +52,31 @@ describe('errors', () => {
       expect(stackParts[1]).to.match(/^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/);
     });
   });
+
+  describe('AggregateError', () => {
+    it('get .message works', () => {
+      const { AggregateError } = errors;
+      expect(String(
+        new AggregateError([
+          new Error('foo'),
+          new Error('bar\nbaz'),
+          new AggregateError([
+            new Error('this\nis\na\ntest'),
+            new Error('qux')
+          ])
+        ])
+      )).to.equal(
+        `AggregateError of:
+  Error: foo
+  Error: bar
+    baz
+  AggregateError of:
+    Error: this
+      is
+      a
+      test
+    Error: qux
+`);
+    });
+  });
 });

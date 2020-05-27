@@ -3,7 +3,7 @@
 const Support = require('../support');
 const current = Support.sequelize;
 const expectsql = Support.expectsql;
-const sql = current.dialect.QueryGenerator;
+const sql = current.dialect.queryGenerator;
 const expect = require('chai').expect;
 const Op = Support.Sequelize.Op;
 
