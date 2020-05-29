@@ -167,11 +167,9 @@ const MyDefineModel = <MyModelStatic>sequelize.define('MyDefineModel', {
   }
 });
 
-function stuffTwo() {
-  MyDefineModel.findByPk(1, {
+async function stuffTwo() {
+  const myModel = await MyDefineModel.findByPk(1, {
     rejectOnEmpty: true,
-  })
-  .then(myModel => {
-    console.log(myModel.id);
   });
+  console.log(myModel.id);
 }

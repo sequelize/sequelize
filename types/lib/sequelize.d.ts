@@ -22,7 +22,7 @@ import {
   Hookable,
 } from './model';
 import { ModelManager } from './model-manager';
-import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType } from './query-interface';
+import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './query-interface';
 import QueryTypes = require('./query-types');
 import { Transaction, TransactionOptions } from './transaction';
 import { Cast, Col, Fn, Json, Literal, Where } from './utils';
@@ -1177,19 +1177,15 @@ export class Sequelize extends Hooks {
    * Execute a query on the DB, optionally bypassing all the Sequelize goodness.
    *
    * By default, the function will return two arguments: an array of results, and a metadata object,
-   * containing number of affected rows etc. Use `.then(([...]))` to access the results.
+   * containing number of affected rows etc. Use `const [results, meta] = await ...` to access the results.
    *
    * If you are running a type of query where you don't need the metadata, for example a `SELECT` query, you
    * can pass in a query type to make sequelize format the results:
    *
    * ```js
-   * sequelize.query('SELECT...').then(([results, metadata]) {
-   *   // Raw query - use spread
-   * });
+   * const [results, metadata] = await sequelize.query('SELECT...'); // Raw query - use array destructuring
    *
-   * sequelize.query('SELECT...', { type: sequelize.QueryTypes.SELECT }).then(results => {
-   *   // SELECT query - use then
-   * })
+   * const results = await sequelize.query('SELECT...', { type: sequelize.QueryTypes.SELECT }); // SELECT query - no destructuring
    * ```
    *
    * @param sql
@@ -1202,16 +1198,7 @@ export class Sequelize extends Hooks {
   public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<void>;
   public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
   public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SHOWTABLES>): Promise<string[]>;
-  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<{
-    [key: string]: {
-      type: string;
-      allowNull: boolean;
-      defaultValue: string;
-      primaryKey: boolean;
-      autoIncrement: boolean;
-      comment: string | null;
-    }
-  }>;
+  public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
   public query<M extends Model>(
     sql: string | { query: string; values: unknown[] },
     options: QueryOptionsWithModel
@@ -1325,12 +1312,14 @@ export class Sequelize extends Hooks {
    * in order for the query to happen under that transaction
    *
    * ```js
-   * sequelize.transaction().then(t => {
-   *   return User.findOne(..., { transaction: t}).then(user => {
-   *   return user.update(..., { transaction: t});
-   *   })
-   *   .then(t.commit.bind(t))
-   *   .catch(t.rollback.bind(t));
+   *   try {
+   *     const transaction = await sequelize.transaction();
+   *     const user = await User.findOne(..., { transaction });
+   *     await user.update(..., { transaction });
+   *     await transaction.commit();
+   *   } catch(err) {
+   *     await transaction.rollback();
+   *   }
    * })
    * ```
    *
@@ -1338,16 +1327,16 @@ export class Sequelize extends Hooks {
    * supported:
    *
    * ```js
-   * sequelize.transaction(t => { // Note that we use a callback rather than a promise.then()
-   *   return User.findOne(..., { transaction: t}).then(user => {
-   *    return user.update(..., { transaction: t});
+   * try {
+   *   await sequelize.transaction(transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
+   *     const user = await User.findOne(..., {transaction});
+   *     await user.update(..., {transaction});
    *   });
-   * }).then(() => {
-   *   // Commited
-   * }).catch(err => {
+   *   // Committed
+   * } catch(err) {
    *   // Rolled back
    *   console.error(err);
-   * });
+   * }
    * ```
    *
    * If you have [CLS](https://github.com/Jeff-Lewis/cls-hooked) enabled, the transaction

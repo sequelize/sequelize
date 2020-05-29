@@ -60,25 +60,17 @@ const myModel: typeof Model1 = sequelize.models.asd;
 myModel.hasOne(Model2)
 myModel.findAll();
 
-sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW }).then(result => {
-  const data = result[0];
-  const arraysOnly = (a: any[]) => a;
-  arraysOnly(data);
-});
+async function test() {
+  const [results, meta]: [unknown[], unknown] = await sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW });
 
-sequelize
-  .query<{ count: number }>("SELECT COUNT(1) as count FROM `user`", {
-    type: QueryTypes.SELECT,
-    plain: true
-  })
-  .then(result => {
-    result.count.toExponential(); // is a number!
-  });
+  const res2: { count: number } = await sequelize
+    .query<{ count: number }>("SELECT COUNT(1) as count FROM `user`", {
+      type: QueryTypes.SELECT,
+      plain: true
+    });
 
-sequelize
-  .query("SELECT COUNT(1) as count FROM `user`", {
-    plain: true
-  })
-  .then(result => {
-    console.log(result.count);
-  });
+  const res3: { [key: string]: unknown; } = await sequelize
+    .query("SELECT COUNT(1) as count FROM `user`", {
+      plain: true
+    })
+}

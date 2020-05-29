@@ -29,8 +29,8 @@ if (current.dialect.supports.transactions) {
     });
 
     describe('context', () => {
-      it('does not use continuation storage on manually managed transactions', function() {
-        return Sequelize._clsRun(async () => {
+      it('does not use continuation storage on manually managed transactions', async function() {
+        await Sequelize._clsRun(async () => {
           const transaction = await this.sequelize.transaction();
           expect(this.ns.get('transaction')).not.to.be.ok;
           await transaction.rollback();
@@ -52,14 +52,13 @@ if (current.dialect.supports.transactions) {
         expect(t1id).not.to.equal(t2id);
       });
 
-      it('supports nested promise chains', function() {
-        return this.sequelize.transaction(() => {
+      it('supports nested promise chains', async function() {
+        await this.sequelize.transaction(async () => {
           const tid = this.ns.get('transaction').id;
 
-          return this.User.findAll().then(() => {
-            expect(this.ns.get('transaction').id).to.be.ok;
-            expect(this.ns.get('transaction').id).to.equal(tid);
-          });
+          await this.User.findAll();
+          expect(this.ns.get('transaction').id).to.be.ok;
+          expect(this.ns.get('transaction').id).to.equal(tid);
         });
       });
 
@@ -100,8 +99,8 @@ if (current.dialect.supports.transactions) {
         expect(this.ns.get('transaction')).not.to.be.ok;
       });
 
-      it('does not leak outside findOrCreate', function() {
-        return this.User.findOrCreate({
+      it('does not leak outside findOrCreate', async function() {
+        await this.User.findOrCreate({
           where: {
             name: 'Kafka'
           },
@@ -110,26 +109,25 @@ if (current.dialect.supports.transactions) {
               throw new Error('The transaction was not properly assigned');
             }
           }
-        }).then(() => {
-          return this.User.findAll();
         });
+
+        await this.User.findAll();
       });
     });
 
     describe('sequelize.query integration', () => {
-      it('automagically uses the transaction in all calls', function() {
-        return this.sequelize.transaction(() => {
-          return this.User.create({ name: 'bob' }).then(() => {
-            return Promise.all([
-              expect(this.User.findAll({ transaction: null })).to.eventually.have.length(0),
-              expect(this.User.findAll({})).to.eventually.have.length(1)
-            ]);
-          });
+      it('automagically uses the transaction in all calls', async function() {
+        await this.sequelize.transaction(async () => {
+          await this.User.create({ name: 'bob' });
+          return Promise.all([
+            expect(this.User.findAll({ transaction: null })).to.eventually.have.length(0),
+            expect(this.User.findAll({})).to.eventually.have.length(1)
+          ]);
         });
       });
 
-      it('automagically uses the transaction in all calls with async/await', function() {
-        return this.sequelize.transaction(async () => {
+      it('automagically uses the transaction in all calls with async/await', async function() {
+        await this.sequelize.transaction(async () => {
           await this.User.create({ name: 'bob' });
           expect(await this.User.findAll({ transaction: null })).to.have.length(0);
           expect(await this.User.findAll({})).to.have.length(1);
@@ -141,10 +139,11 @@ if (current.dialect.supports.transactions) {
       expect(Sequelize._cls).to.equal(this.ns);
     });
 
-    it('promises returned by sequelize.query are correctly patched', function() {
-      return this.sequelize.transaction(t =>
-        this.sequelize.query('select 1', { type: Sequelize.QueryTypes.SELECT })
-          .then(() => expect(this.ns.get('transaction')).to.equal(t))
+    it('promises returned by sequelize.query are correctly patched', async function() {
+      await this.sequelize.transaction(async t => {
+        await this.sequelize.query('select 1', { type: Sequelize.QueryTypes.SELECT });
+        return expect(this.ns.get('transaction')).to.equal(t);
+      }
       );
     });
   });

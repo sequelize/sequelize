@@ -705,7 +705,7 @@ export interface UpsertOptions extends Logging, Transactionable, SearchPathable,
   fields?: string[];
 
   /**
-   * Return the affected rows (only for postgres)
+   * Return the affected rows
    */
   returning?: boolean;
 
@@ -1830,17 +1830,14 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * rows matching your query. This is very usefull for paging
    *
    * ```js
-   * Model.findAndCountAll({
+   * const { rows, count } = await Model.findAndCountAll({
    *   where: ...,
    *   limit: 12,
    *   offset: 12
-   * }).then(result => {
-   *   ...
-   * })
+   * });
    * ```
-   * In the above example, `result.rows` will contain rows 13 through 24, while `result.count` will return
-   * the
-   * total number of rows that matched your query.
+   * In the above example, `rows` will contain rows 13 through 24, while `count` will return
+   * the total number of rows that matched your query.
    *
    * When you add includes, only those which are required (either because they have a where clause, or
    * because
@@ -1922,7 +1919,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
   /**
    * Find a row that matches the query, or build (but don't save) the row if none is found.
-   * The successfull result of the promise will be (instance, initialized) - Make sure to use `.then(([...]))`
+   * The successful result of the promise will be [instance, initialized] - Make sure to use destructuring such as `const [instance, wasBuilt] = ...`
    */
   public static findOrBuild<M extends Model>(
     this: { new(): M } & typeof Model,
@@ -1931,7 +1928,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
 
   /**
    * Find a row that matches the query, or build and save the row if none is found
-   * The successful result of the promise will be (instance, created) - Make sure to use `.then(([...]))`
+   * The successful result of the promise will be [instance, created] - Make sure to use destructuring such as `const [instance, wasCreated] = ...`
    *
    * If no transaction is passed in the `options` object, a new transaction will be created internally, to
    * prevent the race condition where a matching row is created by another connection after the find but
@@ -1962,28 +1959,18 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    *
    * **Implementation details:**
    *
-   * * MySQL - Implemented as a single query `INSERT values ON DUPLICATE KEY UPDATE values`
-   * * PostgreSQL - Implemented as a temporary function with exception handling: INSERT EXCEPTION WHEN
-   *   unique_constraint UPDATE
-   * * SQLite - Implemented as two queries `INSERT; UPDATE`. This means that the update is executed
-   * regardless
-   *   of whether the row already existed or not
+   * * MySQL - Implemented with ON DUPLICATE KEY UPDATE
+   * * PostgreSQL - Implemented with ON CONFLICT DO UPDATE
+   * * SQLite - Implemented with ON CONFLICT DO UPDATE
+   * * MSSQL - Implemented with MERGE statement
    *
-   * **Note** that SQLite returns undefined for created, no matter if the row was created or updated. This is
-   * because SQLite always runs INSERT OR IGNORE + UPDATE, in a single query, so there is no way to know
-   * whether the row was inserted or not.
+   * **Note** that PostgreSQL/SQLite returns null for created, no matter if the row was created or updated.
    */
   public static upsert<M extends Model>(
     this: { new(): M } & typeof Model,
     values: object,
-    options?: UpsertOptions & { returning?: false | undefined }
-  ): Promise<boolean>;
-
-  public static upsert<M extends Model>(
-    this: { new(): M } & typeof Model,
-    values: object,
-    options?: UpsertOptions & { returning: true }
-  ): Promise<[M, boolean]>;
+    options?: UpsertOptions
+  ): Promise<[M, boolean | null]>;
 
   /**
    * Create and insert multiple instances in bulk.
@@ -2446,10 +2433,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Similarily, when fetching through a join table with custom attributes, these attributes will be
    * available as an object with the name of the through model.
    * ```js
-   * user.getProjects().then(projects => {
-   *   const p1 = projects[0]
-   *   p1.userprojects.started // Is this project started yet?
-   * })
+   * const projects = await user.getProjects();
+   * const p1 = projects[0];
+   * p1.UserProjects.started // Is this project started yet?
    * ```
    *
    * @param target The model that will be associated with hasOne relationship
@@ -2498,10 +2484,9 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
    * Similarily, when fetching through a join table with custom attributes, these attributes will be
    * available as an object with the name of the through model.
    * ```js
-   * user.getProjects().then(projects => {
-   *   const p1 = projects[0]
-   *   p1.userprojects.started // Is this project started yet?
-   * })
+   * const porjects = await user.getProjects();
+   * const p1 = projects[0];
+   * p1.userprojects.started // Is this project started yet?
    * ```
    *
    * @param target The model that will be associated with hasOne relationship

@@ -13,8 +13,8 @@ before(function() {
   });
 });
 
-beforeEach(function() {
-  return Support.clearDatabase(this.sequelize);
+beforeEach(async function() {
+  await Support.clearDatabase(this.sequelize);
 });
 
 afterEach(function() {

@@ -6,8 +6,8 @@ class TestModel extends Model {
 
 TestModel.init({}, {sequelize})
 
-sequelize.transaction(trx => {
-  TestModel.upsert<TestModel>({}, {
+sequelize.transaction(async trx => {
+  const res1: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
     benchmark: true,
     fields: ['testField'],
     hooks: true,
@@ -16,9 +16,9 @@ sequelize.transaction(trx => {
     searchPath: 'DEFAULT',
     transaction: trx,
     validate: true,
-  }).then((res: [ TestModel, boolean ]) => {});
+  });
 
-  TestModel.upsert<TestModel>({}, {
+  const res2: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
     benchmark: true,
     fields: ['testField'],
     hooks: true,
@@ -27,9 +27,9 @@ sequelize.transaction(trx => {
     searchPath: 'DEFAULT',
     transaction: trx,
     validate: true,
-  }).then((created: boolean) => {});
+  });
 
-  return TestModel.upsert<TestModel>({}, {
+  const res3: [TestModel, boolean | null] = await TestModel.upsert<TestModel>({}, {
     benchmark: true,
     fields: ['testField'],
     hooks: true,
@@ -37,5 +37,5 @@ sequelize.transaction(trx => {
     searchPath: 'DEFAULT',
     transaction: trx,
     validate: true,
-  }).then((created: boolean) => {});
+  });
 })

@@ -249,6 +249,19 @@ export interface FunctionParam {
   direction?: string;
 }
 
+export interface ColumnDescription {
+  type: string;
+  allowNull: boolean;
+  defaultValue: string;
+  primaryKey: boolean;
+  autoIncrement: boolean;
+  comment: string | null;
+}
+
+export interface ColumnsDescription {
+  [key: string]: ColumnDescription;
+}
+
 /**
 * The interface that Sequelize uses to talk to all databases.
 *
@@ -352,7 +365,7 @@ export class QueryInterface {
   public describeTable(
     tableName: string | { schema?: string; tableName?: string },
     options?: string | { schema?: string; schemaDelimiter?: string } & Logging
-  ): Promise<object>;
+  ): Promise<ColumnsDescription>;
 
   /**
    * Adds a new column to a table
