@@ -1,5 +1,7 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const _ = require('lodash');
 const manualGroups = require('./../manual-groups.json');
 
@@ -18,6 +20,11 @@ function isLinkToHiddenManual(link) {
 }
 
 module.exports = function transform($, filePath) {
+  // The three <span>s are used to draw the menu button icon
+  $('nav.navigation').prepend($('<button id="navigationHamburger" class="hamburger" type="button"><span class="line"></span><span class="line"></span><span class="line"></span></button>'));
+  const menuGroupsScripts = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'menu-groups.js'), 'utf8');
+  $('body').append($(`<script>${menuGroupsScripts}</script>`));
+
   const sidebarManualDivs = $('nav div.manual-toc-root div[data-ice=manual]');
 
   $(sidebarManualDivs.get(0)).before(`
