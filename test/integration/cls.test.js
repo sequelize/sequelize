@@ -6,7 +6,8 @@ const chai      = require('chai'),
   Sequelize = Support.Sequelize,
   cls       = require('cls-hooked'),
   current = Support.sequelize,
-  delay     = require('delay');
+  delay     = require('delay'),
+  sinon = require('sinon');
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('CLS (Async hooks)'), () => {
@@ -145,6 +146,36 @@ if (current.dialect.supports.transactions) {
         return expect(this.ns.get('transaction')).to.equal(t);
       }
       );
+    });
+
+    it('custom logging with benchmarking has correct CLS context', async function() {
+      const logger = sinon.spy(() => {
+        return this.ns.get('value');
+      });
+      const sequelize = Support.createSequelizeInstance({
+        logging: logger,
+        benchmark: true
+      });
+
+      const result = this.ns.runPromise(async () => {
+        this.ns.set('value', 1);
+        await delay(500);
+        return sequelize.query('select 1;');
+      });
+
+      await this.ns.runPromise(() => {
+        this.ns.set('value', 2);
+        return sequelize.query('select 2;');
+      });
+
+      await result;
+
+      expect(logger.calledTwice).to.be.true;
+      expect(logger.firstCall.args[0]).to.be.match(/Executed \((\d*|default)\): select 2/);
+      expect(logger.firstCall.returnValue).to.be.equal(2);
+      expect(logger.secondCall.args[0]).to.be.match(/Executed \((\d*|default)\): select 1/);
+      expect(logger.secondCall.returnValue).to.be.equal(1);
+
     });
   });
 }
