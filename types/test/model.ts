@@ -99,6 +99,20 @@ UserModel.findCreateFind({
 })
 
 /**
+ * Tests for findCreateFind() type.
+ */
+
+ UserModel.findOrCreate({
+  fields: [ "jane.doe" ],
+  where: {
+    username: "jane.doe"
+  },
+  defaults: {
+    username: "jane.doe"
+  }
+})
+
+/**
  * Test for primaryKeyAttributes.
  */
 class TestModel extends Model {};
@@ -116,12 +130,12 @@ someInstance.getOthers({
     joinTableAttributes: { include: [ 'id' ] }
 })
 
-/** 
+/**
  * Test for through options in creating a BelongsToMany association
  */
 class Film extends Model {}
 
-class Actor extends Model {} 
+class Actor extends Model {}
 
 Film.belongsToMany(Actor, {
   through: {
