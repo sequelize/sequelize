@@ -1,6 +1,5 @@
 import { DataType } from '../data-types';
 import { CreateOptions, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
-import { Promise } from '../promise';
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
 /**

@@ -3,7 +3,7 @@
 const Support = require('../support'),
   expectsql = Support.expectsql,
   current = Support.sequelize,
-  sql = current.dialect.QueryGenerator,
+  sql = current.dialect.queryGenerator,
   Op = Support.Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
@@ -168,6 +168,67 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND ' +
           't.relkind = \'r\' and t.relname = \'table\' AND s.oid = t.relnamespace AND s.nspname = \'schema\' ' +
           'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;'
+        });
+      });
+    }
+
+    if (current.dialect.supports.index.operator) {
+      it('operator with multiple fields', () => {
+        expectsql(sql.addIndexQuery('table', {
+          fields: ['column1', 'column2'],
+          using: 'gist',
+          operator: 'inet_ops'
+        }), {
+          postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)'
+        });
+      });
+      it('operator in fields', () => {
+        expectsql(sql.addIndexQuery('table', {
+          fields: [{
+            name: 'column',
+            operator: 'inet_ops'
+          }],
+          using: 'gist'
+        }), {
+          postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)'
+        });
+      });
+      it('operator in fields with order', () => {
+        expectsql(sql.addIndexQuery('table', {
+          fields: [{
+            name: 'column',
+            order: 'DESC',
+            operator: 'inet_ops'
+          }],
+          using: 'gist'
+        }), {
+          postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)'
+        });
+      });
+      it('operator in multiple fields #1', () => {
+        expectsql(sql.addIndexQuery('table', {
+          fields: [{
+            name: 'column1',
+            order: 'DESC',
+            operator: 'inet_ops'
+          }, 'column2'],
+          using: 'gist'
+        }), {
+          postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")'
+        });
+      });
+      it('operator in multiple fields #2', () => {
+        expectsql(sql.addIndexQuery('table', {
+          fields: [{
+            name: 'path',
+            operator: 'text_pattern_ops'
+          }, 'level', {
+            name: 'name',
+            operator: 'varchar_pattern_ops'
+          }],
+          using: 'btree'
+        }), {
+          postgres: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)'
         });
       });
     }

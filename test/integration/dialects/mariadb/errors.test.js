@@ -9,12 +9,16 @@ const chai = require('chai'),
 if (dialect !== 'mariadb') return;
 describe('[MariaDB Specific] Errors', () => {
 
-  const validateError = (promise, errClass, errValues) => {
-    const wanted = Object.assign({}, errValues);
+  const validateError = async (promise, errClass, errValues) => {
+    const wanted = { ...errValues };
 
-    return expect(promise).to.have.been.rejectedWith(errClass).then(() =>
-      promise.catch(err => Object.keys(wanted).forEach(
-        k => expect(err[k]).to.eql(wanted[k]))));
+    await expect(promise).to.have.been.rejectedWith(errClass);
+
+    try {
+      return await promise;
+    } catch (err) {
+      return Object.keys(wanted).forEach(k => expect(err[k]).to.eql(wanted[k]));
+    }
   };
 
   describe('ForeignKeyConstraintError', () => {
@@ -33,50 +37,51 @@ describe('[MariaDB Specific] Errors', () => {
         { foreignKey: 'primaryUserId', as: 'primaryUsers' });
     });
 
-    it('in context of DELETE restriction', function() {
+    it('in context of DELETE restriction', async function() {
       const ForeignKeyConstraintError = this.sequelize.ForeignKeyConstraintError;
-      const ctx = {};
-      return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.all([
-          this.User.create({ id: 67, username: 'foo' }),
-          this.Task.create({ id: 52, title: 'task' })
-        ]);
-      }).then(([user1, task1]) => {
-        ctx.user1 = user1;
-        ctx.task1 = task1;
-        return user1.setTasks([task1]);
-      }).then(() => {
-        return Promise.all([
-          validateError(ctx.user1.destroy(), ForeignKeyConstraintError, {
-            fields: ['userId'],
-            table: 'users',
-            value: undefined,
-            index: 'tasksusers_ibfk_1',
-            reltype: 'parent'
-          }),
-          validateError(ctx.task1.destroy(), ForeignKeyConstraintError, {
-            fields: ['taskId'],
-            table: 'tasks',
-            value: undefined,
-            index: 'tasksusers_ibfk_2',
-            reltype: 'parent'
-          })
-        ]);
-      });
+      await this.sequelize.sync({ force: true });
+
+      const [user1, task1] = await Promise.all([
+        this.User.create({ id: 67, username: 'foo' }),
+        this.Task.create({ id: 52, title: 'task' })
+      ]);
+
+      await user1.setTasks([task1]);
+
+      await Promise.all([
+        validateError(user1.destroy(), ForeignKeyConstraintError, {
+          fields: ['userId'],
+          table: 'users',
+          value: undefined,
+          index: 'tasksusers_ibfk_1',
+          reltype: 'parent'
+        }),
+        validateError(task1.destroy(), ForeignKeyConstraintError, {
+          fields: ['taskId'],
+          table: 'tasks',
+          value: undefined,
+          index: 'tasksusers_ibfk_2',
+          reltype: 'parent'
+        })
+      ]);
     });
 
-    it('in context of missing relation', function() {
+    it('in context of missing relation', async function() {
       const ForeignKeyConstraintError = this.sequelize.ForeignKeyConstraintError;
 
-      return this.sequelize.sync({ force: true }).then(() =>
-        validateError(this.Task.create({ title: 'task', primaryUserId: 5 }),
-          ForeignKeyConstraintError, {
-            fields: ['primaryUserId'],
-            table: 'users',
-            value: 5,
-            index: 'tasks_ibfk_1',
-            reltype: 'child'
-          }));
+      await this.sequelize.sync({ force: true });
+
+      await validateError(
+        this.Task.create({ title: 'task', primaryUserId: 5 }),
+        ForeignKeyConstraintError,
+        {
+          fields: ['primaryUserId'],
+          table: 'users',
+          value: 5,
+          index: 'tasks_ibfk_1',
+          reltype: 'child'
+        }
+      );
     });
 
   });

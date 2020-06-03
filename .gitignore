@@ -10,7 +10,6 @@ docs/api/tmp.md
 ssce.js
 sscce.js
 *.sublime*
-package-lock.json
 yarn.lock
 
 .nyc_output

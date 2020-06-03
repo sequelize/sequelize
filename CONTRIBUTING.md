@@ -23,7 +23,7 @@ We're glad to get pull request if any functionality is missing or something is b
 * Make sure that all existing tests pass
 * Make sure you followed [coding guidelines](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md#coding-guidelines)
 * Add some tests for your new functionality or a test exhibiting the bug you are solving. Ideally all new tests should not pass _without_ your changes.
-  - Use [promise style](http://bluebirdjs.com/docs/why-promises.html) in all new tests. Specifically this means:
+  - Use [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) in all new tests. Specifically this means:
     - don't use `EventEmitter`, `QueryChainer` or the `success`, `done` and `error` events
     - don't use a done callback in your test, just return the promise chain.
   - Small bugfixes and direct backports to the 4.x branch are accepted without tests.
@@ -36,11 +36,11 @@ Here comes a little surprise: You need [Node.JS](http://nodejs.org).
 
 ### 2. Install the dependencies
 
-Just "cd" into sequelize directory and run `npm install`, see an example below:
+Just "cd" into sequelize directory and run `npm ci`, see an example below:
 
 ```sh
 $ cd path/to/sequelize
-$ npm install
+$ npm ci
 ```
 
 ### 3. Database
@@ -90,6 +90,22 @@ Now launch the docker mysql and postgres servers with this command (you can add 
 ```sh
 $ docker-compose up postgres-95 mysql-57 mssql
 ```
+
+> **_NOTE:_** If you get the following output:
+>```
+>...
+>Creating mysql-57 ... error
+>
+>ERROR: for mysql-57  Cannot create container for service mysql-57: b'create .: volume name is too short, names should be at least two alphanumeric characters'
+>
+>ERROR: for mysql-57  Cannot create container for service mysql-57: b'create .: volume name is too short, names should be at least two alphanumeric characters'
+>ERROR: Encountered errors while bringing up the project.
+>```
+>You need to set the variables `MARIADB_ENTRYPOINT` and `MYSQLDB_ENTRYPOINT` accordingly:
+>```sh
+>$ export MARIADB_ENTRYPOINT="$PATH_TO_PROJECT/test/config/mariadb"
+>$ export MYSQLDB_ENTRYPOINT="$PATH_TO_PROJECT/test/config/mysql"
+>```
 
 **MSSQL:** Please run `npm run setup-mssql` to create the test database.
 

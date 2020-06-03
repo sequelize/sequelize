@@ -16,7 +16,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
       }, { timestamps: false });
 
       expect(
-        this.sequelize.getQueryInterface().QueryGenerator.attributesToSQL(
+        this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
           User.rawAttributes)).to.deep.equal({
         username: 'VARCHAR(255) UNIQUE',
         id: 'INTEGER NOT NULL auto_increment PRIMARY KEY'
@@ -28,7 +28,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
         username: { type: DataTypes.STRING, defaultValue: 'foo' }
       }, { timestamps: false });
       expect(
-        this.sequelize.getQueryInterface().QueryGenerator.attributesToSQL(
+        this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
           User.rawAttributes)).to.deep.equal({
         username: 'VARCHAR(255) DEFAULT \'foo\'',
         id: 'INTEGER NOT NULL auto_increment PRIMARY KEY'
@@ -40,7 +40,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
         username: { type: DataTypes.STRING, allowNull: false }
       }, { timestamps: false });
       expect(
-        this.sequelize.getQueryInterface().QueryGenerator.attributesToSQL(
+        this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
           User.rawAttributes)).to.deep.equal({
         username: 'VARCHAR(255) NOT NULL',
         id: 'INTEGER NOT NULL auto_increment PRIMARY KEY'
@@ -52,7 +52,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
         username: { type: DataTypes.STRING, primaryKey: true }
       }, { timestamps: false });
       expect(
-        this.sequelize.getQueryInterface().QueryGenerator.attributesToSQL(
+        this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
           User.rawAttributes)).to.deep.equal(
         { username: 'VARCHAR(255) PRIMARY KEY' });
     });
@@ -63,14 +63,14 @@ describe('[MariaDB Specific] DAOFactory', () => {
         { timestamps: true });
 
       expect(
-        this.sequelize.getQueryInterface().QueryGenerator.attributesToSQL(
+        this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
           User1.rawAttributes)).to.deep.equal({
         id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
         updatedAt: 'DATETIME NOT NULL',
         createdAt: 'DATETIME NOT NULL'
       });
       expect(
-        this.sequelize.getQueryInterface().QueryGenerator.attributesToSQL(
+        this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
           User2.rawAttributes)).to.deep.equal({
         id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
         updatedAt: 'DATETIME NOT NULL',
@@ -82,7 +82,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
       const User = this.sequelize.define(`User${config.rand()}`, {},
         { paranoid: true });
       expect(
-        this.sequelize.getQueryInterface().QueryGenerator.attributesToSQL(
+        this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
           User.rawAttributes)).to.deep.equal({
         id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
         deletedAt: 'DATETIME',
@@ -95,7 +95,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
       const User = this.sequelize.define(`User${config.rand()}`, {},
         { paranoid: true, underscored: true });
       expect(
-        this.sequelize.getQueryInterface().QueryGenerator.attributesToSQL(
+        this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
           User.rawAttributes)).to.deep.equal({
         id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
         deleted_at: 'DATETIME',
@@ -125,7 +125,7 @@ describe('[MariaDB Specific] DAOFactory', () => {
         bar: DataTypes.STRING
       });
       expect(
-        this.sequelize.getQueryInterface().QueryGenerator.attributesToSQL(
+        this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
           User.primaryKeys)).to.deep.equal(
         { 'foo': 'VARCHAR(255) PRIMARY KEY' });
     });

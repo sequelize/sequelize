@@ -120,8 +120,6 @@ Address.belongsTo(User, {targetKey: 'id'});
 User.hasOne(Address,{sourceKey: 'id'});
 
 async function stuff() {
-  // Please note that when using async/await you lose the `bluebird` promise context
-  // and you fall back to native
   const newUser = await User.create({
     name: 'Johnny',
     preferredName: 'John',
@@ -169,11 +167,9 @@ const MyDefineModel = <MyModelStatic>sequelize.define('MyDefineModel', {
   }
 });
 
-function stuffTwo() {
-  MyDefineModel.findByPk(1, {
+async function stuffTwo() {
+  const myModel = await MyDefineModel.findByPk(1, {
     rejectOnEmpty: true,
-  })
-  .then(myModel => {
-    console.log(myModel.id);
   });
+  console.log(myModel.id);
 }

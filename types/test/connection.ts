@@ -7,23 +7,19 @@ sequelize.afterBulkSync((options: SyncOptions) => {
   console.log('synced');
 });
 
-sequelize
+async function test() {
+  const rows: unknown[] = await sequelize
   .query('SELECT * FROM `test`', {
     type: QueryTypes.SELECT,
-  })
-  .then(rows => {
-    rows.forEach(row => {
-      console.log(row);
-    });
   });
+  const [autoIncrementId, affectedRows] = await sequelize
+  .query('INSERT into test set test=1', {
+    type: QueryTypes.INSERT,
+  });
+}
 
-sequelize
-.query('INSERT into test set test=1', {
-  type: QueryTypes.INSERT,
-})
-.then(([aiId, affected]) => {
-  console.log(aiId, affected);
-});
+
+
 
 sequelize.transaction<void>(async transaction => {
   const rows = await sequelize

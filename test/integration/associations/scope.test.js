@@ -5,7 +5,6 @@ const chai = require('chai'),
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
   Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
   Op = Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('associations'), () => {
@@ -97,238 +96,207 @@ describe(Support.getTestDialectTeaser('associations'), () => {
     });
 
     describe('1:1', () => {
-      it('should create, find and include associations with scope values', function() {
-        return this.sequelize.sync({ force: true }).then(() => {
-          return Promise.join(
-            this.Post.create(),
-            this.Comment.create({
-              title: 'I am a comment'
-            }),
-            this.Comment.create({
-              title: 'I am a main comment',
-              isMain: true
-            })
-          );
-        }).then(([post]) => {
-          this.post = post;
-          return post.createComment({
-            title: 'I am a post comment'
-          });
-        }).then(comment => {
-          expect(comment.get('commentable')).to.equal('post');
-          expect(comment.get('isMain')).to.be.false;
-          return this.Post.scope('withMainComment').findByPk(this.post.get('id'));
-        }).then(post => {
-          expect(post.mainComment).to.be.null;
-          return post.createMainComment({
-            title: 'I am a main post comment'
-          });
-        }).then(mainComment => {
-          this.mainComment = mainComment;
-          expect(mainComment.get('commentable')).to.equal('post');
-          expect(mainComment.get('isMain')).to.be.true;
-          return this.Post.scope('withMainComment').findByPk(this.post.id);
-        }).then(post => {
-          expect(post.mainComment.get('id')).to.equal(this.mainComment.get('id'));
-          return post.getMainComment();
-        }).then(mainComment => {
-          expect(mainComment.get('commentable')).to.equal('post');
-          expect(mainComment.get('isMain')).to.be.true;
-          return this.Comment.create({
-            title: 'I am a future main comment'
-          });
-        }).then(comment => {
-          return this.post.setMainComment(comment);
-        }).then(() => {
-          return this.post.getMainComment();
-        }).then(mainComment => {
-          expect(mainComment.get('commentable')).to.equal('post');
-          expect(mainComment.get('isMain')).to.be.true;
-          expect(mainComment.get('title')).to.equal('I am a future main comment');
+      it('should create, find and include associations with scope values', async function() {
+        await this.sequelize.sync({ force: true });
+
+        const [post1] = await Promise.all([this.Post.create(), this.Comment.create({
+          title: 'I am a comment'
+        }), this.Comment.create({
+          title: 'I am a main comment',
+          isMain: true
+        })]);
+
+        this.post = post1;
+
+        const comment0 = await post1.createComment({
+          title: 'I am a post comment'
         });
+
+        expect(comment0.get('commentable')).to.equal('post');
+        expect(comment0.get('isMain')).to.be.false;
+        const post0 = await this.Post.scope('withMainComment').findByPk(this.post.get('id'));
+        expect(post0.mainComment).to.be.null;
+
+        const mainComment1 = await post0.createMainComment({
+          title: 'I am a main post comment'
+        });
+
+        this.mainComment = mainComment1;
+        expect(mainComment1.get('commentable')).to.equal('post');
+        expect(mainComment1.get('isMain')).to.be.true;
+        const post = await this.Post.scope('withMainComment').findByPk(this.post.id);
+        expect(post.mainComment.get('id')).to.equal(this.mainComment.get('id'));
+        const mainComment0 = await post.getMainComment();
+        expect(mainComment0.get('commentable')).to.equal('post');
+        expect(mainComment0.get('isMain')).to.be.true;
+
+        const comment = await this.Comment.create({
+          title: 'I am a future main comment'
+        });
+
+        await this.post.setMainComment(comment);
+        const mainComment = await this.post.getMainComment();
+        expect(mainComment.get('commentable')).to.equal('post');
+        expect(mainComment.get('isMain')).to.be.true;
+        expect(mainComment.get('title')).to.equal('I am a future main comment');
       });
-      it('should create included association with scope values', function() {
-        return this.sequelize.sync({ force: true }).then(() => {
-          return this.Post.create({
-            mainComment: {
-              title: 'I am a main comment created with a post'
-            }
-          }, {
-            include: [{ model: this.Comment, as: 'mainComment' }]
-          });
-        }).then(post => {
-          expect(post.mainComment.get('commentable')).to.equal('post');
-          expect(post.mainComment.get('isMain')).to.be.true;
-          return this.Post.scope('withMainComment').findByPk(post.id);
-        }).then(post => {
-          expect(post.mainComment.get('commentable')).to.equal('post');
-          expect(post.mainComment.get('isMain')).to.be.true;
+      it('should create included association with scope values', async function() {
+        await this.sequelize.sync({ force: true });
+
+        const post0 = await this.Post.create({
+          mainComment: {
+            title: 'I am a main comment created with a post'
+          }
+        }, {
+          include: [{ model: this.Comment, as: 'mainComment' }]
         });
+
+        expect(post0.mainComment.get('commentable')).to.equal('post');
+        expect(post0.mainComment.get('isMain')).to.be.true;
+        const post = await this.Post.scope('withMainComment').findByPk(post0.id);
+        expect(post.mainComment.get('commentable')).to.equal('post');
+        expect(post.mainComment.get('isMain')).to.be.true;
       });
     });
 
     describe('1:M', () => {
-      it('should create, find and include associations with scope values', function() {
-        return this.sequelize.sync({ force: true }).then(() => {
-          return Promise.join(
-            this.Post.create(),
-            this.Image.create(),
-            this.Question.create(),
-            this.Comment.create({
-              title: 'I am a image comment'
-            }),
-            this.Comment.create({
-              title: 'I am a question comment'
-            })
-          );
-        }).then(([post, image, question, commentA, commentB]) => {
-          this.post = post;
-          this.image = image;
-          this.question = question;
-          return Promise.join(
-            post.createComment({
-              title: 'I am a post comment'
-            }),
-            image.addComment(commentA),
-            question.setComments([commentB])
-          );
-        }).then(() => {
-          return this.Comment.findAll();
-        }).then(comments => {
-          comments.forEach(comment => {
-            expect(comment.get('commentable')).to.be.ok;
-          });
-          expect(comments.map(comment => {
-            return comment.get('commentable');
-          }).sort()).to.deep.equal(['image', 'post', 'question']);
-        }).then(() => {
-          return Promise.join(
-            this.post.getComments(),
-            this.image.getComments(),
-            this.question.getComments()
-          );
-        }).then(([postComments, imageComments, questionComments]) => {
-          expect(postComments.length).to.equal(1);
-          expect(postComments[0].get('title')).to.equal('I am a post comment');
-          expect(imageComments.length).to.equal(1);
-          expect(imageComments[0].get('title')).to.equal('I am a image comment');
-          expect(questionComments.length).to.equal(1);
-          expect(questionComments[0].get('title')).to.equal('I am a question comment');
+      it('should create, find and include associations with scope values', async function() {
+        await this.sequelize.sync({ force: true });
 
-          return [postComments[0], imageComments[0], questionComments[0]];
-        }).then(([postComment, imageComment, questionComment]) => {
-          return Promise.join(
-            postComment.getItem(),
-            imageComment.getItem(),
-            questionComment.getItem()
-          );
-        }).then(([post, image, question]) => {
-          expect(post).to.be.instanceof(this.Post);
-          expect(image).to.be.instanceof(this.Image);
-          expect(question).to.be.instanceof(this.Question);
-        }).then(() => {
-          return Promise.join(
-            this.Post.findOne({
-              include: [this.Comment]
-            }),
-            this.Image.findOne({
-              include: [this.Comment]
-            }),
-            this.Question.findOne({
-              include: [this.Comment]
-            })
-          );
-        }).then(([post, image, question]) => {
-          expect(post.comments.length).to.equal(1);
-          expect(post.comments[0].get('title')).to.equal('I am a post comment');
-          expect(image.comments.length).to.equal(1);
-          expect(image.comments[0].get('title')).to.equal('I am a image comment');
-          expect(question.comments.length).to.equal(1);
-          expect(question.comments[0].get('title')).to.equal('I am a question comment');
+        const [post1, image1, question1, commentA, commentB] = await Promise.all([
+          this.Post.create(),
+          this.Image.create(),
+          this.Question.create(),
+          this.Comment.create({
+            title: 'I am a image comment'
+          }),
+          this.Comment.create({
+            title: 'I am a question comment'
+          })
+        ]);
+
+        this.post = post1;
+        this.image = image1;
+        this.question = question1;
+
+        await Promise.all([post1.createComment({
+          title: 'I am a post comment'
+        }), image1.addComment(commentA), question1.setComments([commentB])]);
+
+        const comments = await this.Comment.findAll();
+        comments.forEach(comment => {
+          expect(comment.get('commentable')).to.be.ok;
         });
+        expect(comments.map(comment => {
+          return comment.get('commentable');
+        }).sort()).to.deep.equal(['image', 'post', 'question']);
+
+        const [postComments, imageComments, questionComments] = await Promise.all([
+          this.post.getComments(),
+          this.image.getComments(),
+          this.question.getComments()
+        ]);
+
+        expect(postComments.length).to.equal(1);
+        expect(postComments[0].get('title')).to.equal('I am a post comment');
+        expect(imageComments.length).to.equal(1);
+        expect(imageComments[0].get('title')).to.equal('I am a image comment');
+        expect(questionComments.length).to.equal(1);
+        expect(questionComments[0].get('title')).to.equal('I am a question comment');
+
+        const [postComment, imageComment, questionComment] = [postComments[0], imageComments[0], questionComments[0]];
+        const [post0, image0, question0] = await Promise.all([postComment.getItem(), imageComment.getItem(), questionComment.getItem()]);
+        expect(post0).to.be.instanceof(this.Post);
+        expect(image0).to.be.instanceof(this.Image);
+        expect(question0).to.be.instanceof(this.Question);
+
+        const [post, image, question] = await Promise.all([this.Post.findOne({
+          include: [this.Comment]
+        }), this.Image.findOne({
+          include: [this.Comment]
+        }), this.Question.findOne({
+          include: [this.Comment]
+        })]);
+
+        expect(post.comments.length).to.equal(1);
+        expect(post.comments[0].get('title')).to.equal('I am a post comment');
+        expect(image.comments.length).to.equal(1);
+        expect(image.comments[0].get('title')).to.equal('I am a image comment');
+        expect(question.comments.length).to.equal(1);
+        expect(question.comments[0].get('title')).to.equal('I am a question comment');
       });
-      it('should make the same query if called multiple time (#4470)', function() {
+      it('should make the same query if called multiple time (#4470)', async function() {
         const logs = [];
         const logging = function(log) {
           //removing 'executing(<uuid> || 'default'}) :' from logs
           logs.push(log.substring(log.indexOf(':') + 1));
         };
 
-        return this.sequelize.sync({ force: true }).then(() => {
-          return this.Post.create();
-        }).then(post => {
-          return post.createComment({
-            title: 'I am a post comment'
-          });
-        }).then(() => {
-          return this.Post.scope('withComments').findAll({
-            logging
-          });
-        }).then(() => {
-          return this.Post.scope('withComments').findAll({
-            logging
-          });
-        }).then(() => {
-          expect(logs[0]).to.equal(logs[1]);
+        await this.sequelize.sync({ force: true });
+        const post = await this.Post.create();
+
+        await post.createComment({
+          title: 'I am a post comment'
         });
+
+        await this.Post.scope('withComments').findAll({
+          logging
+        });
+
+        await this.Post.scope('withComments').findAll({
+          logging
+        });
+
+        expect(logs[0]).to.equal(logs[1]);
       });
-      it('should created included association with scope values', function() {
-        return this.sequelize.sync({ force: true }).then(() => {
-          return this.Post.create({
-            comments: [{
-              title: 'I am a comment created with a post'
-            }, {
-              title: 'I am a second comment created with a post'
-            }]
+      it('should created included association with scope values', async function() {
+        await this.sequelize.sync({ force: true });
+        let post = await this.Post.create({
+          comments: [{
+            title: 'I am a comment created with a post'
           }, {
-            include: [{ model: this.Comment, as: 'comments' }]
-          });
-        }).then(post => {
-          this.post = post;
-          return post.comments;
-        }).each(comment => {
-          expect(comment.get('commentable')).to.equal('post');
-        }).then(() => {
-          return this.Post.scope('withComments').findByPk(this.post.id);
-        }).then(post => {
-          return post.getComments();
-        }).each(comment => {
-          expect(comment.get('commentable')).to.equal('post');
+            title: 'I am a second comment created with a post'
+          }]
+        }, {
+          include: [{ model: this.Comment, as: 'comments' }]
         });
+        this.post = post;
+        for (const comment of  post.comments) {
+          expect(comment.get('commentable')).to.equal('post');
+        }
+        post = await this.Post.scope('withComments').findByPk(this.post.id);
+        for (const comment of  post.comments) {
+          expect(comment.get('commentable')).to.equal('post');
+        }
       });
-      it('should include associations with operator scope values', function() {
-        return this.sequelize.sync({ force: true }).then(() => {
-          return Promise.join(
-            this.Post.create(),
-            this.Comment.create({
-              title: 'I am a blue comment',
-              type: 'blue'
-            }),
-            this.Comment.create({
-              title: 'I am a red comment',
-              type: 'red'
-            }),
-            this.Comment.create({
-              title: 'I am a green comment',
-              type: 'green'
-            })
-          );
-        }).then(([post, commentA, commentB, commentC]) => {
-          this.post = post;
-          return post.addComments([commentA, commentB, commentC]);
-        }).then(() => {
-          return this.Post.findByPk(this.post.id, {
-            include: [{
-              model: this.Comment,
-              as: 'coloredComments'
-            }]
-          });
-        }).then(post => {
-          expect(post.coloredComments.length).to.equal(2);
-          for (const comment of post.coloredComments) {
-            expect(comment.type).to.match(/blue|green/);
-          }
+      it('should include associations with operator scope values', async function() {
+        await this.sequelize.sync({ force: true });
+
+        const [post0, commentA, commentB, commentC] = await Promise.all([this.Post.create(), this.Comment.create({
+          title: 'I am a blue comment',
+          type: 'blue'
+        }), this.Comment.create({
+          title: 'I am a red comment',
+          type: 'red'
+        }), this.Comment.create({
+          title: 'I am a green comment',
+          type: 'green'
+        })]);
+
+        this.post = post0;
+        await post0.addComments([commentA, commentB, commentC]);
+
+        const post = await this.Post.findByPk(this.post.id, {
+          include: [{
+            model: this.Comment,
+            as: 'coloredComments'
+          }]
         });
+
+        expect(post.coloredComments.length).to.equal(2);
+        for (const comment of post.coloredComments) {
+          expect(comment.type).to.match(/blue|green/);
+        }
       });
     });
 
@@ -347,103 +315,95 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             this.Post.belongsToMany(this.Tag, { as: 'tags', through: this.PostTag, scope: { type: 'tag' } });
           });
 
-          it('should create, find and include associations with scope values', function() {
-            return Promise.join(
-              this.Post.sync({ force: true }),
-              this.Tag.sync({ force: true })
-            ).then(() => {
-              return this.PostTag.sync({ force: true });
-            }).then(() => {
-              return Promise.join(
-                this.Post.create(),
-                this.Post.create(),
-                this.Post.create(),
-                this.Tag.create({ type: 'category' }),
-                this.Tag.create({ type: 'category' }),
-                this.Tag.create({ type: 'tag' }),
-                this.Tag.create({ type: 'tag' })
-              );
-            }).then(([postA, postB, postC, categoryA, categoryB, tagA, tagB]) => {
-              this.postA = postA;
-              this.postB = postB;
-              this.postC = postC;
+          it('should create, find and include associations with scope values', async function() {
+            await Promise.all([this.Post.sync({ force: true }), this.Tag.sync({ force: true })]);
+            await this.PostTag.sync({ force: true });
 
-              return Promise.join(
-                postA.addCategory(categoryA),
-                postB.setCategories([categoryB]),
-                postC.createCategory(),
-                postA.createTag(),
-                postB.addTag(tagA),
-                postC.setTags([tagB])
-              );
-            }).then(() => {
-              return Promise.join(
-                this.postA.getCategories(),
-                this.postA.getTags(),
-                this.postB.getCategories(),
-                this.postB.getTags(),
-                this.postC.getCategories(),
-                this.postC.getTags()
-              );
-            }).then(([postACategories, postATags, postBCategories, postBTags, postCCategories, postCTags]) => {
-              expect(postACategories.length).to.equal(1);
-              expect(postATags.length).to.equal(1);
-              expect(postBCategories.length).to.equal(1);
-              expect(postBTags.length).to.equal(1);
-              expect(postCCategories.length).to.equal(1);
-              expect(postCTags.length).to.equal(1);
+            const [postA0, postB0, postC0, categoryA, categoryB, tagA, tagB] = await Promise.all([
+              this.Post.create(),
+              this.Post.create(),
+              this.Post.create(),
+              this.Tag.create({ type: 'category' }),
+              this.Tag.create({ type: 'category' }),
+              this.Tag.create({ type: 'tag' }),
+              this.Tag.create({ type: 'tag' })
+            ]);
 
-              expect(postACategories[0].get('type')).to.equal('category');
-              expect(postATags[0].get('type')).to.equal('tag');
-              expect(postBCategories[0].get('type')).to.equal('category');
-              expect(postBTags[0].get('type')).to.equal('tag');
-              expect(postCCategories[0].get('type')).to.equal('category');
-              expect(postCTags[0].get('type')).to.equal('tag');
-            }).then(() => {
-              return Promise.join(
-                this.Post.findOne({
-                  where: {
-                    id: this.postA.get('id')
-                  },
-                  include: [
-                    { model: this.Tag, as: 'tags' },
-                    { model: this.Tag, as: 'categories' }
-                  ]
-                }),
-                this.Post.findOne({
-                  where: {
-                    id: this.postB.get('id')
-                  },
-                  include: [
-                    { model: this.Tag, as: 'tags' },
-                    { model: this.Tag, as: 'categories' }
-                  ]
-                }),
-                this.Post.findOne({
-                  where: {
-                    id: this.postC.get('id')
-                  },
-                  include: [
-                    { model: this.Tag, as: 'tags' },
-                    { model: this.Tag, as: 'categories' }
-                  ]
-                })
-              );
-            }).then(([postA, postB, postC]) => {
-              expect(postA.get('categories').length).to.equal(1);
-              expect(postA.get('tags').length).to.equal(1);
-              expect(postB.get('categories').length).to.equal(1);
-              expect(postB.get('tags').length).to.equal(1);
-              expect(postC.get('categories').length).to.equal(1);
-              expect(postC.get('tags').length).to.equal(1);
+            this.postA = postA0;
+            this.postB = postB0;
+            this.postC = postC0;
 
-              expect(postA.get('categories')[0].get('type')).to.equal('category');
-              expect(postA.get('tags')[0].get('type')).to.equal('tag');
-              expect(postB.get('categories')[0].get('type')).to.equal('category');
-              expect(postB.get('tags')[0].get('type')).to.equal('tag');
-              expect(postC.get('categories')[0].get('type')).to.equal('category');
-              expect(postC.get('tags')[0].get('type')).to.equal('tag');
-            });
+            await Promise.all([
+              postA0.addCategory(categoryA),
+              postB0.setCategories([categoryB]),
+              postC0.createCategory(),
+              postA0.createTag(),
+              postB0.addTag(tagA),
+              postC0.setTags([tagB])
+            ]);
+
+            const [postACategories, postATags, postBCategories, postBTags, postCCategories, postCTags] = await Promise.all([
+              this.postA.getCategories(),
+              this.postA.getTags(),
+              this.postB.getCategories(),
+              this.postB.getTags(),
+              this.postC.getCategories(),
+              this.postC.getTags()
+            ]);
+
+            expect(postACategories.length).to.equal(1);
+            expect(postATags.length).to.equal(1);
+            expect(postBCategories.length).to.equal(1);
+            expect(postBTags.length).to.equal(1);
+            expect(postCCategories.length).to.equal(1);
+            expect(postCTags.length).to.equal(1);
+
+            expect(postACategories[0].get('type')).to.equal('category');
+            expect(postATags[0].get('type')).to.equal('tag');
+            expect(postBCategories[0].get('type')).to.equal('category');
+            expect(postBTags[0].get('type')).to.equal('tag');
+            expect(postCCategories[0].get('type')).to.equal('category');
+            expect(postCTags[0].get('type')).to.equal('tag');
+
+            const [postA, postB, postC] = await Promise.all([this.Post.findOne({
+              where: {
+                id: this.postA.get('id')
+              },
+              include: [
+                { model: this.Tag, as: 'tags' },
+                { model: this.Tag, as: 'categories' }
+              ]
+            }), this.Post.findOne({
+              where: {
+                id: this.postB.get('id')
+              },
+              include: [
+                { model: this.Tag, as: 'tags' },
+                { model: this.Tag, as: 'categories' }
+              ]
+            }), this.Post.findOne({
+              where: {
+                id: this.postC.get('id')
+              },
+              include: [
+                { model: this.Tag, as: 'tags' },
+                { model: this.Tag, as: 'categories' }
+              ]
+            })]);
+
+            expect(postA.get('categories').length).to.equal(1);
+            expect(postA.get('tags').length).to.equal(1);
+            expect(postB.get('categories').length).to.equal(1);
+            expect(postB.get('tags').length).to.equal(1);
+            expect(postC.get('categories').length).to.equal(1);
+            expect(postC.get('tags').length).to.equal(1);
+
+            expect(postA.get('categories')[0].get('type')).to.equal('category');
+            expect(postA.get('tags')[0].get('type')).to.equal('tag');
+            expect(postB.get('categories')[0].get('type')).to.equal('category');
+            expect(postB.get('tags')[0].get('type')).to.equal('tag');
+            expect(postC.get('categories')[0].get('type')).to.equal('category');
+            expect(postC.get('tags')[0].get('type')).to.equal('tag');
           });
         });
 
@@ -535,101 +495,80 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             });
           });
 
-          it('should create, find and include associations with scope values', function() {
-            return Promise.join(
+          it('should create, find and include associations with scope values', async function() {
+            await Promise.all([
               this.Post.sync({ force: true }),
               this.Image.sync({ force: true }),
               this.Question.sync({ force: true }),
               this.Tag.sync({ force: true })
-            ).then(() => {
-              return this.ItemTag.sync({ force: true });
-            }).then(() => {
-              return Promise.join(
-                this.Post.create(),
-                this.Image.create(),
-                this.Question.create(),
-                this.Tag.create({ name: 'tagA' }),
-                this.Tag.create({ name: 'tagB' }),
-                this.Tag.create({ name: 'tagC' })
-              );
-            }).then(([post, image, question, tagA, tagB, tagC]) => {
-              this.post = post;
-              this.image = image;
-              this.question = question;
-              return Promise.join(
-                post.setTags([tagA]).then(() => {
-                  return Promise.join(
-                    post.createTag({ name: 'postTag' }),
-                    post.addTag(tagB)
-                  );
-                }),
-                image.setTags([tagB]).then(() => {
-                  return Promise.join(
-                    image.createTag({ name: 'imageTag' }),
-                    image.addTag(tagC)
-                  );
-                }),
-                question.setTags([tagC]).then(() => {
-                  return Promise.join(
-                    question.createTag({ name: 'questionTag' }),
-                    question.addTag(tagA)
-                  );
-                })
-              );
-            }).then(() => {
-              return Promise.join(
-                this.post.getTags(),
-                this.image.getTags(),
-                this.question.getTags()
-              ).then(([postTags, imageTags, questionTags]) => {
-                expect(postTags.length).to.equal(3);
-                expect(imageTags.length).to.equal(3);
-                expect(questionTags.length).to.equal(3);
+            ]);
 
-                expect(postTags.map(tag => {
-                  return tag.name;
-                }).sort()).to.deep.equal(['postTag', 'tagA', 'tagB']);
+            await this.ItemTag.sync({ force: true });
 
-                expect(imageTags.map(tag => {
-                  return tag.name;
-                }).sort()).to.deep.equal(['imageTag', 'tagB', 'tagC']);
+            const [post0, image0, question0, tagA, tagB, tagC] = await Promise.all([
+              this.Post.create(),
+              this.Image.create(),
+              this.Question.create(),
+              this.Tag.create({ name: 'tagA' }),
+              this.Tag.create({ name: 'tagB' }),
+              this.Tag.create({ name: 'tagC' })
+            ]);
 
-                expect(questionTags.map(tag => {
-                  return tag.name;
-                }).sort()).to.deep.equal(['questionTag', 'tagA', 'tagC']);
-              }).then(() => {
-                return Promise.join(
-                  this.Post.findOne({
-                    where: {},
-                    include: [this.Tag]
-                  }),
-                  this.Image.findOne({
-                    where: {},
-                    include: [this.Tag]
-                  }),
-                  this.Question.findOne({
-                    where: {},
-                    include: [this.Tag]
-                  })
-                ).then(([post, image, question]) => {
-                  expect(post.tags.length).to.equal(3);
-                  expect(image.tags.length).to.equal(3);
-                  expect(question.tags.length).to.equal(3);
+            this.post = post0;
+            this.image = image0;
+            this.question = question0;
 
-                  expect(post.tags.map(tag => {
-                    return tag.name;
-                  }).sort()).to.deep.equal(['postTag', 'tagA', 'tagB']);
+            await Promise.all([post0.setTags([tagA]).then(async () => {
+              return Promise.all([post0.createTag({ name: 'postTag' }), post0.addTag(tagB)]);
+            }), image0.setTags([tagB]).then(async () => {
+              return Promise.all([image0.createTag({ name: 'imageTag' }), image0.addTag(tagC)]);
+            }), question0.setTags([tagC]).then(async () => {
+              return Promise.all([question0.createTag({ name: 'questionTag' }), question0.addTag(tagA)]);
+            })]);
 
-                  expect(image.tags.map(tag => {
-                    return tag.name;
-                  }).sort()).to.deep.equal(['imageTag', 'tagB', 'tagC']);
+            const [postTags, imageTags, questionTags] = await Promise.all([this.post.getTags(), this.image.getTags(), this.question.getTags()]);
+            expect(postTags.length).to.equal(3);
+            expect(imageTags.length).to.equal(3);
+            expect(questionTags.length).to.equal(3);
 
-                  expect(question.tags.map(tag => {
-                    return tag.name;
-                  }).sort()).to.deep.equal(['questionTag', 'tagA', 'tagC']);
-                });
-              });
-            });
+            expect(postTags.map(tag => {
+              return tag.name;
+            }).sort()).to.deep.equal(['postTag', 'tagA', 'tagB']);
+
+            expect(imageTags.map(tag => {
+              return tag.name;
+            }).sort()).to.deep.equal(['imageTag', 'tagB', 'tagC']);
+
+            expect(questionTags.map(tag => {
+              return tag.name;
+            }).sort()).to.deep.equal(['questionTag', 'tagA', 'tagC']);
+
+            const [post, image, question] = await Promise.all([this.Post.findOne({
+              where: {},
+              include: [this.Tag]
+            }), this.Image.findOne({
+              where: {},
+              include: [this.Tag]
+            }), this.Question.findOne({
+              where: {},
+              include: [this.Tag]
+            })]);
+
+            expect(post.tags.length).to.equal(3);
+            expect(image.tags.length).to.equal(3);
+            expect(question.tags.length).to.equal(3);
+
+            expect(post.tags.map(tag => {
+              return tag.name;
+            }).sort()).to.deep.equal(['postTag', 'tagA', 'tagB']);
+
+            expect(image.tags.map(tag => {
+              return tag.name;
+            }).sort()).to.deep.equal(['imageTag', 'tagB', 'tagC']);
+
+            expect(question.tags.map(tag => {
+              return tag.name;
+            }).sort()).to.deep.equal(['questionTag', 'tagA', 'tagC']);
           });
         });
       });

@@ -1,4 +1,4 @@
-import { Association, HasOne, Model, Sequelize, DataTypes } from 'sequelize';
+import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Sequelize } from 'sequelize';
 
 class MyModel extends Model {
   public num!: number;
@@ -19,6 +19,17 @@ const num: number = Instance.get('num');
 
 MyModel.findOne({
   include: [
+    {
+      through: {
+        as: "OtherModel",
+        attributes: ['num']
+      }
+    }
+  ]
+});
+
+MyModel.findOne({
+  include: [
     { model: OtherModel, paranoid: true }
   ]
 });
@@ -27,9 +38,29 @@ MyModel.hasOne(OtherModel, { as: 'OtherModelAlias' });
 
 MyModel.findOne({ include: ['OtherModelAlias'] });
 
+MyModel.findOne({ include: OtherModel });
+
+MyModel.count({ include: OtherModel });
+
+MyModel.build({ int: 10 }, { include: OtherModel });
+
+MyModel.bulkCreate([{ int: 10 }], { include: OtherModel });
+
+MyModel.update({}, { where: { foo: 'bar' }, paranoid: false});
+
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
-MyModel.init({}, {
+MyModel.init({
+  virtual: {
+    type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['num']),
+    get() {
+      return this.getDataValue('num') + 2;
+    },
+    set(value: number) {
+      this.setDataValue('num', value - 2);
+    }
+  }
+}, {
   indexes: [
     {
       fields: ['foo'],
@@ -72,3 +103,36 @@ UserModel.findCreateFind({
  */
 class TestModel extends Model {};
 TestModel.primaryKeyAttributes;
+
+/**
+ * Test for joinTableAttributes on BelongsToManyGetAssociationsMixin
+ */
+class SomeModel extends Model {
+    public getOthers!: BelongsToManyGetAssociationsMixin<OtherModel>
+}
+
+const someInstance = new SomeModel()
+someInstance.getOthers({
+    joinTableAttributes: { include: [ 'id' ] }
+})
+
+/** 
+ * Test for through options in creating a BelongsToMany association
+ */
+class Film extends Model {}
+
+class Actor extends Model {} 
+
+Film.belongsToMany(Actor, {
+  through: {
+    model: 'FilmActors',
+    paranoid: true
+  }
+})
+
+Actor.belongsToMany(Film, {
+  through: {
+    model: 'FilmActors',
+    paranoid: true
+  }
+})

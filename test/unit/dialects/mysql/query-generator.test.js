@@ -39,27 +39,27 @@ if (dialect === 'mysql') {
       arithmeticQuery: [
         {
           title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],
+          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\''
         },
         {
           title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { foo: 'bar' }, { bar: 'biz' }, {}],
+          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\''
         },
         {
           title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', { foo: 'bar' }, {}, {}],
+          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\''
         },
         {
           title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', { foo: -1 }, {}, {}],
+          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1'
         },
         {
           title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz' }, {}],
+          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
           expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\''
         }
       ],
@@ -785,7 +785,7 @@ if (dialect === 'mysql') {
             }
 
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            this.queryGenerator.options = Object.assign({}, this.queryGenerator.options, test.context && test.context.options || {});
+            this.queryGenerator.options = { ...this.queryGenerator.options, ...test.context && test.context.options };
 
             const conditions = this.queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);

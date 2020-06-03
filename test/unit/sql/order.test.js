@@ -8,7 +8,7 @@ const DataTypes = require('../../../lib/data-types');
 const Model = require('../../../lib/model');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const sql = current.dialect.QueryGenerator;
+const sql = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 

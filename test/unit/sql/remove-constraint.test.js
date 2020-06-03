@@ -3,7 +3,7 @@
 const Support   = require('../support');
 const current   = Support.sequelize;
 const expectsql = Support.expectsql;
-const sql = current.dialect.QueryGenerator;
+const sql = current.dialect.queryGenerator;
 
 if (current.dialect.supports.constraints.dropConstraint) {
   describe(Support.getTestDialectTeaser('SQL'), () => {

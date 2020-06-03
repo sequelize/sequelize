@@ -184,16 +184,16 @@ if (dialect.match(/^postgres/)) {
         expect(range.parse('some_non_array')).to.deep.equal('some_non_array');
       });
 
-      it('should handle native postgres timestamp format', () => {
+      it('should handle native postgres timestamp format', async () => {
         // Make sure nameOidMap is loaded
-        return Support.sequelize.connectionManager.getConnection().then(connection => {
-          Support.sequelize.connectionManager.releaseConnection(connection);
+        const connection = await Support.sequelize.connectionManager.getConnection();
 
-          const tsName = DataTypes.postgres.DATE.types.postgres[0],
-            tsOid = Support.sequelize.connectionManager.nameOidMap[tsName].oid,
-            parser = pg.types.getTypeParser(tsOid);
-          expect(range.parse('(2016-01-01 08:00:00-04,)', parser)[0].value.toISOString()).to.equal('2016-01-01T12:00:00.000Z');
-        });
+        Support.sequelize.connectionManager.releaseConnection(connection);
+
+        const tsName = DataTypes.postgres.DATE.types.postgres[0],
+          tsOid = Support.sequelize.connectionManager.nameOidMap[tsName].oid,
+          parser = pg.types.getTypeParser(tsOid);
+        expect(range.parse('(2016-01-01 08:00:00-04,)', parser)[0].value.toISOString()).to.equal('2016-01-01T12:00:00.000Z');
       });
 
     });

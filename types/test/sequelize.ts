@@ -20,6 +20,8 @@ export const sequelize = new Sequelize({
   }
 });
 
+const databaseName = sequelize.getDatabaseName();
+
 const conn = sequelize.connectionManager;
 
 // hooks
@@ -58,8 +60,17 @@ const myModel: typeof Model1 = sequelize.models.asd;
 myModel.hasOne(Model2)
 myModel.findAll();
 
-sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW }).then(result => {
-  const data = result[0];
-  const arraysOnly = (a: any[]) => a;
-  arraysOnly(data);
-});
+async function test() {
+  const [results, meta]: [unknown[], unknown] = await sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW });
+
+  const res2: { count: number } = await sequelize
+    .query<{ count: number }>("SELECT COUNT(1) as count FROM `user`", {
+      type: QueryTypes.SELECT,
+      plain: true
+    });
+
+  const res3: { [key: string]: unknown; } = await sequelize
+    .query("SELECT COUNT(1) as count FROM `user`", {
+      plain: true
+    })
+}
