@@ -1911,6 +1911,50 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
     });
 
+    it('should ignore include with attributes: [] and through: { attributes: [] } (used for aggregates)', function() {
+      const User = this.sequelize.define('User', {
+        name: DataTypes.STRING
+      });
+      const Project = this.sequelize.define('Project', {
+        title: DataTypes.STRING
+      });
+
+      User.belongsToMany(Project, { as: 'projects', through: 'UserProject' });
+      Project.belongsToMany(User, { as: 'users', through: 'UserProject' });
+
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({
+          name: Math.random().toString(),
+          projects: [
+            { title: Math.random().toString() },
+            { title: Math.random().toString() },
+            { title: Math.random().toString() }
+          ]
+        }, {
+          include: [User.associations.projects]
+        });
+      }).then(() => {
+        return User.findAll({
+          attributes: [
+            [this.sequelize.fn('COUNT', this.sequelize.col('projects.id')), 'projectsCount']
+          ],
+          include: {
+            association: User.associations.projects,
+            attributes: [],
+            through: { attributes: [] }
+          },
+          group: ['User.id']
+        });
+      }).then(users => {
+        expect(users.length).to.equal(1);
+
+        const user = users[0];
+
+        expect(user.projects).not.to.be.ok;
+        expect(parseInt(user.get('projectsCount'), 10)).to.equal(3);
+      });
+    });
+
     it('should not add primary key when including and aggregating with raw: true', function() {
       const Post = this.sequelize.define('Post', {
           title: DataTypes.STRING
