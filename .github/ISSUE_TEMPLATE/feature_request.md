@@ -4,7 +4,6 @@ about: Suggest an idea for this project
 title: ''
 labels: ''
 assignees: ''
-
 ---
 
 <!--
@@ -13,12 +12,14 @@ Please note this is an issue tracker, not a support forum.
 For general questions, please use StackOverflow or Slack.
 -->
 
-## Issue Description
+## Feature Description
 
 ### Is your feature request related to a problem? Please describe.
+
 A clear and concise description of what the problem is. Example: I'm always frustrated when [...]
 
 ### Describe the solution you'd like
+
 A clear and concise description of what you want to happen. How can the requested feature be used to approach the problem it's supposed to solve?
 
 ```js
@@ -26,24 +27,27 @@ A clear and concise description of what you want to happen. How can the requeste
 ```
 
 ### Why should this be in Sequelize
+
 Short explanation why this should be part of Sequelize rather than a separate package.
 
 ### Describe alternatives/workarounds you've considered
+
 A clear and concise description of any alternative solutions or features you've considered. If any workaround exists to the best of your knowledge, include it here.
 
 ### Additional context
+
 Add any other context or screenshots about the feature request here.
 
-## Issue Template Checklist
+## Feature Request Checklist
 
 <!-- Please answer the questions below. If you don't, your issue may be closed. -->
 
-### Is this issue dialect-specific?
+### Is this feature dialect-specific?
 
 - [ ] No. This issue is relevant to Sequelize as a whole.
 - [ ] Yes. This issue only applies to the following dialect(s): XXX, YYY, ZZZ
 
-### Would you be willing to resolve this issue by submitting a Pull Request?
+### Would you be willing to implement this feature by submitting a Pull Request?
 
 <!-- Remember that first contributors are welcome! -->
 
