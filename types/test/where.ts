@@ -25,6 +25,15 @@ where = {
   date: new Date()
 };
 
+// Optional values 
+let whereWithOptionals: { needed: number; optional?: number } = { needed: 2 };
+where = whereWithOptionals;
+
+// Misusing optional values (typings allow this, sequelize will throw an error during runtime)
+// This might be solved by updates to typescript itself (https://github.com/microsoft/TypeScript/issues/13195)
+whereWithOptionals = { needed: 2, optional: undefined };
+where = whereWithOptionals;
+
 // Operators
 
 const and: AndOperator = {
