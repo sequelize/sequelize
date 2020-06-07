@@ -99,7 +99,7 @@ UserModel.findCreateFind({
 })
 
 /**
- * Tests for findCreateFind() type.
+ * Tests for findOrCreate() type.
  */
 
  UserModel.findOrCreate({
