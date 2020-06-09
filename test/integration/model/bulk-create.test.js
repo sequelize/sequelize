@@ -640,6 +640,311 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         });
 
+        if (dialect === 'postgres' || dialect === 'sqlite') {
+          describe('should support the updateOnDuplicate option with composite unique keys', () => {
+            it('with a unique index specified using upsertIndex', async function() {
+              const Person = this.sequelize.define('Person', {
+                id: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  primaryKey: true,
+                  autoIncrement: true,
+                  field: 'id'
+                },
+                system: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'system'
+                },
+                name: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'name'
+                },
+                type: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'type'
+                }
+              }, {
+                indexes: [
+                  {
+                    name: 'system_name_index',
+                    fields: ['system', 'name'],
+                    unique: true
+                  }
+                ]
+              });
+              await Person.sync({ force: true });
+              const inserts = [
+                { system: 'system1', name: 'Alice', type: 'type' }
+              ];
+              const people0 = await Person.bulkCreate(inserts);
+              expect(people0.length).to.equal(1);
+              expect(people0[0].system).to.equal('system1');
+              expect(people0[0].name).to.equal('Alice');
+              expect(people0[0].type).to.equal('type');
+
+              const updates = [
+                { system: 'system1', name: 'Alice', type: 'newType' },
+                { system: 'system2', name: 'Bob', type: 'type' }
+              ];
+
+              const people = await Person.bulkCreate(
+                updates, { updateOnDuplicate: ['type'], upsertIndex: 'system_name_index' });
+              expect(people.length).to.equal(2);
+              expect(people[0].system).to.equal('system1');
+              expect(people[0].name).to.equal('Alice');
+              expect(people[0].type).to.equal('newType');
+              expect(people[1].system).to.equal('system2');
+              expect(people[1].name).to.equal('Bob');
+              expect(people[1].type).to.equal('type');
+
+              const all = await Person.findAll();
+              expect(all.length).to.equal(2);
+            });
+
+            it('with a partial index specified using upsertIndex', async function() {
+              const Person = this.sequelize.define('Person', {
+                id: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  primaryKey: true,
+                  autoIncrement: true,
+                  field: 'id'
+                },
+                system: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'system'
+                },
+                name: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'name'
+                },
+                deleted: {
+                  type: DataTypes.BOOLEAN,
+                  allowNull: false,
+                  field: 'deleted'
+                }
+              }, {
+                indexes: [
+                  {
+                    name: 'non_deleted_system_index',
+                    fields: ['system'],
+                    where: { deleted: false },
+                    unique: true
+                  }
+                ]
+              });
+              await Person.sync({ force: true });
+              const inserts = [
+                { system: 'system1', name: 'Alice', deleted: false },
+                { system: 'system2', name: 'Bob', deleted: true }
+              ];
+              const people0 = await Person.bulkCreate(inserts);
+              expect(people0.length).to.equal(2);
+              expect(people0[0].system).to.equal('system1');
+              expect(people0[0].name).to.equal('Alice');
+              expect(people0[0].deleted).to.equal(false);
+              expect(people0[1].system).to.equal('system2');
+              expect(people0[1].name).to.equal('Bob');
+              expect(people0[1].deleted).to.equal(true);
+
+              const updates = [
+                { system: 'system1', name: 'NEW NAME', deleted: false },
+                { system: 'system2', name: 'Eve', deleted: false }
+              ];
+
+              const people = await Person.bulkCreate(
+                updates, { updateOnDuplicate: ['name'], upsertIndex: 'non_deleted_system_index' });
+              expect(people.length).to.equal(2);
+              expect(people[0].system).to.equal('system1');
+              expect(people[0].name).to.equal('NEW NAME');
+              expect(people[0].deleted).to.equal(false);
+              expect(people[1].system).to.equal('system2');
+              expect(people[1].name).to.equal('Eve');
+              expect(people[1].deleted).to.equal(false);
+
+              const all = await Person.findAll();
+              expect(all.length).to.equal(3);
+            });
+
+            it('with a unique index specified using upsertKeys', async function() {
+              const Person = this.sequelize.define('Person', {
+                id: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  primaryKey: true,
+                  autoIncrement: true,
+                  field: 'id'
+                },
+                system: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'system'
+                },
+                name: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'name'
+                },
+                type: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'type'
+                }
+              }, {
+                indexes: [
+                  {
+                    name: 'system_name_index',
+                    fields: ['system', 'name'],
+                    unique: true
+                  }
+                ]
+              });
+              await Person.sync({ force: true });
+              const inserts = [
+                { system: 'system1', name: 'Alice', type: 'type' }
+              ];
+              const people0 = await Person.bulkCreate(inserts);
+              expect(people0.length).to.equal(1);
+              expect(people0[0].system).to.equal('system1');
+              expect(people0[0].name).to.equal('Alice');
+              expect(people0[0].type).to.equal('type');
+
+              const updates = [
+                { system: 'system1', name: 'Alice', type: 'newType' },
+                { system: 'system2', name: 'Bob', type: 'type' }
+              ];
+
+              const people = await Person.bulkCreate(
+                updates, { updateOnDuplicate: ['type'], upsertKeys: ['system', 'name'] });
+              expect(people.length).to.equal(2);
+              expect(people[0].system).to.equal('system1');
+              expect(people[0].name).to.equal('Alice');
+              expect(people[0].type).to.equal('newType');
+              expect(people[1].system).to.equal('system2');
+              expect(people[1].name).to.equal('Bob');
+              expect(people[1].type).to.equal('type');
+
+              const all = await Person.findAll();
+              expect(all.length).to.equal(2);
+            });
+
+            it('with a partial index specified using upsertKeys', async function() {
+              const Person = this.sequelize.define('Person', {
+                id: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  primaryKey: true,
+                  autoIncrement: true,
+                  field: 'id'
+                },
+                system: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'system'
+                },
+                name: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'name'
+                },
+                deleted: {
+                  type: DataTypes.BOOLEAN,
+                  allowNull: false,
+                  field: 'deleted'
+                }
+              }, {
+                indexes: [
+                  {
+                    name: 'non_deleted_system_index',
+                    fields: ['system'],
+                    where: { deleted: false },
+                    unique: true
+                  }
+                ]
+              });
+              await Person.sync({ force: true });
+              const inserts = [
+                { system: 'system1', name: 'Alice', deleted: false },
+                { system: 'system2', name: 'Bob', deleted: true }
+              ];
+              const people0 = await Person.bulkCreate(inserts);
+              expect(people0.length).to.equal(2);
+              expect(people0[0].system).to.equal('system1');
+              expect(people0[0].name).to.equal('Alice');
+              expect(people0[0].deleted).to.equal(false);
+              expect(people0[1].system).to.equal('system2');
+              expect(people0[1].name).to.equal('Bob');
+              expect(people0[1].deleted).to.equal(true);
+
+              const updates = [
+                { system: 'system1', name: 'NEW NAME', deleted: false },
+                { system: 'system2', name: 'Eve', deleted: false }
+              ];
+
+              const people = await Person.bulkCreate(
+                updates, { updateOnDuplicate: ['name'], upsertKeys: { fields: ['system'], where: { deleted: false } } });
+              expect(people.length).to.equal(2);
+              expect(people[0].system).to.equal('system1');
+              expect(people[0].name).to.equal('NEW NAME');
+              expect(people[0].deleted).to.equal(false);
+              expect(people[1].system).to.equal('system2');
+              expect(people[1].name).to.equal('Eve');
+              expect(people[1].deleted).to.equal(false);
+
+              const all = await Person.findAll();
+              expect(all.length).to.equal(3);
+            });
+
+            it('failing with a non-unique or non-existent index specified using upsertIndex', async function() {
+              const Person = this.sequelize.define('Person', {
+                id: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  primaryKey: true,
+                  autoIncrement: true,
+                  field: 'id'
+                },
+                system: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'system'
+                },
+                name: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'name'
+                },
+                type: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'type'
+                }
+              }, {
+                indexes: [
+                  {
+                    name: 'system_name_index',
+                    fields: ['system', 'name']
+                  }
+                ]
+              });
+              await Person.sync({ force: true });
+              const updates = [
+                { system: 'system1', name: 'Alice', type: 'type' }
+              ];
+              await expect(Person.bulkCreate(
+                updates, { updateOnDuplicate: ['type'], upsertIndex: 'system_name_index' })
+              ).to.be.rejectedWith("upsertIndex 'system_name_index' not a unique index.");
+              await expect(Person.bulkCreate(
+                updates, { updateOnDuplicate: ['type'], upsertIndex: 'non_existent_index' })
+              ).to.be.rejectedWith("upsertIndex 'non_existent_index' not defined.");
+            });
+          });
+        }
 
         it('should reject for non array updateOnDuplicate option', async function() {
           const data = [
