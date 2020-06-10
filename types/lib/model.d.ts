@@ -1336,14 +1336,13 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
 }
 
 /**
- * Interface for Attributes provided for a column
+ * Type for Attributes provided for a column
  */
-export interface ModelAttributes<M extends Model = Model> {
-  /**
-   * The description of a database column
-   */
+export type ModelAttributes<M extends Model = Model> = {
+  [P in keyof M]?: DataType | ModelAttributeColumnOptions<M>;
+} | {
   [name: string]: DataType | ModelAttributeColumnOptions<M>;
-}
+};
 
 /**
  * Possible types for primary keys
