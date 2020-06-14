@@ -29,7 +29,17 @@ MyModel.findOne({ include: ['OtherModelAlias'] });
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
-MyModel.init({}, {
+MyModel.init({
+  virtual: {
+    type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['num']),
+    get() {
+      return this.getDataValue('num') + 2;
+    },
+    set(value: number) {
+      this.setDataValue('num', value - 2);
+    }
+  }
+}, {
   indexes: [
     {
       fields: ['foo'],
