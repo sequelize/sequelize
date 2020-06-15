@@ -339,8 +339,10 @@ export type WhereValue =
   | OrOperator
   | AndOperator
   | WhereGeometryOptions
-  | (string | number | Buffer | WhereAttributeHash)[]; // implicit [Op.or]
-
+  | (string | number | Buffer | WhereAttributeHash)[] // implicit [Op.or]
+    // allow optional values in where object types
+    // Sequelize will still throw when a value in the object has the value undefined
+  | undefined;
 /**
  * A hash of attributes to describe your search.
  */
@@ -683,12 +685,11 @@ export interface Hookable {
 /**
  * Options for Model.findOrCreate method
  */
-export interface FindOrCreateOptions extends Logging, Transactionable {
+export interface FindOrCreateOptions extends Filterable, Logging, Transactionable {
   /**
-   * A hash of search attributes.
+   * The fields to insert / update. Defaults to all fields
    */
-  where: WhereOptions;
-
+  fields?: string[];
   /**
    * Default values to use if building a new instance
    */
