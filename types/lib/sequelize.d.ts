@@ -328,6 +328,13 @@ export interface Options extends Logging {
   isolationLevel?: string;
 
   /**
+   * Set the default transaction type. See Sequelize.Transaction.TYPES for possible options. Sqlite only.
+   *
+   * @default 'DEFERRED'
+   */
+  transactionType?: Transaction.TYPES;
+
+  /**
    * Run built in type validators on insert and update, e.g. validate that arguments passed to integer
    * fields are integer-like.
    *
