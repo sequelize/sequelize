@@ -354,6 +354,14 @@ export interface Options extends Logging {
   standardConformingStrings?: boolean;
 
   /**
+   * The PostgreSQL `client_min_messages` session parameter. 
+   Set to `false` to not override the database's default.
+   *
+   * @default true
+   */
+  clientMinMessages?: false;
+  
+  /**
    * Sets global permanent hooks.
    */
   hooks?: Partial<SequelizeHooks>;
