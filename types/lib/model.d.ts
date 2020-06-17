@@ -94,6 +94,13 @@ export interface DropOptions extends Logging {
   cascade?: boolean;
 }
 
+export interface Contextable {
+  /**
+   * An any type value attaching to the model's _option.context from finding and creating
+   */
+  context?: any;
+}
+
 /**
  * Schema Options provided for applying a schema to a model
  */
@@ -511,7 +518,7 @@ type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
  *
  * A hash of options to describe the scope of the search
  */
-export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid, IndexHintable {
+export interface FindOptions extends QueryOptions, Filterable, Projectable, Paranoid, IndexHintable, Contextable {
   /**
    * A list of associations to eagerly load using a left join. Supported is either
    * `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
@@ -625,7 +632,7 @@ export interface FindAndCountOptions extends CountOptions, FindOptions {}
 /**
  * Options for Model.build method
  */
-export interface BuildOptions {
+export interface BuildOptions extends Contextable {
   /**
    * If set to true, values will ignore field and virtual setters.
    */
@@ -678,7 +685,7 @@ export interface CreateOptions extends BuildOptions, Logging, Silent, Transactio
 /**
  * Options for Model.findOrCreate method
  */
-export interface FindOrCreateOptions extends Logging, Transactionable {
+export interface FindOrCreateOptions extends Logging, Transactionable, Contextable {
   /**
    * A hash of search attributes.
    */
@@ -718,7 +725,7 @@ export interface UpsertOptions extends Logging, Transactionable, SearchPathable 
 /**
  * Options for Model.bulkCreate method
  */
-export interface BulkCreateOptions extends Logging, Transactionable {
+export interface BulkCreateOptions extends Logging, Transactionable, Contextable {
   /**
    * Fields to insert (defaults to all fields)
    */
