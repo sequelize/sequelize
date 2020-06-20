@@ -38,7 +38,7 @@
     "moment-timezone": "^0.5.31",
     "retry-as-promised": "^3.2.0",
     "semver": "^7.3.2",
-    "sequelize-pool": "^5.0.0",
+    "sequelize-pool": "^6.0.0",
     "toposort-class": "^1.0.1",
     "uuid": "^8.1.0",
     "validator": "^10.11.0",
