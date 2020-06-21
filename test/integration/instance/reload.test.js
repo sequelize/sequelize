@@ -301,5 +301,36 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const leTeam = await leTeam0.reload();
       expect(leTeam.Players).to.have.length(1);
     });
+
+    it('should inject default scope when reloading', async function() {
+      const Bar = this.sequelize.define('Bar', {
+        name: DataTypes.TEXT
+      });
+
+      const Foo = this.sequelize.define('Foo', {
+        name: DataTypes.TEXT
+      }, {
+        defaultScope: {
+          include: [{ model: Bar }]
+        }
+      });
+
+      Bar.belongsTo(Foo);
+      Foo.hasMany(Bar);
+
+      await this.sequelize.sync();
+
+      const foo = await Foo.create({ name: 'foo' });
+      await foo.createBar({ name: 'bar' });
+      const fooFromFind = await Foo.findByPk(foo.id);
+
+      expect(fooFromFind.Bars).to.be.ok;
+      expect(fooFromFind.Bars[0].name).to.equal('bar');
+
+      await foo.reload();
+
+      expect(foo.Bars).to.be.ok;
+      expect(foo.Bars[0].name).to.equal('bar');
+    });
   });
 });
