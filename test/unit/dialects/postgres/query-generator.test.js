@@ -1312,5 +1312,45 @@ if (dialect.startsWith('postgres')) {
         });
       });
     });
+
+    describe('fromArray()', () => {
+      beforeEach(function() {
+        this.queryGenerator = new QueryGenerator({
+          sequelize: this.sequelize,
+          _dialect: this.sequelize.dialect
+        });
+      });
+
+      const tests = [
+        {
+          title: 'should convert an enum with no quoted strings to an array',
+          arguments: '{foo,bar,foobar}',
+          expectation: ['foo', 'bar', 'foobar']
+        }, {
+          title: 'should convert an enum starting with a quoted string to an array',
+          arguments: '{"foo bar",foo,bar}',
+          expectation: ['foo bar', 'foo', 'bar']
+        }, {
+          title: 'should convert an enum ending with a quoted string to an array',
+          arguments: '{foo,bar,"foo bar"}',
+          expectation: ['foo', 'bar', 'foo bar']
+        }, {
+          title: 'should convert an enum with a quoted string in the middle to an array',
+          arguments: '{foo,"foo bar",bar}',
+          expectation: ['foo', 'foo bar', 'bar']
+        }, {
+          title: 'should convert an enum full of quoted strings to an array',
+          arguments: '{"foo bar","foo bar","foo bar"}',
+          expectation: ['foo bar', 'foo bar', 'foo bar']
+        }
+      ];
+
+      _.each(tests, test => {
+        it(test.title, function() {
+          const convertedText = this.queryGenerator.fromArray(test.arguments);
+          expect(convertedText).to.deep.equal(test.expectation);
+        });
+      });
+    });
   });
 }
