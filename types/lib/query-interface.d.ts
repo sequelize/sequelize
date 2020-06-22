@@ -1,5 +1,15 @@
 import { DataType } from './data-types';
-import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable, Poolable } from './model';
+import {
+  Logging,
+  Model,
+  ModelAttributeColumnOptions,
+  ModelAttributes,
+  Transactionable,
+  WhereOptions,
+  Filterable,
+  Poolable,
+  ModelCtor, ModelStatic
+} from './model';
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
@@ -71,15 +81,15 @@ export interface QueryOptions extends Logging, Transactionable, Poolable {
   fieldMap?: FieldMap;
 }
 
-export interface QueryOptionsWithWhere extends QueryOptions, Filterable {
+export interface QueryOptionsWithWhere extends QueryOptions, Filterable<any> {
 
 }
 
-export interface QueryOptionsWithModel extends QueryOptions {
+export interface QueryOptionsWithModel<M extends Model> extends QueryOptions {
   /**
    * A sequelize model used to build the returned model instances (used to be called callee)
    */
-  model: typeof Model;
+  model: ModelStatic<M>;
 }
 
 export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions {
@@ -189,7 +199,7 @@ export interface IndexesOptions {
   /**
    * Optional where parameter for index. Can be used to limit the index to certain rows.
    */
-  where?: WhereOptions;
+  where?: WhereOptions<any>;
 
   /**
    * Prefix to append to the index name.
@@ -215,7 +225,7 @@ export interface AddDefaultConstraintOptions extends BaseConstraintOptions {
 
 export interface AddCheckConstraintOptions extends BaseConstraintOptions {
   type: 'check';
-  where?: WhereOptions;
+  where?: WhereOptions<any>;
 }
 
 export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
@@ -321,9 +331,9 @@ export class QueryInterface {
    * @param attributes    Hash of attributes, key is attribute name, value is data type
    * @param options       Table options.
    */
-  public createTable(
+  public createTable<M extends Model>(
     tableName: string | { schema?: string; tableName?: string },
-    attributes: ModelAttributes,
+    attributes: ModelAttributes<M, M['_creationAttributes']>,
     options?: QueryInterfaceCreateTableOptions
   ): Promise<void>;
 
@@ -490,11 +500,11 @@ export class QueryInterface {
   /**
    * Updates a row
    */
-  public update(
-    instance: Model,
+  public update<M extends Model>(
+    instance: M,
     tableName: TableName,
     values: object,
-    identifier: WhereOptions,
+    identifier: WhereOptions<M['_attributes']>,
     options?: QueryOptions
   ): Promise<object>;
 
@@ -504,7 +514,7 @@ export class QueryInterface {
   public bulkUpdate(
     tableName: TableName,
     values: object,
-    identifier: WhereOptions,
+    identifier: WhereOptions<any>,
     options?: QueryOptions,
     attributes?: string[] | string
   ): Promise<object>;
@@ -512,14 +522,19 @@ export class QueryInterface {
   /**
    * Deletes a row
    */
-  public delete(instance: Model | null, tableName: TableName, identifier: WhereOptions, options?: QueryOptions): Promise<object>;
+  public delete(
+    instance: Model | null,
+    tableName: TableName,
+    identifier: WhereOptions<any>,
+    options?: QueryOptions
+  ): Promise<object>;
 
   /**
    * Deletes multiple rows at once
    */
   public bulkDelete(
     tableName: TableName,
-    identifier: WhereOptions,
+    identifier: WhereOptions<any>,
     options?: QueryOptions,
     model?: typeof Model
   ): Promise<object>;
@@ -532,11 +547,11 @@ export class QueryInterface {
   /**
    * Increments a row value
    */
-  public increment(
+  public increment<M extends Model>(
     instance: Model,
     tableName: TableName,
     values: object,
-    identifier: WhereOptions,
+    identifier: WhereOptions<M['_attributes']>,
     options?: QueryOptions
   ): Promise<object>;
 

@@ -5,7 +5,7 @@ class MyModel extends Model {
     public hi!: number;
 }
 
-let where: WhereOptions;
+let where: WhereOptions<any>;
 
 // From https://sequelize.org/master/en/v4/docs/querying/
 
@@ -25,7 +25,7 @@ where = {
   date: new Date()
 };
 
-// Optional values 
+// Optional values
 let whereWithOptionals: { needed: number; optional?: number } = { needed: 2 };
 where = whereWithOptionals;
 
@@ -36,11 +36,11 @@ where = whereWithOptionals;
 
 // Operators
 
-const and: AndOperator = {
+const and: AndOperator<{ a: number }> = {
     [Op.and]: { a: 5 }, // AND (a = 5)
 };
 
-const or: OrOperator = {
+const or: OrOperator<{ a: number }> = {
     [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
 };
 

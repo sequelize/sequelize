@@ -1,5 +1,5 @@
-import {Model} from "sequelize"
-import {sequelize} from './connection';
+import { Model } from "sequelize"
+import { sequelize } from './connection';
 
 class TestModel extends Model {
 }

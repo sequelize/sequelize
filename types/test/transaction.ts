@@ -8,7 +8,7 @@ async function trans() {
         transaction.afterCommit(() => console.log('transaction complete'));
         User.create(
             {
-                data: 123,
+                firstName: 'John',
             },
             {
                 transaction,

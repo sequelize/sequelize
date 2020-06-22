@@ -19,7 +19,21 @@ Example of a minimal TypeScript project:
 import { Sequelize, Model, DataTypes, BuildOptions } from 'sequelize';
 import { HasManyGetAssociationsMixin, HasManyAddAssociationMixin, HasManyHasAssociationMixin, Association, HasManyCountAssociationsMixin, HasManyCreateAssociationMixin } from 'sequelize';
 
-class User extends Model {
+// These are the minimum attributes needed to create a User
+interface UserCreationAttributes {
+  name: string;
+  preferredName: string | null;
+}
+
+// These are all the attributes in the User model
+interface UserAttributes extends UserCreationAttributes {
+  id: number;
+}
+
+// You can choose to omit the `UserAttributes` and `UserCreationAttributes`
+// generic types to simplify your types. This will come at the cost of making
+// typechecking slightly less strict.
+class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public id!: number; // Note that the `null assertion` `!` is required in strict mode.
   public name!: string;
   public preferredName!: string | null; // for nullable fields
@@ -49,7 +63,16 @@ class User extends Model {
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
-class Project extends Model {
+interface ProjectAttributes {
+  ownerId: number;
+  name: string;
+}
+
+interface ProjectAttributes extends ProjectCreationAttributes {
+  id: number;
+}
+
+class Project extends Model<ProjectAttributes, ProjectCreationAttributes> implements ProjectAttributes {
   public id!: number;
   public ownerId!: number;
   public name!: string;
@@ -58,7 +81,12 @@ class Project extends Model {
   public readonly updatedAt!: Date;
 }
 
-class Address extends Model {
+interface AddressAttributes {
+  userId: number;
+  address: string;
+}
+
+class Address extends Model<AddressAttributes> implements AddressAttributes {
   public userId!: number;
   public address!: string;
 
@@ -149,21 +177,55 @@ async function stuff() {
 
 ## Usage of `sequelize.define`
 
-TypeScript doesn't know how to generate a `class` definition when we use the `sequelize.define` method to define a Model. Therefore, we need to do some manual work and declare an interface and a type, and eventually cast the result of `.define` to the _static_ type.
+TypeScript doesn't know how to generate a class definition when we use the `sequelize.define` method to define a Model. Therefore, we need to do some manual work and declare a dummy class, derive a static type, and cast the result of `sequelize.define` to the static type.
+
+```ts
+// We recommend you declare an interface for the attributes, for stricter typechecking
+interface MyModelAttributes {
+  readonly id: number;
+  name: string;
+}
+
+interface MyModelCreationAttributes extends Optional<MyModelAttributes, 'id'> {}
+
+// We need to declare an interface for our model that is basically what our class would be
+interface MyModel extends Model<MyModelAttributes, MyModelCreationAttributes>, MyModelAttributes {}
+
+type MyModelStatic = typeof Model & {
+  new (values?: object, options?: BuildOptions): MyModel;
+};
+
+// TS can't derive a proper class definition from a `.define` call, therefor we need to cast here.
+const MyDefineModel = <MyModelStatic>sequelize.define<MyModel>('MyDefineModel', {
+  id: {
+    primaryKey: true,
+    type: DataTypes.INTEGER.UNSIGNED,
+  }
+});
+
+async function stuffTwo() {
+  const myModel = await MyDefineModel.findByPk(1, {
+    rejectOnEmpty: true,
+  });
+  console.log(myModel.id);
+}
+```
+
+If you're comfortable with somewhat less strict typing for the attributes on a model, you can save some code by defining the Instance to just extend `Model` without any attributes in the generic types.
 
 ```ts
 // We need to declare an interface for our model that is basically what our class would be
 interface MyModel extends Model {
   readonly id: number;
+  name: string;
 }
 
-// Need to declare the static model so `findOne` etc. use correct types.
 type MyModelStatic = typeof Model & {
   new (values?: object, options?: BuildOptions): MyModel;
-}
+};
 
 // TS can't derive a proper class definition from a `.define` call, therefor we need to cast here.
-const MyDefineModel = <MyModelStatic>sequelize.define('MyDefineModel', {
+const MyDefineModel = <MyModelStatic>sequelize.define<MyModel>('MyDefineModel', {
   id: {
     primaryKey: true,
     type: DataTypes.INTEGER.UNSIGNED,
