@@ -34,7 +34,7 @@ async function test() {
 interface UntypedUserModel extends Model, UserAttributes {}
 
 type UntypedUserModelStatic = typeof Model & {
-  new (values?: object, options?: BuildOptions): UntypedUserModel;
+  new (values?: keyof any, options?: BuildOptions): UntypedUserModel;
   customStaticMethod(): unknown;
 }
 const UntypedUser = sequelize.define<UntypedUserModel>(

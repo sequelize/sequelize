@@ -45,7 +45,7 @@ export interface SearchPathable {
   searchPath?: string;
 }
 
-export interface Filterable<TAttributes> {
+export interface Filterable<TAttributes = any> {
   /**
    * Attribute has to be matched for rows to be selected for the given action.
    */
@@ -109,7 +109,13 @@ export interface ScopeOptions {
 /**
  * The type accepted by every `where` option
  */
-export type WhereOptions<TAttributes> = WhereAttributeHash<TAttributes> | AndOperator<TAttributes> | OrOperator<TAttributes> | Literal | Fn | Where;
+export type WhereOptions<TAttributes = any> =
+  | WhereAttributeHash<TAttributes>
+  | AndOperator<TAttributes>
+  | OrOperator<TAttributes>
+  | Literal
+  | Fn
+  | Where;
 
 /**
  * Example: `[Op.any]: [2,3]` becomes `ANY ARRAY[2, 3]::INTEGER`
@@ -304,12 +310,12 @@ export interface WhereOperators {
 }
 
 /** Example: `[Op.or]: [{a: 5}, {a: 6}]` becomes `(a = 5 OR a = 6)` */
-export interface OrOperator<TAttributes> {
+export interface OrOperator<TAttributes = any> {
   [Op.or]: WhereOptions<TAttributes> | WhereOptions<TAttributes>[] | WhereValue<TAttributes> | WhereValue<TAttributes>[];
 }
 
 /** Example: `[Op.and]: {a: 5}` becomes `AND (a = 5)` */
-export interface AndOperator<TAttributes> {
+export interface AndOperator<TAttributes = any> {
   [Op.and]: WhereOptions<TAttributes> | WhereOptions<TAttributes>[] | WhereValue<TAttributes> | WhereValue<TAttributes>[];
 }
 
@@ -325,7 +331,7 @@ export interface WhereGeometryOptions {
  * Used for the right hand side of WhereAttributeHash.
  * WhereAttributeHash is in there for JSON columns.
  */
-export type WhereValue<TAttributes> =
+export type WhereValue<TAttributes = any> =
   | string // literal value
   | number // literal value
   | boolean // literal value
@@ -344,7 +350,7 @@ export type WhereValue<TAttributes> =
 /**
  * A hash of attributes to describe your search.
  */
-export type WhereAttributeHash<TAttributes> = {
+export type WhereAttributeHash<TAttributes = any> = {
   /**
    * Possible key values:
    * - A simple attribute name
@@ -505,7 +511,9 @@ type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
  *
  * A hash of options to describe the scope of the search
  */
-export interface FindOptions<TAttributes> extends QueryOptions, Filterable<TAttributes>, Projectable, Paranoid, IndexHintable {
+export interface FindOptions<TAttributes = any>
+  extends QueryOptions, Filterable<TAttributes>, Projectable, Paranoid, IndexHintable
+{
   /**
    * A list of associations to eagerly load using a left join (a single association is also supported). Supported is either
    * `{ include: Model1 }`, `{ include: [ Model1, Model2, ...]}`, `{ include: [{ model: Model1, as: 'Alias' }]}` or
@@ -568,7 +576,7 @@ export interface FindOptions<TAttributes> extends QueryOptions, Filterable<TAttr
   subQuery?: boolean;
 }
 
-export interface NonNullFindOptions<TAttributes> extends FindOptions<TAttributes> {
+export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttributes> {
   /**
    * Throw if nothing was found.
    */
@@ -578,7 +586,9 @@ export interface NonNullFindOptions<TAttributes> extends FindOptions<TAttributes
 /**
  * Options for Model.count method
  */
-export interface CountOptions<TAttributes> extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable {
+export interface CountOptions<TAttributes = any>
+  extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable
+{
   /**
    * Include options. See `find` for details
    */
@@ -605,7 +615,7 @@ export interface CountOptions<TAttributes> extends Logging, Transactionable, Fil
 /**
  * Options for Model.count when GROUP BY is used
  */
-export interface CountWithOptions<TAttributes> extends CountOptions<TAttributes> {
+export interface CountWithOptions<TAttributes = any> extends CountOptions<TAttributes> {
   /**
    * GROUP BY in sql
    * Used in conjunction with `attributes`.
@@ -614,7 +624,7 @@ export interface CountWithOptions<TAttributes> extends CountOptions<TAttributes>
   group: GroupOption;
 }
 
-export interface FindAndCountOptions<TAttributes> extends CountOptions<TAttributes>, FindOptions<TAttributes> { }
+export interface FindAndCountOptions<TAttributes = any> extends CountOptions<TAttributes>, FindOptions<TAttributes> { }
 
 /**
  * Options for Model.build method
@@ -650,7 +660,7 @@ export interface Silent {
 /**
  * Options for Model.create method
  */
-export interface CreateOptions<TAttributes> extends BuildOptions, Logging, Silent, Transactionable, Hookable {
+export interface CreateOptions<TAttributes = any> extends BuildOptions, Logging, Silent, Transactionable, Hookable {
   /**
    * If set, only columns matching those in fields will be saved
    */
@@ -683,7 +693,9 @@ export interface Hookable {
 /**
  * Options for Model.findOrCreate method
  */
-export interface FindOrCreateOptions<TAttributes, TCreationAttributes> extends FindOptions<TAttributes> {
+export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TAttributes>
+  extends FindOptions<TAttributes>
+{
   /**
    * The fields to insert / update. Defaults to all fields
    */
@@ -697,7 +709,7 @@ export interface FindOrCreateOptions<TAttributes, TCreationAttributes> extends F
 /**
  * Options for Model.upsert method
  */
-export interface UpsertOptions<TAttributes> extends Logging, Transactionable, SearchPathable, Hookable {
+export interface UpsertOptions<TAttributes = any> extends Logging, Transactionable, SearchPathable, Hookable {
   /**
    * The fields to insert / update. Defaults to all fields
    */
@@ -717,7 +729,7 @@ export interface UpsertOptions<TAttributes> extends Logging, Transactionable, Se
 /**
  * Options for Model.bulkCreate method
  */
-export interface BulkCreateOptions<TAttributes> extends Logging, Transactionable, Hookable {
+export interface BulkCreateOptions<TAttributes = any> extends Logging, Transactionable, Hookable {
   /**
    * Fields to insert (defaults to all fields)
    */
@@ -762,7 +774,7 @@ export interface BulkCreateOptions<TAttributes> extends Logging, Transactionable
 /**
  * The options passed to Model.destroy in addition to truncate
  */
-export interface TruncateOptions<TAttributes> extends Logging, Transactionable, Filterable<TAttributes>, Hookable {
+export interface TruncateOptions<TAttributes = any> extends Logging, Transactionable, Filterable<TAttributes>, Hookable {
   /**
    * Only used in conjuction with TRUNCATE. Truncates  all tables that have foreign-key references to the
    * named table, or to any tables added to the group due to CASCADE.
@@ -797,7 +809,7 @@ export interface TruncateOptions<TAttributes> extends Logging, Transactionable, 
 /**
  * Options used for Model.destroy
  */
-export interface DestroyOptions<TAttributes> extends TruncateOptions<TAttributes> {
+export interface DestroyOptions<TAttributes = any> extends TruncateOptions<TAttributes> {
   /**
    * If set to true, dialects that support it will use TRUNCATE instead of DELETE FROM. If a table is
    * truncated the where and limit options are ignored
@@ -808,7 +820,7 @@ export interface DestroyOptions<TAttributes> extends TruncateOptions<TAttributes
 /**
  * Options for Model.restore
  */
-export interface RestoreOptions<TAttributes> extends Logging, Transactionable, Filterable<TAttributes>, Hookable {
+export interface RestoreOptions<TAttributes = any> extends Logging, Transactionable, Filterable<TAttributes>, Hookable {
 
   /**
    * If set to true, restore will find all records within the where parameter and will execute before / after
@@ -825,7 +837,7 @@ export interface RestoreOptions<TAttributes> extends Logging, Transactionable, F
 /**
  * Options used for Model.update
  */
-export interface UpdateOptions<TAttributes> extends Logging, Transactionable, Paranoid, Hookable {
+export interface UpdateOptions<TAttributes = any> extends Logging, Transactionable, Paranoid, Hookable {
   /**
    * Options to describe the scope of the search.
    */
@@ -878,7 +890,7 @@ export interface UpdateOptions<TAttributes> extends Logging, Transactionable, Pa
 /**
  * Options used for Model.aggregate
  */
-export interface AggregateOptions<T extends DataType | unknown, TAttributes>
+export interface AggregateOptions<T extends DataType | unknown, TAttributes = any>
   extends QueryOptions, Filterable<TAttributes>, Paranoid
 {
   /**
@@ -898,13 +910,13 @@ export interface AggregateOptions<T extends DataType | unknown, TAttributes>
 /**
  * Options used for Instance.increment method
  */
-export interface IncrementDecrementOptions<TAttributes>
+export interface IncrementDecrementOptions<TAttributes = any>
   extends Logging, Transactionable, Silent, SearchPathable, Filterable<TAttributes> { }
 
 /**
  * Options used for Instance.increment method
  */
-export interface IncrementDecrementOptionsWithBy<TAttributes> extends IncrementDecrementOptions<TAttributes> {
+export interface IncrementDecrementOptionsWithBy<TAttributes = any> extends IncrementDecrementOptions<TAttributes> {
   /**
    * The number to increment by
    *
@@ -931,7 +943,7 @@ export interface InstanceDestroyOptions extends Logging, Transactionable {
 /**
  * Options used for Instance.update method
  */
-export interface InstanceUpdateOptions<TAttributes> extends
+export interface InstanceUpdateOptions<TAttributes = any> extends
   SaveOptions<TAttributes>, SetOptions, Filterable<TAttributes> { }
 
 /**
@@ -952,7 +964,7 @@ export interface SetOptions {
 /**
  * Options used for Instance.save method
  */
-export interface SaveOptions<TAttributes> extends Logging, Transactionable, Silent {
+export interface SaveOptions<TAttributes = any> extends Logging, Transactionable, Silent {
   /**
    * An optional array of strings, representing database columns. If fields is provided, only those columns
    * will be validated and saved.
@@ -1193,7 +1205,7 @@ export interface ModelSetterOptions<M extends Model = Model> {
 /**
  * Interface for Define Scope Options
  */
-export interface ModelScopeOptions<TAttributes> {
+export interface ModelScopeOptions<TAttributes = any> {
   /**
    * Name of the scope and it's query
    */
@@ -1340,7 +1352,7 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
 /**
  * Interface for Attributes provided for a column
  */
-export type ModelAttributes<M extends Model, TCreationAttributes> = {
+export type ModelAttributes<M extends Model = Model, TCreationAttributes = any> = {
   /**
    * The description of a database column
    */
@@ -1517,7 +1529,7 @@ export interface AddScopeOptions {
 }
 
 export abstract class Model<TModelAttributes extends {} = any, TCreationAttributes extends {} = TModelAttributes>
-  extends Hooks<TModelAttributes, TCreationAttributes>
+  extends Hooks<Model<TModelAttributes, TCreationAttributes>, TModelAttributes, TCreationAttributes>
 {
   /**
    * A dummy variable that doesn't exist on the real object. This exists so
@@ -2631,7 +2643,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Builds a new model instance.
    * @param values an object of key value pairs
    */
-  constructor(values?: object, options?: BuildOptions);
+  constructor(values?: TCreationAttributes, options?: BuildOptions);
 
   /**
    * Get an object representing the query for this instance, use with `options.where`
