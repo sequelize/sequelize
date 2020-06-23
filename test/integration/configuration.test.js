@@ -69,14 +69,6 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
     });
   });
 
-  describe('Instantiation with a URL string', () => { 
-    it('should handle options in URL', () => {
-      const sequelizeWithOptions = new Sequelize('mssql://user:password!@server.database.windows.net/database?options={"encrypt":true}&anotherOption=1');
-      expect(sequelizeWithOptions.options.dialectOptions.options.encrypt).to.equal(true);
-      expect(sequelizeWithOptions.options.dialectOptions.anotherOption).to.equal('1');
-    });
-  });
-
   describe('Instantiation with arguments', () => {
     if (dialect === 'sqlite') {
       it('should respect READONLY / READWRITE connection modes', async () => {
