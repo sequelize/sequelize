@@ -43,7 +43,7 @@ const typedAnd: AndOperator<{ a: number }> = {
     [Op.and]: { a: 5 }, // AND (a = 5)
 };
 
-const or: OrOperator<{ a: number }> = {
+const or: OrOperator = {
     [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
 };
 const typedOr: OrOperator<{ a: number }> = {
