@@ -177,7 +177,7 @@ async function stuff() {
 
 ## Usage of `sequelize.define`
 
-TypeScript doesn't know how to generate a class definition when we use the `sequelize.define` method to define a Model. Therefore, we need to do some manual work and declare a dummy class, derive a static type, and cast the result of `sequelize.define` to the static type.
+In Sequelize versions before v5, the default way of defining a model involved using `sequelize.define`. It's still possible to define models with that, and you can also add typings to these models using interfaces.
 
 ```ts
 // We recommend you declare an interface for the attributes, for stricter typechecking
@@ -191,12 +191,7 @@ interface MyModelCreationAttributes extends Optional<MyModelAttributes, 'id'> {}
 // We need to declare an interface for our model that is basically what our class would be
 interface MyModel extends Model<MyModelAttributes, MyModelCreationAttributes>, MyModelAttributes {}
 
-type MyModelStatic = typeof Model & {
-  new (values?: object, options?: BuildOptions): MyModel;
-};
-
-// TS can't derive a proper class definition from a `.define` call, therefor we need to cast here.
-const MyDefineModel = <MyModelStatic>sequelize.define<MyModel>('MyDefineModel', {
+const MyDefineModel = sequelize.define<MyModel>('MyDefineModel', {
   id: {
     primaryKey: true,
     type: DataTypes.INTEGER.UNSIGNED,
@@ -220,12 +215,7 @@ interface MyModel extends Model {
   name: string;
 }
 
-type MyModelStatic = typeof Model & {
-  new (values?: object, options?: BuildOptions): MyModel;
-};
-
-// TS can't derive a proper class definition from a `.define` call, therefor we need to cast here.
-const MyDefineModel = <MyModelStatic>sequelize.define<MyModel>('MyDefineModel', {
+const MyDefineModel = sequelize.define<MyModel>('MyDefineModel', {
   id: {
     primaryKey: true,
     type: DataTypes.INTEGER.UNSIGNED,

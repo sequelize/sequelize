@@ -16,18 +16,10 @@ interface UserCreationAttributes extends Partial<UserAttributes> {}
 
 interface UserModel extends Model<UserAttributes, UserCreationAttributes>, UserAttributes {}
 
-type UserModelStatic = typeof Model & {
-  new (values?: object, options?: BuildOptions): UserModel;
-  customStaticMethod(): unknown;
-}
 const User = sequelize.define<UserModel>(
-  'User', { firstName: DataTypes.STRING }, { tableName: 'users' }) as UserModelStatic;
-
-User.customStaticMethod = () => {};
+  'User', { firstName: DataTypes.STRING }, { tableName: 'users' });
 
 async function test() {
-    User.customStaticMethod();
-
     const user: UserModel = new User() as UserModel;
 
     const user2: UserModel | null = await User.findOne();
@@ -51,7 +43,7 @@ const UntypedUser = sequelize.define<UntypedUserModel>(
 UntypedUser.customStaticMethod = () => {};
 
 async function testUntyped() {
-  User.customStaticMethod();
+  UntypedUser.customStaticMethod();
 
   const user: UntypedUserModel = new UntypedUser() as UntypedUserModel;
 
