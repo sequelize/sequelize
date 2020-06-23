@@ -2031,13 +2031,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static upsert<M extends Model>(
     this: ModelStatic<M>,
     values: M['_creationAttributes'],
-    options?: UpsertOptions<M['_attributes']> & { returning?: false | undefined }
-  ): Promise<[M, boolean | null]>;
-
-  public static upsert<M extends Model>(
-    this: ModelStatic<M>,
-    values: M['_creationAttributes'],
-    options?: UpsertOptions<M['_attributes']> & { returning?: true | undefined }
+    options?: UpsertOptions<M['_attributes']>
   ): Promise<[M, boolean | null]>;
 
   /**
@@ -2780,8 +2774,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *               If an array is provided, the same is true for each column.
    *               If and object is provided, each column is incremented by the value given.
    */
-  public increment<K extends keyof this>(
-    fields: K | K[] | Partial<this>,
+  public increment<K extends keyof TModelAttributes>(
+    fields: K | K[] | Partial<TModelAttributes>,
     options?: IncrementDecrementOptionsWithBy<TModelAttributes>
   ): Promise<this>;
 
@@ -2805,8 +2799,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *               If an array is provided, the same is true for each column.
    *               If and object is provided, each column is decremented by the value given
    */
-  public decrement<K extends keyof this>(
-    fields: K | K[] | Partial<this>,
+  public decrement<K extends keyof TModelAttributes>(
+    fields: K | K[] | Partial<TModelAttributes>,
     options?: IncrementDecrementOptionsWithBy<TModelAttributes>
   ): Promise<this>;
 
