@@ -93,7 +93,6 @@ This method now only takes 2 parameters, `tableName` and `options`. Previously t
 - fix: remove custom inspect [#12262](https://github.com/sequelize/sequelize/pull/12262)
 - refactor: cleanup query generators [#12304](https://github.com/sequelize/sequelize/pull/12304)
 
-
 ### 6.0.0-beta.6
 
 - docs(add-constraint): options.fields support
