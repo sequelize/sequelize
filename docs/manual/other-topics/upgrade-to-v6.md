@@ -29,6 +29,7 @@ We have updated our minimum supported database engine versions. Using older data
 - Bluebird has been removed. Internally all methods are now using async/await. Public API now returns native promises. Thanks to [Andy Edwards](https://github.com/jedwards1211) for this refactor work.
 - `Sequelize.Promise` is no longer available.
 - `sequelize.import` method has been removed. CLI users should update to `sequelize-cli@6`.
+- All instances of QueryInterface and QueryGenerator have been renamed to their lowerCamelCase variants eg. queryInterface and queryGenerator when used as property names on Model and Dialect, the class names remain the same.
 
 ### Model
 
