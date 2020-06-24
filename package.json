@@ -71,7 +71,7 @@
     "js-combinatorics": "^0.5.4",
     "lcov-result-merger": "^3.0.0",
     "lint-staged": "^8.1.5",
-    "mariadb": "^2.1.1",
+    "mariadb": "2.2.0",
     "markdownlint-cli": "^0.18.0",
     "mocha": "^6.1.4",
     "mysql2": "^1.6.5",
@@ -123,7 +123,7 @@
     ]
   },
   "publishConfig": {
-    "tag": "latest"
+    "tag": "v5"
   },
   "scripts": {
     "lint": "eslint lib test --quiet",
