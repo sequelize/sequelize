@@ -233,5 +233,94 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       });
     }
+
+    if (dialect === 'sqlite') {
+      it('should not remove unique constraints when adding or modifying columns', async function() {
+        await this.queryInterface.createTable({
+          tableName: 'Foos'
+        }, {
+          id: {
+            allowNull: false,
+            autoIncrement: true,
+            primaryKey: true,
+            type: DataTypes.INTEGER
+          },
+          name: {
+            allowNull: false,
+            unique: true,
+            type: DataTypes.STRING
+          },
+          email: {
+            allowNull: false,
+            unique: true,
+            type: DataTypes.STRING
+          }
+        });
+
+        await this.queryInterface.addColumn('Foos', 'phone', {
+          type: DataTypes.STRING,
+          defaultValue: null,
+          allowNull: true
+        });
+
+        let table = await this.queryInterface.describeTable({
+          tableName: 'Foos'
+        });
+        expect(table.phone.allowNull).to.equal(true, '(1) phone column should allow null values');
+        expect(table.phone.defaultValue).to.equal(null, '(1) phone column should have a default value of null');
+        expect(table.email.unique).to.equal(true, '(1) email column should remain unique');
+        expect(table.name.unique).to.equal(true, '(1) name column should remain unique');
+
+        await this.queryInterface.changeColumn('Foos', 'email', {
+          type: DataTypes.STRING,
+          allowNull: true
+        });
+
+        table = await this.queryInterface.describeTable({
+          tableName: 'Foos'
+        });
+        expect(table.email.allowNull).to.equal(true, '(2) email column should allow null values');
+        expect(table.email.unique).to.equal(true, '(2) email column should remain unique');
+        expect(table.name.unique).to.equal(true, '(2) name column should remain unique');
+      });
+
+      it('should add unique constraints to 2 columns and keep allowNull', async function() {
+        await this.queryInterface.createTable({
+          tableName: 'Foos'
+        }, {
+          id: {
+            allowNull: false,
+            autoIncrement: true,
+            primaryKey: true,
+            type: DataTypes.INTEGER
+          },
+          name: {
+            allowNull: false,
+            type: DataTypes.STRING
+          },
+          email: {
+            allowNull: true,
+            type: DataTypes.STRING
+          }
+        });
+
+        await this.queryInterface.changeColumn('Foos', 'name', {
+          type: DataTypes.STRING,
+          unique: true
+        });
+        await this.queryInterface.changeColumn('Foos', 'email', {
+          type: DataTypes.STRING,
+          unique: true
+        });
+
+        const table = await this.queryInterface.describeTable({
+          tableName: 'Foos'
+        });
+        expect(table.name.allowNull).to.equal(false);
+        expect(table.name.unique).to.equal(true);
+        expect(table.email.allowNull).to.equal(true);
+        expect(table.email.unique).to.equal(true);
+      });
+    }
   });
 });
