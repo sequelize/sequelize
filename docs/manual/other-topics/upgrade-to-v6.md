@@ -13,11 +13,11 @@ Sequelize v6 will only support Node 10 and up [#10821](https://github.com/sequel
 You should now use [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked) package for CLS support.
 
 ```js
-  const cls = require('cls-hooked');
-  const namespace = cls.createNamespace('....');
-  const Sequelize = require('sequelize');
+const cls = require("cls-hooked");
+const namespace = cls.createNamespace("....");
+const Sequelize = require("sequelize");
 
-  Sequelize.useCLS(namespace);
+Sequelize.useCLS(namespace);
 ```
 
 ### Database Engine Support
@@ -28,7 +28,7 @@ We have updated our minimum supported database engine versions. Using older data
 
 - Bluebird has been removed. Internally all methods are now using async/await. Public API now returns native promises. Thanks to [Andy Edwards](https://github.com/jedwards1211) for this refactor work.
 - `Sequelize.Promise` is no longer available.
-- `sequelize.import` method has been removed.
+- `sequelize.import` method has been removed. CLI users should update to `sequelize-cli@6`.
 
 ### Model
 
@@ -41,22 +41,39 @@ Option `returning: true` will no longer return attributes that are not defined i
 This method now tests for equality with [`_.isEqual`](https://lodash.com/docs/4.17.15#isEqual) and is now deep aware for JSON objects. Modifying a nested value for a JSON object won't mark it as changed (since it is still the same object).
 
 ```js
-  const instance = await MyModel.findOne();
+const instance = await MyModel.findOne();
 
-  instance.myJsonField.someProperty = 12345; // Changed from something else to 12345
-  console.log(instance.changed()); // false
+instance.myJsonField.someProperty = 12345; // Changed from something else to 12345
+console.log(instance.changed()); // false
 
-  await instance.save(); // this will not save anything
+await instance.save(); // this will not save anything
 
-  instance.changed('myJsonField', true);
-  console.log(instance.changed()); // ['myJsonField']
+instance.changed("myJsonField", true);
+console.log(instance.changed()); // ['myJsonField']
 
-  await instance.save(); // will save
+await instance.save(); // will save
 ```
 
 #### `Model.bulkCreate()`
 
 This method now throws `Sequelize.AggregateError` instead of `Bluebird.AggregateError`. All errors are now exposed as `errors` key.
+
+#### `Model.upsert()`
+
+Native upsert is now supported for all dialects.
+
+```js
+const [instance, created] = await MyModel.upsert({});
+```
+
+Signature for this method has been changed to `Promise<Model,boolean | null>`. First index contains upserted `instance`, second index contains a boolean (or `null`) indicating if record was created or updated. For SQLite/Postgres, `created` value will always be `null`.
+
+- MySQL - Implemented with ON DUPLICATE KEY UPDATE
+- PostgreSQL - Implemented with ON CONFLICT DO UPDATE
+- SQLite - Implemented with ON CONFLICT DO UPDATE
+- MSSQL - Implemented with MERGE statement
+
+_<ins>Note for Postgres users:</ins>_ If upsert payload contains PK field, then PK will be used as the conflict target. Otherwise first unique constraint will be selected as the conflict key.
 
 ### QueryInterface
 
@@ -75,7 +92,7 @@ This method now only takes 2 parameters, `tableName` and `options`. Previously t
 - docs: responsive [#12308](https://github.com/sequelize/sequelize/pull/12308)
 - docs: update feature request template
 - feat(postgres): native upsert [#12301](https://github.com/sequelize/sequelize/pull/12301)
-- feat(sequelize): allow passing dialectOptions.options from url  [#12404](https://github.com/sequelize/sequelize/pull/12404)
+- feat(sequelize): allow passing dialectOptions.options from url [#12404](https://github.com/sequelize/sequelize/pull/12404)
 - fix(include): check if attributes specified for included through model [#12316](https://github.com/sequelize/sequelize/pull/12316)
 - fix(model.destroy): return 0 with truncate [#12281](https://github.com/sequelize/sequelize/pull/12281)
 - fix(mssql): empty order array generates invalid FETCH statement [#12261](https://github.com/sequelize/sequelize/pull/12261)
@@ -129,7 +146,7 @@ This method now only takes 2 parameters, `tableName` and `options`. Previously t
 - fix(mssql): use uppercase for engine table and columns [#12212](https://github.com/sequelize/sequelize/pull/12212)
 - fix(pool): show deprecation when engine is not supported [#12218](https://github.com/sequelize/sequelize/pull/12218)
 - fix(postgres): addColumn support ARRAY(ENUM) [#12259](https://github.com/sequelize/sequelize/pull/12259)
-- fix(query): do not bind $ used within a whole-word  [#12250](https://github.com/sequelize/sequelize/pull/12250)
+- fix(query): do not bind \$ used within a whole-word [#12250](https://github.com/sequelize/sequelize/pull/12250)
 - fix(query-generator): handle literal for substring based operators [#12210](https://github.com/sequelize/sequelize/pull/12210)
 - fix(query-interface): allow passing null for query interface insert [#11931](https://github.com/sequelize/sequelize/pull/11931)
 - fix(query-interface): allow sequelize.fn and sequelize.literal in fields of IndexesOptions [#12224](https://github.com/sequelize/sequelize/pull/12224)

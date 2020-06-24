@@ -74,8 +74,7 @@ jobs:
     - stage: release
       node_js: '10'
       script:
-        - npm run lint
-        #- npm run semantic-release
+        - npm run semantic-release
 
 stages:
   - lint
