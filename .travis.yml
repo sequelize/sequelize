@@ -6,7 +6,6 @@ language: node_js
 branches:
   only:
     - master
-    - /^greenkeeper/.*$/
   except:
     - /^v\d+\.\d+\.\d+$/
 
@@ -37,7 +36,7 @@ before_script:
 
 script:
   - |-
-    if [ "$COVERAGE" = true ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi
+    npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info
 
 jobs:
   include:
@@ -75,14 +74,8 @@ jobs:
     - stage: release
       node_js: '10'
       script:
-        - npm run lint-docs #change after v6 released
-      before_deploy:
-        - npm run docs
-      deploy:
-        provider: surge
-        project: ./esdoc/
-        domain: docs.sequelizejs.com
-        skip_cleanup: true
+        - npm run lint
+        #- npm run semantic-release
 
 stages:
   - lint

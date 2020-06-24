@@ -66,6 +66,34 @@ This method now only takes 2 parameters, `tableName` and `options`. Previously t
 
 ## Changelog
 
+### 6.0.0-beta.7
+
+- docs(associations): belongs to many create with through table
+- docs(query-interface): fix broken links [#12272](https://github.com/sequelize/sequelize/pull/12272)
+- docs(sequelize): omitNull only works for CREATE/UPDATE queries
+- docs: asyncify [#12297](https://github.com/sequelize/sequelize/pull/12297)
+- docs: responsive [#12308](https://github.com/sequelize/sequelize/pull/12308)
+- docs: update feature request template
+- feat(postgres): native upsert [#12301](https://github.com/sequelize/sequelize/pull/12301)
+- feat(sequelize): allow passing dialectOptions.options from url  [#12404](https://github.com/sequelize/sequelize/pull/12404)
+- fix(include): check if attributes specified for included through model [#12316](https://github.com/sequelize/sequelize/pull/12316)
+- fix(model.destroy): return 0 with truncate [#12281](https://github.com/sequelize/sequelize/pull/12281)
+- fix(mssql): empty order array generates invalid FETCH statement [#12261](https://github.com/sequelize/sequelize/pull/12261)
+- fix(postgres): parse enums correctly when describing a table [#12409](https://github.com/sequelize/sequelize/pull/12409)
+- fix(query): ensure correct return signature for QueryTypes.RAW [#12305](https://github.com/sequelize/sequelize/pull/12305)
+- fix(query): preserve cls context for logger [#12328](https://github.com/sequelize/sequelize/pull/12328)
+- fix(query-generator): do not generate GROUP BY clause if options.group is empty [#12343](https://github.com/sequelize/sequelize/pull/12343)
+- fix(reload): include default scope [#12399](https://github.com/sequelize/sequelize/pull/12399)
+- fix(types): add Association into OrderItem type [#12332](https://github.com/sequelize/sequelize/pull/12332)
+- fix(types): add clientMinMessages to Options interface [#12375](https://github.com/sequelize/sequelize/pull/12375)
+- fix(types): transactionType in Options [#12377](https://github.com/sequelize/sequelize/pull/12377)
+- fix(types): add support for optional values in "where" clauses [#12337](https://github.com/sequelize/sequelize/pull/12337)
+- fix(types): add missing fields to 'FindOrCreateType' [#12338](https://github.com/sequelize/sequelize/pull/12338)
+- fix: add missing sql and parameters properties to some query errors [#12299](https://github.com/sequelize/sequelize/pull/12299)
+- fix: remove custom inspect [#12262](https://github.com/sequelize/sequelize/pull/12262)
+- refactor: cleanup query generators [#12304](https://github.com/sequelize/sequelize/pull/12304)
+
+
 ### 6.0.0-beta.6
 
 - docs(add-constraint): options.fields support
