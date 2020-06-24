@@ -51,7 +51,7 @@ jobs:
       node_js: '6'
       env: DIALECT=sqlite
     - stage: test
-      node_js: '10'
+      node_js: '6'
       sudo: required
       env: MARIADB_VER=mariadb-103 SEQ_MARIADB_PORT=8960 DIALECT=mariadb
     - stage: test
