@@ -134,6 +134,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
+    if (_.get(current.dialect.supports, 'returnValues.output')) {
+      it('should output the updated record', async function() {
+        const account = await this.Account.create({ ownerId: 2 });
+
+        const [, accounts] = await this.Account.update({ name: 'FooBar' }, {
+          where: {
+            id: account.get('id')
+          },
+          returning: true
+        });
+
+        const firstAcc = accounts[0];
+        expect(firstAcc.name).to.be.equal('FooBar');
+
+        await firstAcc.reload();
+        expect(firstAcc.ownerId, 'Reloaded as output update only return primary key and changed fields').to.be.equal(2);
+      });
+    }
+
     if (current.dialect.supports['LIMIT ON UPDATE']) {
       it('should only update one row', async function() {
         await this.Account.create({
