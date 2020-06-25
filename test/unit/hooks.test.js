@@ -392,7 +392,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       this.hook4 = sinon.spy();
     });
 
-    it('runs all beforInit/afterInit hooks', function() {
+    it('runs all beforeInit/afterInit hooks', function() {
       Support.Sequelize.addHook('beforeInit', 'h1', this.hook1);
       Support.Sequelize.addHook('beforeInit', 'h2', this.hook2);
       Support.Sequelize.addHook('afterInit', 'h3', this.hook3);
@@ -420,7 +420,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       expect(this.hook4).to.have.been.calledOnce;
     });
 
-    it('runs all beforDefine/afterDefine hooks', function() {
+    it('runs all beforeDefine/afterDefine hooks', function() {
       const sequelize = Support.createSequelizeInstance();
       sequelize.addHook('beforeDefine', this.hook1);
       sequelize.addHook('beforeDefine', this.hook2);
