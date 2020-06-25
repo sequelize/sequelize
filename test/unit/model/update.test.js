@@ -46,7 +46,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('can detect complexe objects', function() {
+    it('can detect complex objects', function() {
       const Where = function() { this.secretValue = '1'; };
 
       expect(() => {
