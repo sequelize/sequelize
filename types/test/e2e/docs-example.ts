@@ -1,6 +1,6 @@
 // This file is used as example.
 
-import {BuildOptions, DataTypes, Model, Sequelize} from 'sequelize';
+import { BuildOptions, DataTypes, Model, Sequelize } from 'sequelize';
 import {
   Association,
   HasManyAddAssociationMixin,

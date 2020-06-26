@@ -5,7 +5,7 @@ import { OptimisticLockError } from '../lib/errors';
 
 async function test() {
   try {
-    await User.create({ username: 'john_doe' });
+    await User.create({ username: 'john_doe', firstName: 'John' });
   } catch (e) {
     if (e instanceof UniqueConstraintError) {
       throw new Error((e as UniqueConstraintError).sql);

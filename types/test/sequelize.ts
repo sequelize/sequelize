@@ -1,4 +1,4 @@
-import { Config, Sequelize, Model, QueryTypes } from 'sequelize';
+import { Config, Sequelize, Model, QueryTypes, ModelCtor } from 'sequelize';
 import { Fn } from '../lib/utils';
 
 Sequelize.useCLS({
@@ -6,7 +6,7 @@ Sequelize.useCLS({
 
 export const sequelize = new Sequelize({
   hooks: {
-    afterConnect: (connection, config: Config) => {
+    afterConnect: (connection: unknown, config: Config) => {
       // noop
     }
   },
@@ -56,7 +56,7 @@ const rnd: Fn = sequelize.random();
 
 class Model1 extends Model{}
 class Model2 extends Model{}
-const myModel: typeof Model1 = sequelize.models.asd;
+const myModel: ModelCtor<Model1> = sequelize.models.asd;
 myModel.hasOne(Model2)
 myModel.findAll();
 

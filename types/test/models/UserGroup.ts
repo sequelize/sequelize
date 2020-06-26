@@ -14,6 +14,8 @@ import {
 } from 'sequelize';
 import { sequelize } from '../connection';
 
+// This class doesn't extend the generic Model<TAttributes>, but should still
+// function just fine, with a bit less safe type-checking
 export class UserGroup extends Model {
     public static associations: {
         users: HasMany<UserGroup, User>
