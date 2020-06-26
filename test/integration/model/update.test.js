@@ -139,6 +139,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
+    if (_.get(current.dialect.supports, 'returnValues.output')) {
+      it('should output the updated record', function() {
+        return this.Account.create({ ownerId: 2 }).then(account => {
+          return this.Account.update({ name: 'FooBar' }, {
+            where: {
+              id: account.get('id')
+            },
+            returning: true
+          }).then(([, accounts]) => {
+            const firstAcc = accounts[0];
+            expect(firstAcc.name).to.be.equal('FooBar');
+            return firstAcc.reload();
+          }).then(accountReloaded => {
+            expect(accountReloaded.ownerId, 'Reloaded as output update only return primary key and changed fields').to.be.equal(2);
+          });
+        });
+      });
+    }
+
     if (current.dialect.supports['LIMIT ON UPDATE']) {
       it('should only update one row', function() {
         return this.Account.create({

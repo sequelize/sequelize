@@ -2043,7 +2043,7 @@ export abstract class Model<T = any, T2 = any> extends Hooks {
   /**
    * Update multiple instances that match the where options. The promise returns an array with one or two
    * elements. The first element is always the number of affected rows, while the second element is the actual
-   * affected rows (only supported in postgres with `options.returning` true.)
+   * affected rows (only supported in postgres and mssql with `options.returning` true.)
    */
   public static update<M extends Model>(
     this: { new (): M } & typeof Model,
