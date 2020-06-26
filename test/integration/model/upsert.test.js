@@ -620,6 +620,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
         });
+
+        it('should return default value set by the database (upsert)', function() {      
+          const User = this.sequelize.define('User', {
+            name: { type: DataTypes.STRING, primaryKey: true },
+            code: { type: Sequelize.INTEGER, defaultValue: Sequelize.literal(2020) }
+          });
+    
+          return User.sync({ force: true })
+            .then(() => User.upsert({ name: 'Test default value' }, { returning: true }))
+            .then(([user, created]) => {
+              expect(user.name).to.be.equal('Test default value');
+              expect(user.code).to.be.equal(2020);
+              expect(created).to.be.true;
+            });
+        });
       }
     });
   }

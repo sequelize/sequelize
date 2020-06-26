@@ -1454,6 +1454,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
   });
 
+  if (current.dialect.supports.returnValues) {
+    it('should return default value set by the database (create)', function() {
+  
+      const User = this.sequelize.define('User', {
+        name: DataTypes.STRING,
+        code: { type: Sequelize.INTEGER, defaultValue: Sequelize.literal(2020) }
+      });
+
+      return User.sync({ force: true })
+        .then(() => User.create({ name: 'FooBar' }))
+        .then(user => {
+          expect(user.name).to.be.equal('FooBar');
+          expect(user.code).to.be.equal(2020);    
+        });
+    });
+  }  
+
   it('should support logging', function() {
     const spy = sinon.spy();
 
