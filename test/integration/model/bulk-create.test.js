@@ -7,8 +7,10 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
+  QuoteHelper = require('../../../lib/dialects/abstract/query-generator/helpers/quote'),
   dialect = Support.getTestDialect(),
-  current = Support.sequelize;
+  current = Support.sequelize,
+  _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function() {
@@ -771,6 +773,73 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
     }
+
+    it('should support both literal and non-literal attributes', function() {
+      const User = this.sequelize.define('user', {
+        name: Sequelize.STRING,
+        email: Sequelize.STRING
+      });
+
+      return User.sync({ force: true })
+        .then(() => User.bulkCreate([
+          {
+            email: Sequelize.literal('TRIM(\'  example@EMAIL.com  \')'),
+            name: 'name'
+          }
+        ]))
+        .then(() => User.findOne({
+          attributes: [
+            'name',
+            'email',
+            [
+              Sequelize.literal(`LOWER(${QuoteHelper.quoteIdentifier(dialect, 'email')})`),
+              'literalEmail'
+            ]
+          ],
+          where: {
+            name: 'name'
+          }
+        }))
+        .then(user => {
+          const userData = user.get();
+
+          expect(userData.email).to.eql('example@EMAIL.com');
+          expect(userData.literalEmail).to.eql('example@email.com');
+        });
+    });
+
+    // eslint-disable-next-line
+    it.only('should support both literal and non-literal attributes in RETURNING fragment', function() {
+      const User = this.sequelize.define('user', {
+        name: Sequelize.STRING,
+        email: Sequelize.STRING
+      });
+
+      return User.sync({ force: true })
+        .then(() => User.bulkCreate([
+          {
+            email: Sequelize.literal('TRIM(\'  example@EMAIL.com  \')'),
+            name: 'name'
+          }
+        ], {
+          returning: [
+            'name',
+            [
+              Sequelize.literal(`LOWER(${QuoteHelper.quoteIdentifier(dialect, 'email')})`),
+              'literalEmail'
+            ]
+          ]
+        }))
+        .then(results => {
+          if (!_.get(current.dialect.supports, 'returnValues.returning')) {
+            return;
+          }
+
+          const userData = results[0].get();
+
+          expect(userData.literalEmail).to.eql('example@email.com');
+        });
+    });
 
     describe('enums', () => {
       it('correctly restores enum values', async function() {
