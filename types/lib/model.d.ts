@@ -761,6 +761,20 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   updateOnDuplicate?: (keyof TAttributes)[];
 
   /**
+   * The name of a unique index to be used for generation of an `ON CONFLICT`
+   * clause. (Only supported by SQLite >= 3.24.0 & Postgres >= 9.5)
+   */
+  upsertIndex?: string;
+
+  /**
+   * Either an array of database columns that are either primary keys or
+   * composite members of a unique key, or an object containing fields and a
+   * where clause that represents a partial index. Used for generating an `ON
+   * CONFLICT` clause. (Only supported by SQLite >= 3.24.0 & Postgres >= 9.5)
+   */
+  upsertKeys?: string[] | { fields: string[], where: WhereOptions };
+
+  /**
    * Include options. See `find` for details
    */
   include?: Includeable | Includeable[];
