@@ -1293,9 +1293,9 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   comment?: string;
 
   /**
-   * An object with reference configurations
+   * An object with reference configurations or the column name as string
    */
-  references?: ModelAttributeColumnReferencesOptions;
+  references?: string | ModelAttributeColumnReferencesOptions;
 
   /**
    * What should happen when the referenced key is updated. One of CASCADE, RESTRICT, SET DEFAULT, SET NULL or
