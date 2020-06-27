@@ -21,8 +21,8 @@ export interface UserAttributes {
 }
 
 /**
- * In this case, we make every single field optional. In real cases, only
- * fields that have default/autoincrement values should be made optional.
+ * In this case, we make most fields optional. In real cases,
+ * only fields that have default/autoincrement values should be made optional.
  */
 export interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'username' | 'lastName' | 'groupId'> {}
 
@@ -48,6 +48,10 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
 
 User.init(
   {
+    id: {
+      type: DataTypes.NUMBER,
+      primaryKey: true,
+    },
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
     username: DataTypes.STRING,
@@ -62,7 +66,7 @@ User.init(
     },
     setterMethods: {
       b(val: string) {
-        (<User>this).username = val;
+        this.username = val;
       },
     },
     scopes: {
