@@ -321,6 +321,37 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table.email.allowNull).to.equal(true);
         expect(table.email.unique).to.equal(true);
       });
+
+      it('should not remove foreign keys when adding or modifying columns', async function() {
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
+          User = this.sequelize.define('User', { username: DataTypes.STRING });
+
+        User.hasOne(Task);
+
+        await User.sync({ force: true });
+        await Task.sync({ force: true });
+
+        await this.queryInterface.addColumn('Tasks', 'bar', DataTypes.INTEGER);
+        let refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        expect(refs.length).to.equal(1, 'should keep foreign key after adding column');
+        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].referencedTableName).to.equal('Users');
+        expect(refs[0].referencedColumnName).to.equal('id');
+
+        await this.queryInterface.changeColumn('Tasks', 'bar', DataTypes.STRING);
+        refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        expect(refs.length).to.equal(1, 'should keep foreign key after changing column');
+        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].referencedTableName).to.equal('Users');
+        expect(refs[0].referencedColumnName).to.equal('id');
+
+        await this.queryInterface.renameColumn('Tasks', 'bar', 'foo');
+        refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        expect(refs.length).to.equal(1, 'should keep foreign key after renaming column');
+        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].referencedTableName).to.equal('Users');
+        expect(refs[0].referencedColumnName).to.equal('id');
+      });
     }
   });
 });
