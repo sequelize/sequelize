@@ -577,6 +577,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
         });
+
+        it('should return default value set by the database (upsert)', async function() {      
+          const User = this.sequelize.define('User', {
+            name: { type: DataTypes.STRING, primaryKey: true },
+            code: { type: Sequelize.INTEGER, defaultValue: Sequelize.literal(2020) }
+          });
+    
+          await User.sync({ force: true });
+    
+          const [user, created] = await User.upsert({ name: 'Test default value' }, { returning: true });
+      
+          expect(user.name).to.be.equal('Test default value');
+          expect(user.code).to.be.equal(2020);
+
+          if (dialect === 'sqlite' || dialect === 'postgres') {
+            expect(created).to.be.null;
+          } else {
+            expect(created).to.be.true;
+          }
+        });
       }
     });
   }

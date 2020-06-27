@@ -1420,4 +1420,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     expect(spy.called).to.be.ok;
   });
+
+  if (current.dialect.supports.returnValues) {
+    it('should return default value set by the database (create)', async function() {
+  
+      const User = this.sequelize.define('User', {
+        name: DataTypes.STRING,
+        code: { type: Sequelize.INTEGER, defaultValue: Sequelize.literal(2020) }
+      });
+
+      await User.sync({ force: true });
+
+      const user = await User.create({ name: 'FooBar' });
+  
+      expect(user.name).to.be.equal('FooBar');
+      expect(user.code).to.be.equal(2020);
+    });
+  }  
 });
