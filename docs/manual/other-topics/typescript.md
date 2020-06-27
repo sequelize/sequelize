@@ -63,7 +63,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
-interface ProjectAttributes {
+interface ProjectCreationAttributes {
   ownerId: number;
   name: string;
 }
