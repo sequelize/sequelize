@@ -1633,7 +1633,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static init<M extends Model>(
     this: ModelStatic<M>,
-    attributes: ModelAttributes<M, M['_creationAttributes']>, options: InitOptions<M>
+    attributes: ModelAttributes<M, M['_attributes']>, options: InitOptions<M>
   ): Model;
 
   /**

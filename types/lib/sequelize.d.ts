@@ -772,7 +772,7 @@ export class Sequelize extends Hooks {
    * A hook that is run before sequelize.sync call
    * @param fn   A callback function that is called with options passed to sequelize.sync
    */
-  public static beforeBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
+  public static beforeBulkSync(dname: string, fn: (options: SyncOptions) => HookReturn): void;
   public static beforeBulkSync(fn: (options: SyncOptions) => HookReturn): void;
 
   /**
@@ -1164,7 +1164,7 @@ export class Sequelize extends Hooks {
    * @param options  These options are merged with the default define options provided to the Sequelize
    *           constructor
    */
-  public define<M extends Model, TCreationAttributes = M['_creationAttributes']>(
+  public define<M extends Model, TCreationAttributes = M['_attributes']>(
     modelName: string,
     attributes: ModelAttributes<M, TCreationAttributes>,
     options?: ModelOptions
