@@ -209,7 +209,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             expect(firstForeignKeys.length).to.be.equal(newForeignKeys.length);
             expect(firstForeignKeys[0].columnName).to.be.equal('level_id');
             expect(firstForeignKeys[0].columnName).to.be.equal(newForeignKeys[0].columnName);
-            
+
             return this.queryInterface.describeTable({
               tableName: 'users'
             });
@@ -233,6 +233,137 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             return this.queryInterface.describeTable({ tableName: 'users' });
           }).then(describedTable2 => {
             expect(describedTable2.level_id.comment).to.be.equal('FooBar');
+          });
+        });
+      });
+    }
+
+    if (dialect === 'sqlite') {
+      it('should not remove unique constraints when adding or modifying columns', function() {
+        return this.queryInterface.createTable({
+          tableName: 'Foos'
+        }, {
+          id: {
+            allowNull: false,
+            autoIncrement: true,
+            primaryKey: true,
+            type: DataTypes.INTEGER
+          },
+          name: {
+            allowNull: false,
+            unique: true,
+            type: DataTypes.STRING
+          },
+          email: {
+            allowNull: false,
+            unique: true,
+            type: DataTypes.STRING
+          }
+        }).then(() => {
+          return this.queryInterface.addColumn('Foos', 'phone', {
+            type: DataTypes.STRING,
+            defaultValue: null,
+            allowNull: true
+          }).then(() => {
+            return this.queryInterface.describeTable({
+              tableName: 'Foos'
+            }).then(table => {
+              expect(table.phone.allowNull).to.equal(true, '(1) phone column should allow null values');
+              expect(table.phone.defaultValue).to.equal(null, '(1) phone column should have a default value of null');
+              expect(table.email.unique).to.equal(true, '(1) email column should remain unique');
+              expect(table.name.unique).to.equal(true, '(1) name column should remain unique');
+            }).then(() => {
+              return this.queryInterface.changeColumn('Foos', 'email', {
+                type: DataTypes.STRING,
+                allowNull: true
+              }).then(() => {
+                return this.queryInterface.describeTable({
+                  tableName: 'Foos'
+                }).then(table => {
+                  expect(table.email.allowNull).to.equal(true, '(2) email column should allow null values');
+                  expect(table.email.unique).to.equal(true, '(2) email column should remain unique');
+                  expect(table.name.unique).to.equal(true, '(2) name column should remain unique');
+                });
+              });
+            });
+          });
+        });
+      });
+
+      it('should add unique constraints to 2 columns and keep allowNull', function() {
+        return this.queryInterface.createTable({
+          tableName: 'Foos'
+        }, {
+          id: {
+            allowNull: false,
+            autoIncrement: true,
+            primaryKey: true,
+            type: DataTypes.INTEGER
+          },
+          name: {
+            allowNull: false,
+            type: DataTypes.STRING
+          },
+          email: {
+            allowNull: true,
+            type: DataTypes.STRING
+          }
+        }).then(() => {
+          return this.queryInterface.changeColumn('Foos', 'name', {
+            type: DataTypes.STRING,
+            unique: true
+          }).then(() => {
+            return this.queryInterface.changeColumn('Foos', 'email', {
+              type: DataTypes.STRING,
+              unique: true
+            }).then(() => {
+              return this.queryInterface.describeTable({
+                tableName: 'Foos'
+              }).then(table => {
+                expect(table.name.allowNull).to.equal(false);
+                expect(table.name.unique).to.equal(true);
+                expect(table.email.allowNull).to.equal(true);
+                expect(table.email.unique).to.equal(true);
+              });
+            });
+          });
+        });
+      });
+
+      it('should not remove foreign keys when adding or modifying columns', function() {
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING }),
+          User = this.sequelize.define('User', { username: DataTypes.STRING });
+
+        User.hasOne(Task);
+
+        return User.sync({ force: true }).then(() => {
+          return Task.sync({ force: true }).then(() => {
+            return this.queryInterface.addColumn('Tasks', 'bar', DataTypes.INTEGER).then(() => {
+              return this.queryInterface.getForeignKeyReferencesForTable('Tasks').then(refs => {
+                expect(refs.length).to.equal(1, 'should keep foreign key after adding column');
+                expect(refs[0].columnName).to.equal('UserId');
+                expect(refs[0].referencedTableName).to.equal('Users');
+                expect(refs[0].referencedColumnName).to.equal('id');
+              }).then(() => {
+                return this.queryInterface.changeColumn('Tasks', 'bar', DataTypes.STRING).then(() => {
+                  return this.queryInterface.getForeignKeyReferencesForTable('Tasks').then(refs => {
+                    expect(refs.length).to.equal(1, 'should keep foreign key after changing column');
+                    expect(refs[0].columnName).to.equal('UserId');
+                    expect(refs[0].referencedTableName).to.equal('Users');
+                    expect(refs[0].referencedColumnName).to.equal('id');
+                  }).then(() => {
+                    return this.queryInterface.renameColumn('Tasks', 'bar', 'foo').then(() => {
+                      return this.queryInterface.getForeignKeyReferencesForTable('Tasks').then(refs => {
+                        expect(refs.length).to.equal(1, 'should keep foreign key after renaming column');
+                        expect(refs[0].columnName).to.equal('UserId');
+                        expect(refs[0].referencedTableName).to.equal('Users');
+                        expect(refs[0].referencedColumnName).to.equal('id');
+                      });
+                    });
+                  });
+                });
+              });
+            });
           });
         });
       });
