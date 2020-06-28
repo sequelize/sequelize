@@ -15,6 +15,7 @@ environment:
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
   - npm ci
+  - npm install codecov
 
 build: off
 
@@ -29,8 +30,7 @@ after_test:
   - ps: |
       $env:PATH = 'C:\Program Files\Git\usr\bin;' + $env:PATH
       if (Test-Path env:\COVERAGE) {
-        Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-        bash codecov.sh -f coverage\lcov.info
+        bash ./node_modules/.bin/codecov
       }
 
 branches:

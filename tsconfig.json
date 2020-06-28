@@ -8,7 +8,7 @@
     "outDir": "lib",
     "preserveConstEnums": true,
     "removeComments": false,
-    "sourceMap": false,
+    "sourceMap": true,
     "target": "ES2020"
   },
   "include": ["src/**/*"],
