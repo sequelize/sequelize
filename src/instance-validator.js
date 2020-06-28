@@ -19,14 +19,11 @@ class InstanceValidator {
     options = {
       // assign defined and default options
       hooks: true,
-      ...options,
+      ...options
     };
 
     if (options.fields && !options.skip) {
-      options.skip = _.difference(
-        Object.keys(modelInstance.constructor.rawAttributes),
-        options.fields
-      );
+      options.skip = _.difference(Object.keys(modelInstance.constructor.rawAttributes), options.fields);
     } else {
       options.skip = options.skip || [];
     }
@@ -70,10 +67,7 @@ class InstanceValidator {
 
     this.inProgress = true;
 
-    await Promise.all([
-      this._perAttributeValidators(),
-      this._customValidators(),
-    ]);
+    await Promise.all([this._perAttributeValidators(), this._customValidators()]);
 
     if (this.errors.length) {
       throw new sequelizeError.ValidationError(null, this.errors);
@@ -91,9 +85,7 @@ class InstanceValidator {
    * @private
    */
   async validate() {
-    return await (this.options.hooks
-      ? this._validateAndRunHooks()
-      : this._validate());
+    return await (this.options.hooks ? this._validateAndRunHooks() : this._validate());
   }
 
   /**
@@ -107,20 +99,13 @@ class InstanceValidator {
    * @private
    */
   async _validateAndRunHooks() {
-    const runHooks = this.modelInstance.constructor.runHooks.bind(
-      this.modelInstance.constructor
-    );
+    const runHooks = this.modelInstance.constructor.runHooks.bind(this.modelInstance.constructor);
     await runHooks('beforeValidate', this.modelInstance, this.options);
 
     try {
       await this._validate();
     } catch (error) {
-      const newError = await runHooks(
-        'validationFailed',
-        this.modelInstance,
-        this.options,
-        error
-      );
+      const newError = await runHooks('validationFailed', this.modelInstance, this.options, error);
       throw newError || error;
     }
 
@@ -154,15 +139,8 @@ class InstanceValidator {
         this._validateSchema(rawAttribute, field, value);
       }
 
-      if (
-        Object.prototype.hasOwnProperty.call(
-          this.modelInstance.validators,
-          field
-        )
-      ) {
-        validators.push(
-          this._singleAttrValidate(value, field, rawAttribute.allowNull)
-        );
+      if (Object.prototype.hasOwnProperty.call(this.modelInstance.validators, field)) {
+        validators.push(this._singleAttrValidate(value, field, rawAttribute.allowNull));
       }
     });
 
@@ -177,20 +155,17 @@ class InstanceValidator {
    */
   async _customValidators() {
     const validators = [];
-    _.each(
-      this.modelInstance.constructor.options.validate,
-      (validator, validatorType) => {
-        if (this.options.skip.includes(validatorType)) {
-          return;
-        }
-
-        const valprom = this._invokeCustomValidator(validator, validatorType)
-          // errors are handled in settling, stub this
-          .catch(() => {});
-
-        validators.push(valprom);
+    _.each(this.modelInstance.constructor.options.validate, (validator, validatorType) => {
+      if (this.options.skip.includes(validatorType)) {
+        return;
       }
-    );
+
+      const valprom = this._invokeCustomValidator(validator, validatorType)
+        // errors are handled in settling, stub this
+        .catch(() => {});
+
+      validators.push(valprom);
+    });
 
     return await Promise.all(validators);
   }
@@ -216,15 +191,11 @@ class InstanceValidator {
     // Promisify each validator
     const validators = [];
     _.forIn(this.modelInstance.validators[field], (test, validatorType) => {
-      if (
-        validatorType === 'isUrl' ||
-        validatorType === 'isURL' ||
-        validatorType === 'isEmail'
-      ) {
+      if (validatorType === 'isUrl' || validatorType === 'isURL' || validatorType === 'isEmail') {
         // Preserve backwards compat. Validator.js now expects the second param to isURL and isEmail to be an object
         if (typeof test === 'object' && test !== null && test.msg) {
           test = {
-            msg: test.msg,
+            msg: test.msg
           };
         } else if (test === true) {
           test = {};
@@ -233,9 +204,7 @@ class InstanceValidator {
 
       // Custom validators should always run, except if value is null and allowNull is false (see #9143)
       if (typeof test === 'function') {
-        validators.push(
-          this._invokeCustomValidator(test, validatorType, true, value, field)
-        );
+        validators.push(this._invokeCustomValidator(test, validatorType, true, value, field));
         return;
       }
 
@@ -244,29 +213,17 @@ class InstanceValidator {
         return;
       }
 
-      const validatorPromise = this._invokeBuiltinValidator(
-        value,
-        test,
-        validatorType,
-        field
-      );
+      const validatorPromise = this._invokeBuiltinValidator(value, test, validatorType, field);
       // errors are handled in settling, stub this
       validatorPromise.catch(() => {});
       validators.push(validatorPromise);
     });
 
     return Promise.all(
-      validators.map((validator) =>
-        validator.catch((rejection) => {
+      validators.map(validator =>
+        validator.catch(rejection => {
           const isBuiltIn = !!rejection.validatorName;
-          this._pushError(
-            isBuiltIn,
-            field,
-            rejection,
-            value,
-            rejection.validatorName,
-            rejection.validatorArgs
-          );
+          this._pushError(isBuiltIn, field, rejection, value, rejection.validatorName, rejection.validatorArgs);
         })
       )
     );
@@ -285,13 +242,7 @@ class InstanceValidator {
    *
    * @returns {Promise} A promise.
    */
-  async _invokeCustomValidator(
-    validator,
-    validatorType,
-    optAttrDefined,
-    optValue,
-    optField
-  ) {
+  async _invokeCustomValidator(validator, validatorType, optAttrDefined, optValue, optField) {
     let isAsync = false;
 
     const validatorArity = validator.length;
@@ -311,9 +262,7 @@ class InstanceValidator {
     if (isAsync) {
       try {
         if (optAttrDefined) {
-          return await promisify(
-            validator.bind(this.modelInstance, invokeArgs)
-          )();
+          return await promisify(validator.bind(this.modelInstance, invokeArgs))();
         }
         return await promisify(validator.bind(this.modelInstance))();
       } catch (e) {
@@ -348,17 +297,13 @@ class InstanceValidator {
       throw new Error(`Invalid validator function: ${validatorType}`);
     }
 
-    const validatorArgs = this._extractValidatorArgs(
-      test,
-      validatorType,
-      field
-    );
+    const validatorArgs = this._extractValidatorArgs(test, validatorType, field);
 
     if (!validator[validatorType](valueString, ...validatorArgs)) {
-      throw Object.assign(
-        new Error(test.msg || `Validation ${validatorType} on ${field} failed`),
-        { validatorName: validatorType, validatorArgs }
-      );
+      throw Object.assign(new Error(test.msg || `Validation ${validatorType} on ${field} failed`), {
+        validatorName: validatorType,
+        validatorArgs
+      });
     }
   }
 
@@ -375,9 +320,7 @@ class InstanceValidator {
     let validatorArgs = test.args || test;
     const isLocalizedValidator =
       typeof validatorArgs !== 'string' &&
-      (validatorType === 'isAlpha' ||
-        validatorType === 'isAlphanumeric' ||
-        validatorType === 'isMobilePhone');
+      (validatorType === 'isAlpha' || validatorType === 'isAlphanumeric' || validatorType === 'isMobilePhone');
 
     if (!Array.isArray(validatorArgs)) {
       if (validatorType === 'isImmutable') {
@@ -403,21 +346,11 @@ class InstanceValidator {
    * @private
    */
   _validateSchema(rawAttribute, field, value) {
-    if (
-      rawAttribute.allowNull === false &&
-      (value === null || value === undefined)
-    ) {
-      const association = Object.values(
-        this.modelInstance.constructor.associations
-      ).find(
-        (association) =>
-          association instanceof BelongsTo &&
-          association.foreignKey === rawAttribute.fieldName
+    if (rawAttribute.allowNull === false && (value === null || value === undefined)) {
+      const association = Object.values(this.modelInstance.constructor.associations).find(
+        association => association instanceof BelongsTo && association.foreignKey === rawAttribute.fieldName
       );
-      if (
-        !association ||
-        !this.modelInstance.get(association.associationAccessor)
-      ) {
+      if (!association || !this.modelInstance.get(association.associationAccessor)) {
         const validators = this.modelInstance.validators[field];
         const errMsg = _.get(
           validators,
@@ -445,9 +378,7 @@ class InstanceValidator {
     ) {
       if (
         Array.isArray(value) ||
-        (_.isObject(value) &&
-          !(value instanceof Utils.SequelizeMethod) &&
-          !Buffer.isBuffer(value))
+        (_.isObject(value) && !(value instanceof Utils.SequelizeMethod) && !Buffer.isBuffer(value))
       ) {
         this.errors.push(
           new sequelizeError.ValidationErrorItem(

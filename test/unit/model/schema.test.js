@@ -13,7 +13,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
         {},
         {
           schema: 'default',
-          schemaDelimiter: '&',
+          schemaDelimiter: '&'
         }
       );
 
@@ -53,9 +53,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able to override the default schema delimiter', () => {
-        expect(Company.schema(Company._schema, '^')._schemaDelimiter).to.equal(
-          '^'
-        );
+        expect(Company.schema(Company._schema, '^')._schemaDelimiter).to.equal('^');
       });
 
       it('should support multiple, coexistent schema delimiter models', () => {

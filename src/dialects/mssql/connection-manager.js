@@ -30,30 +30,24 @@ class ConnectionManager extends AbstractConnectionManager {
         type: 'default',
         options: {
           userName: config.username || undefined,
-          password: config.password || undefined,
-        },
+          password: config.password || undefined
+        }
       },
       options: {
         port: parseInt(config.port, 10),
         database: config.database,
-        trustServerCertificate: true,
-      },
+        trustServerCertificate: true
+      }
     };
 
     if (config.dialectOptions) {
       // only set port if no instance name was provided
-      if (
-        config.dialectOptions.options &&
-        config.dialectOptions.options.instanceName
-      ) {
+      if (config.dialectOptions.options && config.dialectOptions.options.instanceName) {
         delete connectionConfig.options.port;
       }
 
       if (config.dialectOptions.authentication) {
-        Object.assign(
-          connectionConfig.authentication,
-          config.dialectOptions.authentication
-        );
+        Object.assign(connectionConfig.authentication, config.dialectOptions.authentication);
       }
 
       Object.assign(connectionConfig.options, config.dialectOptions.options);
@@ -68,7 +62,7 @@ class ConnectionManager extends AbstractConnectionManager {
         connection.queue = new AsyncQueue();
         connection.lib = this.lib;
 
-        const connectHandler = (error) => {
+        const connectHandler = error => {
           connection.removeListener('end', endHandler);
           connection.removeListener('error', errorHandler);
 
@@ -84,7 +78,7 @@ class ConnectionManager extends AbstractConnectionManager {
           reject(new Error('Connection was closed by remote server'));
         };
 
-        const errorHandler = (error) => {
+        const errorHandler = error => {
           connection.removeListener('connect', connectHandler);
           connection.removeListener('end', endHandler);
           reject(error);
@@ -102,7 +96,7 @@ class ConnectionManager extends AbstractConnectionManager {
          *
          * E.g. connectTimeout is set higher than requestTimeout
          */
-        connection.on('error', (error) => {
+        connection.on('error', error => {
           switch (error.code) {
             case 'ESOCKET':
             case 'ECONNRESET':
@@ -156,7 +150,7 @@ class ConnectionManager extends AbstractConnectionManager {
 
     connection.queue.close();
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       connection.on('end', resolve);
       connection.close();
       debug('connection closed');

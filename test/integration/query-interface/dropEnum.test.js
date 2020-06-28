@@ -21,16 +21,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.queryInterface.createTable('menus', {
         structuretype: {
           type: DataTypes.ENUM('menus', 'submenu', 'routine'),
-          allowNull: true,
+          allowNull: true
         },
         sequence: {
           type: DataTypes.INTEGER,
-          allowNull: true,
+          allowNull: true
         },
         name: {
           type: DataTypes.STRING,
-          allowNull: true,
-        },
+          allowNull: true
+        }
       });
     });
 
@@ -39,9 +39,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.removeColumn('menus', 'structuretype');
         const enumList0 = await this.queryInterface.pgListEnums('menus');
         expect(enumList0).to.have.lengthOf(1);
-        expect(enumList0[0])
-          .to.have.property('enum_name')
-          .and.to.equal('enum_menus_structuretype');
+        expect(enumList0[0]).to.have.property('enum_name').and.to.equal('enum_menus_structuretype');
         await this.queryInterface.dropEnum('enum_menus_structuretype');
         const enumList = await this.queryInterface.pgListEnums('menus');
         expect(enumList).to.be.an('array');

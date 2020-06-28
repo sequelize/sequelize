@@ -10,7 +10,7 @@ if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connection Manager', () => {
     it('-FOUND_ROWS can be suppressed to get back legacy behavior', async () => {
       const sequelize = Support.createSequelizeInstance({
-        dialectOptions: { flags: '' },
+        dialectOptions: { flags: '' }
       });
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
@@ -21,8 +21,8 @@ if (dialect === 'mysql') {
         { username: 'jozef' },
         {
           where: {
-            id: 1,
-          },
+            id: 1
+          }
         }
       );
 
@@ -33,7 +33,7 @@ if (dialect === 'mysql') {
     it('should acquire a valid connection when keepDefaultTimezone is true', async () => {
       const sequelize = Support.createSequelizeInstance({
         keepDefaultTimezone: true,
-        pool: { min: 1, max: 1, handleDisconnects: true, idle: 5000 },
+        pool: { min: 1, max: 1, handleDisconnects: true, idle: 5000 }
       });
       const cm = sequelize.connectionManager;
 

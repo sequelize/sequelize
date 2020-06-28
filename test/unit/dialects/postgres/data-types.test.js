@@ -5,9 +5,7 @@ const chai = require('chai'),
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
   BaseTypes = require('../../../../lib/data-types'),
-  DataTypes = require('../../../../lib/dialects/postgres/data-types')(
-    BaseTypes
-  ),
+  DataTypes = require('../../../../lib/dialects/postgres/data-types')(BaseTypes),
   QueryGenerator = require('../../../../lib/dialects/postgres/query-generator');
 
 if (dialect.match(/^postgres/)) {
@@ -15,7 +13,7 @@ if (dialect.match(/^postgres/)) {
     beforeEach(function () {
       this.queryGenerator = new QueryGenerator({
         sequelize: this.sequelize,
-        _dialect: this.sequelize.dialect,
+        _dialect: this.sequelize.dialect
       });
     });
 
@@ -25,7 +23,7 @@ if (dialect.match(/^postgres/)) {
         const bind = [];
         const bindParam = this.queryGenerator.bindParam(bind);
         const result = DataTypes.GEOMETRY.prototype.bindParam(value, {
-          bindParam,
+          bindParam
         });
         expect(result).to.equal('ST_GeomFromGeoJSON($1)');
         expect(bind).to.eql([value]);
@@ -38,7 +36,7 @@ if (dialect.match(/^postgres/)) {
         const bind = [];
         const bindParam = this.queryGenerator.bindParam(bind);
         const result = DataTypes.GEOGRAPHY.prototype.bindParam(value, {
-          bindParam,
+          bindParam
         });
         expect(result).to.equal('ST_GeomFromGeoJSON($1)');
         expect(bind).to.eql([value]);

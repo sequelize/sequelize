@@ -12,22 +12,20 @@ describe(Support.getTestDialectTeaser('Vectors'), () => {
     const Student = this.sequelize.define(
       'student',
       {
-        name: Sequelize.STRING,
+        name: Sequelize.STRING
       },
       {
-        tableName: 'student',
+        tableName: 'student'
       }
     );
 
     await Student.sync({ force: true });
 
     const result0 = await Student.create({
-      name: 'Robert\\\'); DROP TABLE "students"; --',
+      name: 'Robert\\\'); DROP TABLE "students"; --'
     });
 
-    expect(result0.get('name')).to.equal(
-      'Robert\\\'); DROP TABLE "students"; --'
-    );
+    expect(result0.get('name')).to.equal('Robert\\\'); DROP TABLE "students"; --');
     const result = await Student.findAll();
     expect(result[0].name).to.equal('Robert\\\'); DROP TABLE "students"; --');
   });

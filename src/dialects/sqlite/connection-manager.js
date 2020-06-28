@@ -25,8 +25,8 @@ class ConnectionManager extends AbstractConnectionManager {
 
   async _onProcessExit() {
     await Promise.all(
-      Object.getOwnPropertyNames(this.connections).map((connection) =>
-        promisify((callback) => this.connections[connection].close(callback))()
+      Object.getOwnPropertyNames(this.connections).map(connection =>
+        promisify(callback => this.connections[connection].close(callback))()
       )
     );
     return super._onProcessExit.call(this);
@@ -44,37 +44,28 @@ class ConnectionManager extends AbstractConnectionManager {
   async getConnection(options) {
     options = options || {};
     options.uuid = options.uuid || 'default';
-    options.storage =
-      this.sequelize.options.storage ||
-      this.sequelize.options.host ||
-      ':memory:';
+    options.storage = this.sequelize.options.storage || this.sequelize.options.host || ':memory:';
     options.inMemory = options.storage === ':memory:' ? 1 : 0;
 
     const dialectOptions = this.sequelize.options.dialectOptions;
     const defaultReadWriteMode = this.lib.OPEN_READWRITE | this.lib.OPEN_CREATE;
 
-    options.readWriteMode =
-      (dialectOptions && dialectOptions.mode) || defaultReadWriteMode;
+    options.readWriteMode = (dialectOptions && dialectOptions.mode) || defaultReadWriteMode;
 
     if (this.connections[options.inMemory || options.uuid]) {
       return this.connections[options.inMemory || options.uuid];
     }
 
-    if (
-      !options.inMemory &&
-      (options.readWriteMode & this.lib.OPEN_CREATE) !== 0
-    ) {
+    if (!options.inMemory && (options.readWriteMode & this.lib.OPEN_CREATE) !== 0) {
       // automatic path provision for `options.storage`
       fs.mkdirSync(path.dirname(options.storage), { recursive: true });
     }
 
     const connection = await new Promise((resolve, reject) => {
-      this.connections[
-        options.inMemory || options.uuid
-      ] = new this.lib.Database(
+      this.connections[options.inMemory || options.uuid] = new this.lib.Database(
         options.storage,
         options.readWriteMode,
-        (err) => {
+        err => {
           if (err) return reject(new sequelizeErrors.ConnectionError(err));
           debug(`connection acquired ${options.uuid}`);
           resolve(this.connections[options.inMemory || options.uuid]);
@@ -84,9 +75,7 @@ class ConnectionManager extends AbstractConnectionManager {
 
     if (this.sequelize.config.password) {
       // Make it possible to define and use password for sqlite encryption plugin like sqlcipher
-      connection.run(
-        `PRAGMA KEY=${this.sequelize.escape(this.sequelize.config.password)}`
-      );
+      connection.run(`PRAGMA KEY=${this.sequelize.escape(this.sequelize.config.password)}`);
     }
     if (this.sequelize.options.foreignKeys !== false) {
       // Make it possible to define and use foreign key constraints unless

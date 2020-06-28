@@ -13,9 +13,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         id: {
           type: Sequelize.BIGINT,
           primaryKey: true,
-          autoIncrement: true,
+          autoIncrement: true
         },
-        count: Sequelize.BIGINT,
+        count: Sequelize.BIGINT
       });
 
       it('should reject if options are missing', async () => {
@@ -25,9 +25,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should reject if options.where are missing', async () => {
-        await expect(
-          Model.increment(['id', 'count'], { by: 10 })
-        ).to.be.rejectedWith(
+        await expect(Model.increment(['id', 'count'], { by: 10 })).to.be.rejectedWith(
           'Missing where attribute in the options parameter'
         );
       });

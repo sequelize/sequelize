@@ -13,30 +13,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const Product = this.sequelize.define(
           'Product',
           {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           },
           {
             hooks: {
               afterCreate(product) {
-                product.isIncludeCreatedOnAfterCreate = !!(
-                  product.User && product.User.id
-                );
-              },
-            },
+                product.isIncludeCreatedOnAfterCreate = !!(product.User && product.User.id);
+              }
+            }
           }
         );
         const User = this.sequelize.define(
           'User',
           {
             first_name: Sequelize.STRING,
-            last_name: Sequelize.STRING,
+            last_name: Sequelize.STRING
           },
           {
             hooks: {
               beforeCreate(user, options) {
                 user.createOptions = options;
-              },
-            },
+              }
+            }
           }
         );
 
@@ -49,28 +47,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             title: 'Chair',
             User: {
               first_name: 'Mick',
-              last_name: 'Broadstone',
-            },
+              last_name: 'Broadstone'
+            }
           },
           {
             include: [
               {
                 model: User,
-                myOption: 'option',
-              },
-            ],
+                myOption: 'option'
+              }
+            ]
           }
         );
 
         expect(savedProduct.isIncludeCreatedOnAfterCreate).to.be.true;
         expect(savedProduct.User.createOptions.myOption).to.be.equal('option');
-        expect(savedProduct.User.createOptions.parentRecord).to.be.equal(
-          savedProduct
-        );
+        expect(savedProduct.User.createOptions.parentRecord).to.be.equal(savedProduct);
 
         const persistedProduct = await Product.findOne({
           where: { id: savedProduct.id },
-          include: [User],
+          include: [User]
         });
 
         expect(persistedProduct.User).to.be.ok;
@@ -80,16 +76,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should create data for BelongsTo relations with no nullable FK', async function () {
         const Product = this.sequelize.define('Product', {
-          title: Sequelize.STRING,
+          title: Sequelize.STRING
         });
         const User = this.sequelize.define('User', {
-          first_name: Sequelize.STRING,
+          first_name: Sequelize.STRING
         });
 
         Product.belongsTo(User, {
           foreignKey: {
-            allowNull: false,
-          },
+            allowNull: false
+          }
         });
 
         await this.sequelize.sync({ force: true });
@@ -98,15 +94,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             title: 'Chair',
             User: {
-              first_name: 'Mick',
-            },
+              first_name: 'Mick'
+            }
           },
           {
             include: [
               {
-                model: User,
-              },
-            ],
+                model: User
+              }
+            ]
           }
         );
 
@@ -118,11 +114,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should create data for BelongsTo relations with alias', async function () {
         const Product = this.sequelize.define('Product', {
-          title: Sequelize.STRING,
+          title: Sequelize.STRING
         });
         const User = this.sequelize.define('User', {
           first_name: Sequelize.STRING,
-          last_name: Sequelize.STRING,
+          last_name: Sequelize.STRING
         });
 
         const Creator = Product.belongsTo(User, { as: 'creator' });
@@ -134,17 +130,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             title: 'Chair',
             creator: {
               first_name: 'Matt',
-              last_name: 'Hansen',
-            },
+              last_name: 'Hansen'
+            }
           },
           {
-            include: [Creator],
+            include: [Creator]
           }
         );
 
         const persistedProduct = await Product.findOne({
           where: { id: savedProduct.id },
-          include: [Creator],
+          include: [Creator]
         });
 
         expect(persistedProduct.creator).to.be.ok;
@@ -156,31 +152,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const Product = this.sequelize.define(
           'Product',
           {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           },
           {
             hooks: {
               afterCreate(product) {
                 product.areIncludesCreatedOnAfterCreate =
                   product.Tags &&
-                  product.Tags.every((tag) => {
+                  product.Tags.every(tag => {
                     return !!tag.id;
                   });
-              },
-            },
+              }
+            }
           }
         );
         const Tag = this.sequelize.define(
           'Tag',
           {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           },
           {
             hooks: {
               afterCreate(tag, options) {
                 tag.createOptions = options;
-              },
-            },
+              }
+            }
           }
         );
 
@@ -194,36 +190,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             title: 'Chair',
             Tags: [
               { id: 1, name: 'Alpha' },
-              { id: 2, name: 'Beta' },
-            ],
+              { id: 2, name: 'Beta' }
+            ]
           },
           {
             include: [
               {
                 model: Tag,
-                myOption: 'option',
-              },
-            ],
+                myOption: 'option'
+              }
+            ]
           }
         );
 
         expect(savedProduct.areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedProduct.Tags[0].createOptions.myOption).to.be.equal(
-          'option'
-        );
-        expect(savedProduct.Tags[0].createOptions.parentRecord).to.be.equal(
-          savedProduct
-        );
-        expect(savedProduct.Tags[1].createOptions.myOption).to.be.equal(
-          'option'
-        );
-        expect(savedProduct.Tags[1].createOptions.parentRecord).to.be.equal(
-          savedProduct
-        );
+        expect(savedProduct.Tags[0].createOptions.myOption).to.be.equal('option');
+        expect(savedProduct.Tags[0].createOptions.parentRecord).to.be.equal(savedProduct);
+        expect(savedProduct.Tags[1].createOptions.myOption).to.be.equal('option');
+        expect(savedProduct.Tags[1].createOptions.parentRecord).to.be.equal(savedProduct);
 
         const persistedProduct = await Product.findOne({
           where: { id: savedProduct.id },
-          include: [Tag],
+          include: [Tag]
         });
 
         expect(persistedProduct.Tags).to.be.ok;
@@ -232,10 +220,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should create data for HasMany relations with alias', async function () {
         const Product = this.sequelize.define('Product', {
-          title: Sequelize.STRING,
+          title: Sequelize.STRING
         });
         const Tag = this.sequelize.define('Tag', {
-          name: Sequelize.STRING,
+          name: Sequelize.STRING
         });
 
         const Categories = Product.hasMany(Tag, { as: 'categories' });
@@ -248,17 +236,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             title: 'Chair',
             categories: [
               { id: 1, name: 'Alpha' },
-              { id: 2, name: 'Beta' },
-            ],
+              { id: 2, name: 'Beta' }
+            ]
           },
           {
-            include: [Categories],
+            include: [Categories]
           }
         );
 
         const persistedProduct = await Product.findOne({
           where: { id: savedProduct.id },
-          include: [Categories],
+          include: [Categories]
         });
 
         expect(persistedProduct.categories).to.be.ok;
@@ -267,11 +255,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should create data for HasOne relations', async function () {
         const User = this.sequelize.define('User', {
-          username: Sequelize.STRING,
+          username: Sequelize.STRING
         });
 
         const Task = this.sequelize.define('Task', {
-          title: Sequelize.STRING,
+          title: Sequelize.STRING
         });
 
         User.hasOne(Task);
@@ -282,17 +270,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             username: 'Muzzy',
             Task: {
-              title: 'Eat Clocks',
-            },
+              title: 'Eat Clocks'
+            }
           },
           {
-            include: [Task],
+            include: [Task]
           }
         );
 
         const persistedUser = await User.findOne({
           where: { id: savedUser.id },
-          include: [Task],
+          include: [Task]
         });
 
         expect(persistedUser.Task).to.be.ok;
@@ -300,11 +288,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should create data for HasOne relations with alias', async function () {
         const User = this.sequelize.define('User', {
-          username: Sequelize.STRING,
+          username: Sequelize.STRING
         });
 
         const Task = this.sequelize.define('Task', {
-          title: Sequelize.STRING,
+          title: Sequelize.STRING
         });
 
         const Job = User.hasOne(Task, { as: 'job' });
@@ -315,17 +303,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             username: 'Muzzy',
             job: {
-              title: 'Eat Clocks',
-            },
+              title: 'Eat Clocks'
+            }
           },
           {
-            include: [Job],
+            include: [Job]
           }
         );
 
         const persistedUser = await User.findOne({
           where: { id: savedUser.id },
-          include: [Job],
+          include: [Job]
         });
 
         expect(persistedUser.job).to.be.ok;
@@ -335,18 +323,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = this.sequelize.define(
           'User',
           {
-            username: DataTypes.STRING,
+            username: DataTypes.STRING
           },
           {
             hooks: {
               afterCreate(user) {
                 user.areIncludesCreatedOnAfterCreate =
                   user.Tasks &&
-                  user.Tasks.every((task) => {
+                  user.Tasks.every(task => {
                     return !!task.id;
                   });
-              },
-            },
+              }
+            }
           }
         );
 
@@ -354,14 +342,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'Task',
           {
             title: DataTypes.STRING,
-            active: DataTypes.BOOLEAN,
+            active: DataTypes.BOOLEAN
           },
           {
             hooks: {
               afterCreate(task, options) {
                 task.createOptions = options;
-              },
-            },
+              }
+            }
           }
         );
 
@@ -375,32 +363,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             username: 'John',
             Tasks: [
               { title: 'Get rich', active: true },
-              { title: 'Die trying', active: false },
-            ],
+              { title: 'Die trying', active: false }
+            ]
           },
           {
             include: [
               {
                 model: Task,
-                myOption: 'option',
-              },
-            ],
+                myOption: 'option'
+              }
+            ]
           }
         );
 
         expect(savedUser.areIncludesCreatedOnAfterCreate).to.be.true;
         expect(savedUser.Tasks[0].createOptions.myOption).to.be.equal('option');
-        expect(savedUser.Tasks[0].createOptions.parentRecord).to.be.equal(
-          savedUser
-        );
+        expect(savedUser.Tasks[0].createOptions.parentRecord).to.be.equal(savedUser);
         expect(savedUser.Tasks[1].createOptions.myOption).to.be.equal('option');
-        expect(savedUser.Tasks[1].createOptions.parentRecord).to.be.equal(
-          savedUser
-        );
+        expect(savedUser.Tasks[1].createOptions.parentRecord).to.be.equal(savedUser);
 
         const persistedUser = await User.findOne({
           where: { id: savedUser.id },
-          include: [Task],
+          include: [Task]
         });
 
         expect(persistedUser.Tasks).to.be.ok;
@@ -411,22 +395,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const Post = this.sequelize.define(
           'Post',
           {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           },
           {
             tableName: 'posts',
-            underscored: true,
+            underscored: true
           }
         );
 
         const Tag = this.sequelize.define(
           'Tag',
           {
-            name: DataTypes.STRING,
+            name: DataTypes.STRING
           },
           {
             tableName: 'tags',
-            underscored: true,
+            underscored: true
           }
         );
 
@@ -437,20 +421,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               type: DataTypes.INTEGER,
               references: {
                 model: 'tags',
-                key: 'id',
-              },
+                key: 'id'
+              }
             },
             taggable_id: {
               type: DataTypes.INTEGER,
-              references: null,
+              references: null
             },
             taggable: {
-              type: DataTypes.STRING,
-            },
+              type: DataTypes.STRING
+            }
           },
           {
             tableName: 'item_tag',
-            underscored: true,
+            underscored: true
           }
         );
 
@@ -461,9 +445,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           through: {
             model: ItemTag,
             scope: {
-              taggable: 'post',
-            },
-          },
+              taggable: 'post'
+            }
+          }
         });
 
         Tag.belongsToMany(Post, {
@@ -473,9 +457,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           through: {
             model: ItemTag,
             scope: {
-              taggable: 'post',
-            },
-          },
+              taggable: 'post'
+            }
+          }
         });
 
         await this.sequelize.sync({ force: true });
@@ -485,12 +469,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             title: 'Polymorphic Associations',
             tags: [
               {
-                name: 'polymorphic',
+                name: 'polymorphic'
               },
               {
-                name: 'associations',
-              },
-            ],
+                name: 'associations'
+              }
+            ]
           },
           {
             include: [
@@ -498,10 +482,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 model: Tag,
                 as: 'tags',
                 through: {
-                  model: ItemTag,
-                },
-              },
-            ],
+                  model: ItemTag
+                }
+              }
+            ]
           }
         );
 
@@ -522,17 +506,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should create data for BelongsToMany relations with alias', async function () {
         const User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
+          username: DataTypes.STRING
         });
 
         const Task = this.sequelize.define('Task', {
           title: DataTypes.STRING,
-          active: DataTypes.BOOLEAN,
+          active: DataTypes.BOOLEAN
         });
 
         const Jobs = User.belongsToMany(Task, {
           through: 'user_job',
-          as: 'jobs',
+          as: 'jobs'
         });
         Task.belongsToMany(User, { through: 'user_job' });
 
@@ -543,17 +527,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             username: 'John',
             jobs: [
               { title: 'Get rich', active: true },
-              { title: 'Die trying', active: false },
-            ],
+              { title: 'Die trying', active: false }
+            ]
           },
           {
-            include: [Jobs],
+            include: [Jobs]
           }
         );
 
         const persistedUser = await User.findOne({
           where: { id: savedUser.id },
-          include: [Jobs],
+          include: [Jobs]
         });
 
         expect(persistedUser.jobs).to.be.ok;

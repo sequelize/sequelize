@@ -10,7 +10,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {
     it('returns copy of json', () => {
       const User = current.define('User', {
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       });
       const user = User.build({ name: 'my-name' });
       const json1 = user.toJSON();
@@ -26,17 +26,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('returns clone of JSON data-types', () => {
       const User = current.define('User', {
         name: DataTypes.STRING,
-        permissions: DataTypes.JSON,
+        permissions: DataTypes.JSON
       });
       const user = User.build({
         name: 'my-name',
-        permissions: { admin: true, special: 'foobar' },
+        permissions: { admin: true, special: 'foobar' }
       });
       const json = user.toJSON();
 
-      expect(json)
-        .to.have.property('permissions')
-        .that.does.not.equal(user.permissions);
+      expect(json).to.have.property('permissions').that.does.not.equal(user.permissions);
 
       json.permissions.admin = false;
 

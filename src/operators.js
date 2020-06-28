@@ -82,7 +82,7 @@ const Op = {
   values: Symbol.for('values'),
   col: Symbol.for('col'),
   placeholder: Symbol.for('placeholder'),
-  join: Symbol.for('join'),
+  join: Symbol.for('join')
 };
 
 module.exports = Op;

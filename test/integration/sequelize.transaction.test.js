@@ -32,15 +32,13 @@ if (current.dialect.supports.transactions) {
 
       if (Support.getTestDialect() !== 'sqlite') {
         it('works for long running transactions', async function () {
-          const sequelize = await Support.prepareTransactionTest(
-            this.sequelize
-          );
+          const sequelize = await Support.prepareTransactionTest(this.sequelize);
           this.sequelize = sequelize;
 
           this.User = sequelize.define(
             'User',
             {
-              name: Support.Sequelize.STRING,
+              name: Support.Sequelize.STRING
             },
             { timestamps: false }
           );
@@ -81,9 +79,9 @@ if (current.dialect.supports.transactions) {
           id: {
             type: Support.Sequelize.INTEGER,
             primaryKey: true,
-            autoIncrement: true,
+            autoIncrement: true
           },
-          name: { type: Support.Sequelize.STRING },
+          name: { type: Support.Sequelize.STRING }
         });
 
         await sequelize.sync({ force: true });
@@ -104,18 +102,16 @@ if (current.dialect.supports.transactions) {
     describe('concurrency', () => {
       describe('having tables with uniqueness constraints', () => {
         beforeEach(async function () {
-          const sequelize = await Support.prepareTransactionTest(
-            this.sequelize
-          );
+          const sequelize = await Support.prepareTransactionTest(this.sequelize);
           this.sequelize = sequelize;
 
           this.Model = sequelize.define(
             'Model',
             {
-              name: { type: Support.Sequelize.STRING, unique: true },
+              name: { type: Support.Sequelize.STRING, unique: true }
             },
             {
-              timestamps: false,
+              timestamps: false
             }
           );
 
@@ -130,10 +126,7 @@ if (current.dialect.supports.transactions) {
           await Promise.all([
             (async () => {
               try {
-                return await this.Model.create(
-                  { name: 'omnom' },
-                  { transaction: t2 }
-                );
+                return await this.Model.create({ name: 'omnom' }, { transaction: t2 });
               } catch (err) {
                 expect(err).to.be.ok;
                 return t2.rollback();
@@ -141,7 +134,7 @@ if (current.dialect.supports.transactions) {
             })(),
             delay(100).then(() => {
               return t1.commit();
-            }),
+            })
           ]);
         });
       });

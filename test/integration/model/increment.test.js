@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       id: { type: DataTypes.INTEGER, primaryKey: true },
       aNumber: { type: DataTypes.INTEGER },
       bNumber: { type: DataTypes.INTEGER },
-      cNumber: { type: DataTypes.INTEGER, field: 'c_number' },
+      cNumber: { type: DataTypes.INTEGER, field: 'c_number' }
     });
 
     await this.User.sync({ force: true });
@@ -29,28 +29,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       {
         id: 1,
         aNumber: 0,
-        bNumber: 0,
+        bNumber: 0
       },
       {
         id: 2,
         aNumber: 0,
-        bNumber: 0,
+        bNumber: 0
       },
       {
         id: 3,
         aNumber: 0,
-        bNumber: 0,
+        bNumber: 0
       },
       {
         id: 4,
         aNumber: 0,
         bNumber: 0,
-        cNumber: 0,
-      },
+        cNumber: 0
+      }
     ]);
   });
 
-  ['increment', 'decrement'].forEach((method) => {
+  ['increment', 'decrement'].forEach(method => {
     describe(method, () => {
       before(function () {
         this.assert = (increment, decrement) => {
@@ -77,14 +77,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await Promise.all([
           this.User[method](['aNumber'], { by: 2, where: {} }),
           this.User[method](['aNumber'], { by: 2, where: {} }),
-          this.User[method](['aNumber'], { by: 2, where: {} }),
+          this.User[method](['aNumber'], { by: 2, where: {} })
         ]);
 
         const bUsers = await this.User.findAll();
         for (let i = 0; i < bUsers.length; i++) {
-          expect(bUsers[i].aNumber).to.equal(
-            this.assert(aUsers[i].aNumber + 6, aUsers[i].aNumber - 6)
-          );
+          expect(bUsers[i].aNumber).to.equal(this.assert(aUsers[i].aNumber + 6, aUsers[i].aNumber - 6));
         }
       });
 
@@ -93,9 +91,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User[method](['aNumber'], { by: 2, where: {} });
         const bUsers = await this.User.findAll();
         for (let i = 0; i < bUsers.length; i++) {
-          expect(bUsers[i].aNumber).to.equal(
-            this.assert(aUsers[i].aNumber + 2, aUsers[i].aNumber - 2)
-          );
+          expect(bUsers[i].aNumber).to.equal(this.assert(aUsers[i].aNumber + 2, aUsers[i].aNumber - 2));
         }
       });
 
@@ -104,9 +100,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User[method]('aNumber', { by: 2, where: {} });
         const bUsers = await this.User.findAll();
         for (let i = 0; i < bUsers.length; i++) {
-          expect(bUsers[i].aNumber).to.equal(
-            this.assert(aUsers[i].aNumber + 2, aUsers[i].aNumber - 2)
-          );
+          expect(bUsers[i].aNumber).to.equal(this.assert(aUsers[i].aNumber + 2, aUsers[i].aNumber - 2));
         }
       });
 
@@ -115,9 +109,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User[method]('aNumber', { where: {} });
         const bUsers = await this.User.findAll();
         for (let i = 0; i < bUsers.length; i++) {
-          expect(bUsers[i].aNumber).to.equal(
-            this.assert(aUsers[i].aNumber + 1, aUsers[i].aNumber - 1)
-          );
+          expect(bUsers[i].aNumber).to.equal(this.assert(aUsers[i].aNumber + 1, aUsers[i].aNumber - 1));
         }
       });
 
@@ -126,12 +118,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User[method]({ aNumber: 1, bNumber: 2 }, { where: {} });
         const bUsers = await this.User.findAll();
         for (let i = 0; i < bUsers.length; i++) {
-          expect(bUsers[i].aNumber).to.equal(
-            this.assert(aUsers[i].aNumber + 1, aUsers[i].aNumber - 1)
-          );
-          expect(bUsers[i].bNumber).to.equal(
-            this.assert(aUsers[i].bNumber + 2, aUsers[i].bNumber - 2)
-          );
+          expect(bUsers[i].aNumber).to.equal(this.assert(aUsers[i].aNumber + 1, aUsers[i].aNumber - 1));
+          expect(bUsers[i].bNumber).to.equal(this.assert(aUsers[i].bNumber + 2, aUsers[i].bNumber - 2));
         }
       });
 
@@ -142,9 +130,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const bUsers = await this.User.findAll();
         for (let i = 0; i < bUsers.length; i++) {
           // for decrement 2 - 2 = 0
-          expect(bUsers[i].aNumber).to.equal(
-            this.assert(aUsers[i].aNumber + 4, aUsers[i].aNumber)
-          );
+          expect(bUsers[i].aNumber).to.equal(this.assert(aUsers[i].aNumber + 4, aUsers[i].aNumber));
         }
       });
 
@@ -152,7 +138,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = this.sequelize.define(
           'IncrementUser',
           {
-            aNumber: DataTypes.INTEGER,
+            aNumber: DataTypes.INTEGER
           },
           { timestamps: true }
         );
@@ -164,16 +150,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.clock.tick(1000);
         await User[method]('aNumber', { by: 1, where: {} });
 
-        await expect(User.findByPk(1))
-          .to.eventually.have.property('updatedAt')
-          .afterTime(oldDate);
+        await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
       });
 
       it('with timestamps set to true and options.silent set to true', async function () {
         const User = this.sequelize.define(
           'IncrementUser',
           {
-            aNumber: DataTypes.INTEGER,
+            aNumber: DataTypes.INTEGER
           },
           { timestamps: true }
         );
@@ -184,9 +168,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.clock.tick(1000);
         await User[method]('aNumber', { by: 1, silent: true, where: {} });
 
-        await expect(User.findByPk(1))
-          .to.eventually.have.property('updatedAt')
-          .equalTime(oldDate);
+        await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
       });
 
       it('should work with scopes', async function () {
@@ -194,16 +176,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'User',
           {
             aNumber: DataTypes.INTEGER,
-            name: DataTypes.STRING,
+            name: DataTypes.STRING
           },
           {
             scopes: {
               jeff: {
                 where: {
-                  name: 'Jeff',
-                },
-              },
-            },
+                  name: 'Jeff'
+                }
+              }
+            }
           }
         );
 
@@ -212,12 +194,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.bulkCreate([
           {
             aNumber: 1,
-            name: 'Jeff',
+            name: 'Jeff'
           },
           {
             aNumber: 3,
-            name: 'Not Jeff',
-          },
+            name: 'Not Jeff'
+          }
         ]);
 
         await User.scope('jeff')[method]('aNumber', {});
@@ -226,8 +208,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const notJeff = await User.findOne({
           where: {
-            name: 'Not Jeff',
-          },
+            name: 'Not Jeff'
+          }
         });
 
         expect(notJeff.aNumber).to.equal(this.assert(3, 3));
@@ -235,11 +217,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should not care for attributes in the instance scope', async function () {
         this.User.addScope('test', {
-          attributes: ['foo', 'bar'],
+          attributes: ['foo', 'bar']
         });
         const createdUser = await this.User.scope('test').create({
           id: 5,
-          aNumber: 5,
+          aNumber: 5
         });
         await createdUser[method]('aNumber', { by: 2 });
         const user = await this.User.findByPk(5);
@@ -247,11 +229,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
       it('should not care for exclude-attributes in the instance scope', async function () {
         this.User.addScope('test', {
-          attributes: { exclude: ['foo', 'bar'] },
+          attributes: { exclude: ['foo', 'bar'] }
         });
         const createdUser = await this.User.scope('test').create({
           id: 5,
-          aNumber: 5,
+          aNumber: 5
         });
         await createdUser[method]('aNumber', { by: 2 });
         const user = await this.User.findByPk(5);
@@ -259,11 +241,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
       it('should not care for include-attributes in the instance scope', async function () {
         this.User.addScope('test', {
-          attributes: { include: ['foo', 'bar'] },
+          attributes: { include: ['foo', 'bar'] }
         });
         const createdUser = await this.User.scope('test').create({
           id: 5,
-          aNumber: 5,
+          aNumber: 5
         });
         await createdUser[method]('aNumber', { by: 2 });
         const user = await this.User.findByPk(5);

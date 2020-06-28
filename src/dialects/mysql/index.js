@@ -13,46 +13,40 @@ class MysqlDialect extends AbstractDialect {
     this.connectionManager = new ConnectionManager(this, sequelize);
     this.queryGenerator = new QueryGenerator({
       _dialect: this,
-      sequelize,
+      sequelize
     });
-    this.queryInterface = new MySQLQueryInterface(
-      sequelize,
-      this.queryGenerator
-    );
+    this.queryInterface = new MySQLQueryInterface(sequelize, this.queryGenerator);
   }
 }
 
-MysqlDialect.prototype.supports = _.merge(
-  _.cloneDeep(AbstractDialect.prototype.supports),
-  {
-    'VALUES ()': true,
-    'LIMIT ON UPDATE': true,
-    lock: true,
-    forShare: 'LOCK IN SHARE MODE',
-    settingIsolationLevelDuringTransaction: false,
-    inserts: {
-      ignoreDuplicates: ' IGNORE',
-      updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
-    },
-    index: {
-      collate: false,
-      length: true,
-      parser: true,
-      type: true,
-      using: 1,
-    },
-    constraints: {
-      dropConstraint: false,
-      check: false,
-    },
-    indexViaAlter: true,
-    indexHints: true,
-    NUMERIC: true,
-    GEOMETRY: true,
-    JSON: true,
-    REGEXP: true,
-  }
-);
+MysqlDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototype.supports), {
+  'VALUES ()': true,
+  'LIMIT ON UPDATE': true,
+  lock: true,
+  forShare: 'LOCK IN SHARE MODE',
+  settingIsolationLevelDuringTransaction: false,
+  inserts: {
+    ignoreDuplicates: ' IGNORE',
+    updateOnDuplicate: ' ON DUPLICATE KEY UPDATE'
+  },
+  index: {
+    collate: false,
+    length: true,
+    parser: true,
+    type: true,
+    using: 1
+  },
+  constraints: {
+    dropConstraint: false,
+    check: false
+  },
+  indexViaAlter: true,
+  indexHints: true,
+  NUMERIC: true,
+  GEOMETRY: true,
+  JSON: true,
+  REGEXP: true
+});
 
 MysqlDialect.prototype.defaultVersion = '5.7.0';
 MysqlDialect.prototype.Query = Query;

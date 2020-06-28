@@ -57,29 +57,21 @@ class STRING extends ABSTRACT {
     super();
     const options = (typeof length === 'object' && length) || {
       length,
-      binary,
+      binary
     };
     this.options = options;
     this._binary = options.binary;
     this._length = options.length || 255;
   }
   toSql() {
-    return joinSQLFragments([
-      `VARCHAR(${this._length})`,
-      this._binary && 'BINARY',
-    ]);
+    return joinSQLFragments([`VARCHAR(${this._length})`, this._binary && 'BINARY']);
   }
   validate(value) {
     if (Object.prototype.toString.call(value) !== '[object String]') {
-      if (
-        (this.options.binary && Buffer.isBuffer(value)) ||
-        typeof value === 'number'
-      ) {
+      if ((this.options.binary && Buffer.isBuffer(value)) || typeof value === 'number') {
         return true;
       }
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid string', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid string', value));
     }
     return true;
   }
@@ -107,10 +99,7 @@ class CHAR extends STRING {
     super((typeof length === 'object' && length) || { length, binary });
   }
   toSql() {
-    return joinSQLFragments([
-      `CHAR(${this._length})`,
-      this._binary && 'BINARY',
-    ]);
+    return joinSQLFragments([`CHAR(${this._length})`, this._binary && 'BINARY']);
   }
 }
 
@@ -141,9 +130,7 @@ class TEXT extends ABSTRACT {
   }
   validate(value) {
     if (typeof value !== 'string') {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid string', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid string', value));
     }
     return true;
   }
@@ -161,9 +148,7 @@ class CITEXT extends ABSTRACT {
   }
   validate(value) {
     if (typeof value !== 'string') {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid string', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid string', value));
     }
     return true;
   }
@@ -186,7 +171,7 @@ class NUMBER extends ABSTRACT {
     super();
     if (typeof options === 'number') {
       options = {
-        length: options,
+        length: options
       };
     }
     this.options = options;
@@ -216,19 +201,12 @@ class NUMBER extends ABSTRACT {
   }
   validate(value) {
     if (!Validator.isFloat(String(value))) {
-      throw new sequelizeErrors.ValidationError(
-        util.format(`%j is not a valid ${this.key.toLowerCase()}`, value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format(`%j is not a valid ${this.key.toLowerCase()}`, value));
     }
     return true;
   }
   _stringify(number) {
-    if (
-      typeof number === 'number' ||
-      typeof number === 'boolean' ||
-      number === null ||
-      number === undefined
-    ) {
+    if (typeof number === 'number' || typeof number === 'boolean' || number === null || number === undefined) {
       return number;
     }
     if (typeof number.toString === 'function') {
@@ -264,9 +242,7 @@ class NUMBER extends ABSTRACT {
 class INTEGER extends NUMBER {
   validate(value) {
     if (!Validator.isInt(String(value))) {
-      throw new sequelizeErrors.ValidationError(
-        util.format(`%j is not a valid ${this.key.toLowerCase()}`, value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format(`%j is not a valid ${this.key.toLowerCase()}`, value));
     }
     return true;
   }
@@ -305,9 +281,7 @@ class FLOAT extends NUMBER {
   }
   validate(value) {
     if (!Validator.isFloat(String(value))) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid float', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid float', value));
     }
     return true;
   }
@@ -352,17 +326,13 @@ class DECIMAL extends NUMBER {
   }
   toSql() {
     if (this._precision || this._scale) {
-      return `DECIMAL(${[this._precision, this._scale]
-        .filter(_.identity)
-        .join(',')})`;
+      return `DECIMAL(${[this._precision, this._scale].filter(_.identity).join(',')})`;
     }
     return 'DECIMAL';
   }
   validate(value) {
     if (!Validator.isDecimal(String(value))) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid decimal', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid decimal', value));
     }
     return true;
   }
@@ -387,7 +357,7 @@ const protoExtensions = {
   },
   _bindParam(value, options) {
     return options.bindParam(this._value(value));
-  },
+  }
 };
 
 for (const floating of [FLOAT, DOUBLE, REAL]) {
@@ -403,9 +373,7 @@ class BOOLEAN extends ABSTRACT {
   }
   validate(value) {
     if (!Validator.isBoolean(String(value))) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid boolean', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid boolean', value));
     }
     return true;
   }
@@ -459,18 +427,12 @@ class DATE extends ABSTRACT {
   }
   validate(value) {
     if (!Validator.isDate(String(value))) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid date', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid date', value));
     }
     return true;
   }
   _sanitize(value, options) {
-    if (
-      (!options || (options && !options.raw)) &&
-      !(value instanceof Date) &&
-      !!value
-    ) {
+    if ((!options || (options && !options.raw)) && !(value instanceof Date) && !!value) {
       return new Date(value);
     }
     return value;
@@ -480,9 +442,7 @@ class DATE extends ABSTRACT {
       originalValue &&
       !!value &&
       (value === originalValue ||
-        (value instanceof Date &&
-          originalValue instanceof Date &&
-          value.getTime() === originalValue.getTime()))
+        (value instanceof Date && originalValue instanceof Date && value.getTime() === originalValue.getTime()))
     ) {
       return false;
     }
@@ -542,9 +502,7 @@ class DATEONLY extends ABSTRACT {
 class HSTORE extends ABSTRACT {
   validate(value) {
     if (!_.isPlainObject(value)) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid hstore', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid hstore', value));
     }
     return true;
   }
@@ -599,9 +557,7 @@ class BLOB extends ABSTRACT {
   }
   validate(value) {
     if (typeof value !== 'string' && !Buffer.isBuffer(value)) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid blob', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid blob', value));
     }
     return true;
   }
@@ -653,14 +609,10 @@ class RANGE extends ABSTRACT {
   }
   validate(value) {
     if (!Array.isArray(value)) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid range', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid range', value));
     }
     if (value.length !== 2) {
-      throw new sequelizeErrors.ValidationError(
-        'A range must be an array with two elements'
-      );
+      throw new sequelizeErrors.ValidationError('A range must be an array with two elements');
     }
     return true;
   }
@@ -672,13 +624,8 @@ class RANGE extends ABSTRACT {
  */
 class UUID extends ABSTRACT {
   validate(value, options) {
-    if (
-      typeof value !== 'string' ||
-      (!Validator.isUUID(value) && (!options || !options.acceptStrings))
-    ) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid uuid', value)
-      );
+    if (typeof value !== 'string' || (!Validator.isUUID(value) && (!options || !options.acceptStrings))) {
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid uuid', value));
     }
     return true;
   }
@@ -689,13 +636,8 @@ class UUID extends ABSTRACT {
  */
 class UUIDV1 extends ABSTRACT {
   validate(value, options) {
-    if (
-      typeof value !== 'string' ||
-      (!Validator.isUUID(value) && (!options || !options.acceptStrings))
-    ) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid uuid', value)
-      );
+    if (typeof value !== 'string' || (!Validator.isUUID(value) && (!options || !options.acceptStrings))) {
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid uuid', value));
     }
     return true;
   }
@@ -706,13 +648,8 @@ class UUIDV1 extends ABSTRACT {
  */
 class UUIDV4 extends ABSTRACT {
   validate(value, options) {
-    if (
-      typeof value !== 'string' ||
-      (!Validator.isUUID(value, 4) && (!options || !options.acceptStrings))
-    ) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid uuidv4', value)
-      );
+    if (typeof value !== 'string' || (!Validator.isUUID(value, 4) && (!options || !options.acceptStrings))) {
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid uuidv4', value));
     }
     return true;
   }
@@ -788,21 +725,17 @@ class ENUM extends ABSTRACT {
   constructor(...args) {
     super();
     const value = args[0];
-    const options = (typeof value === 'object' &&
-      !Array.isArray(value) &&
-      value) || {
+    const options = (typeof value === 'object' && !Array.isArray(value) && value) || {
       values: args.reduce((result, element) => {
         return result.concat(Array.isArray(element) ? element : [element]);
-      }, []),
+      }, [])
     };
     this.values = options.values;
     this.options = options;
   }
   validate(value) {
     if (!this.values.includes(value)) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid choice in %j', value, this.values)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid choice in %j', value, this.values));
     }
     return true;
   }
@@ -822,17 +755,14 @@ class ARRAY extends ABSTRACT {
     super();
     const options = _.isPlainObject(type) ? type : { type };
     this.options = options;
-    this.type =
-      typeof options.type === 'function' ? new options.type() : options.type;
+    this.type = typeof options.type === 'function' ? new options.type() : options.type;
   }
   toSql() {
     return `${this.type.toSql()}[]`;
   }
   validate(value) {
     if (!Array.isArray(value)) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid array', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid array', value));
     }
     return true;
   }
@@ -900,14 +830,10 @@ class GEOMETRY extends ABSTRACT {
     this.srid = options.srid;
   }
   _stringify(value, options) {
-    return `GeomFromText(${options.escape(
-      wkx.Geometry.parseGeoJSON(value).toWkt()
-    )})`;
+    return `GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
   _bindParam(value, options) {
-    return `GeomFromText(${options.bindParam(
-      wkx.Geometry.parseGeoJSON(value).toWkt()
-    )})`;
+    return `GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
 }
 
@@ -947,14 +873,10 @@ class GEOGRAPHY extends ABSTRACT {
     this.srid = options.srid;
   }
   _stringify(value, options) {
-    return `GeomFromText(${options.escape(
-      wkx.Geometry.parseGeoJSON(value).toWkt()
-    )})`;
+    return `GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
   _bindParam(value, options) {
-    return `GeomFromText(${options.bindParam(
-      wkx.Geometry.parseGeoJSON(value).toWkt()
-    )})`;
+    return `GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
 }
 
@@ -968,9 +890,7 @@ GEOGRAPHY.prototype.escape = false;
 class CIDR extends ABSTRACT {
   validate(value) {
     if (typeof value !== 'string' || !Validator.isIPRange(value)) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid CIDR', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid CIDR', value));
     }
     return true;
   }
@@ -984,9 +904,7 @@ class CIDR extends ABSTRACT {
 class INET extends ABSTRACT {
   validate(value) {
     if (typeof value !== 'string' || !Validator.isIP(value)) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid INET', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid INET', value));
     }
     return true;
   }
@@ -1001,9 +919,7 @@ class INET extends ABSTRACT {
 class MACADDR extends ABSTRACT {
   validate(value) {
     if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
-      throw new sequelizeErrors.ValidationError(
-        util.format('%j is not a valid MACADDR', value)
-      );
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid MACADDR', value));
     }
     return true;
   }
@@ -1092,7 +1008,7 @@ const DataTypes = (module.exports = {
   CIDR,
   INET,
   MACADDR,
-  CITEXT,
+  CITEXT
 });
 
 _.each(DataTypes, (dataType, name) => {

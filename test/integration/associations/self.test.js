@@ -14,7 +14,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
         tableName: 'user_group',
         timestamps: false,
         underscored: true,
-        freezeTableName: true,
+        freezeTableName: true
       }
     );
 
@@ -25,9 +25,9 @@ describe(Support.getTestDialectTeaser('Self'), () => {
       include: [
         {
           model: Group,
-          as: 'Parent',
-        },
-      ],
+          as: 'Parent'
+        }
+      ]
     });
   });
 
@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     const [mary, john, chris] = await Promise.all([
       Person.create({ name: 'Mary' }),
       Person.create({ name: 'John' }),
-      Person.create({ name: 'Chris' }),
+      Person.create({ name: 'Chris' })
     ]);
 
     await mary.setChildren([john, chris]);
@@ -56,45 +56,36 @@ describe(Support.getTestDialectTeaser('Self'), () => {
       as: 'Parents',
       through: 'Family',
       foreignKey: 'ChildId',
-      otherKey: 'PersonId',
+      otherKey: 'PersonId'
     });
     Person.belongsToMany(Person, {
       as: 'Childs',
       through: 'Family',
       foreignKey: 'PersonId',
-      otherKey: 'ChildId',
+      otherKey: 'ChildId'
     });
 
-    const foreignIdentifiers = Object.values(Person.associations).map(
-      (v) => v.foreignIdentifier
-    );
-    const rawAttributes = Object.keys(
-      this.sequelize.models.Family.rawAttributes
-    );
+    const foreignIdentifiers = Object.values(Person.associations).map(v => v.foreignIdentifier);
+    const rawAttributes = Object.keys(this.sequelize.models.Family.rawAttributes);
 
     expect(foreignIdentifiers.length).to.equal(2);
     expect(rawAttributes.length).to.equal(4);
 
     expect(foreignIdentifiers).to.have.members(['PersonId', 'ChildId']);
-    expect(rawAttributes).to.have.members([
-      'createdAt',
-      'updatedAt',
-      'PersonId',
-      'ChildId',
-    ]);
+    expect(rawAttributes).to.have.members(['createdAt', 'updatedAt', 'PersonId', 'ChildId']);
 
     await this.sequelize.sync({ force: true });
 
     const [mary, john, chris] = await Promise.all([
       Person.create({ name: 'Mary' }),
       Person.create({ name: 'John' }),
-      Person.create({ name: 'Chris' }),
+      Person.create({ name: 'Chris' })
     ]);
 
     await mary.setParents([john]);
     await chris.addParent(john);
     const children = await john.getChilds();
-    expect(children.map((v) => v.id)).to.have.members([mary.id, chris.id]);
+    expect(children.map(v => v.id)).to.have.members([mary.id, chris.id]);
   });
 
   it('can handle n:m associations with pre-defined through table', async function () {
@@ -104,12 +95,12 @@ describe(Support.getTestDialectTeaser('Self'), () => {
       {
         preexisting_child: {
           type: DataTypes.INTEGER,
-          primaryKey: true,
+          primaryKey: true
         },
         preexisting_parent: {
           type: DataTypes.INTEGER,
-          primaryKey: true,
-        },
+          primaryKey: true
+        }
       },
       { timestamps: false }
     );
@@ -118,31 +109,23 @@ describe(Support.getTestDialectTeaser('Self'), () => {
       as: 'Parents',
       through: Family,
       foreignKey: 'preexisting_child',
-      otherKey: 'preexisting_parent',
+      otherKey: 'preexisting_parent'
     });
     Person.belongsToMany(Person, {
       as: 'Children',
       through: Family,
       foreignKey: 'preexisting_parent',
-      otherKey: 'preexisting_child',
+      otherKey: 'preexisting_child'
     });
 
-    const foreignIdentifiers = Object.values(Person.associations).map(
-      (v) => v.foreignIdentifier
-    );
+    const foreignIdentifiers = Object.values(Person.associations).map(v => v.foreignIdentifier);
     const rawAttributes = Object.keys(Family.rawAttributes);
 
     expect(foreignIdentifiers.length).to.equal(2);
     expect(rawAttributes.length).to.equal(2);
 
-    expect(foreignIdentifiers).to.have.members([
-      'preexisting_parent',
-      'preexisting_child',
-    ]);
-    expect(rawAttributes).to.have.members([
-      'preexisting_parent',
-      'preexisting_child',
-    ]);
+    expect(foreignIdentifiers).to.have.members(['preexisting_parent', 'preexisting_child']);
+    expect(rawAttributes).to.have.members(['preexisting_parent', 'preexisting_child']);
 
     let count = 0;
     await this.sequelize.sync({ force: true });
@@ -150,7 +133,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     const [mary, john, chris] = await Promise.all([
       Person.create({ name: 'Mary' }),
       Person.create({ name: 'John' }),
-      Person.create({ name: 'Chris' }),
+      Person.create({ name: 'Chris' })
     ]);
 
     this.mary = mary;
@@ -164,7 +147,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
           expect(sql).to.have.string('preexisting_child');
           expect(sql).to.have.string('preexisting_parent');
         }
-      },
+      }
     });
 
     await this.mary.addParent(this.chris, {
@@ -174,7 +157,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
           expect(sql).to.have.string('preexisting_child');
           expect(sql).to.have.string('preexisting_parent');
         }
-      },
+      }
     });
 
     const children = await this.john.getChildren({
@@ -184,10 +167,10 @@ describe(Support.getTestDialectTeaser('Self'), () => {
         // look only in the whereClause
         expect(whereClause).to.have.string('preexisting_child');
         expect(whereClause).to.have.string('preexisting_parent');
-      },
+      }
     });
 
     expect(count).to.be.equal(3);
-    expect(children.map((v) => v.id)).to.have.members([this.mary.id]);
+    expect(children.map(v => v.id)).to.have.members([this.mary.id]);
   });
 });

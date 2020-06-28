@@ -13,18 +13,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         name: DataTypes.STRING,
         birthday: DataTypes.DATE,
         yoj: DataTypes.DATEONLY,
-        meta: DataTypes.JSON,
+        meta: DataTypes.JSON
       });
     });
 
     it('should return true for changed primitive', function () {
       const user = this.User.build(
         {
-          name: 'a',
+          name: 'a'
         },
         {
           isNewRecord: false,
-          raw: true,
+          raw: true
         }
       );
 
@@ -39,11 +39,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = this.User.build(
         {
           name: 'a',
-          meta: null,
+          meta: null
         },
         {
           isNewRecord: false,
-          raw: true,
+          raw: true
         }
       );
 
@@ -57,11 +57,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = this.User.build(
         {
           name: 'a',
-          birthday: new Date(new Date() - 10),
+          birthday: new Date(new Date() - 10)
         },
         {
           isNewRecord: false,
-          raw: true,
+          raw: true
         }
       );
 
@@ -78,11 +78,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const user = this.User.build(
         {
-          birthday: firstDate,
+          birthday: firstDate
         },
         {
           isNewRecord: false,
-          raw: true,
+          raw: true
         }
       );
 
@@ -91,22 +91,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should not detect changes when equal', function () {
-      for (const value of [
-        null,
-        1,
-        'asdf',
-        new Date(),
-        [],
-        {},
-        Buffer.from(''),
-      ]) {
+      for (const value of [null, 1, 'asdf', new Date(), [], {}, Buffer.from('')]) {
         const t = new this.User(
           {
-            json: value,
+            json: value
           },
           {
             isNewRecord: false,
-            raw: true,
+            raw: true
           }
         );
         t.json = value;
@@ -119,12 +111,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = this.User.build(
         {
           meta: {
-            city: 'Stockholm',
-          },
+            city: 'Stockholm'
+          }
         },
         {
           isNewRecord: false,
-          raw: true,
+          raw: true
         }
       );
 
@@ -136,12 +128,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = this.User.build(
         {
           meta: {
-            city: 'Gothenburg',
-          },
+            city: 'Gothenburg'
+          }
         },
         {
           isNewRecord: false,
-          raw: true,
+          raw: true
         }
       );
 
@@ -153,12 +145,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = this.User.build(
         {
           meta: {
-            address: { street: 'Main street', number: '40' },
-          },
+            address: { street: 'Main street', number: '40' }
+          }
         },
         {
           isNewRecord: false,
-          raw: true,
+          raw: true
         }
       );
 
@@ -170,12 +162,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = this.User.build(
         {
           meta: {
-            address: { street: 'Main street', number: '40' },
-          },
+            address: { street: 'Main street', number: '40' }
+          }
         },
         {
           isNewRecord: false,
-          raw: true,
+          raw: true
         }
       );
 
@@ -191,7 +183,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const user = this.User.build(attributes, {
         isNewRecord: false,
-        raw: true,
+        raw: true
       });
 
       for (const attr in this.User.rawAttributes) {
@@ -208,11 +200,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user = this.User.build(
           {
             name: 'a',
-            meta: null,
+            meta: null
           },
           {
             isNewRecord: false,
-            raw: true,
+            raw: true
           }
         );
 

@@ -46,7 +46,7 @@ const hookTypes = {
   beforeBulkSync: { params: 1 },
   afterBulkSync: { params: 1 },
   beforeQuery: { params: 2 },
-  afterQuery: { params: 2 },
+  afterQuery: { params: 2 }
 };
 exports.hooks = hookTypes;
 
@@ -57,10 +57,8 @@ exports.hooks = hookTypes;
  *
  * @private
  */
-const getProxiedHooks = (hookType) =>
-  hookTypes[hookType].proxies
-    ? hookTypes[hookType].proxies.concat(hookType)
-    : [hookType];
+const getProxiedHooks = hookType =>
+  hookTypes[hookType].proxies ? hookTypes[hookType].proxies.concat(hookType) : [hookType];
 function getHooks(hooked, hookType) {
   return (hooked.options.hooks || {})[hookType] || [];
 }
@@ -79,7 +77,7 @@ const Hooks = {
     this.options.hooks = {};
     _.map(hooks || {}, (hooksArray, hookName) => {
       if (!Array.isArray(hooksArray)) hooksArray = [hooksArray];
-      hooksArray.forEach((hookFn) => this.addHook(hookName, hookFn));
+      hooksArray.forEach(hookFn => this.addHook(hookName, hookFn));
     });
   },
 
@@ -145,7 +143,7 @@ const Hooks = {
     // check for proxies, add them too
     hookType = getProxiedHooks(hookType);
 
-    hookType.forEach((type) => {
+    hookType.forEach(type => {
       const hooks = getHooks(this, type);
       hooks.push(name ? { name, fn } : fn);
       this.options.hooks[type] = hooks;
@@ -176,7 +174,7 @@ const Hooks = {
     hookType = getProxiedHooks(hookType);
 
     for (const type of hookType) {
-      this.options.hooks[type] = this.options.hooks[type].filter((hook) => {
+      this.options.hooks[type] = this.options.hooks[type].filter(hook => {
         if (isReference && typeof hook === 'function') {
           return hook !== name; // check if same method
         }
@@ -201,10 +199,8 @@ const Hooks = {
    * @memberof Sequelize.Model
    */
   hasHook(hookType) {
-    return (
-      this.options.hooks[hookType] && !!this.options.hooks[hookType].length
-    );
-  },
+    return this.options.hooks[hookType] && !!this.options.hooks[hookType].length;
+  }
 };
 Hooks.hasHooks = Hooks.hasHook;
 

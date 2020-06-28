@@ -11,8 +11,8 @@ const SEARCH_PATH_TWO = 'schema_two,public';
 
 const current = Support.createSequelizeInstance({
   dialectOptions: {
-    prependSearchPath: true,
-  },
+    prependSearchPath: true
+  }
 });
 
 let locationId;
@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'restaurant',
           {
             foo: DataTypes.STRING,
-            bar: DataTypes.STRING,
+            bar: DataTypes.STRING
           },
           { tableName: 'restaurants' }
         );
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'location',
           {
             name: DataTypes.STRING,
-            type: DataTypes.ENUM('a', 'b'),
+            type: DataTypes.ENUM('a', 'b')
           },
           { tableName: 'locations' }
         );
@@ -41,21 +41,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'employee',
           {
             first_name: DataTypes.STRING,
-            last_name: DataTypes.STRING,
+            last_name: DataTypes.STRING
           },
           { tableName: 'employees' }
         );
         this.Restaurant.belongsTo(this.Location, {
           foreignKey: 'location_id',
-          constraints: false,
+          constraints: false
         });
         this.Employee.belongsTo(this.Restaurant, {
           foreignKey: 'restaurant_id',
-          constraints: false,
+          constraints: false
         });
         this.Restaurant.hasMany(this.Employee, {
           foreignKey: 'restaurant_id',
-          constraints: false,
+          constraints: false
         });
       });
 
@@ -90,21 +90,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Restaurant.create(
             {
               foo: 'one',
-              location_id: locationId,
+              location_id: locationId
             },
             { searchPath: SEARCH_PATH_ONE }
           );
 
           const obj0 = await Restaurant.findOne({
             where: { foo: 'one' },
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
 
           expect(obj0).to.not.be.null;
           expect(obj0.foo).to.equal('one');
           const restaurantId = obj0.id;
           const obj = await Restaurant.findByPk(restaurantId, {
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
           expect(obj).to.not.be.null;
           expect(obj.foo).to.equal('one');
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           try {
             await Restaurant.create(
               {
-                foo: 'test',
+                foo: 'test'
               },
               { searchPath: SEARCH_PATH_TWO }
             );
@@ -131,21 +131,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Restaurant.create(
             {
               foo: 'two',
-              location_id: locationId,
+              location_id: locationId
             },
             { searchPath: SEARCH_PATH_TWO }
           );
 
           const obj0 = await Restaurant.findOne({
             where: { foo: 'two' },
-            searchPath: SEARCH_PATH_TWO,
+            searchPath: SEARCH_PATH_TWO
           });
 
           expect(obj0).to.not.be.null;
           expect(obj0.foo).to.equal('two');
           const restaurantId = obj0.id;
           const obj = await Restaurant.findByPk(restaurantId, {
-            searchPath: SEARCH_PATH_TWO,
+            searchPath: SEARCH_PATH_TWO
           });
           expect(obj).to.not.be.null;
           expect(obj.foo).to.equal('two');
@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           const RestaurantObj = await Restaurant.findOne({
             where: { foo: 'one' },
-            searchPath: SEARCH_PATH_TWO,
+            searchPath: SEARCH_PATH_TWO
           });
           expect(RestaurantObj).to.be.null;
         });
@@ -166,7 +166,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           const RestaurantObj = await Restaurant.findOne({
             where: { foo: 'two' },
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
           expect(RestaurantObj).to.be.null;
         });
@@ -188,37 +188,37 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           restaurauntModel = Restaurant.build({ bar: 'two.3' });
           await restaurauntModel.save({ searchPath: SEARCH_PATH_TWO });
           const restaurantsOne0 = await Restaurant.findAll({
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
           expect(restaurantsOne0).to.not.be.null;
           expect(restaurantsOne0.length).to.equal(2);
-          restaurantsOne0.forEach((restaurant) => {
+          restaurantsOne0.forEach(restaurant => {
             expect(restaurant.bar).to.contain('one');
           });
           const restaurantsOne = await Restaurant.findAndCountAll({
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
           expect(restaurantsOne).to.not.be.null;
           expect(restaurantsOne.rows.length).to.equal(2);
           expect(restaurantsOne.count).to.equal(2);
-          restaurantsOne.rows.forEach((restaurant) => {
+          restaurantsOne.rows.forEach(restaurant => {
             expect(restaurant.bar).to.contain('one');
           });
           const restaurantsTwo0 = await Restaurant.findAll({
-            searchPath: SEARCH_PATH_TWO,
+            searchPath: SEARCH_PATH_TWO
           });
           expect(restaurantsTwo0).to.not.be.null;
           expect(restaurantsTwo0.length).to.equal(3);
-          restaurantsTwo0.forEach((restaurant) => {
+          restaurantsTwo0.forEach(restaurant => {
             expect(restaurant.bar).to.contain('two');
           });
           const restaurantsTwo = await Restaurant.findAndCountAll({
-            searchPath: SEARCH_PATH_TWO,
+            searchPath: SEARCH_PATH_TWO
           });
           expect(restaurantsTwo).to.not.be.null;
           expect(restaurantsTwo.rows.length).to.equal(3);
           expect(restaurantsTwo.count).to.equal(3);
-          restaurantsTwo.rows.forEach((restaurant) => {
+          restaurantsTwo.rows.forEach(restaurant => {
             expect(restaurant.bar).to.contain('two');
           });
         });
@@ -242,28 +242,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           const restaurantsOne = await Restaurant.findAll({
             where: { bar: { [Op.like]: 'one%' } },
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
 
           expect(restaurantsOne).to.not.be.null;
           expect(restaurantsOne.length).to.equal(2);
-          restaurantsOne.forEach((restaurant) => {
+          restaurantsOne.forEach(restaurant => {
             expect(restaurant.bar).to.contain('one');
           });
           const count0 = await Restaurant.count({
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
           expect(count0).to.not.be.null;
           expect(count0).to.equal(2);
 
           const restaurantsTwo = await Restaurant.findAll({
             where: { bar: { [Op.like]: 'two%' } },
-            searchPath: SEARCH_PATH_TWO,
+            searchPath: SEARCH_PATH_TWO
           });
 
           expect(restaurantsTwo).to.not.be.null;
           expect(restaurantsTwo.length).to.equal(3);
-          restaurantsTwo.forEach((restaurant) => {
+          restaurantsTwo.forEach(restaurant => {
             expect(restaurant.bar).to.contain('two');
           });
           const count = await Restaurant.count({ searchPath: SEARCH_PATH_TWO });
@@ -295,7 +295,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Restaurant.create(
             {
               foo: 'one',
-              location_id: locationId,
+              location_id: locationId
             },
             { searchPath: SEARCH_PATH_ONE }
           );
@@ -305,10 +305,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [
               {
                 model: Location,
-                as: 'location',
-              },
+                as: 'location'
+              }
             ],
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
 
           expect(obj).to.not.be.null;
@@ -324,7 +324,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Restaurant.create(
             {
               foo: 'two',
-              location_id: locationId,
+              location_id: locationId
             },
             { searchPath: SEARCH_PATH_TWO }
           );
@@ -334,10 +334,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [
               {
                 model: Location,
-                as: 'location',
-              },
+                as: 'location'
+              }
             ],
-            searchPath: SEARCH_PATH_TWO,
+            searchPath: SEARCH_PATH_TWO
           });
 
           expect(obj).to.not.be.null;
@@ -364,14 +364,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const Employee = this.Employee;
           await Restaurant.create(
             {
-              foo: 'one',
+              foo: 'one'
             },
             { searchPath: SEARCH_PATH_ONE }
           );
 
           const obj1 = await Restaurant.findOne({
             where: { foo: 'one' },
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
 
           expect(obj1).to.not.be.null;
@@ -382,7 +382,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               first_name: 'Restaurant',
               last_name: 'one',
-              restaurant_id: restaurantId,
+              restaurant_id: restaurantId
             },
             { searchPath: SEARCH_PATH_ONE }
           );
@@ -393,9 +393,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [
               {
                 model: Employee,
-                as: 'employees',
-              },
-            ],
+                as: 'employees'
+              }
+            ]
           });
 
           expect(obj0).to.not.be.null;
@@ -403,7 +403,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(obj0.employees.length).to.equal(1);
           expect(obj0.employees[0].last_name).to.equal('one');
           const employees = await obj0.getEmployees({
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
           expect(employees.length).to.equal(1);
           expect(employees[0].last_name).to.equal('one');
@@ -414,16 +414,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [
               {
                 model: Restaurant,
-                as: 'restaurant',
-              },
-            ],
+                as: 'restaurant'
+              }
+            ]
           });
 
           expect(obj).to.not.be.null;
           expect(obj.restaurant).to.not.be.null;
           expect(obj.restaurant.foo).to.equal('one');
           const restaurant = await obj.getRestaurant({
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
           expect(restaurant).to.not.be.null;
           expect(restaurant.foo).to.equal('one');
@@ -435,14 +435,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await Restaurant.create(
             {
-              foo: 'two',
+              foo: 'two'
             },
             { searchPath: SEARCH_PATH_TWO }
           );
 
           const obj1 = await Restaurant.findOne({
             where: { foo: 'two' },
-            searchPath: SEARCH_PATH_TWO,
+            searchPath: SEARCH_PATH_TWO
           });
 
           expect(obj1).to.not.be.null;
@@ -453,7 +453,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               first_name: 'Restaurant',
               last_name: 'two',
-              restaurant_id: restaurantId,
+              restaurant_id: restaurantId
             },
             { searchPath: SEARCH_PATH_TWO }
           );
@@ -464,9 +464,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [
               {
                 model: Employee,
-                as: 'employees',
-              },
-            ],
+                as: 'employees'
+              }
+            ]
           });
 
           expect(obj0).to.not.be.null;
@@ -474,7 +474,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(obj0.employees.length).to.equal(1);
           expect(obj0.employees[0].last_name).to.equal('two');
           const employees = await obj0.getEmployees({
-            searchPath: SEARCH_PATH_TWO,
+            searchPath: SEARCH_PATH_TWO
           });
           expect(employees.length).to.equal(1);
           expect(employees[0].last_name).to.equal('two');
@@ -485,16 +485,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [
               {
                 model: Restaurant,
-                as: 'restaurant',
-              },
-            ],
+                as: 'restaurant'
+              }
+            ]
           });
 
           expect(obj).to.not.be.null;
           expect(obj.restaurant).to.not.be.null;
           expect(obj.restaurant.foo).to.equal('two');
           const restaurant = await obj.getRestaurant({
-            searchPath: SEARCH_PATH_TWO,
+            searchPath: SEARCH_PATH_TWO
           });
           expect(restaurant).to.not.be.null;
           expect(restaurant.foo).to.equal('two');
@@ -513,19 +513,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await restaurauntModelSchema2.save({ searchPath: SEARCH_PATH_TWO });
           await restaurauntModelSchema1.save({ searchPath: SEARCH_PATH_ONE });
           const restaurantsOne = await Restaurant.findAll({
-            searchPath: SEARCH_PATH_ONE,
+            searchPath: SEARCH_PATH_ONE
           });
           expect(restaurantsOne).to.not.be.null;
           expect(restaurantsOne.length).to.equal(2);
-          restaurantsOne.forEach((restaurant) => {
+          restaurantsOne.forEach(restaurant => {
             expect(restaurant.bar).to.contain('one');
           });
           const restaurantsTwo = await Restaurant.findAll({
-            searchPath: SEARCH_PATH_TWO,
+            searchPath: SEARCH_PATH_TWO
           });
           expect(restaurantsTwo).to.not.be.null;
           expect(restaurantsTwo.length).to.equal(1);
-          restaurantsTwo.forEach((restaurant) => {
+          restaurantsTwo.forEach(restaurant => {
             expect(restaurant.bar).to.contain('two');
           });
         });
@@ -535,38 +535,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should be able to update data via instance update in both schemas, and retrieve it via findAll with where', async function () {
           const Restaurant = this.Restaurant;
 
-          const rnt = await Restaurant.create(
-            { foo: 'one', bar: '1' },
-            { searchPath: SEARCH_PATH_ONE }
-          );
+          const rnt = await Restaurant.create({ foo: 'one', bar: '1' }, { searchPath: SEARCH_PATH_ONE });
 
           await Promise.all([
             await rnt.update({ bar: 'x.1' }, { searchPath: SEARCH_PATH_ONE }),
-            Restaurant.create(
-              { foo: 'one', bar: '2' },
-              { searchPath: SEARCH_PATH_ONE }
-            ).then((rnt) =>
+            Restaurant.create({ foo: 'one', bar: '2' }, { searchPath: SEARCH_PATH_ONE }).then(rnt =>
               rnt.update({ bar: 'x.2' }, { searchPath: SEARCH_PATH_ONE })
             ),
-            Restaurant.create(
-              { foo: 'two', bar: '1' },
-              { searchPath: SEARCH_PATH_TWO }
-            ).then((rnt) =>
+            Restaurant.create({ foo: 'two', bar: '1' }, { searchPath: SEARCH_PATH_TWO }).then(rnt =>
               rnt.update({ bar: 'x.1' }, { searchPath: SEARCH_PATH_TWO })
             ),
-            Restaurant.create(
-              { foo: 'two', bar: '2' },
-              { searchPath: SEARCH_PATH_TWO }
-            ).then((rnt) =>
+            Restaurant.create({ foo: 'two', bar: '2' }, { searchPath: SEARCH_PATH_TWO }).then(rnt =>
               rnt.update({ bar: 'x.2' }, { searchPath: SEARCH_PATH_TWO })
-            ),
+            )
           ]);
 
           await Promise.all([
             (async () => {
               const restaurantsOne = await Restaurant.findAll({
                 where: { bar: 'x.1' },
-                searchPath: SEARCH_PATH_ONE,
+                searchPath: SEARCH_PATH_ONE
               });
 
               expect(restaurantsOne.length).to.equal(1);
@@ -576,13 +564,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             (async () => {
               const restaurantsTwo = await Restaurant.findAll({
                 where: { bar: 'x.2' },
-                searchPath: SEARCH_PATH_TWO,
+                searchPath: SEARCH_PATH_TWO
               });
 
               expect(restaurantsTwo.length).to.equal(1);
               expect(restaurantsTwo[0].foo).to.equal('two');
               expect(restaurantsTwo[0].bar).to.equal('x.2');
-            })(),
+            })()
           ]);
         });
       });

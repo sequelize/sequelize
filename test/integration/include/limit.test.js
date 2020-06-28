@@ -13,7 +13,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      * shortcut for building simple {name: 'foo'} seed data
      */
     function build(...args) {
-      return args.map((arg) => ({ name: arg }));
+      return args.map(arg => ({ name: arg }));
     }
 
     /*
@@ -38,8 +38,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         {
           name: {
             type: DataTypes.STRING,
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         },
         { timestamps: false }
       );
@@ -49,8 +49,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         {
           name: {
             type: DataTypes.STRING,
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         },
         { timestamps: false }
       );
@@ -60,8 +60,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         {
           name: {
             type: DataTypes.STRING,
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         },
         { timestamps: false }
       );
@@ -71,8 +71,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         {
           name: {
             type: DataTypes.STRING,
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         },
         { timestamps: false }
       );
@@ -91,8 +91,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         {
           name: {
             type: DataTypes.STRING,
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         },
         { timestamps: false }
       );
@@ -102,8 +102,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         {
           name: {
             type: DataTypes.STRING,
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         },
         { timestamps: false }
       );
@@ -113,8 +113,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         {
           name: {
             type: DataTypes.STRING,
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         },
         { timestamps: false }
       );
@@ -124,8 +124,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         {
           name: {
             type: DataTypes.STRING,
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         },
         { timestamps: false }
       );
@@ -135,8 +135,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         {
           name: {
             type: DataTypes.STRING,
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         },
         { timestamps: false }
       );
@@ -165,27 +165,23 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const [projects, users] = await Promise.all([
         this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
-        this.User.bulkCreate(build('Alice', 'Bob')),
+        this.User.bulkCreate(build('Alice', 'Bob'))
       ]);
 
-      await Promise.all([
-        projects[0].addUser(users[0]),
-        projects[1].addUser(users[1]),
-        projects[2].addUser(users[0]),
-      ]);
+      await Promise.all([projects[0].addUser(users[0]), projects[1].addUser(users[1]), projects[2].addUser(users[0])]);
 
       const result = await this.Project.findAll({
         include: [
           {
             model: this.User,
             where: {
-              name: 'Alice',
-            },
-          },
+              name: 'Alice'
+            }
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -198,14 +194,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const [projects, users, hobbies] = await Promise.all([
         this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
         this.User.bulkCreate(build('Alice', 'Bob')),
-        this.Hobby.bulkCreate(build('archery', 'badminton')),
+        this.Hobby.bulkCreate(build('archery', 'badminton'))
       ]);
 
       await Promise.all([
         projects[0].addUser(users[0]),
         projects[1].addUser(users[1]),
         projects[2].addUser(users[0]),
-        users[0].addHobby(hobbies[0]),
+        users[0].addHobby(hobbies[0])
       ]);
 
       const result = await this.Project.findAll({
@@ -216,14 +212,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             include: [
               {
                 model: this.Hobby,
-                required: true,
-              },
-            ],
-          },
+                required: true
+              }
+            ]
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -236,7 +232,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const [projects, users, hobbies] = await Promise.all([
         this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
         this.User.bulkCreate(build('Alice', 'Bob')),
-        this.Hobby.bulkCreate(build('archery', 'badminton')),
+        this.Hobby.bulkCreate(build('archery', 'badminton'))
       ]);
 
       await Promise.all([
@@ -244,7 +240,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         projects[1].addUser(users[1]),
         projects[2].addUser(users[0]),
         users[0].addHobby(hobbies[0]),
-        users[1].addHobby(hobbies[1]),
+        users[1].addHobby(hobbies[1])
       ]);
 
       const result = await this.Project.findAll({
@@ -256,15 +252,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               {
                 model: this.Hobby,
                 where: {
-                  name: 'archery',
-                },
-              },
-            ],
-          },
+                  name: 'archery'
+                }
+              }
+            ]
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -277,7 +273,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const [projects, users, hobbies] = await Promise.all([
         this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
         this.User.bulkCreate(build('Alice', 'Bob')),
-        this.Hobby.bulkCreate(build('archery', 'badminton')),
+        this.Hobby.bulkCreate(build('archery', 'badminton'))
       ]);
 
       await Promise.all([
@@ -285,7 +281,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         projects[1].addUser(users[1]),
         projects[2].addUser(users[0]),
         users[0].addHobby(hobbies[0]),
-        users[1].addHobby(hobbies[1]),
+        users[1].addHobby(hobbies[1])
       ]);
 
       const result = await this.Project.findAll({
@@ -299,16 +295,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 required: true,
                 through: {
                   where: {
-                    HobbyName: 'archery',
-                  },
-                },
-              },
-            ],
-          },
+                    HobbyName: 'archery'
+                  }
+                }
+              }
+            ]
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -322,7 +318,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         this.Task.bulkCreate(build('alpha', 'bravo', 'charlie')),
         this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
         this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte')),
-        this.Hobby.bulkCreate(build('archery', 'badminton')),
+        this.Hobby.bulkCreate(build('archery', 'badminton'))
       ]);
 
       await Promise.all([
@@ -333,7 +329,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         projects[1].addUser(users[1]),
         projects[2].addUser(users[0]),
         users[0].addHobby(hobbies[0]),
-        users[1].addHobby(hobbies[1]),
+        users[1].addHobby(hobbies[1])
       ]);
 
       const result = await this.Task.findAll({
@@ -349,17 +345,17 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                   {
                     model: this.Hobby,
                     where: {
-                      name: 'archery',
-                    },
-                  },
-                ],
-              },
-            ],
-          },
+                      name: 'archery'
+                    }
+                  }
+                ]
+              }
+            ]
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -371,25 +367,25 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const [projects, users] = await Promise.all([
         this.Project.bulkCreate(build('alpha', 'bravo', 'charlie')),
-        this.User.bulkCreate(build('Alice', 'Bob')),
+        this.User.bulkCreate(build('Alice', 'Bob'))
       ]);
 
       await Promise.all([
         // alpha
         projects[0].addUser(users[0]), // charlie
-        projects[2].addUser(users[0]),
+        projects[2].addUser(users[0])
       ]);
 
       const result = await this.Project.findAll({
         include: [
           {
             model: this.User,
-            required: true,
-          },
+            required: true
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -402,7 +398,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const [projects, users, tasks] = await Promise.all([
         this.Project.bulkCreate(build('alpha', 'bravo', 'charlie', 'delta')),
         this.User.bulkCreate(build('Alice', 'Bob', 'David')),
-        this.Task.bulkCreate(build('a', 'c', 'd')),
+        this.Task.bulkCreate(build('a', 'c', 'd'))
       ]);
 
       await Promise.all([
@@ -411,23 +407,23 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         projects[1].addUser(users[1]),
         projects[2].addTask(tasks[1]),
         projects[3].addUser(users[2]),
-        projects[3].addTask(tasks[2]),
+        projects[3].addTask(tasks[2])
       ]);
 
       const result = await this.Project.findAll({
         include: [
           {
             model: this.User,
-            required: true,
+            required: true
           },
           {
             model: this.Task,
-            required: true,
-          },
+            required: true
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -442,24 +438,21 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const [posts, comments] = await Promise.all([
         this.Post.bulkCreate(build('alpha', 'bravo', 'charlie')),
-        this.Comment.bulkCreate(build('comment0', 'comment1')),
+        this.Comment.bulkCreate(build('comment0', 'comment1'))
       ]);
 
-      await Promise.all([
-        posts[0].addComment(comments[0]),
-        posts[2].addComment(comments[1]),
-      ]);
+      await Promise.all([posts[0].addComment(comments[0]), posts[2].addComment(comments[1])]);
 
       const result = await this.Post.findAll({
         include: [
           {
             model: this.Comment,
-            required: true,
-          },
+            required: true
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -471,13 +464,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const [posts, comments] = await Promise.all([
         this.Post.bulkCreate(build('alpha', 'bravo', 'charlie')),
-        this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2')),
+        this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2'))
       ]);
 
       await Promise.all([
         posts[0].addComment(comments[0]),
         posts[1].addComment(comments[1]),
-        posts[2].addComment(comments[2]),
+        posts[2].addComment(comments[2])
       ]);
 
       const result = await this.Post.findAll({
@@ -488,18 +481,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             where: {
               [Op.or]: [
                 {
-                  name: 'comment0',
+                  name: 'comment0'
                 },
                 {
-                  name: 'comment2',
-                },
-              ],
-            },
-          },
+                  name: 'comment2'
+                }
+              ]
+            }
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -511,13 +504,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const [posts, comments] = await Promise.all([
         this.Post.bulkCreate(build('alpha', 'bravo', 'charlie')),
-        this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2')),
+        this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2'))
       ]);
 
       await Promise.all([
         posts[0].addComment(comments[0]),
         posts[1].addComment(comments[1]),
-        posts[2].addComment(comments[2]),
+        posts[2].addComment(comments[2])
       ]);
 
       const post = await this.Post.findOne({
@@ -526,10 +519,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             model: this.Comment,
             required: true,
             where: {
-              name: 'comment2',
-            },
-          },
-        ],
+              name: 'comment2'
+            }
+          }
+        ]
       });
 
       expect(post.name).to.equal('charlie');
@@ -541,7 +534,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const [users, posts, comments] = await Promise.all([
         this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte', 'David')),
         this.Post.bulkCreate(build('post0', 'post1', 'post2')),
-        this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2')),
+        this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2'))
       ]);
 
       await Promise.all([
@@ -549,7 +542,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         users[1].addPost(posts[1]),
         users[3].addPost(posts[2]),
         posts[0].addComment(comments[0]),
-        posts[2].addComment(comments[2]),
+        posts[2].addComment(comments[2])
       ]);
 
       const result = await this.User.findAll({
@@ -560,14 +553,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             include: [
               {
                 model: this.Comment,
-                required: true,
-              },
-            ],
-          },
+                required: true
+              }
+            ]
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -583,7 +576,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const [users, posts, tags] = await Promise.all([
         this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte', 'David')),
         this.Post.bulkCreate(build('alpha', 'charlie', 'delta')),
-        this.Tag.bulkCreate(build('atag', 'btag', 'dtag')),
+        this.Tag.bulkCreate(build('atag', 'btag', 'dtag'))
       ]);
 
       await Promise.all([
@@ -591,7 +584,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         users[2].addPost(posts[1]),
         users[3].addPost(posts[2]),
         posts[0].addTag([tags[0]]),
-        posts[2].addTag([tags[2]]),
+        posts[2].addTag([tags[2]])
       ]);
 
       const result = await this.User.findAll({
@@ -602,14 +595,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             include: [
               {
                 model: this.Tag,
-                required: true,
-              },
-            ],
-          },
+                required: true
+              }
+            ]
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -622,7 +615,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const [projects, users, posts] = await Promise.all([
         this.Project.bulkCreate(build('alpha', 'bravo', 'charlie', 'delta')),
         this.User.bulkCreate(build('Alice', 'Bob', 'David')),
-        this.Post.bulkCreate(build('post0', 'post1', 'post2')),
+        this.Post.bulkCreate(build('post0', 'post1', 'post2'))
       ]);
 
       await Promise.all([
@@ -630,7 +623,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         projects[1].addUser(users[1]),
         projects[3].addUser(users[2]),
         users[0].addPost([posts[0]]),
-        users[2].addPost([posts[2]]),
+        users[2].addPost([posts[2]])
       ]);
 
       const result = await this.Project.findAll({
@@ -642,14 +635,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               {
                 model: this.Post,
                 required: true,
-                duplicating: true,
-              },
-            ],
-          },
+                duplicating: true
+              }
+            ]
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -662,7 +655,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const [posts, users, hobbies] = await Promise.all([
         this.Post.bulkCreate(build('post0', 'post1', 'post2', 'post3')),
         this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte', 'David')),
-        this.Hobby.bulkCreate(build('archery', 'badminton')),
+        this.Hobby.bulkCreate(build('archery', 'badminton'))
       ]);
 
       await Promise.all([
@@ -671,7 +664,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         posts[3].setUser(users[3]),
         users[0].addHobby(hobbies[0]),
         users[1].addHobby(hobbies[1]),
-        users[3].addHobby(hobbies[0]),
+        users[3].addHobby(hobbies[0])
       ]);
 
       const result = await this.Post.findAll({
@@ -683,15 +676,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               {
                 model: this.Hobby,
                 where: {
-                  name: 'archery',
-                },
-              },
-            ],
-          },
+                  name: 'archery'
+                }
+              }
+            ]
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -704,7 +697,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const [posts, users, hobbies] = await Promise.all([
         this.Post.bulkCreate(build('post0', 'post1', 'post2', 'post3')),
         this.User.bulkCreate(build('Alice', 'Bob', 'Charlotte', 'David')),
-        this.Hobby.bulkCreate(build('archery', 'badminton')),
+        this.Hobby.bulkCreate(build('archery', 'badminton'))
       ]);
 
       await Promise.all([
@@ -713,7 +706,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         posts[3].setUser(users[3]),
         users[0].addHobby(hobbies[0]),
         users[1].addHobby(hobbies[1]),
-        users[3].addHobby(hobbies[0]),
+        users[3].addHobby(hobbies[0])
       ]);
 
       const result = await this.Post.findAll({
@@ -727,16 +720,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 required: true,
                 through: {
                   where: {
-                    HobbyName: 'archery',
-                  },
-                },
-              },
-            ],
-          },
+                    HobbyName: 'archery'
+                  }
+                }
+              }
+            ]
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -747,21 +740,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       const [comments, posts, users, tags] = await Promise.all([
-        this.Comment.bulkCreate(
-          build(
-            'comment0',
-            'comment1',
-            'comment2',
-            'comment3',
-            'comment4',
-            'comment5'
-          )
-        ),
-        this.Post.bulkCreate(
-          build('post0', 'post1', 'post2', 'post3', 'post4')
-        ),
+        this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2', 'comment3', 'comment4', 'comment5')),
+        this.Post.bulkCreate(build('post0', 'post1', 'post2', 'post3', 'post4')),
         this.User.bulkCreate(build('Alice', 'Bob')),
-        this.Tag.bulkCreate(build('tag0', 'tag1')),
+        this.Tag.bulkCreate(build('tag0', 'tag1'))
       ]);
 
       await Promise.all([
@@ -777,7 +759,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         posts[0].setUser(users[0]),
         posts[2].setUser(users[0]),
         posts[4].setUser(users[0]),
-        posts[1].setUser(users[1]),
+        posts[1].setUser(users[1])
       ]);
 
       const result = await this.Comment.findAll({
@@ -789,21 +771,21 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               {
                 model: this.User,
                 where: {
-                  name: 'Alice',
-                },
+                  name: 'Alice'
+                }
               },
               {
                 model: this.Tag,
                 where: {
-                  name: 'tag0',
-                },
-              },
-            ],
-          },
+                  name: 'tag0'
+                }
+              }
+            ]
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);
@@ -816,7 +798,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const [comments, posts, footnotes] = await Promise.all([
         this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2')),
         this.Post.bulkCreate(build('post0', 'post1', 'post2')),
-        this.Footnote.bulkCreate(build('footnote0', 'footnote1', 'footnote2')),
+        this.Footnote.bulkCreate(build('footnote0', 'footnote1', 'footnote2'))
       ]);
 
       await Promise.all([
@@ -825,7 +807,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         comments[2].setPost(posts[2]),
         posts[0].addFootnote(footnotes[0]),
         posts[1].addFootnote(footnotes[1]),
-        posts[2].addFootnote(footnotes[2]),
+        posts[2].addFootnote(footnotes[2])
       ]);
 
       const result = await this.Comment.findAll({
@@ -839,20 +821,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                 where: {
                   [Op.or]: [
                     {
-                      name: 'footnote0',
+                      name: 'footnote0'
                     },
                     {
-                      name: 'footnote2',
-                    },
-                  ],
-                },
-              },
-            ],
-          },
+                      name: 'footnote2'
+                    }
+                  ]
+                }
+              }
+            ]
+          }
         ],
         order: ['name'],
         limit: 1,
-        offset: 1,
+        offset: 1
       });
 
       expect(result.length).to.equal(1);

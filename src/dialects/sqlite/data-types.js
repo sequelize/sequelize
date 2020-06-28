@@ -1,8 +1,5 @@
-module.exports = (BaseTypes) => {
-  const warn = BaseTypes.ABSTRACT.warn.bind(
-    undefined,
-    'https://www.sqlite.org/datatype3.html'
-  );
+module.exports = BaseTypes => {
+  const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://www.sqlite.org/datatype3.html');
 
   /**
    * Removes unsupported SQLite options, i.e., UNSIGNED and ZEROFILL, for the integer data types.
@@ -80,9 +77,7 @@ module.exports = (BaseTypes) => {
   class TEXT extends BaseTypes.TEXT {
     toSql() {
       if (this._length) {
-        warn(
-          'SQLite does not support TEXT with options. Plain `TEXT` will be used instead.'
-        );
+        warn('SQLite does not support TEXT with options. Plain `TEXT` will be used instead.');
         this._length = undefined;
       }
       return 'TEXT';
@@ -183,16 +178,7 @@ module.exports = (BaseTypes) => {
     floating.parse = parseFloating;
   }
 
-  for (const num of [
-    FLOAT,
-    DOUBLE,
-    REAL,
-    TINYINT,
-    SMALLINT,
-    MEDIUMINT,
-    INTEGER,
-    BIGINT,
-  ]) {
+  for (const num of [FLOAT, DOUBLE, REAL, TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT]) {
     num.prototype.toSql = NUMBER.prototype.toSql;
   }
 
@@ -219,6 +205,6 @@ module.exports = (BaseTypes) => {
     TEXT,
     ENUM,
     JSON: JSONTYPE,
-    CITEXT,
+    CITEXT
   };
 };

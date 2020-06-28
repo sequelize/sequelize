@@ -9,18 +9,14 @@ const Op = require('../../operators');
 
 /* istanbul ignore next */
 const throwMethodUndefined = function (methodName) {
-  throw new Error(
-    `The method "${methodName}" is not defined! Please add it to your sql dialect.`
-  );
+  throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 };
 
 class MSSQLQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
     options = { collate: null, ...options };
 
-    const collation = options.collate
-      ? `COLLATE ${this.escape(options.collate)}`
-      : '';
+    const collation = options.collate ? `COLLATE ${this.escape(options.collate)}` : '';
 
     return [
       'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name =',
@@ -30,7 +26,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       'CREATE DATABASE',
       this.quoteIdentifier(databaseName),
       `${collation};`,
-      'END;',
+      'END;'
     ].join(' ');
   }
 
@@ -43,7 +39,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       'DROP DATABASE',
       this.quoteIdentifier(databaseName),
       ';',
-      'END;',
+      'END;'
     ].join(' ');
   }
 
@@ -58,7 +54,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       "EXEC sp_executesql N'CREATE SCHEMA",
       this.quoteIdentifier(schema),
       ";'",
-      'END;',
+      'END;'
     ].join(' ');
   }
 
@@ -98,7 +94,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       "EXEC sp_executesql N'DROP SCHEMA",
       this.quoteIdentifier(schema),
       ";'",
-      'END;',
+      'END;'
     ].join(' ');
   }
 
@@ -110,7 +106,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       ')',
       'AND',
       '"s"."name" NOT LIKE',
-      "'db_%'",
+      "'db_%'"
     ].join(' ');
   }
 
@@ -119,7 +115,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     return [
       'DECLARE @ms_ver NVARCHAR(20);',
       "SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY('ProductVersion')));",
-      "SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'",
+      "SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'"
     ].join(' ');
   }
 
@@ -149,39 +145,23 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
           if (dataType.includes('REFERENCES')) {
             // MSSQL doesn't support inline REFERENCES declarations: move to the end
             match = dataType.match(/^(.+) (REFERENCES.*)$/);
-            attributesClauseParts.push(
-              `${this.quoteIdentifier(attr)} ${match[1].replace(
-                'PRIMARY KEY',
-                ''
-              )}`
-            );
+            attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
             foreignKeys[attr] = match[2];
           } else {
-            attributesClauseParts.push(
-              `${this.quoteIdentifier(attr)} ${dataType.replace(
-                'PRIMARY KEY',
-                ''
-              )}`
-            );
+            attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
           }
         } else if (dataType.includes('REFERENCES')) {
           // MSSQL doesn't support inline REFERENCES declarations: move to the end
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
-          attributesClauseParts.push(
-            `${this.quoteIdentifier(attr)} ${match[1]}`
-          );
+          attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
           foreignKeys[attr] = match[2];
         } else {
-          attributesClauseParts.push(
-            `${this.quoteIdentifier(attr)} ${dataType}`
-          );
+          attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${dataType}`);
         }
       }
     }
 
-    const pkString = primaryKeys
-      .map((pk) => this.quoteIdentifier(pk))
-      .join(', ');
+    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
@@ -190,10 +170,8 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
             indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
           }
           attributesClauseParts.push(
-            `CONSTRAINT ${this.quoteIdentifier(
-              indexName
-            )} UNIQUE (${columns.fields
-              .map((field) => this.quoteIdentifier(field))
+            `CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields
+              .map(field => this.quoteIdentifier(field))
               .join(', ')})`
           );
         }
@@ -206,9 +184,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
 
     for (const fkey in foreignKeys) {
       if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
-        attributesClauseParts.push(
-          `FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`
-        );
+        attributesClauseParts.push(`FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`);
       }
     }
 
@@ -218,7 +194,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       `IF OBJECT_ID('${quotedTableName}', 'U') IS NULL`,
       `CREATE TABLE ${quotedTableName} (${attributesClauseParts.join(', ')})`,
       ';',
-      commentStr,
+      commentStr
     ]);
   }
 
@@ -253,7 +229,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       'AND prop.minor_id = sc.column_id',
       "AND prop.name = 'MS_Description'",
       'WHERE t.TABLE_NAME =',
-      wrapSingleQuote(tableName),
+      wrapSingleQuote(tableName)
     ].join(' ');
 
     if (schema) {
@@ -264,9 +240,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
   }
 
   renameTableQuery(before, after) {
-    return `EXEC sp_rename ${this.quoteTable(before)}, ${this.quoteTable(
-      after
-    )};`;
+    return `EXEC sp_rename ${this.quoteTable(before)}, ${this.quoteTable(after)};`;
   }
 
   showTablesQuery() {
@@ -275,12 +249,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
 
   dropTableQuery(tableName) {
     const quoteTbl = this.quoteTable(tableName);
-    return Utils.joinSQLFragments([
-      `IF OBJECT_ID('${quoteTbl}', 'U') IS NOT NULL`,
-      'DROP TABLE',
-      quoteTbl,
-      ';',
-    ]);
+    return Utils.joinSQLFragments([`IF OBJECT_ID('${quoteTbl}', 'U') IS NOT NULL`, 'DROP TABLE', quoteTbl, ';']);
   }
 
   addColumnQuery(table, key, dataType) {
@@ -304,7 +273,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       this.quoteIdentifier(key),
       this.attributeToSQL(dataType, { context: 'addColumn' }),
       ';',
-      commentStr,
+      commentStr
     ]);
   }
 
@@ -324,7 +293,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       this.quoteTable(tableName),
       'DROP COLUMN',
       this.quoteIdentifier(attributeName),
-      ';',
+      ';'
     ]);
   }
 
@@ -339,21 +308,12 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       if (definition.includes('COMMENT ')) {
         const commentMatch = definition.match(/^(.+) (COMMENT.*)$/);
         const commentText = commentMatch[2].replace('COMMENT', '').trim();
-        commentString += this.commentTemplate(
-          commentText,
-          tableName,
-          attributeName
-        );
+        commentString += this.commentTemplate(commentText, tableName, attributeName);
         // remove comment related substring from dataType
         definition = commentMatch[1];
       }
       if (definition.includes('REFERENCES')) {
-        constraintString.push(
-          `FOREIGN KEY (${quotedAttrName}) ${definition.replace(
-            /.+?(?=REFERENCES)/,
-            ''
-          )}`
-        );
+        constraintString.push(`FOREIGN KEY (${quotedAttrName}) ${definition.replace(/.+?(?=REFERENCES)/, '')}`);
       } else {
         attrString.push(`${quotedAttrName} ${definition}`);
       }
@@ -365,7 +325,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       attrString.length && `ALTER COLUMN ${attrString.join(', ')}`,
       constraintString.length && `ADD ${constraintString.join(', ')}`,
       ';',
-      commentString,
+      commentString
     ]);
   }
 
@@ -376,7 +336,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       `'${this.quoteTable(tableName)}.${attrBefore}',`,
       `'${newName}',`,
       "'COLUMN'",
-      ';',
+      ';'
     ]);
   }
 
@@ -400,37 +360,23 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
 
     const emptyQuery = `INSERT INTO ${quotedTable}${outputFragment} DEFAULT VALUES`;
 
-    attrValueHashes.forEach((attrValueHash) => {
+    attrValueHashes.forEach(attrValueHash => {
       // special case for empty objects with primary keys
       const fields = Object.keys(attrValueHash);
       const firstAttr = attributes[fields[0]];
-      if (
-        fields.length === 1 &&
-        firstAttr &&
-        firstAttr.autoIncrement &&
-        attrValueHash[fields[0]] === null
-      ) {
+      if (fields.length === 1 && firstAttr && firstAttr.autoIncrement && attrValueHash[fields[0]] === null) {
         allQueries.push(emptyQuery);
         return;
       }
 
       // normal case
       _.forOwn(attrValueHash, (value, key) => {
-        if (
-          value !== null &&
-          attributes[key] &&
-          attributes[key].autoIncrement
-        ) {
+        if (value !== null && attributes[key] && attributes[key].autoIncrement) {
           needIdentityInsertWrapper = true;
         }
 
         if (!allAttributes.includes(key)) {
-          if (
-            value === null &&
-            attributes[key] &&
-            attributes[key].autoIncrement
-          )
-            return;
+          if (value === null && attributes[key] && attributes[key].autoIncrement) return;
 
           allAttributes.push(key);
         }
@@ -438,33 +384,21 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     });
 
     if (allAttributes.length > 0) {
-      attrValueHashes.forEach((attrValueHash) => {
-        tuples.push(
-          `(${allAttributes
-            .map((key) => this.escape(attrValueHash[key]))
-            .join(',')})`
-        );
+      attrValueHashes.forEach(attrValueHash => {
+        tuples.push(`(${allAttributes.map(key => this.escape(attrValueHash[key])).join(',')})`);
       });
 
-      const quotedAttributes = allAttributes
-        .map((attr) => this.quoteIdentifier(attr))
-        .join(',');
+      const quotedAttributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
       allQueries.push(
-        (tupleStr) =>
-          `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr};`
+        tupleStr => `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr};`
       );
     }
     const commands = [];
     let offset = 0;
     const batch = Math.floor(250 / (allAttributes.length + 1)) + 1;
     while (offset < Math.max(tuples.length, 1)) {
-      const tupleStr = tuples.slice(
-        offset,
-        Math.min(tuples.length, offset + batch)
-      );
-      let generatedQuery = allQueries
-        .map((v) => (typeof v === 'string' ? v : v(tupleStr)))
-        .join(';');
+      const tupleStr = tuples.slice(offset, Math.min(tuples.length, offset + batch));
+      let generatedQuery = allQueries.map(v => (typeof v === 'string' ? v : v(tupleStr))).join(';');
       if (needIdentityInsertWrapper) {
         generatedQuery = `SET IDENTITY_INSERT ${quotedTable} ON; ${generatedQuery}; SET IDENTITY_INSERT ${quotedTable} OFF;`;
       }
@@ -475,13 +409,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
   }
 
   updateQuery(tableName, attrValueHash, where, options, attributes) {
-    const sql = super.updateQuery(
-      tableName,
-      attrValueHash,
-      where,
-      options,
-      attributes
-    );
+    const sql = super.updateQuery(tableName, attrValueHash, where, options, attributes);
     if (options.limit) {
       const updateArgs = `UPDATE TOP(${this.escape(options.limit)})`;
       sql.query = sql.query.replace('UPDATE', updateArgs);
@@ -515,12 +443,8 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     for (const index of model._indexes) {
       if (index.unique && index.fields) {
         for (const field of index.fields) {
-          const fieldName =
-            typeof field === 'string' ? field : field.name || field.attribute;
-          if (
-            !uniqueAttrs.includes(fieldName) &&
-            model.rawAttributes[fieldName]
-          ) {
+          const fieldName = typeof field === 'string' ? field : field.name || field.attribute;
+          if (!uniqueAttrs.includes(fieldName) && model.rawAttributes[fieldName]) {
             uniqueAttrs.push(fieldName);
           }
         }
@@ -529,17 +453,13 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
 
     const updateKeys = Object.keys(updateValues);
     const insertKeys = Object.keys(insertValues);
-    const insertKeysQuoted = insertKeys
-      .map((key) => this.quoteIdentifier(key))
-      .join(', ');
-    const insertValuesEscaped = insertKeys
-      .map((key) => this.escape(insertValues[key]))
-      .join(', ');
+    const insertKeysQuoted = insertKeys.map(key => this.quoteIdentifier(key)).join(', ');
+    const insertValuesEscaped = insertKeys.map(key => this.escape(insertValues[key])).join(', ');
     const sourceTableQuery = `VALUES(${insertValuesEscaped})`; //Virtual Table
     let joinCondition;
 
     //IDENTITY_INSERT Condition
-    identityAttrs.forEach((key) => {
+    identityAttrs.forEach(key => {
       if (updateValues[key] && updateValues[key] !== null) {
         needIdentityInsertWrapper = true;
         /*
@@ -550,7 +470,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     });
 
     //Filter NULL Clauses
-    const clauses = where[Op.or].filter((clause) => {
+    const clauses = where[Op.or].filter(clause => {
       let valid = true;
       /*
        * Exclude NULL Composite PK/UK. Partial Composite clauses should also be excluded as it doesn't guarantee a single row
@@ -568,17 +488,15 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
      * Generate ON condition using PK(s).
      * If not, generate using UK(s). Else throw error
      */
-    const getJoinSnippet = (array) => {
-      return array.map((key) => {
+    const getJoinSnippet = array => {
+      return array.map(key => {
         key = this.quoteIdentifier(key);
         return `${targetTableAlias}.${key} = ${sourceTableAlias}.${key}`;
       });
     };
 
     if (clauses.length === 0) {
-      throw new Error(
-        'Primary Key or Unique key should be passed to upsert query'
-      );
+      throw new Error('Primary Key or Unique key should be passed to upsert query');
     } else {
       // Search for primary key attribute in clauses -- Model can have two separate unique keys
       for (const key in clauses) {
@@ -595,8 +513,8 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
 
     // Remove the IDENTITY_INSERT Column from update
     const updateSnippet = updateKeys
-      .filter((key) => !identityAttrs.includes(key))
-      .map((key) => {
+      .filter(key => !identityAttrs.includes(key))
+      .map(key => {
         const value = this.escape(updateValues[key]);
         key = this.quoteIdentifier(key);
         return `${targetTableAlias}.${key} = ${value}`;
@@ -628,7 +546,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       whereClause && `WHERE ${whereClause}`,
       ';',
       'SELECT @@ROWCOUNT AS AFFECTEDROWS',
-      ';',
+      ';'
     ]);
   }
 
@@ -637,38 +555,29 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
   }
 
   showConstraintsQuery(tableName) {
-    return `EXEC sp_helpconstraint @objname = ${this.escape(
-      this.quoteTable(tableName)
-    )};`;
+    return `EXEC sp_helpconstraint @objname = ${this.escape(this.quoteTable(tableName))};`;
   }
 
   removeIndexQuery(tableName, indexNameOrAttributes) {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(
-        `${tableName}_${indexNameOrAttributes.join('_')}`
-      );
+      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
     }
 
-    return `DROP INDEX ${this.quoteIdentifiers(
-      indexName
-    )} ON ${this.quoteIdentifiers(tableName)}`;
+    return `DROP INDEX ${this.quoteIdentifiers(indexName)} ON ${this.quoteIdentifiers(tableName)}`;
   }
 
   attributeToSQL(attribute) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
-        type: attribute,
+        type: attribute
       };
     }
 
     // handle self referential constraints
     if (attribute.references) {
-      if (
-        attribute.Model &&
-        attribute.Model.tableName === attribute.references.model
-      ) {
+      if (attribute.Model && attribute.Model.tableName === attribute.references.model) {
         this.sequelize.log(
           'MSSQL does not support self referencial constraints, ' +
             'we will remove it but we recommend restructuring your query'
@@ -681,15 +590,12 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     let template;
 
     if (attribute.type instanceof DataTypes.ENUM) {
-      if (attribute.type.values && !attribute.values)
-        attribute.values = attribute.type.values;
+      if (attribute.type.values && !attribute.values) attribute.values = attribute.type.values;
 
       // enums are a special case
       template = attribute.type.toSql();
-      template += ` CHECK (${this.quoteIdentifier(
-        attribute.field
-      )} IN(${attribute.values
-        .map((value) => {
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values
+        .map(value => {
           return this.escape(value);
         })
         .join(', ')}))`;
@@ -699,10 +605,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
-    } else if (
-      !attribute.primaryKey &&
-      !Utils.defaultValueSchemable(attribute.defaultValue)
-    ) {
+    } else if (!attribute.primaryKey && !Utils.defaultValueSchemable(attribute.defaultValue)) {
       template += ' NULL';
     }
 
@@ -761,9 +664,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       attribute = attributes[key];
 
       if (attribute.references) {
-        if (
-          existingConstraints.includes(attribute.references.model.toString())
-        ) {
+        if (existingConstraints.includes(attribute.references.model.toString())) {
           // no cascading constraints to a table more than once
           attribute.onDelete = '';
           attribute.onUpdate = '';
@@ -816,11 +717,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
    */
   _getForeignKeysQueryPrefix(catalogName) {
     return (
-      `${
-        'SELECT ' +
-        'constraint_name = OBJ.NAME, ' +
-        'constraintName = OBJ.NAME, '
-      }${
+      `${'SELECT ' + 'constraint_name = OBJ.NAME, ' + 'constraintName = OBJ.NAME, '}${
         catalogName ? `constraintCatalog = '${catalogName}', ` : ''
       }constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID), ` +
       'tableName = TB.NAME, ' +
@@ -849,9 +746,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
    */
   getForeignKeysQuery(table, catalogName) {
     const tableName = table.tableName || table;
-    let sql = `${this._getForeignKeysQueryPrefix(
-      catalogName
-    )} WHERE TB.NAME =${wrapSingleQuote(tableName)}`;
+    let sql = `${this._getForeignKeysQueryPrefix(catalogName)} WHERE TB.NAME =${wrapSingleQuote(tableName)}`;
 
     if (table.schema) {
       sql += ` AND SCHEMA_NAME(TB.SCHEMA_ID) =${wrapSingleQuote(table.schema)}`;
@@ -867,8 +762,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       `TB.NAME =${wrapSingleQuote(tableName)}`,
       'AND',
       `COL.NAME =${wrapSingleQuote(attributeName)}`,
-      table.schema &&
-        `AND SCHEMA_NAME(TB.SCHEMA_ID) =${wrapSingleQuote(table.schema)}`,
+      table.schema && `AND SCHEMA_NAME(TB.SCHEMA_ID) =${wrapSingleQuote(table.schema)}`
     ]);
   }
 
@@ -887,7 +781,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       "WHERE C.CONSTRAINT_TYPE = 'PRIMARY KEY'",
       `AND K.COLUMN_NAME = ${wrapSingleQuote(attributeName)}`,
       `AND K.TABLE_NAME = ${tableName}`,
-      ';',
+      ';'
     ]);
   }
 
@@ -896,7 +790,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP',
-      this.quoteIdentifier(foreignKey),
+      this.quoteIdentifier(foreignKey)
     ]);
   }
 
@@ -907,7 +801,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       `WHERE PARENT_OBJECT_ID = OBJECT_ID('${quotedTable}', 'U')`,
       `AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = ('${attributeName}')`,
       `AND object_id = OBJECT_ID('${quotedTable}', 'U'))`,
-      ';',
+      ';'
     ]);
   }
 
@@ -917,7 +811,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       this.quoteTable(tableName),
       'DROP CONSTRAINT',
       this.quoteIdentifier(constraintName),
-      ';',
+      ';'
     ]);
   }
 
@@ -951,22 +845,14 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     return 'ROLLBACK TRANSACTION;';
   }
 
-  selectFromTableFragment(
-    options,
-    model,
-    attributes,
-    tables,
-    mainTableAs,
-    where
-  ) {
+  selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {
     this._throwOnEmptyAttributes(attributes, {
       modelName: model && model.name,
-      as: mainTableAs,
+      as: mainTableAs
     });
 
     const dbVersion = this.sequelize.options.databaseVersion;
-    const isSQLServer2008 =
-      semver.valid(dbVersion) && semver.lt(dbVersion, '11.0.0');
+    const isSQLServer2008 = semver.valid(dbVersion) && semver.lt(dbVersion, '11.0.0');
 
     if (isSQLServer2008 && options.offset) {
       // For earlier versions of SQL server, we need to nest several queries
@@ -980,10 +866,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       // 3. The innermost query is the actual set we want information from
 
       const offset = options.offset || 0;
-      const isSubQuery =
-        options.hasIncludeWhere ||
-        options.hasIncludeRequired ||
-        options.hasMultiAssociation;
+      const isSubQuery = options.hasIncludeWhere || options.hasIncludeRequired || options.hasMultiAssociation;
       let orders = { mainQueryOrder: [] };
       if (options.order) {
         orders = this.getQueryOrders(options, model, isSubQuery);
@@ -1007,11 +890,11 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
             'SELECT ROW_NUMBER() OVER (',
             ['ORDER BY', orders.mainQueryOrder.join(', ')],
             `) as row_num, * FROM ${tables} AS ${tmpTable}`,
-            where && `WHERE ${where}`,
+            where && `WHERE ${where}`
           ],
-          `) AS ${tmpTable} WHERE row_num > ${offset}`,
+          `) AS ${tmpTable} WHERE row_num > ${offset}`
         ],
-        `) AS ${tmpTable}`,
+        `) AS ${tmpTable}`
       ]);
     }
 
@@ -1021,9 +904,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       attributes.join(', '),
       `FROM ${tables}`,
       mainTableAs && `AS ${mainTableAs}`,
-      options.tableHint &&
-        TableHints[options.tableHint] &&
-        `WITH (${TableHints[options.tableHint]})`,
+      options.tableHint && TableHints[options.tableHint] && `WITH (${TableHints[options.tableHint]})`
     ]);
   }
 
@@ -1039,9 +920,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     const offset = options.offset || 0;
     const isSubQuery =
       options.subQuery === undefined
-        ? options.hasIncludeWhere ||
-          options.hasIncludeRequired ||
-          options.hasMultiAssociation
+        ? options.hasIncludeWhere || options.hasIncludeRequired || options.hasMultiAssociation
         : options.subQuery;
 
     let fragment = '';
@@ -1052,22 +931,15 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (options.limit || options.offset) {
-      if (
-        !options.order ||
-        !options.order.length ||
-        (options.include && !orders.subQueryOrder.length)
-      ) {
-        const tablePkFragment = `${this.quoteTable(
-          options.tableAs || model.name
-        )}.${this.quoteIdentifier(model.primaryKeyField)}`;
+      if (!options.order || !options.order.length || (options.include && !orders.subQueryOrder.length)) {
+        const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(
+          model.primaryKeyField
+        )}`;
         if (!options.order || !options.order.length) {
           fragment += ` ORDER BY ${tablePkFragment}`;
         } else {
-          const orderFieldNames = _.map(options.order, (order) => order[0]);
-          const primaryKeyFieldAlreadyPresent = _.includes(
-            orderFieldNames,
-            model.primaryKeyField
-          );
+          const orderFieldNames = _.map(options.order, order => order[0]);
+          const primaryKeyFieldAlreadyPresent = _.includes(orderFieldNames, model.primaryKeyField);
 
           if (!primaryKeyFieldAlreadyPresent) {
             fragment += options.order && !isSubQuery ? ', ' : ' ORDER BY ';

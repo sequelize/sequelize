@@ -57,11 +57,7 @@ class BelongsToMany extends Association {
   constructor(source, target, options) {
     super(source, target, options);
 
-    if (
-      this.options.through === undefined ||
-      this.options.through === true ||
-      this.options.through === null
-    ) {
+    if (this.options.through === undefined || this.options.through === true || this.options.through === null) {
       throw new AssociationError(
         `${source.name}.belongsToMany(${target.name}) requires through option, pass either a string or a model`
       );
@@ -69,7 +65,7 @@ class BelongsToMany extends Association {
 
     if (!this.options.through.model) {
       this.options.through = {
-        model: options.through,
+        model: options.through
       };
     }
 
@@ -81,9 +77,7 @@ class BelongsToMany extends Association {
     this.doubleLinked = false;
 
     if (!this.as && this.isSelfAssociation) {
-      throw new AssociationError(
-        "'as' must be defined for many-to-many self-associations"
-      );
+      throw new AssociationError("'as' must be defined for many-to-many self-associations");
     }
 
     if (this.as) {
@@ -95,7 +89,7 @@ class BelongsToMany extends Association {
       } else {
         this.options.name = {
           plural: this.as,
-          singular: Utils.singularize(this.as),
+          singular: Utils.singularize(this.as)
         };
       }
     } else {
@@ -105,9 +99,7 @@ class BelongsToMany extends Association {
 
     this.combinedTableName = Utils.combineTableNames(
       this.source.tableName,
-      this.isSelfAssociation
-        ? this.as || this.target.tableName
-        : this.target.tableName
+      this.isSelfAssociation ? this.as || this.target.tableName : this.target.tableName
     );
 
     /*
@@ -120,7 +112,7 @@ class BelongsToMany extends Association {
     /*
      * Find paired association (if exists)
      */
-    _.each(this.target.associations, (association) => {
+    _.each(this.target.associations, association => {
       if (association.associationType !== 'BelongsToMany') return;
       if (association.target !== this.source) return;
 
@@ -134,18 +126,15 @@ class BelongsToMany extends Association {
      * Default/generated source/target keys
      */
     this.sourceKey = this.options.sourceKey || this.source.primaryKeyAttribute;
-    this.sourceKeyField =
-      this.source.rawAttributes[this.sourceKey].field || this.sourceKey;
+    this.sourceKeyField = this.source.rawAttributes[this.sourceKey].field || this.sourceKey;
 
     if (this.options.targetKey) {
       this.targetKey = this.options.targetKey;
-      this.targetKeyField =
-        this.target.rawAttributes[this.targetKey].field || this.targetKey;
+      this.targetKeyField = this.target.rawAttributes[this.targetKey].field || this.targetKey;
     } else {
       this.targetKeyDefault = true;
       this.targetKey = this.target.primaryKeyAttribute;
-      this.targetKeyField =
-        this.target.rawAttributes[this.targetKey].field || this.targetKey;
+      this.targetKeyField = this.target.rawAttributes[this.targetKey].field || this.targetKey;
     }
 
     this._createForeignAndOtherKeys();
@@ -159,7 +148,7 @@ class BelongsToMany extends Association {
             tableName: this.through.model,
             indexes: [], //we don't want indexes here (as referenced in #2416)
             paranoid: this.through.paranoid ? this.through.paranoid : false, // Default to non-paranoid join (referenced in #11991)
-            validate: {}, // Don't propagate model-level validations
+            validate: {} // Don't propagate model-level validations
           })
         );
       } else {
@@ -169,13 +158,7 @@ class BelongsToMany extends Association {
 
     Object.assign(
       this.options,
-      _.pick(this.through.model.options, [
-        'timestamps',
-        'createdAt',
-        'updatedAt',
-        'deletedAt',
-        'paranoid',
-      ])
+      _.pick(this.through.model.options, ['timestamps', 'createdAt', 'updatedAt', 'deletedAt', 'paranoid'])
     );
 
     if (this.paired) {
@@ -221,9 +204,7 @@ class BelongsToMany extends Association {
     }
 
     this.options.tableName = this.combinedName =
-      this.through.model === Object(this.through.model)
-        ? this.through.model.tableName
-        : this.through.model;
+      this.through.model === Object(this.through.model) ? this.through.model.tableName : this.through.model;
 
     this.associationAccessor = this.as;
 
@@ -241,7 +222,7 @@ class BelongsToMany extends Association {
       removeMultiple: `remove${plural}`,
       hasSingle: `has${singular}`,
       hasAll: `has${plural}`,
-      count: `count${plural}`,
+      count: `count${plural}`
     };
   }
 
@@ -251,21 +232,16 @@ class BelongsToMany extends Association {
      */
     if (_.isObject(this.options.foreignKey)) {
       this.foreignKeyAttribute = this.options.foreignKey;
-      this.foreignKey =
-        this.foreignKeyAttribute.name || this.foreignKeyAttribute.fieldName;
+      this.foreignKey = this.foreignKeyAttribute.name || this.foreignKeyAttribute.fieldName;
     } else {
       this.foreignKeyAttribute = {};
       this.foreignKey =
-        this.options.foreignKey ||
-        Utils.camelize(
-          [this.source.options.name.singular, this.sourceKey].join('_')
-        );
+        this.options.foreignKey || Utils.camelize([this.source.options.name.singular, this.sourceKey].join('_'));
     }
 
     if (_.isObject(this.options.otherKey)) {
       this.otherKeyAttribute = this.options.otherKey;
-      this.otherKey =
-        this.otherKeyAttribute.name || this.otherKeyAttribute.fieldName;
+      this.otherKey = this.otherKeyAttribute.name || this.otherKeyAttribute.fieldName;
     } else {
       if (!this.options.otherKey) {
         this.otherKeyDefault = true;
@@ -276,10 +252,8 @@ class BelongsToMany extends Association {
         this.options.otherKey ||
         Utils.camelize(
           [
-            this.isSelfAssociation
-              ? Utils.singularize(this.as)
-              : this.target.options.name.singular,
-            this.targetKey,
+            this.isSelfAssociation ? Utils.singularize(this.as) : this.target.options.name.singular,
+            this.targetKey
           ].join('_')
         );
     }
@@ -295,10 +269,7 @@ class BelongsToMany extends Association {
     // but ignore any keys that are part of this association (#5865)
     _.each(this.through.model.rawAttributes, (attribute, attributeName) => {
       if (attribute.primaryKey === true && attribute._autoGenerated === true) {
-        if (
-          attributeName === this.foreignKey ||
-          attributeName === this.otherKey
-        ) {
+        if (attributeName === this.foreignKey || attributeName === this.otherKey) {
           // this key is still needed as it's part of the association
           // so just set primaryKey to false
           attribute.primaryKey = false;
@@ -317,7 +288,7 @@ class BelongsToMany extends Association {
     const targetKeyField = this.targetKeyField;
     const sourceAttribute = {
       type: sourceKeyType,
-      ...this.foreignKeyAttribute,
+      ...this.foreignKeyAttribute
     };
     const targetAttribute = { type: targetKeyType, ...this.otherKeyAttribute };
 
@@ -325,131 +296,97 @@ class BelongsToMany extends Association {
       targetAttribute.primaryKey = sourceAttribute.primaryKey = true;
     } else if (this.through.unique !== false) {
       let uniqueKey;
-      if (
-        typeof this.options.uniqueKey === 'string' &&
-        this.options.uniqueKey !== ''
-      ) {
+      if (typeof this.options.uniqueKey === 'string' && this.options.uniqueKey !== '') {
         uniqueKey = this.options.uniqueKey;
       } else {
-        uniqueKey = [
-          this.through.model.tableName,
-          this.foreignKey,
-          this.otherKey,
-          'unique',
-        ].join('_');
+        uniqueKey = [this.through.model.tableName, this.foreignKey, this.otherKey, 'unique'].join('_');
       }
       targetAttribute.unique = sourceAttribute.unique = uniqueKey;
     }
 
     if (!this.through.model.rawAttributes[this.foreignKey]) {
       this.through.model.rawAttributes[this.foreignKey] = {
-        _autoGenerated: true,
+        _autoGenerated: true
       };
     }
 
     if (!this.through.model.rawAttributes[this.otherKey]) {
       this.through.model.rawAttributes[this.otherKey] = {
-        _autoGenerated: true,
+        _autoGenerated: true
       };
     }
 
     if (this.options.constraints !== false) {
       sourceAttribute.references = {
         model: this.source.getTableName(),
-        key: sourceKeyField,
+        key: sourceKeyField
       };
       // For the source attribute the passed option is the priority
-      sourceAttribute.onDelete =
-        this.options.onDelete ||
-        this.through.model.rawAttributes[this.foreignKey].onDelete;
-      sourceAttribute.onUpdate =
-        this.options.onUpdate ||
-        this.through.model.rawAttributes[this.foreignKey].onUpdate;
+      sourceAttribute.onDelete = this.options.onDelete || this.through.model.rawAttributes[this.foreignKey].onDelete;
+      sourceAttribute.onUpdate = this.options.onUpdate || this.through.model.rawAttributes[this.foreignKey].onUpdate;
 
       if (!sourceAttribute.onDelete) sourceAttribute.onDelete = 'CASCADE';
       if (!sourceAttribute.onUpdate) sourceAttribute.onUpdate = 'CASCADE';
 
       targetAttribute.references = {
         model: this.target.getTableName(),
-        key: targetKeyField,
+        key: targetKeyField
       };
       // But the for target attribute the previously defined option is the priority (since it could've been set by another belongsToMany call)
-      targetAttribute.onDelete =
-        this.through.model.rawAttributes[this.otherKey].onDelete ||
-        this.options.onDelete;
-      targetAttribute.onUpdate =
-        this.through.model.rawAttributes[this.otherKey].onUpdate ||
-        this.options.onUpdate;
+      targetAttribute.onDelete = this.through.model.rawAttributes[this.otherKey].onDelete || this.options.onDelete;
+      targetAttribute.onUpdate = this.through.model.rawAttributes[this.otherKey].onUpdate || this.options.onUpdate;
 
       if (!targetAttribute.onDelete) targetAttribute.onDelete = 'CASCADE';
       if (!targetAttribute.onUpdate) targetAttribute.onUpdate = 'CASCADE';
     }
 
-    Object.assign(
-      this.through.model.rawAttributes[this.foreignKey],
-      sourceAttribute
-    );
-    Object.assign(
-      this.through.model.rawAttributes[this.otherKey],
-      targetAttribute
-    );
+    Object.assign(this.through.model.rawAttributes[this.foreignKey], sourceAttribute);
+    Object.assign(this.through.model.rawAttributes[this.otherKey], targetAttribute);
 
     this.through.model.refreshAttributes();
 
-    this.identifierField =
-      this.through.model.rawAttributes[this.foreignKey].field ||
-      this.foreignKey;
-    this.foreignIdentifierField =
-      this.through.model.rawAttributes[this.otherKey].field || this.otherKey;
+    this.identifierField = this.through.model.rawAttributes[this.foreignKey].field || this.foreignKey;
+    this.foreignIdentifierField = this.through.model.rawAttributes[this.otherKey].field || this.otherKey;
 
     if (this.paired && !this.paired.foreignIdentifierField) {
       this.paired.foreignIdentifierField =
-        this.through.model.rawAttributes[this.paired.otherKey].field ||
-        this.paired.otherKey;
+        this.through.model.rawAttributes[this.paired.otherKey].field || this.paired.otherKey;
     }
 
     this.toSource = new BelongsTo(this.through.model, this.source, {
-      foreignKey: this.foreignKey,
+      foreignKey: this.foreignKey
     });
     this.manyFromSource = new HasMany(this.source, this.through.model, {
-      foreignKey: this.foreignKey,
+      foreignKey: this.foreignKey
     });
     this.oneFromSource = new HasOne(this.source, this.through.model, {
       foreignKey: this.foreignKey,
       sourceKey: this.sourceKey,
-      as: this.through.model.name,
+      as: this.through.model.name
     });
 
     this.toTarget = new BelongsTo(this.through.model, this.target, {
-      foreignKey: this.otherKey,
+      foreignKey: this.otherKey
     });
     this.manyFromTarget = new HasMany(this.target, this.through.model, {
-      foreignKey: this.otherKey,
+      foreignKey: this.otherKey
     });
     this.oneFromTarget = new HasOne(this.target, this.through.model, {
       foreignKey: this.otherKey,
       sourceKey: this.targetKey,
-      as: this.through.model.name,
+      as: this.through.model.name
     });
 
     if (this.paired && this.paired.otherKeyDefault) {
-      this.paired.toTarget = new BelongsTo(
-        this.paired.through.model,
-        this.paired.target,
-        {
-          foreignKey: this.paired.otherKey,
-        }
-      );
+      this.paired.toTarget = new BelongsTo(this.paired.through.model, this.paired.target, {
+        foreignKey: this.paired.otherKey
+      });
 
-      this.paired.oneFromTarget = new HasOne(
-        this.paired.target,
-        this.paired.through.model,
-        {
-          foreignKey: this.paired.otherKey,
-          sourceKey: this.paired.targetKey,
-          as: this.paired.through.model.name,
-        }
-      );
+      this.paired.oneFromTarget = new HasOne(this.paired.target, this.paired.through.model, {
+        foreignKey: this.paired.otherKey,
+        sourceKey: this.paired.targetKey,
+        as: this.paired.through.model.name
+      });
     }
 
     Helpers.checkNamingCollision(this);
@@ -468,13 +405,13 @@ class BelongsToMany extends Association {
       'addMultiple',
       'remove',
       'removeMultiple',
-      'create',
+      'create'
     ];
     const aliases = {
       hasSingle: 'has',
       hasAll: 'has',
       addMultiple: 'add',
-      removeMultiple: 'remove',
+      removeMultiple: 'remove'
     };
 
     Helpers.mixinMethods(this, obj, methods, aliases);
@@ -508,7 +445,7 @@ class BelongsToMany extends Association {
     }
 
     options.where = {
-      [Op.and]: [scopeWhere, options.where],
+      [Op.and]: [scopeWhere, options.where]
     };
 
     if (Object(through.model) === through.model) {
@@ -522,7 +459,7 @@ class BelongsToMany extends Association {
       //If a user pass a where on the options through options, make an "and" with the current throughWhere
       if (options.through && options.through.where) {
         throughWhere = {
-          [Op.and]: [throughWhere, options.through.where],
+          [Op.and]: [throughWhere, options.through.where]
         };
       }
 
@@ -532,7 +469,7 @@ class BelongsToMany extends Association {
         attributes: options.joinTableAttributes,
         required: true,
         paranoid: _.get(options.through, 'paranoid', true),
-        where: throughWhere,
+        where: throughWhere
       });
     }
 
@@ -567,13 +504,7 @@ class BelongsToMany extends Association {
 
     options = Utils.cloneDeep(options);
     options.attributes = [
-      [
-        sequelize.fn(
-          'COUNT',
-          sequelize.col([this.target.name, this.targetKeyField].join('.'))
-        ),
-        'count',
-      ],
+      [sequelize.fn('COUNT', sequelize.col([this.target.name, this.targetKeyField].join('.'))), 'count']
     ];
     options.joinTableAttributes = [];
     options.raw = true;
@@ -603,20 +534,20 @@ class BelongsToMany extends Association {
       ...options,
       scope: false,
       attributes: [this.targetKey],
-      joinTableAttributes: [],
+      joinTableAttributes: []
     };
 
-    const instancePrimaryKeys = instances.map((instance) => {
+    const instancePrimaryKeys = instances.map(instance => {
       if (instance instanceof this.target) {
         return instance.where();
       }
       return {
-        [this.targetKey]: instance,
+        [this.targetKey]: instance
       };
     });
 
     options.where = {
-      [Op.and]: [{ [Op.or]: instancePrimaryKeys }, options.where],
+      [Op.and]: [{ [Op.or]: instancePrimaryKeys }, options.where]
     };
 
     const associatedObjects = await this.get(sourceInstance, options);
@@ -655,25 +586,20 @@ class BelongsToMany extends Association {
     }
     const where = {
       [identifier]: sourceInstance.get(sourceKey),
-      ...this.through.scope,
+      ...this.through.scope
     };
 
-    const updateAssociations = (currentRows) => {
+    const updateAssociations = currentRows => {
       const obsoleteAssociations = [];
       const promises = [];
       const defaultAttributes = options.through || {};
 
       const unassociatedObjects = newAssociatedObjects.filter(
-        (obj) =>
-          !currentRows.some(
-            (currentRow) => currentRow[foreignIdentifier] === obj.get(targetKey)
-          )
+        obj => !currentRows.some(currentRow => currentRow[foreignIdentifier] === obj.get(targetKey))
       );
 
       for (const currentRow of currentRows) {
-        const newObj = newAssociatedObjects.find(
-          (obj) => currentRow[foreignIdentifier] === obj.get(targetKey)
-        );
+        const newObj = newAssociatedObjects.find(obj => currentRow[foreignIdentifier] === obj.get(targetKey));
 
         if (!newObj) {
           obsoleteAssociations.push(currentRow);
@@ -693,8 +619,8 @@ class BelongsToMany extends Association {
                 Object.assign(options, {
                   where: {
                     [identifier]: sourceInstance.get(sourceKey),
-                    [foreignIdentifier]: newObj.get(targetKey),
-                  },
+                    [foreignIdentifier]: newObj.get(targetKey)
+                  }
                 })
               )
             );
@@ -709,28 +635,26 @@ class BelongsToMany extends Association {
             where: {
               [identifier]: sourceInstance.get(sourceKey),
               [foreignIdentifier]: obsoleteAssociations.map(
-                (obsoleteAssociation) => obsoleteAssociation[foreignIdentifier]
+                obsoleteAssociation => obsoleteAssociation[foreignIdentifier]
               ),
-              ...this.through.scope,
-            },
+              ...this.through.scope
+            }
           })
         );
       }
 
       if (unassociatedObjects.length > 0) {
-        const bulk = unassociatedObjects.map((unassociatedObject) => {
+        const bulk = unassociatedObjects.map(unassociatedObject => {
           return {
             ...defaultAttributes,
             ...unassociatedObject[this.through.model.name],
             [identifier]: sourceInstance.get(sourceKey),
             [foreignIdentifier]: unassociatedObject.get(targetKey),
-            ...this.through.scope,
+            ...this.through.scope
           };
         });
 
-        promises.push(
-          this.through.model.bulkCreate(bulk, { validate: true, ...options })
-        );
+        promises.push(this.through.model.bulkCreate(bulk, { validate: true, ...options }));
       }
 
       return Promise.all(promises);
@@ -740,7 +664,7 @@ class BelongsToMany extends Association {
       const currentRows = await this.through.model.findAll({
         ...options,
         where,
-        raw: true,
+        raw: true
       });
       return await updateAssociations(currentRows);
     } catch (error) {
@@ -778,22 +702,17 @@ class BelongsToMany extends Association {
 
     const where = {
       [identifier]: sourceInstance.get(sourceKey),
-      [foreignIdentifier]: newInstances.map((newInstance) =>
-        newInstance.get(targetKey)
-      ),
-      ...association.through.scope,
+      [foreignIdentifier]: newInstances.map(newInstance => newInstance.get(targetKey)),
+      ...association.through.scope
     };
 
-    const updateAssociations = (currentRows) => {
+    const updateAssociations = currentRows => {
       const promises = [];
       const unassociatedObjects = [];
       const changedAssociations = [];
       for (const obj of newInstances) {
         const existingAssociation =
-          currentRows &&
-          currentRows.find(
-            (current) => current[foreignIdentifier] === obj.get(targetKey)
-          );
+          currentRows && currentRows.find(current => current[foreignIdentifier] === obj.get(targetKey));
 
         if (!existingAssociation) {
           unassociatedObjects.push(obj);
@@ -801,21 +720,15 @@ class BelongsToMany extends Association {
           const throughAttributes = obj[association.through.model.name];
           const attributes = { ...defaultAttributes, ...throughAttributes };
 
-          if (
-            Object.keys(attributes).some(
-              (attribute) =>
-                attributes[attribute] !== existingAssociation[attribute]
-            )
-          ) {
+          if (Object.keys(attributes).some(attribute => attributes[attribute] !== existingAssociation[attribute])) {
             changedAssociations.push(obj);
           }
         }
       }
 
       if (unassociatedObjects.length > 0) {
-        const bulk = unassociatedObjects.map((unassociatedObject) => {
-          const throughAttributes =
-            unassociatedObject[association.through.model.name];
+        const bulk = unassociatedObjects.map(unassociatedObject => {
+          const throughAttributes = unassociatedObject[association.through.model.name];
           const attributes = { ...defaultAttributes, ...throughAttributes };
 
           attributes[identifier] = sourceInstance.get(sourceKey);
@@ -829,7 +742,7 @@ class BelongsToMany extends Association {
         promises.push(
           association.through.model.bulkCreate(bulk, {
             validate: true,
-            ...options,
+            ...options
           })
         );
       }
@@ -848,8 +761,8 @@ class BelongsToMany extends Association {
             Object.assign(options, {
               where: {
                 [identifier]: sourceInstance.get(sourceKey),
-                [foreignIdentifier]: assoc.get(targetKey),
-              },
+                [foreignIdentifier]: assoc.get(targetKey)
+              }
             })
           )
         );
@@ -862,7 +775,7 @@ class BelongsToMany extends Association {
       const currentRows = await association.through.model.findAll({
         ...options,
         where,
-        raw: true,
+        raw: true
       });
       const [associations] = await updateAssociations(currentRows);
       return associations;
@@ -890,9 +803,7 @@ class BelongsToMany extends Association {
 
     const where = {
       [association.identifier]: sourceInstance.get(association.sourceKey),
-      [association.foreignIdentifier]: oldAssociatedObjects.map((newInstance) =>
-        newInstance.get(association.targetKey)
-      ),
+      [association.foreignIdentifier]: oldAssociatedObjects.map(newInstance => newInstance.get(association.targetKey))
     };
 
     return association.through.model.destroy({ ...options, where });
@@ -916,7 +827,7 @@ class BelongsToMany extends Association {
 
     if (Array.isArray(options)) {
       options = {
-        fields: options,
+        fields: options
       };
     }
 
@@ -928,15 +839,9 @@ class BelongsToMany extends Association {
     }
 
     // Create the related model instance
-    const newAssociatedObject = await association.target.create(
-      values,
-      options
-    );
+    const newAssociatedObject = await association.target.create(values, options);
 
-    await sourceInstance[association.accessors.add](
-      newAssociatedObject,
-      _.omit(options, ['fields'])
-    );
+    await sourceInstance[association.accessors.add](newAssociatedObject, _.omit(options, ['fields']));
     return newAssociatedObject;
   }
 

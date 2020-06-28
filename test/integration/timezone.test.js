@@ -11,10 +11,10 @@ if (dialect !== 'sqlite') {
   describe(Support.getTestDialectTeaser('Timezone'), () => {
     beforeEach(function () {
       this.sequelizeWithTimezone = Support.createSequelizeInstance({
-        timezone: '+07:00',
+        timezone: '+07:00'
       });
       this.sequelizeWithNamedTimezone = Support.createSequelizeInstance({
-        timezone: 'America/New_York',
+        timezone: 'America/New_York'
       });
     });
 
@@ -31,15 +31,12 @@ if (dialect !== 'sqlite') {
       const [now1, now2] = await Promise.all([
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
         this.sequelizeWithTimezone.query(query, {
-          type: this.sequelize.QueryTypes.SELECT,
-        }),
+          type: this.sequelize.QueryTypes.SELECT
+        })
       ]);
 
       const elapsedQueryTime = Date.now() - startQueryTime + 1001;
-      expect(now1[0].now.getTime()).to.be.closeTo(
-        now2[0].now.getTime(),
-        elapsedQueryTime
-      );
+      expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
     });
 
     if (dialect === 'mysql' || dialect === 'mariadb') {
@@ -54,10 +51,10 @@ if (dialect !== 'sqlite') {
         // Expect 7 hours difference, in milliseconds.
         // This difference is expected since two instances, configured for each their timezone is trying to read the same timestamp
         // this test does not apply to PG, since it stores the timezone along with the timestamp.
-        expect(
-          this.normalUser.createdAt.getTime() -
-            timezonedUser.createdAt.getTime()
-        ).to.be.closeTo(60 * 60 * 7 * 1000, 1000);
+        expect(this.normalUser.createdAt.getTime() - timezonedUser.createdAt.getTime()).to.be.closeTo(
+          60 * 60 * 7 * 1000,
+          1000
+        );
       });
 
       it('handles named timezones', async function () {
@@ -69,13 +66,14 @@ if (dialect !== 'sqlite') {
 
         const [normalUser, timezonedUser] = await Promise.all([
           NormalUser.findByPk(timezonedUser0.id),
-          TimezonedUser.findByPk(timezonedUser0.id),
+          TimezonedUser.findByPk(timezonedUser0.id)
         ]);
 
         // Expect 5 hours difference, in milliseconds, +/- 1 hour for DST
-        expect(
-          normalUser.createdAt.getTime() - timezonedUser.createdAt.getTime()
-        ).to.be.closeTo(60 * 60 * 4 * 1000 * -1, 60 * 60 * 1000);
+        expect(normalUser.createdAt.getTime() - timezonedUser.createdAt.getTime()).to.be.closeTo(
+          60 * 60 * 4 * 1000 * -1,
+          60 * 60 * 1000
+        );
       });
     }
   });

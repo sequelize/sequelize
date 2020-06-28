@@ -13,13 +13,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const dialectModule = {
         verbose: () => {
           return dialectModule;
-        },
+        }
       };
 
       const sequelize = new Sequelize('dbname', 'root', 'pass', {
         port: 999,
         dialect,
-        dialectModule,
+        dialectModule
       });
       expect(sequelize.connectionManager.lib).to.equal(dialectModule);
     });
@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       new Sequelize('dbname', 'root', 'pass', {
         port: 999,
         dialect,
-        dialectModulePath: dialectPath,
+        dialectModulePath: dialectPath
       });
     });
 
@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         new Sequelize('dbname', 'root', 'pass', {
           port: 999,
           dialect,
-          dialectModulePath: '/foo/bar/baz',
+          dialectModulePath: '/foo/bar/baz'
         });
       }).to.throw('Unable to find dialect at /foo/bar/baz');
     });

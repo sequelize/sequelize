@@ -20,13 +20,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     if (Support.sequelize.dialect.supports.schemas) {
       it('reads the metadata of the table with schema', async function () {
         const MyTable1 = this.sequelize.define('my_table', {
-          username1: DataTypes.STRING,
+          username1: DataTypes.STRING
         });
 
         const MyTable2 = this.sequelize.define(
           'my_table',
           {
-            username2: DataTypes.STRING,
+            username2: DataTypes.STRING
           },
           { schema: 'test_meta' }
         );
@@ -34,10 +34,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.sequelize.createSchema('test_meta');
         await MyTable1.sync({ force: true });
         await MyTable2.sync({ force: true });
-        const metadata0 = await this.queryInterface.describeTable(
-          'my_tables',
-          'test_meta'
-        );
+        const metadata0 = await this.queryInterface.describeTable('my_tables', 'test_meta');
         expect(metadata0.username2).not.to.be.undefined;
         const metadata = await this.queryInterface.describeTable('my_tables');
         expect(metadata.username1).not.to.be.undefined;
@@ -47,9 +44,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     }
 
     it('rejects when no data is available', async function () {
-      await expect(
-        this.queryInterface.describeTable('_some_random_missing_table')
-      ).to.be.rejectedWith(
+      await expect(this.queryInterface.describeTable('_some_random_missing_table')).to.be.rejectedWith(
         'No description found for "_some_random_missing_table" table. Check the table name and schema; remember, they _are_ case sensitive.'
       );
     });
@@ -62,10 +57,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           city: {
             type: DataTypes.STRING,
             defaultValue: null,
-            comment: 'Users City',
+            comment: 'Users City'
           },
           isAdmin: DataTypes.BOOLEAN,
-          enumVals: DataTypes.ENUM('hello', 'world'),
+          enumVals: DataTypes.ENUM('hello', 'world')
         },
         { freezeTableName: true }
       );
@@ -136,11 +131,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(enumVals.type).to.eql("ENUM('hello','world')");
       }
 
-      if (
-        dialect === 'postgres' ||
-        dialect === 'mysql' ||
-        dialect === 'mssql'
-      ) {
+      if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
         expect(city.comment).to.equal('Users City');
         expect(username.comment).to.equal(null);
       }
@@ -151,7 +142,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         '_Country',
         {
           code: { type: DataTypes.STRING, primaryKey: true },
-          name: { type: DataTypes.STRING, allowNull: false },
+          name: { type: DataTypes.STRING, allowNull: false }
         },
         { freezeTableName: true }
       );
@@ -167,8 +158,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           ctrycod: {
             type: DataTypes.STRING,
             allowNull: false,
-            references: { model: Country, key: 'code' },
-          },
+            references: { model: Country, key: 'code' }
+          }
         },
         { freezeTableName: true }
       );

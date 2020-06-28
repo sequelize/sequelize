@@ -34,21 +34,19 @@ class ConnectionManager {
       idle: 10000,
       acquire: 60000,
       evict: 1000,
-      validate: this._validate.bind(this),
+      validate: this._validate.bind(this)
     });
 
     this.initPools();
   }
 
   refreshTypeParser(dataTypes) {
-    _.each(dataTypes, (dataType) => {
+    _.each(dataTypes, dataType => {
       if (Object.prototype.hasOwnProperty.call(dataType, 'parse')) {
         if (dataType.types[this.dialectName]) {
           this._refreshTypeParser(dataType);
         } else {
-          throw new Error(
-            `Parse function not supported for type ${dataType.key} in dialect ${this.dialectName}`
-          );
+          throw new Error(`Parse function not supported for type ${dataType.key} in dialect ${this.dialectName}`);
         }
       }
     });
@@ -75,9 +73,7 @@ class ConnectionManager {
     } catch (err) {
       if (err.code === 'MODULE_NOT_FOUND') {
         if (this.sequelize.config.dialectModulePath) {
-          throw new Error(
-            `Unable to find dialect at ${this.sequelize.config.dialectModulePath}`
-          );
+          throw new Error(`Unable to find dialect at ${this.sequelize.config.dialectModulePath}`);
         }
         throw new Error(`Please install ${moduleName} package manually`);
       }
@@ -111,9 +107,7 @@ class ConnectionManager {
   async close() {
     // Mark close of pool
     this.getConnection = async function getConnection() {
-      throw new Error(
-        'ConnectionManager.getConnection was called after the connection manager was closed!'
-      );
+      throw new Error('ConnectionManager.getConnection was called after the connection manager was closed!');
     };
 
     return await this._onProcessExit();
@@ -130,7 +124,7 @@ class ConnectionManager {
       this.pool = new Pool({
         name: 'sequelize',
         create: () => this._connect(config),
-        destroy: async (connection) => {
+        destroy: async connection => {
           const result = await this._disconnect(connection);
           debug('connection destroy');
           return result;
@@ -141,12 +135,10 @@ class ConnectionManager {
         acquireTimeoutMillis: config.pool.acquire,
         idleTimeoutMillis: config.pool.idle,
         reapIntervalMillis: config.pool.evict,
-        maxUses: config.pool.maxUses,
+        maxUses: config.pool.maxUses
       });
 
-      debug(
-        `pool created with max/min: ${config.pool.max}/${config.pool.min}, no replication`
-      );
+      debug(`pool created with max/min: ${config.pool.max}/${config.pool.min}, no replication`);
 
       return;
     }
@@ -156,20 +148,17 @@ class ConnectionManager {
     }
 
     // Map main connection config
-    config.replication.write = _.defaults(
-      config.replication.write,
-      _.omit(config, 'replication')
-    );
+    config.replication.write = _.defaults(config.replication.write, _.omit(config, 'replication'));
 
     // Apply defaults to each read config
-    config.replication.read = config.replication.read.map((readConfig) =>
+    config.replication.read = config.replication.read.map(readConfig =>
       _.defaults(readConfig, _.omit(this.config, 'replication'))
     );
 
     // custom pooling for replication (original author @janmeier)
     let reads = 0;
     this.pool = {
-      release: (client) => {
+      release: client => {
         if (client.queryType === 'read') {
           this.pool.read.release(client);
         } else {
@@ -183,39 +172,33 @@ class ConnectionManager {
         }
         return this.pool.write.acquire();
       },
-      destroy: (connection) => {
+      destroy: connection => {
         this.pool[connection.queryType].destroy(connection);
         debug('connection destroy');
       },
       destroyAllNow: async () => {
-        await Promise.all([
-          this.pool.read.destroyAllNow(),
-          this.pool.write.destroyAllNow(),
-        ]);
+        await Promise.all([this.pool.read.destroyAllNow(), this.pool.write.destroyAllNow()]);
 
         debug('all connections destroyed');
       },
-      drain: async () =>
-        Promise.all([this.pool.write.drain(), this.pool.read.drain()]),
+      drain: async () => Promise.all([this.pool.write.drain(), this.pool.read.drain()]),
       read: new Pool({
         name: 'sequelize:read',
         create: async () => {
           // round robin config
           const nextRead = reads++ % config.replication.read.length;
-          const connection = await this._connect(
-            config.replication.read[nextRead]
-          );
+          const connection = await this._connect(config.replication.read[nextRead]);
           connection.queryType = 'read';
           return connection;
         },
-        destroy: (connection) => this._disconnect(connection),
+        destroy: connection => this._disconnect(connection),
         validate: config.pool.validate,
         max: config.pool.max,
         min: config.pool.min,
         acquireTimeoutMillis: config.pool.acquire,
         idleTimeoutMillis: config.pool.idle,
         reapIntervalMillis: config.pool.evict,
-        maxUses: config.pool.maxUses,
+        maxUses: config.pool.maxUses
       }),
       write: new Pool({
         name: 'sequelize:write',
@@ -224,20 +207,18 @@ class ConnectionManager {
           connection.queryType = 'write';
           return connection;
         },
-        destroy: (connection) => this._disconnect(connection),
+        destroy: connection => this._disconnect(connection),
         validate: config.pool.validate,
         max: config.pool.max,
         min: config.pool.min,
         acquireTimeoutMillis: config.pool.acquire,
         idleTimeoutMillis: config.pool.idle,
         reapIntervalMillis: config.pool.evict,
-        maxUses: config.pool.maxUses,
-      }),
+        maxUses: config.pool.maxUses
+      })
     };
 
-    debug(
-      `pool created with max/min: ${config.pool.max}/${config.pool.min}, with replication`
-    );
+    debug(`pool created with max/min: ${config.pool.max}/${config.pool.min}, with replication`);
   }
 
   /**
@@ -257,9 +238,7 @@ class ConnectionManager {
       if (!this.versionPromise) {
         this.versionPromise = (async () => {
           try {
-            const connection = await this._connect(
-              this.config.replication.write || this.config
-            );
+            const connection = await this._connect(this.config.replication.write || this.config);
             const _options = {};
 
             _options.transaction = { connection }; // Cheat .query to use our private connection
@@ -270,25 +249,15 @@ class ConnectionManager {
             //avoiding a useless round trip
             if (this.sequelize.options.databaseVersion === 0) {
               const version = await this.sequelize.databaseVersion(_options);
-              const parsedVersion =
-                _.get(semver.coerce(version), 'version') || version;
-              this.sequelize.options.databaseVersion = semver.valid(
-                parsedVersion
-              )
+              const parsedVersion = _.get(semver.coerce(version), 'version') || version;
+              this.sequelize.options.databaseVersion = semver.valid(parsedVersion)
                 ? parsedVersion
                 : this.dialect.defaultVersion;
             }
 
-            if (
-              semver.lt(
-                this.sequelize.options.databaseVersion,
-                this.dialect.defaultVersion
-              )
-            ) {
+            if (semver.lt(this.sequelize.options.databaseVersion, this.dialect.defaultVersion)) {
               deprecations.unsupportedEngine();
-              debug(
-                `Unsupported database engine version ${this.sequelize.options.databaseVersion}`
-              );
+              debug(`Unsupported database engine version ${this.sequelize.options.databaseVersion}`);
             }
 
             this.versionPromise = null;
@@ -307,8 +276,7 @@ class ConnectionManager {
     try {
       result = await this.pool.acquire(options.type, options.useMaster);
     } catch (error) {
-      if (error instanceof TimeoutError)
-        throw new errors.ConnectionAcquireTimeoutError(error);
+      if (error instanceof TimeoutError) throw new errors.ConnectionAcquireTimeoutError(error);
       throw error;
     }
 

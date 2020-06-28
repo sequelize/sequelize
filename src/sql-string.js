@@ -41,7 +41,7 @@ function escape(val, timeZone, dialect, format) {
 
   if (val instanceof Date) {
     val = dataTypes[dialect].DATE.prototype.stringify(val, {
-      timezone: timeZone,
+      timezone: timeZone
     });
   }
 
@@ -54,10 +54,10 @@ function escape(val, timeZone, dialect, format) {
   }
 
   if (Array.isArray(val)) {
-    const partialEscape = (escVal) => escape(escVal, timeZone, dialect, format);
+    const partialEscape = escVal => escape(escVal, timeZone, dialect, format);
     if (dialect === 'postgres' && !format) {
       return dataTypes.ARRAY.prototype.stringify(val, {
-        escape: partialEscape,
+        escape: partialEscape
       });
     }
     return arrayToList(val, timeZone, dialect, format);
@@ -78,7 +78,7 @@ function escape(val, timeZone, dialect, format) {
     }
   } else {
     // eslint-disable-next-line no-control-regex
-    val = val.replace(/[\0\n\r\b\t\\'"\x1a]/g, (s) => {
+    val = val.replace(/[\0\n\r\b\t\\'"\x1a]/g, s => {
       switch (s) {
         case '\0':
           return '\\0';
@@ -108,7 +108,7 @@ function format(sql, values, timeZone, dialect) {
     throw new Error(`Invalid SQL string provided: ${sql}`);
   }
 
-  return sql.replace(/\?/g, (match) => {
+  return sql.replace(/\?/g, match => {
     if (!values.length) {
       return match;
     }
@@ -127,9 +127,7 @@ function formatNamedParameters(sql, values, timeZone, dialect) {
     if (values[key] !== undefined) {
       return escape(values[key], timeZone, dialect, true);
     }
-    throw new Error(
-      `Named parameter "${value}" has no value in the given object.`
-    );
+    throw new Error(`Named parameter "${value}" has no value in the given object.`);
   });
 }
 exports.formatNamedParameters = formatNamedParameters;

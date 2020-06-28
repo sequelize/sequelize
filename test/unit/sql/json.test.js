@@ -17,47 +17,41 @@ if (current.dialect.supports.JSON) {
           expectsql(sql.escape('string', { type: new DataTypes.JSON() }), {
             default: '\'"string"\'',
             mariadb: '\'\\"string\\"\'',
-            mysql: '\'\\"string\\"\'',
+            mysql: '\'\\"string\\"\''
           });
         });
 
         it('plain int', () => {
           expectsql(sql.escape(0, { type: new DataTypes.JSON() }), {
-            default: "'0'",
+            default: "'0'"
           });
           expectsql(sql.escape(123, { type: new DataTypes.JSON() }), {
-            default: "'123'",
+            default: "'123'"
           });
         });
 
         it('boolean', () => {
           expectsql(sql.escape(true, { type: new DataTypes.JSON() }), {
-            default: "'true'",
+            default: "'true'"
           });
           expectsql(sql.escape(false, { type: new DataTypes.JSON() }), {
-            default: "'false'",
+            default: "'false'"
           });
         });
 
         it('NULL', () => {
           expectsql(sql.escape(null, { type: new DataTypes.JSON() }), {
-            default: 'NULL',
+            default: 'NULL'
           });
         });
 
         it('nested object', () => {
           expectsql(
-            sql.escape(
-              { some: 'nested', more: { nested: true }, answer: 42 },
-              { type: new DataTypes.JSON() }
-            ),
+            sql.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }),
             {
-              default:
-                '\'{"some":"nested","more":{"nested":true},"answer":42}\'',
-              mariadb:
-                '\'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}\'',
-              mysql:
-                '\'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}\'',
+              default: '\'{"some":"nested","more":{"nested":true},"answer":42}\'',
+              mariadb: '\'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}\'',
+              mysql: '\'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}\''
             }
           );
         });
@@ -65,17 +59,11 @@ if (current.dialect.supports.JSON) {
         if (current.dialect.supports.ARRAY) {
           it('array of JSON', () => {
             expectsql(
-              sql.escape(
-                [
-                  { some: 'nested', more: { nested: true }, answer: 42 },
-                  43,
-                  'joe',
-                ],
-                { type: DataTypes.ARRAY(DataTypes.JSON) }
-              ),
+              sql.escape([{ some: 'nested', more: { nested: true }, answer: 42 }, 43, 'joe'], {
+                type: DataTypes.ARRAY(DataTypes.JSON)
+              }),
               {
-                postgres:
-                  'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]',
+                postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]'
               }
             );
           });
@@ -83,17 +71,11 @@ if (current.dialect.supports.JSON) {
           if (current.dialect.supports.JSONB) {
             it('array of JSONB', () => {
               expectsql(
-                sql.escape(
-                  [
-                    { some: 'nested', more: { nested: true }, answer: 42 },
-                    43,
-                    'joe',
-                  ],
-                  { type: DataTypes.ARRAY(DataTypes.JSONB) }
-                ),
+                sql.escape([{ some: 'nested', more: { nested: true }, answer: 42 }, 43, 'joe'], {
+                  type: DataTypes.ARRAY(DataTypes.JSONB)
+                }),
                 {
-                  postgres:
-                    'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]',
+                  postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]'
                 }
               );
             });
@@ -107,24 +89,17 @@ if (current.dialect.supports.JSON) {
             postgres: "(\"id\"#>>'{}') = '1'",
             sqlite: "json_extract(`id`,'$') = '1'",
             mariadb: "json_unquote(json_extract(`id`,'$')) = '1'",
-            mysql: "json_unquote(json_extract(`id`,'$')) = '1'",
+            mysql: "json_unquote(json_extract(`id`,'$')) = '1'"
           });
         });
 
         it('nested condition object', () => {
-          expectsql(
-            sql.whereItemQuery(
-              undefined,
-              Sequelize.json({ profile: { id: 1 } })
-            ),
-            {
-              postgres: "(\"profile\"#>>'{id}') = '1'",
-              sqlite: "json_extract(`profile`,'$.id') = '1'",
-              mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '1'",
-              mysql:
-                "json_unquote(json_extract(`profile`,'$.\\\"id\\\"')) = '1'",
-            }
-          );
+          expectsql(sql.whereItemQuery(undefined, Sequelize.json({ profile: { id: 1 } })), {
+            postgres: "(\"profile\"#>>'{id}') = '1'",
+            sqlite: "json_extract(`profile`,'$.id') = '1'",
+            mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '1'",
+            mysql: "json_unquote(json_extract(`profile`,'$.\\\"id\\\"')) = '1'"
+          });
         });
 
         it('multiple condition object', () => {
@@ -133,39 +108,31 @@ if (current.dialect.supports.JSON) {
               undefined,
               Sequelize.json({
                 property: { value: 1 },
-                another: { value: 'string' },
+                another: { value: 'string' }
               })
             ),
             {
-              postgres:
-                "(\"property\"#>>'{value}') = '1' AND (\"another\"#>>'{value}') = 'string'",
-              sqlite:
-                "json_extract(`property`,'$.value') = '1' AND json_extract(`another`,'$.value') = 'string'",
+              postgres: "(\"property\"#>>'{value}') = '1' AND (\"another\"#>>'{value}') = 'string'",
+              sqlite: "json_extract(`property`,'$.value') = '1' AND json_extract(`another`,'$.value') = 'string'",
               mariadb:
                 "json_unquote(json_extract(`property`,'$.value')) = '1' AND json_unquote(json_extract(`another`,'$.value')) = 'string'",
               mysql:
-                "json_unquote(json_extract(`property`,'$.\\\"value\\\"')) = '1' AND json_unquote(json_extract(`another`,'$.\\\"value\\\"')) = 'string'",
+                "json_unquote(json_extract(`property`,'$.\\\"value\\\"')) = '1' AND json_unquote(json_extract(`another`,'$.\\\"value\\\"')) = 'string'"
             }
           );
         });
 
         it('property array object', () => {
-          expectsql(
-            sql.whereItemQuery(
-              undefined,
-              Sequelize.json({ property: [[4, 6], [8]] })
-            ),
-            {
-              postgres:
-                "(\"property\"#>>'{0,0}') = '4' AND (\"property\"#>>'{0,1}') = '6' AND (\"property\"#>>'{1,0}') = '8'",
-              sqlite:
-                "json_extract(`property`,'$[0][0]') = '4' AND json_extract(`property`,'$[0][1]') = '6' AND json_extract(`property`,'$[1][0]') = '8'",
-              mariadb:
-                "json_unquote(json_extract(`property`,'$[0][0]')) = '4' AND json_unquote(json_extract(`property`,'$[0][1]')) = '6' AND json_unquote(json_extract(`property`,'$[1][0]')) = '8'",
-              mysql:
-                "json_unquote(json_extract(`property`,'$[0][0]')) = '4' AND json_unquote(json_extract(`property`,'$[0][1]')) = '6' AND json_unquote(json_extract(`property`,'$[1][0]')) = '8'",
-            }
-          );
+          expectsql(sql.whereItemQuery(undefined, Sequelize.json({ property: [[4, 6], [8]] })), {
+            postgres:
+              "(\"property\"#>>'{0,0}') = '4' AND (\"property\"#>>'{0,1}') = '6' AND (\"property\"#>>'{1,0}') = '8'",
+            sqlite:
+              "json_extract(`property`,'$[0][0]') = '4' AND json_extract(`property`,'$[0][1]') = '6' AND json_extract(`property`,'$[1][0]') = '8'",
+            mariadb:
+              "json_unquote(json_extract(`property`,'$[0][0]')) = '4' AND json_unquote(json_extract(`property`,'$[0][1]')) = '6' AND json_unquote(json_extract(`property`,'$[1][0]')) = '8'",
+            mysql:
+              "json_unquote(json_extract(`property`,'$[0][0]')) = '4' AND json_unquote(json_extract(`property`,'$[0][1]')) = '6' AND json_unquote(json_extract(`property`,'$[1][0]')) = '8'"
+          });
         });
 
         it('dot notation', () => {
@@ -173,7 +140,7 @@ if (current.dialect.supports.JSON) {
             postgres: "(\"profile\"#>>'{id}') = '1'",
             sqlite: "json_extract(`profile`,'$.id') = '1'",
             mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '1'",
-            mysql: "json_unquote(json_extract(`profile`,'$.\\\"id\\\"')) = '1'",
+            mysql: "json_unquote(json_extract(`profile`,'$.\\\"id\\\"')) = '1'"
           });
         });
 
@@ -182,8 +149,7 @@ if (current.dialect.supports.JSON) {
             postgres: "(\"profile\"#>>'{id,0,1}') = '1'",
             sqlite: "json_extract(`profile`,'$.id[0][1]') = '1'",
             mariadb: "json_unquote(json_extract(`profile`,'$.id[0][1]')) = '1'",
-            mysql:
-              "json_unquote(json_extract(`profile`,'$.\\\"id\\\"[0][1]')) = '1'",
+            mysql: "json_unquote(json_extract(`profile`,'$.\\\"id\\\"[0][1]')) = '1'"
           });
         });
 
@@ -192,7 +158,7 @@ if (current.dialect.supports.JSON) {
             postgres: "(\"json\"#>>'{}') = '{}'",
             sqlite: "json_extract(`json`,'$') = '{}'",
             mariadb: "json_unquote(json_extract(`json`,'$')) = '{}'",
-            mysql: "json_unquote(json_extract(`json`,'$')) = '{}'",
+            mysql: "json_unquote(json_extract(`json`,'$')) = '{}'"
           });
         });
       });
@@ -200,36 +166,23 @@ if (current.dialect.supports.JSON) {
       describe('raw json query', () => {
         if (current.dialect.name === 'postgres') {
           it('#>> operator', () => {
-            expectsql(
-              sql.whereItemQuery(Sequelize.json('("data"#>>\'{id}\')'), 'id'),
-              {
-                postgres: "(\"data\"#>>'{id}') = 'id'",
-              }
-            );
+            expectsql(sql.whereItemQuery(Sequelize.json('("data"#>>\'{id}\')'), 'id'), {
+              postgres: "(\"data\"#>>'{id}') = 'id'"
+            });
           });
         }
 
         it('json function', () => {
-          expectsql(
-            sql.handleSequelizeMethod(
-              Sequelize.json('json(\'{"profile":{"name":"david"}}\')')
-            ),
-            {
-              default: 'json(\'{"profile":{"name":"david"}}\')',
-            }
-          );
+          expectsql(sql.handleSequelizeMethod(Sequelize.json('json(\'{"profile":{"name":"david"}}\')')), {
+            default: 'json(\'{"profile":{"name":"david"}}\')'
+          });
         });
 
         it('nested json functions', () => {
           expectsql(
-            sql.handleSequelizeMethod(
-              Sequelize.json(
-                'json_extract(json_object(\'{"profile":null}\'), "profile")'
-              )
-            ),
+            sql.handleSequelizeMethod(Sequelize.json('json_extract(json_object(\'{"profile":null}\'), "profile")')),
             {
-              default:
-                'json_extract(json_object(\'{"profile":null}\'), "profile")',
+              default: 'json_extract(json_object(\'{"profile":null}\'), "profile")'
             }
           );
         });
@@ -237,37 +190,22 @@ if (current.dialect.supports.JSON) {
         it('escaped string argument', () => {
           expectsql(
             sql.handleSequelizeMethod(
-              Sequelize.json(
-                'json(\'{"quote":{"single":"\'\'","double":""""},"parenthesis":"())("}\')'
-              )
+              Sequelize.json('json(\'{"quote":{"single":"\'\'","double":""""},"parenthesis":"())("}\')')
             ),
             {
-              default:
-                'json(\'{"quote":{"single":"\'\'","double":""""},"parenthesis":"())("}\')',
+              default: 'json(\'{"quote":{"single":"\'\'","double":""""},"parenthesis":"())("}\')'
             }
           );
         });
 
         it('unbalnced statement', () => {
-          expect(() =>
-            sql.handleSequelizeMethod(Sequelize.json('json())'))
-          ).to.throw();
-          expect(() =>
-            sql.handleSequelizeMethod(Sequelize.json('json_extract(json()'))
-          ).to.throw();
+          expect(() => sql.handleSequelizeMethod(Sequelize.json('json())'))).to.throw();
+          expect(() => sql.handleSequelizeMethod(Sequelize.json('json_extract(json()'))).to.throw();
         });
 
         it('separator injection', () => {
-          expect(() =>
-            sql.handleSequelizeMethod(
-              Sequelize.json('json(; DELETE YOLO INJECTIONS; -- )')
-            )
-          ).to.throw();
-          expect(() =>
-            sql.handleSequelizeMethod(
-              Sequelize.json('json(); DELETE YOLO INJECTIONS; -- ')
-            )
-          ).to.throw();
+          expect(() => sql.handleSequelizeMethod(Sequelize.json('json(; DELETE YOLO INJECTIONS; -- )'))).to.throw();
+          expect(() => sql.handleSequelizeMethod(Sequelize.json('json(); DELETE YOLO INJECTIONS; -- '))).to.throw();
         });
       });
     });

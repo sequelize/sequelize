@@ -32,7 +32,7 @@ const TableHints = {
   READPAST: 'READPAST',
   XLOCK: 'XLOCK',
   SNAPSHOT: 'SNAPSHOT',
-  NOEXPAND: 'NOEXPAND',
+  NOEXPAND: 'NOEXPAND'
 };
 
 module.exports = TableHints;

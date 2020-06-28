@@ -16,7 +16,7 @@ function classToInvokable(Class) {
     },
     get(target, p) {
       return target[p];
-    },
+    }
   });
 }
 exports.classToInvokable = classToInvokable;

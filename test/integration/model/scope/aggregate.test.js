@@ -11,7 +11,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('aggregate', () => {
       beforeEach(async function () {
         this.Child = this.sequelize.define('Child', {
-          priority: Sequelize.INTEGER,
+          priority: Sequelize.INTEGER
         });
         this.ScopeMe = this.sequelize.define(
           'ScopeMe',
@@ -19,38 +19,38 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             username: Sequelize.STRING,
             email: Sequelize.STRING,
             access_level: Sequelize.INTEGER,
-            other_value: Sequelize.INTEGER,
+            other_value: Sequelize.INTEGER
           },
           {
             defaultScope: {
               where: {
                 access_level: {
-                  [Op.gte]: 5,
-                },
-              },
+                  [Op.gte]: 5
+                }
+              }
             },
             scopes: {
               lowAccess: {
                 where: {
                   access_level: {
-                    [Op.lte]: 5,
-                  },
-                },
+                    [Op.lte]: 5
+                  }
+                }
               },
               withOrder: {
-                order: ['username'],
+                order: ['username']
               },
               withInclude: {
                 include: [
                   {
                     model: this.Child,
                     where: {
-                      priority: 1,
-                    },
-                  },
-                ],
-              },
-            },
+                      priority: 1
+                    }
+                  }
+                ]
+              }
+            }
           }
         );
         this.Child.belongsTo(this.ScopeMe);
@@ -62,70 +62,64 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             username: 'tony',
             email: 'tony@sequelizejs.com',
             access_level: 3,
-            other_value: 7,
+            other_value: 7
           },
           {
             username: 'tobi',
             email: 'tobi@fakeemail.com',
             access_level: 10,
-            other_value: 11,
+            other_value: 11
           },
           {
             username: 'dan',
             email: 'dan@sequelizejs.com',
             access_level: 5,
-            other_value: 10,
+            other_value: 10
           },
           {
             username: 'fred',
             email: 'fred@foobar.com',
             access_level: 3,
-            other_value: 7,
-          },
+            other_value: 7
+          }
         ];
         await this.ScopeMe.bulkCreate(records0);
         const records = await this.ScopeMe.findAll();
 
         await Promise.all([
           records[0].createChild({
-            priority: 1,
+            priority: 1
           }),
           records[1].createChild({
-            priority: 2,
-          }),
+            priority: 2
+          })
         ]);
       });
 
       it('should apply defaultScope', async function () {
-        await expect(this.ScopeMe.aggregate('*', 'count')).to.eventually.equal(
-          2
-        );
+        await expect(this.ScopeMe.aggregate('*', 'count')).to.eventually.equal(2);
       });
 
       it('should be able to override default scope', async function () {
         await expect(
           this.ScopeMe.aggregate('*', 'count', {
-            where: { access_level: { [Op.gt]: 5 } },
+            where: { access_level: { [Op.gt]: 5 } }
           })
         ).to.eventually.equal(1);
       });
 
       it('should be able to unscope', async function () {
-        await expect(
-          this.ScopeMe.unscoped().aggregate('*', 'count')
-        ).to.eventually.equal(4);
+        await expect(this.ScopeMe.unscoped().aggregate('*', 'count')).to.eventually.equal(4);
       });
 
       it('should be able to apply other scopes', async function () {
-        await expect(
-          this.ScopeMe.scope('lowAccess').aggregate('*', 'count')
-        ).to.eventually.equal(3);
+        await expect(this.ScopeMe.scope('lowAccess').aggregate('*', 'count')).to.eventually.equal(3);
       });
 
       it('should be able to merge scopes with where', async function () {
         await expect(
           this.ScopeMe.scope('lowAccess').aggregate('*', 'count', {
-            where: { username: 'dan' },
+            where: { username: 'dan' }
           })
         ).to.eventually.equal(1);
       });
@@ -139,7 +133,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             limit: null,
             offset: null,
             order: null,
-            attributes: [],
+            attributes: []
           })
         ).to.eventually.equal(1);
       });
@@ -149,7 +143,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Hero = this.sequelize.define(
             'Hero',
             {
-              codename: Sequelize.STRING,
+              codename: Sequelize.STRING
             },
             { schema: 'heroschema' }
           );
@@ -160,7 +154,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await expect(
             this.Hero.unscoped().aggregate('*', 'count', {
-              schema: 'heroschema',
+              schema: 'heroschema'
             })
           ).to.eventually.equal(2);
         });

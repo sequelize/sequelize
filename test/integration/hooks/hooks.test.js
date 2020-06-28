@@ -13,12 +13,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
       },
       mood: {
         type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
-      },
+        values: ['happy', 'sad', 'neutral']
+      }
     });
 
     this.ParanoidUser = this.sequelize.define(
@@ -27,11 +27,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         username: DataTypes.STRING,
         mood: {
           type: DataTypes.ENUM,
-          values: ['happy', 'sad', 'neutral'],
-        },
+          values: ['happy', 'sad', 'neutral']
+        }
       },
       {
-        paranoid: true,
+        paranoid: true
       }
     );
 
@@ -46,7 +46,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         attributes.type = DataTypes.STRING;
       });
 
-      this.sequelize.addHook('afterDefine', (factory) => {
+      this.sequelize.addHook('afterDefine', factory => {
         factory.options.name.singular = 'barr';
       });
 
@@ -82,7 +82,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         options.host = 'server9';
       });
 
-      Sequelize.addHook('afterInit', (sequelize) => {
+      Sequelize.addHook('afterInit', sequelize => {
         sequelize.options.protocol = 'udp';
       });
 
@@ -114,7 +114,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const User = this.sequelize.define(
           'User',
           {
-            username: DataTypes.STRING,
+            username: DataTypes.STRING
           },
           {
             hooks: {
@@ -125,8 +125,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               async afterValidate(user) {
                 expect(user).to.be.instanceof(User);
                 afterHooked = true;
-              },
-            },
+              }
+            }
           }
         );
 
@@ -144,7 +144,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const User = this.sequelize.define(
           'User',
           {
-            username: DataTypes.STRING,
+            username: DataTypes.STRING
           },
           {
             hooks: {
@@ -155,8 +155,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               async afterCreate(user) {
                 expect(user).to.be.instanceof(User);
                 afterHooked = true;
-              },
-            },
+              }
+            }
           }
         );
 
@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const User = this.sequelize.define(
           'User',
           {
-            username: DataTypes.STRING,
+            username: DataTypes.STRING
           },
           {
             hooks: {
@@ -185,8 +185,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               async afterDestroy(user) {
                 expect(user).to.be.instanceof(User);
                 afterHooked = true;
-              },
-            },
+              }
+            }
           }
         );
 
@@ -205,7 +205,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const User = this.sequelize.define(
           'User',
           {
-            username: DataTypes.STRING,
+            username: DataTypes.STRING
           },
           {
             hooks: {
@@ -216,8 +216,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               async afterUpdate(user) {
                 expect(user).to.be.instanceof(User);
                 afterHooked = true;
-              },
-            },
+              }
+            }
           }
         );
 

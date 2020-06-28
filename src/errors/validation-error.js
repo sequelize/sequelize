@@ -26,9 +26,7 @@ class ValidationError extends BaseError {
 
       // ... otherwise create a concatenated message out of existing errors.
     } else if (this.errors.length > 0 && this.errors[0].message) {
-      this.message = this.errors
-        .map((err) => `${err.type || err.origin}: ${err.message}`)
-        .join(',\n');
+      this.message = this.errors.map(err => `${err.type || err.origin}: ${err.message}`).join(',\n');
     }
   }
 
@@ -165,9 +163,7 @@ class ValidationErrorItem {
     const useNS = useTANS && type && ValidationErrorItem.Origins[type];
 
     if (useNS && (typeof NSSep !== 'string' || !NSSep.length)) {
-      throw new Error(
-        'Invalid namespace separator given, must be a non-empty string'
-      );
+      throw new Error('Invalid namespace separator given, must be a non-empty string');
     }
 
     if (!(typeof key === 'string' && key.length)) {
@@ -189,7 +185,7 @@ class ValidationErrorItem {
 ValidationErrorItem.Origins = {
   CORE: 'CORE',
   DB: 'DB',
-  FUNCTION: 'FUNCTION',
+  FUNCTION: 'FUNCTION'
 };
 
 /**
@@ -203,7 +199,7 @@ ValidationErrorItem.TypeStringMap = {
   'notnull violation': 'CORE',
   'string violation': 'CORE',
   'unique violation': 'DB',
-  'validation error': 'FUNCTION',
+  'validation error': 'FUNCTION'
 };
 
 module.exports = ValidationError;

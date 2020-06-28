@@ -10,37 +10,21 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findOne', () => {
     it('should include a non required model, with conditions and two includes N:M 1:M', async function () {
-      const A = this.sequelize.define(
-          'A',
-          { name: DataTypes.STRING(40) },
-          { paranoid: true }
-        ),
-        B = this.sequelize.define(
-          'B',
-          { name: DataTypes.STRING(40) },
-          { paranoid: true }
-        ),
-        C = this.sequelize.define(
-          'C',
-          { name: DataTypes.STRING(40) },
-          { paranoid: true }
-        ),
-        D = this.sequelize.define(
-          'D',
-          { name: DataTypes.STRING(40) },
-          { paranoid: true }
-        );
+      const A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }),
+        B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }),
+        C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true }),
+        D = this.sequelize.define('D', { name: DataTypes.STRING(40) }, { paranoid: true });
 
       // Associations
       A.hasMany(B);
 
       B.belongsTo(D);
       B.belongsToMany(C, {
-        through: 'BC',
+        through: 'BC'
       });
 
       C.belongsToMany(B, {
-        through: 'BC',
+        through: 'BC'
       });
 
       D.hasMany(B);
@@ -52,9 +36,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           {
             model: B,
             required: false,
-            include: [{ model: C, required: false }, { model: D }],
-          },
-        ],
+            include: [{ model: C, required: false }, { model: D }]
+          }
+        ]
       });
     });
 
@@ -62,7 +46,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const Model = this.sequelize.define('Model', {});
       const Model2 = this.sequelize.define('Model2', {});
       const Model4 = this.sequelize.define('Model4', {
-        something: { type: DataTypes.INTEGER },
+        something: { type: DataTypes.INTEGER }
       });
 
       Model.belongsTo(Model2);
@@ -77,9 +61,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         include: [
           {
             model: Model2,
-            include: [{ model: Model4, where: { something: 2 } }],
-          },
-        ],
+            include: [{ model: Model4, where: { something: 2 } }]
+          }
+        ]
       });
     });
 
@@ -89,8 +73,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           'Task',
           {
             deletedAt: {
-              type: DataTypes.DATE,
-            },
+              type: DataTypes.DATE
+            }
           },
           { paranoid: false }
         );
@@ -99,7 +83,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Task.belongsTo(User, { foreignKey: 'userId' });
 
       await this.sequelize.sync({
-        force: true,
+        force: true
       });
 
       const user0 = await User.create();
@@ -107,11 +91,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await Task.bulkCreate([
         { userId: user0.get('id'), deletedAt: new Date() },
         { userId: user0.get('id'), deletedAt: new Date() },
-        { userId: user0.get('id'), deletedAt: new Date() },
+        { userId: user0.get('id'), deletedAt: new Date() }
       ]);
 
       const user = await User.findOne({
-        include: [{ model: Task, where: { deletedAt: null }, required: false }],
+        include: [{ model: Task, where: { deletedAt: null }, required: false }]
       });
 
       expect(user).to.be.ok;
@@ -124,29 +108,29 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             type: DataTypes.UUID,
             defaultValue: Sequelize.UUIDV4,
             field: 'main_id',
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         }),
         Task = this.sequelize.define('Task', {
-          searchString: { type: DataTypes.STRING },
+          searchString: { type: DataTypes.STRING }
         });
 
       User.hasMany(Task, { foreignKey: 'userId' });
       Task.belongsTo(User, { foreignKey: 'userId' });
 
       await this.sequelize.sync({
-        force: true,
+        force: true
       });
 
       const user0 = await User.create();
 
       await Task.bulkCreate([
         { userId: user0.get('id'), searchString: 'one' },
-        { userId: user0.get('id'), searchString: 'two' },
+        { userId: user0.get('id'), searchString: 'two' }
       ]);
 
       const user = await User.findOne({
-        include: [{ model: Task, where: { searchString: 'one' } }],
+        include: [{ model: Task, where: { searchString: 'one' } }]
       });
 
       expect(user).to.be.ok;
@@ -160,8 +144,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           name: {
             type: DataTypes.STRING(40),
             field: 'name_id',
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         });
 
       A.belongsToMany(B, { through: AB });
@@ -173,9 +157,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await a0.addB(b, { through: { name: 'Foobar' } });
 
       const a = await A.findOne({
-        include: [
-          { model: B, through: { where: { name: 'Foobar' } }, required: true },
-        ],
+        include: [{ model: B, through: { where: { name: 'Foobar' } }, required: true }]
       });
 
       expect(a).to.not.equal(null);
@@ -184,10 +166,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should still pull the main record when an included model is not required and has where restrictions without matches', async function () {
       const A = this.sequelize.define('a', {
-          name: DataTypes.STRING(40),
+          name: DataTypes.STRING(40)
         }),
         B = this.sequelize.define('b', {
-          name: DataTypes.STRING(40),
+          name: DataTypes.STRING(40)
         });
 
       A.belongsToMany(B, { through: 'a_b' });
@@ -196,12 +178,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       await A.create({
-        name: 'Foobar',
+        name: 'Foobar'
       });
 
       const a = await A.findOne({
         where: { name: 'Foobar' },
-        include: [{ model: B, where: { name: 'idontexist' }, required: false }],
+        include: [{ model: B, where: { name: 'idontexist' }, required: false }]
       });
 
       expect(a).to.not.equal(null);
@@ -210,15 +192,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should support a nested include (with a where)', async function () {
       const A = this.sequelize.define('A', {
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       });
 
       const B = this.sequelize.define('B', {
-        flag: DataTypes.BOOLEAN,
+        flag: DataTypes.BOOLEAN
       });
 
       const C = this.sequelize.define('C', {
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       });
 
       A.hasOne(B);
@@ -236,11 +218,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             where: { flag: true },
             include: [
               {
-                model: C,
-              },
-            ],
-          },
-        ],
+                model: C
+              }
+            ]
+          }
+        ]
       });
 
       expect(a).to.not.exist;
@@ -248,7 +230,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should support a belongsTo with the targetKey option', async function () {
       const User = this.sequelize.define('User', {
-          username: { type: DataTypes.STRING, unique: true },
+          username: { type: DataTypes.STRING, unique: true }
         }),
         Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       User.removeAttribute('id');
@@ -261,7 +243,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const foundTask = await Task.findOne({
         where: { title: 'some task' },
-        include: [{ model: User }],
+        include: [{ model: User }]
       });
 
       expect(foundTask).to.be.ok;
@@ -276,10 +258,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         E = this.sequelize.define('e', {}),
         F = this.sequelize.define('f', {}),
         G = this.sequelize.define('g', {
-          name: DataTypes.STRING,
+          name: DataTypes.STRING
         }),
         H = this.sequelize.define('h', {
-          name: DataTypes.STRING,
+          name: DataTypes.STRING
         });
 
       A.belongsTo(B);
@@ -299,7 +281,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             previousInstance,
             b;
 
-          singles.forEach((model) => {
+          singles.forEach(model => {
             const values = {};
 
             if (model.name === 'g') {
@@ -310,9 +292,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
               await promise;
               const instance = await model.create(values);
               if (previousInstance) {
-                await previousInstance[`set${_.upperFirst(model.name)}`](
-                  instance
-                );
+                await previousInstance[`set${_.upperFirst(model.name)}`](instance);
                 previousInstance = instance;
                 return;
               }
@@ -325,7 +305,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           });
 
           return promise;
-        })([B, C, D, E, F, G, H]),
+        })([B, C, D, E, F, G, H])
       ]);
 
       await a0.setB(b);
@@ -350,21 +330,21 @@ describe(Support.getTestDialectTeaser('Include'), () => {
                               {
                                 model: G,
                                 where: {
-                                  name: 'yolo',
+                                  name: 'yolo'
                                 },
-                                include: [{ model: H }],
-                              },
-                            ],
-                          },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
+                                include: [{ model: H }]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       });
 
       expect(a.b.c.d.e.f.g.h).to.be.ok;
@@ -377,9 +357,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true,
+            autoIncrement: true
           },
-          name: DataTypes.STRING,
+          name: DataTypes.STRING
         },
         { underscored: true }
       );
@@ -391,16 +371,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
-            unique: true,
+            unique: true
           },
           owner_id: { type: DataTypes.INTEGER, unique: 'combiIndex' },
           owner_type: {
             type: DataTypes.ENUM,
             values: ['user', 'org'],
             defaultValue: 'user',
-            unique: 'combiIndex',
+            unique: 'combiIndex'
           },
-          private: { type: DataTypes.BOOLEAN, defaultValue: false },
+          private: { type: DataTypes.BOOLEAN, defaultValue: false }
         },
         { underscored: true }
       );
@@ -409,19 +389,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         foreignKey: 'owner_id',
         scope: { owner_type: 'user' },
         as: 'UserPosts',
-        constraints: false,
+        constraints: false
       });
       Post.belongsTo(User, {
         foreignKey: 'owner_id',
         as: 'Owner',
-        constraints: false,
+        constraints: false
       });
 
       await this.sequelize.sync({ force: true });
 
       await User.findOne({
         where: { id: 2 },
-        include: [{ model: Post, as: 'UserPosts', where: { private: true } }],
+        include: [{ model: Post, as: 'UserPosts', where: { private: true } }]
       });
     });
   });

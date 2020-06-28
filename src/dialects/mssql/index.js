@@ -13,50 +13,44 @@ class MssqlDialect extends AbstractDialect {
     this.connectionManager = new ConnectionManager(this, sequelize);
     this.queryGenerator = new QueryGenerator({
       _dialect: this,
-      sequelize,
+      sequelize
     });
-    this.queryInterface = new MSSqlQueryInterface(
-      sequelize,
-      this.queryGenerator
-    );
+    this.queryInterface = new MSSqlQueryInterface(sequelize, this.queryGenerator);
   }
 }
 
-MssqlDialect.prototype.supports = _.merge(
-  _.cloneDeep(AbstractDialect.prototype.supports),
-  {
-    DEFAULT: true,
-    'DEFAULT VALUES': true,
-    'LIMIT ON UPDATE': true,
-    'ORDER NULLS': false,
-    lock: false,
-    transactions: true,
-    migrations: false,
-    returnValues: {
-      output: true,
-    },
-    schemas: true,
-    autoIncrement: {
-      identityInsert: true,
-      defaultValue: false,
-      update: false,
-    },
-    constraints: {
-      restrict: false,
-      default: true,
-    },
-    index: {
-      collate: false,
-      length: false,
-      parser: false,
-      type: true,
-      using: false,
-      where: true,
-    },
-    NUMERIC: true,
-    tmpTableTrigger: true,
-  }
-);
+MssqlDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototype.supports), {
+  DEFAULT: true,
+  'DEFAULT VALUES': true,
+  'LIMIT ON UPDATE': true,
+  'ORDER NULLS': false,
+  lock: false,
+  transactions: true,
+  migrations: false,
+  returnValues: {
+    output: true
+  },
+  schemas: true,
+  autoIncrement: {
+    identityInsert: true,
+    defaultValue: false,
+    update: false
+  },
+  constraints: {
+    restrict: false,
+    default: true
+  },
+  index: {
+    collate: false,
+    length: false,
+    parser: false,
+    type: true,
+    using: false,
+    where: true
+  },
+  NUMERIC: true,
+  tmpTableTrigger: true
+});
 
 MssqlDialect.prototype.defaultVersion = '12.0.2000'; // SQL Server 2014 Express
 MssqlDialect.prototype.Query = Query;

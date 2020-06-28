@@ -11,19 +11,16 @@ const delay = require('delay');
 function assertSameConnection(newConnection, oldConnection) {
   switch (dialect) {
     case 'postgres':
-      expect(oldConnection.processID).to.be.equal(newConnection.processID).and
-        .to.be.ok;
+      expect(oldConnection.processID).to.be.equal(newConnection.processID).and.to.be.ok;
       break;
 
     case 'mariadb':
     case 'mysql':
-      expect(oldConnection.threadId).to.be.equal(newConnection.threadId).and.to
-        .be.ok;
+      expect(oldConnection.threadId).to.be.equal(newConnection.threadId).and.to.be.ok;
       break;
 
     case 'mssql':
-      expect(newConnection.dummyId).to.equal(oldConnection.dummyId).and.to.be
-        .ok;
+      expect(newConnection.dummyId).to.equal(oldConnection.dummyId).and.to.be.ok;
       break;
 
     default:
@@ -82,7 +79,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       }
 
       const sequelize = Support.createSequelizeInstance({
-        pool: { max: 1, idle: 5000 },
+        pool: { max: 1, idle: 5000 }
       });
       const cm = sequelize.connectionManager;
       await sequelize.sync();
@@ -111,7 +108,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
       }
 
       const sequelize = Support.createSequelizeInstance({
-        pool: { max: 1, idle: 5000 },
+        pool: { max: 1, idle: 5000 }
       });
       const cm = sequelize.connectionManager;
       await sequelize.sync();
@@ -132,7 +129,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
   describe('idle', () => {
     it('should maintain connection within idle range', async () => {
       const sequelize = Support.createSequelizeInstance({
-        pool: { max: 1, idle: 100 },
+        pool: { max: 1, idle: 100 }
       });
       const cm = sequelize.connectionManager;
       await sequelize.sync();
@@ -157,7 +154,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
 
     it('should get new connection beyond idle range', async () => {
       const sequelize = Support.createSequelizeInstance({
-        pool: { max: 1, idle: 100, evict: 10 },
+        pool: { max: 1, idle: 100, evict: 10 }
       });
       const cm = sequelize.connectionManager;
       await sequelize.sync();
@@ -188,17 +185,15 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
         dialect,
         databaseVersion: '1.2.3',
         pool: {
-          acquire: 10,
-        },
+          acquire: 10
+        }
       });
 
-      this.sinon
-        .stub(this.testInstance.connectionManager, '_connect')
-        .returns(new Promise(() => {}));
+      this.sinon.stub(this.testInstance.connectionManager, '_connect').returns(new Promise(() => {}));
 
-      await expect(
-        this.testInstance.authenticate()
-      ).to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
+      await expect(this.testInstance.authenticate()).to.eventually.be.rejectedWith(
+        Sequelize.ConnectionAcquireTimeoutError
+      );
     });
 
     it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', async function () {
@@ -207,13 +202,11 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
         databaseVersion: '1.2.3',
         pool: {
           acquire: 10,
-          max: 1,
-        },
+          max: 1
+        }
       });
 
-      this.sinon
-        .stub(this.testInstance.connectionManager, '_connect')
-        .returns(new Promise(() => {}));
+      this.sinon.stub(this.testInstance.connectionManager, '_connect').returns(new Promise(() => {}));
 
       await expect(
         this.testInstance.transaction(async () => {

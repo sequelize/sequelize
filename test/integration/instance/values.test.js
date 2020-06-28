@@ -12,7 +12,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
     describe('set', () => {
       it("doesn't overwrite generated primary keys", function () {
         const User = this.sequelize.define('User', {
-          name: { type: DataTypes.STRING },
+          name: { type: DataTypes.STRING }
         });
 
         const user = User.build({ id: 1, name: 'Mick' });
@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         expect(user.get('name')).to.equal('Mick');
         user.set({
           id: 2,
-          name: 'Jan',
+          name: 'Jan'
         });
         expect(user.get('id')).to.equal(1);
         expect(user.get('name')).to.equal('Jan');
@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
       it("doesn't overwrite defined primary keys", function () {
         const User = this.sequelize.define('User', {
-          identifier: { type: DataTypes.STRING, primaryKey: true },
+          identifier: { type: DataTypes.STRING, primaryKey: true }
         });
 
         const user = User.build({ identifier: 'identifier' });
@@ -41,19 +41,19 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
       it("doesn't set timestamps", function () {
         const User = this.sequelize.define('User', {
-          identifier: { type: DataTypes.STRING, primaryKey: true },
+          identifier: { type: DataTypes.STRING, primaryKey: true }
         });
 
         const user = User.build(
           {},
           {
-            isNewRecord: false,
+            isNewRecord: false
           }
         );
 
         user.set({
           createdAt: new Date(2000, 1, 1),
-          updatedAt: new Date(2000, 1, 1),
+          updatedAt: new Date(2000, 1, 1)
         });
 
         expect(user.get('createdAt')).not.to.be.ok;
@@ -64,23 +64,23 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         const User = this.sequelize.define(
           'User',
           {
-            identifier: { type: DataTypes.STRING, primaryKey: true },
+            identifier: { type: DataTypes.STRING, primaryKey: true }
           },
           {
-            underscored: true,
+            underscored: true
           }
         );
 
         const user = User.build(
           {},
           {
-            isNewRecord: false,
+            isNewRecord: false
           }
         );
 
         user.set({
           created_at: new Date(2000, 1, 1),
-          updated_at: new Date(2000, 1, 1),
+          updated_at: new Date(2000, 1, 1)
         });
 
         expect(user.get('created_at')).not.to.be.ok;
@@ -92,14 +92,14 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           'User',
           {
             name: { type: DataTypes.STRING },
-            email_hidden: { type: DataTypes.STRING },
+            email_hidden: { type: DataTypes.STRING }
           },
           {
             setterMethods: {
               email_secret(value) {
                 this.set('email_hidden', value);
-              },
-            },
+              }
+            }
           }
         );
 
@@ -108,7 +108,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         user.set({
           name: 'antonio banderaz',
           email: 'antonio@banderaz.com',
-          email_secret: 'foo@bar.com',
+          email_secret: 'foo@bar.com'
         });
 
         user.set('email', 'antonio@banderaz.com');
@@ -127,8 +127,8 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
             b: DataTypes.BOOLEAN,
             always_false: {
               type: DataTypes.BOOLEAN,
-              defaultValue: false,
-            },
+              defaultValue: false
+            }
           },
           { timestamps: false }
         );
@@ -138,15 +138,13 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         // Create the user first to set the proper default values. PG does not support column references in insert,
         // so we must create a record with the right value for always_false, then reference it in an update
         let now =
-          dialect === 'sqlite'
-            ? this.sequelize.fn('', this.sequelize.fn('datetime', 'now'))
-            : this.sequelize.fn('NOW');
+          dialect === 'sqlite' ? this.sequelize.fn('', this.sequelize.fn('datetime', 'now')) : this.sequelize.fn('NOW');
         if (dialect === 'mssql') {
           now = this.sequelize.fn('', this.sequelize.fn('getdate'));
         }
         user.set({
           d: now,
-          b: this.sequelize.col('always_false'),
+          b: this.sequelize.col('always_false')
         });
 
         expect(user.get('d')).to.be.instanceof(Sequelize.Utils.Fn);
@@ -161,14 +159,14 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
       describe('includes', () => {
         it('should support basic includes', function () {
           const Product = this.sequelize.define('product', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
           const Tag = this.sequelize.define('tag', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           const User = this.sequelize.define('user', {
             first_name: Sequelize.STRING,
-            last_name: Sequelize.STRING,
+            last_name: Sequelize.STRING
           });
 
           Product.hasMany(Tag);
@@ -177,7 +175,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           const product = Product.build(
             {},
             {
-              include: [User, Tag],
+              include: [User, Tag]
             }
           );
 
@@ -186,13 +184,13 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
             title: 'Chair',
             tags: [
               { id: 1, name: 'Alpha' },
-              { id: 2, name: 'Beta' },
+              { id: 2, name: 'Beta' }
             ],
             user: {
               id: 1,
               first_name: 'Mick',
-              last_name: 'Hansen',
-            },
+              last_name: 'Hansen'
+            }
           });
 
           expect(product.tags).to.be.ok;
@@ -204,14 +202,14 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
         it('should support basic includes (with raw: true)', function () {
           const Product = this.sequelize.define('Product', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
           const Tag = this.sequelize.define('tag', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           const User = this.sequelize.define('user', {
             first_name: Sequelize.STRING,
-            last_name: Sequelize.STRING,
+            last_name: Sequelize.STRING
           });
 
           Product.hasMany(Tag);
@@ -220,7 +218,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           const product = Product.build(
             {},
             {
-              include: [User, Tag],
+              include: [User, Tag]
             }
           );
 
@@ -230,13 +228,13 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
               title: 'Chair',
               tags: [
                 { id: 1, name: 'Alpha' },
-                { id: 2, name: 'Beta' },
+                { id: 2, name: 'Beta' }
               ],
               user: {
                 id: 1,
                 first_name: 'Mick',
-                last_name: 'Hansen',
-              },
+                last_name: 'Hansen'
+              }
             },
             { raw: true }
           );
@@ -257,12 +255,12 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
             type: Sequelize.FLOAT,
             get() {
               return this.dataValues.price * 100;
-            },
-          },
+            }
+          }
         });
 
         const product = Product.build({
-          price: 10,
+          price: 10
         });
         expect(product.get('price')).to.equal(1000);
       });
@@ -272,20 +270,20 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           'Product',
           {
             priceInCents: {
-              type: Sequelize.FLOAT,
-            },
+              type: Sequelize.FLOAT
+            }
           },
           {
             getterMethods: {
               price() {
                 return this.dataValues.priceInCents / 100;
-              },
-            },
+              }
+            }
           }
         );
 
         const product = Product.build({
-          priceInCents: 1000,
+          priceInCents: 1000
         });
         expect(product.get('price')).to.equal(10);
       });
@@ -298,25 +296,25 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
               type: Sequelize.STRING,
               get() {
                 return this.dataValues.price * 100;
-              },
-            },
+              }
+            }
           },
           {
             getterMethods: {
               withTaxes() {
                 return this.get('price') * 1.25;
-              },
-            },
+              }
+            }
           }
         );
 
         const product = Product.build({
-          price: 10,
+          price: 10
         });
         expect(product.toJSON()).to.deep.equal({
           withTaxes: 1250,
           price: 1000,
-          id: null,
+          id: null
         });
       });
 
@@ -332,15 +330,15 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
             },
             set(val, field) {
               this.setDataValue(field, JSON.stringify(val));
-            },
-          },
+            }
+          }
         });
 
         await this.sequelize.sync();
         const contact = Contact.build({
           first: 'My',
           last: 'Name',
-          tags: ['yes', 'no'],
+          tags: ['yes', 'no']
         });
         expect(contact.get('tags')).to.deep.equal(['yes', 'no']);
 
@@ -351,11 +349,11 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
       describe('plain', () => {
         it('should return plain values when true', function () {
           const Product = this.sequelize.define('product', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
           const User = this.sequelize.define('user', {
             first_name: Sequelize.STRING,
-            last_name: Sequelize.STRING,
+            last_name: Sequelize.STRING
           });
 
           Product.belongsTo(User);
@@ -363,7 +361,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           const product = Product.build(
             {},
             {
-              include: [User],
+              include: [User]
             }
           );
 
@@ -374,15 +372,13 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
               user: {
                 id: 1,
                 first_name: 'Mick',
-                last_name: 'Hansen',
-              },
+                last_name: 'Hansen'
+              }
             },
             { raw: true }
           );
 
-          expect(product.get('user', { plain: true })).not.to.be.instanceof(
-            User
-          );
+          expect(product.get('user', { plain: true })).not.to.be.instanceof(User);
           expect(product.get({ plain: true }).user).not.to.be.instanceof(User);
         });
       });
@@ -390,13 +386,13 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
       describe('clone', () => {
         it('should copy the values', function () {
           const Product = this.sequelize.define('product', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
 
           const product = Product.build(
             {
               id: 1,
-              title: 'Chair',
+              title: 'Chair'
             },
             { raw: true }
           );
@@ -412,7 +408,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         const Product = this.sequelize.define(
           'product',
           {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           },
           {
             getterMethods: {
@@ -422,8 +418,8 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
                 }
 
                 return 5;
-              },
-            },
+              }
+            }
           }
         );
 
@@ -431,7 +427,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           'user',
           {
             first_name: Sequelize.STRING,
-            last_name: Sequelize.STRING,
+            last_name: Sequelize.STRING
           },
           {
             getterMethods: {
@@ -441,8 +437,8 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
                 }
 
                 return 6.06; // ft
-              },
-            },
+              }
+            }
           }
         );
 
@@ -451,7 +447,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         const product = Product.build(
           {},
           {
-            include: [User],
+            include: [User]
           }
         );
 
@@ -461,43 +457,28 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           user: {
             id: 1,
             first_name: 'Jozef',
-            last_name: 'Hartinger',
-          },
+            last_name: 'Hartinger'
+          }
         });
 
         expect(product.get('rating')).to.equal(5);
         expect(product.get('rating', { apiVersion: 2 })).to.equal(100);
 
         expect(product.get({ plain: true })).to.have.property('rating', 5);
-        expect(product.get({ plain: true }).user).to.have.property(
-          'height',
-          6.06
-        );
-        expect(product.get({ plain: true, apiVersion: 1 })).to.have.property(
-          'rating',
-          5
-        );
-        expect(
-          product.get({ plain: true, apiVersion: 1 }).user
-        ).to.have.property('height', 6.06);
-        expect(product.get({ plain: true, apiVersion: 2 })).to.have.property(
-          'rating',
-          100
-        );
-        expect(
-          product.get({ plain: true, apiVersion: 2 }).user
-        ).to.have.property('height', 185);
+        expect(product.get({ plain: true }).user).to.have.property('height', 6.06);
+        expect(product.get({ plain: true, apiVersion: 1 })).to.have.property('rating', 5);
+        expect(product.get({ plain: true, apiVersion: 1 }).user).to.have.property('height', 6.06);
+        expect(product.get({ plain: true, apiVersion: 2 })).to.have.property('rating', 100);
+        expect(product.get({ plain: true, apiVersion: 2 }).user).to.have.property('height', 185);
 
-        expect(product.get('user').get('height', { apiVersion: 2 })).to.equal(
-          185
-        );
+        expect(product.get('user').get('height', { apiVersion: 2 })).to.equal(185);
       });
     });
 
     describe('changed', () => {
       it('should return false if object was built from database', async function () {
         const User = this.sequelize.define('User', {
-          name: { type: DataTypes.STRING },
+          name: { type: DataTypes.STRING }
         });
 
         await User.sync();
@@ -511,11 +492,11 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
       it('should return true if previous value is different', function () {
         const User = this.sequelize.define('User', {
-          name: { type: DataTypes.STRING },
+          name: { type: DataTypes.STRING }
         });
 
         const user = User.build({
-          name: 'Jan Meier',
+          name: 'Jan Meier'
         });
         user.set('name', 'Mick Hansen');
         expect(user.changed('name')).to.be.true;
@@ -524,12 +505,12 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
       it('should return false immediately after saving', async function () {
         const User = this.sequelize.define('User', {
-          name: { type: DataTypes.STRING },
+          name: { type: DataTypes.STRING }
         });
 
         await User.sync();
         const user = User.build({
-          name: 'Jan Meier',
+          name: 'Jan Meier'
         });
         user.set('name', 'Mick Hansen');
         expect(user.changed('name')).to.be.true;
@@ -542,11 +523,11 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
       it('should be available to a afterUpdate hook', async function () {
         const User = this.sequelize.define('User', {
-          name: { type: DataTypes.STRING },
+          name: { type: DataTypes.STRING }
         });
         let changed;
 
-        User.afterUpdate((instance) => {
+        User.afterUpdate(instance => {
           changed = instance.changed();
           return;
         });
@@ -554,11 +535,11 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         await User.sync({ force: true });
 
         const user0 = await User.create({
-          name: 'Ford Prefect',
+          name: 'Ford Prefect'
         });
 
         const user = await user0.update({
-          name: 'Arthur Dent',
+          name: 'Arthur Dent'
         });
 
         expect(changed).to.be.ok;
@@ -572,12 +553,12 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
       it('should return an object with the previous values', function () {
         const User = this.sequelize.define('User', {
           name: { type: DataTypes.STRING },
-          title: { type: DataTypes.STRING },
+          title: { type: DataTypes.STRING }
         });
 
         const user = User.build({
           name: 'Jan Meier',
-          title: 'Mr',
+          title: 'Mr'
         });
 
         user.set('name', 'Mick Hansen');
@@ -588,11 +569,11 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
       it('should return the previous value', function () {
         const User = this.sequelize.define('User', {
-          name: { type: DataTypes.STRING },
+          name: { type: DataTypes.STRING }
         });
 
         const user = User.build({
-          name: 'Jan Meier',
+          name: 'Jan Meier'
         });
         user.set('name', 'Mick Hansen');
 

@@ -17,52 +17,28 @@ class MSSqlQueryInterface extends QueryInterface {
   async removeColumn(tableName, attributeName, options) {
     options = { raw: true, ...(options || {}) };
 
-    const findConstraintSql = this.queryGenerator.getDefaultConstraintQuery(
-      tableName,
-      attributeName
-    );
+    const findConstraintSql = this.queryGenerator.getDefaultConstraintQuery(tableName, attributeName);
     const [results0] = await this.sequelize.query(findConstraintSql, options);
     if (results0.length) {
       // No default constraint found -- we can cleanly remove the column
-      const dropConstraintSql = this.queryGenerator.dropConstraintQuery(
-        tableName,
-        results0[0].name
-      );
+      const dropConstraintSql = this.queryGenerator.dropConstraintQuery(tableName, results0[0].name);
       await this.sequelize.query(dropConstraintSql, options);
     }
-    const findForeignKeySql = this.queryGenerator.getForeignKeyQuery(
-      tableName,
-      attributeName
-    );
+    const findForeignKeySql = this.queryGenerator.getForeignKeyQuery(tableName, attributeName);
     const [results] = await this.sequelize.query(findForeignKeySql, options);
     if (results.length) {
       // No foreign key constraints found, so we can remove the column
-      const dropForeignKeySql = this.queryGenerator.dropForeignKeyQuery(
-        tableName,
-        results[0].constraint_name
-      );
+      const dropForeignKeySql = this.queryGenerator.dropForeignKeyQuery(tableName, results[0].constraint_name);
       await this.sequelize.query(dropForeignKeySql, options);
     }
     //Check if the current column is a primaryKey
-    const primaryKeyConstraintSql = this.queryGenerator.getPrimaryKeyConstraintQuery(
-      tableName,
-      attributeName
-    );
-    const [result] = await this.sequelize.query(
-      primaryKeyConstraintSql,
-      options
-    );
+    const primaryKeyConstraintSql = this.queryGenerator.getPrimaryKeyConstraintQuery(tableName, attributeName);
+    const [result] = await this.sequelize.query(primaryKeyConstraintSql, options);
     if (result.length) {
-      const dropConstraintSql = this.queryGenerator.dropConstraintQuery(
-        tableName,
-        result[0].constraintName
-      );
+      const dropConstraintSql = this.queryGenerator.dropConstraintQuery(tableName, result[0].constraintName);
       await this.sequelize.query(dropConstraintSql, options);
     }
-    const removeSql = this.queryGenerator.removeColumnQuery(
-      tableName,
-      attributeName
-    );
+    const removeSql = this.queryGenerator.removeColumnQuery(tableName, attributeName);
     return this.sequelize.query(removeSql, options);
   }
 
@@ -80,11 +56,11 @@ class MSSqlQueryInterface extends QueryInterface {
     }
 
     // Lets combine unique keys and indexes into one
-    let indexes = Object.values(model.uniqueKeys).map((item) => item.fields);
+    let indexes = Object.values(model.uniqueKeys).map(item => item.fields);
     indexes = indexes.concat(
       Object.values(model._indexes)
-        .filter((item) => item.unique)
-        .map((item) => item.fields)
+        .filter(item => item.unique)
+        .map(item => item.fields)
     );
 
     const attributes = Object.keys(insertValues);
@@ -103,14 +79,7 @@ class MSSqlQueryInterface extends QueryInterface {
     options.type = QueryTypes.UPSERT;
     options.raw = true;
 
-    const sql = this.queryGenerator.upsertQuery(
-      tableName,
-      insertValues,
-      updateValues,
-      where,
-      model,
-      options
-    );
+    const sql = this.queryGenerator.upsertQuery(tableName, insertValues, updateValues, where, model, options);
     return await this.sequelize.query(sql, options);
   }
 }

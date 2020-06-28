@@ -29,24 +29,24 @@ if (current.dialect.supports.tmpTableTrigger) {
           {
             username: {
               type: Sequelize.STRING,
-              field: 'user_name',
-            },
+              field: 'user_name'
+            }
           },
           {
-            hasTrigger: true,
+            hasTrigger: true
           }
         );
 
         await User.sync({ force: true });
 
         await this.sequelize.query(triggerQuery, {
-          type: this.sequelize.QueryTypes.RAW,
+          type: this.sequelize.QueryTypes.RAW
         });
       });
 
       it('should return output rows after insert', async () => {
         await User.create({
-          username: 'triggertest',
+          username: 'triggertest'
         });
 
         await expect(User.findOne({ username: 'triggertest' }))
@@ -56,7 +56,7 @@ if (current.dialect.supports.tmpTableTrigger) {
 
       it('should return output rows after instance update', async () => {
         const user = await User.create({
-          username: 'triggertest',
+          username: 'triggertest'
         });
 
         user.username = 'usernamechanged';
@@ -68,17 +68,17 @@ if (current.dialect.supports.tmpTableTrigger) {
 
       it('should return output rows after Model update', async () => {
         const user = await User.create({
-          username: 'triggertest',
+          username: 'triggertest'
         });
 
         await User.update(
           {
-            username: 'usernamechanged',
+            username: 'usernamechanged'
           },
           {
             where: {
-              id: user.get('id'),
-            },
+              id: user.get('id')
+            }
           }
         );
 
@@ -89,12 +89,11 @@ if (current.dialect.supports.tmpTableTrigger) {
 
       it('should successfully delete with a trigger on the table', async () => {
         const user = await User.create({
-          username: 'triggertest',
+          username: 'triggertest'
         });
 
         await user.destroy();
-        await expect(User.findOne({ username: 'triggertest' })).to.eventually.be
-          .null;
+        await expect(User.findOne({ username: 'triggertest' })).to.eventually.be.null;
       });
     });
   });

@@ -19,24 +19,17 @@ if (dialect === 'mssql') {
         port: 2433,
         pool: {},
         dialectOptions: {
-          domain: 'TEST.COM',
-        },
+          domain: 'TEST.COM'
+        }
       };
-      this.instance = new Sequelize(
-        this.config.database,
-        this.config.username,
-        this.config.password,
-        this.config
-      );
+      this.instance = new Sequelize(this.config.database, this.config.username, this.config.password, this.config);
       this.Connection = {};
       const self = this;
-      this.connectionStub = sinon
-        .stub(this.instance.connectionManager, 'lib')
-        .value({
-          Connection: function FakeConnection() {
-            return self.Connection;
-          },
-        });
+      this.connectionStub = sinon.stub(this.instance.connectionManager, 'lib').value({
+        Connection: function FakeConnection() {
+          return self.Connection;
+        }
+      });
     });
 
     afterEach(function () {
@@ -55,7 +48,7 @@ if (dialect === 'mssql') {
           }
         },
         removeListener: () => {},
-        on: () => {},
+        on: () => {}
       };
 
       expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
@@ -75,16 +68,14 @@ if (dialect === 'mssql') {
           }
         },
         removeListener: () => {},
-        on: () => {},
+        on: () => {}
       };
 
       try {
         await this.instance.dialect.connectionManager._connect(this.config);
       } catch (err) {
         expect(err.name).to.equal('SequelizeConnectionError');
-        expect(err.parent.message).to.equal(
-          'Connection was closed by remote server'
-        );
+        expect(err.parent.message).to.equal('Connection was closed by remote server');
       }
     });
 
@@ -103,7 +94,7 @@ if (dialect === 'mssql') {
           }
         },
         removeListener: () => {},
-        on: () => {},
+        on: () => {}
       };
 
       await this.instance.dialect.connectionManager._connect(this.config);

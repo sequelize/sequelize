@@ -6,16 +6,15 @@ class MariaDBQueryGenerator extends MySQLQueryGenerator {
     options = {
       charset: null,
       collate: null,
-      ...options,
+      ...options
     };
 
     return Utils.joinSQLFragments([
       'CREATE SCHEMA IF NOT EXISTS',
       this.quoteIdentifier(schema),
-      options.charset &&
-        `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
+      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
       options.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
-      ';',
+      ';'
     ]);
   }
 
@@ -24,16 +23,8 @@ class MariaDBQueryGenerator extends MySQLQueryGenerator {
   }
 
   showSchemasQuery(options) {
-    const schemasToSkip = [
-      "'MYSQL'",
-      "'INFORMATION_SCHEMA'",
-      "'PERFORMANCE_SCHEMA'",
-    ];
-    if (
-      options.skip &&
-      Array.isArray(options.skip) &&
-      options.skip.length > 0
-    ) {
+    const schemasToSkip = ["'MYSQL'", "'INFORMATION_SCHEMA'", "'PERFORMANCE_SCHEMA'"];
+    if (options.skip && Array.isArray(options.skip) && options.skip.length > 0) {
       for (const schemaName of options.skip) {
         schemasToSkip.push(this.escape(schemaName));
       }
@@ -42,18 +33,16 @@ class MariaDBQueryGenerator extends MySQLQueryGenerator {
       'SELECT SCHEMA_NAME as schema_name',
       'FROM INFORMATION_SCHEMA.SCHEMATA',
       `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.join(', ')})`,
-      ';',
+      ';'
     ]);
   }
 
   showTablesQuery(database) {
-    let query =
-      "SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'";
+    let query = "SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'";
     if (database) {
       query += ` AND TABLE_SCHEMA = ${this.escape(database)}`;
     } else {
-      query +=
-        " AND TABLE_SCHEMA NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA')";
+      query += " AND TABLE_SCHEMA NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA')";
     }
     return `${query};`;
   }

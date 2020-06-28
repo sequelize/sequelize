@@ -14,8 +14,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       this.User = current.define('User', {
         name: {
           type: DataTypes.STRING,
-          get: this.getSpy,
-        },
+          get: this.getSpy
+        }
       });
     });
 

@@ -15,7 +15,7 @@ if (current.dialect.name !== 'sqlite') {
           sql.removeColumnQuery(
             {
               schema: 'archive',
-              tableName: 'user',
+              tableName: 'user'
             },
             'email'
           ),
@@ -23,7 +23,7 @@ if (current.dialect.name !== 'sqlite') {
             mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
             mariadb: 'ALTER TABLE `archive`.`user` DROP `email`;',
             mysql: 'ALTER TABLE `archive.user` DROP `email`;',
-            postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
+            postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";'
           }
         );
       });

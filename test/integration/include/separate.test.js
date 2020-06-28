@@ -24,27 +24,27 @@ if (current.dialect.supports.groupedLimit) {
           User.create(
             {
               id: 1,
-              tasks: [{}, {}, {}],
+              tasks: [{}, {}, {}]
             },
             {
-              include: [User.Tasks],
+              include: [User.Tasks]
             }
           ),
           User.create(
             {
               id: 2,
-              tasks: [{}],
+              tasks: [{}]
             },
             {
-              include: [User.Tasks],
+              include: [User.Tasks]
             }
-          ),
+          )
         ]);
 
         const users = await User.findAll({
           include: [{ association: User.Tasks, separate: true }],
           order: [['id', 'ASC']],
-          logging: sqlSpy,
+          logging: sqlSpy
         });
 
         expect(users[0].get('tasks')).to.be.ok;
@@ -60,7 +60,7 @@ if (current.dialect.supports.groupedLimit) {
 
       it('should work even if the id was not included', async function () {
         const User = this.sequelize.define('User', {
-            name: DataTypes.STRING,
+            name: DataTypes.STRING
           }),
           Task = this.sequelize.define('Task', {}),
           sqlSpy = sinon.spy();
@@ -72,10 +72,10 @@ if (current.dialect.supports.groupedLimit) {
         await User.create(
           {
             id: 1,
-            tasks: [{}, {}, {}],
+            tasks: [{}, {}, {}]
           },
           {
-            include: [User.Tasks],
+            include: [User.Tasks]
           }
         );
 
@@ -83,7 +83,7 @@ if (current.dialect.supports.groupedLimit) {
           attributes: ['name'],
           include: [{ association: User.Tasks, separate: true }],
           order: [['id', 'ASC']],
-          logging: sqlSpy,
+          logging: sqlSpy
         });
 
         expect(users[0].get('tasks')).to.be.ok;
@@ -96,18 +96,18 @@ if (current.dialect.supports.groupedLimit) {
           name: DataTypes.STRING,
           userExtraId: {
             type: DataTypes.INTEGER,
-            unique: true,
-          },
+            unique: true
+          }
         });
         const Task = this.sequelize.define('Task', {
-          title: DataTypes.STRING,
+          title: DataTypes.STRING
         });
         const sqlSpy = sinon.spy();
 
         User.Tasks = User.hasMany(Task, {
           as: 'tasks',
           foreignKey: 'userId',
-          sourceKey: 'userExtraId',
+          sourceKey: 'userExtraId'
         });
 
         await this.sequelize.sync({ force: true });
@@ -116,10 +116,10 @@ if (current.dialect.supports.groupedLimit) {
           {
             id: 1,
             userExtraId: 222,
-            tasks: [{}, {}, {}],
+            tasks: [{}, {}, {}]
           },
           {
-            include: [User.Tasks],
+            include: [User.Tasks]
           }
         );
 
@@ -129,11 +129,11 @@ if (current.dialect.supports.groupedLimit) {
             {
               attributes: ['title'],
               association: User.Tasks,
-              separate: true,
-            },
+              separate: true
+            }
           ],
           order: [['id', 'ASC']],
-          logging: sqlSpy,
+          logging: sqlSpy
         });
 
         expect(users[0].get('tasks')).to.be.ok;
@@ -153,7 +153,7 @@ if (current.dialect.supports.groupedLimit) {
         await User.create({});
 
         await User.findAll({
-          include: [{ association: User.Team, include: [Team.Company] }],
+          include: [{ association: User.Team, include: [Team.Company] }]
         });
       });
 
@@ -162,8 +162,8 @@ if (current.dialect.supports.groupedLimit) {
           Task = this.sequelize.define('Task', {
             userId: {
               type: DataTypes.INTEGER,
-              field: 'user_id',
-            },
+              field: 'user_id'
+            }
           }),
           sqlSpy = sinon.spy();
 
@@ -175,27 +175,27 @@ if (current.dialect.supports.groupedLimit) {
           User.create(
             {
               id: 1,
-              tasks: [{}, {}, {}],
+              tasks: [{}, {}, {}]
             },
             {
-              include: [User.Tasks],
+              include: [User.Tasks]
             }
           ),
           User.create(
             {
               id: 2,
-              tasks: [{}, {}, {}, {}],
+              tasks: [{}, {}, {}, {}]
             },
             {
-              include: [User.Tasks],
+              include: [User.Tasks]
             }
-          ),
+          )
         ]);
 
         const users = await User.findAll({
           include: [{ association: User.Tasks, limit: 2 }],
           order: [['id', 'ASC']],
-          logging: sqlSpy,
+          logging: sqlSpy
         });
 
         expect(users[0].get('tasks')).to.be.ok;
@@ -221,39 +221,35 @@ if (current.dialect.supports.groupedLimit) {
             {
               id: 1,
               company: {
-                tasks: [{}, {}, {}],
-              },
+                tasks: [{}, {}, {}]
+              }
             },
             {
-              include: [
-                { association: User.Company, include: [Company.Tasks] },
-              ],
+              include: [{ association: User.Company, include: [Company.Tasks] }]
             }
           ),
           User.create(
             {
               id: 2,
               company: {
-                tasks: [{}],
-              },
+                tasks: [{}]
+              }
             },
             {
-              include: [
-                { association: User.Company, include: [Company.Tasks] },
-              ],
+              include: [{ association: User.Company, include: [Company.Tasks] }]
             }
-          ),
+          )
         ]);
 
         const users = await User.findAll({
           include: [
             {
               association: User.Company,
-              include: [{ association: Company.Tasks, separate: true }],
-            },
+              include: [{ association: Company.Tasks, separate: true }]
+            }
           ],
           order: [['id', 'ASC']],
-          logging: sqlSpy,
+          logging: sqlSpy
         });
 
         expect(users[0].get('company').get('tasks')).to.be.ok;
@@ -282,21 +278,19 @@ if (current.dialect.supports.groupedLimit) {
               id: 1,
               users: [
                 {
-                  tasks: [{ project: {} }, { project: {} }, { project: {} }],
-                },
-              ],
+                  tasks: [{ project: {} }, { project: {} }, { project: {} }]
+                }
+              ]
             },
             {
               include: [
                 {
                   association: Company.Users,
-                  include: [
-                    { association: User.Tasks, include: [Task.Project] },
-                  ],
-                },
-              ],
+                  include: [{ association: User.Tasks, include: [Task.Project] }]
+                }
+              ]
             }
-          ),
+          )
         ]);
 
         const companies = await Company.findAll({
@@ -307,13 +301,13 @@ if (current.dialect.supports.groupedLimit) {
                 {
                   association: User.Tasks,
                   separate: true,
-                  include: [Task.Project],
-                },
-              ],
-            },
+                  include: [Task.Project]
+                }
+              ]
+            }
           ],
           order: [['id', 'ASC']],
-          logging: sqlSpy,
+          logging: sqlSpy
         });
 
         expect(sqlSpy).to.have.been.calledTwice;
@@ -339,18 +333,16 @@ if (current.dialect.supports.groupedLimit) {
               projects: [
                 {
                   id: 1,
-                  tasks: [{}, {}, {}],
+                  tasks: [{}, {}, {}]
                 },
                 {
                   id: 2,
-                  tasks: [{}],
-                },
-              ],
+                  tasks: [{}]
+                }
+              ]
             },
             {
-              include: [
-                { association: User.Projects, include: [Project.Tasks] },
-              ],
+              include: [{ association: User.Projects, include: [Project.Tasks] }]
             }
           ),
           User.create(
@@ -359,16 +351,14 @@ if (current.dialect.supports.groupedLimit) {
               projects: [
                 {
                   id: 3,
-                  tasks: [{}, {}],
-                },
-              ],
+                  tasks: [{}, {}]
+                }
+              ]
             },
             {
-              include: [
-                { association: User.Projects, include: [Project.Tasks] },
-              ],
+              include: [{ association: User.Projects, include: [Project.Tasks] }]
             }
-          ),
+          )
         ]);
 
         const users = await User.findAll({
@@ -376,11 +366,11 @@ if (current.dialect.supports.groupedLimit) {
             {
               association: User.Projects,
               separate: true,
-              include: [{ association: Project.Tasks, separate: true }],
-            },
+              include: [{ association: Project.Tasks, separate: true }]
+            }
           ],
           order: [['id', 'ASC']],
-          logging: sqlSpy,
+          logging: sqlSpy
         });
 
         const u1projects = users[0].get('projects');
@@ -391,12 +381,8 @@ if (current.dialect.supports.groupedLimit) {
         expect(u1projects.length).to.equal(2);
 
         // WTB ES2015 syntax ...
-        expect(u1projects.find((p) => p.id === 1).get('tasks').length).to.equal(
-          3
-        );
-        expect(u1projects.find((p) => p.id === 2).get('tasks').length).to.equal(
-          1
-        );
+        expect(u1projects.find(p => p.id === 1).get('tasks').length).to.equal(3);
+        expect(u1projects.find(p => p.id === 2).get('tasks').length).to.equal(1);
 
         expect(users[1].get('projects')).to.be.ok;
         expect(users[1].get('projects')[0].get('tasks')).to.be.ok;
@@ -412,7 +398,7 @@ if (current.dialect.supports.groupedLimit) {
             'Task',
             {
               id: { type: DataTypes.INTEGER, primaryKey: true },
-              title: DataTypes.STRING,
+              title: DataTypes.STRING
             },
             { schema: 'archive' }
           );
@@ -431,11 +417,11 @@ if (current.dialect.supports.groupedLimit) {
                 { id: 1, title: 'b' },
                 { id: 2, title: 'd' },
                 { id: 3, title: 'c' },
-                { id: 4, title: 'a' },
-              ],
+                { id: 4, title: 'a' }
+              ]
             },
             {
-              include: [User.Tasks],
+              include: [User.Tasks]
             }
           ),
           User.create(
@@ -444,20 +430,18 @@ if (current.dialect.supports.groupedLimit) {
               tasks: [
                 { id: 5, title: 'a' },
                 { id: 6, title: 'c' },
-                { id: 7, title: 'b' },
-              ],
+                { id: 7, title: 'b' }
+              ]
             },
             {
-              include: [User.Tasks],
+              include: [User.Tasks]
             }
-          ),
+          )
         ]);
 
         const result = await User.findAll({
-          include: [
-            { model: Task, limit: 2, as: 'tasks', order: [['id', 'ASC']] },
-          ],
-          order: [['id', 'ASC']],
+          include: [{ model: Task, limit: 2, as: 'tasks', order: [['id', 'ASC']] }],
+          order: [['id', 'ASC']]
         });
 
         expect(result[0].tasks.length).to.equal(2);
@@ -469,11 +453,7 @@ if (current.dialect.supports.groupedLimit) {
         expect(result[1].tasks[1].title).to.equal('c');
         await this.sequelize.dropSchema('archive');
         const schemas = await this.sequelize.showAllSchemas();
-        if (
-          dialect === 'postgres' ||
-          dialect === 'mssql' ||
-          dialect === 'mariadb'
-        ) {
+        if (dialect === 'postgres' || dialect === 'mssql' || dialect === 'mariadb') {
           expect(schemas).to.not.have.property('archive');
         }
       });
@@ -510,15 +490,15 @@ if (current.dialect.supports.groupedLimit) {
                       required: true,
                       include: [
                         {
-                          association: User.Company,
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
+                          association: User.Company
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         });
 
         expect(results.length).to.equal(1);

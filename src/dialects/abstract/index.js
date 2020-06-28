@@ -22,7 +22,7 @@ AbstractDialect.prototype.supports = {
     defaultValue: true,
 
     /* does the dialect support updating autoincrement fields */
-    update: true,
+    update: true
   },
   /* Do we need to say DEFAULT for bulk insert */
   bulkDefault: false,
@@ -30,16 +30,14 @@ AbstractDialect.prototype.supports = {
   transactions: true,
   settingIsolationLevelDuringTransaction: true,
   transactionOptions: {
-    type: false,
+    type: false
   },
   migrations: true,
   upserts: true,
   inserts: {
-    ignoreDuplicates:
-      '' /* dialect specific words for INSERT IGNORE or DO NOTHING */,
+    ignoreDuplicates: '' /* dialect specific words for INSERT IGNORE or DO NOTHING */,
     updateOnDuplicate: false /* whether dialect supports ON DUPLICATE KEY UPDATE */,
-    onConflictDoNothing:
-      '' /* dialect specific words for ON CONFLICT DO NOTHING */,
+    onConflictDoNothing: '' /* dialect specific words for ON CONFLICT DO NOTHING */
   },
   constraints: {
     restrict: true,
@@ -49,7 +47,7 @@ AbstractDialect.prototype.supports = {
     default: false,
     check: true,
     foreignKey: true,
-    primaryKey: true,
+    primaryKey: true
   },
   index: {
     collate: true,
@@ -59,13 +57,13 @@ AbstractDialect.prototype.supports = {
     type: false,
     using: true,
     functionBased: false,
-    operator: false,
+    operator: false
   },
   joinTableDependent: true,
   groupedLimit: true,
   indexViaAlter: false,
   JSON: false,
-  deferrableConstraints: false,
+  deferrableConstraints: false
 };
 
 module.exports = AbstractDialect;

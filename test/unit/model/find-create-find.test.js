@@ -26,7 +26,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await expect(
         Model.findCreateFind({
-          where,
+          where
         })
       ).to.eventually.eql([result, false]);
 
@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await expect(
         Model.findCreateFind({
-          where,
+          where
         })
       ).to.eventually.eql([result, true]);
 
@@ -62,7 +62,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await expect(
         Model.findCreateFind({
-          where,
+          where
         })
       ).to.eventually.eql([result, false]);
 

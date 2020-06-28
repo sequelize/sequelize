@@ -8,7 +8,7 @@
 const IndexHints = {
   USE: 'USE',
   FORCE: 'FORCE',
-  IGNORE: 'IGNORE',
+  IGNORE: 'IGNORE'
 };
 
 module.exports = IndexHints;

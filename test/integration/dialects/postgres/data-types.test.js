@@ -23,21 +23,13 @@ if (dialect === 'postgres') {
       });
 
       it('DATE should stringify Infinity/-Infinity to infinity/-infinity', () => {
-        expect(DataTypes[dialect].DATE().stringify(Infinity)).to.equal(
-          'Infinity'
-        );
-        expect(DataTypes[dialect].DATE().stringify(-Infinity)).to.equal(
-          '-Infinity'
-        );
+        expect(DataTypes[dialect].DATE().stringify(Infinity)).to.equal('Infinity');
+        expect(DataTypes[dialect].DATE().stringify(-Infinity)).to.equal('-Infinity');
       });
 
       it('DATEONLY should stringify Infinity/-Infinity to infinity/-infinity', () => {
-        expect(DataTypes[dialect].DATEONLY().stringify(Infinity)).to.equal(
-          'Infinity'
-        );
-        expect(DataTypes[dialect].DATEONLY().stringify(-Infinity)).to.equal(
-          '-Infinity'
-        );
+        expect(DataTypes[dialect].DATEONLY().stringify(Infinity)).to.equal('Infinity');
+        expect(DataTypes[dialect].DATEONLY().stringify(-Infinity)).to.equal('-Infinity');
       });
     });
 
@@ -48,54 +40,32 @@ if (dialect === 'postgres') {
 
       it('DATE should sanitize a Date as normal', () => {
         expect(DataTypes[dialect].DATE()._sanitize(now)).to.equalTime(now);
-        expect(DataTypes[dialect].DATE()._sanitize(nowString)).to.equalTime(
-          now
-        );
+        expect(DataTypes[dialect].DATE()._sanitize(nowString)).to.equalTime(now);
       });
 
       it('DATE should sanitize Infinity/-Infinity as Infinity/-Infinity', () => {
-        expect(DataTypes[dialect].DATE()._sanitize(Infinity)).to.equal(
-          Infinity
-        );
-        expect(DataTypes[dialect].DATE()._sanitize(-Infinity)).to.equal(
-          -Infinity
-        );
+        expect(DataTypes[dialect].DATE()._sanitize(Infinity)).to.equal(Infinity);
+        expect(DataTypes[dialect].DATE()._sanitize(-Infinity)).to.equal(-Infinity);
       });
 
       it('DATE should sanitize "Infinity"/"-Infinity" as Infinity/-Infinity', () => {
-        expect(DataTypes[dialect].DATE()._sanitize('Infinity')).to.equal(
-          Infinity
-        );
-        expect(DataTypes[dialect].DATE()._sanitize('-Infinity')).to.equal(
-          -Infinity
-        );
+        expect(DataTypes[dialect].DATE()._sanitize('Infinity')).to.equal(Infinity);
+        expect(DataTypes[dialect].DATE()._sanitize('-Infinity')).to.equal(-Infinity);
       });
 
       it('DATEONLY should sanitize a Date as normal', () => {
-        expect(DataTypes[dialect].DATEONLY()._sanitize(now)).to.equal(
-          nowDateOnly
-        );
-        expect(DataTypes[dialect].DATEONLY()._sanitize(nowString)).to.equal(
-          nowDateOnly
-        );
+        expect(DataTypes[dialect].DATEONLY()._sanitize(now)).to.equal(nowDateOnly);
+        expect(DataTypes[dialect].DATEONLY()._sanitize(nowString)).to.equal(nowDateOnly);
       });
 
       it('DATEONLY should sanitize Infinity/-Infinity as Infinity/-Infinity', () => {
-        expect(DataTypes[dialect].DATEONLY()._sanitize(Infinity)).to.equal(
-          Infinity
-        );
-        expect(DataTypes[dialect].DATEONLY()._sanitize(-Infinity)).to.equal(
-          -Infinity
-        );
+        expect(DataTypes[dialect].DATEONLY()._sanitize(Infinity)).to.equal(Infinity);
+        expect(DataTypes[dialect].DATEONLY()._sanitize(-Infinity)).to.equal(-Infinity);
       });
 
       it('DATEONLY should sanitize "Infinity"/"-Infinity" as Infinity/-Infinity', () => {
-        expect(DataTypes[dialect].DATEONLY()._sanitize('Infinity')).to.equal(
-          Infinity
-        );
-        expect(DataTypes[dialect].DATEONLY()._sanitize('-Infinity')).to.equal(
-          -Infinity
-        );
+        expect(DataTypes[dialect].DATEONLY()._sanitize('Infinity')).to.equal(Infinity);
+        expect(DataTypes[dialect].DATEONLY()._sanitize('-Infinity')).to.equal(-Infinity);
       });
     });
 
@@ -111,36 +81,36 @@ if (dialect === 'postgres') {
             username: this.sequelize.Sequelize.STRING,
             beforeTime: {
               type: this.sequelize.Sequelize.DATE,
-              defaultValue: -Infinity,
+              defaultValue: -Infinity
             },
             sometime: {
               type: this.sequelize.Sequelize.DATE,
-              defaultValue: this.sequelize.fn('NOW'),
+              defaultValue: this.sequelize.fn('NOW')
             },
             anotherTime: {
-              type: this.sequelize.Sequelize.DATE,
+              type: this.sequelize.Sequelize.DATE
             },
             afterTime: {
               type: this.sequelize.Sequelize.DATE,
-              defaultValue: Infinity,
-            },
+              defaultValue: Infinity
+            }
           },
           {
-            timestamps: true,
+            timestamps: true
           }
         );
 
         await User.sync({
-          force: true,
+          force: true
         });
 
         const user4 = await User.create(
           {
             username: 'bob',
-            anotherTime: Infinity,
+            anotherTime: Infinity
           },
           {
-            validate: true,
+            validate: true
           }
         );
 
@@ -152,27 +122,27 @@ if (dialect === 'postgres') {
 
         const user3 = await user4.update(
           {
-            sometime: Infinity,
+            sometime: Infinity
           },
           {
-            returning: true,
+            returning: true
           }
         );
 
         expect(user3.sometime).to.equal(Infinity);
 
         const user2 = await user3.update({
-          sometime: Infinity,
+          sometime: Infinity
         });
 
         expect(user2.sometime).to.equal(Infinity);
 
         const user1 = await user2.update(
           {
-            sometime: this.sequelize.fn('NOW'),
+            sometime: this.sequelize.fn('NOW')
           },
           {
-            returning: true,
+            returning: true
           }
         );
 
@@ -185,13 +155,13 @@ if (dialect === 'postgres') {
         expect(users[0].afterTime).to.equal(Infinity);
 
         const user0 = await users[0].update({
-          sometime: date,
+          sometime: date
         });
 
         expect(user0.sometime).to.equalTime(date);
 
         const user = await user0.update({
-          sometime: date,
+          sometime: date
         });
 
         expect(user.sometime).to.equalTime(date);
@@ -210,36 +180,36 @@ if (dialect === 'postgres') {
             username: this.sequelize.Sequelize.STRING,
             beforeTime: {
               type: this.sequelize.Sequelize.DATEONLY,
-              defaultValue: -Infinity,
+              defaultValue: -Infinity
             },
             sometime: {
               type: this.sequelize.Sequelize.DATEONLY,
-              defaultValue: this.sequelize.fn('NOW'),
+              defaultValue: this.sequelize.fn('NOW')
             },
             anotherTime: {
-              type: this.sequelize.Sequelize.DATEONLY,
+              type: this.sequelize.Sequelize.DATEONLY
             },
             afterTime: {
               type: this.sequelize.Sequelize.DATEONLY,
-              defaultValue: Infinity,
-            },
+              defaultValue: Infinity
+            }
           },
           {
-            timestamps: true,
+            timestamps: true
           }
         );
 
         await User.sync({
-          force: true,
+          force: true
         });
 
         const user4 = await User.create(
           {
             username: 'bob',
-            anotherTime: Infinity,
+            anotherTime: Infinity
           },
           {
-            validate: true,
+            validate: true
           }
         );
 
@@ -251,27 +221,27 @@ if (dialect === 'postgres') {
 
         const user3 = await user4.update(
           {
-            sometime: Infinity,
+            sometime: Infinity
           },
           {
-            returning: true,
+            returning: true
           }
         );
 
         expect(user3.sometime).to.equal(Infinity);
 
         const user2 = await user3.update({
-          sometime: Infinity,
+          sometime: Infinity
         });
 
         expect(user2.sometime).to.equal(Infinity);
 
         const user1 = await user2.update(
           {
-            sometime: this.sequelize.fn('NOW'),
+            sometime: this.sequelize.fn('NOW')
           },
           {
-            returning: true,
+            returning: true
           }
         );
 
@@ -285,13 +255,13 @@ if (dialect === 'postgres') {
         expect(users[0].afterTime).to.equal(Infinity);
 
         const user0 = await users[0].update({
-          sometime: '1969-07-20',
+          sometime: '1969-07-20'
         });
 
         expect(user0.sometime).to.equal('1969-07-20');
 
         const user = await user0.update({
-          sometime: '1969-07-20',
+          sometime: '1969-07-20'
         });
 
         expect(user.sometime).to.equal('1969-07-20');

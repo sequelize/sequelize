@@ -13,7 +13,7 @@ describe('[MariaDB Specific] DAO', () => {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
       email: DataTypes.STRING,
-      location: DataTypes.GEOMETRY(),
+      location: DataTypes.GEOMETRY()
     });
     await this.User.sync({ force: true });
   });
@@ -26,7 +26,7 @@ describe('[MariaDB Specific] DAO', () => {
     describe('integer', () => {
       beforeEach(async function () {
         this.User = this.sequelize.define('User', {
-          aNumber: DataTypes.INTEGER,
+          aNumber: DataTypes.INTEGER
         });
 
         await this.User.sync({ force: true });
@@ -54,7 +54,7 @@ describe('[MariaDB Specific] DAO', () => {
     describe('bigint', () => {
       beforeEach(async function () {
         this.User = this.sequelize.define('User', {
-          aNumber: DataTypes.BIGINT,
+          aNumber: DataTypes.BIGINT
         });
 
         await this.User.sync({ force: true });
@@ -66,7 +66,7 @@ describe('[MariaDB Specific] DAO', () => {
         const user = await User.create({ aNumber: '9223372036854775807' });
         expect(user.aNumber).to.equal('9223372036854775807');
         const _user = await User.findOne({
-          where: { aNumber: '9223372036854775807' },
+          where: { aNumber: '9223372036854775807' }
         });
 
         await expect(_user.aNumber.toString()).to.equal('9223372036854775807');
@@ -79,7 +79,7 @@ describe('[MariaDB Specific] DAO', () => {
         expect(user.aNumber).to.equal('-9223372036854775807');
 
         const _user = await User.findOne({
-          where: { aNumber: '-9223372036854775807' },
+          where: { aNumber: '-9223372036854775807' }
         });
 
         await expect(_user.aNumber.toString()).to.equal('-9223372036854775807');
@@ -93,7 +93,7 @@ describe('[MariaDB Specific] DAO', () => {
     const newUser = await this.User.create({
       username: 'user',
       email: 'foo@bar.com',
-      location: point,
+      location: point
     });
 
     expect(newUser.location).to.deep.eql(point);
@@ -107,16 +107,13 @@ describe('[MariaDB Specific] DAO', () => {
     const oldUser = await User.create({
       username: 'user',
       email: 'foo@bar.com',
-      location: point1,
+      location: point1
     });
 
-    await User.update(
-      { location: point2 },
-      { where: { username: oldUser.username } }
-    );
+    await User.update({ location: point2 }, { where: { username: oldUser.username } });
 
     const updatedUser = await User.findOne({
-      where: { username: oldUser.username },
+      where: { username: oldUser.username }
     });
     expect(updatedUser.location).to.deep.eql(point2);
   });
@@ -128,7 +125,7 @@ describe('[MariaDB Specific] DAO', () => {
     const user0 = await User.create({
       username: 'user',
       email: 'foo@bar.com',
-      location: point,
+      location: point
     });
 
     const user = await User.findOne({ where: { username: user0.username } });

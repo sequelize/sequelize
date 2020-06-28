@@ -35,23 +35,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       validateTest: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        validate: { isInt: true },
+        validate: { isInt: true }
       },
       validateCustom: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: { len: { msg: 'Length failed.', args: [1, 20] } },
+        validate: { len: { msg: 'Length failed.', args: [1, 20] } }
       },
 
       dateAllowNullTrue: {
         type: DataTypes.DATE,
-        allowNull: true,
+        allowNull: true
       },
 
       isSuperUser: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false,
-      },
+        defaultValue: false
+      }
     });
 
     await this.User.sync({ force: true });
@@ -62,7 +62,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', {
-          username: Support.Sequelize.STRING,
+          username: Support.Sequelize.STRING
         });
         await User.sync({ force: true });
         const t = await sequelize.transaction();
@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const user = await this.User.create({
         username: 'foo',
-        touchedAt: new Date(),
+        touchedAt: new Date()
       });
 
       user.username = 'fizz';
@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const Box = this.sequelize.define('box', {
         length: DataTypes.INTEGER,
         width: DataTypes.INTEGER,
-        height: DataTypes.INTEGER,
+        height: DataTypes.INTEGER
       });
 
       await Box.sync({ force: true });
@@ -107,13 +107,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const box0 = await Box.create({
         length: 1,
         width: 2,
-        height: 3,
+        height: 3
       });
 
       await box0.update({
         length: 4,
         width: 5,
-        height: 6,
+        height: 6
       });
 
       const box = await Box.findOne({});
@@ -125,9 +125,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('only validates fields in passed array', async function () {
       await this.User.build({
         validateTest: 'cake', // invalid, but not saved
-        validateCustom: '1',
+        validateCustom: '1'
       }).save({
-        fields: ['validateCustom'],
+        fields: ['validateCustom']
       });
     });
 
@@ -136,10 +136,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
-          email: DataTypes.STRING,
+          email: DataTypes.STRING
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'B');
         });
 
@@ -148,13 +148,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'A',
+          email: 'A'
         });
 
         await user0
           .set({
             name: 'B',
-            bio: 'B',
+            bio: 'B'
           })
           .save();
 
@@ -168,10 +168,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
-          email: DataTypes.STRING,
+          email: DataTypes.STRING
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'C');
         });
 
@@ -180,14 +180,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'A',
+          email: 'A'
         });
 
         await user0
           .set({
             name: 'B',
             bio: 'B',
-            email: 'B',
+            email: 'B'
           })
           .save();
 
@@ -204,12 +204,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: {
             type: DataTypes.STRING,
             validate: {
-              isEmail: true,
-            },
-          },
+              isEmail: true
+            }
+          }
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'B');
         });
 
@@ -218,13 +218,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'valid.email@gmail.com',
+          email: 'valid.email@gmail.com'
         });
 
         await expect(
           user0
             .set({
-              name: 'B',
+              name: 'B'
             })
             .save()
         ).to.be.rejectedWith(Sequelize.ValidationError);
@@ -240,12 +240,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: {
             type: DataTypes.STRING,
             validate: {
-              isEmail: true,
-            },
-          },
+              isEmail: true
+            }
+          }
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'B');
         });
 
@@ -254,14 +254,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'valid.email@gmail.com',
+          email: 'valid.email@gmail.com'
         });
 
         await expect(
           user0
             .set({
               name: 'B',
-              email: 'still.valid.email@gmail.com',
+              email: 'still.valid.email@gmail.com'
             })
             .save()
         ).to.be.rejectedWith(Sequelize.ValidationError);
@@ -276,7 +276,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         User = this.User,
         user = this.User.build({
           username,
-          touchedAt: new Date(1984, 8, 23),
+          touchedAt: new Date(1984, 8, 23)
         });
 
       const users = await User.findAll();
@@ -296,9 +296,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           id: {
             type: DataTypes.INTEGER.UNSIGNED,
             autoIncrement: false,
-            primaryKey: true,
+            primaryKey: true
           },
-          username: { type: DataTypes.STRING },
+          username: { type: DataTypes.STRING }
         });
 
       await User2.sync();
@@ -340,10 +340,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await expect(
         user.update(
           {
-            username: 'userman',
+            username: 'userman'
           },
           {
-            silent: true,
+            silent: true
           }
         )
       )
@@ -376,7 +376,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const newlySavedUser = await user.save();
         expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
         const newlySavedUser0 = await this.User.findOne({
-          where: { username: 'John' },
+          where: { username: 'John' }
         });
         expect(newlySavedUser0.updatedAt).to.equalTime(updatedAt);
       });
@@ -388,11 +388,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             name: DataTypes.STRING,
             bio: {
               type: DataTypes.VIRTUAL,
-              get: () => 'swag',
-            },
+              get: () => 'swag'
+            }
           },
           {
-            timestamps: false,
+            timestamps: false
           }
         );
         await User.sync({ force: true });
@@ -403,7 +403,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('updates with function and column value', async function () {
       const user = await this.User.create({
-        aNumber: 42,
+        aNumber: 42
       });
 
       user.bNumber = this.sequelize.col('aNumber');
@@ -428,7 +428,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           'User2',
           {
             username: DataTypes.STRING,
-            updatedAt: DataTypes.DATE,
+            updatedAt: DataTypes.DATE
           },
           { timestamps: false }
         );
@@ -447,7 +447,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const User2 = this.sequelize.define(
           'User2',
           {
-            username: DataTypes.STRING,
+            username: DataTypes.STRING
           },
           { updatedAt: false }
         );
@@ -465,7 +465,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const User2 = this.sequelize.define(
           'User2',
           {
-            username: DataTypes.STRING,
+            username: DataTypes.STRING
           },
           { createdAt: false }
         );
@@ -483,12 +483,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             username: DataTypes.STRING,
             createdAt: {
               type: DataTypes.DATE,
-              allowNull: false,
+              allowNull: false
             },
             updatedAt: {
               type: DataTypes.DATE,
-              allowNull: false,
-            },
+              allowNull: false
+            }
           },
           { timestamps: true }
         );
@@ -509,26 +509,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(err).to.be.instanceof(Object);
         expect(err.get('validateTest')).to.be.instanceof(Array);
         expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal(
-          'Validation isInt on validateTest failed'
-        );
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
     it('should fail a validation upon creating with hooks false', async function () {
       try {
-        await this.User.create(
-          { aNumber: 0, validateTest: 'hello' },
-          { hooks: false }
-        );
+        await this.User.create({ aNumber: 0, validateTest: 'hello' }, { hooks: false });
       } catch (err) {
         expect(err).to.exist;
         expect(err).to.be.instanceof(Object);
         expect(err.get('validateTest')).to.be.instanceof(Array);
         expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal(
-          'Validation isInt on validateTest failed'
-        );
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
@@ -536,7 +529,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       try {
         await this.User.build({
           aNumber: 0,
-          validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa',
+          validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa'
         }).save();
       } catch (err) {
         expect(err).to.exist;
@@ -559,15 +552,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(err.get('validateTest')).to.exist;
         expect(err.get('validateTest')).to.be.instanceof(Array);
         expect(err.get('validateTest')[0]).to.exist;
-        expect(err.get('validateTest')[0].message).to.equal(
-          'Validation isInt on validateTest failed'
-        );
+        expect(err.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
     it('takes zero into account', async function () {
       const user = await this.User.build({ aNumber: 0 }).save({
-        fields: ['aNumber'],
+        fields: ['aNumber']
       });
 
       expect(user.aNumber).to.equal(0);
@@ -577,13 +568,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const HistoryLog = this.sequelize.define('HistoryLog', {
         someText: { type: DataTypes.STRING },
         aNumber: { type: DataTypes.INTEGER },
-        aRandomId: { type: DataTypes.INTEGER },
+        aRandomId: { type: DataTypes.INTEGER }
       });
       await HistoryLog.sync();
       const log = await HistoryLog.create({
         someText: 'Some random text',
         aNumber: 3,
-        aRandomId: 5,
+        aRandomId: 5
       });
       const newLog = await log.update({ aNumber: 5 });
       expect(newLog.aNumber).to.equal(5);
@@ -595,7 +586,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           'UserEagerLoadingSaves',
           {
             username: DataTypes.STRING,
-            age: DataTypes.INTEGER,
+            age: DataTypes.INTEGER
           },
           { timestamps: false }
         );
@@ -604,18 +595,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           'ProjectEagerLoadingSaves',
           {
             title: DataTypes.STRING,
-            overdue_days: DataTypes.INTEGER,
+            overdue_days: DataTypes.INTEGER
           },
           { timestamps: false }
         );
 
         this.UserEager.hasMany(this.ProjectEager, {
           as: 'Projects',
-          foreignKey: 'PoobahId',
+          foreignKey: 'PoobahId'
         });
         this.ProjectEager.belongsTo(this.UserEager, {
           as: 'Poobah',
-          foreignKey: 'PoobahId',
+          foreignKey: 'PoobahId'
         });
 
         await this.UserEager.sync({ force: true });
@@ -627,16 +618,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user = await this.UserEager.create({ username: 'joe', age: 1 });
         const project1 = await this.ProjectEager.create({
           title: 'project-joe1',
-          overdue_days: 0,
+          overdue_days: 0
         });
         const project2 = await this.ProjectEager.create({
           title: 'project-joe2',
-          overdue_days: 0,
+          overdue_days: 0
         });
         await user.setProjects([project1, project2]);
         const user1 = await this.UserEager.findOne({
           where: { age: 1 },
-          include: [{ model: this.ProjectEager, as: 'Projects' }],
+          include: [{ model: this.ProjectEager, as: 'Projects' }]
         });
         expect(user1.username).to.equal('joe');
         expect(user1.age).to.equal(1);
@@ -656,26 +647,26 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const lisa = await this.UserEager.create({ username: 'lisa', age: 20 });
         const detention1 = await this.ProjectEager.create({
           title: 'detention1',
-          overdue_days: 0,
+          overdue_days: 0
         });
         const detention2 = await this.ProjectEager.create({
           title: 'detention2',
-          overdue_days: 0,
+          overdue_days: 0
         });
         const exam1 = await this.ProjectEager.create({
           title: 'exam1',
-          overdue_days: 0,
+          overdue_days: 0
         });
         const exam2 = await this.ProjectEager.create({
           title: 'exam2',
-          overdue_days: 0,
+          overdue_days: 0
         });
         await bart.setProjects([detention1, detention2]);
         await lisa.setProjects([exam1, exam2]);
         const simpsons = await this.UserEager.findAll({
           where: { age: 20 },
           order: [['username', 'ASC']],
-          include: [{ model: this.ProjectEager, as: 'Projects' }],
+          include: [{ model: this.ProjectEager, as: 'Projects' }]
         });
         expect(simpsons.length).to.equal(2);
 
@@ -703,19 +694,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('saves many objects that each has one eagerly loaded object (to which they belong)', async function () {
         const user = await this.UserEager.create({
           username: 'poobah',
-          age: 18,
+          age: 18
         });
         const homework = await this.ProjectEager.create({
           title: 'homework',
-          overdue_days: 10,
+          overdue_days: 10
         });
         const party = await this.ProjectEager.create({
           title: 'party',
-          overdue_days: 2,
+          overdue_days: 2
         });
         await user.setProjects([homework, party]);
         const projects = await this.ProjectEager.findAll({
-          include: [{ model: this.UserEager, as: 'Poobah' }],
+          include: [{ model: this.UserEager, as: 'Poobah' }]
         });
         expect(projects.length).to.equal(2);
         expect(projects[0].Poobah).to.exist;
@@ -732,7 +723,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         await projects[1].save();
         const savedprojects = await this.ProjectEager.findAll({
           where: { title: 'partymore', overdue_days: 0 },
-          include: [{ model: this.UserEager, as: 'Poobah' }],
+          include: [{ model: this.UserEager, as: 'Poobah' }]
         });
         expect(savedprojects.length).to.equal(2);
         expect(savedprojects[0].Poobah).to.exist;

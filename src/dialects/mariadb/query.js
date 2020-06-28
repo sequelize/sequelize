@@ -24,12 +24,7 @@ class Query extends AbstractQuery {
       }
       return undefined;
     };
-    sql = AbstractQuery.formatBindParameters(
-      sql,
-      values,
-      dialect,
-      replacementFunc
-    )[0];
+    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
     return [sql, bindParam.length > 0 ? bindParam : undefined];
   }
 
@@ -37,8 +32,7 @@ class Query extends AbstractQuery {
     this.sql = sql;
     const { connection, options } = this;
 
-    const showWarnings =
-      this.sequelize.options.showWarnings || options.showWarnings;
+    const showWarnings = this.sequelize.options.showWarnings || options.showWarnings;
 
     const complete = this._logQuery(sql, debug, parameters);
 
@@ -108,17 +102,14 @@ class Query extends AbstractQuery {
         if (
           this.model &&
           this.model.autoIncrementAttribute &&
-          this.model.autoIncrementAttribute ===
-            this.model.primaryKeyAttribute &&
+          this.model.autoIncrementAttribute === this.model.primaryKeyAttribute &&
           this.model.rawAttributes[this.model.primaryKeyAttribute]
         ) {
           //ONLY TRUE IF @auto_increment_increment is set to 1 !!
           //Doesn't work with GALERA => each node will reserve increment (x for first server, x+1 for next node ...
           const startId = data[this.getInsertIdField()];
           result = new Array(data.affectedRows);
-          const pkField = this.model.rawAttributes[
-            this.model.primaryKeyAttribute
-          ].field;
+          const pkField = this.model.rawAttributes[this.model.primaryKeyAttribute].field;
           for (let i = 0; i < data.affectedRows; i++) {
             result[i] = { [pkField]: startId + i };
           }
@@ -165,9 +156,8 @@ class Query extends AbstractQuery {
           defaultValue: _result.Default,
           primaryKey: _result.Key === 'PRI',
           autoIncrement:
-            Object.prototype.hasOwnProperty.call(_result, 'Extra') &&
-            _result.Extra.toLowerCase() === 'auto_increment',
-          comment: _result.Comment ? _result.Comment : null,
+            Object.prototype.hasOwnProperty.call(_result, 'Extra') && _result.Extra.toLowerCase() === 'auto_increment',
+          comment: _result.Comment ? _result.Comment : null
         };
       }
       return result;
@@ -187,16 +177,10 @@ class Query extends AbstractQuery {
       const modelField = this.model.fieldRawAttributesMap[_field];
       if (modelField.type instanceof DataTypes.JSON) {
         //value is return as String, no JSON
-        rows = rows.map((row) => {
-          row[modelField.fieldName] = row[modelField.fieldName]
-            ? JSON.parse(row[modelField.fieldName])
-            : null;
+        rows = rows.map(row => {
+          row[modelField.fieldName] = row[modelField.fieldName] ? JSON.parse(row[modelField.fieldName]) : null;
           if (DataTypes.JSON.parse) {
-            return DataTypes.JSON.parse(
-              modelField,
-              this.sequelize.options,
-              row[modelField.fieldName]
-            );
+            return DataTypes.JSON.parse(modelField, this.sequelize.options, row[modelField.fieldName]);
           }
           return row;
         });
@@ -206,15 +190,10 @@ class Query extends AbstractQuery {
 
   async logWarnings(results) {
     const warningResults = await this.run('SHOW WARNINGS');
-    const warningMessage = `MariaDB Warnings (${
-      this.connection.uuid || 'default'
-    }): `;
+    const warningMessage = `MariaDB Warnings (${this.connection.uuid || 'default'}): `;
     const messages = [];
     for (const _warningRow of warningResults) {
-      if (
-        _warningRow === undefined ||
-        typeof _warningRow[Symbol.iterator] !== 'function'
-      ) {
+      if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') {
         continue;
       }
       for (const _warningResult of _warningRow) {
@@ -236,9 +215,7 @@ class Query extends AbstractQuery {
   formatError(err) {
     switch (err.errno) {
       case ER_DUP_ENTRY: {
-        const match = err.message.match(
-          /Duplicate entry '([\s\S]*)' for key '?((.|\s)*?)'?\s.*$/
-        );
+        const match = err.message.match(/Duplicate entry '([\s\S]*)' for key '?((.|\s)*?)'?\s.*$/);
 
         let fields = {};
         let message = 'Validation error';
@@ -274,7 +251,7 @@ class Query extends AbstractQuery {
           message,
           errors,
           parent: err,
-          fields,
+          fields
         });
       }
 
@@ -285,21 +262,14 @@ class Query extends AbstractQuery {
           /CONSTRAINT ([`"])(.*)\1 FOREIGN KEY \(\1(.*)\1\) REFERENCES \1(.*)\1 \(\1(.*)\1\)/
         );
         const quoteChar = match ? match[1] : '`';
-        const fields = match
-          ? match[3].split(new RegExp(`${quoteChar}, *${quoteChar}`))
-          : undefined;
+        const fields = match ? match[3].split(new RegExp(`${quoteChar}, *${quoteChar}`)) : undefined;
         return new sequelizeErrors.ForeignKeyConstraintError({
           reltype: err.errno === 1451 ? 'parent' : 'child',
           table: match ? match[4] : undefined,
           fields,
-          value:
-            (fields &&
-              fields.length &&
-              this.instance &&
-              this.instance[fields[0]]) ||
-            undefined,
+          value: (fields && fields.length && this.instance && this.instance[fields[0]]) || undefined,
           index: match ? match[2] : undefined,
-          parent: err,
+          parent: err
         });
       }
 
@@ -309,9 +279,9 @@ class Query extends AbstractQuery {
   }
 
   handleShowTablesQuery(results) {
-    return results.map((resultSet) => ({
+    return results.map(resultSet => ({
       tableName: resultSet.TABLE_NAME,
-      schema: resultSet.TABLE_SCHEMA,
+      schema: resultSet.TABLE_SCHEMA
     }));
   }
 
@@ -319,7 +289,7 @@ class Query extends AbstractQuery {
     let currItem;
     const result = [];
 
-    data.forEach((item) => {
+    data.forEach(item => {
       if (!currItem || currItem.name !== item.Key_name) {
         currItem = {
           primary: item.Key_name === 'PRIMARY',
@@ -327,7 +297,7 @@ class Query extends AbstractQuery {
           name: item.Key_name,
           tableName: item.Table,
           unique: item.Non_unique !== 1,
-          type: item.Index_type,
+          type: item.Index_type
         };
         result.push(currItem);
       }
@@ -335,7 +305,7 @@ class Query extends AbstractQuery {
       currItem.fields[item.Seq_in_index - 1] = {
         attribute: item.Column_name,
         length: item.Sub_part || undefined,
-        order: item.Collation === 'A' ? 'ASC' : undefined,
+        order: item.Collation === 'A' ? 'ASC' : undefined
       };
     });
 

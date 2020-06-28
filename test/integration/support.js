@@ -25,9 +25,7 @@ afterEach(function () {
     runningQueries.size
   } queries still running in ${this.currentTest.fullTitle()}\n`;
   msg += 'Queries:\n\n';
-  msg += [...runningQueries]
-    .map((query) => `${query.uuid}: ${query.sql}`)
-    .join('\n');
+  msg += [...runningQueries].map(query => `${query.uuid}: ${query.sql}`).join('\n');
   throw new Error(msg);
 });
 

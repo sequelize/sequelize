@@ -13,57 +13,51 @@ class PostgresDialect extends AbstractDialect {
     this.connectionManager = new ConnectionManager(this, sequelize);
     this.queryGenerator = new QueryGenerator({
       _dialect: this,
-      sequelize,
+      sequelize
     });
-    this.queryInterface = new PostgresQueryInterface(
-      sequelize,
-      this.queryGenerator
-    );
+    this.queryInterface = new PostgresQueryInterface(sequelize, this.queryGenerator);
   }
 }
 
-PostgresDialect.prototype.supports = _.merge(
-  _.cloneDeep(AbstractDialect.prototype.supports),
-  {
-    'DEFAULT VALUES': true,
-    EXCEPTION: true,
-    'ON DUPLICATE KEY': false,
-    'ORDER NULLS': true,
-    returnValues: {
-      returning: true,
-    },
-    bulkDefault: true,
-    schemas: true,
-    lock: true,
-    lockOf: true,
-    lockKey: true,
-    lockOuterJoinFailure: true,
-    skipLocked: true,
-    forShare: 'FOR SHARE',
-    index: {
-      concurrently: true,
-      using: 2,
-      where: true,
-      functionBased: true,
-      operator: true,
-    },
-    inserts: {
-      onConflictDoNothing: ' ON CONFLICT DO NOTHING',
-      updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
-    },
-    NUMERIC: true,
-    ARRAY: true,
-    RANGE: true,
-    GEOMETRY: true,
-    REGEXP: true,
-    GEOGRAPHY: true,
-    JSON: true,
-    JSONB: true,
-    HSTORE: true,
-    deferrableConstraints: true,
-    searchPath: true,
-  }
-);
+PostgresDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototype.supports), {
+  'DEFAULT VALUES': true,
+  EXCEPTION: true,
+  'ON DUPLICATE KEY': false,
+  'ORDER NULLS': true,
+  returnValues: {
+    returning: true
+  },
+  bulkDefault: true,
+  schemas: true,
+  lock: true,
+  lockOf: true,
+  lockKey: true,
+  lockOuterJoinFailure: true,
+  skipLocked: true,
+  forShare: 'FOR SHARE',
+  index: {
+    concurrently: true,
+    using: 2,
+    where: true,
+    functionBased: true,
+    operator: true
+  },
+  inserts: {
+    onConflictDoNothing: ' ON CONFLICT DO NOTHING',
+    updateOnDuplicate: ' ON CONFLICT DO UPDATE SET'
+  },
+  NUMERIC: true,
+  ARRAY: true,
+  RANGE: true,
+  GEOMETRY: true,
+  REGEXP: true,
+  GEOGRAPHY: true,
+  JSON: true,
+  JSONB: true,
+  HSTORE: true,
+  deferrableConstraints: true,
+  searchPath: true
+});
 
 PostgresDialect.prototype.defaultVersion = '9.5.0';
 PostgresDialect.prototype.Query = Query;

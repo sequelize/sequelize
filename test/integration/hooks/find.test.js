@@ -10,12 +10,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
       },
       mood: {
         type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
-      },
+        values: ['happy', 'sad', 'neutral']
+      }
     });
 
     await this.sequelize.sync({ force: true });
@@ -25,14 +25,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     beforeEach(async function () {
       await this.User.bulkCreate([
         { username: 'adam', mood: 'happy' },
-        { username: 'joe', mood: 'sad' },
+        { username: 'joe', mood: 'sad' }
       ]);
     });
 
     it('allow changing attributes via beforeFind #5675', async function () {
-      this.User.beforeFind((options) => {
+      this.User.beforeFind(options => {
         options.attributes = {
-          include: [['id', 'my_id']],
+          include: [['id', 'my_id']]
         };
       });
       await this.User.findAll({});
@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeFind hook can change options', async function () {
-        this.User.beforeFind((options) => {
+        this.User.beforeFind(options => {
           options.where.username = 'joe';
         });
 
@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeFindAfterExpandIncludeAll hook can change options', async function () {
-        this.User.beforeFindAfterExpandIncludeAll((options) => {
+        this.User.beforeFindAfterExpandIncludeAll(options => {
           options.where.username = 'joe';
         });
 
@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeFindAfterOptions hook can change options', async function () {
-        this.User.beforeFindAfterOptions((options) => {
+        this.User.beforeFindAfterOptions(options => {
           options.where.username = 'joe';
         });
 
@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('afterFind hook can change results', async function () {
-        this.User.afterFind((user) => {
+        this.User.afterFind(user => {
           user.mood = 'sad';
         });
 

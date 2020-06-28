@@ -17,7 +17,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         this.User = current.define('User', {
           username: DataTypes.STRING,
-          age: DataTypes.INTEGER,
+          age: DataTypes.INTEGER
         });
 
         this.findAll = sinon.stub(this.User, 'findAll').rejects(new Error());

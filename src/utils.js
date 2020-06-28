@@ -124,7 +124,7 @@ exports.formatNamedParameters = formatNamedParameters;
 
 function cloneDeep(obj, onlyPlain) {
   obj = obj || {};
-  return _.cloneDeepWith(obj, (elem) => {
+  return _.cloneDeepWith(obj, elem => {
     // Do not try to customize cloning of arrays or POJOs
     if (Array.isArray(elem) || _.isPlainObject(elem)) {
       return undefined;
@@ -147,12 +147,8 @@ exports.cloneDeep = cloneDeep;
 /* Expand and normalize finder options */
 function mapFinderOptions(options, Model) {
   if (options.attributes && Array.isArray(options.attributes)) {
-    options.attributes = Model._injectDependentVirtualAttributes(
-      options.attributes
-    );
-    options.attributes = options.attributes.filter(
-      (v) => !Model._virtualAttributes.has(v)
-    );
+    options.attributes = Model._injectDependentVirtualAttributes(options.attributes);
+    options.attributes = options.attributes.filter(v => !Model._virtualAttributes.has(v));
   }
 
   mapOptionFieldNames(options, Model);
@@ -164,14 +160,11 @@ exports.mapFinderOptions = mapFinderOptions;
 /* Used to map field names in attributes and where conditions */
 function mapOptionFieldNames(options, Model) {
   if (Array.isArray(options.attributes)) {
-    options.attributes = options.attributes.map((attr) => {
+    options.attributes = options.attributes.map(attr => {
       // Object lookups will force any variable to strings, we don't want that for special objects etc
       if (typeof attr !== 'string') return attr;
       // Map attributes to aliased syntax attributes
-      if (
-        Model.rawAttributes[attr] &&
-        attr !== Model.rawAttributes[attr].field
-      ) {
+      if (Model.rawAttributes[attr] && attr !== Model.rawAttributes[attr].field) {
         return [Model.rawAttributes[attr].field, attr];
       }
       return attr;
@@ -188,7 +181,7 @@ exports.mapOptionFieldNames = mapOptionFieldNames;
 
 function mapWhereFieldNames(attributes, Model) {
   if (attributes) {
-    getComplexKeys(attributes).forEach((attribute) => {
+    getComplexKeys(attributes).forEach(attribute => {
       const rawAttribute = Model.rawAttributes[attribute];
 
       if (rawAttribute && rawAttribute.field !== rawAttribute.fieldName) {
@@ -200,14 +193,13 @@ function mapWhereFieldNames(attributes, Model) {
         _.isPlainObject(attributes[attribute]) &&
         !(
           rawAttribute &&
-          (rawAttribute.type instanceof DataTypes.HSTORE ||
-            rawAttribute.type instanceof DataTypes.JSON)
+          (rawAttribute.type instanceof DataTypes.HSTORE || rawAttribute.type instanceof DataTypes.JSON)
         )
       ) {
         // Prevent renaming of HSTORE & JSON fields
         attributes[attribute] = mapOptionFieldNames(
           {
-            where: attributes[attribute],
+            where: attributes[attribute]
           },
           Model
         ).where;
@@ -234,11 +226,7 @@ function mapValueFieldNames(dataValues, fields, Model) {
   for (const attr of fields) {
     if (dataValues[attr] !== undefined && !Model._virtualAttributes.has(attr)) {
       // Field name mapping
-      if (
-        Model.rawAttributes[attr] &&
-        Model.rawAttributes[attr].field &&
-        Model.rawAttributes[attr].field !== attr
-      ) {
+      if (Model.rawAttributes[attr] && Model.rawAttributes[attr].field && Model.rawAttributes[attr].field !== attr) {
         values[Model.rawAttributes[attr].field] = dataValues[attr];
       } else {
         values[attr] = dataValues[attr];
@@ -251,23 +239,17 @@ function mapValueFieldNames(dataValues, fields, Model) {
 exports.mapValueFieldNames = mapValueFieldNames;
 
 function isColString(value) {
-  return (
-    typeof value === 'string' &&
-    value[0] === '$' &&
-    value[value.length - 1] === '$'
-  );
+  return typeof value === 'string' && value[0] === '$' && value[value.length - 1] === '$';
 }
 exports.isColString = isColString;
 
 function canTreatArrayAsAnd(arr) {
-  return arr.some((arg) => _.isPlainObject(arg) || arg instanceof Where);
+  return arr.some(arg => _.isPlainObject(arg) || arg instanceof Where);
 }
 exports.canTreatArrayAsAnd = canTreatArrayAsAnd;
 
 function combineTableNames(tableName1, tableName2) {
-  return tableName1.toLowerCase() < tableName2.toLowerCase()
-    ? tableName1 + tableName2
-    : tableName2 + tableName1;
+  return tableName1.toLowerCase() < tableName2.toLowerCase() ? tableName1 + tableName2 : tableName2 + tableName1;
 }
 exports.combineTableNames = combineTableNames;
 
@@ -335,11 +317,7 @@ function removeNullValuesFromHash(hash, omitNull, options) {
     const _hash = {};
 
     _.forIn(hash, (val, key) => {
-      if (
-        options.allowNull.includes(key) ||
-        key.endsWith('Id') ||
-        (val !== null && val !== undefined)
-      ) {
+      if (options.allowNull.includes(key) || key.endsWith('Id') || (val !== null && val !== undefined)) {
         _hash[key] = val;
       }
     });
@@ -414,7 +392,7 @@ function flattenObjectDeep(value) {
   const flattenedObj = {};
 
   function flattenObject(obj, subPath) {
-    Object.keys(obj).forEach((key) => {
+    Object.keys(obj).forEach(key => {
       const pathToProperty = subPath ? `${subPath}.${key}` : key;
       if (typeof obj[key] === 'object' && obj[key] !== null) {
         flattenObject(obj[key], pathToProperty);
@@ -519,7 +497,7 @@ exports.Where = Where;
  * @private
  */
 function getOperators(obj) {
-  return Object.getOwnPropertySymbols(obj).filter((s) => operatorsSet.has(s));
+  return Object.getOwnPropertySymbols(obj).filter(s => operatorsSet.has(s));
 }
 exports.getOperators = getOperators;
 
@@ -581,7 +559,7 @@ exports.generateEnumName = generateEnumName;
  */
 function camelizeObjectKeys(obj) {
   const newObj = new Object();
-  Object.keys(obj).forEach((key) => {
+  Object.keys(obj).forEach(key => {
     newObj[camelize(key)] = obj[key];
   });
   return newObj;
@@ -604,16 +582,15 @@ exports.camelizeObjectKeys = camelizeObjectKeys;
 function defaults(object, ...sources) {
   object = Object(object);
 
-  sources.forEach((source) => {
+  sources.forEach(source => {
     if (source) {
       source = Object(source);
 
-      getComplexKeys(source).forEach((key) => {
+      getComplexKeys(source).forEach(key => {
         const value = object[key];
         if (
           value === undefined ||
-          (_.eq(value, Object.prototype[key]) &&
-            !Object.prototype.hasOwnProperty.call(object, key))
+          (_.eq(value, Object.prototype[key]) && !Object.prototype.hasOwnProperty.call(object, key))
         ) {
           object[key] = source[key];
         }
@@ -639,9 +616,7 @@ function nameIndex(index, tableName) {
   if (tableName.tableName) tableName = tableName.tableName;
 
   if (!Object.prototype.hasOwnProperty.call(index, 'name')) {
-    const fields = index.fields.map((field) =>
-      typeof field === 'string' ? field : field.name || field.attribute
-    );
+    const fields = index.fields.map(field => (typeof field === 'string' ? field : field.name || field.attribute));
     index.name = underscore(`${tableName}_${fields.join('_')}`);
   }
 
@@ -657,6 +632,6 @@ exports.nameIndex = nameIndex;
  * @private
  */
 function intersects(arr1, arr2) {
-  return arr1.some((v) => arr2.includes(v));
+  return arr1.some(v => arr2.includes(v));
 }
 exports.intersects = intersects;

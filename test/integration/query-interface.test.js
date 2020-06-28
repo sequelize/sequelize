@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('dropAllSchema', () => {
     it('should drop all schema', async function () {
       await this.queryInterface.dropAllSchemas({
-        skip: [this.sequelize.config.database],
+        skip: [this.sequelize.config.database]
       });
       const schemaNames = await this.queryInterface.showAllSchemas();
       await this.queryInterface.createSchema('newSchema');
@@ -47,14 +47,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }
       }
       await this.queryInterface.createTable('my_test_table', {
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       });
       await cleanup();
       await this.sequelize.query('CREATE VIEW V_Fail AS SELECT 1 Id');
       let tableNames = await this.queryInterface.showAllTables();
       await cleanup();
       if (tableNames[0] && tableNames[0].tableName) {
-        tableNames = tableNames.map((v) => v.tableName);
+        tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.deep.equal(['my_test_table']);
     });
@@ -64,18 +64,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       // postgres requires creating a new connection to create a new table.
       it('should not show tables in other databases', async function () {
         await this.queryInterface.createTable('my_test_table1', {
-          name: DataTypes.STRING,
+          name: DataTypes.STRING
         });
         await this.sequelize.query('CREATE DATABASE my_test_db');
         await this.sequelize.query(
-          `CREATE TABLE my_test_db${
-            dialect === 'mssql' ? '.dbo' : ''
-          }.my_test_table2 (id INT)`
+          `CREATE TABLE my_test_db${dialect === 'mssql' ? '.dbo' : ''}.my_test_table2 (id INT)`
         );
         let tableNames = await this.queryInterface.showAllTables();
         await this.sequelize.query('DROP DATABASE my_test_db');
         if (tableNames[0] && tableNames[0].tableName) {
-          tableNames = tableNames.map((v) => v.tableName);
+          tableNames = tableNames.map(v => v.tableName);
         }
         expect(tableNames).to.deep.equal(['my_test_table1']);
       });
@@ -84,22 +82,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     if (dialect === 'mysql' || dialect === 'mariadb') {
       it('should show all tables in all databases', async function () {
         await this.queryInterface.createTable('my_test_table1', {
-          name: DataTypes.STRING,
+          name: DataTypes.STRING
         });
         await this.sequelize.query('CREATE DATABASE my_test_db');
-        await this.sequelize.query(
-          'CREATE TABLE my_test_db.my_test_table2 (id INT)'
-        );
-        let tableNames = await this.sequelize.query(
-          this.queryInterface.queryGenerator.showTablesQuery(),
-          {
-            raw: true,
-            type: this.sequelize.QueryTypes.SHOWTABLES,
-          }
-        );
+        await this.sequelize.query('CREATE TABLE my_test_db.my_test_table2 (id INT)');
+        let tableNames = await this.sequelize.query(this.queryInterface.queryGenerator.showTablesQuery(), {
+          raw: true,
+          type: this.sequelize.QueryTypes.SHOWTABLES
+        });
         await this.sequelize.query('DROP DATABASE my_test_db');
         if (tableNames[0] && tableNames[0].tableName) {
-          tableNames = tableNames.map((v) => v.tableName);
+          tableNames = tableNames.map(v => v.tableName);
         }
         tableNames.sort();
         expect(tableNames).to.deep.equal(['my_test_table1', 'my_test_table2']);
@@ -110,15 +103,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('renameTable', () => {
     it('should rename table', async function () {
       await this.queryInterface.createTable('my_test_table', {
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       });
-      await this.queryInterface.renameTable(
-        'my_test_table',
-        'my_test_table_new'
-      );
+      await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
       let tableNames = await this.queryInterface.showAllTables();
       if (dialect === 'mssql' || dialect === 'mariadb') {
-        tableNames = tableNames.map((v) => v.tableName);
+        tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.contain('my_test_table_new');
       expect(tableNames).to.not.contain('my_test_table');
@@ -130,7 +120,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       // MSSQL includes `spt_values` table which is system defined, hence can't be dropped
       const showAllTablesIgnoringSpecialMSSQLTable = async () => {
         const tableNames = await this.queryInterface.showAllTables();
-        return tableNames.filter((t) => t.tableName !== 'spt_values');
+        return tableNames.filter(t => t.tableName !== 'spt_values');
       };
 
       await this.queryInterface.dropAllTables();
@@ -138,7 +128,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(await showAllTablesIgnoringSpecialMSSQLTable()).to.be.empty;
 
       await this.queryInterface.createTable('table', {
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       });
 
       expect(await showAllTablesIgnoringSpecialMSSQLTable()).to.have.length(1);
@@ -150,12 +140,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     it('should be able to skip given tables', async function () {
       await this.queryInterface.createTable('skipme', {
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
       let tableNames = await this.queryInterface.showAllTables();
       if (dialect === 'mssql' || dialect === 'mariadb') {
-        tableNames = tableNames.map((v) => v.tableName);
+        tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.contain('skipme');
     });
@@ -167,18 +157,18 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.queryInterface.createTable('Group', {
         username: DataTypes.STRING,
         isAdmin: DataTypes.BOOLEAN,
-        from: DataTypes.STRING,
+        from: DataTypes.STRING
       });
     });
 
     it('adds, reads and removes an index to the table', async function () {
       await this.queryInterface.addIndex('Group', ['username', 'isAdmin']);
       let indexes = await this.queryInterface.showIndex('Group');
-      let indexColumns = _.uniq(indexes.map((index) => index.name));
+      let indexColumns = _.uniq(indexes.map(index => index.name));
       expect(indexColumns).to.include('group_username_is_admin');
       await this.queryInterface.removeIndex('Group', ['username', 'isAdmin']);
       indexes = await this.queryInterface.showIndex('Group');
-      indexColumns = _.uniq(indexes.map((index) => index.name));
+      indexColumns = _.uniq(indexes.map(index => index.name));
       expect(indexColumns).to.be.empty;
     });
 
@@ -188,14 +178,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         'table',
         {
           name: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING
           },
           isAdmin: {
-            type: DataTypes.STRING,
-          },
+            type: DataTypes.STRING
+          }
         },
         {
-          schema: 'schema',
+          schema: 'schema'
         }
       );
       await this.queryInterface.addIndex(
@@ -206,7 +196,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       );
       const indexes = await this.queryInterface.showIndex({
         schema: 'schema',
-        tableName: 'table',
+        tableName: 'table'
       });
       expect(indexes.length).to.eq(1);
       expect(indexes[0].name).to.eq('table_name_is_admin');
@@ -222,7 +212,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       const Users = this.sequelize.define(
         '_Users',
         {
-          username: DataTypes.STRING,
+          username: DataTypes.STRING
         },
         { freezeTableName: true }
       );
@@ -239,25 +229,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       const Users = this.sequelize.define(
         'User',
         {
-          username: DataTypes.STRING,
+          username: DataTypes.STRING
         },
         {
           tableName: 'Users',
-          schema: 'archive',
+          schema: 'archive'
         }
       );
       await Users.sync({ force: true });
       await this.queryInterface.renameColumn(
         {
           schema: 'archive',
-          tableName: 'Users',
+          tableName: 'Users'
         },
         'username',
         'pseudo'
       );
       const table = await this.queryInterface.describeTable({
         schema: 'archive',
-        tableName: 'Users',
+        tableName: 'Users'
       });
       expect(table).to.have.property('pseudo');
       expect(table).to.not.have.property('username');
@@ -269,8 +259,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         {
           username: {
             type: DataTypes.STRING,
-            allowNull: false,
-          },
+            allowNull: false
+          }
         },
         { freezeTableName: true }
       );
@@ -289,8 +279,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           active: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
-            defaultValue: false,
-          },
+            defaultValue: false
+          }
         },
         { freezeTableName: true }
       );
@@ -310,8 +300,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             type: DataTypes.INTEGER,
             allowNull: false,
             primaryKey: true,
-            autoIncrement: true,
-          },
+            autoIncrement: true
+          }
         },
         { freezeTableName: true }
       );
@@ -327,15 +317,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       const Users = this.sequelize.define(
         '_Users',
         {
-          username: DataTypes.STRING,
+          username: DataTypes.STRING
         },
         { freezeTableName: true }
       );
 
       await Users.sync({ force: true });
-      await expect(
-        this.queryInterface.renameColumn('_Users', 'email', 'pseudo')
-      ).to.be.rejectedWith("Table _Users doesn't have the column email");
+      await expect(this.queryInterface.renameColumn('_Users', 'email', 'pseudo')).to.be.rejectedWith(
+        "Table _Users doesn't have the column email"
+      );
     });
   });
 
@@ -346,8 +336,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: true,
-        },
+          autoIncrement: true
+        }
       });
     });
 
@@ -356,17 +346,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: true,
-        },
+          autoIncrement: true
+        }
       });
       await this.queryInterface.addColumn('users', 'level_id', {
         type: DataTypes.INTEGER,
         references: {
           model: 'level',
-          key: 'id',
+          key: 'id'
         },
         onUpdate: 'cascade',
-        onDelete: 'set null',
+        onDelete: 'set null'
       });
       const table = await this.queryInterface.describeTable('users');
       expect(table).to.have.property('level_id');
@@ -377,8 +367,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: true,
-        },
+          autoIncrement: true
+        }
       });
 
       const testArgs = (...args) =>
@@ -399,34 +389,28 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true,
-          },
+            autoIncrement: true
+          }
         }
       );
-      await this.queryInterface.addColumn(
-        { tableName: 'users', schema: 'archive' },
-        'level_id',
-        { type: DataTypes.INTEGER }
-      );
+      await this.queryInterface.addColumn({ tableName: 'users', schema: 'archive' }, 'level_id', {
+        type: DataTypes.INTEGER
+      });
       const table = await this.queryInterface.describeTable({
         tableName: 'users',
-        schema: 'archive',
+        schema: 'archive'
       });
       expect(table).to.have.property('level_id');
     });
 
     it('should work with enums (1)', async function () {
-      await this.queryInterface.addColumn(
-        'users',
-        'someEnum',
-        DataTypes.ENUM('value1', 'value2', 'value3')
-      );
+      await this.queryInterface.addColumn('users', 'someEnum', DataTypes.ENUM('value1', 'value2', 'value3'));
     });
 
     it('should work with enums (2)', async function () {
       await this.queryInterface.addColumn('users', 'someOtherEnum', {
         type: DataTypes.ENUM,
-        values: ['value1', 'value2', 'value3'],
+        values: ['value1', 'value2', 'value3']
       });
     });
 
@@ -434,7 +418,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should be able to add a column of type of array of enums', async function () {
         await this.queryInterface.addColumn('users', 'tags', {
           allowNull: false,
-          type: Sequelize.ARRAY(Sequelize.ENUM('Value1', 'Value2', 'Value3')),
+          type: Sequelize.ARRAY(Sequelize.ENUM('Value1', 'Value2', 'Value3'))
         });
         const result = await this.queryInterface.describeTable('users');
         expect(result).to.have.property('tags');
@@ -450,48 +434,45 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: true,
-        },
+          autoIncrement: true
+        }
       });
       await this.queryInterface.createTable('hosts', {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: true,
+          autoIncrement: true
         },
         admin: {
           type: DataTypes.INTEGER,
           references: {
             model: 'users',
-            key: 'id',
-          },
+            key: 'id'
+          }
         },
         operator: {
           type: DataTypes.INTEGER,
           references: {
             model: 'users',
-            key: 'id',
+            key: 'id'
           },
-          onUpdate: 'cascade',
+          onUpdate: 'cascade'
         },
         owner: {
           type: DataTypes.INTEGER,
           references: {
             model: 'users',
-            key: 'id',
+            key: 'id'
           },
           onUpdate: 'cascade',
-          onDelete: 'set null',
-        },
+          onDelete: 'set null'
+        }
       });
     });
 
     it('should get a list of foreign keys for the table', async function () {
       const foreignKeys = await this.sequelize.query(
-        this.queryInterface.queryGenerator.getForeignKeysQuery(
-          'hosts',
-          this.sequelize.config.database
-        ),
+        this.queryInterface.queryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database),
         { type: this.sequelize.QueryTypes.FOREIGNKEYS }
       );
 
@@ -503,11 +484,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[2])).to.have.length(7);
       } else if (dialect === 'sqlite') {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
-      } else if (
-        dialect === 'mysql' ||
-        dialect === 'mariadb' ||
-        dialect === 'mssql'
-      ) {
+      } else if (dialect === 'mysql' || dialect === 'mariadb' || dialect === 'mssql') {
         expect(Object.keys(foreignKeys[0])).to.have.length(12);
       } else {
         throw new Error(`This test doesn't support ${dialect}`);
@@ -515,27 +492,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       if (dialect === 'mysql') {
         const [foreignKeysViaDirectMySQLQuery] = await this.sequelize.query(
-          this.queryInterface.queryGenerator.getForeignKeyQuery(
-            'hosts',
-            'admin'
-          )
+          this.queryInterface.queryGenerator.getForeignKeyQuery('hosts', 'admin')
         );
         expect(foreignKeysViaDirectMySQLQuery[0]).to.deep.equal(foreignKeys[0]);
       }
     });
 
     it('should get a list of foreign key references details for the table', async function () {
-      const references = await this.queryInterface.getForeignKeyReferencesForTable(
-        'hosts',
-        this.sequelize.options
-      );
+      const references = await this.queryInterface.getForeignKeyReferencesForTable('hosts', this.sequelize.options);
       expect(references).to.have.length(3);
       for (const ref of references) {
         expect(ref.tableName).to.equal('hosts');
         expect(ref.referencedColumnName).to.equal('id');
         expect(ref.referencedTableName).to.equal('users');
       }
-      const columnNames = references.map((reference) => reference.columnName);
+      const columnNames = references.map(reference => reference.columnName);
       expect(columnNames).to.have.same.members(['owner', 'operator', 'admin']);
     });
   });
@@ -545,11 +516,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       this.User = this.sequelize.define('users', {
         username: DataTypes.STRING,
         email: DataTypes.STRING,
-        roles: DataTypes.STRING,
+        roles: DataTypes.STRING
       });
 
       this.Post = this.sequelize.define('posts', {
-        username: DataTypes.STRING,
+        username: DataTypes.STRING
       });
       await this.sequelize.sync({ force: true });
     });
@@ -558,51 +529,38 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should add, read & remove unique constraint', async function () {
         await this.queryInterface.addConstraint('users', {
           type: 'unique',
-          fields: ['email'],
+          fields: ['email']
         });
         let constraints = await this.queryInterface.showConstraint('users');
-        constraints = constraints.map(
-          (constraint) => constraint.constraintName
-        );
+        constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('users_email_uk');
         await this.queryInterface.removeConstraint('users', 'users_email_uk');
         constraints = await this.queryInterface.showConstraint('users');
-        constraints = constraints.map(
-          (constraint) => constraint.constraintName
-        );
+        constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('users_email_uk');
       });
 
       it('should add a constraint after another', async function () {
         await this.queryInterface.addConstraint('users', {
           type: 'unique',
-          fields: ['username'],
+          fields: ['username']
         });
         await this.queryInterface.addConstraint('users', {
           type: 'unique',
-          fields: ['email'],
+          fields: ['email']
         });
         let constraints = await this.queryInterface.showConstraint('users');
-        constraints = constraints.map(
-          (constraint) => constraint.constraintName
-        );
+        constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('users_email_uk');
         expect(constraints).to.include('users_username_uk');
         await this.queryInterface.removeConstraint('users', 'users_email_uk');
         constraints = await this.queryInterface.showConstraint('users');
-        constraints = constraints.map(
-          (constraint) => constraint.constraintName
-        );
+        constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('users_email_uk');
         expect(constraints).to.include('users_username_uk');
-        await this.queryInterface.removeConstraint(
-          'users',
-          'users_username_uk'
-        );
+        await this.queryInterface.removeConstraint('users', 'users_username_uk');
         constraints = await this.queryInterface.showConstraint('users');
-        constraints = constraints.map(
-          (constraint) => constraint.constraintName
-        );
+        constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('users_email_uk');
         expect(constraints).to.not.include('users_username_uk');
       });
@@ -615,23 +573,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             type: 'check',
             fields: ['roles'],
             where: {
-              roles: ['user', 'admin', 'guest', 'moderator'],
+              roles: ['user', 'admin', 'guest', 'moderator']
             },
-            name: 'check_user_roles',
+            name: 'check_user_roles'
           });
           let constraints = await this.queryInterface.showConstraint('users');
-          constraints = constraints.map(
-            (constraint) => constraint.constraintName
-          );
+          constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.include('check_user_roles');
-          await this.queryInterface.removeConstraint(
-            'users',
-            'check_user_roles'
-          );
+          await this.queryInterface.removeConstraint('users', 'check_user_roles');
           constraints = await this.queryInterface.showConstraint('users');
-          constraints = constraints.map(
-            (constraint) => constraint.constraintName
-          );
+          constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.not.include('check_user_roles');
         });
 
@@ -640,12 +591,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             this.queryInterface.addConstraint('users', {
               fields: ['roles'],
               where: { roles: ['user', 'admin', 'guest', 'moderator'] },
-              name: 'check_user_roles',
+              name: 'check_user_roles'
             })
-          ).to.be.rejectedWith(
-            Error,
-            'Constraint type must be specified through options.type'
-          );
+          ).to.be.rejectedWith(Error, 'Constraint type must be specified through options.type');
         });
       });
     }
@@ -656,18 +604,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           await this.queryInterface.addConstraint('users', {
             fields: ['roles'],
             type: 'default',
-            defaultValue: 'guest',
+            defaultValue: 'guest'
           });
           let constraints = await this.queryInterface.showConstraint('users');
-          constraints = constraints.map(
-            (constraint) => constraint.constraintName
-          );
+          constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.include('users_roles_df');
           await this.queryInterface.removeConstraint('users', 'users_roles_df');
           constraints = await this.queryInterface.showConstraint('users');
-          constraints = constraints.map(
-            (constraint) => constraint.constraintName
-          );
+          constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.not.include('users_roles_df');
         });
       });
@@ -678,32 +622,22 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.removeColumn('users', 'id');
         await this.queryInterface.changeColumn('users', 'username', {
           type: DataTypes.STRING,
-          allowNull: false,
+          allowNull: false
         });
         await this.queryInterface.addConstraint('users', {
           fields: ['username'],
-          type: 'PRIMARY KEY',
+          type: 'PRIMARY KEY'
         });
         let constraints = await this.queryInterface.showConstraint('users');
-        constraints = constraints.map(
-          (constraint) => constraint.constraintName
-        );
+        constraints = constraints.map(constraint => constraint.constraintName);
 
         // The name of primaryKey constraint is always `PRIMARY` in case of MySQL and MariaDB
-        const expectedConstraintName =
-          dialect === 'mysql' || dialect === 'mariadb'
-            ? 'PRIMARY'
-            : 'users_username_pk';
+        const expectedConstraintName = dialect === 'mysql' || dialect === 'mariadb' ? 'PRIMARY' : 'users_username_pk';
 
         expect(constraints).to.include(expectedConstraintName);
-        await this.queryInterface.removeConstraint(
-          'users',
-          expectedConstraintName
-        );
+        await this.queryInterface.removeConstraint('users', expectedConstraintName);
         constraints = await this.queryInterface.showConstraint('users');
-        constraints = constraints.map(
-          (constraint) => constraint.constraintName
-        );
+        constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include(expectedConstraintName);
       });
     });
@@ -713,35 +647,28 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.removeColumn('users', 'id');
         await this.queryInterface.changeColumn('users', 'username', {
           type: DataTypes.STRING,
-          allowNull: false,
+          allowNull: false
         });
         await this.queryInterface.addConstraint('users', {
           type: 'PRIMARY KEY',
-          fields: ['username'],
+          fields: ['username']
         });
         await this.queryInterface.addConstraint('posts', {
           fields: ['username'],
           references: {
             table: 'users',
-            field: 'username',
+            field: 'username'
           },
           onDelete: 'cascade',
           onUpdate: 'cascade',
-          type: 'foreign key',
+          type: 'foreign key'
         });
         let constraints = await this.queryInterface.showConstraint('posts');
-        constraints = constraints.map(
-          (constraint) => constraint.constraintName
-        );
+        constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('posts_username_users_fk');
-        await this.queryInterface.removeConstraint(
-          'posts',
-          'posts_username_users_fk'
-        );
+        await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
         constraints = await this.queryInterface.showConstraint('posts');
-        constraints = constraints.map(
-          (constraint) => constraint.constraintName
-        );
+        constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('posts_username_users_fk');
       });
     });
@@ -749,13 +676,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     describe('unknown constraint', () => {
       it('should throw non existent constraints as UnknownConstraintError', async function () {
         try {
-          await this.queryInterface.removeConstraint(
-            'users',
-            'unknown__constraint__name',
-            {
-              type: 'unique',
-            }
-          );
+          await this.queryInterface.removeConstraint('users', 'unknown__constraint__name', {
+            type: 'unique'
+          });
           throw new Error('Error not thrown...');
         } catch (error) {
           expect(error).to.be.instanceOf(Sequelize.UnknownConstraintError);

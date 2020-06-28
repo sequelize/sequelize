@@ -23,21 +23,10 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('canTreatArrayAsAnd', () => {
     it('Array can be treated as and', () => {
       expect(Utils.canTreatArrayAsAnd([{ uuid: 1 }])).to.equal(true);
-      expect(Utils.canTreatArrayAsAnd([{ uuid: 1 }, { uuid: 2 }, 1])).to.equal(
-        true
-      );
-      expect(Utils.canTreatArrayAsAnd([new Utils.Where('uuid', 1)])).to.equal(
-        true
-      );
-      expect(
-        Utils.canTreatArrayAsAnd([
-          new Utils.Where('uuid', 1),
-          new Utils.Where('uuid', 2),
-        ])
-      ).to.equal(true);
-      expect(
-        Utils.canTreatArrayAsAnd([new Utils.Where('uuid', 1), { uuid: 2 }, 1])
-      ).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([{ uuid: 1 }, { uuid: 2 }, 1])).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([new Utils.Where('uuid', 1)])).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([new Utils.Where('uuid', 1), new Utils.Where('uuid', 2)])).to.equal(true);
+      expect(Utils.canTreatArrayAsAnd([new Utils.Where('uuid', 1), { uuid: 2 }, 1])).to.equal(true);
     });
     it('Array cannot be treated as and', () => {
       expect(Utils.canTreatArrayAsAnd([1, 'uuid'])).to.equal(false);
@@ -50,19 +39,13 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       expect(Utils.toDefaultValue(DataTypes.UUIDV4)).to.equal('UUIDV4');
     });
     it('return uuid v1', () => {
-      expect(
-        /^[a-z0-9-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))
-      ).to.be.equal(true);
+      expect(/^[a-z0-9-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))).to.be.equal(true);
     });
     it('return uuid v4', () => {
-      expect(
-        /^[a-z0-9-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4()))
-      ).to.be.equal(true);
+      expect(/^[a-z0-9-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4()))).to.be.equal(true);
     });
     it('return now', () => {
-      expect(
-        Object.prototype.toString.call(Utils.toDefaultValue(DataTypes.NOW()))
-      ).to.be.equal('[object Date]');
+      expect(Object.prototype.toString.call(Utils.toDefaultValue(DataTypes.NOW()))).to.be.equal('[object Date]');
     });
     it('return plain string', () => {
       expect(Utils.toDefaultValue('Test')).to.equal('Test');
@@ -78,22 +61,18 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         a: 1,
         b: 2,
         c: 3,
-        d: 4,
+        d: 4
       });
     });
 
     it('defaults symbol keys', () => {
       expect(
-        Utils.defaults(
-          { a: 1, [Symbol.for('c')]: 3 },
-          { b: 2 },
-          { [Symbol.for('c')]: 4, [Symbol.for('d')]: 4 }
-        )
+        Utils.defaults({ a: 1, [Symbol.for('c')]: 3 }, { b: 2 }, { [Symbol.for('c')]: 4, [Symbol.for('d')]: 4 })
       ).to.eql({
         a: 1,
         b: 2,
         [Symbol.for('c')]: 3,
-        [Symbol.for('d')]: 4,
+        [Symbol.for('d')]: 4
       });
     });
   });
@@ -103,16 +82,16 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       expect(
         Utils.mapFinderOptions(
           {
-            attributes: ['active'],
+            attributes: ['active']
           },
           Support.sequelize.define('User', {
             createdAt: {
               type: DataTypes.DATE,
-              field: 'created_at',
+              field: 'created_at'
             },
             active: {
-              type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt']),
-            },
+              type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt'])
+            }
           })
         ).attributes
       ).to.eql([['created_at', 'createdAt']]);
@@ -122,18 +101,18 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       const Model = Support.sequelize.define('User', {
         createdAt: {
           type: DataTypes.DATE,
-          field: 'created_at',
+          field: 'created_at'
         },
         active: {
-          type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt']),
-        },
+          type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt'])
+        }
       });
 
       expect(
         Utils.mapFinderOptions(
           Utils.mapFinderOptions(
             {
-              attributes: ['active'],
+              attributes: ['active']
             },
             Model
           ),
@@ -150,25 +129,25 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
           {
             where: {
               firstName: 'Paul',
-              lastName: 'Atreides',
-            },
+              lastName: 'Atreides'
+            }
           },
           Support.sequelize.define('User', {
             firstName: {
               type: DataTypes.STRING,
-              field: 'first_name',
+              field: 'first_name'
             },
             lastName: {
               type: DataTypes.STRING,
-              field: 'last_name',
-            },
+              field: 'last_name'
+            }
           })
         )
       ).to.eql({
         where: {
           first_name: 'Paul',
-          last_name: 'Atreides',
-        },
+          last_name: 'Atreides'
+        }
       });
     });
 
@@ -179,28 +158,28 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
             where: {
               [Op.or]: {
                 firstName: 'Paul',
-                lastName: 'Atreides',
-              },
-            },
+                lastName: 'Atreides'
+              }
+            }
           },
           Support.sequelize.define('User', {
             firstName: {
               type: DataTypes.STRING,
-              field: 'first_name',
+              field: 'first_name'
             },
             lastName: {
               type: DataTypes.STRING,
-              field: 'last_name',
-            },
+              field: 'last_name'
+            }
           })
         )
       ).to.eql({
         where: {
           [Op.or]: {
             first_name: 'Paul',
-            last_name: 'Atreides',
-          },
-        },
+            last_name: 'Atreides'
+          }
+        }
       });
     });
 
@@ -209,24 +188,24 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         Utils.mapOptionFieldNames(
           {
             where: {
-              [Op.or]: [{ firstName: 'Paul' }, { lastName: 'Atreides' }],
-            },
+              [Op.or]: [{ firstName: 'Paul' }, { lastName: 'Atreides' }]
+            }
           },
           Support.sequelize.define('User', {
             firstName: {
               type: DataTypes.STRING,
-              field: 'first_name',
+              field: 'first_name'
             },
             lastName: {
               type: DataTypes.STRING,
-              field: 'last_name',
-            },
+              field: 'last_name'
+            }
           })
         )
       ).to.eql({
         where: {
-          [Op.or]: [{ first_name: 'Paul' }, { last_name: 'Atreides' }],
-        },
+          [Op.or]: [{ first_name: 'Paul' }, { last_name: 'Atreides' }]
+        }
       });
     });
 
@@ -237,28 +216,28 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
             where: {
               [Op.and]: {
                 firstName: 'Paul',
-                lastName: 'Atreides',
-              },
-            },
+                lastName: 'Atreides'
+              }
+            }
           },
           Support.sequelize.define('User', {
             firstName: {
               type: DataTypes.STRING,
-              field: 'first_name',
+              field: 'first_name'
             },
             lastName: {
               type: DataTypes.STRING,
-              field: 'last_name',
-            },
+              field: 'last_name'
+            }
           })
         )
       ).to.eql({
         where: {
           [Op.and]: {
             first_name: 'Paul',
-            last_name: 'Atreides',
-          },
-        },
+            last_name: 'Atreides'
+          }
+        }
       });
     });
   });
@@ -278,8 +257,8 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
               {
                 [Op.or]: {
                   foo: 'foo',
-                  bar: 'bar',
-                },
+                  bar: 'bar'
+                }
               },
               'int'
             )
@@ -287,7 +266,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         ),
         {
           default: "SUM(CAST(([foo] = 'foo' OR [bar] = 'bar') AS INT))",
-          mssql: "SUM(CAST(([foo] = N'foo' OR [bar] = N'bar') AS INT))",
+          mssql: "SUM(CAST(([foo] = N'foo' OR [bar] = N'bar') AS INT))"
         }
       );
     });

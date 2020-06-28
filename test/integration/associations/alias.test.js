@@ -22,12 +22,12 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
     const [user, task] = await Promise.all([
       User.findOne({
         where: { id: 1 },
-        include: [{ model: Task, as: 'assignments' }],
+        include: [{ model: Task, as: 'assignments' }]
       }),
       Task.findOne({
         where: { id: 1 },
-        include: [{ model: User, as: 'owner' }],
-      }),
+        include: [{ model: User, as: 'owner' }]
+      })
     ]);
 
     expect(user.assignments).to.be.ok;
@@ -51,12 +51,12 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
     const [user, task] = await Promise.all([
       User.findOne({
         where: { id: 1 },
-        include: [{ model: Task, as: 'ASSIGNMENTS' }],
+        include: [{ model: Task, as: 'ASSIGNMENTS' }]
       }),
       Task.findOne({
         where: { id: 1 },
-        include: [{ model: User, as: 'OWNER' }],
-      }),
+        include: [{ model: User, as: 'OWNER' }]
+      })
     ]);
 
     expect(user.ASSIGNMENTS).to.be.ok;
@@ -76,7 +76,7 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
     expect(user0.addTaskz).to.be.ok;
     const user = await User.findOne({
       where: { id: 1 },
-      include: [{ model: Task, as: 'taskz' }],
+      include: [{ model: Task, as: 'taskz' }]
     });
     expect(user.taskz).to.be.ok;
   });
@@ -89,8 +89,8 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
         {
           name: {
             singular: 'assignment',
-            plural: 'assignments',
-          },
+            plural: 'assignments'
+          }
         }
       );
 

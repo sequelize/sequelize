@@ -25,16 +25,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     beforeEach(function () {
       this.User = this.sequelize.define('User');
       this.Task = this.sequelize.define('Task', {
-        title: Sequelize.STRING,
+        title: Sequelize.STRING
       });
       this.Company = this.sequelize.define('Company', {
         id: {
           type: Sequelize.INTEGER,
           primaryKey: true,
           autoIncrement: true,
-          field: 'field_id',
+          field: 'field_id'
         },
-        name: Sequelize.STRING,
+        name: Sequelize.STRING
       });
 
       this.User.Tasks = this.User.hasMany(this.Task);
@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Company.Employees = this.Company.hasMany(this.User);
       this.Company.Owner = this.Company.belongsTo(this.User, {
         as: 'Owner',
-        foreignKey: 'ownerId',
+        foreignKey: 'ownerId'
       });
     });
 
@@ -53,23 +53,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [
             {
               model: this.Company,
-              attributes: ['name'],
-            },
-          ],
+              attributes: ['name']
+            }
+          ]
         });
 
-        expect(options.include[0].attributes).to.deep.equal([
-          ['field_id', 'id'],
-          'name',
-        ]);
+        expect(options.include[0].attributes).to.deep.equal([['field_id', 'id'], 'name']);
 
         options = Sequelize.Model._validateIncludedElements(options);
 
         // Calling validate again shouldn't add the pk again
-        expect(options.include[0].attributes).to.deep.equal([
-          ['field_id', 'id'],
-          'name',
-        ]);
+        expect(options.include[0].attributes).to.deep.equal([['field_id', 'id'], 'name']);
       });
 
       describe('include / exclude', () => {
@@ -80,10 +74,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {
                 model: this.Company,
                 attributes: {
-                  include: ['foobar'],
-                },
-              },
-            ],
+                  include: ['foobar']
+                }
+              }
+            ]
           });
 
           expect(options.include[0].attributes).to.deep.equal([
@@ -92,7 +86,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             'createdAt',
             'updatedAt',
             'ownerId',
-            'foobar',
+            'foobar'
           ]);
         });
 
@@ -103,17 +97,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {
                 model: this.Company,
                 attributes: {
-                  exclude: ['name'],
-                },
-              },
-            ],
+                  exclude: ['name']
+                }
+              }
+            ]
           });
 
           expect(options.include[0].attributes).to.deep.equal([
             ['field_id', 'id'],
             'createdAt',
             'updatedAt',
-            'ownerId',
+            'ownerId'
           ]);
         });
 
@@ -125,10 +119,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 model: this.Company,
                 attributes: {
                   exclude: ['name'],
-                  include: ['name'],
-                },
-              },
-            ],
+                  include: ['name']
+                }
+              }
+            ]
           });
 
           expect(options.include[0].attributes).to.deep.equal([
@@ -136,7 +130,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             'createdAt',
             'updatedAt',
             'ownerId',
-            'name',
+            'name'
           ]);
         });
       });
@@ -149,32 +143,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             bar: {
               type: Sequelize.STRING,
-              field: 'foo',
-            },
+              field: 'foo'
+            }
           },
           {
             defaultScope: {
               where: {
-                active: true,
-              },
+                active: true
+              }
             },
             scopes: {
               this: {
-                where: { this: true },
+                where: { this: true }
               },
               that: {
                 where: { that: false },
-                limit: 12,
+                limit: 12
               },
               attr: {
-                attributes: ['baz'],
+                attributes: ['baz']
               },
               foobar: {
                 where: {
-                  bar: 42,
-                },
-              },
-            },
+                  bar: 42
+                }
+              }
+            }
           }
         );
 
@@ -186,70 +180,56 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('adds the default scope to where', function () {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
-          include: [{ model: this.Project }],
+          include: [{ model: this.Project }]
         });
 
-        expect(options.include[0])
-          .to.have.property('where')
-          .which.deep.equals({ active: true });
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ active: true });
       });
 
       it('adds the where from a scoped model', function () {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
-          include: [{ model: this.Project.scope('that') }],
+          include: [{ model: this.Project.scope('that') }]
         });
 
-        expect(options.include[0])
-          .to.have.property('where')
-          .which.deep.equals({ that: false });
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ that: false });
         expect(options.include[0]).to.have.property('limit').which.equals(12);
       });
 
       it('adds the attributes from a scoped model', function () {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
-          include: [{ model: this.Project.scope('attr') }],
+          include: [{ model: this.Project.scope('attr') }]
         });
 
-        expect(options.include[0])
-          .to.have.property('attributes')
-          .which.deep.equals(['baz']);
+        expect(options.include[0]).to.have.property('attributes').which.deep.equals(['baz']);
       });
 
       it('merges where with the where from a scoped model', function () {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
-          include: [
-            { where: { active: false }, model: this.Project.scope('that') },
-          ],
+          include: [{ where: { active: false }, model: this.Project.scope('that') }]
         });
 
-        expect(options.include[0])
-          .to.have.property('where')
-          .which.deep.equals({ active: false, that: false });
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ active: false, that: false });
       });
 
       it('add the where from a scoped associated model', function () {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
-          include: [{ model: this.Project, as: 'thisProject' }],
+          include: [{ model: this.Project, as: 'thisProject' }]
         });
 
-        expect(options.include[0])
-          .to.have.property('where')
-          .which.deep.equals({ this: true });
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ this: true });
       });
 
       it('handles a scope with an aliased column (.field)', function () {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
-          include: [{ model: this.Project.scope('foobar') }],
+          include: [{ model: this.Project.scope('foobar') }]
         });
 
-        expect(options.include[0])
-          .to.have.property('where')
-          .which.deep.equals({ foo: 42 });
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ foo: 42 });
       });
     });
 
@@ -257,7 +237,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should tag a hasMany association as duplicating: true if undefined', function () {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
-          include: [this.User.Tasks],
+          include: [this.User.Tasks]
         });
 
         expect(options.include[0].duplicating).to.equal(true);
@@ -266,7 +246,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should respect include.duplicating for a hasMany', function () {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
-          include: [{ association: this.User.Tasks, duplicating: false }],
+          include: [{ association: this.User.Tasks, duplicating: false }]
         });
 
         expect(options.include[0].duplicating).to.equal(false);
@@ -276,14 +256,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('_conformInclude', () => {
       it('should expand association from string alias', function () {
         const options = {
-          include: ['Owner'],
+          include: ['Owner']
         };
         Sequelize.Model._conformIncludes(options, this.Company);
 
         expect(options.include[0]).to.deep.equal({
           model: this.User,
           association: this.Company.Owner,
-          as: 'Owner',
+          as: 'Owner'
         });
       });
 
@@ -292,9 +272,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [
             {
               association: 'Owner',
-              attributes: ['id'],
-            },
-          ],
+              attributes: ['id']
+            }
+          ]
         };
         Sequelize.Model._conformIncludes(options, this.Company);
 
@@ -302,7 +282,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           model: this.User,
           association: this.Company.Owner,
           attributes: ['id'],
-          as: 'Owner',
+          as: 'Owner'
         });
       });
 
@@ -310,40 +290,34 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = {
           include: [
             {
-              model: null,
-            },
-          ],
+              model: null
+            }
+          ]
         };
 
         expect(() => {
           Sequelize.Model._conformIncludes(options, this.Company);
-        }).to.throw(
-          'Include unexpected. Element has to be either a Model, an Association or an object.'
-        );
+        }).to.throw('Include unexpected. Element has to be either a Model, an Association or an object.');
       });
 
       it('should throw an error if invalid association is passed', function () {
         const options = {
           include: [
             {
-              association: null,
-            },
-          ],
+              association: null
+            }
+          ]
         };
 
         expect(() => {
           Sequelize.Model._conformIncludes(options, this.Company);
-        }).to.throw(
-          'Include unexpected. Element has to be either a Model, an Association or an object.'
-        );
+        }).to.throw('Include unexpected. Element has to be either a Model, an Association or an object.');
       });
     });
 
     describe('_getIncludedAssociation', () => {
       it('returns an association when there is a single unaliased association', function () {
-        expect(this.User._getIncludedAssociation(this.Task)).to.equal(
-          this.User.Tasks
-        );
+        expect(this.User._getIncludedAssociation(this.Task)).to.equal(this.User.Tasks);
       });
 
       it('returns an association when there is a single aliased association', function () {
@@ -354,9 +328,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('returns an association when there are multiple aliased associations', function () {
-        expect(
-          this.Company._getIncludedAssociation(this.User, 'Owner')
-        ).to.equal(this.Company.Owner);
+        expect(this.Company._getIncludedAssociation(this.User, 'Owner')).to.equal(this.Company.Owner);
       });
     });
 
@@ -365,7 +337,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [{ association: this.User.Tasks }],
-          limit: 3,
+          limit: 3
         });
 
         expect(options.subQuery).to.equal(true);
@@ -375,7 +347,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [{ association: this.User.Tasks }],
-          limit: null,
+          limit: null
         });
 
         expect(options.subQuery).to.equal(false);
@@ -387,10 +359,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [
             {
               association: this.User.Company,
-              include: [this.Company.Employees],
-            },
+              include: [this.Company.Employees]
+            }
           ],
-          limit: 3,
+          limit: 3
         });
 
         expect(options.subQuery).to.equal(true);
@@ -402,10 +374,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [
             {
               association: this.User.Company,
-              include: [this.Company.Employees],
-            },
+              include: [this.Company.Employees]
+            }
           ],
-          limit: null,
+          limit: null
         });
 
         expect(options.subQuery).to.equal(false);
@@ -415,7 +387,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
           include: [{ association: this.User.Tasks, required: true }],
-          limit: 3,
+          limit: 3
         });
 
         expect(options.subQuery).to.equal(true);
@@ -430,10 +402,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               association: this.User.Tasks,
               required: true,
-              duplicating: false,
-            },
+              duplicating: false
+            }
           ],
-          limit: 3,
+          limit: 3
         });
 
         expect(options.subQuery).to.equal(false);
@@ -448,10 +420,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               association: this.Company.Employees,
               separate: true,
-              include: [{ association: this.User.Tasks, required: true }],
-            },
+              include: [{ association: this.User.Tasks, required: true }]
+            }
           ],
-          required: true,
+          required: true
         });
 
         expect(options.subQuery).to.equal(false);
@@ -465,10 +437,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [
             {
               association: this.User.Tasks,
-              where: { title: Math.random().toString() },
-            },
+              where: { title: Math.random().toString() }
+            }
           ],
-          limit: 3,
+          limit: 3
         });
 
         expect(options.subQuery).to.equal(true);
@@ -483,10 +455,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               association: this.User.Tasks,
               where: { title: Math.random().toString() },
-              duplicating: false,
-            },
+              duplicating: false
+            }
           ],
-          limit: 3,
+          limit: 3
         });
 
         expect(options.subQuery).to.equal(false);
@@ -497,11 +469,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should tag a required belongsTo alongside a duplicating association', function () {
         const options = Sequelize.Model._validateIncludedElements({
           model: this.User,
-          include: [
-            { association: this.User.Company, required: true },
-            { association: this.User.Tasks },
-          ],
-          limit: 3,
+          include: [{ association: this.User.Company, required: true }, { association: this.User.Tasks }],
+          limit: 3
         });
 
         expect(options.subQuery).to.equal(true);
@@ -513,9 +482,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           model: this.User,
           include: [
             { association: this.User.Company, required: true },
-            { association: this.User.Tasks, duplicating: false },
+            { association: this.User.Tasks, duplicating: false }
           ],
-          limit: 3,
+          limit: 3
         });
 
         expect(options.subQuery).to.equal(false);
@@ -528,11 +497,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [
             {
               association: this.User.Company,
-              where: { name: Math.random().toString() },
+              where: { name: Math.random().toString() }
             },
-            { association: this.User.Tasks },
+            { association: this.User.Tasks }
           ],
-          limit: 3,
+          limit: 3
         });
 
         expect(options.subQuery).to.equal(true);
@@ -546,11 +515,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               association: this.User.Company,
               required: true,
-              include: [this.Company.Owner],
+              include: [this.Company.Owner]
             },
-            this.User.Tasks,
+            this.User.Tasks
           ],
-          limit: 3,
+          limit: 3
         });
 
         expect(options.subQuery).to.equal(true);
@@ -565,11 +534,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [
             {
               association: this.User.Company,
-              where: { name: Math.random().toString() },
+              where: { name: Math.random().toString() }
             },
-            { association: this.User.Tasks, duplicating: false },
+            { association: this.User.Tasks, duplicating: false }
           ],
-          limit: 3,
+          limit: 3
         });
 
         expect(options.subQuery).to.equal(false);

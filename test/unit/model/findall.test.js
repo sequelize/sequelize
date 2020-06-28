@@ -44,15 +44,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     const Model = current.define(
       'model',
       {
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       },
       { timestamps: false }
     );
 
     before(function () {
-      this.stub = sinon
-        .stub(current.getQueryInterface(), 'select')
-        .callsFake(() => Model.build({}));
+      this.stub = sinon.stub(current.getQueryInterface(), 'select').callsFake(() => Model.build({}));
       this.warnOnInvalidOptionsStub = sinon.stub(Model, 'warnOnInvalidOptions');
     });
 
@@ -73,9 +71,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('Throws an error when the attributes option is formatted incorrectly', async () => {
-        await expect(Model.findAll({ attributes: 'name' })).to.be.rejectedWith(
-          sequelizeErrors.QueryError
-        );
+        await expect(Model.findAll({ attributes: 'name' })).to.be.rejectedWith(sequelizeErrors.QueryError);
       });
     });
 
@@ -83,22 +79,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('allows me to include additional attributes', async function () {
         await Model.findAll({
           attributes: {
-            include: ['foobar'],
-          },
+            include: ['foobar']
+          }
         });
 
-        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-          'id',
-          'name',
-          'foobar',
-        ]);
+        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['id', 'name', 'foobar']);
       });
 
       it('allows me to exclude attributes', async function () {
         await Model.findAll({
           attributes: {
-            exclude: ['name'],
-          },
+            exclude: ['name']
+          }
         });
 
         expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['id']);
@@ -108,14 +100,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await Model.findAll({
           attributes: {
             exclude: ['name'],
-            include: ['name'],
-          },
+            include: ['name']
+          }
         });
 
-        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-          'id',
-          'name',
-        ]);
+        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['id', 'name']);
       });
 
       it('works for models without PK #4607', async function () {
@@ -127,9 +116,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await Model.findAll({
           attributes: {
-            include: ['name'],
+            include: ['name']
           },
-          include: [Foo],
+          include: [Foo]
         });
 
         expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['name']);

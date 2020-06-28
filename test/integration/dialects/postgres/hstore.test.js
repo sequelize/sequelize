@@ -30,15 +30,11 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should handle a string with double quotes correctly', () => {
-        expect(hstore.stringify({ foo: '""a"' })).to.equal(
-          '"foo"=>"\\"\\"a\\""'
-        );
+        expect(hstore.stringify({ foo: '""a"' })).to.equal('"foo"=>"\\"\\"a\\""');
       });
 
       it('should handle a string with single quotes correctly', () => {
-        expect(hstore.stringify({ foo: "''a'" })).to.equal(
-          "\"foo\"=>\"''''a''\""
-        );
+        expect(hstore.stringify({ foo: "''a'" })).to.equal("\"foo\"=>\"''''a''\"");
       });
 
       it('should handle simple objects correctly', () => {
@@ -57,13 +53,13 @@ if (dialect.match(/^postgres/)) {
 
       it('should handle a string with double quotes correctly', () => {
         expect(hstore.parse('"foo"=>"\\"\\"a\\""')).to.deep.equal({
-          foo: '""a"',
+          foo: '""a"'
         });
       });
 
       it('should handle a string with single quotes correctly', () => {
         expect(hstore.parse("\"foo\"=>\"''''a''\"")).to.deep.equal({
-          foo: "''a'",
+          foo: "''a'"
         });
       });
 
@@ -77,7 +73,7 @@ if (dialect.match(/^postgres/)) {
 
       it('should handle simple objects correctly', () => {
         expect(hstore.parse('"test"=>"value"')).to.deep.equal({
-          test: 'value',
+          test: 'value'
         });
       });
     });
@@ -92,14 +88,10 @@ if (dialect.match(/^postgres/)) {
           backslashes: '\\f023',
           moreBackslashes: '\\f\\0\\2\\1',
           backslashesAndQuotes: '\\"\\"uhoh"\\"',
-          nully: null,
+          nully: null
         };
         expect(hstore.parse(hstore.stringify(testObj))).to.deep.equal(testObj);
-        expect(
-          hstore.parse(
-            hstore.stringify(hstore.parse(hstore.stringify(testObj)))
-          )
-        ).to.deep.equal(testObj);
+        expect(hstore.parse(hstore.stringify(hstore.parse(hstore.stringify(testObj))))).to.deep.equal(testObj);
       });
     });
   });

@@ -12,12 +12,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
       },
       mood: {
         type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
-      },
+        values: ['happy', 'sad', 'neutral']
+      }
     });
 
     this.ParanoidUser = this.sequelize.define(
@@ -26,11 +26,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         username: DataTypes.STRING,
         mood: {
           type: DataTypes.ENUM,
-          values: ['happy', 'sad', 'neutral'],
-        },
+          values: ['happy', 'sad', 'neutral']
+        }
       },
       {
-        paranoid: true,
+        paranoid: true
       }
     );
 
@@ -42,16 +42,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       describe('cascade onUpdate', () => {
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Tasks = this.sequelize.define('Task', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Projects.hasOne(this.Tasks, {
             onUpdate: 'cascade',
-            hooks: true,
+            hooks: true
           });
           this.Tasks.belongsTo(this.Projects);
 
@@ -99,16 +99,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       describe('cascade onDelete', () => {
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Tasks = this.sequelize.define('Task', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Projects.hasOne(this.Tasks, {
             onDelete: 'CASCADE',
-            hooks: true,
+            hooks: true
           });
           this.Tasks.belongsTo(this.Projects);
 
@@ -128,7 +128,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.afterDestroy(afterTask);
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
             await project.setTask(task);
@@ -164,13 +164,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             });
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
             await project.setTask(task);
-            await expect(project.destroy()).to.eventually.be.rejectedWith(
-              CustomErrorText
-            );
+            await expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText);
             expect(beforeProject).to.be.true;
             expect(afterProject).to.be.true;
             expect(beforeTask).to.be.true;
@@ -182,11 +180,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       describe('no cascade update', () => {
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Tasks = this.sequelize.define('Task', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Projects.hasOne(this.Tasks);
@@ -227,11 +225,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       describe('no cascade delete', () => {
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Tasks = this.sequelize.define('Task', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Projects.hasMany(this.Tasks);
@@ -255,7 +253,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.afterUpdate(afterTask);
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
             await project.addTask(task);
@@ -281,7 +279,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.afterUpdate(afterTask);
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
 
@@ -303,16 +301,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       describe('cascade', () => {
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Tasks = this.sequelize.define('Task', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Projects.hasMany(this.Tasks, {
             onDelete: 'cascade',
-            hooks: true,
+            hooks: true
           });
           this.Tasks.belongsTo(this.Projects, { hooks: true });
 
@@ -334,7 +332,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.afterDestroy(afterTask);
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
             await project.addTask(task);
@@ -369,7 +367,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             });
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
             await project.addTask(task);
@@ -390,11 +388,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       describe('no cascade', () => {
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Tasks = this.sequelize.define('Task', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Projects.hasMany(this.Tasks);
@@ -416,7 +414,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.afterUpdate(afterTask);
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
             await project.addTask(task);
@@ -451,7 +449,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             });
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
 
@@ -473,22 +471,22 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       describe('cascade', () => {
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Tasks = this.sequelize.define('Task', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Projects.belongsToMany(this.Tasks, {
             cascade: 'onDelete',
             through: 'projects_and_tasks',
-            hooks: true,
+            hooks: true
           });
           this.Tasks.belongsToMany(this.Projects, {
             cascade: 'onDelete',
             through: 'projects_and_tasks',
-            hooks: true,
+            hooks: true
           });
 
           await this.sequelize.sync({ force: true });
@@ -507,7 +505,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.afterDestroy(afterTask);
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
             await project.addTask(task);
@@ -543,7 +541,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             });
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
             await project.addTask(task);
@@ -559,20 +557,20 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       describe('no cascade', () => {
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Tasks = this.sequelize.define('Task', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
 
           this.Projects.belongsToMany(this.Tasks, {
             hooks: true,
-            through: 'project_tasks',
+            through: 'project_tasks'
           });
           this.Tasks.belongsToMany(this.Projects, {
             hooks: true,
-            through: 'project_tasks',
+            through: 'project_tasks'
           });
 
           await this.sequelize.sync({ force: true });
@@ -591,7 +589,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.afterUpdate(afterTask);
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
             await project.addTask(task);
@@ -626,7 +624,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             });
 
             const project = await this.Projects.create({
-              title: 'New Project',
+              title: 'New Project'
             });
             const task = await this.Tasks.create({ title: 'New Task' });
             await project.addTask(task);
@@ -645,30 +643,30 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         describe('cascade', () => {
           beforeEach(async function () {
             this.Projects = this.sequelize.define('Project', {
-              title: DataTypes.STRING,
+              title: DataTypes.STRING
             });
 
             this.Tasks = this.sequelize.define('Task', {
-              title: DataTypes.STRING,
+              title: DataTypes.STRING
             });
 
             this.MiniTasks = this.sequelize.define('MiniTask', {
-              mini_title: DataTypes.STRING,
+              mini_title: DataTypes.STRING
             });
 
             this.Projects.hasMany(this.Tasks, {
               onDelete: 'cascade',
-              hooks: true,
+              hooks: true
             });
             this.Projects.hasMany(this.MiniTasks, {
               onDelete: 'cascade',
-              hooks: true,
+              hooks: true
             });
 
             this.Tasks.belongsTo(this.Projects, { hooks: true });
             this.Tasks.hasMany(this.MiniTasks, {
               onDelete: 'cascade',
-              hooks: true,
+              hooks: true
             });
 
             this.MiniTasks.belongsTo(this.Projects, { hooks: true });
@@ -712,7 +710,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
               const [project0, minitask] = await Promise.all([
                 this.Projects.create({ title: 'New Project' }),
-                this.MiniTasks.create({ mini_title: 'New MiniTask' }),
+                this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ]);
 
               const project = await project0.addMiniTask(minitask);
@@ -761,7 +759,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               try {
                 const [project0, minitask] = await Promise.all([
                   this.Projects.create({ title: 'New Project' }),
-                  this.MiniTasks.create({ mini_title: 'New MiniTask' }),
+                  this.MiniTasks.create({ mini_title: 'New MiniTask' })
                 ]);
 
                 const project = await project0.addMiniTask(minitask);
@@ -783,30 +781,30 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         describe('cascade', () => {
           beforeEach(async function () {
             this.Projects = this.sequelize.define('Project', {
-              title: DataTypes.STRING,
+              title: DataTypes.STRING
             });
 
             this.Tasks = this.sequelize.define('Task', {
-              title: DataTypes.STRING,
+              title: DataTypes.STRING
             });
 
             this.MiniTasks = this.sequelize.define('MiniTask', {
-              mini_title: DataTypes.STRING,
+              mini_title: DataTypes.STRING
             });
 
             this.Projects.hasMany(this.Tasks, {
               onDelete: 'cascade',
-              hooks: true,
+              hooks: true
             });
             this.Projects.hasMany(this.MiniTasks, {
               onDelete: 'cascade',
-              hooks: true,
+              hooks: true
             });
 
             this.Tasks.belongsTo(this.Projects, { hooks: true });
             this.Tasks.hasMany(this.MiniTasks, {
               onDelete: 'cascade',
-              hooks: true,
+              hooks: true
             });
 
             this.MiniTasks.belongsTo(this.Projects, { hooks: true });
@@ -851,13 +849,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               const [project0, task, minitask] = await Promise.all([
                 this.Projects.create({ title: 'New Project' }),
                 this.Tasks.create({ title: 'New Task' }),
-                this.MiniTasks.create({ mini_title: 'New MiniTask' }),
+                this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ]);
 
-              await Promise.all([
-                task.addMiniTask(minitask),
-                project0.addTask(task),
-              ]);
+              await Promise.all([task.addMiniTask(minitask), project0.addTask(task)]);
 
               const project = project0;
               await project.destroy();
@@ -906,18 +901,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               const [project0, task, minitask] = await Promise.all([
                 this.Projects.create({ title: 'New Project' }),
                 this.Tasks.create({ title: 'New Task' }),
-                this.MiniTasks.create({ mini_title: 'New MiniTask' }),
+                this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ]);
 
-              await Promise.all([
-                task.addMiniTask(minitask),
-                project0.addTask(task),
-              ]);
+              await Promise.all([task.addMiniTask(minitask), project0.addTask(task)]);
 
               const project = project0;
-              await expect(project.destroy()).to.eventually.be.rejectedWith(
-                CustomErrorText
-              );
+              await expect(project.destroy()).to.eventually.be.rejectedWith(CustomErrorText);
               expect(beforeProject).to.be.true;
               expect(afterProject).to.be.true;
               expect(beforeTask).to.be.true;

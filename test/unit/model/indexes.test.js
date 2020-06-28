@@ -13,8 +13,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         eventData: {
           type: DataTypes.JSONB,
           index: true,
-          field: 'data',
-        },
+          field: 'data'
+        }
       });
 
       expect(Model.rawAttributes.eventData.index).not.to.equal(true);
@@ -31,13 +31,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           indexes: [
             {
               type: 'unique',
-              fields: ['name'],
+              fields: ['name']
             },
             {
               type: 'UNIQUE',
-              fields: ['name'],
-            },
-          ],
+              fields: ['name']
+            }
+          ]
         }
       );
 
@@ -49,15 +49,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const User = current.define(
         'User',
         {
-          username: DataTypes.STRING,
+          username: DataTypes.STRING
         },
         {
           indexes: [
             {
               unique: true,
-              fields: ['username'],
-            },
-          ],
+              fields: ['username']
+            }
+          ]
         }
       );
 
@@ -69,15 +69,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         'User',
         {
           name: DataTypes.STRING,
-          address: DataTypes.STRING,
+          address: DataTypes.STRING
         },
         {
           indexes: [
             {
               unique: 'users_name_address',
-              fields: ['name', 'address'],
-            },
-          ],
+              fields: ['name', 'address']
+            }
+          ]
         }
       );
 

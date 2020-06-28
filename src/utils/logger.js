@@ -14,7 +14,7 @@ class Logger {
     this.config = {
       context: 'sequelize',
       debug: true,
-      ...config,
+      ...config
     };
   }
 

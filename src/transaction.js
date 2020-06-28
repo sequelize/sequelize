@@ -22,14 +22,13 @@ class Transaction {
     this._afterCommitHooks = [];
 
     // get dialect specific transaction options
-    const generateTransactionId = this.sequelize.dialect.queryGenerator
-      .generateTransactionId;
+    const generateTransactionId = this.sequelize.dialect.queryGenerator.generateTransactionId;
 
     this.options = {
       type: sequelize.options.transactionType,
       isolationLevel: sequelize.options.isolationLevel,
       readOnly: false,
-      ...options,
+      ...options
     };
 
     this.parent = this.options.transaction;
@@ -52,17 +51,13 @@ class Transaction {
    */
   async commit() {
     if (this.finished) {
-      throw new Error(
-        `Transaction cannot be committed because it has been finished with state: ${this.finished}`
-      );
+      throw new Error(`Transaction cannot be committed because it has been finished with state: ${this.finished}`);
     }
 
     this._clearCls();
 
     try {
-      return await this.sequelize
-        .getQueryInterface()
-        .commitTransaction(this, this.options);
+      return await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
     } finally {
       this.finished = 'commit';
       if (!this.parent) {
@@ -81,23 +76,17 @@ class Transaction {
    */
   async rollback() {
     if (this.finished) {
-      throw new Error(
-        `Transaction cannot be rolled back because it has been finished with state: ${this.finished}`
-      );
+      throw new Error(`Transaction cannot be rolled back because it has been finished with state: ${this.finished}`);
     }
 
     if (!this.connection) {
-      throw new Error(
-        'Transaction cannot be rolled back because it never started'
-      );
+      throw new Error('Transaction cannot be rolled back because it never started');
     }
 
     this._clearCls();
 
     try {
-      return await this.sequelize
-        .getQueryInterface()
-        .rollbackTransaction(this, this.options);
+      return await this.sequelize.getQueryInterface().rollbackTransaction(this, this.options);
     } finally {
       if (!this.parent) {
         this.cleanup();
@@ -119,9 +108,7 @@ class Transaction {
       if (this.options.readOnly) {
         acquireOptions.type = 'SELECT';
       }
-      connectionPromise = this.sequelize.connectionManager.getConnection(
-        acquireOptions
-      );
+      connectionPromise = this.sequelize.connectionManager.getConnection(acquireOptions);
     }
 
     let result;
@@ -149,39 +136,25 @@ class Transaction {
 
   async setDeferrable() {
     if (this.options.deferrable) {
-      return await this.sequelize
-        .getQueryInterface()
-        .deferConstraints(this, this.options);
+      return await this.sequelize.getQueryInterface().deferConstraints(this, this.options);
     }
   }
 
   async begin() {
     const queryInterface = this.sequelize.getQueryInterface();
 
-    if (
-      this.sequelize.dialect.supports.settingIsolationLevelDuringTransaction
-    ) {
+    if (this.sequelize.dialect.supports.settingIsolationLevelDuringTransaction) {
       await queryInterface.startTransaction(this, this.options);
-      return queryInterface.setIsolationLevel(
-        this,
-        this.options.isolationLevel,
-        this.options
-      );
+      return queryInterface.setIsolationLevel(this, this.options.isolationLevel, this.options);
     }
 
-    await queryInterface.setIsolationLevel(
-      this,
-      this.options.isolationLevel,
-      this.options
-    );
+    await queryInterface.setIsolationLevel(this, this.options.isolationLevel, this.options);
 
     return queryInterface.startTransaction(this, this.options);
   }
 
   cleanup() {
-    const res = this.sequelize.connectionManager.releaseConnection(
-      this.connection
-    );
+    const res = this.sequelize.connectionManager.releaseConnection(this.connection);
     this.connection.uuid = undefined;
     return res;
   }
@@ -235,7 +208,7 @@ class Transaction {
     return {
       DEFERRED: 'DEFERRED',
       IMMEDIATE: 'IMMEDIATE',
-      EXCLUSIVE: 'EXCLUSIVE',
+      EXCLUSIVE: 'EXCLUSIVE'
     };
   }
 
@@ -265,7 +238,7 @@ class Transaction {
       READ_UNCOMMITTED: 'READ UNCOMMITTED',
       READ_COMMITTED: 'READ COMMITTED',
       REPEATABLE_READ: 'REPEATABLE READ',
-      SERIALIZABLE: 'SERIALIZABLE',
+      SERIALIZABLE: 'SERIALIZABLE'
     };
   }
 
@@ -314,7 +287,7 @@ class Transaction {
       UPDATE: 'UPDATE',
       SHARE: 'SHARE',
       KEY_SHARE: 'KEY SHARE',
-      NO_KEY_UPDATE: 'NO KEY UPDATE',
+      NO_KEY_UPDATE: 'NO KEY UPDATE'
     };
   }
 

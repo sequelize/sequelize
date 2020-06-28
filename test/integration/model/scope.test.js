@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           username: Sequelize.STRING,
           email: Sequelize.STRING,
           access_level: Sequelize.INTEGER,
-          other_value: Sequelize.INTEGER,
+          other_value: Sequelize.INTEGER
         },
         {
           scopes: {
@@ -23,43 +23,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               attributes: ['other_value', 'access_level'],
               where: {
                 access_level: {
-                  [Op.lte]: 5,
-                },
-              },
+                  [Op.lte]: 5
+                }
+              }
             },
             withName: {
-              attributes: ['username'],
+              attributes: ['username']
             },
             highAccess: {
               where: {
-                [Op.or]: [
-                  { access_level: { [Op.gte]: 5 } },
-                  { access_level: { [Op.eq]: 10 } },
-                ],
-              },
+                [Op.or]: [{ access_level: { [Op.gte]: 5 } }, { access_level: { [Op.eq]: 10 } }]
+              }
             },
             lessThanFour: {
               where: {
-                [Op.and]: [{ access_level: { [Op.lt]: 4 } }],
-              },
+                [Op.and]: [{ access_level: { [Op.lt]: 4 } }]
+              }
             },
             issue8473: {
               where: {
                 [Op.or]: {
                   access_level: 3,
-                  other_value: 10,
+                  other_value: 10
                 },
-                access_level: 5,
-              },
+                access_level: 5
+              }
             },
             like_t: {
-              where: Sequelize.where(
-                Sequelize.fn('LOWER', Sequelize.col('username')),
-                'LIKE',
-                '%t%'
-              ),
-            },
-          },
+              where: Sequelize.where(Sequelize.fn('LOWER', Sequelize.col('username')), 'LIKE', '%t%')
+            }
+          }
         }
       );
 
@@ -69,36 +62,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           username: 'tony',
           email: 'tony@sequelizejs.com',
           access_level: 3,
-          other_value: 7,
+          other_value: 7
         },
         {
           username: 'tobi',
           email: 'tobi@fakeemail.com',
           access_level: 10,
-          other_value: 11,
+          other_value: 11
         },
         {
           username: 'dan',
           email: 'dan@sequelizejs.com',
           access_level: 5,
-          other_value: 10,
+          other_value: 10
         },
         {
           username: 'fred',
           email: 'fred@foobar.com',
           access_level: 3,
-          other_value: 7,
-        },
+          other_value: 7
+        }
       ];
 
       await this.ScopeMe.bulkCreate(records);
     });
 
     it('should be able to merge attributes as array', async function () {
-      const record = await this.ScopeMe.scope(
-        'lowAccess',
-        'withName'
-      ).findOne();
+      const record = await this.ScopeMe.scope('lowAccess', 'withName').findOne();
       expect(record.other_value).to.exist;
       expect(record.username).to.exist;
       expect(record.access_level).to.exist;
@@ -122,7 +112,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(record.username).to.equal('tobi');
 
       const records = await this.ScopeMe.scope('lessThanFour').findAll({
-        where: {},
+        where: {}
       });
 
       expect(records).to.have.length(2);

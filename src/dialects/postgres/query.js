@@ -16,14 +16,13 @@ class Query extends AbstractQuery {
    * @private
    */
   static formatBindParameters(sql, values, dialect) {
-    const stringReplaceFunc = (value) =>
-      typeof value === 'string' ? value.replace(/\0/g, '\\0') : value;
+    const stringReplaceFunc = value => (typeof value === 'string' ? value.replace(/\0/g, '\\0') : value);
 
     let bindParam;
     if (Array.isArray(values)) {
       bindParam = values.map(stringReplaceFunc);
       sql = AbstractQuery.formatBindParameters(sql, values, dialect, {
-        skipValueReplace: true,
+        skipValueReplace: true
       })[0];
     } else {
       bindParam = [];
@@ -41,12 +40,7 @@ class Query extends AbstractQuery {
         }
         return undefined;
       };
-      sql = AbstractQuery.formatBindParameters(
-        sql,
-        values,
-        dialect,
-        replacementFunc
-      )[0];
+      sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
     }
     return [sql, bindParam];
   }
@@ -55,10 +49,7 @@ class Query extends AbstractQuery {
     const { connection } = this;
 
     if (!_.isEmpty(this.options.searchPath)) {
-      sql =
-        this.sequelize
-          .getQueryInterface()
-          .queryGenerator.setSearchPath(this.options.searchPath) + sql;
+      sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
     }
 
     if (this.sequelize.options.minifyAliases && this.options.includeAliases) {
@@ -77,14 +68,10 @@ class Query extends AbstractQuery {
     const query =
       parameters && parameters.length
         ? new Promise((resolve, reject) =>
-            connection.query(sql, parameters, (error, result) =>
-              error ? reject(error) : resolve(result)
-            )
+            connection.query(sql, parameters, (error, result) => (error ? reject(error) : resolve(result)))
           )
         : new Promise((resolve, reject) =>
-            connection.query(sql, (error, result) =>
-              error ? reject(error) : resolve(result)
-            )
+            connection.query(sql, (error, result) => (error ? reject(error) : resolve(result)))
           );
 
     const complete = this._logQuery(sql, debug, parameters);
@@ -110,15 +97,11 @@ class Query extends AbstractQuery {
       ? queryResult.reduce((allRows, r) => allRows.concat(r.rows || []), [])
       : queryResult.rows;
     const rowCount = Array.isArray(queryResult)
-      ? queryResult.reduce(
-          (count, r) =>
-            Number.isFinite(r.rowCount) ? count + r.rowCount : count,
-          0
-        )
+      ? queryResult.reduce((count, r) => (Number.isFinite(r.rowCount) ? count + r.rowCount : count), 0)
       : queryResult.rowCount || 0;
 
     if (this.sequelize.options.minifyAliases && this.options.aliasesMapping) {
-      rows = rows.map((row) =>
+      rows = rows.map(row =>
         _.toPairs(row).reduce((acc, [key, value]) => {
           const mapping = this.options.aliasesMapping.get(key);
           acc[mapping || key] = value;
@@ -127,21 +110,17 @@ class Query extends AbstractQuery {
       );
     }
 
-    const isTableNameQuery = sql.startsWith(
-      'SELECT table_name FROM information_schema.tables'
-    );
-    const isRelNameQuery = sql.startsWith(
-      'SELECT relname FROM pg_class WHERE oid IN'
-    );
+    const isTableNameQuery = sql.startsWith('SELECT table_name FROM information_schema.tables');
+    const isRelNameQuery = sql.startsWith('SELECT relname FROM pg_class WHERE oid IN');
 
     if (isRelNameQuery) {
-      return rows.map((row) => ({
+      return rows.map(row => ({
         name: row.relname,
-        tableName: row.relname.split('_')[0],
+        tableName: row.relname.split('_')[0]
       }));
     }
     if (isTableNameQuery) {
-      return rows.map((row) => Object.values(row));
+      return rows.map(row => Object.values(row));
     }
 
     if (rows[0] && rows[0].sequelize_caught_exception !== undefined) {
@@ -150,7 +129,7 @@ class Query extends AbstractQuery {
           sql,
           parameters,
           code: '23505',
-          detail: rows[0].sequelize_caught_exception,
+          detail: rows[0].sequelize_caught_exception
         });
       }
       for (const row of rows) {
@@ -160,16 +139,12 @@ class Query extends AbstractQuery {
 
     if (this.isShowIndexesQuery()) {
       for (const row of rows) {
-        const attributes = /ON .*? (?:USING .*?\s)?\(([^]*)\)/gi
-          .exec(row.definition)[1]
-          .split(',');
+        const attributes = /ON .*? (?:USING .*?\s)?\(([^]*)\)/gi.exec(row.definition)[1].split(',');
 
         // Map column index in table to column name
         const columns = _.zipObject(
           row.column_indexes,
-          this.sequelize
-            .getQueryInterface()
-            .queryGenerator.fromArray(row.column_names)
+          this.sequelize.getQueryInterface().queryGenerator.fromArray(row.column_names)
         );
         delete row.column_indexes;
         delete row.column_names;
@@ -189,18 +164,12 @@ class Query extends AbstractQuery {
             attribute = attributes[index];
             return {
               attribute: field,
-              collate: attribute.match(/COLLATE "(.*?)"/)
-                ? /COLLATE "(.*?)"/.exec(attribute)[1]
-                : undefined,
-              order: attribute.includes('DESC')
-                ? 'DESC'
-                : attribute.includes('ASC')
-                ? 'ASC'
-                : undefined,
-              length: undefined,
+              collate: attribute.match(/COLLATE "(.*?)"/) ? /COLLATE "(.*?)"/.exec(attribute)[1] : undefined,
+              order: attribute.includes('DESC') ? 'DESC' : attribute.includes('ASC') ? 'ASC' : undefined,
+              length: undefined
             };
           })
-          .filter((n) => n !== null);
+          .filter(n => n !== null);
         delete row.columns;
       }
       return rows;
@@ -234,10 +203,7 @@ class Query extends AbstractQuery {
       let result = rows;
       // Postgres will treat tables as case-insensitive, so fix the case
       // of the returned values to match attributes
-      if (
-        this.options.raw === false &&
-        this.sequelize.options.quoteIdentifiers === false
-      ) {
+      if (this.options.raw === false && this.sequelize.options.quoteIdentifiers === false) {
         const attrsMap = _.reduce(
           this.model.rawAttributes,
           (m, v, k) => {
@@ -246,7 +212,7 @@ class Query extends AbstractQuery {
           },
           {}
         );
-        result = rows.map((row) => {
+        result = rows.map(row => {
           return _.mapKeys(row, (value, key) => {
             const targetAttr = attrsMap[key];
             if (typeof targetAttr === 'string' && targetAttr !== key) {
@@ -267,18 +233,12 @@ class Query extends AbstractQuery {
           allowNull: row.Null === 'YES',
           defaultValue: row.Default,
           comment: row.Comment,
-          special: row.special
-            ? this.sequelize
-                .getQueryInterface()
-                .queryGenerator.fromArray(row.special)
-            : [],
-          primaryKey: row.Constraint === 'PRIMARY KEY',
+          special: row.special ? this.sequelize.getQueryInterface().queryGenerator.fromArray(row.special) : [],
+          primaryKey: row.Constraint === 'PRIMARY KEY'
         };
 
         if (result[row.Field].type === 'BOOLEAN') {
-          result[row.Field].defaultValue = { false: false, true: true }[
-            result[row.Field].defaultValue
-          ];
+          result[row.Field].defaultValue = { false: false, true: true }[result[row.Field].defaultValue];
 
           if (result[row.Field].defaultValue === undefined) {
             result[row.Field].defaultValue = null;
@@ -286,9 +246,7 @@ class Query extends AbstractQuery {
         }
 
         if (typeof result[row.Field].defaultValue === 'string') {
-          result[row.Field].defaultValue = result[
-            row.Field
-          ].defaultValue.replace(/'/g, '');
+          result[row.Field].defaultValue = result[row.Field].defaultValue.replace(/'/g, '');
 
           if (result[row.Field].defaultValue.includes('::')) {
             const split = result[row.Field].defaultValue.split('::');
@@ -324,8 +282,7 @@ class Query extends AbstractQuery {
 
             const attr = _.find(
               this.model.rawAttributes,
-              (attribute) =>
-                attribute.fieldName === key || attribute.field === key
+              attribute => attribute.fieldName === key || attribute.field === key
             );
 
             this.instance.dataValues[(attr && attr.fieldName) || key] = record;
@@ -337,12 +294,7 @@ class Query extends AbstractQuery {
         return [this.instance, null];
       }
 
-      return [
-        this.instance ||
-          (rows && ((this.options.plain && rows[0]) || rows)) ||
-          undefined,
-        rowCount,
-      ];
+      return [this.instance || (rows && ((this.options.plain && rows[0]) || rows)) || undefined, rowCount];
     }
     if (this.isRawQuery()) {
       return [rows, queryResult];
@@ -374,15 +326,12 @@ class Query extends AbstractQuery {
           fields: null,
           index,
           table,
-          parent: err,
+          parent: err
         });
       case '23505':
         // there are multiple different formats of error messages for this error code
         // this regex should check at least two
-        if (
-          errDetail &&
-          (match = errDetail.replace(/"/g, '').match(/Key \((.*?)\)=\((.*?)\)/))
-        ) {
+        if (errDetail && (match = errDetail.replace(/"/g, '').match(/Key \((.*?)\)=\((.*?)\)/))) {
           fields = _.zipObject(match[1].split(', '), match[2].split(', '));
           errors = [];
           message = 'Validation error';
@@ -401,11 +350,8 @@ class Query extends AbstractQuery {
           });
 
           if (this.model && this.model.uniqueKeys) {
-            _.forOwn(this.model.uniqueKeys, (constraint) => {
-              if (
-                _.isEqual(constraint.fields, Object.keys(fields)) &&
-                !!constraint.msg
-              ) {
+            _.forOwn(this.model.uniqueKeys, constraint => {
+              if (_.isEqual(constraint.fields, Object.keys(fields)) && !!constraint.msg) {
                 message = constraint.msg;
                 return false;
               }
@@ -416,13 +362,13 @@ class Query extends AbstractQuery {
             message,
             errors,
             parent: err,
-            fields,
+            fields
           });
         }
 
         return new sequelizeErrors.UniqueConstraintError({
           message: errMessage,
-          parent: err,
+          parent: err
         });
 
       case '23P01':
@@ -438,7 +384,7 @@ class Query extends AbstractQuery {
           constraint: err.constraint,
           fields,
           table: err.table,
-          parent: err,
+          parent: err
         });
 
       case '42704':
@@ -454,7 +400,7 @@ class Query extends AbstractQuery {
             constraint: index,
             fields,
             table,
-            parent: err,
+            parent: err
           });
         }
       // falls through

@@ -16,28 +16,24 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           level: { type: DataTypes.INTEGER },
           isUser: {
             type: DataTypes.BOOLEAN,
-            defaultValue: false,
+            defaultValue: false
           },
-          isAdmin: { type: DataTypes.BOOLEAN },
+          isAdmin: { type: DataTypes.BOOLEAN }
         },
         {
-          timestamps: false,
+          timestamps: false
         }
       );
 
-      this.Project = this.sequelize.define(
-        'NiceProject',
-        { title: DataTypes.STRING },
-        { timestamps: false }
-      );
+      this.Project = this.sequelize.define('NiceProject', { title: DataTypes.STRING }, { timestamps: false });
 
       this.User.hasMany(this.Project, {
         as: 'Projects',
-        foreignKey: 'lovelyUserId',
+        foreignKey: 'lovelyUserId'
       });
       this.Project.belongsTo(this.User, {
         as: 'LovelyUser',
-        foreignKey: 'lovelyUserId',
+        foreignKey: 'lovelyUserId'
       });
 
       await this.User.sync({ force: true });
@@ -50,9 +46,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const project = await this.Project.findOne({
         where: {
-          id: project0.id,
+          id: project0.id
         },
-        include: [{ model: this.User, as: 'LovelyUser' }],
+        include: [{ model: this.User, as: 'LovelyUser' }]
       });
 
       const json = project.toJSON();
@@ -64,9 +60,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const user = await this.User.findOne({
         where: {
-          id: user0.id,
+          id: user0.id
         },
-        include: [{ model: this.Project, as: 'Projects' }],
+        include: [{ model: this.Project, as: 'Projects' }]
       });
 
       expect(user.Projects).to.be.instanceof(Array);
@@ -80,7 +76,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           age: 22,
           level: -1,
           isUser: false,
-          isAdmin: true,
+          isAdmin: true
         });
 
         expect(user.toJSON()).to.deep.equal({
@@ -89,7 +85,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           age: 22,
           level: -1,
           isUser: false,
-          isAdmin: true,
+          isAdmin: true
         });
       });
 
@@ -98,7 +94,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'test.user',
           age: 99,
           isAdmin: true,
-          isUser: false,
+          isUser: false
         });
         expect(JSON.stringify(user)).to.deep.equal(
           '{"id":null,"username":"test.user","age":99,"isAdmin":true,"isUser":false}'
@@ -109,14 +105,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user = this.User.build({
           username: 'test.user',
           age: 99,
-          isAdmin: true,
+          isAdmin: true
         });
         expect(JSON.parse(JSON.stringify(user))).to.deep.equal({
           username: 'test.user',
           age: 99,
           isAdmin: true,
           isUser: false,
-          id: null,
+          id: null
         });
       });
     });
@@ -128,7 +124,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           age: 22,
           level: -1,
           isUser: false,
-          isAdmin: true,
+          isAdmin: true
         });
 
         expect(user.toJSON()).to.deep.equal({
@@ -137,7 +133,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           age: 22,
           isUser: false,
           isAdmin: true,
-          level: -1,
+          level: -1
         });
       });
 
@@ -147,13 +143,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           age: 99,
           isAdmin: true,
           isUser: false,
-          level: null,
+          level: null
         });
 
         expect(JSON.stringify(user)).to.deep.equal(
-          `{"id":${user.get(
-            'id'
-          )},"username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`
+          `{"id":${user.get('id')},"username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`
         );
       });
 
@@ -162,7 +156,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'test.user',
           age: 99,
           isAdmin: true,
-          level: null,
+          level: null
         });
 
         expect(JSON.parse(JSON.stringify(user))).to.deep.equal({
@@ -171,7 +165,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           isAdmin: true,
           isUser: false,
           level: null,
-          username: 'test.user',
+          username: 'test.user'
         });
       });
     });
@@ -183,7 +177,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           age: 22,
           level: -1,
           isUser: false,
-          isAdmin: true,
+          isAdmin: true
         });
 
         const user = await this.User.findByPk(user0.get('id'));
@@ -193,7 +187,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           age: 22,
           level: -1,
           isUser: false,
-          isAdmin: true,
+          isAdmin: true
         });
       });
 
@@ -202,14 +196,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: 'test.user',
           age: 99,
           isAdmin: true,
-          isUser: false,
+          isUser: false
         });
 
         const user = await this.User.findByPk(user0.get('id'));
         expect(JSON.stringify(user)).to.deep.equal(
-          `{"id":${user.get(
-            'id'
-          )},"username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`
+          `{"id":${user.get('id')},"username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`
         );
       });
 
@@ -217,7 +209,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await this.User.create({
           username: 'test.user',
           age: 99,
-          isAdmin: true,
+          isAdmin: true
         });
 
         const user = await this.User.findByPk(user0.get('id'));
@@ -227,7 +219,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           age: 99,
           isAdmin: true,
           isUser: false,
-          level: null,
+          level: null
         });
       });
     });
@@ -236,12 +228,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await this.User.create({
         username: 'fnord',
         age: 1,
-        isAdmin: true,
+        isAdmin: true
       });
       const project = await this.Project.create({ title: 'fnord' });
       await user.setProjects([project]);
       const users = await this.User.findAll({
-        include: [{ model: this.Project, as: 'Projects' }],
+        include: [{ model: this.Project, as: 'Projects' }]
       });
       const _user = users[0];
 
@@ -249,7 +241,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(JSON.parse(JSON.stringify(_user)).Projects).to.exist;
 
       const projects = await this.Project.findAll({
-        include: [{ model: this.User, as: 'LovelyUser' }],
+        include: [{ model: this.User, as: 'LovelyUser' }]
       });
       const _project = projects[0];
 

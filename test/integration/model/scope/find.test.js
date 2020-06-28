@@ -16,37 +16,37 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           email: Sequelize.STRING,
           access_level: Sequelize.INTEGER,
           other_value: Sequelize.INTEGER,
-          parent_id: Sequelize.INTEGER,
+          parent_id: Sequelize.INTEGER
         },
         {
           defaultScope: {
             where: {
               access_level: {
-                [Op.gte]: 5,
-              },
-            },
+                [Op.gte]: 5
+              }
+            }
           },
           scopes: {
             highValue: {
               where: {
                 other_value: {
-                  [Op.gte]: 10,
-                },
-              },
+                  [Op.gte]: 10
+                }
+              }
             },
             andScope: {
               where: {
                 [Op.and]: [
                   {
                     email: {
-                      [Op.like]: '%@sequelizejs.com',
-                    },
+                      [Op.like]: '%@sequelizejs.com'
+                    }
                   },
-                  { access_level: 3 },
-                ],
-              },
-            },
-          },
+                  { access_level: 3 }
+                ]
+              }
+            }
+          }
         }
       );
 
@@ -56,15 +56,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           name: Sequelize.STRING,
           other_value: {
             type: Sequelize.STRING,
-            field: 'otherValue',
-          },
+            field: 'otherValue'
+          }
         },
         {
           defaultScope: {
             attributes: {
-              exclude: ['name'],
-            },
-          },
+              exclude: ['name']
+            }
+          }
         }
       );
 
@@ -77,29 +77,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           email: 'tony@sequelizejs.com',
           access_level: 3,
           other_value: 7,
-          parent_id: 1,
+          parent_id: 1
         },
         {
           username: 'tobi',
           email: 'tobi@fakeemail.com',
           access_level: 10,
           other_value: 11,
-          parent_id: 2,
+          parent_id: 2
         },
         {
           username: 'dan',
           email: 'dan@sequelizejs.com',
           access_level: 5,
           other_value: 10,
-          parent_id: 1,
+          parent_id: 1
         },
         {
           username: 'fred',
           email: 'fred@foobar.com',
           access_level: 3,
           other_value: 7,
-          parent_id: 1,
-        },
+          parent_id: 1
+        }
       ];
 
       await this.ScopeMe.bulkCreate(records);
@@ -107,7 +107,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should be able use where in scope', async function () {
       const users = await this.ScopeMe.scope({
-        where: { parent_id: 2 },
+        where: { parent_id: 2 }
       }).findAll();
       expect(users).to.have.length(1);
       expect(users[0].username).to.equal('tobi');
@@ -115,7 +115,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should be able to combine scope and findAll where clauses', async function () {
       const users = await this.ScopeMe.scope({
-        where: { parent_id: 1 },
+        where: { parent_id: 1 }
       }).findAll({ where: { access_level: 3 } });
       expect(users).to.have.length(2);
       expect(['tony', 'fred'].includes(users[0].username)).to.be.true;
@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('should not overwrite', () => {
       it('default scope with values from previous finds', async function () {
         const users0 = await this.ScopeMe.findAll({
-          where: { other_value: 10 },
+          where: { other_value: 10 }
         });
         expect(users0).to.have.length(1);
 
@@ -151,7 +151,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('other scopes with values from previous finds', async function () {
         const users0 = await this.ScopeMe.scope('highValue').findAll({
-          where: { access_level: 10 },
+          where: { access_level: 10 }
         });
         expect(users0).to.have.length(1);
 
@@ -163,14 +163,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should have no problem performing findOrCreate', async function () {
       const [user] = await this.ScopeMe.findOrCreate({
-        where: { username: 'fake' },
+        where: { username: 'fake' }
       });
       expect(user.username).to.equal('fake');
     });
 
     it('should work when included with default scope', async function () {
       await this.ScopeMe.findOne({
-        include: [this.DefaultScopeExclude],
+        include: [this.DefaultScopeExclude]
       });
     });
   });
@@ -178,7 +178,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope in associations', () => {
     it('should work when association with a virtual column queried with default scope', async function () {
       const Game = this.sequelize.define('Game', {
-        name: Sequelize.TEXT,
+        name: Sequelize.TEXT
       });
 
       const User = this.sequelize.define(
@@ -189,15 +189,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             type: Sequelize.VIRTUAL,
             get() {
               return 'New';
-            },
-          },
+            }
+          }
         },
         {
           defaultScope: {
             attributes: {
-              exclude: ['login'],
-            },
-          },
+              exclude: ['login']
+            }
+          }
         }
       );
 
@@ -208,9 +208,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const games = await Game.findAll({
         include: [
           {
-            model: User,
-          },
-        ],
+            model: User
+          }
+        ]
       });
 
       expect(games).to.have.lengthOf(0);

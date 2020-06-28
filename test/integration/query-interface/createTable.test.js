@@ -22,8 +22,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         table_id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: true,
-        },
+          autoIncrement: true
+        }
       });
 
       const result = await this.queryInterface.describeTable('TableWithPK');
@@ -31,9 +31,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       if (dialect === 'mssql' || dialect === 'mysql' || dialect === 'mariadb') {
         expect(result.table_id.autoIncrement).to.be.true;
       } else if (dialect === 'postgres') {
-        expect(result.table_id.defaultValue).to.equal(
-          'nextval("TableWithPK_table_id_seq"::regclass)'
-        );
+        expect(result.table_id.defaultValue).to.equal('nextval("TableWithPK_table_id_seq"::regclass)');
       }
     });
 
@@ -44,24 +42,24 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true,
+            autoIncrement: true
           },
           name: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING
           },
           email: {
-            type: DataTypes.STRING,
-          },
+            type: DataTypes.STRING
+          }
         },
         {
           uniqueKeys: {
             myCustomIndex: {
-              fields: ['name', 'email'],
+              fields: ['name', 'email']
             },
             myOtherIndex: {
-              fields: ['name'],
-            },
-          },
+              fields: ['name']
+            }
+          }
         }
       );
 
@@ -103,11 +101,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         'User',
         {
           name: {
-            type: DataTypes.STRING,
-          },
+            type: DataTypes.STRING
+          }
         },
         {
-          schema: 'hero',
+          schema: 'hero'
         }
       );
     });
@@ -115,16 +113,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     describe('enums', () => {
       it('should work with enums (1)', async function () {
         await this.queryInterface.createTable('SomeTable', {
-          someEnum: DataTypes.ENUM('value1', 'value2', 'value3'),
+          someEnum: DataTypes.ENUM('value1', 'value2', 'value3')
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
         if (dialect.includes('postgres')) {
-          expect(table.someEnum.special).to.deep.equal([
-            'value1',
-            'value2',
-            'value3',
-          ]);
+          expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
 
@@ -132,17 +126,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.createTable('SomeTable', {
           someEnum: {
             type: DataTypes.ENUM,
-            values: ['value1', 'value2', 'value3'],
-          },
+            values: ['value1', 'value2', 'value3']
+          }
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
         if (dialect.includes('postgres')) {
-          expect(table.someEnum.special).to.deep.equal([
-            'value1',
-            'value2',
-            'value3',
-          ]);
+          expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
 
@@ -151,17 +141,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           someEnum: {
             type: DataTypes.ENUM,
             values: ['value1', 'value2', 'value3'],
-            field: 'otherName',
-          },
+            field: 'otherName'
+          }
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
         if (dialect.includes('postgres')) {
-          expect(table.otherName.special).to.deep.equal([
-            'value1',
-            'value2',
-            'value3',
-          ]);
+          expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
 
@@ -174,21 +160,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             someEnum: {
               type: DataTypes.ENUM,
               values: ['value1', 'value2', 'value3'],
-              field: 'otherName',
-            },
+              field: 'otherName'
+            }
           },
           { schema: 'archive' }
         );
 
         const table = await this.queryInterface.describeTable('SomeTable', {
-          schema: 'archive',
+          schema: 'archive'
         });
         if (dialect.includes('postgres')) {
-          expect(table.otherName.special).to.deep.equal([
-            'value1',
-            'value2',
-            'value3',
-          ]);
+          expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
 
@@ -196,8 +178,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.createTable('SomeTable', {
           someEnum: {
             type: DataTypes.ENUM(['COMMENT']),
-            comment: 'special enum col',
-          },
+            comment: 'special enum col'
+          }
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');

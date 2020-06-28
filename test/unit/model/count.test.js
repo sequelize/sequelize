@@ -18,10 +18,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       this.User = current.define('User', {
         username: DataTypes.STRING,
-        age: DataTypes.INTEGER,
+        age: DataTypes.INTEGER
       });
       this.Project = current.define('Project', {
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       });
 
       this.User.hasMany(this.Project);
@@ -40,7 +40,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('should pass the same options to model.aggregate as findAndCountAll', () => {
       it('with includes', async function () {
         const queryObject = {
-          include: [this.Project],
+          include: [this.Project]
         };
         await this.User.count(queryObject);
         await this.User.findAndCountAll(queryObject);
@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('attributes should be stripped in case of findAndCountAll', async function () {
         const queryObject = {
-          attributes: ['username'],
+          attributes: ['username']
         };
         await this.User.count(queryObject);
         await this.User.findAndCountAll(queryObject);

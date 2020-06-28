@@ -51,9 +51,7 @@ class ConnectionManager extends AbstractConnectionManager {
   async connect(config) {
     // Named timezone is not supported in mariadb, convert to offset
     let tzOffset = this.sequelize.options.timezone;
-    tzOffset = /\//.test(tzOffset)
-      ? momentTz.tz(tzOffset).format('Z')
-      : tzOffset;
+    tzOffset = /\//.test(tzOffset) ? momentTz.tz(tzOffset).format('Z') : tzOffset;
 
     const connectionConfig = {
       host: config.host,
@@ -66,7 +64,7 @@ class ConnectionManager extends AbstractConnectionManager {
       bigNumberStrings: false,
       supportBigNumbers: true,
       foundRows: false,
-      ...config.dialectOptions,
+      ...config.dialectOptions
     };
 
     if (!this.sequelize.config.keepDefaultTimezone) {
@@ -83,12 +81,10 @@ class ConnectionManager extends AbstractConnectionManager {
 
     try {
       const connection = await this.lib.createConnection(connectionConfig);
-      this.sequelize.options.databaseVersion = semver.coerce(
-        connection.serverVersion()
-      ).version;
+      this.sequelize.options.databaseVersion = semver.coerce(connection.serverVersion()).version;
 
       debug('connection acquired');
-      connection.on('error', (error) => {
+      connection.on('error', error => {
         switch (error.code) {
           case 'ESOCKET':
           case 'ECONNRESET':

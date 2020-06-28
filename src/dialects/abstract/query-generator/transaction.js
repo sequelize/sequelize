@@ -68,14 +68,11 @@ const TransactionQueries = {
   rollbackTransactionQuery(transaction) {
     if (transaction.parent) {
       // force quoting of savepoint identifiers for postgres
-      return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(
-        transaction.name,
-        true
-      )};`;
+      return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(transaction.name, true)};`;
     }
 
     return 'ROLLBACK;';
-  },
+  }
 };
 
 module.exports = TransactionQueries;

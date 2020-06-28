@@ -8,7 +8,7 @@ const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 const moment = require('moment');
 
-const qq = (str) => {
+const qq = str => {
   if (dialect === 'postgres' || dialect === 'mssql') {
     return `"${str}"`;
   }
@@ -29,17 +29,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       this.User = this.sequelize.define('User', {
         username: {
           type: Sequelize.STRING,
-          unique: true,
+          unique: true
         },
         emailAddress: {
           type: Sequelize.STRING,
-          field: 'email_address',
-        },
+          field: 'email_address'
+        }
       });
 
-      this.insertQuery = `INSERT INTO ${qq(
-        this.User.tableName
-      )} (username, email_address, ${qq('createdAt')}, ${qq(
+      this.insertQuery = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${qq('createdAt')}, ${qq(
         'updatedAt'
       )}) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
 
@@ -61,29 +59,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         {
           replacements: [
             [
-              [
-                'john',
-                'john@gmail.com',
-                '2012-01-01 10:10:10',
-                '2012-01-01 10:10:10',
-              ],
-              [
-                'michael',
-                'michael@gmail.com',
-                '2012-01-01 10:10:10',
-                '2012-01-01 10:10:10',
-              ],
-            ],
-          ],
+              ['john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],
+              ['michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10']
+            ]
+          ]
         }
       );
 
-      const rows = await this.sequelize.query(
-        `SELECT * FROM ${qq(this.User.tableName)};`,
-        {
-          type: this.sequelize.QueryTypes.SELECT,
-        }
-      );
+      const rows = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+        type: this.sequelize.QueryTypes.SELECT
+      });
 
       expect(rows).to.be.lengthOf(2);
       expect(rows[0].username).to.be.equal('john');
@@ -93,15 +78,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     describe('QueryTypes', () => {
       it('RAW', async function () {
         await this.sequelize.query(this.insertQuery, {
-          type: Sequelize.QueryTypes.RAW,
+          type: Sequelize.QueryTypes.RAW
         });
 
-        const [rows, count] = await this.sequelize.query(
-          `SELECT * FROM ${qq(this.User.tableName)};`,
-          {
-            type: Sequelize.QueryTypes.RAW,
-          }
-        );
+        const [rows, count] = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+          type: Sequelize.QueryTypes.RAW
+        });
 
         expect(rows).to.be.an.instanceof(Array);
         expect(count).to.be.ok;
@@ -113,7 +95,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         const payload = {
           username: 'test',
           createdAt: '2010-10-10 00:00:00',
-          updatedAt: '2010-10-10 00:00:00',
+          updatedAt: '2010-10-10 00:00:00'
         };
 
         const spy = sinon.spy();
@@ -123,17 +105,17 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         await expect(
           this.sequelize.query(
             `
-          INSERT INTO ${qq(this.User.tableName)} (username,${qq(
-              'createdAt'
-            )},${qq('updatedAt')}) VALUES ($username,$createdAt,$updatedAt);
+          INSERT INTO ${qq(this.User.tableName)} (username,${qq('createdAt')},${qq(
+              'updatedAt'
+            )}) VALUES ($username,$createdAt,$updatedAt);
         `,
             {
               bind: payload,
               logging: spy,
               retry: {
                 max: 3,
-                match: [/Validation/],
-              },
+                match: [/Validation/]
+              }
             }
           )
         ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
@@ -147,14 +129,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         const logger = sinon.spy();
         const sequelize = Support.createSequelizeInstance({
           logging: logger,
-          benchmark: true,
+          benchmark: true
         });
 
         await sequelize.query('select 1;');
         expect(logger.calledOnce).to.be.true;
-        expect(logger.args[0][0]).to.be.match(
-          /Executed \((\d*|default)\): select 1/
-        );
+        expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1/);
         expect(typeof logger.args[0][1] === 'number').to.be.true;
       });
 
@@ -163,13 +143,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         await this.sequelize.query('select 1;', {
           logging: logger,
-          benchmark: true,
+          benchmark: true
         });
 
         expect(logger.calledOnce).to.be.true;
-        expect(logger.args[0][0]).to.be.match(
-          /Executed \(\d*|default\): select 1;/
-        );
+        expect(logger.args[0][0]).to.be.match(/Executed \(\d*|default\): select 1;/);
         expect(typeof logger.args[0][1] === 'number').to.be.true;
       });
 
@@ -177,7 +155,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         beforeEach(async function () {
           this.sequelize = Support.createSequelizeInstance({
             benchmark: true,
-            logQueryParameters: true,
+            logQueryParameters: true
           });
           this.User = this.sequelize.define(
             'User',
@@ -185,17 +163,17 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               id: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
-                autoIncrement: true,
+                autoIncrement: true
               },
               username: {
-                type: DataTypes.STRING,
+                type: DataTypes.STRING
               },
               emailAddress: {
-                type: DataTypes.STRING,
-              },
+                type: DataTypes.STRING
+              }
             },
             {
-              timestamps: false,
+              timestamps: false
             }
           );
 
@@ -208,52 +186,44 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           const user = await this.User.create(
             {
               username: 'john',
-              emailAddress: 'john@gmail.com',
+              emailAddress: 'john@gmail.com'
             },
             {
-              logging: (s) => {
+              logging: s => {
                 createSql = s;
-              },
+              }
             }
           );
 
           user.username = 'li';
 
           await user.save({
-            logging: (s) => {
+            logging: s => {
               updateSql = s;
-            },
+            }
           });
 
-          expect(createSql).to.match(
-            /; ("john", "john@gmail.com"|{"(\$1|0)":"john","(\$2|1)":"john@gmail.com"})/
-          );
-          expect(updateSql).to.match(
-            /; ("li", 1|{"(\$1|0)":"li","(\$2|1)":1})/
-          );
+          expect(createSql).to.match(/; ("john", "john@gmail.com"|{"(\$1|0)":"john","(\$2|1)":"john@gmail.com"})/);
+          expect(updateSql).to.match(/; ("li", 1|{"(\$1|0)":"li","(\$2|1)":1})/);
         });
 
         it('add parameters in log sql when use bind value', async function () {
           let logSql;
           const typeCast = dialect === 'postgres' ? '::text' : '';
-          await this.sequelize.query(
-            `select $1${typeCast} as foo, $2${typeCast} as bar`,
-            { bind: ['foo', 'bar'], logging: (s) => (logSql = s) }
-          );
-          expect(logSql).to.match(
-            /; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/
-          );
+          await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, {
+            bind: ['foo', 'bar'],
+            logging: s => (logSql = s)
+          });
+          expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
         });
       });
     });
 
     it('executes select queries correctly', async function () {
       await this.sequelize.query(this.insertQuery);
-      const [users] = await this.sequelize.query(
-        `select * from ${qq(this.User.tableName)}`
-      );
+      const [users] = await this.sequelize.query(`select * from ${qq(this.User.tableName)}`);
       expect(
-        users.map((u) => {
+        users.map(u => {
           return u.username;
         })
       ).to.include('john');
@@ -264,11 +234,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       seq.options.quoteIdentifiers = false;
       await seq.query(this.insertQuery);
-      const [users] = await seq.query(
-        `select * from ${qq(this.User.tableName)}`
-      );
+      const [users] = await seq.query(`select * from ${qq(this.User.tableName)}`);
       expect(
-        users.map((u) => {
+        users.map(u => {
           return u.username;
         })
       ).to.include('john');
@@ -278,9 +246,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       await this.sequelize.query(`DELETE FROM ${qq(this.User.tableName)}`);
       await this.sequelize.query(this.insertQuery);
       const [users] = await this.sequelize.query(
-        `select username as ${qq('user.username')} from ${qq(
-          this.User.tableName
-        )}`
+        `select username as ${qq('user.username')} from ${qq(this.User.tableName)}`
       );
       expect(users).to.deep.equal([{ 'user.username': 'john' }]);
     });
@@ -289,13 +255,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       await this.sequelize.query(`DELETE FROM ${qq(this.User.tableName)}`);
       await this.sequelize.query(this.insertQuery);
       const users = await this.sequelize.query(
-        `select username as ${qq('user.username')} from ${qq(
-          this.User.tableName
-        )}`,
+        `select username as ${qq('user.username')} from ${qq(this.User.tableName)}`,
         { raw: true, nest: true }
       );
       expect(
-        users.map((u) => {
+        users.map(u => {
           return u.user;
         })
       ).to.deep.equal([{ username: 'john' }]);
@@ -306,13 +270,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         await this.sequelize.query(this.insertQuery);
         await this.sequelize.query('DROP PROCEDURE IF EXISTS foo');
 
-        await this.sequelize.query(
-          `CREATE PROCEDURE foo()\nSELECT * FROM ${this.User.tableName};`
-        );
+        await this.sequelize.query(`CREATE PROCEDURE foo()\nSELECT * FROM ${this.User.tableName};`);
 
         const users = await this.sequelize.query('CALL foo()');
         expect(
-          users.map((u) => {
+          users.map(u => {
             return u.username;
           })
         ).to.include('john');
@@ -324,12 +286,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('uses the passed model', async function () {
       await this.sequelize.query(this.insertQuery);
 
-      const users = await this.sequelize.query(
-        `SELECT * FROM ${qq(this.User.tableName)};`,
-        {
-          model: this.User,
-        }
-      );
+      const users = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+        model: this.User
+      });
 
       expect(users[0]).to.be.instanceof(this.User);
     });
@@ -337,13 +296,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('maps the field names to attributes based on the passed model', async function () {
       await this.sequelize.query(this.insertQuery);
 
-      const users = await this.sequelize.query(
-        `SELECT * FROM ${qq(this.User.tableName)};`,
-        {
-          model: this.User,
-          mapToModel: true,
-        }
-      );
+      const users = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+        model: this.User,
+        mapToModel: true
+      });
 
       expect(users[0].emailAddress).to.be.equal('john@gmail.com');
     });
@@ -351,13 +307,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('arbitrarily map the field names', async function () {
       await this.sequelize.query(this.insertQuery);
 
-      const users = await this.sequelize.query(
-        `SELECT * FROM ${qq(this.User.tableName)};`,
-        {
-          type: 'SELECT',
-          fieldMap: { username: 'userName', email_address: 'email' },
-        }
-      );
+      const users = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+        type: 'SELECT',
+        fieldMap: { username: 'userName', email_address: 'email' }
+      });
 
       expect(users[0].userName).to.be.equal('john');
       expect(users[0].email).to.be.equal('john@gmail.com');
@@ -366,13 +319,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('keeps field names that are mapped to the same name', async function () {
       await this.sequelize.query(this.insertQuery);
 
-      const users = await this.sequelize.query(
-        `SELECT * FROM ${qq(this.User.tableName)};`,
-        {
-          type: 'SELECT',
-          fieldMap: { username: 'username', email_address: 'email' },
-        }
-      );
+      const users = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
+        type: 'SELECT',
+        fieldMap: { username: 'username', email_address: 'email' }
+      });
 
       expect(users[0].username).to.be.equal('john');
       expect(users[0].email).to.be.equal('john@gmail.com');
@@ -381,26 +331,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     describe('rejections', () => {
       it('reject if `values` and `options.replacements` are both passed', async function () {
         await this.sequelize
-          .query(
-            { query: 'select ? as foo, ? as bar', values: [1, 2] },
-            { raw: true, replacements: [1, 2] }
-          )
-          .should.be.rejectedWith(
-            Error,
-            'Both `sql.values` and `options.replacements` cannot be set at the same time'
-          );
+          .query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { raw: true, replacements: [1, 2] })
+          .should.be.rejectedWith(Error, 'Both `sql.values` and `options.replacements` cannot be set at the same time');
       });
 
       it('reject if `sql.bind` and `options.bind` are both passed', async function () {
         await this.sequelize
-          .query(
-            { query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2] },
-            { raw: true, bind: [1, 2] }
-          )
-          .should.be.rejectedWith(
-            Error,
-            'Both `sql.bind` and `options.bind` cannot be set at the same time'
-          );
+          .query({ query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2] }, { raw: true, bind: [1, 2] })
+          .should.be.rejectedWith(Error, 'Both `sql.bind` and `options.bind` cannot be set at the same time');
       });
 
       it('reject if `options.replacements` and `options.bind` are both passed', async function () {
@@ -408,12 +346,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           .query('select $1 + ? as foo, $2 + ? as bar', {
             raw: true,
             bind: [1, 2],
-            replacements: [1, 2],
+            replacements: [1, 2]
           })
-          .should.be.rejectedWith(
-            Error,
-            'Both `replacements` and `bind` cannot be set at the same time'
-          );
+          .should.be.rejectedWith(Error, 'Both `replacements` and `bind` cannot be set at the same time');
       });
 
       it('reject if `sql.bind` and `sql.values` are both passed', async function () {
@@ -422,216 +357,153 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             {
               query: 'select $1 + ? as foo, $2 + ? as bar',
               bind: [1, 2],
-              values: [1, 2],
+              values: [1, 2]
             },
             { raw: true }
           )
-          .should.be.rejectedWith(
-            Error,
-            'Both `replacements` and `bind` cannot be set at the same time'
-          );
+          .should.be.rejectedWith(Error, 'Both `replacements` and `bind` cannot be set at the same time');
       });
 
       it('reject if `sql.bind` and `options.replacements`` are both passed', async function () {
         await this.sequelize
-          .query(
-            { query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2] },
-            { raw: true, replacements: [1, 2] }
-          )
-          .should.be.rejectedWith(
-            Error,
-            'Both `replacements` and `bind` cannot be set at the same time'
-          );
+          .query({ query: 'select $1 + ? as foo, $2 + ? as bar', bind: [1, 2] }, { raw: true, replacements: [1, 2] })
+          .should.be.rejectedWith(Error, 'Both `replacements` and `bind` cannot be set at the same time');
       });
 
       it('reject if `options.bind` and `sql.replacements` are both passed', async function () {
         await this.sequelize
-          .query(
-            { query: 'select $1 + ? as foo, $1 _ ? as bar', values: [1, 2] },
-            { raw: true, bind: [1, 2] }
-          )
-          .should.be.rejectedWith(
-            Error,
-            'Both `replacements` and `bind` cannot be set at the same time'
-          );
+          .query({ query: 'select $1 + ? as foo, $1 _ ? as bar', values: [1, 2] }, { raw: true, bind: [1, 2] })
+          .should.be.rejectedWith(Error, 'Both `replacements` and `bind` cannot be set at the same time');
       });
 
       it('reject when key is missing in the passed object', async function () {
         await this.sequelize
           .query('select :one as foo, :two as bar, :three as baz', {
             raw: true,
-            replacements: { one: 1, two: 2 },
+            replacements: { one: 1, two: 2 }
           })
-          .should.be.rejectedWith(
-            Error,
-            /Named parameter ":\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
       });
 
       it('reject with the passed number', async function () {
         await this.sequelize
           .query('select :one as foo, :two as bar', {
             raw: true,
-            replacements: 2,
+            replacements: 2
           })
-          .should.be.rejectedWith(
-            Error,
-            /Named parameter ":\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
       });
 
       it('reject with the passed empty object', async function () {
         await this.sequelize
           .query('select :one as foo, :two as bar', {
             raw: true,
-            replacements: {},
+            replacements: {}
           })
-          .should.be.rejectedWith(
-            Error,
-            /Named parameter ":\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
       });
 
       it('reject with the passed string', async function () {
         await this.sequelize
           .query('select :one as foo, :two as bar', {
             raw: true,
-            replacements: 'foobar',
+            replacements: 'foobar'
           })
-          .should.be.rejectedWith(
-            Error,
-            /Named parameter ":\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
       });
 
       it('reject with the passed date', async function () {
         await this.sequelize
           .query('select :one as foo, :two as bar', {
             raw: true,
-            replacements: new Date(),
+            replacements: new Date()
           })
-          .should.be.rejectedWith(
-            Error,
-            /Named parameter ":\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
       });
 
       it('reject when binds passed with object and numeric $1 is also present', async function () {
         const typeCast = dialect === 'postgres' ? '::int' : '';
 
         await this.sequelize
-          .query(
-            `select $one${typeCast} as foo, $two${typeCast} as bar, '$1' as baz`,
-            { raw: true, bind: { one: 1, two: 2 } }
-          )
-          .should.be.rejectedWith(
-            Error,
-            /Named bind parameter "\$\w+" has no value in the given object\./g
-          );
+          .query(`select $one${typeCast} as foo, $two${typeCast} as bar, '$1' as baz`, {
+            raw: true,
+            bind: { one: 1, two: 2 }
+          })
+          .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
       });
 
       it('reject when binds passed as array and $alpha is also present', async function () {
         const typeCast = dialect === 'postgres' ? '::int' : '';
 
         await this.sequelize
-          .query(
-            `select $1${typeCast} as foo, $2${typeCast} as bar, '$foo' as baz`,
-            { raw: true, bind: [1, 2] }
-          )
-          .should.be.rejectedWith(
-            Error,
-            /Named bind parameter "\$\w+" has no value in the given object\./g
-          );
+          .query(`select $1${typeCast} as foo, $2${typeCast} as bar, '$foo' as baz`, { raw: true, bind: [1, 2] })
+          .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
       });
 
       it('reject when bind key is $0 with the passed array', async function () {
         await this.sequelize
           .query('select $1 as foo, $0 as bar, $3 as baz', {
             raw: true,
-            bind: [1, 2],
+            bind: [1, 2]
           })
-          .should.be.rejectedWith(
-            Error,
-            /Named bind parameter "\$\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
       });
 
       it('reject when bind key is $01 with the passed array', async function () {
         await this.sequelize
           .query('select $1 as foo, $01 as bar, $3 as baz', {
             raw: true,
-            bind: [1, 2],
+            bind: [1, 2]
           })
-          .should.be.rejectedWith(
-            Error,
-            /Named bind parameter "\$\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
       });
 
       it('reject when bind key is missing in the passed array', async function () {
         await this.sequelize
           .query('select $1 as foo, $2 as bar, $3 as baz', {
             raw: true,
-            bind: [1, 2],
+            bind: [1, 2]
           })
-          .should.be.rejectedWith(
-            Error,
-            /Named bind parameter "\$\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
       });
 
       it('reject when bind key is missing in the passed object', async function () {
         await this.sequelize
           .query('select $one as foo, $two as bar, $three as baz', {
             raw: true,
-            bind: { one: 1, two: 2 },
+            bind: { one: 1, two: 2 }
           })
-          .should.be.rejectedWith(
-            Error,
-            /Named bind parameter "\$\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
       });
 
       it('reject with the passed number for bind', async function () {
         await this.sequelize
           .query('select $one as foo, $two as bar', { raw: true, bind: 2 })
-          .should.be.rejectedWith(
-            Error,
-            /Named bind parameter "\$\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
       });
 
       it('reject with the passed empty object for bind', async function () {
         await this.sequelize
           .query('select $one as foo, $two as bar', { raw: true, bind: {} })
-          .should.be.rejectedWith(
-            Error,
-            /Named bind parameter "\$\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
       });
 
       it('reject with the passed string for bind', async function () {
         await this.sequelize
           .query('select $one as foo, $two as bar', {
             raw: true,
-            bind: 'foobar',
+            bind: 'foobar'
           })
-          .should.be.rejectedWith(
-            Error,
-            /Named bind parameter "\$\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
       });
 
       it('reject with the passed date for bind', async function () {
         await this.sequelize
           .query('select $one as foo, $two as bar', {
             raw: true,
-            bind: new Date(),
+            bind: new Date()
           })
-          .should.be.rejectedWith(
-            Error,
-            /Named bind parameter "\$\w+" has no value in the given object\./g
-          );
+          .should.be.rejectedWith(Error, /Named bind parameter "\$\w+" has no value in the given object\./g);
       });
     });
 
@@ -647,15 +519,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       const result = await this.sequelize.query(
         {
-          query:
-            'select ? as number, ? as date,? as string,? as boolean,? as buffer',
-          values: [number, date, string, boolean, buffer],
+          query: 'select ? as number, ? as date,? as string,? as boolean,? as buffer',
+          values: [number, date, string, boolean, buffer]
         },
         {
           type: this.sequelize.QueryTypes.SELECT,
           logging(s) {
             logSql = s;
-          },
+          }
         }
       );
 
@@ -670,7 +541,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         date,
         string,
         boolean,
-        buffer,
+        buffer
       });
       expect(logSql).to.not.include('?');
     });
@@ -687,7 +558,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       }
       const result = await this.sequelize.query(new SQLStatement(), {
         type: this.sequelize.QueryTypes.SELECT,
-        logging: (s) => (logSql = s),
+        logging: s => (logSql = s)
       });
       expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
       expect(logSql).to.not.include('?');
@@ -701,7 +572,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           type: this.sequelize.QueryTypes.SELECT,
           logging(s) {
             logSql = s;
-          },
+          }
         }
       );
       expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
@@ -714,13 +585,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const result = await this.sequelize.query(
         {
           query: `select $1${typeCast} as foo, $2${typeCast} as bar`,
-          bind: [1, 2],
+          bind: [1, 2]
         },
         {
           type: this.sequelize.QueryTypes.SELECT,
           logging(s) {
             logSql = s;
-          },
+          }
         }
       );
       expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
@@ -736,27 +607,17 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('dot separated attributes when doing a raw query without nest', async function () {
-      const tickChar =
-          dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
-        sql = `select 1 as ${Sequelize.Utils.addTicks(
-          'foo.bar.baz',
-          tickChar
-        )}`;
+      const tickChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
+        sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}`;
 
-      await expect(
-        this.sequelize
-          .query(sql, { raw: true, nest: false })
-          .then((obj) => obj[0])
-      ).to.eventually.deep.equal([{ 'foo.bar.baz': 1 }]);
+      await expect(this.sequelize.query(sql, { raw: true, nest: false }).then(obj => obj[0])).to.eventually.deep.equal([
+        { 'foo.bar.baz': 1 }
+      ]);
     });
 
     it('destructs dot separated attributes when doing a raw query using nest', async function () {
-      const tickChar =
-          dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
-        sql = `select 1 as ${Sequelize.Utils.addTicks(
-          'foo.bar.baz',
-          tickChar
-        )}`;
+      const tickChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
+        sql = `select 1 as ${Sequelize.Utils.addTicks('foo.bar.baz', tickChar)}`;
 
       const result = await this.sequelize.query(sql, { raw: true, nest: true });
       expect(result).to.deep.equal([{ foo: { bar: { baz: 1 } } }]);
@@ -765,7 +626,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('replaces token with the passed array', async function () {
       const result = await this.sequelize.query('select ? as foo, ? as bar', {
         type: this.sequelize.QueryTypes.SELECT,
-        replacements: [1, 2],
+        replacements: [1, 2]
       });
       expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
     });
@@ -775,9 +636,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         this.sequelize
           .query('select :one as foo, :two as bar', {
             raw: true,
-            replacements: { one: 1, two: 2 },
+            replacements: { one: 1, two: 2 }
           })
-          .then((obj) => obj[0])
+          .then(obj => obj[0])
       ).to.eventually.deep.equal([{ foo: 1, bar: 2 }]);
     });
 
@@ -786,9 +647,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         this.sequelize
           .query("select :one as foo, :two as bar, '00:00' as baz", {
             raw: true,
-            replacements: { one: 1, two: 2 },
+            replacements: { one: 1, two: 2 }
           })
-          .then((obj) => obj[0])
+          .then(obj => obj[0])
       ).to.eventually.deep.equal([{ foo: 1, bar: 2, baz: '00:00' }]);
     });
 
@@ -797,9 +658,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         this.sequelize
           .query('select :one as foo, :two as bar, :one as baz', {
             raw: true,
-            replacements: { one: 1, two: 2 },
+            replacements: { one: 1, two: 2 }
           })
-          .then((obj) => obj[0])
+          .then(obj => obj[0])
       ).to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
     });
 
@@ -808,25 +669,22 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         this.sequelize
           .query('select :one as foo, :two as bar', {
             raw: true,
-            replacements: { one: 1, two: null },
+            replacements: { one: 1, two: null }
           })
-          .then((obj) => obj[0])
+          .then(obj => obj[0])
       ).to.eventually.deep.equal([{ foo: 1, bar: null }]);
     });
 
     it('binds token with the passed array', async function () {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
-      const result = await this.sequelize.query(
-        `select $1${typeCast} as foo, $2${typeCast} as bar`,
-        {
-          type: this.sequelize.QueryTypes.SELECT,
-          bind: [1, 2],
-          logging(s) {
-            logSql = s;
-          },
+      const result = await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar`, {
+        type: this.sequelize.QueryTypes.SELECT,
+        bind: [1, 2],
+        logging(s) {
+          logSql = s;
         }
-      );
+      });
       expect(result).to.deep.equal([{ foo: 1, bar: 2 }]);
       if (dialect === 'postgres' || dialect === 'sqlite') {
         expect(logSql).to.include('$1');
@@ -836,16 +694,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('binds named parameters with the passed object', async function () {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
-      const result = await this.sequelize.query(
-        `select $one${typeCast} as foo, $two${typeCast} as bar`,
-        {
-          raw: true,
-          bind: { one: 1, two: 2 },
-          logging(s) {
-            logSql = s;
-          },
+      const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar`, {
+        raw: true,
+        bind: { one: 1, two: 2 },
+        logging(s) {
+          logSql = s;
         }
-      );
+      });
       expect(result[0]).to.deep.equal([{ foo: 1, bar: 2 }]);
       if (dialect === 'postgres') {
         expect(logSql).to.include('$1');
@@ -865,7 +720,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           bind: { one: 1, two: 2 },
           logging(s) {
             logSql = s;
-          },
+          }
         }
       );
       expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
@@ -878,26 +733,23 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('binds named parameters with the passed object having a null property', async function () {
       const typeCast = dialect === 'postgres' ? '::int' : '';
-      const result = await this.sequelize.query(
-        `select $one${typeCast} as foo, $two${typeCast} as bar`,
-        { raw: true, bind: { one: 1, two: null } }
-      );
+      const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar`, {
+        raw: true,
+        bind: { one: 1, two: null }
+      });
       expect(result[0]).to.deep.equal([{ foo: 1, bar: null }]);
     });
 
     it('binds named parameters array handles escaped $$', async function () {
       const typeCast = dialect === 'postgres' ? '::int' : '';
       let logSql;
-      const result = await this.sequelize.query(
-        `select $1${typeCast} as foo, '$$ / $$1' as bar`,
-        {
-          raw: true,
-          bind: [1],
-          logging(s) {
-            logSql = s;
-          },
+      const result = await this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar`, {
+        raw: true,
+        bind: [1],
+        logging(s) {
+          logSql = s;
         }
-      );
+      });
       expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $1' }]);
       if (dialect === 'postgres' || dialect === 'sqlite') {
         expect(logSql).to.include('$1');
@@ -906,28 +758,25 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('binds named parameters object handles escaped $$', async function () {
       const typeCast = dialect === 'postgres' ? '::int' : '';
-      const result = await this.sequelize.query(
-        `select $one${typeCast} as foo, '$$ / $$one' as bar`,
-        { raw: true, bind: { one: 1 } }
-      );
+      const result = await this.sequelize.query(`select $one${typeCast} as foo, '$$ / $$one' as bar`, {
+        raw: true,
+        bind: { one: 1 }
+      });
       expect(result[0]).to.deep.equal([{ foo: 1, bar: '$ / $one' }]);
     });
 
     it('escape where has $ on the middle of characters', async function () {
       const typeCast = dialect === 'postgres' ? '::int' : '';
-      const result = await this.sequelize.query(
-        `select $one${typeCast} as foo$bar`,
-        { raw: true, bind: { one: 1 } }
-      );
+      const result = await this.sequelize.query(`select $one${typeCast} as foo$bar`, { raw: true, bind: { one: 1 } });
       expect(result[0]).to.deep.equal([{ foo$bar: 1 }]);
     });
 
     if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
       it('does not improperly escape arrays of strings bound to named parameters', async function () {
-        const result = await this.sequelize.query(
-          'select :stringArray as foo',
-          { raw: true, replacements: { stringArray: ['"string"'] } }
-        );
+        const result = await this.sequelize.query('select :stringArray as foo', {
+          raw: true,
+          replacements: { stringArray: ['"string"'] }
+        });
         expect(result[0]).to.deep.equal([{ foo: '"string"' }]);
       });
     }
@@ -948,9 +797,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           this.sequelize
             .query("select :one as foo, :two as bar, '1000'::integer as baz", {
               raw: true,
-              replacements: { one: 1, two: 2 },
+              replacements: { one: 1, two: 2 }
             })
-            .then((obj) => obj[0])
+            .then(obj => obj[0])
         ).to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1000 }]);
       });
 
@@ -960,7 +809,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             .query(
               'WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t'
             )
-            .then((obj) => obj[0])
+            .then(obj => obj[0])
         ).to.eventually.deep.equal([{ sum: '5050' }]);
       });
     }
@@ -968,16 +817,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     if (Support.getTestDialect() === 'sqlite') {
       it('binds array parameters for upsert are replaced. $$ unescapes only once', async function () {
         let logSql;
-        await this.sequelize.query(
-          "select $1 as foo, $2 as bar, '$$$$' as baz",
-          {
-            type: this.sequelize.QueryTypes.UPSERT,
-            bind: [1, 2],
-            logging(s) {
-              logSql = s;
-            },
+        await this.sequelize.query("select $1 as foo, $2 as bar, '$$$$' as baz", {
+          type: this.sequelize.QueryTypes.UPSERT,
+          bind: [1, 2],
+          logging(s) {
+            logSql = s;
           }
-        );
+        });
         // sqlite.exec does not return a result
         expect(logSql).to.not.include('$one');
         expect(logSql).to.include("'$$'");
@@ -985,16 +831,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('binds named parameters for upsert are replaced. $$ unescapes only once', async function () {
         let logSql;
-        await this.sequelize.query(
-          "select $one as foo, $two as bar, '$$$$' as baz",
-          {
-            type: this.sequelize.QueryTypes.UPSERT,
-            bind: { one: 1, two: 2 },
-            logging(s) {
-              logSql = s;
-            },
+        await this.sequelize.query("select $one as foo, $two as bar, '$$$$' as baz", {
+          type: this.sequelize.QueryTypes.UPSERT,
+          bind: { one: 1, two: 2 },
+          logging(s) {
+            logSql = s;
           }
-        );
+        });
         // sqlite.exec does not return a result
         expect(logSql).to.not.include('$one');
         expect(logSql).to.include("'$$'");

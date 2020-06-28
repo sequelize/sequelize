@@ -27,10 +27,10 @@ if (current.dialect.supports['UNION ALL']) {
 
         beforeEach(async function () {
           this.User = this.sequelize.define('user', {
-            age: Sequelize.INTEGER,
+            age: Sequelize.INTEGER
           });
           this.Project = this.sequelize.define('project', {
-            title: DataTypes.STRING,
+            title: DataTypes.STRING
           });
           this.Task = this.sequelize.define('task');
 
@@ -41,24 +41,24 @@ if (current.dialect.supports['UNION ALL']) {
               timestamps: true,
               paranoid: true,
               createdAt: false,
-              updatedAt: false,
+              updatedAt: false
             }
           );
 
           this.User.Projects = this.User.belongsToMany(this.Project, {
-            through: 'project_user',
+            through: 'project_user'
           });
           this.Project.belongsToMany(this.User, {
             as: 'members',
-            through: 'project_user',
+            through: 'project_user'
           });
 
           this.User.ParanoidProjects = this.User.belongsToMany(this.Project, {
-            through: this.ProjectUserParanoid,
+            through: this.ProjectUserParanoid
           });
           this.Project.belongsToMany(this.User, {
             as: 'paranoidMembers',
-            through: this.ProjectUserParanoid,
+            through: this.ProjectUserParanoid
           });
 
           this.User.Tasks = this.User.hasMany(this.Task);
@@ -73,16 +73,16 @@ if (current.dialect.supports['UNION ALL']) {
               { age: -9 },
               { age: 8 },
               { age: 15 },
-              { age: -9 },
+              { age: -9 }
             ]),
             this.Project.bulkCreate([{}, {}]),
-            this.Task.bulkCreate([{}, {}]),
+            this.Task.bulkCreate([{}, {}])
           ]);
 
           const [users, projects, tasks] = await Promise.all([
             this.User.findAll(),
             this.Project.findAll(),
-            this.Task.findAll(),
+            this.Task.findAll()
           ]);
           this.projects = projects;
 
@@ -91,7 +91,7 @@ if (current.dialect.supports['UNION ALL']) {
             projects[1].setMembers(users.slice(2)),
             projects[0].setParanoidMembers(users.slice(0, 4)),
             projects[1].setParanoidMembers(users.slice(2)),
-            users[2].setTasks(tasks),
+            users[2].setTasks(tasks)
           ]);
         });
 
@@ -101,19 +101,19 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
-                values: this.projects.map((item) => item.get('id')),
-              },
+                values: this.projects.map(item => item.get('id'))
+              }
             });
 
             expect(users).to.have.length(5);
             users
-              .filter((u) => u.get('id') !== 3)
-              .forEach((u) => {
+              .filter(u => u.get('id') !== 3)
+              .forEach(u => {
                 expect(u.get('projects')).to.have.length(1);
               });
             users
-              .filter((u) => u.get('id') === 3)
-              .forEach((u) => {
+              .filter(u => u.get('id') === 3)
+              .forEach(u => {
                 expect(u.get('projects')).to.have.length(2);
               });
           });
@@ -123,10 +123,10 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
-                values: this.projects.map((item) => item.get('id')),
+                values: this.projects.map(item => item.get('id'))
               },
               order: ['id'],
-              include: [this.User.Tasks],
+              include: [this.User.Tasks]
             });
 
             /*
@@ -134,23 +134,17 @@ if (current.dialect.supports['UNION ALL']) {
              project2 - 3, 4, 5
              */
             expect(users).to.have.length(5);
-            expect(users.map((u) => u.get('id'))).to.deep.equal([
-              1,
-              2,
-              3,
-              4,
-              5,
-            ]);
+            expect(users.map(u => u.get('id'))).to.deep.equal([1, 2, 3, 4, 5]);
 
             expect(users[2].get('tasks')).to.have.length(2);
             users
-              .filter((u) => u.get('id') !== 3)
-              .forEach((u) => {
+              .filter(u => u.get('id') !== 3)
+              .forEach(u => {
                 expect(u.get('projects')).to.have.length(1);
               });
             users
-              .filter((u) => u.get('id') === 3)
-              .forEach((u) => {
+              .filter(u => u.get('id') === 3)
+              .forEach(u => {
                 expect(u.get('projects')).to.have.length(2);
               });
           });
@@ -161,10 +155,10 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
-                values: this.projects.map((item) => item.get('id')),
+                values: this.projects.map(item => item.get('id'))
               },
               order: [Sequelize.fn('ABS', Sequelize.col('age'))],
-              include: [this.User.Tasks],
+              include: [this.User.Tasks]
             });
 
             /*
@@ -172,7 +166,7 @@ if (current.dialect.supports['UNION ALL']) {
              project2 - 3, 5, 4
            */
             expect(users).to.have.length(4);
-            expect(users.map((u) => u.get('id'))).to.deep.equal([1, 3, 5, 4]);
+            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 4]);
           });
 
           it('works with multiple orders', async function () {
@@ -181,13 +175,10 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
-                values: this.projects.map((item) => item.get('id')),
+                values: this.projects.map(item => item.get('id'))
               },
-              order: [
-                Sequelize.fn('ABS', Sequelize.col('age')),
-                ['id', 'DESC'],
-              ],
-              include: [this.User.Tasks],
+              order: [Sequelize.fn('ABS', Sequelize.col('age')), ['id', 'DESC']],
+              include: [this.User.Tasks]
             });
 
             /*
@@ -195,13 +186,7 @@ if (current.dialect.supports['UNION ALL']) {
               project2 - 3, 5, 7
              */
             expect(users).to.have.length(5);
-            expect(users.map((u) => u.get('id'))).to.deep.equal([
-              1,
-              3,
-              5,
-              7,
-              4,
-            ]);
+            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
           });
 
           it('works with paranoid junction models', async function () {
@@ -210,13 +195,10 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.ParanoidProjects,
-                values: this.projects.map((item) => item.get('id')),
+                values: this.projects.map(item => item.get('id'))
               },
-              order: [
-                Sequelize.fn('ABS', Sequelize.col('age')),
-                ['id', 'DESC'],
-              ],
-              include: [this.User.Tasks],
+              order: [Sequelize.fn('ABS', Sequelize.col('age')), ['id', 'DESC']],
+              include: [this.User.Tasks]
             });
 
             /*
@@ -224,17 +206,11 @@ if (current.dialect.supports['UNION ALL']) {
               project2 - 3, 5, 7
              */
             expect(users0).to.have.length(5);
-            expect(users0.map((u) => u.get('id'))).to.deep.equal([
-              1,
-              3,
-              5,
-              7,
-              4,
-            ]);
+            expect(users0.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
 
             await Promise.all([
               this.projects[0].setParanoidMembers(users0.slice(0, 2)),
-              this.projects[1].setParanoidMembers(users0.slice(4)),
+              this.projects[1].setParanoidMembers(users0.slice(4))
             ]);
 
             const users = await this.User.findAll({
@@ -242,13 +218,10 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.ParanoidProjects,
-                values: this.projects.map((item) => item.get('id')),
+                values: this.projects.map(item => item.get('id'))
               },
-              order: [
-                Sequelize.fn('ABS', Sequelize.col('age')),
-                ['id', 'DESC'],
-              ],
-              include: [this.User.Tasks],
+              order: [Sequelize.fn('ABS', Sequelize.col('age')), ['id', 'DESC']],
+              include: [this.User.Tasks]
             });
 
             /*
@@ -256,7 +229,7 @@ if (current.dialect.supports['UNION ALL']) {
               project2 - 4
              */
             expect(users).to.have.length(3);
-            expect(users.map((u) => u.get('id'))).to.deep.equal([1, 3, 4]);
+            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 4]);
           });
         });
 
@@ -270,26 +243,16 @@ if (current.dialect.supports['UNION ALL']) {
 
             await Promise.all([
               this.User.bulkCreate([{}, {}, {}]),
-              this.Task.bulkCreate([
-                { id: 1 },
-                { id: 2 },
-                { id: 3 },
-                { id: 4 },
-                { id: 5 },
-                { id: 6 },
-              ]),
+              this.Task.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }])
             ]);
 
-            const [users, tasks] = await Promise.all([
-              this.User.findAll(),
-              this.Task.findAll(),
-            ]);
+            const [users, tasks] = await Promise.all([this.User.findAll(), this.Task.findAll()]);
             this.users = users;
 
             await Promise.all([
               users[0].setTasks(tasks[0]),
               users[1].setTasks(tasks.slice(1, 4)),
-              users[2].setTasks(tasks.slice(4)),
+              users[2].setTasks(tasks.slice(4))
             ]);
           });
 
@@ -299,8 +262,8 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Tasks,
-                values: this.users.map((item) => item.get('id')),
-              },
+                values: this.users.map(item => item.get('id'))
+              }
             });
 
             const byUser = _.groupBy(tasks, _.property('userId'));
@@ -308,11 +271,7 @@ if (current.dialect.supports['UNION ALL']) {
 
             expect(byUser[1]).to.have.length(1);
             expect(byUser[2]).to.have.length(3);
-            expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([
-              4,
-              3,
-              2,
-            ]);
+            expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
             expect(byUser[3]).to.have.length(2);
           });
         });

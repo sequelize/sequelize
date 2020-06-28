@@ -22,11 +22,7 @@ class AsyncQueue {
   close() {
     this.closed = true;
     this.rejectCurrent(
-      new ConnectionError(
-        new AsyncQueueError(
-          'the connection was closed before this query could finish executing'
-        )
-      )
+      new ConnectionError(new AsyncQueueError('the connection was closed before this query could finish executing'))
     );
   }
   enqueue(asyncFunction) {
@@ -38,11 +34,7 @@ class AsyncQueue {
         this.rejectCurrent = reject;
         if (this.closed) {
           return reject(
-            new ConnectionError(
-              new AsyncQueueError(
-                'the connection was closed before this query could be executed'
-              )
-            )
+            new ConnectionError(new AsyncQueueError('the connection was closed before this query could be executed'))
           );
         }
         return asyncFunction().then(resolve, reject);

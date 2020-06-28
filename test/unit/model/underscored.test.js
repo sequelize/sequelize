@@ -15,11 +15,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           id: {
             type: DataTypes.CHAR(10),
             primaryKey: true,
-            field: 'n_id',
-          },
+            field: 'n_id'
+          }
         },
         {
-          underscored: true,
+          underscored: true
         }
       );
 
@@ -29,11 +29,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           id: {
             type: Sequelize.CHAR(20),
             primaryKey: true,
-            field: 'm_id',
-          },
+            field: 'm_id'
+          }
         },
         {
-          underscored: true,
+          underscored: true
         }
       );
       this.NM = this.sequelize.define('NM', {});
@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('hasOne does not override already defined field', function () {
       this.N.rawAttributes['mId'] = {
         type: Sequelize.CHAR(20),
-        field: 'n_m_id',
+        field: 'n_m_id'
       };
       this.N.refreshAttributes();
 
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('belongsTo does not override already defined field', function () {
       this.N.rawAttributes['mId'] = {
         type: Sequelize.CHAR(20),
-        field: 'n_m_id',
+        field: 'n_m_id'
       };
       this.N.refreshAttributes();
 
@@ -71,7 +71,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('hasOne/belongsTo does not override already defined field', function () {
       this.N.rawAttributes['mId'] = {
         type: Sequelize.CHAR(20),
-        field: 'n_m_id',
+        field: 'n_m_id'
       };
       this.N.refreshAttributes();
 
@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('hasMany does not override already defined field', function () {
       this.M.rawAttributes['nId'] = {
         type: Sequelize.CHAR(20),
-        field: 'nana_id',
+        field: 'nana_id'
       };
       this.M.refreshAttributes();
 
@@ -102,15 +102,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         {
           n_id: {
             type: Sequelize.CHAR(10),
-            field: 'nana_id',
+            field: 'nana_id'
           },
           m_id: {
             type: Sequelize.CHAR(20),
-            field: 'mama_id',
-          },
+            field: 'mama_id'
+          }
         },
         {
-          underscored: true,
+          underscored: true
         }
       );
 

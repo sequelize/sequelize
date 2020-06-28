@@ -22,7 +22,7 @@ class BelongsTo extends Association {
     if (this.as) {
       this.isAliased = true;
       this.options.name = {
-        singular: this.as,
+        singular: this.as
       };
     } else {
       this.as = this.target.options.name.singular;
@@ -31,38 +31,29 @@ class BelongsTo extends Association {
 
     if (_.isObject(this.options.foreignKey)) {
       this.foreignKeyAttribute = this.options.foreignKey;
-      this.foreignKey =
-        this.foreignKeyAttribute.name || this.foreignKeyAttribute.fieldName;
+      this.foreignKey = this.foreignKeyAttribute.name || this.foreignKeyAttribute.fieldName;
     } else if (this.options.foreignKey) {
       this.foreignKey = this.options.foreignKey;
     }
 
     if (!this.foreignKey) {
-      this.foreignKey = Utils.camelize(
-        [this.as, this.target.primaryKeyAttribute].join('_')
-      );
+      this.foreignKey = Utils.camelize([this.as, this.target.primaryKeyAttribute].join('_'));
     }
 
     this.identifier = this.foreignKey;
     if (this.source.rawAttributes[this.identifier]) {
-      this.identifierField =
-        this.source.rawAttributes[this.identifier].field || this.identifier;
+      this.identifierField = this.source.rawAttributes[this.identifier].field || this.identifier;
     }
 
-    if (
-      this.options.targetKey &&
-      !this.target.rawAttributes[this.options.targetKey]
-    ) {
+    if (this.options.targetKey && !this.target.rawAttributes[this.options.targetKey]) {
       throw new Error(
         `Unknown attribute "${this.options.targetKey}" passed as targetKey, define this attribute on model "${this.target.name}" first`
       );
     }
 
     this.targetKey = this.options.targetKey || this.target.primaryKeyAttribute;
-    this.targetKeyField =
-      this.target.rawAttributes[this.targetKey].field || this.targetKey;
-    this.targetKeyIsPrimary =
-      this.targetKey === this.target.primaryKeyAttribute;
+    this.targetKeyField = this.target.rawAttributes[this.targetKey].field || this.targetKey;
+    this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
     this.targetIdentifier = this.targetKey;
 
     this.associationAccessor = this.as;
@@ -74,7 +65,7 @@ class BelongsTo extends Association {
     this.accessors = {
       get: `get${singular}`,
       set: `set${singular}`,
-      create: `create${singular}`,
+      create: `create${singular}`
     };
   }
 
@@ -82,20 +73,15 @@ class BelongsTo extends Association {
   _injectAttributes() {
     const newAttributes = {
       [this.foreignKey]: {
-        type:
-          this.options.keyType ||
-          this.target.rawAttributes[this.targetKey].type,
+        type: this.options.keyType || this.target.rawAttributes[this.targetKey].type,
         allowNull: true,
-        ...this.foreignKeyAttribute,
-      },
+        ...this.foreignKeyAttribute
+      }
     };
 
     if (this.options.constraints !== false) {
-      const source =
-        this.source.rawAttributes[this.foreignKey] ||
-        newAttributes[this.foreignKey];
-      this.options.onDelete =
-        this.options.onDelete || (source.allowNull ? 'SET NULL' : 'NO ACTION');
+      const source = this.source.rawAttributes[this.foreignKey] || newAttributes[this.foreignKey];
+      this.options.onDelete = this.options.onDelete || (source.allowNull ? 'SET NULL' : 'NO ACTION');
       this.options.onUpdate = this.options.onUpdate || 'CASCADE';
     }
 
@@ -110,8 +96,7 @@ class BelongsTo extends Association {
 
     this.source.refreshAttributes();
 
-    this.identifierField =
-      this.source.rawAttributes[this.foreignKey].field || this.foreignKey;
+    this.identifierField = this.source.rawAttributes[this.foreignKey].field || this.foreignKey;
 
     Helpers.checkNamingCollision(this);
 
@@ -163,7 +148,7 @@ class BelongsTo extends Association {
 
     if (instances) {
       where[this.targetKey] = {
-        [Op.in]: instances.map((_instance) => _instance.get(this.foreignKey)),
+        [Op.in]: instances.map(_instance => _instance.get(this.foreignKey))
       };
     } else {
       if (this.targetKeyIsPrimary && !options.where) {
@@ -173,9 +158,7 @@ class BelongsTo extends Association {
       options.limit = null;
     }
 
-    options.where = options.where
-      ? { [Op.and]: [where, options.where] }
-      : where;
+    options.where = options.where ? { [Op.and]: [where, options.where] } : where;
 
     if (instances) {
       const results = await Target.findAll(options);
@@ -219,7 +202,7 @@ class BelongsTo extends Association {
       fields: [this.foreignKey],
       allowNull: [this.foreignKey],
       association: true,
-      ...options,
+      ...options
     };
 
     // passes the changed field to save, so only that field get updated.

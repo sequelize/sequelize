@@ -19,12 +19,12 @@ if (dialect === 'sqlite') {
       this.User = this.sequelize.define('User', {
         age: DataTypes.INTEGER,
         name: DataTypes.STRING,
-        bio: DataTypes.TEXT,
+        bio: DataTypes.TEXT
       });
       await this.User.sync({ force: true });
     });
 
-    storages.forEach((storage) => {
+    storages.forEach(storage => {
       describe(`with storage "${storage}"`, () => {
         after(() => {
           if (storage === dbFile) {
@@ -37,14 +37,14 @@ if (dialect === 'sqlite') {
             const user = await this.User.create({
               age: 21,
               name: 'John Wayne',
-              bio: 'noot noot',
+              bio: 'noot noot'
             });
             expect(user.age).to.equal(21);
             expect(user.name).to.equal('John Wayne');
             expect(user.bio).to.equal('noot noot');
 
             const users = await this.User.findAll();
-            const usernames = users.map((user) => {
+            const usernames = users.map(user => {
               return user.name;
             });
             expect(usernames).to.contain('John Wayne');
@@ -53,7 +53,7 @@ if (dialect === 'sqlite') {
           it('should allow the creation of an object with options as attribute', async function () {
             const Person = this.sequelize.define('Person', {
               name: DataTypes.STRING,
-              options: DataTypes.TEXT,
+              options: DataTypes.TEXT
             });
 
             await Person.sync({ force: true });
@@ -61,7 +61,7 @@ if (dialect === 'sqlite') {
 
             const people = await Person.create({
               name: 'John Doe',
-              options,
+              options
             });
 
             expect(people.options).to.deep.equal(options);
@@ -70,14 +70,14 @@ if (dialect === 'sqlite') {
           it('should allow the creation of an object with a boolean (true) as attribute', async function () {
             const Person = this.sequelize.define('Person', {
               name: DataTypes.STRING,
-              has_swag: DataTypes.BOOLEAN,
+              has_swag: DataTypes.BOOLEAN
             });
 
             await Person.sync({ force: true });
 
             const people = await Person.create({
               name: 'John Doe',
-              has_swag: true,
+              has_swag: true
             });
 
             expect(people.has_swag).to.be.ok;
@@ -86,14 +86,14 @@ if (dialect === 'sqlite') {
           it('should allow the creation of an object with a boolean (false) as attribute', async function () {
             const Person = this.sequelize.define('Person', {
               name: DataTypes.STRING,
-              has_swag: DataTypes.BOOLEAN,
+              has_swag: DataTypes.BOOLEAN
             });
 
             await Person.sync({ force: true });
 
             const people = await Person.create({
               name: 'John Doe',
-              has_swag: false,
+              has_swag: false
             });
 
             expect(people.has_swag).to.not.be.ok;
@@ -114,7 +114,7 @@ if (dialect === 'sqlite') {
             // eslint-disable-line mocha/no-skipped-tests
             const user = await this.User.findOne({
               where: { name: 'user' },
-              attributes: ['id', ['name', 'username']],
+              attributes: ['id', ['name', 'username']]
             });
 
             expect(user.username).to.equal('user');
@@ -125,7 +125,7 @@ if (dialect === 'sqlite') {
           beforeEach(async function () {
             await this.User.bulkCreate([
               { name: 'user', bio: 'foobar' },
-              { name: 'user', bio: 'foobar' },
+              { name: 'user', bio: 'foobar' }
             ]);
           });
 

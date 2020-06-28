@@ -14,7 +14,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const Project = current.define('Project', { name: DataTypes.STRING });
         const LevelTwo = current.define('LevelTwo', { name: DataTypes.STRING });
         const LevelThree = current.define('LevelThree', {
-          type: DataTypes.INTEGER,
+          type: DataTypes.INTEGER
         });
 
         Project.hasMany(LevelTwo);
@@ -31,13 +31,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             const [project, level21, level22] = await Promise.all([
               Project.create({ name: 'testProject' }),
               LevelTwo.create({ name: 'testL21' }),
-              LevelTwo.create({ name: 'testL22' }),
+              LevelTwo.create({ name: 'testL22' })
             ]);
 
-            await Promise.all([
-              project.addLevelTwo(level21),
-              project.addLevelTwo(level22),
-            ]);
+            await Promise.all([project.addLevelTwo(level21), project.addLevelTwo(level22)]);
 
             // one include case
             const projects0 = await Project.findAll({
@@ -52,11 +49,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                       where: { type: 0 },
                       separate: true,
                       limit: 1,
-                      order: [['createdAt', 'DESC']],
-                    },
-                  ],
-                },
-              ],
+                      order: [['createdAt', 'DESC']]
+                    }
+                  ]
+                }
+              ]
             });
 
             expect(projects0).to.have.length(1);
@@ -80,7 +77,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     where: { type: 0 },
                     separate: true,
                     limit: 1,
-                    order: [['createdAt', 'DESC']],
+                    order: [['createdAt', 'DESC']]
                   },
                   {
                     model: LevelThree,
@@ -88,11 +85,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     where: { type: 1 },
                     separate: true,
                     limit: 1,
-                    order: [['createdAt', 'DESC']],
-                  },
-                ],
-              },
-            ],
+                    order: [['createdAt', 'DESC']]
+                  }
+                ]
+              }
+            ]
           });
 
           expect(projects).to.have.length(1);

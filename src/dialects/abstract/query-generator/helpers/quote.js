@@ -37,7 +37,7 @@ function quoteIdentifier(dialect, identifier, options) {
 
   options = Utils.defaults(options || {}, {
     force: false,
-    quoteIdentifiers: true,
+    quoteIdentifiers: true
   });
 
   switch (dialect) {

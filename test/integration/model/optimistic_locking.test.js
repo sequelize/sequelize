@@ -13,11 +13,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         'Account',
         {
           number: {
-            type: DataTypes.INTEGER,
-          },
+            type: DataTypes.INTEGER
+          }
         },
         {
-          version: true,
+          version: true
         }
       );
       await Account.sync({ force: true });

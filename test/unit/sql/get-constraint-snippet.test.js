@@ -15,10 +15,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sql.getConstraintSnippet('myTable', {
             name: 'unique_mytable_mycolumn',
             type: 'UNIQUE',
-            fields: ['myColumn'],
+            fields: ['myColumn']
           }),
           {
-            default: 'CONSTRAINT [unique_mytable_mycolumn] UNIQUE ([myColumn])',
+            default: 'CONSTRAINT [unique_mytable_mycolumn] UNIQUE ([myColumn])'
           }
         );
       });
@@ -27,10 +27,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         expectsql(
           sql.getConstraintSnippet('myTable', {
             type: 'UNIQUE',
-            fields: ['myColumn'],
+            fields: ['myColumn']
           }),
           {
-            default: 'CONSTRAINT [myTable_myColumn_uk] UNIQUE ([myColumn])',
+            default: 'CONSTRAINT [myTable_myColumn_uk] UNIQUE ([myColumn])'
           }
         );
       });
@@ -39,11 +39,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         expectsql(
           sql.getConstraintSnippet('myTable', {
             type: 'UNIQUE',
-            fields: ['myColumn1', 'myColumn2'],
+            fields: ['myColumn1', 'myColumn2']
           }),
           {
-            default:
-              'CONSTRAINT [myTable_myColumn1_myColumn2_uk] UNIQUE ([myColumn1], [myColumn2])',
+            default: 'CONSTRAINT [myTable_myColumn1_myColumn2_uk] UNIQUE ([myColumn1], [myColumn2])'
           }
         );
       });
@@ -56,18 +55,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: 'CHECK',
             fields: [
               {
-                attribute: 'myColumn',
-              },
+                attribute: 'myColumn'
+              }
             ],
             where: {
-              myColumn: ['value1', 'value2', 'value3'],
-            },
+              myColumn: ['value1', 'value2', 'value3']
+            }
           }),
           {
-            mssql:
-              "CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (N'value1', N'value2', N'value3'))",
-            default:
-              "CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN ('value1', 'value2', 'value3'))",
+            mssql: "CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (N'value1', N'value2', N'value3'))",
+            default: "CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN ('value1', 'value2', 'value3'))"
           }
         );
       });
@@ -82,14 +79,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               myColumn: {
                 [Op.and]: {
                   [Op.gt]: 50,
-                  [Op.lt]: 100,
-                },
-              },
-            },
+                  [Op.lt]: 100
+                }
+              }
+            }
           }),
           {
-            default:
-              'CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100))',
+            default: 'CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100))'
           }
         );
       });
@@ -101,11 +97,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           sql.getConstraintSnippet('myTable', {
             name: 'primary_mytable_mycolumn',
             type: 'primary key',
-            fields: ['myColumn'],
+            fields: ['myColumn']
           }),
           {
-            default:
-              'CONSTRAINT [primary_mytable_mycolumn] PRIMARY KEY ([myColumn])',
+            default: 'CONSTRAINT [primary_mytable_mycolumn] PRIMARY KEY ([myColumn])'
           }
         );
       });
@@ -114,11 +109,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         expectsql(
           sql.getConstraintSnippet('myTable', {
             type: 'PRIMARY KEY',
-            fields: ['myColumn'],
+            fields: ['myColumn']
           }),
           {
-            default:
-              'CONSTRAINT [myTable_myColumn_pk] PRIMARY KEY ([myColumn])',
+            default: 'CONSTRAINT [myTable_myColumn_pk] PRIMARY KEY ([myColumn])'
           }
         );
       });
@@ -127,11 +121,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         expectsql(
           sql.getConstraintSnippet('myTable', {
             type: 'PRIMARY KEY',
-            fields: ['myColumn1', 'myColumn2'],
+            fields: ['myColumn1', 'myColumn2']
           }),
           {
-            default:
-              'CONSTRAINT [myTable_myColumn1_myColumn2_pk] PRIMARY KEY ([myColumn1], [myColumn2])',
+            default: 'CONSTRAINT [myTable_myColumn1_myColumn2_pk] PRIMARY KEY ([myColumn1], [myColumn2])'
           }
         );
       });
@@ -146,12 +139,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             fields: ['myColumn'],
             references: {
               table: 'myOtherTable',
-              field: 'id',
-            },
+              field: 'id'
+            }
           }),
           {
             default:
-              'CONSTRAINT [foreignkey_mytable_mycolumn] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id])',
+              'CONSTRAINT [foreignkey_mytable_mycolumn] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id])'
           }
         );
       });
@@ -163,14 +156,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             fields: ['myColumn'],
             references: {
               table: 'myOtherTable',
-              field: 'id',
+              field: 'id'
             },
             onUpdate: 'cascade',
-            onDelete: 'cascade',
+            onDelete: 'cascade'
           }),
           {
             default:
-              'CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE',
+              'CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE'
           }
         );
       });
@@ -179,7 +172,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         expect(
           sql.getConstraintSnippet.bind(sql, 'myTable', {
             type: 'foreign key',
-            fields: ['myColumn'],
+            fields: ['myColumn']
           })
         ).to.throw('references object with table and field must be specified');
       });
@@ -190,7 +183,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         expect(
           sql.getConstraintSnippet.bind(sql, 'myTable', {
             type: 'some type',
-            fields: [],
+            fields: []
           })
         ).to.throw('some type is invalid');
       });

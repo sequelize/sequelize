@@ -60,14 +60,14 @@ class ConnectionManager extends AbstractConnectionManager {
       typeCast: ConnectionManager._typecast.bind(this),
       bigNumberStrings: false,
       supportBigNumbers: true,
-      ...config.dialectOptions,
+      ...config.dialectOptions
     };
 
     try {
       const connection = await new Promise((resolve, reject) => {
         const connection = this.lib.createConnection(connectionConfig);
 
-        const errorHandler = (e) => {
+        const errorHandler = e => {
           // clean up connect & error event if there is error
           connection.removeListener('connect', connectHandler);
           connection.removeListener('error', connectHandler);
@@ -89,7 +89,7 @@ class ConnectionManager extends AbstractConnectionManager {
       });
 
       debug('connection acquired');
-      connection.on('error', (error) => {
+      connection.on('error', error => {
         switch (error.code) {
           case 'ESOCKET':
           case 'ECONNRESET':
@@ -103,12 +103,8 @@ class ConnectionManager extends AbstractConnectionManager {
         // set timezone for this connection
         // but named timezone are not directly supported in mysql, so get its offset first
         let tzOffset = this.sequelize.options.timezone;
-        tzOffset = /\//.test(tzOffset)
-          ? momentTz.tz(tzOffset).format('Z')
-          : tzOffset;
-        await promisify((cb) =>
-          connection.query(`SET time_zone = '${tzOffset}'`, cb)
-        )();
+        tzOffset = /\//.test(tzOffset) ? momentTz.tz(tzOffset).format('Z') : tzOffset;
+        await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
       }
 
       return connection;
@@ -137,7 +133,7 @@ class ConnectionManager extends AbstractConnectionManager {
       return;
     }
 
-    return await promisify((callback) => connection.end(callback))();
+    return await promisify(callback => connection.end(callback))();
   }
 
   validate(connection) {

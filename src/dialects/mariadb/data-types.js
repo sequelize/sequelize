@@ -2,9 +2,8 @@ const wkx = require('wkx');
 const _ = require('lodash');
 const moment = require('moment-timezone');
 
-module.exports = (BaseTypes) => {
-  BaseTypes.ABSTRACT.prototype.dialectTypes =
-    'https://mariadb.com/kb/en/library/resultset/#field-types';
+module.exports = BaseTypes => {
+  BaseTypes.ABSTRACT.prototype.dialectTypes = 'https://mariadb.com/kb/en/library/resultset/#field-types';
 
   /**
    * types: [buffer_type, ...]
@@ -109,17 +108,13 @@ module.exports = (BaseTypes) => {
 
   class ENUM extends BaseTypes.ENUM {
     toSql(options) {
-      return `ENUM(${this.values
-        .map((value) => options.escape(value))
-        .join(', ')})`;
+      return `ENUM(${this.values.map(value => options.escape(value)).join(', ')})`;
     }
   }
 
   class JSONTYPE extends BaseTypes.JSON {
     _stringify(value, options) {
-      return options.operation === 'where' && typeof value === 'string'
-        ? value
-        : JSON.stringify(value);
+      return options.operation === 'where' && typeof value === 'string' ? value : JSON.stringify(value);
     }
   }
 
@@ -130,6 +125,6 @@ module.exports = (BaseTypes) => {
     UUID,
     GEOMETRY,
     DECIMAL,
-    JSON: JSONTYPE,
+    JSON: JSONTYPE
   };
 };

@@ -34,23 +34,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       validateTest: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        validate: { isInt: true },
+        validate: { isInt: true }
       },
       validateCustom: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: { len: { msg: 'Length failed.', args: [1, 20] } },
+        validate: { len: { msg: 'Length failed.', args: [1, 20] } }
       },
 
       dateAllowNullTrue: {
         type: DataTypes.DATE,
-        allowNull: true,
+        allowNull: true
       },
 
       isSuperUser: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false,
-      },
+        defaultValue: false
+      }
     });
 
     await this.User.sync({ force: true });
@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       await this.User.bulkCreate(users);
       const users0 = await this.User.findAll();
-      users0.forEach((u) => {
+      users0.forEach(u => {
         expect(u.isNewRecord).to.not.be.ok;
       });
     });
@@ -132,13 +132,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           id1: {
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV1,
-            primaryKey: true,
+            primaryKey: true
           },
           id2: {
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV1,
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         });
 
         const person = Person.build({});
@@ -175,7 +175,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const date = new Date();
         await this.User.build({
           username: 'a user',
-          dateAllowNullTrue: date,
+          dateAllowNullTrue: date
         }).save();
         const user = await this.User.findOne({ where: { username: 'a user' } });
         expect(user.dateAllowNullTrue.toString()).to.equal(date.toString());
@@ -185,13 +185,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     describe('super user boolean', () => {
       it('should default to false', async function () {
         await this.User.build({
-          username: 'a user',
+          username: 'a user'
         }).save();
 
         const user = await this.User.findOne({
           where: {
-            username: 'a user',
-          },
+            username: 'a user'
+          }
         });
 
         expect(user.isSuperUser).to.be.false;
@@ -200,13 +200,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('should override default when given truthy boolean', async function () {
         await this.User.build({
           username: 'a user',
-          isSuperUser: true,
+          isSuperUser: true
         }).save();
 
         const user = await this.User.findOne({
           where: {
-            username: 'a user',
-          },
+            username: 'a user'
+          }
         });
 
         expect(user.isSuperUser).to.be.true;
@@ -215,13 +215,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('should override default when given truthy boolean-string ("true")', async function () {
         await this.User.build({
           username: 'a user',
-          isSuperUser: 'true',
+          isSuperUser: 'true'
         }).save();
 
         const user = await this.User.findOne({
           where: {
-            username: 'a user',
-          },
+            username: 'a user'
+          }
         });
 
         expect(user.isSuperUser).to.be.true;
@@ -230,13 +230,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('should override default when given truthy boolean-int (1)', async function () {
         await this.User.build({
           username: 'a user',
-          isSuperUser: 1,
+          isSuperUser: 1
         }).save();
 
         const user = await this.User.findOne({
           where: {
-            username: 'a user',
-          },
+            username: 'a user'
+          }
         });
 
         expect(user.isSuperUser).to.be.true;
@@ -248,7 +248,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         try {
           await this.User.build({
             username: 'a user',
-            isSuperUser: 'INCORRECT_VALUE_TYPE',
+            isSuperUser: 'INCORRECT_VALUE_TYPE'
           }).save();
 
           callCount += 1;
@@ -282,7 +282,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       this.ParanoidUser = this.sequelize.define(
         'ParanoidUser',
         {
-          username: { type: DataTypes.STRING },
+          username: { type: DataTypes.STRING }
         },
         { paranoid: true }
       );
@@ -305,8 +305,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const users0 = await this.ParanoidUser.findAll({
         where: this.sequelize.and({
-          username: 'cuss',
-        }),
+          username: 'cuss'
+        })
       });
 
       expect(users0).to.have.length(1);
@@ -314,8 +314,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const users = await this.ParanoidUser.findAll({
         where: this.sequelize.and({
-          username: 'cuss',
-        }),
+          username: 'cuss'
+        })
       });
 
       expect(users).to.have.length(0);
@@ -326,8 +326,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const users0 = await this.ParanoidUser.findAll({
         where: this.sequelize.or({
-          username: 'cuss',
-        }),
+          username: 'cuss'
+        })
       });
 
       expect(users0).to.have.length(1);
@@ -335,8 +335,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const users = await this.ParanoidUser.findAll({
         where: this.sequelize.or({
-          username: 'cuss',
-        }),
+          username: 'cuss'
+        })
       });
 
       expect(users).to.have.length(0);
@@ -346,7 +346,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await this.User.create({ username: "user'name" });
 
       const users = await this.User.findAll({
-        where: { username: "user'name" },
+        where: { username: "user'name" }
       });
 
       expect(users.length).to.equal(1);
@@ -357,7 +357,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await this.User.create({ username: "user''name" });
 
       const users = await this.User.findAll({
-        where: { username: "user''name" },
+        where: { username: "user''name" }
       });
 
       expect(users.length).to.equal(1);
@@ -387,9 +387,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const UserDestroy = this.sequelize.define('UserDestroy', {
         newId: {
           type: DataTypes.STRING,
-          primaryKey: true,
+          primaryKey: true
         },
-        email: DataTypes.STRING,
+        email: DataTypes.STRING
       });
 
       await UserDestroy.sync();
@@ -420,7 +420,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await this.ParanoidUser.create({ username: 'fnord' });
       const users = await this.ParanoidUser.findAll();
       const linkedUser = await this.ParanoidUser.create({
-        username: 'linkedFnord',
+        username: 'linkedFnord'
       });
       const user = await users[0].setParanoidUser(linkedUser);
       expect(user.deletedAt).not.to.exist;
@@ -452,7 +452,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           setting_key: DataTypes.STRING,
           bool_value: { type: DataTypes.BOOLEAN, allowNull: true },
           bool_value2: { type: DataTypes.BOOLEAN, allowNull: true },
-          bool_value3: { type: DataTypes.BOOLEAN, allowNull: true },
+          bool_value3: { type: DataTypes.BOOLEAN, allowNull: true }
         },
         { timestamps: false, logging: false }
       );
@@ -461,7 +461,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await Setting.create({
         setting_key: 'test',
         bool_value: null,
-        bool_value2: undefined,
+        bool_value2: undefined
       });
       const setting = await Setting.findOne({ where: { setting_key: 'test' } });
       expect(setting.bool_value).to.equal(null);
@@ -482,7 +482,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         'UserAssociationEquals',
         {
           username: DataTypes.STRING,
-          age: DataTypes.INTEGER,
+          age: DataTypes.INTEGER
         },
         { timestamps: false }
       );
@@ -491,35 +491,35 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         'ProjectAssocationEquals',
         {
           title: DataTypes.STRING,
-          overdue_days: DataTypes.INTEGER,
+          overdue_days: DataTypes.INTEGER
         },
         { timestamps: false }
       );
 
       this.UserAssociationEqual.hasMany(this.ProjectAssociationEqual, {
         as: 'Projects',
-        foreignKey: 'userId',
+        foreignKey: 'userId'
       });
       this.ProjectAssociationEqual.belongsTo(this.UserAssociationEqual, {
         as: 'Users',
-        foreignKey: 'userId',
+        foreignKey: 'userId'
       });
 
       await this.UserAssociationEqual.sync({ force: true });
       await this.ProjectAssociationEqual.sync({ force: true });
       const user1 = await this.UserAssociationEqual.create({
-        username: 'jimhalpert',
+        username: 'jimhalpert'
       });
       const project1 = await this.ProjectAssociationEqual.create({
-        title: 'A Cool Project',
+        title: 'A Cool Project'
       });
       await user1.setProjects([project1]);
       const user2 = await this.UserAssociationEqual.findOne({
         where: { username: 'jimhalpert' },
-        include: [{ model: this.ProjectAssociationEqual, as: 'Projects' }],
+        include: [{ model: this.ProjectAssociationEqual, as: 'Projects' }]
       });
       const user3 = await this.UserAssociationEqual.create({
-        username: 'pambeesly',
+        username: 'pambeesly'
       });
       expect(user1.get('Projects')).to.not.exist;
       expect(user2.get('Projects')).to.exist;
@@ -535,7 +535,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = this.sequelize.define(
         'UserHelper',
         {
-          username: DataTypes.STRING,
+          username: DataTypes.STRING
         },
         { timestamps: false, logging: false }
       );
@@ -544,7 +544,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = User.build({ username: 'foo' });
       expect(user.get({ plain: true })).to.deep.equal({
         username: 'foo',
-        id: null,
+        id: null
       });
     });
   });
@@ -554,7 +554,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       this.ParanoidUser = this.sequelize.define(
         'ParanoidUser',
         {
-          username: { type: DataTypes.STRING },
+          username: { type: DataTypes.STRING }
         },
         { paranoid: true }
       );
@@ -587,11 +587,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       this.ParanoidUserWithCustomDeletedAt = this.sequelize.define(
         'ParanoidUserWithCustomDeletedAt',
         {
-          username: { type: DataTypes.STRING },
+          username: { type: DataTypes.STRING }
         },
         {
           deletedAt: 'deletedAtThisTime',
-          paranoid: true,
+          paranoid: true
         }
       );
 
@@ -614,12 +614,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('returns an error if the model is not paranoid', async function () {
       const user = await this.User.create({
         username: 'Peter',
-        secretValue: '42',
+        secretValue: '42'
       });
-      await expect(user.restore()).to.be.rejectedWith(
-        Error,
-        'Model is not paranoid'
-      );
+      await expect(user.restore()).to.be.rejectedWith(Error, 'Model is not paranoid');
     });
 
     it('restores a previously deleted model', async function () {
@@ -629,22 +626,22 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             username: DataTypes.STRING,
             secretValue: DataTypes.STRING,
             data: DataTypes.STRING,
-            intVal: { type: DataTypes.INTEGER, defaultValue: 1 },
+            intVal: { type: DataTypes.INTEGER, defaultValue: 1 }
           },
           {
-            paranoid: true,
+            paranoid: true
           }
         ),
         data = [
           { username: 'Peter', secretValue: '42' },
           { username: 'Paul', secretValue: '43' },
-          { username: 'Bob', secretValue: '44' },
+          { username: 'Bob', secretValue: '44' }
         ];
 
       await ParanoidUser.sync({ force: true });
       await ParanoidUser.bulkCreate(data);
       const user0 = await ParanoidUser.findOne({
-        where: { secretValue: '42' },
+        where: { secretValue: '42' }
       });
       await user0.destroy();
       await user0.restore();
@@ -658,7 +655,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         'ParanoidUser',
         {
           username: DataTypes.STRING,
-          destroyTime: DataTypes.DATE,
+          destroyTime: DataTypes.DATE
         },
         { paranoid: true, deletedAt: 'destroyTime' }
       );
@@ -666,7 +663,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await ParanoidUser.sync({ force: true });
 
       const user2 = await ParanoidUser.create({
-        username: 'username',
+        username: 'username'
       });
 
       const user1 = await user2.destroy();
@@ -675,7 +672,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user0 = await user1.restore();
       expect(user0.destroyTime).to.not.be.ok;
       const user = await ParanoidUser.findOne({
-        where: { username: 'username' },
+        where: { username: 'username' }
       });
       expect(user).to.be.ok;
       expect(user.destroyTime).to.not.be.ok;
@@ -687,7 +684,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         'ParanoidUser',
         {
           username: DataTypes.STRING,
-          deletedAt: { type: DataTypes.DATE, field: 'deleted_at' },
+          deletedAt: { type: DataTypes.DATE, field: 'deleted_at' }
         },
         { paranoid: true }
       );
@@ -695,7 +692,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await ParanoidUser.sync({ force: true });
 
       const user2 = await ParanoidUser.create({
-        username: 'username',
+        username: 'username'
       });
 
       const user1 = await user2.destroy();
@@ -705,7 +702,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user0.dataValues.deletedAt).to.not.be.ok;
       expect(user0.dataValues.deleted_at).to.not.be.ok;
       const user = await ParanoidUser.findOne({
-        where: { username: 'username' },
+        where: { username: 'username' }
       });
       expect(user).to.be.ok;
       expect(user.deletedAt).to.not.be.ok;
@@ -717,7 +714,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         'ParanoidUser',
         {
           username: DataTypes.STRING,
-          destroyTime: { type: DataTypes.DATE, field: 'destroy_time' },
+          destroyTime: { type: DataTypes.DATE, field: 'destroy_time' }
         },
         { paranoid: true, deletedAt: 'destroyTime' }
       );
@@ -725,7 +722,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await ParanoidUser.sync({ force: true });
 
       const user2 = await ParanoidUser.create({
-        username: 'username',
+        username: 'username'
       });
 
       const user1 = await user2.destroy();
@@ -736,7 +733,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user0.dataValues.destroyTime).to.not.be.ok;
       expect(user0.dataValues.destroy_time).to.not.be.ok;
       const user = await ParanoidUser.findOne({
-        where: { username: 'username' },
+        where: { username: 'username' }
       });
       expect(user).to.be.ok;
       expect(user.destroyTime).to.not.be.ok;
@@ -748,7 +745,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         'ParanoidUser',
         {
           username: DataTypes.STRING,
-          deletedAt: { type: DataTypes.DATE, defaultValue: new Date(0) },
+          deletedAt: { type: DataTypes.DATE, defaultValue: new Date(0) }
         },
         { paranoid: true }
       );
@@ -756,16 +753,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await ParanoidUser.sync({ force: true });
 
       const user2 = await ParanoidUser.create({
-        username: 'username',
+        username: 'username'
       });
 
       const user1 = await user2.destroy();
       const user0 = await user1.restore();
-      expect(user0.dataValues.deletedAt.toISOString()).to.equal(
-        new Date(0).toISOString()
-      );
+      expect(user0.dataValues.deletedAt.toISOString()).to.equal(new Date(0).toISOString());
       const user = await ParanoidUser.findOne({
-        where: { username: 'username' },
+        where: { username: 'username' }
       });
       expect(user).to.be.ok;
       expect(user.deletedAt.toISOString()).to.equal(new Date(0).toISOString());

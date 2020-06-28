@@ -11,8 +11,7 @@ class ForeignKeyConstraintError extends DatabaseError {
     super(options.parent);
     this.name = 'SequelizeForeignKeyConstraintError';
 
-    this.message =
-      options.message || options.parent.message || 'Database Error';
+    this.message = options.message || options.parent.message || 'Database Error';
     this.fields = options.fields;
     this.table = options.table;
     this.value = options.value;

@@ -19,105 +19,105 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             email: Sequelize.STRING,
             access_level: Sequelize.INTEGER,
             other_value: Sequelize.INTEGER,
-            parent_id: Sequelize.INTEGER,
+            parent_id: Sequelize.INTEGER
           },
           {
             defaultScope: {
               where: {
                 access_level: {
-                  [Op.gte]: 5,
-                },
-              },
+                  [Op.gte]: 5
+                }
+              }
             },
             scopes: {
               isTony: {
                 where: {
-                  username: 'tony',
-                },
+                  username: 'tony'
+                }
               },
               includeActiveProjects() {
                 return {
                   include: [
                     {
                       model: sequelize.models.company,
-                      include: [sequelize.models.project.scope('active')],
-                    },
-                  ],
+                      include: [sequelize.models.project.scope('active')]
+                    }
+                  ]
                 };
-              },
-            },
+              }
+            }
           }
         );
 
         this.Project = this.sequelize.define(
           'project',
           {
-            active: Sequelize.BOOLEAN,
+            active: Sequelize.BOOLEAN
           },
           {
             scopes: {
               active: {
                 where: {
-                  active: true,
-                },
-              },
-            },
+                  active: true
+                }
+              }
+            }
           }
         );
 
         this.Company = this.sequelize.define(
           'company',
           {
-            active: Sequelize.BOOLEAN,
+            active: Sequelize.BOOLEAN
           },
           {
             defaultScope: {
-              where: { active: true },
+              where: { active: true }
             },
             scopes: {
               notActive: {
                 where: {
-                  active: false,
-                },
+                  active: false
+                }
               },
               reversed: {
-                order: [['id', 'DESC']],
-              },
-            },
+                order: [['id', 'DESC']]
+              }
+            }
           }
         );
 
         this.Profile = this.sequelize.define(
           'profile',
           {
-            active: Sequelize.BOOLEAN,
+            active: Sequelize.BOOLEAN
           },
           {
             defaultScope: {
-              where: { active: true },
+              where: { active: true }
             },
             scopes: {
               notActive: {
                 where: {
-                  active: false,
-                },
-              },
-            },
+                  active: false
+                }
+              }
+            }
           }
         );
 
         this.Project.belongsToMany(this.Company, {
-          through: 'CompanyProjects',
+          through: 'CompanyProjects'
         });
         this.Company.belongsToMany(this.Project, {
-          through: 'CompanyProjects',
+          through: 'CompanyProjects'
         });
 
         this.ScopeMe.hasOne(this.Profile, { foreignKey: 'userId' });
 
         this.ScopeMe.belongsTo(this.Company);
         this.UserAssociation = this.Company.hasMany(this.ScopeMe, {
-          as: 'users',
+          as: 'users'
         });
 
         await this.sequelize.sync({ force: true });
@@ -129,7 +129,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             email: 'dan@sequelizejs.com',
             access_level: 5,
             other_value: 10,
-            parent_id: 1,
+            parent_id: 1
           }),
           this.ScopeMe.create({
             id: 2,
@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             email: 'tobi@fakeemail.com',
             access_level: 10,
             other_value: 11,
-            parent_id: 2,
+            parent_id: 2
           }),
           this.ScopeMe.create({
             id: 3,
@@ -145,7 +145,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             email: 'tony@sequelizejs.com',
             access_level: 3,
             other_value: 7,
-            parent_id: 1,
+            parent_id: 1
           }),
           this.ScopeMe.create({
             id: 4,
@@ -153,7 +153,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             email: 'fred@foobar.com',
             access_level: 3,
             other_value: 7,
-            parent_id: 1,
+            parent_id: 1
           }),
           this.ScopeMe.create({
             id: 5,
@@ -161,10 +161,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             email: 'bob@foobar.com',
             access_level: 1,
             other_value: 9,
-            parent_id: 5,
+            parent_id: 5
           }),
           this.Company.create({ id: 1, active: true }),
-          this.Company.create({ id: 2, active: false }),
+          this.Company.create({ id: 2, active: false })
         ]);
 
         await Promise.all([c1.setUsers([u1, u2, u3, u4]), c2.setUsers([u5])]);
@@ -176,14 +176,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await expect(
             this.Company.findAll({
               where: { id: 1 },
-              include: [this.UserAssociation],
+              include: [this.UserAssociation]
             })
           ).not.to.be.rejected;
         });
 
         it('should apply default scope when including an associations', async function () {
           const obj = await this.Company.findAll({
-            include: [this.UserAssociation],
+            include: [this.UserAssociation]
           });
 
           const company = await obj[0];
@@ -192,7 +192,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should apply default scope when including a model', async function () {
           const obj = await this.Company.findAll({
-            include: [{ model: this.ScopeMe, as: 'users' }],
+            include: [{ model: this.ScopeMe, as: 'users' }]
           });
 
           const company = await obj[0];
@@ -201,7 +201,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should be able to include a scoped model', async function () {
           const obj = await this.Company.findAll({
-            include: [{ model: this.ScopeMe.scope('isTony'), as: 'users' }],
+            include: [{ model: this.ScopeMe.scope('isTony'), as: 'users' }]
           });
 
           const company = await obj[0];
@@ -212,10 +212,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('get', () => {
         beforeEach(async function () {
-          const [p, companies] = await Promise.all([
-            this.Project.create(),
-            this.Company.unscoped().findAll(),
-          ]);
+          const [p, companies] = await Promise.all([this.Project.create(), this.Company.unscoped().findAll()]);
 
           await p.setCompanies(companies);
         });
@@ -230,7 +227,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('hasOne', async function () {
             await this.Profile.create({
               active: false,
-              userId: 1,
+              userId: 1
             });
 
             const user = await this.ScopeMe.findByPk(1);
@@ -240,7 +237,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('belongsTo', async function () {
             const user = await this.ScopeMe.unscoped().findOne({
-              where: { username: 'bob' },
+              where: { username: 'bob' }
             });
             const company = await user.getCompany({ scope: false });
             expect(company).to.be.ok;
@@ -264,7 +261,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('hasOne', async function () {
             await this.Profile.create({
               active: false,
-              userId: 1,
+              userId: 1
             });
 
             const user = await this.ScopeMe.findByPk(1);
@@ -274,7 +271,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('belongsTo', async function () {
             const user = await this.ScopeMe.unscoped().findOne({
-              where: { username: 'bob' },
+              where: { username: 'bob' }
             });
             const company = await user.getCompany();
             expect(company).not.to.be.ok;
@@ -300,7 +297,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('hasOne', async function () {
             await this.Profile.create({
               active: true,
-              userId: 1,
+              userId: 1
             });
 
             const user = await this.ScopeMe.findByPk(1);
@@ -310,7 +307,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('belongsTo', async function () {
             const user = await this.ScopeMe.unscoped().findOne({
-              where: { username: 'bob' },
+              where: { username: 'bob' }
             });
             const company = await user.getCompany({ scope: 'notActive' });
             expect(company).to.be.ok;
@@ -332,21 +329,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const [c, p1, p2] = await Promise.all([
             this.Company.findByPk(1),
             this.Project.create({ id: 1, active: true }),
-            this.Project.create({ id: 2, active: false }),
+            this.Project.create({ id: 2, active: false })
           ]);
 
           await c.setProjects([p1, p2]);
         });
 
         it('should scope columns properly', async function () {
-          await expect(this.ScopeMe.scope('includeActiveProjects').findAll())
-            .not.to.be.rejected;
+          await expect(this.ScopeMe.scope('includeActiveProjects').findAll()).not.to.be.rejected;
         });
 
         it('should apply scope conditions', async function () {
-          const user = await this.ScopeMe.scope(
-            'includeActiveProjects'
-          ).findOne({ where: { id: 1 } });
+          const user = await this.ScopeMe.scope('includeActiveProjects').findOne({ where: { id: 1 } });
           expect(user.company.projects).to.have.length(1);
         });
 
@@ -358,27 +352,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {},
               {
                 defaultScope: {
-                  include: [{ model: Child }],
+                  include: [{ model: Child }]
                 },
                 scopes: {
                   children: {
-                    include: [Child],
-                  },
-                },
+                    include: [Child]
+                  }
+                }
               }
             );
             Parent.addScope('alsoChildren', {
-              include: [{ model: Child }],
+              include: [{ model: Child }]
             });
 
             Child.belongsTo(Parent);
             Parent.hasOne(Child);
 
             await this.sequelize.sync({ force: true });
-            const [child, parent] = await Promise.all([
-              Child.create(),
-              Parent.create(),
-            ]);
+            const [child, parent] = await Promise.all([Child.create(), Parent.create()]);
             await parent.setChild(child);
 
             await Parent.scope('children', 'alsoChildren').findOne();
@@ -388,41 +379,37 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         describe('with find options', () => {
           it('should merge includes correctly', async function () {
             const Child = this.sequelize.define('Child', {
-              name: Sequelize.STRING,
+              name: Sequelize.STRING
             });
             const Parent = this.sequelize.define('Parent', {
-              name: Sequelize.STRING,
+              name: Sequelize.STRING
             });
             Parent.addScope('testScope1', {
               include: [
                 {
                   model: Child,
                   where: {
-                    name: 'child2',
-                  },
-                },
-              ],
+                    name: 'child2'
+                  }
+                }
+              ]
             });
             Parent.hasMany(Child);
 
             await this.sequelize.sync({ force: true });
 
             await Promise.all([
-              Parent.create({ name: 'parent1' }).then((parent) =>
-                parent.createChild({ name: 'child1' })
-              ),
-              Parent.create({ name: 'parent2' }).then((parent) =>
-                parent.createChild({ name: 'child2' })
-              ),
+              Parent.create({ name: 'parent1' }).then(parent => parent.createChild({ name: 'child1' })),
+              Parent.create({ name: 'parent2' }).then(parent => parent.createChild({ name: 'child2' }))
             ]);
 
             const parent = await Parent.scope('testScope1').findOne({
               include: [
                 {
                   model: Child,
-                  attributes: { exclude: ['name'] },
-                },
-              ],
+                  attributes: { exclude: ['name'] }
+                }
+              ]
             });
 
             expect(parent.get('name')).to.equal('parent2');
@@ -437,16 +424,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const Child = this.sequelize.define(
             'Child',
             {
-              secret: Sequelize.STRING,
+              secret: Sequelize.STRING
             },
             {
               scopes: {
                 public: {
                   attributes: {
-                    exclude: ['secret'],
-                  },
-                },
-              },
+                    exclude: ['secret']
+                  }
+                }
+              }
             }
           );
           const Parent = this.sequelize.define('Parent');
@@ -464,14 +451,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const Child = this.sequelize.define(
             'Child',
             {
-              secret: Sequelize.STRING,
+              secret: Sequelize.STRING
             },
             {
               defaultScope: {
                 attributes: {
-                  exclude: ['secret'],
-                },
-              },
+                  exclude: ['secret']
+                }
+              }
             }
           );
           const Parent = this.sequelize.define('Parent');
@@ -487,7 +474,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should not throw error', async function () {
           const Clientfile = this.sequelize.define('clientfile');
           const Mission = this.sequelize.define('mission', {
-            secret: Sequelize.STRING,
+            secret: Sequelize.STRING
           });
           const Building = this.sequelize.define('building');
           const MissionAssociation = Clientfile.hasOne(Mission);
@@ -500,13 +487,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {
                 association: 'mission',
                 where: {
-                  secret: 'foo',
-                },
+                  secret: 'foo'
+                }
               },
               {
-                association: 'building',
-              },
-            ],
+                association: 'building'
+              }
+            ]
           });
 
           await Clientfile.findAll({
@@ -514,13 +501,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {
                 association: MissionAssociation,
                 where: {
-                  secret: 'foo',
-                },
+                  secret: 'foo'
+                }
               },
               {
-                association: BuildingAssociation,
-              },
-            ],
+                association: BuildingAssociation
+              }
+            ]
           });
         });
       });

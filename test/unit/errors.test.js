@@ -12,10 +12,10 @@ describe('errors', () => {
       'EmptyResultError',
       'EagerLoadingError',
       'AssociationError',
-      'QueryError',
+      'QueryError'
     ];
 
-    errorsWithMessage.forEach((errorName) => {
+    errorsWithMessage.forEach(errorName => {
       function throwError() {
         throw new errors[errorName]('this is a message');
       }
@@ -29,9 +29,7 @@ describe('errors', () => {
       const stackParts = err.stack.split('\n');
       const fullErrorName = `Sequelize${errorName}`;
       expect(stackParts[0]).to.equal(`${fullErrorName}: this is a message`);
-      expect(stackParts[1]).to.match(
-        /^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/
-      );
+      expect(stackParts[1]).to.match(/^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/);
     });
   });
 
@@ -43,10 +41,10 @@ describe('errors', () => {
       'AccessDeniedError',
       'HostNotFoundError',
       'HostNotReachableError',
-      'InvalidConnectionError',
+      'InvalidConnectionError'
     ];
 
-    errorsWithoutMessage.forEach((errorName) => {
+    errorsWithoutMessage.forEach(errorName => {
       function throwError() {
         throw new errors[errorName](null);
       }
@@ -61,9 +59,7 @@ describe('errors', () => {
 
       const fullErrorName = `Sequelize${errorName}`;
       expect(stackParts[0]).to.equal(fullErrorName);
-      expect(stackParts[1]).to.match(
-        /^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/
-      );
+      expect(stackParts[1]).to.match(/^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/);
     });
   });
 
@@ -75,10 +71,7 @@ describe('errors', () => {
           new AggregateError([
             new Error('foo'),
             new Error('bar\nbaz'),
-            new AggregateError([
-              new Error('this\nis\na\ntest'),
-              new Error('qux'),
-            ]),
+            new AggregateError([new Error('this\nis\na\ntest'), new Error('qux')])
           ])
         )
       ).to.equal(

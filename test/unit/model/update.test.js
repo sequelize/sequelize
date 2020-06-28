@@ -12,14 +12,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     before(function () {
       this.User = current.define('User', {
         name: DataTypes.STRING,
-        secretValue: DataTypes.INTEGER,
+        secretValue: DataTypes.INTEGER
       });
     });
 
     beforeEach(function () {
-      this.stubUpdate = sinon
-        .stub(current.getQueryInterface(), 'bulkUpdate')
-        .resolves([]);
+      this.stubUpdate = sinon.stub(current.getQueryInterface(), 'bulkUpdate').resolves([]);
       this.updates = { name: 'Batman', secretValue: '7' };
       this.cloneUpdates = { ...this.updates };
     });
@@ -42,7 +40,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('when using fields option', async function () {
         await this.User.update(this.updates, {
           where: { secretValue: '1' },
-          fields: ['name'],
+          fields: ['name']
         });
         expect(this.updates).to.be.deep.eql(this.cloneUpdates);
       });
@@ -53,8 +51,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.secretValue = '1';
       };
 
-      await expect(this.User.update(this.updates, { where: new Where() })).to.be
-        .rejected;
+      await expect(this.User.update(this.updates, { where: new Where() })).to.be.rejected;
     });
   });
 });

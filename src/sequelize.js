@@ -173,14 +173,7 @@ class Sequelize {
     if (arguments.length === 1 && typeof database === 'object') {
       // new Sequelize({ ... options })
       options = database;
-      config = _.pick(
-        options,
-        'host',
-        'port',
-        'database',
-        'username',
-        'password'
-      );
+      config = _.pick(options, 'host', 'port', 'database', 'username', 'password');
     } else if (
       (arguments.length === 1 && typeof database === 'string') ||
       (arguments.length === 2 && typeof username === 'object')
@@ -195,11 +188,7 @@ class Sequelize {
       options.dialect = urlParts.protocol.replace(/:$/, '');
       options.host = urlParts.hostname;
 
-      if (
-        options.dialect === 'sqlite' &&
-        urlParts.pathname &&
-        !urlParts.pathname.startsWith('/:memory')
-      ) {
+      if (options.dialect === 'sqlite' && urlParts.pathname && !urlParts.pathname.startsWith('/:memory')) {
         const storagePath = path.join(options.host, urlParts.pathname);
         options.storage = path.resolve(options.storage || storagePath);
       }
@@ -217,8 +206,7 @@ class Sequelize {
 
         config.username = authParts[0];
 
-        if (authParts.length > 1)
-          config.password = authParts.slice(1).join(':');
+        if (authParts.length > 1) config.password = authParts.slice(1).join(':');
       }
 
       if (urlParts.query) {
@@ -275,7 +263,7 @@ class Sequelize {
       hooks: {},
       retry: {
         max: 5,
-        match: ['SQLITE_BUSY: database is locked'],
+        match: ['SQLITE_BUSY: database is locked']
       },
       transactionType: Transaction.TYPES.DEFERRED,
       isolationLevel: null,
@@ -284,7 +272,7 @@ class Sequelize {
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
-      ...options,
+      ...options
     };
 
     if (!this.options.dialect) {
@@ -295,10 +283,7 @@ class Sequelize {
       this.options.dialect = 'postgres';
     }
 
-    if (
-      this.options.dialect === 'sqlite' &&
-      this.options.timezone !== '+00:00'
-    ) {
+    if (this.options.dialect === 'sqlite' && this.options.timezone !== '+00:00') {
       throw new Error(
         'Setting a custom timezone is not supported by SQLite, dates are always returned as UTC. Please remove the custom timezone parameter.'
       );
@@ -326,7 +311,7 @@ class Sequelize {
       dialectModule: this.options.dialectModule,
       dialectModulePath: this.options.dialectModulePath,
       keepDefaultTimezone: this.options.keepDefaultTimezone,
-      dialectOptions: this.options.dialectOptions,
+      dialectOptions: this.options.dialectOptions
     };
 
     let Dialect;
@@ -359,9 +344,7 @@ class Sequelize {
 
     if (_.isPlainObject(this.options.operatorsAliases)) {
       deprecations.noStringOperators();
-      this.dialect.queryGenerator.setOperatorsAliases(
-        this.options.operatorsAliases
-      );
+      this.dialect.queryGenerator.setOperatorsAliases(this.options.operatorsAliases);
     } else if (typeof this.options.operatorsAliases === 'boolean') {
       deprecations.noBoolOperatorAliases();
     }
@@ -485,7 +468,7 @@ class Sequelize {
    * @returns {boolean} Returns true if model is already defined, otherwise false
    */
   isDefined(modelName) {
-    return !!this.modelManager.models.find((model) => model.name === modelName);
+    return !!this.modelManager.models.find(model => model.name === modelName);
   }
 
   /**
@@ -545,15 +528,8 @@ class Sequelize {
 
     options = _.defaults(options, {
       // eslint-disable-next-line no-console
-      logging: Object.prototype.hasOwnProperty.call(this.options, 'logging')
-        ? this.options.logging
-        : console.log,
-      searchPath: Object.prototype.hasOwnProperty.call(
-        this.options,
-        'searchPath'
-      )
-        ? this.options.searchPath
-        : 'DEFAULT',
+      logging: Object.prototype.hasOwnProperty.call(this.options, 'logging') ? this.options.logging : console.log,
+      searchPath: Object.prototype.hasOwnProperty.call(this.options, 'searchPath') ? this.options.searchPath : 'DEFAULT'
     });
 
     if (!options.type) {
@@ -582,18 +558,14 @@ class Sequelize {
     if (typeof sql === 'object') {
       if (sql.values !== undefined) {
         if (options.replacements !== undefined) {
-          throw new Error(
-            'Both `sql.values` and `options.replacements` cannot be set at the same time'
-          );
+          throw new Error('Both `sql.values` and `options.replacements` cannot be set at the same time');
         }
         options.replacements = sql.values;
       }
 
       if (sql.bind !== undefined) {
         if (options.bind !== undefined) {
-          throw new Error(
-            'Both `sql.bind` and `options.bind` cannot be set at the same time'
-          );
+          throw new Error('Both `sql.bind` and `options.bind` cannot be set at the same time');
         }
         options.bind = sql.bind;
       }
@@ -606,42 +578,25 @@ class Sequelize {
     sql = sql.trim();
 
     if (options.replacements && options.bind) {
-      throw new Error(
-        'Both `replacements` and `bind` cannot be set at the same time'
-      );
+      throw new Error('Both `replacements` and `bind` cannot be set at the same time');
     }
 
     if (options.replacements) {
       if (Array.isArray(options.replacements)) {
-        sql = Utils.format(
-          [sql].concat(options.replacements),
-          this.options.dialect
-        );
+        sql = Utils.format([sql].concat(options.replacements), this.options.dialect);
       } else {
-        sql = Utils.formatNamedParameters(
-          sql,
-          options.replacements,
-          this.options.dialect
-        );
+        sql = Utils.formatNamedParameters(sql, options.replacements, this.options.dialect);
       }
     }
 
     let bindParameters;
 
     if (options.bind) {
-      [sql, bindParameters] = this.dialect.Query.formatBindParameters(
-        sql,
-        options.bind,
-        this.options.dialect
-      );
+      [sql, bindParameters] = this.dialect.Query.formatBindParameters(sql, options.bind, this.options.dialect);
     }
 
     const checkTransaction = () => {
-      if (
-        options.transaction &&
-        options.transaction.finished &&
-        !options.completesTransaction
-      ) {
+      if (options.transaction && options.transaction.finished && !options.completesTransaction) {
         const error = new Error(
           `${options.transaction.finished} has been called on this transaction(${options.transaction.id}), you can no longer use it. (The rejected query is attached as the 'sql' property of this error)`
         );
@@ -693,7 +648,7 @@ class Sequelize {
     // Prepare options
     options = {
       ...this.options.set,
-      ...(typeof options === 'object' && options),
+      ...(typeof options === 'object' && options)
     };
 
     if (this.options.dialect !== 'mysql') {
@@ -709,10 +664,7 @@ class Sequelize {
     options.type = 'SET';
 
     // Generate SQL Query
-    const query = `SET ${_.map(
-      variables,
-      (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`
-    ).join(', ')}`;
+    const query = `SET ${_.map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
 
     return await this.query(query, options);
   }
@@ -813,14 +765,12 @@ class Sequelize {
       ...this.options,
       ...this.options.sync,
       ...options,
-      hooks: options ? options.hooks !== false : true,
+      hooks: options ? options.hooks !== false : true
     };
 
     if (options.match) {
       if (!options.match.test(this.config.database)) {
-        throw new Error(
-          `Database "${this.config.database}" does not match sync match parameter "${options.match}"`
-        );
+        throw new Error(`Database "${this.config.database}" does not match sync match parameter "${options.match}"`);
       }
     }
 
@@ -834,7 +784,7 @@ class Sequelize {
 
     // Topologically sort by foreign key constraints to give us an appropriate
     // creation order
-    this.modelManager.forEachModel((model) => {
+    this.modelManager.forEachModel(model => {
       if (model) {
         models.push(model);
       } else {
@@ -869,7 +819,7 @@ class Sequelize {
     const models = [];
 
     this.modelManager.forEachModel(
-      (model) => {
+      model => {
         if (model) {
           models.push(model);
         }
@@ -880,7 +830,7 @@ class Sequelize {
     if (options && options.cascade) {
       for (const model of models) model.truncate(options);
     } else {
-      await Promise.all(models.map((model) => model.truncate(options)));
+      await Promise.all(models.map(model => model.truncate(options)));
     }
   }
 
@@ -900,7 +850,7 @@ class Sequelize {
     const models = [];
 
     this.modelManager.forEachModel(
-      (model) => {
+      model => {
         if (model) {
           models.push(model);
         }
@@ -923,7 +873,7 @@ class Sequelize {
       raw: true,
       plain: true,
       type: QueryTypes.SELECT,
-      ...options,
+      ...options
     };
 
     await this.query('SELECT 1+1 AS result', options);
@@ -1174,12 +1124,7 @@ class Sequelize {
    */
   static useCLS(ns) {
     // check `ns` is valid CLS namespace
-    if (
-      !ns ||
-      typeof ns !== 'object' ||
-      typeof ns.bind !== 'function' ||
-      typeof ns.run !== 'function'
-    )
+    if (!ns || typeof ns !== 'object' || typeof ns.bind !== 'function' || typeof ns.run !== 'function')
       throw new Error('Must provide CLS namespace');
 
     // save namespace as `Sequelize._cls`
@@ -1202,7 +1147,7 @@ class Sequelize {
     if (!ns) return fn();
 
     let res;
-    ns.run((context) => (res = fn(context)));
+    ns.run(context => (res = fn(context)));
     return res;
   }
 
@@ -1211,11 +1156,7 @@ class Sequelize {
 
     const last = _.last(args);
 
-    if (
-      last &&
-      _.isPlainObject(last) &&
-      Object.prototype.hasOwnProperty.call(last, 'logging')
-    ) {
+    if (last && _.isPlainObject(last) && Object.prototype.hasOwnProperty.call(last, 'logging')) {
       options = last;
 
       // remove options from set of logged arguments if options.logging is equal to console.log
@@ -1236,10 +1177,7 @@ class Sequelize {
 
       // second argument is sql-timings, when benchmarking option enabled
       // eslint-disable-next-line no-console
-      if (
-        (this.options.benchmark || options.benchmark) &&
-        options.logging === console.log
-      ) {
+      if ((this.options.benchmark || options.benchmark) && options.logging === console.log) {
         args = [`${args[0]} Elapsed time: ${args[1]}ms`];
       }
 
@@ -1302,8 +1240,7 @@ class Sequelize {
     if (attribute.type instanceof DataTypes.ENUM) {
       // The ENUM is a special case where the type is an object containing the values
       if (attribute.values) {
-        attribute.type.values = attribute.type.options.values =
-          attribute.values;
+        attribute.type.values = attribute.type.options.values = attribute.values;
       } else {
         attribute.values = attribute.type.values;
       }

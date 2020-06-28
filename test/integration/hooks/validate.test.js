@@ -11,12 +11,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
       },
       mood: {
         type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
-      },
+        values: ['happy', 'sad', 'neutral']
+      }
     });
     await this.sequelize.sync({ force: true });
   });
@@ -24,12 +24,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#validate', () => {
     describe('#create', () => {
       it('should return the user', async function () {
-        this.User.beforeValidate((user) => {
+        this.User.beforeValidate(user => {
           user.username = 'Bob';
           user.mood = 'happy';
         });
 
-        this.User.afterValidate((user) => {
+        this.User.afterValidate(user => {
           user.username = 'Toni';
         });
 
@@ -41,17 +41,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('#3534, hooks modifications', () => {
       it('fields modified in hooks are saved', async function () {
-        this.User.afterValidate((user) => {
+        this.User.afterValidate(user => {
           //if username is defined and has more than 5 char
-          user.username = user.username
-            ? user.username.length < 5
-              ? null
-              : user.username
-            : null;
+          user.username = user.username ? (user.username.length < 5 ? null : user.username) : null;
           user.username = user.username || 'Samorost 3';
         });
 
-        this.User.beforeValidate((user) => {
+        this.User.beforeValidate(user => {
           user.mood = user.mood || 'neutral';
         });
 
@@ -100,14 +96,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('should emit an error from after hook', async function () {
-        this.User.afterValidate((user) => {
+        this.User.afterValidate(user => {
           user.mood = 'ecstatic';
           throw new Error('Whoops! Changed user.mood!');
         });
 
-        await expect(
-          this.User.create({ username: 'Toni', mood: 'happy' })
-        ).to.be.rejectedWith('Whoops! Changed user.mood!');
+        await expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejectedWith(
+          'Whoops! Changed user.mood!'
+        );
       });
 
       it('should call validationFailed hook', async function () {
@@ -124,8 +120,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.validationFailed(validationFailedHook);
 
-        const err = await expect(this.User.create({ mood: 'happy' })).to.be
-          .rejected;
+        const err = await expect(this.User.create({ mood: 'happy' })).to.be.rejected;
         expect(err.name).to.equal('SequelizeValidationError');
       });
 
@@ -134,8 +129,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.validationFailed(validationFailedHook);
 
-        const err = await expect(this.User.create({ mood: 'happy' })).to.be
-          .rejected;
+        const err = await expect(this.User.create({ mood: 'happy' })).to.be.rejected;
         expect(err.message).to.equal('Whoops!');
       });
     });

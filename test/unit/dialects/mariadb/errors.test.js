@@ -56,9 +56,7 @@ if (dialect === 'mariadb') {
 
       expect(parsedErr).to.be.instanceOf(Sequelize.UniqueConstraintError);
       expect(parsedErr.parent).to.equal(fakeErr);
-      expect(parsedErr.fields.models_uniqueName2_unique).to.equal(
-        'unique name one\r'
-      );
+      expect(parsedErr.fields.models_uniqueName2_unique).to.equal('unique name one\r');
     });
   });
 }

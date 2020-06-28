@@ -15,11 +15,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ownerId: {
           type: DataTypes.INTEGER,
           allowNull: false,
-          field: 'owner_id',
+          field: 'owner_id'
         },
         name: {
-          type: DataTypes.STRING,
-        },
+          type: DataTypes.STRING
+        }
       });
       await this.Account.sync({ force: true });
     });
@@ -29,12 +29,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await this.Account.update(
         {
-          name: Math.random().toString(),
+          name: Math.random().toString()
         },
         {
           where: {
-            id: account.get('id'),
-          },
+            id: account.get('id')
+          }
         }
       );
     });
@@ -47,19 +47,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const result = await this.Account.update(
           {
-            unknownField: 'haha',
+            unknownField: 'haha'
           },
           {
             where: {
-              ownerId: 3,
+              ownerId: 3
             },
-            logging: spy,
+            logging: spy
           }
         );
 
         expect(result[0]).to.equal(0);
-        expect(spy.called, 'Update query was issued when no data to update').to
-          .be.false;
+        expect(spy.called, 'Update query was issued when no data to update').to.be.false;
       });
 
       it('skips when timestamps disabled', async function () {
@@ -69,14 +68,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ownerId: {
               type: DataTypes.INTEGER,
               allowNull: false,
-              field: 'owner_id',
+              field: 'owner_id'
             },
             name: {
-              type: DataTypes.STRING,
-            },
+              type: DataTypes.STRING
+            }
           },
           {
-            timestamps: false,
+            timestamps: false
           }
         );
         const spy = sinon.spy();
@@ -86,19 +85,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const result = await Model.update(
           {
-            unknownField: 'haha',
+            unknownField: 'haha'
           },
           {
             where: {
-              ownerId: 3,
+              ownerId: 3
             },
-            logging: spy,
+            logging: spy
           }
         );
 
         expect(result[0]).to.equal(0);
-        expect(spy.called, 'Update query was issued when no data to update').to
-          .be.false;
+        expect(spy.called, 'Update query was issued when no data to update').to.be.false;
       });
     });
 
@@ -115,18 +113,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       const account0 = await this.Account.create({
         ownerId,
-        name: Math.random().toString(),
+        name: Math.random().toString()
       });
 
       await this.Account.update(
         {
           name: Math.random().toString(),
-          ownerId: undefined,
+          ownerId: undefined
         },
         {
           where: {
-            id: account0.get('id'),
-          },
+            id: account0.get('id')
+          }
         }
       );
 
@@ -142,9 +140,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { name: 'FooBar' },
           {
             where: {
-              id: account.get('id'),
+              id: account.get('id')
             },
-            returning: true,
+            returning: true
           }
         );
 
@@ -162,9 +160,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { name: 'FooBar' },
           {
             where: {
-              id: account.get('id'),
+              id: account.get('id')
             },
-            returning: true,
+            returning: true
           }
         );
 
@@ -172,10 +170,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(firstAcc.name).to.be.equal('FooBar');
 
         await firstAcc.reload();
-        expect(
-          firstAcc.ownerId,
-          'Reloaded as output update only return primary key and changed fields'
-        ).to.be.equal(2);
+        expect(firstAcc.ownerId, 'Reloaded as output update only return primary key and changed fields').to.be.equal(2);
       });
     }
 
@@ -183,29 +178,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should only update one row', async function () {
         await this.Account.create({
           ownerId: 2,
-          name: 'Account Name 1',
+          name: 'Account Name 1'
         });
 
         await this.Account.create({
           ownerId: 2,
-          name: 'Account Name 2',
+          name: 'Account Name 2'
         });
 
         await this.Account.create({
           ownerId: 2,
-          name: 'Account Name 3',
+          name: 'Account Name 3'
         });
 
         const options = {
           where: {
-            ownerId: 2,
+            ownerId: 2
           },
-          limit: 1,
+          limit: 1
         };
-        const account = await this.Account.update(
-          { name: 'New Name' },
-          options
-        );
+        const account = await this.Account.update({ name: 'New Name' }, options);
         expect(account[0]).to.equal(1);
       });
     }

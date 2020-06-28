@@ -14,7 +14,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', {
-          username: Support.Sequelize.STRING,
+          username: Support.Sequelize.STRING
         });
 
         await User.sync({ force: true });
@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         'UserDestroy',
         {
           name: Support.Sequelize.STRING,
-          bio: Support.Sequelize.TEXT,
+          bio: Support.Sequelize.TEXT
         },
         { paranoid: true }
       );
@@ -57,8 +57,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           username: Support.Sequelize.STRING,
           deletedAt: {
             type: Support.Sequelize.DATE,
-            defaultValue: new Date(0),
-          },
+            defaultValue: new Date(0)
+          }
         },
         { paranoid: true }
       );
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await ParanoidUser.sync({ force: true });
 
       const user1 = await ParanoidUser.create({
-        username: 'username',
+        username: 'username'
       });
 
       const user0 = await user1.destroy();
@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('deletes a record from the database if dao is not paranoid', async function () {
       const UserDestroy = this.sequelize.define('UserDestroy', {
         name: Support.Sequelize.STRING,
-        bio: Support.Sequelize.TEXT,
+        bio: Support.Sequelize.TEXT
       });
 
       await UserDestroy.sync({ force: true });
@@ -99,7 +99,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const ParanoidUser = this.sequelize.define(
         'ParanoidUser',
         {
-          username: Support.Sequelize.STRING,
+          username: Support.Sequelize.STRING
         },
         { paranoid: true }
       );
@@ -107,7 +107,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await ParanoidUser.sync({ force: true });
 
       const user2 = await ParanoidUser.create({
-        username: 'username',
+        username: 'username'
       });
 
       const user1 = await user2.destroy();
@@ -116,16 +116,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       user1.username = 'foo';
       const user0 = await user1.save();
       expect(user0.username).to.equal('foo');
-      expect(user0.deletedAt).to.equal(
-        deletedAt,
-        'should not update deletedAt'
-      );
+      expect(user0.deletedAt).to.equal(deletedAt, 'should not update deletedAt');
 
       const user = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'foo',
-        },
+          username: 'foo'
+        }
       });
 
       expect(user).to.be.ok;
@@ -137,7 +134,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         'ParanoidUser',
         {
           username: Support.Sequelize.STRING,
-          destroyTime: Support.Sequelize.DATE,
+          destroyTime: Support.Sequelize.DATE
         },
         { paranoid: true, deletedAt: 'destroyTime' }
       );
@@ -145,7 +142,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await ParanoidUser.sync({ force: true });
 
       const user1 = await ParanoidUser.create({
-        username: 'username',
+        username: 'username'
       });
 
       const user0 = await user1.destroy();
@@ -155,8 +152,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'username',
-        },
+          username: 'username'
+        }
       });
 
       expect(user).to.be.ok;
@@ -169,7 +166,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         'ParanoidUser',
         {
           username: Support.Sequelize.STRING,
-          deletedAt: { type: Support.Sequelize.DATE, field: 'deleted_at' },
+          deletedAt: { type: Support.Sequelize.DATE, field: 'deleted_at' }
         },
         { paranoid: true }
       );
@@ -177,7 +174,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await ParanoidUser.sync({ force: true });
 
       const user1 = await ParanoidUser.create({
-        username: 'username',
+        username: 'username'
       });
 
       const user0 = await user1.destroy();
@@ -187,8 +184,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'username',
-        },
+          username: 'username'
+        }
       });
 
       expect(user).to.be.ok;
@@ -201,7 +198,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         'ParanoidUser',
         {
           username: Support.Sequelize.STRING,
-          destroyTime: { type: Support.Sequelize.DATE, field: 'destroy_time' },
+          destroyTime: { type: Support.Sequelize.DATE, field: 'destroy_time' }
         },
         { paranoid: true, deletedAt: 'destroyTime' }
       );
@@ -209,7 +206,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await ParanoidUser.sync({ force: true });
 
       const user1 = await ParanoidUser.create({
-        username: 'username',
+        username: 'username'
       });
 
       const user0 = await user1.destroy();
@@ -219,8 +216,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'username',
-        },
+          username: 'username'
+        }
       });
 
       expect(user).to.be.ok;
@@ -232,7 +229,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const ParanoidUser = this.sequelize.define(
         'ParanoidUser',
         {
-          username: Support.Sequelize.STRING,
+          username: Support.Sequelize.STRING
         },
         { paranoid: true }
       );
@@ -240,7 +237,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await ParanoidUser.sync({ force: true });
 
       const user4 = await ParanoidUser.create({
-        username: 'username',
+        username: 'username'
       });
 
       user4.username = 'foo';
@@ -252,22 +249,20 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user2 = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'foo',
-        },
+          username: 'foo'
+        }
       });
 
       expect(user2).to.be.ok;
-      expect(
-        moment.utc(user2.deletedAt).startOf('second').toISOString()
-      ).to.equal(moment.utc(deletedAt).startOf('second').toISOString());
+      expect(moment.utc(user2.deletedAt).startOf('second').toISOString()).to.equal(
+        moment.utc(deletedAt).startOf('second').toISOString()
+      );
       expect(user2.username).to.equal('foo');
       const user1 = user2;
       // update model and delete again
       user1.username = 'bar';
       const user0 = await user1.destroy();
-      expect(
-        moment.utc(user0.deletedAt).startOf('second').toISOString()
-      ).to.equal(
+      expect(moment.utc(user0.deletedAt).startOf('second').toISOString()).to.equal(
         moment.utc(deletedAt).startOf('second').toISOString(),
         'should not updated deletedAt when destroying multiple times'
       );
@@ -275,21 +270,21 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await ParanoidUser.findOne({
         paranoid: false,
         where: {
-          username: 'bar',
-        },
+          username: 'bar'
+        }
       });
 
       expect(user).to.be.ok;
-      expect(
-        moment.utc(user.deletedAt).startOf('second').toISOString()
-      ).to.equal(moment.utc(deletedAt).startOf('second').toISOString());
+      expect(moment.utc(user.deletedAt).startOf('second').toISOString()).to.equal(
+        moment.utc(deletedAt).startOf('second').toISOString()
+      );
       expect(user.username).to.equal('bar');
     });
 
     it('allows sql logging of delete statements', async function () {
       const UserDelete = this.sequelize.define('UserDelete', {
         name: Support.Sequelize.STRING,
-        bio: Support.Sequelize.TEXT,
+        bio: Support.Sequelize.TEXT
       });
 
       const logging = sinon.spy();
@@ -310,7 +305,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         'UserDelete',
         {
           name: Support.Sequelize.STRING,
-          bio: Support.Sequelize.TEXT,
+          bio: Support.Sequelize.TEXT
         },
         { paranoid: true }
       );
@@ -335,21 +330,21 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const ParanoidUser = this.sequelize.define(
         'ParanoidUser',
         {
-          username: Support.Sequelize.STRING,
+          username: Support.Sequelize.STRING
         },
         {
           paranoid: true,
           hooks: {
             beforeSave,
-            afterSave,
-          },
+            afterSave
+          }
         }
       );
 
       await ParanoidUser.sync({ force: true });
 
       const user0 = await ParanoidUser.create({
-        username: 'username',
+        username: 'username'
       });
 
       // clear out calls from .create
@@ -361,14 +356,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(afterSave.callCount).to.equal(0, 'should not call afterSave');
       const user = result0;
       const result = await user.destroy({ hooks: true });
-      expect(beforeSave.callCount).to.equal(
-        0,
-        'should not call beforeSave even if `hooks: true`'
-      );
-      expect(afterSave.callCount).to.equal(
-        0,
-        'should not call afterSave even if `hooks: true`'
-      );
+      expect(beforeSave.callCount).to.equal(0, 'should not call beforeSave even if `hooks: true`');
+      expect(afterSave.callCount).to.equal(0, 'should not call afterSave even if `hooks: true`');
 
       await result;
     });
@@ -377,13 +366,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const MultiPrimary = this.sequelize.define('MultiPrimary', {
         bilibili: {
           type: Support.Sequelize.CHAR(2),
-          primaryKey: true,
+          primaryKey: true
         },
 
         guruguru: {
           type: Support.Sequelize.CHAR(2),
-          primaryKey: true,
-        },
+          primaryKey: true
+        }
       });
 
       await MultiPrimary.sync({ force: true });
@@ -398,7 +387,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           expect(sql.toUpperCase()).to.include('DELETE');
           expect(sql).to.include('ru');
           expect(sql).to.include('bl');
-        },
+        }
       });
 
       const ms0 = await MultiPrimary.findAll();
@@ -414,12 +403,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           {
             date: {
               type: Support.Sequelize.DATE,
-              primaryKey: true,
+              primaryKey: true
             },
             deletedAt: {
               type: Support.Sequelize.DATE,
-              defaultValue: Infinity,
-            },
+              defaultValue: Infinity
+            }
           },
           { paranoid: true }
         );

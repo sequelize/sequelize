@@ -97,7 +97,7 @@ const Deferrable = {
   INITIALLY_IMMEDIATE: classToInvokable(INITIALLY_IMMEDIATE),
   NOT: classToInvokable(NOT),
   SET_DEFERRED: classToInvokable(SET_DEFERRED),
-  SET_IMMEDIATE: classToInvokable(SET_IMMEDIATE),
+  SET_IMMEDIATE: classToInvokable(SET_IMMEDIATE)
 };
 
 module.exports = Deferrable;

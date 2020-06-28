@@ -6,9 +6,7 @@ const BaseError = require('./base-error');
 class OptimisticLockError extends BaseError {
   constructor(options) {
     options = options || {};
-    options.message =
-      options.message ||
-      `Attempting to update a stale model instance: ${options.modelName}`;
+    options.message = options.message || `Attempting to update a stale model instance: ${options.modelName}`;
     super(options.message);
     this.name = 'SequelizeOptimisticLockError';
     /**

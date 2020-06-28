@@ -17,9 +17,7 @@ if (dialect === 'mysql') {
       try {
         return await promise;
       } catch (err) {
-        return Object.keys(wanted).forEach((k) =>
-          expect(err[k]).to.eql(wanted[k])
-        );
+        return Object.keys(wanted).forEach(k => expect(err[k]).to.eql(wanted[k]));
       }
     };
 
@@ -27,25 +25,25 @@ if (dialect === 'mysql') {
       beforeEach(function () {
         this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
         this.User = this.sequelize.define('user', {
-          username: DataTypes.STRING,
+          username: DataTypes.STRING
         });
         this.UserTasks = this.sequelize.define('tasksusers', {
           userId: DataTypes.INTEGER,
-          taskId: DataTypes.INTEGER,
+          taskId: DataTypes.INTEGER
         });
 
         this.User.belongsToMany(this.Task, {
           onDelete: 'RESTRICT',
-          through: 'tasksusers',
+          through: 'tasksusers'
         });
         this.Task.belongsToMany(this.User, {
           onDelete: 'RESTRICT',
-          through: 'tasksusers',
+          through: 'tasksusers'
         });
 
         this.Task.belongsTo(this.User, {
           foreignKey: 'primaryUserId',
-          as: 'primaryUsers',
+          as: 'primaryUsers'
         });
       });
 
@@ -54,7 +52,7 @@ if (dialect === 'mysql') {
 
         const [user1, task1] = await Promise.all([
           this.User.create({ id: 67, username: 'foo' }),
-          this.Task.create({ id: 52, title: 'task' }),
+          this.Task.create({ id: 52, title: 'task' })
         ]);
 
         await user1.setTasks([task1]);
@@ -65,15 +63,15 @@ if (dialect === 'mysql') {
             table: 'users',
             value: undefined,
             index: 'tasksusers_ibfk_1',
-            reltype: 'parent',
+            reltype: 'parent'
           }),
           validateError(task1.destroy(), Sequelize.ForeignKeyConstraintError, {
             fields: ['taskId'],
             table: 'tasks',
             value: undefined,
             index: 'tasksusers_ibfk_2',
-            reltype: 'parent',
-          }),
+            reltype: 'parent'
+          })
         ]);
       });
 
@@ -88,7 +86,7 @@ if (dialect === 'mysql') {
             table: 'users',
             value: 5,
             index: 'tasks_ibfk_1',
-            reltype: 'child',
+            reltype: 'child'
           }
         );
       });

@@ -7,8 +7,7 @@ class UniqueConstraintError extends ValidationError {
   constructor(options) {
     options = options || {};
     options.parent = options.parent || { sql: '' };
-    options.message =
-      options.message || options.parent.message || 'Validation Error';
+    options.message = options.message || options.parent.message || 'Validation Error';
     options.errors = options.errors || {};
     super(options.message, options.errors);
 

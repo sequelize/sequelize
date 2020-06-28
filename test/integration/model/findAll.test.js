@@ -23,7 +23,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       intVal: DataTypes.INTEGER,
       theDate: DataTypes.DATE,
       aBool: DataTypes.BOOLEAN,
-      binary: DataTypes.STRING(16, true),
+      binary: DataTypes.STRING(16, true)
     });
 
     await this.User.sync({ force: true });
@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const users2 = await User.findAll({ transaction: t });
         const users3 = await User.findAll({
           where: { username: 'foo' },
-          transaction: t,
+          transaction: t
         });
         expect(users1.length).to.equal(0);
         expect(users2.length).to.equal(1);
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not crash on an empty where array', async function () {
       await this.User.findAll({
-        where: [],
+        where: []
       });
     });
 
@@ -67,7 +67,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should not throw if overall attributes are nonempty', async function () {
       const Post = this.sequelize.define('Post', { foo: DataTypes.STRING });
       const Comment = this.sequelize.define('Comment', {
-        bar: DataTypes.STRING,
+        bar: DataTypes.STRING
       });
       Post.hasMany(Comment, { as: 'comments' });
       await Post.sync({ force: true });
@@ -82,14 +82,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             model: Comment,
             as: 'comments',
-            attributes: [
-              [
-                Sequelize.fn('COUNT', Sequelize.col('comments.id')),
-                'commentCount',
-              ],
-            ],
-          },
-        ],
+            attributes: [[Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'commentCount']]
+          }
+        ]
       });
     });
 
@@ -104,16 +99,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             username: 'boo2',
             intVal: 10,
             theDate: '2013-01-10 12:00',
-            binary: this.buf,
-          },
+            binary: this.buf
+          }
         ]);
       });
 
       it('should be able to find rows where attribute is in a list of values', async function () {
         const users = await this.User.findAll({
           where: {
-            username: ['boo', 'boo2'],
-          },
+            username: ['boo', 'boo2']
+          }
         });
 
         expect(users).to.have.length(2);
@@ -122,16 +117,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should not break when trying to find rows using an array of primary keys', async function () {
         await this.User.findAll({
           where: {
-            id: [1, 2, 3],
-          },
+            id: [1, 2, 3]
+          }
         });
       });
 
       it('should not break when using smart syntax on binary fields', async function () {
         const users = await this.User.findAll({
           where: {
-            binary: [this.buf, this.buf],
-          },
+            binary: [this.buf, this.buf]
+          }
         });
 
         expect(users).to.have.length(1);
@@ -143,9 +138,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const users = await this.User.findAll({
           where: {
             username: {
-              [Op.like]: '%2',
-            },
-          },
+              [Op.like]: '%2'
+            }
+          }
         });
 
         expect(users).to.be.an.instanceof(Array);
@@ -158,9 +153,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const users = await this.User.findAll({
           where: {
             username: {
-              [Op.notLike]: '%2',
-            },
-          },
+              [Op.notLike]: '%2'
+            }
+          }
         });
 
         expect(users).to.be.an.instanceof(Array);
@@ -174,9 +169,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const users = await this.User.findAll({
             where: {
               username: {
-                [Op.iLike]: '%2',
-              },
-            },
+                [Op.iLike]: '%2'
+              }
+            }
           });
 
           expect(users).to.be.an.instanceof(Array);
@@ -189,9 +184,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const users = await this.User.findAll({
             where: {
               username: {
-                [Op.notILike]: '%2',
-              },
-            },
+                [Op.notILike]: '%2'
+              }
+            }
           });
 
           expect(users).to.be.an.instanceof(Array);
@@ -205,9 +200,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const users = await this.User.findAll({
           where: {
             theDate: {
-              [Op.between]: ['2013-01-02', '2013-01-11'],
-            },
-          },
+              [Op.between]: ['2013-01-02', '2013-01-11']
+            }
+          }
         });
 
         expect(users[0].username).to.equal('boo2');
@@ -218,9 +213,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const users = await this.User.findAll({
           where: {
             intVal: {
-              [Op.notBetween]: [8, 10],
-            },
-          },
+              [Op.notBetween]: [8, 10]
+            }
+          }
         });
 
         expect(users[0].username).to.equal('boo');
@@ -232,7 +227,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.bulkCreate([
           { username: 'boo5', aBool: false },
-          { username: 'boo6', aBool: true },
+          { username: 'boo6', aBool: true }
         ]);
 
         const users = await User.findAll({ where: { aBool: false } });
@@ -246,7 +241,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to handle false/true values through associations as well...', async function () {
         const User = this.User,
           Passports = this.sequelize.define('Passports', {
-            isActive: Sequelize.BOOLEAN,
+            isActive: Sequelize.BOOLEAN
           });
 
         User.hasMany(Passports);
@@ -257,7 +252,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.bulkCreate([
           { username: 'boo5', aBool: false },
-          { username: 'boo6', aBool: true },
+          { username: 'boo6', aBool: true }
         ]);
 
         await Passports.bulkCreate([{ isActive: true }, { isActive: false }]);
@@ -269,10 +264,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const _passport = await Passports.findByPk(2);
         await _user.setPassports([_passport]);
         const theFalsePassport = await _user.getPassports({
-          where: { isActive: false },
+          where: { isActive: false }
         });
         const theTruePassport = await user.getPassports({
-          where: { isActive: true },
+          where: { isActive: true }
         });
         expect(theFalsePassport).to.have.length(1);
         expect(theFalsePassport[0].isActive).to.be.false;
@@ -285,8 +280,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const Binary = this.sequelize.define('Binary', {
           id: {
             type: DataTypes.STRING(16, true),
-            primaryKey: true,
-          },
+            primaryKey: true
+          }
         });
 
         const buf1 = this.buf;
@@ -299,7 +294,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.bulkCreate([
           { username: 'boo5', aBool: false },
-          { username: 'boo6', aBool: true },
+          { username: 'boo6', aBool: true }
         ]);
 
         await Binary.bulkCreate([{ id: buf1 }, { id: buf2 }]);
@@ -322,9 +317,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const users = await this.User.findAll({
           where: {
             theDate: {
-              [Op.between]: ['2013-01-02', '2013-01-11'],
-            },
-          },
+              [Op.between]: ['2013-01-02', '2013-01-11']
+            }
+          }
         });
 
         expect(users[0].username).to.equal('boo2');
@@ -335,10 +330,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const users = await this.User.findAll({
           where: {
             theDate: {
-              [Op.between]: ['2013-01-02', '2013-01-11'],
+              [Op.between]: ['2013-01-02', '2013-01-11']
             },
-            intVal: 10,
-          },
+            intVal: 10
+          }
         });
 
         expect(users[0].username).to.equal('boo2');
@@ -349,9 +344,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const users = await this.User.findAll({
           where: {
             intVal: {
-              [Op.notBetween]: [8, 10],
-            },
-          },
+              [Op.notBetween]: [8, 10]
+            }
+          }
         });
 
         expect(users[0].username).to.equal('boo');
@@ -363,9 +358,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: {
             theDate: {
               [Op.between]: ['2012-12-10', '2013-01-02'],
-              [Op.notBetween]: ['2013-01-04', '2013-01-20'],
-            },
-          },
+              [Op.notBetween]: ['2013-01-04', '2013-01-20']
+            }
+          }
         });
 
         expect(users[0].username).to.equal('boo');
@@ -377,9 +372,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: {
             theDate: {
               [Op.between]: [new Date('2012-12-10'), new Date('2013-01-02')],
-              [Op.notBetween]: [new Date('2013-01-04'), new Date('2013-01-20')],
-            },
-          },
+              [Op.notBetween]: [new Date('2013-01-04'), new Date('2013-01-20')]
+            }
+          }
         });
 
         expect(users[0].username).to.equal('boo');
@@ -390,9 +385,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const users = await this.User.findAll({
           where: {
             theDate: {
-              [Op.gte]: new Date('2013-01-09'),
-            },
-          },
+              [Op.gte]: new Date('2013-01-09')
+            }
+          }
         });
 
         expect(users[0].username).to.equal('boo2');
@@ -403,9 +398,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await this.User.findOne({
           where: {
             intVal: {
-              [Op.gte]: 6,
-            },
-          },
+              [Op.gte]: 6
+            }
+          }
         });
 
         expect(user.username).to.equal('boo2');
@@ -416,9 +411,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await this.User.findOne({
           where: {
             intVal: {
-              [Op.gt]: 5,
-            },
-          },
+              [Op.gt]: 5
+            }
+          }
         });
 
         expect(user.username).to.equal('boo2');
@@ -429,9 +424,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await this.User.findOne({
           where: {
             intVal: {
-              [Op.lte]: 5,
-            },
-          },
+              [Op.lte]: 5
+            }
+          }
         });
 
         expect(user.username).to.equal('boo');
@@ -442,9 +437,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await this.User.findOne({
           where: {
             intVal: {
-              [Op.lt]: 6,
-            },
-          },
+              [Op.lt]: 6
+            }
+          }
         });
 
         expect(user.username).to.equal('boo');
@@ -456,9 +451,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: {
             intVal: {
               [Op.lt]: 6,
-              [Op.gt]: 4,
-            },
-          },
+              [Op.gt]: 4
+            }
+          }
         });
 
         expect(users[0].username).to.equal('boo');
@@ -469,9 +464,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await this.User.findOne({
           where: {
             intVal: {
-              [Op.ne]: 10,
-            },
-          },
+              [Op.ne]: 10
+            }
+          }
         });
 
         expect(user.username).to.equal('boo');
@@ -482,9 +477,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const users = await this.User.findAll({
           where: {
             intVal: {
-              [Op.lte]: 10,
-            },
-          },
+              [Op.lte]: 10
+            }
+          }
         });
 
         expect(users[0].username).to.equal('boo');
@@ -496,20 +491,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       if (dialect === 'postgres' || dialect === 'sqlite') {
         it('should be able to find multiple users with case-insensitive on CITEXT type', async function () {
           const User = this.sequelize.define('UsersWithCaseInsensitiveName', {
-            username: Sequelize.CITEXT,
+            username: Sequelize.CITEXT
           });
 
           await User.sync({ force: true });
 
-          await User.bulkCreate([
-            { username: 'lowercase' },
-            { username: 'UPPERCASE' },
-            { username: 'MIXEDcase' },
-          ]);
+          await User.bulkCreate([{ username: 'lowercase' }, { username: 'UPPERCASE' }, { username: 'MIXEDcase' }]);
 
           const users = await User.findAll({
             where: { username: ['LOWERCASE', 'uppercase', 'mixedCase'] },
-            order: [['id', 'ASC']],
+            order: [['id', 'ASC']]
           });
 
           expect(users[0].username).to.equal('lowercase');
@@ -524,14 +515,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User.bulkCreate([
           { username: 'D.E.N.N.I.S', intVal: 6 },
           { username: 'F.R.A.N.K', intVal: 5 },
-          { username: 'W.I.L.D C.A.R.D', intVal: 8 },
+          { username: 'W.I.L.D C.A.R.D', intVal: 8 }
         ]);
 
         const users = await this.User.findAll({
           where: {
-            intVal: 8,
+            intVal: 8
           },
-          include: [],
+          include: []
         });
 
         expect(users).to.have.length(1);
@@ -541,10 +532,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('belongsTo', () => {
         beforeEach(async function () {
           this.Task = this.sequelize.define('TaskBelongsTo', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
           this.Worker = this.sequelize.define('Worker', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.Task.belongsTo(this.Worker);
 
@@ -572,16 +563,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           try {
             await this.Worker.findAll({ include: [this.Task] });
           } catch (err) {
-            expect(err.message).to.equal(
-              'TaskBelongsTo is not associated to Worker!'
-            );
+            expect(err.message).to.equal('TaskBelongsTo is not associated to Worker!');
           }
         });
 
         it('returns the associated worker via task.worker', async function () {
           const tasks = await this.Task.findAll({
             where: { title: 'homework' },
-            include: [this.Worker],
+            include: [this.Worker]
           });
 
           expect(tasks).to.exist;
@@ -594,7 +583,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             where: { title: 'homework' },
             include: [this.Worker],
             limit: 1,
-            order: [['title', 'DESC']],
+            order: [['title', 'DESC']]
           });
 
           expect(tasks).to.exist;
@@ -606,10 +595,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('hasOne', () => {
         beforeEach(async function () {
           this.Task = this.sequelize.define('TaskHasOne', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
           this.Worker = this.sequelize.define('Worker', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.Worker.hasOne(this.Task);
           await this.Worker.sync({ force: true });
@@ -625,16 +614,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           try {
             await this.Task.findAll({ include: [this.Worker] });
           } catch (err) {
-            expect(err.message).to.equal(
-              'Worker is not associated to TaskHasOne!'
-            );
+            expect(err.message).to.equal('Worker is not associated to TaskHasOne!');
           }
         });
 
         it('returns the associated task via worker.task', async function () {
           const workers = await this.Worker.findAll({
             where: { name: 'worker' },
-            include: [this.Task],
+            include: [this.Task]
           });
 
           expect(workers).to.exist;
@@ -646,10 +633,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('hasOne with alias', () => {
         beforeEach(async function () {
           this.Task = this.sequelize.define('Task', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
           this.Worker = this.sequelize.define('Worker', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.Worker.hasOne(this.Task, { as: 'ToDo' });
           await this.Worker.sync({ force: true });
@@ -675,7 +662,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('throws an error if alias is not associated', async function () {
           try {
             await this.Worker.findAll({
-              include: [{ model: this.Task, as: 'Work' }],
+              include: [{ model: this.Task, as: 'Work' }]
             });
           } catch (err) {
             expect(err.message).to.equal(
@@ -688,7 +675,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('returns the associated task via worker.task', async function () {
           const workers = await this.Worker.findAll({
             where: { name: 'worker' },
-            include: [{ model: this.Task, as: 'ToDo' }],
+            include: [{ model: this.Task, as: 'ToDo' }]
           });
 
           expect(workers).to.exist;
@@ -699,7 +686,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('returns the associated task via worker.task when daoFactory is aliased with model', async function () {
           const workers = await this.Worker.findAll({
             where: { name: 'worker' },
-            include: [{ model: this.Task, as: 'ToDo' }],
+            include: [{ model: this.Task, as: 'ToDo' }]
           });
 
           expect(workers[0].ToDo.title).to.equal('homework');
@@ -709,10 +696,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('hasMany', () => {
         beforeEach(async function () {
           this.Task = this.sequelize.define('task', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
           this.Worker = this.sequelize.define('worker', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.Worker.hasMany(this.Task);
           await this.Worker.sync({ force: true });
@@ -735,7 +722,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('returns the associated tasks via worker.tasks', async function () {
           const workers = await this.Worker.findAll({
             where: { name: 'worker' },
-            include: [this.Task],
+            include: [this.Task]
           });
 
           expect(workers).to.exist;
@@ -748,11 +735,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const User = this.sequelize.define('user', {
             name: {
               type: Sequelize.STRING,
-              field: 'some_other_name',
-            },
+              field: 'some_other_name'
+            }
           });
           const Project = this.sequelize.define('project', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
           User.hasMany(Project);
 
@@ -764,7 +751,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const users = await User.findAll({
             order: ['name'],
             limit: 2, // to force use of a sub-query
-            include: [Project],
+            include: [Project]
           });
 
           expect(users).to.have.lengthOf(2);
@@ -776,11 +763,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const User = this.sequelize.define('user', {
             name: {
               type: Sequelize.STRING,
-              field: 'some_other_name',
-            },
+              field: 'some_other_name'
+            }
           });
           const Project = this.sequelize.define('project', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
           User.hasMany(Project);
 
@@ -792,7 +779,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const users = await User.findAll({
             order: [['name', 'DESC']],
             limit: 2,
-            include: [Project],
+            include: [Project]
           });
 
           expect(users).to.have.lengthOf(2);
@@ -804,15 +791,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const User = this.sequelize.define('user', {
             name: {
               type: Sequelize.STRING,
-              field: 'some_other_name',
+              field: 'some_other_name'
             },
             age: {
               type: Sequelize.INTEGER,
-              field: 'a_g_e',
-            },
+              field: 'a_g_e'
+            }
           });
           const Project = this.sequelize.define('project', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
           User.hasMany(Project);
 
@@ -822,16 +809,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await User.bulkCreate([
             { name: 'a', age: 1 },
             { name: 'a', age: 2 },
-            { name: 'b', age: 3 },
+            { name: 'b', age: 3 }
           ]);
 
           const users0 = await User.findAll({
             order: [
               ['name', 'ASC'],
-              ['age', 'DESC'],
+              ['age', 'DESC']
             ],
             limit: 2,
-            include: [Project],
+            include: [Project]
           });
 
           expect(users0).to.have.lengthOf(2);
@@ -843,7 +830,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const users = await User.findAll({
             order: [['name', 'DESC'], 'age'],
             limit: 2,
-            include: [Project],
+            include: [Project]
           });
 
           expect(users).to.have.lengthOf(2);
@@ -856,10 +843,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('hasMany with alias', () => {
         beforeEach(async function () {
           this.Task = this.sequelize.define('Task', {
-            title: Sequelize.STRING,
+            title: Sequelize.STRING
           });
           this.Worker = this.sequelize.define('Worker', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.Worker.hasMany(this.Task, { as: 'ToDos' });
           await this.Worker.sync({ force: true });
@@ -885,7 +872,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('throws an error if alias is not associated', async function () {
           try {
             await this.Worker.findAll({
-              include: [{ model: this.Task, as: 'Work' }],
+              include: [{ model: this.Task, as: 'Work' }]
             });
           } catch (err) {
             expect(err.message).to.equal(
@@ -898,7 +885,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('returns the associated task via worker.task', async function () {
           const workers = await this.Worker.findAll({
             where: { name: 'worker' },
-            include: [{ model: this.Task, as: 'ToDos' }],
+            include: [{ model: this.Task, as: 'ToDos' }]
           });
 
           expect(workers).to.exist;
@@ -909,7 +896,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('returns the associated task via worker.task when daoFactory is aliased with model', async function () {
           const workers = await this.Worker.findAll({
             where: { name: 'worker' },
-            include: [{ model: this.Task, as: 'ToDos' }],
+            include: [{ model: this.Task, as: 'ToDos' }]
           });
 
           expect(workers[0].ToDos[0].title).to.equal('homework');
@@ -924,9 +911,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should return a DAO when queryOptions are not set', async function () {
           const users = await this.User.findAll({
-            where: { username: 'barfooz' },
+            where: { username: 'barfooz' }
           });
-          users.forEach((user) => {
+          users.forEach(user => {
             expect(user).to.be.instanceOf(this.User);
           });
         });
@@ -934,9 +921,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should return a DAO when raw is false', async function () {
           const users = await this.User.findAll({
             where: { username: 'barfooz' },
-            raw: false,
+            raw: false
           });
-          users.forEach((user) => {
+          users.forEach(user => {
             expect(user).to.be.instanceOf(this.User);
           });
         });
@@ -944,9 +931,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should return raw data when raw is true', async function () {
           const users = await this.User.findAll({
             where: { username: 'barfooz' },
-            raw: true,
+            raw: true
           });
-          users.forEach((user) => {
+          users.forEach(user => {
             expect(user).to.not.be.instanceOf(this.User);
             expect(users[0]).to.be.instanceOf(Object);
           });
@@ -956,36 +943,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('include all', () => {
         beforeEach(async function () {
           this.Continent = this.sequelize.define('continent', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.Country = this.sequelize.define('country', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.Industry = this.sequelize.define('industry', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.Person = this.sequelize.define('person', {
             name: Sequelize.STRING,
-            lastName: Sequelize.STRING,
+            lastName: Sequelize.STRING
           });
 
           this.Continent.hasMany(this.Country);
           this.Country.belongsTo(this.Continent);
           this.Country.belongsToMany(this.Industry, {
-            through: 'country_industry',
+            through: 'country_industry'
           });
           this.Industry.belongsToMany(this.Country, {
-            through: 'country_industry',
+            through: 'country_industry'
           });
           this.Country.hasMany(this.Person);
           this.Person.belongsTo(this.Country);
           this.Country.hasMany(this.Person, {
             as: 'residents',
-            foreignKey: 'CountryResidentId',
+            foreignKey: 'CountryResidentId'
           });
           this.Person.belongsTo(this.Country, {
             as: 'CountryResident',
-            foreignKey: 'CountryResidentId',
+            foreignKey: 'CountryResidentId'
           });
 
           await this.sequelize.sync({ force: true });
@@ -994,7 +981,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             europe: this.Continent.create({ name: 'Europe' }),
             england: this.Country.create({ name: 'England' }),
             coal: this.Industry.create({ name: 'Coal' }),
-            bob: this.Person.create({ name: 'Bob', lastName: 'Becket' }),
+            bob: this.Person.create({ name: 'Bob', lastName: 'Becket' })
           });
 
           _.forEach(r, (item, itemName) => {
@@ -1005,13 +992,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.england.setContinent(this.europe),
             this.england.addIndustry(this.coal),
             this.bob.setCountry(this.england),
-            this.bob.setCountryResident(this.england),
+            this.bob.setCountryResident(this.england)
           ]);
         });
 
         it('includes all associations', async function () {
           const countries = await this.Country.findAll({
-            include: [{ all: true }],
+            include: [{ all: true }]
           });
           expect(countries).to.exist;
           expect(countries[0]).to.exist;
@@ -1023,7 +1010,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('includes specific type of association', async function () {
           const countries = await this.Country.findAll({
-            include: [{ all: 'BelongsTo' }],
+            include: [{ all: 'BelongsTo' }]
           });
           expect(countries).to.exist;
           expect(countries[0]).to.exist;
@@ -1035,7 +1022,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('utilises specified attributes', async function () {
           const countries = await this.Country.findAll({
-            include: [{ all: 'HasMany', attributes: ['name'] }],
+            include: [{ all: 'HasMany', attributes: ['name'] }]
           });
           expect(countries).to.exist;
           expect(countries[0]).to.exist;
@@ -1051,10 +1038,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('is over-ruled by specified include', async function () {
           const countries = await this.Country.findAll({
-            include: [
-              { all: true },
-              { model: this.Continent, attributes: ['id'] },
-            ],
+            include: [{ all: true }, { model: this.Continent, attributes: ['id'] }]
           });
           expect(countries).to.exist;
           expect(countries[0]).to.exist;
@@ -1064,7 +1048,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('includes all nested associations', async function () {
           const continents = await this.Continent.findAll({
-            include: [{ all: true, nested: true }],
+            include: [{ all: true, nested: true }]
           });
           expect(continents).to.exist;
           expect(continents[0]).to.exist;
@@ -1081,18 +1065,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         beforeEach(async function () {
           this.Animal = this.sequelize.define('Animal', {
             name: Sequelize.STRING,
-            age: Sequelize.INTEGER,
+            age: Sequelize.INTEGER
           });
           this.Kingdom = this.sequelize.define('Kingdom', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.AnimalKingdom = this.sequelize.define('AnimalKingdom', {
             relation: Sequelize.STRING,
-            mutation: Sequelize.BOOLEAN,
+            mutation: Sequelize.BOOLEAN
           });
 
           this.Kingdom.belongsToMany(this.Animal, {
-            through: this.AnimalKingdom,
+            through: this.AnimalKingdom
           });
 
           await this.sequelize.sync({ force: true });
@@ -1101,20 +1085,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.Animal.create({ name: 'Dog', age: 20 }),
             this.Animal.create({ name: 'Cat', age: 30 }),
             this.Animal.create({ name: 'Peacock', age: 25 }),
-            this.Animal.create({ name: 'Fish', age: 100 }),
+            this.Animal.create({ name: 'Fish', age: 100 })
           ]);
 
           const [k1, k2, k3] = await Promise.all([
             this.Kingdom.create({ name: 'Earth' }),
             this.Kingdom.create({ name: 'Water' }),
-            this.Kingdom.create({ name: 'Wind' }),
+            this.Kingdom.create({ name: 'Wind' })
           ]);
 
-          await Promise.all([
-            k1.addAnimals([a1, a2]),
-            k2.addAnimals([a4]),
-            k3.addAnimals([a3]),
-          ]);
+          await Promise.all([k1.addAnimals([a1, a2]), k2.addAnimals([a4]), k3.addAnimals([a3])]);
         });
 
         it('N:M with ignoring include.attributes only', async function () {
@@ -1123,13 +1103,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               {
                 model: this.Animal,
                 where: { age: { [Op.gte]: 29 } },
-                attributes: [],
-              },
-            ],
+                attributes: []
+              }
+            ]
           });
 
           expect(kingdoms.length).to.be.eql(2);
-          kingdoms.forEach((kingdom) => {
+          kingdoms.forEach(kingdom => {
             // include.attributes:[] , model doesn't exists
             expect(kingdom.Animals).to.not.exist;
           });
@@ -1142,14 +1122,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 model: this.Animal,
                 where: { age: { [Op.gte]: 29 } },
                 through: {
-                  attributes: [],
-                },
-              },
-            ],
+                  attributes: []
+                }
+              }
+            ]
           });
 
           expect(kingdoms.length).to.be.eql(2);
-          kingdoms.forEach((kingdom) => {
+          kingdoms.forEach(kingdom => {
             expect(kingdom.Animals).to.exist; // include model exists
             expect(kingdom.Animals[0].AnimalKingdom).to.not.exist; // through doesn't exists
           });
@@ -1163,14 +1143,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 where: { age: { [Op.gte]: 29 } },
                 attributes: [],
                 through: {
-                  attributes: ['mutation'],
-                },
-              },
-            ],
+                  attributes: ['mutation']
+                }
+              }
+            ]
           });
 
           expect(kingdoms.length).to.be.eql(2);
-          kingdoms.forEach((kingdom) => {
+          kingdoms.forEach(kingdom => {
             // include.attributes: [], model doesn't exists
             expect(kingdom.Animals).to.not.exist;
           });
@@ -1182,14 +1162,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('HasMany', () => {
         beforeEach(async function () {
           this.Continent = this.sequelize.define('continent', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.Country = this.sequelize.define('country', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.Person = this.sequelize.define('person', {
             name: Sequelize.STRING,
-            lastName: Sequelize.STRING,
+            lastName: Sequelize.STRING
           });
 
           this.Continent.hasMany(this.Country);
@@ -1198,11 +1178,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Person.belongsTo(this.Country);
           this.Country.hasMany(this.Person, {
             as: 'residents',
-            foreignKey: 'CountryResidentId',
+            foreignKey: 'CountryResidentId'
           });
           this.Person.belongsTo(this.Country, {
             as: 'CountryResident',
-            foreignKey: 'CountryResidentId',
+            foreignKey: 'CountryResidentId'
           });
 
           await this.sequelize.sync({ force: true });
@@ -1216,7 +1196,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             bob: this.Person.create({ name: 'Bob', lastName: 'Becket' }),
             fred: this.Person.create({ name: 'Fred', lastName: 'Able' }),
             pierre: this.Person.create({ name: 'Pierre', lastName: 'Paris' }),
-            kim: this.Person.create({ name: 'Kim', lastName: 'Z' }),
+            kim: this.Person.create({ name: 'Kim', lastName: 'Z' })
           });
 
           _.forEach(r, (item, itemName) => {
@@ -1236,7 +1216,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.bob.setCountryResident(this.england),
             this.fred.setCountryResident(this.france),
             this.pierre.setCountryResident(this.korea),
-            this.kim.setCountryResident(this.england),
+            this.kim.setCountryResident(this.england)
           ]);
         });
 
@@ -1244,10 +1224,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Promise.all(
             [
               ['ASC', 'Asia'],
-              ['DESC', 'Europe'],
-            ].map(async (params) => {
+              ['DESC', 'Europe']
+            ].map(async params => {
               const continents = await this.Continent.findAll({
-                order: [['name', params[0]]],
+                order: [['name', params[0]]]
               });
 
               expect(continents).to.exist;
@@ -1261,11 +1241,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Promise.all(
             [
               ['ASC', 'Europe', 'England'],
-              ['DESC', 'Asia', 'Korea'],
-            ].map(async (params) => {
+              ['DESC', 'Asia', 'Korea']
+            ].map(async params => {
               const continents = await this.Continent.findAll({
                 include: [this.Country],
-                order: [[this.Country, 'name', params[0]]],
+                order: [[this.Country, 'name', params[0]]]
               });
 
               expect(continents).to.exist;
@@ -1280,22 +1260,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', async function () {
           await Promise.all(
-            [['ASC', 'Asia', 'Europe', 'England']].map(async (params) => {
+            [['ASC', 'Asia', 'Europe', 'England']].map(async params => {
               const continents = await this.Continent.findAll({
                 include: [
                   {
                     model: this.Country,
                     required: false,
                     where: {
-                      name: params[3],
-                    },
-                  },
+                      name: params[3]
+                    }
+                  }
                 ],
                 limit: 2,
                 order: [
                   ['name', params[0]],
-                  [this.Country, 'name', params[0]],
-                ],
+                  [this.Country, 'name', params[0]]
+                ]
               });
 
               expect(continents).to.exist;
@@ -1317,11 +1297,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Promise.all(
             [
               ['ASC', 'Europe', 'England', 'Fred'],
-              ['DESC', 'Asia', 'Korea', 'Kim'],
-            ].map(async (params) => {
+              ['DESC', 'Asia', 'Korea', 'Kim']
+            ].map(async params => {
               const continents = await this.Continent.findAll({
                 include: [{ model: this.Country, include: [this.Person] }],
-                order: [[this.Country, this.Person, 'lastName', params[0]]],
+                order: [[this.Country, this.Person, 'lastName', params[0]]]
               });
 
               expect(continents).to.exist;
@@ -1332,9 +1312,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0].name).to.equal(params[2]);
               expect(continents[0].countries[0].people).to.exist;
               expect(continents[0].countries[0].people[0]).to.exist;
-              expect(continents[0].countries[0].people[0].name).to.equal(
-                params[3]
-              );
+              expect(continents[0].countries[0].people[0].name).to.equal(params[3]);
             })
           );
         });
@@ -1343,26 +1321,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Promise.all(
             [
               ['ASC', 'Europe', 'France', 'Fred'],
-              ['DESC', 'Europe', 'England', 'Kim'],
-            ].map(async (params) => {
+              ['DESC', 'Europe', 'England', 'Kim']
+            ].map(async params => {
               const continents = await this.Continent.findAll({
                 include: [
                   {
                     model: this.Country,
-                    include: [
-                      this.Person,
-                      { model: this.Person, as: 'residents' },
-                    ],
-                  },
+                    include: [this.Person, { model: this.Person, as: 'residents' }]
+                  }
                 ],
-                order: [
-                  [
-                    this.Country,
-                    { model: this.Person, as: 'residents' },
-                    'lastName',
-                    params[0],
-                  ],
-                ],
+                order: [[this.Country, { model: this.Person, as: 'residents' }, 'lastName', params[0]]]
               });
 
               expect(continents).to.exist;
@@ -1373,9 +1341,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0].name).to.equal(params[2]);
               expect(continents[0].countries[0].residents).to.exist;
               expect(continents[0].countries[0].residents[0]).to.exist;
-              expect(continents[0].countries[0].residents[0].name).to.equal(
-                params[3]
-              );
+              expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
             })
           );
         });
@@ -1384,27 +1350,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Promise.all(
             [
               ['ASC', 'Europe', 'France', 'Fred'],
-              ['DESC', 'Europe', 'England', 'Kim'],
-            ].map(async (params) => {
+              ['DESC', 'Europe', 'England', 'Kim']
+            ].map(async params => {
               const continents = await this.Continent.findAll({
                 include: [
                   {
                     model: this.Country,
-                    include: [
-                      this.Person,
-                      { model: this.Person, as: 'residents' },
-                    ],
-                  },
+                    include: [this.Person, { model: this.Person, as: 'residents' }]
+                  }
                 ],
-                order: [
-                  [
-                    { model: this.Country },
-                    { model: this.Person, as: 'residents' },
-                    'lastName',
-                    params[0],
-                  ],
-                ],
-                limit: 3,
+                order: [[{ model: this.Country }, { model: this.Person, as: 'residents' }, 'lastName', params[0]]],
+                limit: 3
               });
 
               expect(continents).to.exist;
@@ -1415,9 +1371,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(continents[0].countries[0].name).to.equal(params[2]);
               expect(continents[0].countries[0].residents).to.exist;
               expect(continents[0].countries[0].residents[0]).to.exist;
-              expect(continents[0].countries[0].residents[0].name).to.equal(
-                params[3]
-              );
+              expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
             })
           );
         });
@@ -1426,20 +1380,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('ManyToMany', () => {
         beforeEach(async function () {
           this.Country = this.sequelize.define('country', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.Industry = this.sequelize.define('industry', {
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           });
           this.IndustryCountry = this.sequelize.define('IndustryCountry', {
-            numYears: Sequelize.INTEGER,
+            numYears: Sequelize.INTEGER
           });
 
           this.Country.belongsToMany(this.Industry, {
-            through: this.IndustryCountry,
+            through: this.IndustryCountry
           });
           this.Industry.belongsToMany(this.Country, {
-            through: this.IndustryCountry,
+            through: this.IndustryCountry
           });
 
           await this.sequelize.sync({ force: true });
@@ -1450,7 +1404,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             korea: this.Country.create({ name: 'Korea' }),
             energy: this.Industry.create({ name: 'Energy' }),
             media: this.Industry.create({ name: 'Media' }),
-            tech: this.Industry.create({ name: 'Tech' }),
+            tech: this.Industry.create({ name: 'Tech' })
           });
 
           _.forEach(r, (item, itemName) => {
@@ -1459,11 +1413,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await Promise.all([
             this.england.addIndustry(this.energy, {
-              through: { numYears: 20 },
+              through: { numYears: 20 }
             }),
             this.england.addIndustry(this.media, { through: { numYears: 40 } }),
             this.france.addIndustry(this.media, { through: { numYears: 80 } }),
-            this.korea.addIndustry(this.tech, { through: { numYears: 30 } }),
+            this.korea.addIndustry(this.tech, { through: { numYears: 30 } })
           ]);
         });
 
@@ -1471,11 +1425,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Promise.all(
             [
               ['ASC', 'England', 'Energy'],
-              ['DESC', 'Korea', 'Tech'],
-            ].map(async (params) => {
+              ['DESC', 'Korea', 'Tech']
+            ].map(async params => {
               const countries = await this.Country.findAll({
                 include: [this.Industry],
-                order: [[this.Industry, 'name', params[0]]],
+                order: [[this.Industry, 'name', params[0]]]
               });
 
               expect(countries).to.exist;
@@ -1492,12 +1446,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Promise.all(
             [
               ['ASC', 'England', 'Energy'],
-              ['DESC', 'Korea', 'Tech'],
-            ].map(async (params) => {
+              ['DESC', 'Korea', 'Tech']
+            ].map(async params => {
               const countries = await this.Country.findAll({
                 include: [this.Industry],
                 order: [[this.Industry, 'name', params[0]]],
-                limit: 3,
+                limit: 3
               });
 
               expect(countries).to.exist;
@@ -1514,13 +1468,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Promise.all(
             [
               ['ASC', 'England', 'Energy'],
-              ['DESC', 'France', 'Media'],
-            ].map(async (params) => {
+              ['DESC', 'France', 'Media']
+            ].map(async params => {
               const countries = await this.Country.findAll({
                 include: [this.Industry],
-                order: [
-                  [this.Industry, this.IndustryCountry, 'numYears', params[0]],
-                ],
+                order: [[this.Industry, this.IndustryCountry, 'numYears', params[0]]]
               });
 
               expect(countries).to.exist;
@@ -1540,12 +1492,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await this.User.create({
           username: 'user',
           data: 'foobar',
-          theDate: moment().toDate(),
+          theDate: moment().toDate()
         });
         const user2 = await this.User.create({
           username: 'user2',
           data: 'bar',
-          theDate: moment().toDate(),
+          theDate: moment().toDate()
         });
         this.users = [user].concat(user2);
       });
@@ -1557,7 +1509,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('can also handle object notation', async function () {
         const users = await this.User.findAll({
-          where: { id: this.users[1].id },
+          where: { id: this.users[1].id }
         });
         expect(users.length).to.equal(1);
         expect(users[0].id).to.equal(this.users[1].id);
@@ -1578,17 +1530,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User.create({
           username: 'user3',
           data: 'bar',
-          theDate: moment().add(2, 'hours').toDate(),
+          theDate: moment().add(2, 'hours').toDate()
         });
         const users = await this.User.findAll({ order: [['theDate', 'DESC']] });
         expect(users[0].id).to.be.above(users[2].id);
       });
 
       it('handles offset and limit', async function () {
-        await this.User.bulkCreate([
-          { username: 'bobby' },
-          { username: 'tables' },
-        ]);
+        await this.User.bulkCreate([{ username: 'bobby' }, { username: 'tables' }]);
         const users = await this.User.findAll({ limit: 2, offset: 2 });
         expect(users.length).to.equal(2);
         expect(users[0].id).to.equal(3);
@@ -1599,9 +1548,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ID: {
             type: Sequelize.INTEGER,
             primaryKey: true,
-            autoIncrement: true,
+            autoIncrement: true
           },
-          Login: { type: Sequelize.STRING },
+          Login: { type: Sequelize.STRING }
         });
 
         await User.sync({ force: true });
@@ -1613,13 +1562,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be possible to order by sequelize.col()', async function () {
         const Company = this.sequelize.define('Company', {
-          name: Sequelize.STRING,
+          name: Sequelize.STRING
         });
 
         await Company.sync();
 
         await Company.findAll({
-          order: [this.sequelize.col('name')],
+          order: [this.sequelize.col('name')]
         });
       });
 
@@ -1630,24 +1579,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             active: {
               type: Sequelize.VIRTUAL(Sequelize.BOOLEAN, ['createdAt']),
               get() {
-                return (
-                  this.get('createdAt') > Date.now() - 7 * 24 * 60 * 60 * 1000
-                );
-              },
-            },
+                return this.get('createdAt') > Date.now() - 7 * 24 * 60 * 60 * 1000;
+              }
+            }
           },
           {
-            timestamps: true,
+            timestamps: true
           }
         );
 
         await User.create();
 
         const users = await User.findAll({
-          attributes: ['active'],
+          attributes: ['active']
         });
 
-        users.forEach((user) => {
+        users.forEach(user => {
           expect(user.get('createdAt')).to.be.ok;
           expect(user.get('active')).to.equal(true);
         });
@@ -1655,20 +1602,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should pull in dependent fields for a VIRTUAL in include', async function () {
         const User = this.sequelize.define('User', {
-          name: Sequelize.STRING,
+          name: Sequelize.STRING
         });
 
         const Image = this.sequelize.define('Image', {
           path: {
             type: Sequelize.STRING,
-            allowNull: false,
+            allowNull: false
           },
           url: {
             type: Sequelize.VIRTUAL(Sequelize.STRING, ['path']),
             get() {
               return `https://my-cool-domain.com/${this.get('path')}`;
-            },
-          },
+            }
+          }
         });
 
         User.hasOne(Image);
@@ -1680,13 +1627,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             name: 'some user',
             Image: {
-              path: 'folder1/folder2/logo.png',
-            },
+              path: 'folder1/folder2/logo.png'
+            }
           },
           {
             include: {
-              model: Image,
-            },
+              model: Image
+            }
           }
         );
 
@@ -1695,16 +1642,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [
             {
               model: Image,
-              attributes: ['url'],
-            },
-          ],
+              attributes: ['url']
+            }
+          ]
         });
 
-        users.forEach((user) => {
+        users.forEach(user => {
           expect(user.get('name')).to.equal('some user');
-          expect(user.Image.get('url')).to.equal(
-            'https://my-cool-domain.com/folder1/folder2/logo.png'
-          );
+          expect(user.Image.get('url')).to.equal('https://my-cool-domain.com/folder1/folder2/logo.png');
           expect(user.Image.get('path')).to.equal('folder1/folder2/logo.png');
         });
       });
@@ -1712,14 +1657,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should throw for undefined where parameters', async function () {
         try {
           await this.User.findAll({ where: { username: undefined } });
-          throw new Error(
-            'findAll should throw an error if where has a key with undefined value'
-          );
+          throw new Error('findAll should throw an error if where has a key with undefined value');
         } catch (err) {
           expect(err).to.be.an.instanceof(Error);
-          expect(err.message).to.equal(
-            'WHERE parameter "username" has invalid "undefined" value'
-          );
+          expect(err.message).to.equal('WHERE parameter "username" has invalid "undefined" value');
         }
       });
     });
@@ -1730,7 +1671,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.User.bulkCreate([
         { username: 'user', data: 'foobar' },
         { username: 'user2', data: 'bar' },
-        { username: 'bobby', data: 'foo' },
+        { username: 'bobby', data: 'foo' }
       ]);
 
       const users = await this.User.findAll();
@@ -1755,7 +1696,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('handles where clause {only}', async function () {
       const info = await this.User.findAndCountAll({
-        where: { id: { [Op.ne]: this.users[0].id } },
+        where: { id: { [Op.ne]: this.users[0].id } }
       });
       expect(info.count).to.equal(2);
       expect(Array.isArray(info.rows)).to.be.ok;
@@ -1765,7 +1706,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('handles where clause with ordering {only}', async function () {
       const info = await this.User.findAndCountAll({
         where: { id: { [Op.ne]: this.users[0].id } },
-        order: [['id', 'ASC']],
+        order: [['id', 'ASC']]
       });
       expect(info.count).to.equal(2);
       expect(Array.isArray(info.rows)).to.be.ok;
@@ -1795,22 +1736,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('handles offset with includes', async function () {
       const Election = this.sequelize.define('Election', {
-        name: Sequelize.STRING,
+        name: Sequelize.STRING
       });
       const Citizen = this.sequelize.define('Citizen', {
-        name: Sequelize.STRING,
+        name: Sequelize.STRING
       });
 
       // Associations
       Election.belongsTo(Citizen);
       Election.belongsToMany(Citizen, {
         as: 'Voters',
-        through: 'ElectionsVotes',
+        through: 'ElectionsVotes'
       });
       Citizen.hasMany(Election);
       Citizen.belongsToMany(Election, {
         as: 'Votes',
-        through: 'ElectionsVotes',
+        through: 'ElectionsVotes'
       });
 
       await this.sequelize.sync();
@@ -1825,12 +1766,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         offset: 5,
         limit: 1,
         where: {
-          name: 'Some election',
+          name: 'Some election'
         },
         include: [
           Citizen, // Election creator
-          { model: Citizen, as: 'Voters' }, // Election voters
-        ],
+          { model: Citizen, as: 'Voters' } // Election voters
+        ]
       };
       const elections = await Election.findAndCountAll(criteria);
       expect(elections.count).to.equal(1);
@@ -1840,7 +1781,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('handles attributes', async function () {
       const info = await this.User.findAndCountAll({
         where: { id: { [Op.ne]: this.users[0].id } },
-        attributes: ['data'],
+        attributes: ['data']
       });
       expect(info.count).to.equal(2);
       expect(Array.isArray(info.rows)).to.be.ok;
@@ -1854,7 +1795,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     beforeEach(async function () {
       await this.User.bulkCreate([
         { username: 'user', data: 'foobar' },
-        { username: 'user2', data: 'bar' },
+        { username: 'user2', data: 'bar' }
       ]);
     });
 
@@ -1885,7 +1826,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     await this.User.findAll({
       where: {},
-      logging: spy,
+      logging: spy
     });
 
     expect(spy.called).to.be.ok;
@@ -1896,10 +1837,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const Model = current.define(
         'Test',
         {
-          username: Sequelize.STRING(100),
+          username: Sequelize.STRING(100)
         },
         {
-          rejectOnEmpty: true,
+          rejectOnEmpty: true
         }
       );
 
@@ -1908,8 +1849,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await expect(
         Model.findAll({
           where: {
-            username: 'some-username-that-is-not-used-anywhere',
-          },
+            username: 'some-username-that-is-not-used-anywhere'
+          }
         })
       ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
     });
@@ -1918,10 +1859,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const Model = current.define(
         'Test',
         {
-          username: Sequelize.STRING(100),
+          username: Sequelize.STRING(100)
         },
         {
-          rejectOnEmpty: new Sequelize.ConnectionError('Some Error'), //using custom error instance
+          rejectOnEmpty: new Sequelize.ConnectionError('Some Error') //using custom error instance
         }
       );
 
@@ -1930,9 +1871,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await expect(
         Model.findAll({
           where: {
-            username:
-              'some-username-that-is-not-used-anywhere-for-sure-this-time',
-          },
+            username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
+          }
         })
       ).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
     });
@@ -1941,10 +1881,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const Model = current.define(
         'Test',
         {
-          username: Sequelize.STRING(100),
+          username: Sequelize.STRING(100)
         },
         {
-          rejectOnEmpty: Sequelize.ConnectionError, //using custom error instance
+          rejectOnEmpty: Sequelize.ConnectionError //using custom error instance
         }
       );
 
@@ -1953,9 +1893,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await expect(
         Model.findAll({
           where: {
-            username:
-              'some-username-that-is-not-used-anywhere-for-sure-this-time',
-          },
+            username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
+          }
         })
       ).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
     });

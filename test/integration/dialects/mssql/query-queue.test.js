@@ -13,7 +13,7 @@ if (dialect.match(/^mssql/)) {
   describe('[MSSQL Specific] Query Queue', () => {
     beforeEach(async function () {
       const User = (this.User = this.sequelize.define('User', {
-        username: DataTypes.STRING,
+        username: DataTypes.STRING
       }));
 
       await this.sequelize.sync({ force: true });
@@ -25,14 +25,14 @@ if (dialect.match(/^mssql/)) {
       const User = this.User;
 
       await expect(
-        this.sequelize.transaction(async (t) => {
+        this.sequelize.transaction(async t => {
           return Promise.all([
             User.findOne({
-              transaction: t,
+              transaction: t
             }),
             User.findOne({
-              transaction: t,
-            }),
+              transaction: t
+            })
           ]);
         })
       ).not.to.be.rejected;
@@ -42,15 +42,15 @@ if (dialect.match(/^mssql/)) {
       const User = this.User;
 
       await expect(
-        this.sequelize.transaction(async (t) => {
+        this.sequelize.transaction(async t => {
           await expect(
             User.create({
-              username: new Date(),
+              username: new Date()
             })
           ).to.be.rejected;
           await expect(
             User.findOne({
-              transaction: t,
+              transaction: t
             })
           ).not.to.be.rejected;
         })
@@ -64,16 +64,12 @@ if (dialect.match(/^mssql/)) {
 
       await expect(
         this.sequelize.transaction(
-          (t) =>
+          t =>
             (promise = Promise.all([
-              expect(
-                this.sequelize.dialect.connectionManager.disconnect(
-                  t.connection
-                )
-              ).to.be.fulfilled,
+              expect(this.sequelize.dialect.connectionManager.disconnect(t.connection)).to.be.fulfilled,
               expect(
                 User.findOne({
-                  transaction: t,
+                  transaction: t
                 })
               )
                 .to.be.eventually.rejectedWith(
@@ -84,7 +80,7 @@ if (dialect.match(/^mssql/)) {
                 .that.instanceOf(AsyncQueueError),
               expect(
                 User.findOne({
-                  transaction: t,
+                  transaction: t
                 })
               )
                 .to.be.eventually.rejectedWith(
@@ -92,13 +88,10 @@ if (dialect.match(/^mssql/)) {
                   'the connection was closed before this query could be executed'
                 )
                 .and.have.property('parent')
-                .that.instanceOf(AsyncQueueError),
+                .that.instanceOf(AsyncQueueError)
             ]))
         )
-      ).to.be.rejectedWith(
-        ConnectionError,
-        'the connection was closed before this query could be executed'
-      );
+      ).to.be.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed');
 
       await expect(promise).not.to.be.rejected;
     });
@@ -109,7 +102,7 @@ if (dialect.match(/^mssql/)) {
       let promise;
 
       await expect(
-        this.sequelize.transaction(async (t) => {
+        this.sequelize.transaction(async t => {
           const wrappedExecSql = t.connection.execSql;
           t.connection.execSql = (...args) => {
             this.sequelize.dialect.connectionManager.disconnect(t.connection);
@@ -117,7 +110,7 @@ if (dialect.match(/^mssql/)) {
           };
           return (promise = expect(
             User.findOne({
-              transaction: t,
+              transaction: t
             })
           )
             .to.be.eventually.rejectedWith(
@@ -128,10 +121,7 @@ if (dialect.match(/^mssql/)) {
             .that.instanceOf(AsyncQueueError));
         })
       )
-        .to.be.eventually.rejectedWith(
-          ConnectionError,
-          'the connection was closed before this query could be executed'
-        )
+        .to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
         .and.have.property('parent')
         .that.instanceOf(AsyncQueueError);
 
@@ -143,7 +133,7 @@ if (dialect.match(/^mssql/)) {
         const User = this.User;
         const rejectionPromise = Support.nextUnhandledRejection();
         User.create({
-          username: new Date(),
+          username: new Date()
         });
         await expect(rejectionPromise).to.be.rejectedWith(
           Sequelize.ValidationError,
@@ -156,7 +146,7 @@ if (dialect.match(/^mssql/)) {
         const unhandledRejections = Support.captureUnhandledRejections();
         await expect(
           User.create({
-            username: new Date(),
+            username: new Date()
           })
         ).to.be.rejectedWith(Sequelize.ValidationError);
         expect(unhandledRejections).to.deep.equal([]);

@@ -15,19 +15,17 @@ class ModelManager {
   }
 
   removeModel(modelToRemove) {
-    this.models = this.models.filter(
-      (model) => model.name !== modelToRemove.name
-    );
+    this.models = this.models.filter(model => model.name !== modelToRemove.name);
 
     delete this.sequelize.models[modelToRemove.name];
   }
 
   getModel(against, options) {
     options = _.defaults(options || {}, {
-      attribute: 'name',
+      attribute: 'name'
     });
 
-    return this.models.find((model) => model[options.attribute] === against);
+    return this.models.find(model => model[options.attribute] === against);
   }
 
   get all() {
@@ -49,7 +47,7 @@ class ModelManager {
     let dep;
 
     options = _.defaults(options || {}, {
-      reverse: true,
+      reverse: true
     });
 
     for (const model of this.models) {
@@ -63,9 +61,7 @@ class ModelManager {
       models[tableName] = model;
 
       for (const attrName in model.rawAttributes) {
-        if (
-          Object.prototype.hasOwnProperty.call(model.rawAttributes, attrName)
-        ) {
+        if (Object.prototype.hasOwnProperty.call(model.rawAttributes, attrName)) {
           const attribute = model.rawAttributes[attrName];
 
           if (attribute.references) {
@@ -80,7 +76,7 @@ class ModelManager {
         }
       }
 
-      deps = deps.filter((dep) => tableName !== dep);
+      deps = deps.filter(dep => tableName !== dep);
 
       sorter.add(tableName, deps);
     }

@@ -13,12 +13,12 @@ if (Support.sequelize.dialect.supports.upserts) {
         username: {
           type: DataTypes.STRING,
           allowNull: false,
-          unique: true, //Either Primary Key/Unique Keys should be passed to upsert
+          unique: true //Either Primary Key/Unique Keys should be passed to upsert
         },
         mood: {
           type: DataTypes.ENUM,
-          values: ['happy', 'sad', 'neutral'],
-        },
+          values: ['happy', 'sad', 'neutral']
+        }
       });
       await this.sequelize.sync({ force: true });
     });
@@ -49,8 +49,7 @@ if (Support.sequelize.dialect.supports.upserts) {
           });
           this.User.afterUpsert(afterHook);
 
-          await expect(this.User.upsert({ username: 'Toni', mood: 'happy' })).to
-            .be.rejected;
+          await expect(this.User.upsert({ username: 'Toni', mood: 'happy' })).to.be.rejected;
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).not.to.have.been.called;
         });
@@ -65,8 +64,7 @@ if (Support.sequelize.dialect.supports.upserts) {
             throw new Error('Whoops!');
           });
 
-          await expect(this.User.upsert({ username: 'Toni', mood: 'happy' })).to
-            .be.rejected;
+          await expect(this.User.upsert({ username: 'Toni', mood: 'happy' })).to.be.rejected;
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
         });
@@ -77,7 +75,7 @@ if (Support.sequelize.dialect.supports.upserts) {
           let hookCalled = 0;
           const valuesOriginal = { mood: 'sad', username: 'leafninja' };
 
-          this.User.beforeUpsert((values) => {
+          this.User.beforeUpsert(values => {
             values.mood = 'happy';
             hookCalled++;
           });

@@ -24,7 +24,7 @@ if (current.dialect.supports.transactions) {
       this.sequelize = await Support.prepareTransactionTest(this.sequelize);
       this.ns = cls.getNamespace('sequelize');
       this.User = this.sequelize.define('user', {
-        name: Sequelize.STRING,
+        name: Sequelize.STRING
       });
       await this.sequelize.sync({ force: true });
     });
@@ -46,7 +46,7 @@ if (current.dialect.supports.transactions) {
           }),
           this.sequelize.transaction(async () => {
             t2id = this.ns.get('transaction').id;
-          }),
+          })
         ]);
         expect(t1id).to.be.ok;
         expect(t2id).to.be.ok;
@@ -77,7 +77,7 @@ if (current.dialect.supports.transactions) {
           transactionEnded = true;
         });
 
-        await new Promise((resolve) => {
+        await new Promise(resolve => {
           // Wait for the transaction to be setup
           const interval = setInterval(() => {
             if (transactionSetup) {
@@ -103,13 +103,13 @@ if (current.dialect.supports.transactions) {
       it('does not leak outside findOrCreate', async function () {
         await this.User.findOrCreate({
           where: {
-            name: 'Kafka',
+            name: 'Kafka'
           },
           logging(sql) {
             if (/default/.test(sql)) {
               throw new Error('The transaction was not properly assigned');
             }
-          },
+          }
         });
 
         await this.User.findAll();
@@ -121,10 +121,8 @@ if (current.dialect.supports.transactions) {
         await this.sequelize.transaction(async () => {
           await this.User.create({ name: 'bob' });
           return Promise.all([
-            expect(
-              this.User.findAll({ transaction: null })
-            ).to.eventually.have.length(0),
-            expect(this.User.findAll({})).to.eventually.have.length(1),
+            expect(this.User.findAll({ transaction: null })).to.eventually.have.length(0),
+            expect(this.User.findAll({})).to.eventually.have.length(1)
           ]);
         });
       });
@@ -132,9 +130,7 @@ if (current.dialect.supports.transactions) {
       it('automagically uses the transaction in all calls with async/await', async function () {
         await this.sequelize.transaction(async () => {
           await this.User.create({ name: 'bob' });
-          expect(await this.User.findAll({ transaction: null })).to.have.length(
-            0
-          );
+          expect(await this.User.findAll({ transaction: null })).to.have.length(0);
           expect(await this.User.findAll({})).to.have.length(1);
         });
       });
@@ -145,9 +141,9 @@ if (current.dialect.supports.transactions) {
     });
 
     it('promises returned by sequelize.query are correctly patched', async function () {
-      await this.sequelize.transaction(async (t) => {
+      await this.sequelize.transaction(async t => {
         await this.sequelize.query('select 1', {
-          type: Sequelize.QueryTypes.SELECT,
+          type: Sequelize.QueryTypes.SELECT
         });
         return expect(this.ns.get('transaction')).to.equal(t);
       });
@@ -159,7 +155,7 @@ if (current.dialect.supports.transactions) {
       });
       const sequelize = Support.createSequelizeInstance({
         logging: logger,
-        benchmark: true,
+        benchmark: true
       });
 
       const result = this.ns.runPromise(async () => {
@@ -176,13 +172,9 @@ if (current.dialect.supports.transactions) {
       await result;
 
       expect(logger.calledTwice).to.be.true;
-      expect(logger.firstCall.args[0]).to.be.match(
-        /Executed \((\d*|default)\): select 2/
-      );
+      expect(logger.firstCall.args[0]).to.be.match(/Executed \((\d*|default)\): select 2/);
       expect(logger.firstCall.returnValue).to.be.equal(2);
-      expect(logger.secondCall.args[0]).to.be.match(
-        /Executed \((\d*|default)\): select 1/
-      );
+      expect(logger.secondCall.args[0]).to.be.match(/Executed \((\d*|default)\): select 1/);
       expect(logger.secondCall.returnValue).to.be.equal(1);
     });
   });

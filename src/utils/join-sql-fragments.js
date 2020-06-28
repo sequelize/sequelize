@@ -26,12 +26,12 @@ function singleSpaceJoinHelper(parts) {
       }
       return {
         skipNextLeadingSpace: doesNotWantTrailingSpace(part),
-        result,
+        result
       };
     },
     {
       skipNextLeadingSpace: true,
-      result: '',
+      result: ''
     }
   ).result;
 }
@@ -53,10 +53,10 @@ function joinSQLFragments(array) {
   if (array.length === 0) return '';
 
   // Skip falsy fragments
-  array = array.filter((x) => x);
+  array = array.filter(x => x);
 
   // Resolve recursive calls
-  array = array.map((fragment) => {
+  array = array.map(fragment => {
     if (Array.isArray(fragment)) {
       return joinSQLFragments(fragment);
     }
@@ -76,10 +76,10 @@ function joinSQLFragments(array) {
   }
 
   // Trim fragments
-  array = array.map((x) => x.trim());
+  array = array.map(x => x.trim());
 
   // Skip full-whitespace fragments (empty after the above trim)
-  array = array.filter((x) => x !== '');
+  array = array.filter(x => x !== '');
 
   return singleSpaceJoinHelper(array);
 }

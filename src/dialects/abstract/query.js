@@ -17,7 +17,7 @@ class AbstractQuery {
       raw: false,
       // eslint-disable-next-line no-console
       logging: console.log,
-      ...options,
+      ...options
     };
     this.checkLoggingOption();
   }
@@ -72,16 +72,7 @@ class AbstractQuery {
     } else if (options.skipValueReplace) {
       const origReplacementFunc = replacementFunc;
       replacementFunc = (match, key, values, timeZone, dialect, options) => {
-        if (
-          origReplacementFunc(
-            match,
-            key,
-            values,
-            timeZone,
-            dialect,
-            options
-          ) !== undefined
-        ) {
+        if (origReplacementFunc(match, key, values, timeZone, dialect, options) !== undefined) {
           return match;
         }
         return undefined;
@@ -99,29 +90,13 @@ class AbstractQuery {
       if (list) {
         if (key.match(/^[1-9]\d*$/)) {
           key = key - 1;
-          replVal = replacementFunc(
-            match,
-            key,
-            values,
-            timeZone,
-            dialect,
-            options
-          );
+          replVal = replacementFunc(match, key, values, timeZone, dialect, options);
         }
       } else if (!key.match(/^\d*$/)) {
-        replVal = replacementFunc(
-          match,
-          key,
-          values,
-          timeZone,
-          dialect,
-          options
-        );
+        replVal = replacementFunc(match, key, values, timeZone, dialect, options);
       }
       if (replVal === undefined) {
-        throw new Error(
-          `Named bind parameter "${match}" has no value in the given object.`
-        );
+        throw new Error(`Named bind parameter "${match}" has no value in the given object.`);
       }
       return replVal;
     });
@@ -169,9 +144,7 @@ class AbstractQuery {
 
     if (field && this.model) {
       for (const key of Object.keys(this.model.uniqueKeys)) {
-        if (
-          this.model.uniqueKeys[key].fields.includes(field.replace(/"/g, ''))
-        ) {
+        if (this.model.uniqueKeys[key].fields.includes(field.replace(/"/g, ''))) {
           if (this.model.uniqueKeys[key].msg) {
             message = this.model.uniqueKeys[key].msg;
           }
@@ -204,19 +177,10 @@ class AbstractQuery {
     result = result && this.sql.toLowerCase().startsWith('insert into');
 
     // is insert query if no results are passed or if the result has the inserted id
-    result =
-      result &&
-      (!results ||
-        Object.prototype.hasOwnProperty.call(results, this.getInsertIdField()));
+    result = result && (!results || Object.prototype.hasOwnProperty.call(results, this.getInsertIdField()));
 
     // is insert query if no metadata are passed or if the metadata has the inserted id
-    result =
-      result &&
-      (!metaData ||
-        Object.prototype.hasOwnProperty.call(
-          metaData,
-          this.getInsertIdField()
-        ));
+    result = result && (!metaData || Object.prototype.hasOwnProperty.call(metaData, this.getInsertIdField()));
 
     return result;
   }
@@ -239,7 +203,7 @@ class AbstractQuery {
   }
 
   handleShowTablesQuery(results) {
-    return _.flatten(results.map((resultSet) => Object.values(resultSet)));
+    return _.flatten(results.map(resultSet => Object.values(resultSet)));
   }
 
   isShowIndexesQuery() {
@@ -280,7 +244,7 @@ class AbstractQuery {
     // Map raw fields to names if a mapping is provided
     if (this.options.fieldMap) {
       const fieldMap = this.options.fieldMap;
-      results = results.map((result) =>
+      results = results.map(result =>
         _.reduce(
           fieldMap,
           (result, name, field) => {
@@ -297,7 +261,7 @@ class AbstractQuery {
 
     // Raw queries
     if (this.options.raw) {
-      result = results.map((result) => {
+      result = results.map(result => {
         let o = {};
 
         for (const key in result) {
@@ -319,10 +283,10 @@ class AbstractQuery {
         {
           model: this.model,
           includeMap: this.options.includeMap,
-          includeNames: this.options.includeNames,
+          includeNames: this.options.includeNames
         },
         {
-          checkExisting: this.options.hasMultiAssociation,
+          checkExisting: this.options.hasMultiAssociation
         }
       );
 
@@ -333,14 +297,14 @@ class AbstractQuery {
         includeMap: this.options.includeMap,
         includeValidated: true,
         attributes: this.options.originalAttributes || this.options.attributes,
-        raw: true,
+        raw: true
       });
       // Regular queries
     } else {
       result = this.model.bulkBuild(results, {
         isNewRecord: false,
         raw: true,
-        attributes: this.options.originalAttributes || this.options.attributes,
+        attributes: this.options.originalAttributes || this.options.attributes
       });
     }
 
@@ -374,8 +338,7 @@ class AbstractQuery {
   _logQuery(sql, debugContext, parameters) {
     const { connection, options } = this;
     const benchmark = this.sequelize.options.benchmark || options.benchmark;
-    const logQueryParameters =
-      this.sequelize.options.logQueryParameters || options.logQueryParameters;
+    const logQueryParameters = this.sequelize.options.logQueryParameters || options.logQueryParameters;
     const startTime = Date.now();
     let logParameter = '';
 
@@ -383,7 +346,7 @@ class AbstractQuery {
       const delimiter = sql.endsWith(';') ? '' : ';';
       let paramStr;
       if (Array.isArray(parameters)) {
-        paramStr = parameters.map((p) => JSON.stringify(p)).join(', ');
+        paramStr = parameters.map(p => JSON.stringify(p)).join(', ');
       } else {
         paramStr = JSON.stringify(parameters);
       }
@@ -498,7 +461,7 @@ class AbstractQuery {
     let $parent;
     // Map each key to an include option
     let previousPiece;
-    const buildIncludeMap = (piece) => {
+    const buildIncludeMap = piece => {
       if (Object.prototype.hasOwnProperty.call($current.includeMap, piece)) {
         includeMap[key] = $current = $current.includeMap[piece];
         if (previousPiece) {
@@ -519,7 +482,7 @@ class AbstractQuery {
     };
     // Removes the prefix from a key ('id' for 'User.Results.id')
     const removeKeyPrefixMemo = {};
-    const removeKeyPrefix = (key) => {
+    const removeKeyPrefix = key => {
       if (!Object.prototype.hasOwnProperty.call(removeKeyPrefixMemo, key)) {
         const index = key.lastIndexOf('.');
         removeKeyPrefixMemo[key] = key.substr(index === -1 ? 0 : index + 1);
@@ -528,16 +491,12 @@ class AbstractQuery {
     };
     // Calculates the array prefix of a key (['User', 'Results'] for 'User.Results.id')
     const keyPrefixMemo = {};
-    const keyPrefix = (key) => {
+    const keyPrefix = key => {
       // We use a double memo and keyPrefixString so that different keys with the same prefix will receive the same array instead of differnet arrays with equal values
       if (!Object.prototype.hasOwnProperty.call(keyPrefixMemo, key)) {
         const prefixString = keyPrefixString(key, keyPrefixStringMemo);
-        if (
-          !Object.prototype.hasOwnProperty.call(keyPrefixMemo, prefixString)
-        ) {
-          keyPrefixMemo[prefixString] = prefixString
-            ? prefixString.split('.')
-            : [];
+        if (!Object.prototype.hasOwnProperty.call(keyPrefixMemo, prefixString)) {
+          keyPrefixMemo[prefixString] = prefixString ? prefixString.split('.') : [];
         }
         keyPrefixMemo[key] = keyPrefixMemo[prefixString];
       }
@@ -545,7 +504,7 @@ class AbstractQuery {
     };
     // Calcuate the last item in the array prefix ('Results' for 'User.Results.id')
     const lastKeyPrefixMemo = {};
-    const lastKeyPrefix = (key) => {
+    const lastKeyPrefix = key => {
       if (!Object.prototype.hasOwnProperty.call(lastKeyPrefixMemo, key)) {
         const prefix = keyPrefix(key);
         const length = prefix.length;
@@ -554,19 +513,16 @@ class AbstractQuery {
       }
       return lastKeyPrefixMemo[key];
     };
-    const getUniqueKeyAttributes = (model) => {
+    const getUniqueKeyAttributes = model => {
       let uniqueKeyAttributes = _.chain(model.uniqueKeys);
       uniqueKeyAttributes = uniqueKeyAttributes
         .result(`${uniqueKeyAttributes.findKey()}.fields`)
-        .map((field) =>
-          _.findKey(model.attributes, (chr) => chr.field === field)
-        )
+        .map(field => _.findKey(model.attributes, chr => chr.field === field))
         .value();
 
       return uniqueKeyAttributes;
     };
-    const stringify = (obj) =>
-      obj instanceof Buffer ? obj.toString('hex') : obj;
+    const stringify = obj => (obj instanceof Buffer ? obj.toString('hex') : obj);
     let primaryKeyAttributes;
     let uniqueKeyAttributes;
     let prefix;
@@ -587,14 +543,10 @@ class AbstractQuery {
         $length = includeOptions.model.primaryKeyAttributes.length;
         topHash = '';
         if ($length === 1) {
-          topHash = stringify(
-            row[includeOptions.model.primaryKeyAttributes[0]]
-          );
+          topHash = stringify(row[includeOptions.model.primaryKeyAttributes[0]]);
         } else if ($length > 1) {
           for ($i = 0; $i < $length; $i++) {
-            topHash += stringify(
-              row[includeOptions.model.primaryKeyAttributes[$i]]
-            );
+            topHash += stringify(row[includeOptions.model.primaryKeyAttributes[$i]]);
           }
         } else if (!_.isEmpty(includeOptions.model.uniqueKeys)) {
           uniqueKeyAttributes = getUniqueKeyAttributes(includeOptions.model);
@@ -616,10 +568,7 @@ class AbstractQuery {
         $keyPrefix = keyPrefix(key);
 
         // On the first row we compute the includeMap
-        if (
-          rowsI === 0 &&
-          !Object.prototype.hasOwnProperty.call(includeMap, key)
-        ) {
+        if (rowsI === 0 && !Object.prototype.hasOwnProperty.call(includeMap, key)) {
           if (!$keyPrefix.length) {
             includeMap[key] = includeMap[''] = includeOptions;
           } else {
@@ -639,27 +588,18 @@ class AbstractQuery {
 
             if (length) {
               for (i = 0; i < length; i++) {
-                prefix = $parent
-                  ? `${$parent}.${$prevKeyPrefix[i]}`
-                  : $prevKeyPrefix[i];
-                primaryKeyAttributes =
-                  includeMap[prefix].model.primaryKeyAttributes;
+                prefix = $parent ? `${$parent}.${$prevKeyPrefix[i]}` : $prevKeyPrefix[i];
+                primaryKeyAttributes = includeMap[prefix].model.primaryKeyAttributes;
                 $length = primaryKeyAttributes.length;
                 itemHash = prefix;
                 if ($length === 1) {
-                  itemHash += stringify(
-                    row[`${prefix}.${primaryKeyAttributes[0]}`]
-                  );
+                  itemHash += stringify(row[`${prefix}.${primaryKeyAttributes[0]}`]);
                 } else if ($length > 1) {
                   for ($i = 0; $i < $length; $i++) {
-                    itemHash += stringify(
-                      row[`${prefix}.${primaryKeyAttributes[$i]}`]
-                    );
+                    itemHash += stringify(row[`${prefix}.${primaryKeyAttributes[$i]}`]);
                   }
                 } else if (!_.isEmpty(includeMap[prefix].model.uniqueKeys)) {
-                  uniqueKeyAttributes = getUniqueKeyAttributes(
-                    includeMap[prefix].model
-                  );
+                  uniqueKeyAttributes = getUniqueKeyAttributes(includeMap[prefix].model);
                   for ($i = 0; $i < uniqueKeyAttributes.length; $i++) {
                     itemHash += row[`${prefix}.${uniqueKeyAttributes[$i]}`];
                   }
@@ -733,27 +673,18 @@ class AbstractQuery {
 
         if (length) {
           for (i = 0; i < length; i++) {
-            prefix = $parent
-              ? `${$parent}.${$prevKeyPrefix[i]}`
-              : $prevKeyPrefix[i];
-            primaryKeyAttributes =
-              includeMap[prefix].model.primaryKeyAttributes;
+            prefix = $parent ? `${$parent}.${$prevKeyPrefix[i]}` : $prevKeyPrefix[i];
+            primaryKeyAttributes = includeMap[prefix].model.primaryKeyAttributes;
             $length = primaryKeyAttributes.length;
             itemHash = prefix;
             if ($length === 1) {
-              itemHash += stringify(
-                row[`${prefix}.${primaryKeyAttributes[0]}`]
-              );
+              itemHash += stringify(row[`${prefix}.${primaryKeyAttributes[0]}`]);
             } else if ($length > 0) {
               for ($i = 0; $i < $length; $i++) {
-                itemHash += stringify(
-                  row[`${prefix}.${primaryKeyAttributes[$i]}`]
-                );
+                itemHash += stringify(row[`${prefix}.${primaryKeyAttributes[$i]}`]);
               }
             } else if (!_.isEmpty(includeMap[prefix].model.uniqueKeys)) {
-              uniqueKeyAttributes = getUniqueKeyAttributes(
-                includeMap[prefix].model
-              );
+              uniqueKeyAttributes = getUniqueKeyAttributes(includeMap[prefix].model);
               for ($i = 0; $i < uniqueKeyAttributes.length; $i++) {
                 itemHash += row[`${prefix}.${uniqueKeyAttributes[$i]}`];
               }

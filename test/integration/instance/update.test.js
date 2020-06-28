@@ -31,12 +31,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         validateTest: {
           type: DataTypes.INTEGER,
           allowNull: true,
-          validate: { isInt: true },
+          validate: { isInt: true }
         },
         validateCustom: {
           type: DataTypes.STRING,
           allowNull: true,
-          validate: { len: { msg: 'Length failed.', args: [1, 20] } },
+          validate: { len: { msg: 'Length failed.', args: [1, 20] } }
         },
         validateSideEffect: {
           type: DataTypes.VIRTUAL,
@@ -45,18 +45,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           set(val) {
             this.setDataValue('validateSideEffect', val);
             this.setDataValue('validateSideAffected', val * 2);
-          },
+          }
         },
         validateSideAffected: {
           type: DataTypes.INTEGER,
           allowNull: true,
-          validate: { isInt: true },
+          validate: { isInt: true }
         },
 
         dateAllowNullTrue: {
           type: DataTypes.DATE,
-          allowNull: true,
-        },
+          allowNull: true
+        }
       });
       await this.User.sync({ force: true });
     });
@@ -65,7 +65,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', {
-          username: Support.Sequelize.STRING,
+          username: Support.Sequelize.STRING
         });
 
         await User.sync({ force: true });
@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = this.sequelize.define(`User${config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
-        email: DataTypes.STRING,
+        email: DataTypes.STRING
       });
 
       await User.sync({ force: true });
@@ -92,10 +92,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user1 = await User.create(
         {
           name: 'snafu',
-          email: 'email',
+          email: 'email'
         },
         {
-          fields: ['name', 'email'],
+          fields: ['name', 'email']
         }
       );
 
@@ -112,10 +112,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
-          email: DataTypes.STRING,
+          email: DataTypes.STRING
         },
         {
-          timestamps: false,
+          timestamps: false
         }
       );
 
@@ -124,16 +124,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user1 = await User.create(
         {
           name: 'snafu',
-          email: 'email',
+          email: 'email'
         },
         {
-          fields: ['name', 'email'],
+          fields: ['name', 'email']
         }
       );
 
       const user0 = await user1.update({
         name: 'snafu',
-        email: 'email',
+        email: 'email'
       });
 
       const user = await user0.reload();
@@ -149,10 +149,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           bio: DataTypes.TEXT,
           email: DataTypes.STRING,
           createdAt: { type: DataTypes.DATE(6), allowNull: false },
-          updatedAt: { type: DataTypes.DATE(6), allowNull: false },
+          updatedAt: { type: DataTypes.DATE(6), allowNull: false }
         },
         {
-          timestamps: true,
+          timestamps: true
         }
       );
 
@@ -162,7 +162,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const user0 = await User.create({
         name: 'snafu',
-        email: 'email',
+        email: 'email'
       });
 
       const user = await user0.reload();
@@ -180,7 +180,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.changed('validateTest')).to.be.ok;
 
       await user.update({
-        validateCustom: '1',
+        validateCustom: '1'
       });
 
       expect(user.changed('validateTest')).to.be.ok;
@@ -203,10 +203,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
-          email: DataTypes.STRING,
+          email: DataTypes.STRING
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'B');
         });
 
@@ -215,12 +215,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'A',
+          email: 'A'
         });
 
         await user0.update({
           name: 'B',
-          bio: 'B',
+          bio: 'B'
         });
 
         const user = await User.findOne({});
@@ -233,10 +233,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
-          email: DataTypes.STRING,
+          email: DataTypes.STRING
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'C');
         });
 
@@ -245,13 +245,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'A',
+          email: 'A'
         });
 
         await user0.update({
           name: 'B',
           bio: 'B',
-          email: 'B',
+          email: 'B'
         });
 
         const user = await User.findOne({});
@@ -267,12 +267,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: {
             type: DataTypes.STRING,
             validate: {
-              isEmail: true,
-            },
-          },
+              isEmail: true
+            }
+          }
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'B');
         });
 
@@ -281,12 +281,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'valid.email@gmail.com',
+          email: 'valid.email@gmail.com'
         });
 
         await expect(
           user0.update({
-            name: 'B',
+            name: 'B'
           })
         ).to.be.rejectedWith(Sequelize.ValidationError);
 
@@ -301,12 +301,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: {
             type: DataTypes.STRING,
             validate: {
-              isEmail: true,
-            },
-          },
+              isEmail: true
+            }
+          }
         });
 
-        User.beforeUpdate((instance) => {
+        User.beforeUpdate(instance => {
           instance.set('email', 'B');
         });
 
@@ -315,13 +315,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user0 = await User.create({
           name: 'A',
           bio: 'A',
-          email: 'valid.email@gmail.com',
+          email: 'valid.email@gmail.com'
         });
 
         await expect(
           user0.update({
             name: 'B',
-            email: 'still.valid.email@gmail.com',
+            email: 'still.valid.email@gmail.com'
           })
         ).to.be.rejectedWith(Sequelize.ValidationError);
 
@@ -334,23 +334,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = this.sequelize.define(`User${config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
-        email: DataTypes.STRING,
+        email: DataTypes.STRING
       });
 
       await User.sync({ force: true });
 
       const user0 = await User.create({
         name: 'snafu',
-        email: 'email',
+        email: 'email'
       });
 
       const user = await user0.update(
         {
           bio: 'heyo',
-          email: 'heho',
+          email: 'heho'
         },
         {
-          fields: ['bio'],
+          fields: ['bio']
         }
       );
 
@@ -384,14 +384,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = this.sequelize.define(`User${config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
-        identifier: { type: DataTypes.STRING, primaryKey: true },
+        identifier: { type: DataTypes.STRING, primaryKey: true }
       });
 
       await User.sync({ force: true });
 
       const user = await User.create({
         name: 'snafu',
-        identifier: 'identifier',
+        identifier: 'identifier'
       });
 
       const oldCreatedAt = user.createdAt,
@@ -403,13 +403,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user0 = await user.update({
         name: 'foobar',
         createdAt: new Date(2000, 1, 1),
-        identifier: 'another identifier',
+        identifier: 'another identifier'
       });
 
       expect(new Date(user0.createdAt)).to.equalDate(new Date(oldCreatedAt));
-      expect(new Date(user0.updatedAt)).to.not.equalTime(
-        new Date(oldUpdatedAt)
-      );
+      expect(new Date(user0.updatedAt)).to.not.equalTime(new Date(oldUpdatedAt));
       expect(user0.identifier).to.equal(oldIdentifier);
     });
 
@@ -417,13 +415,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const Download = this.sequelize.define('download', {
         startedAt: DataTypes.DATE,
         canceledAt: DataTypes.DATE,
-        finishedAt: DataTypes.DATE,
+        finishedAt: DataTypes.DATE
       });
 
       await Download.sync();
 
       const download = await Download.create({
-        startedAt: new Date(),
+        startedAt: new Date()
       });
 
       expect(download.startedAt instanceof Date).to.be.true;
@@ -431,7 +429,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(download.finishedAt).to.not.be.ok;
 
       const download0 = await download.update({
-        canceledAt: new Date(),
+        canceledAt: new Date()
       });
 
       expect(download0.startedAt instanceof Date).to.be.true;
@@ -439,10 +437,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(download0.finishedAt).to.not.be.ok;
 
       const downloads = await Download.findAll({
-        where: { finishedAt: null },
+        where: { finishedAt: null }
       });
 
-      downloads.forEach((download) => {
+      downloads.forEach(download => {
         expect(download.startedAt instanceof Date).to.be.true;
         expect(download.canceledAt instanceof Date).to.be.true;
         expect(download.finishedAt).to.not.be.ok;

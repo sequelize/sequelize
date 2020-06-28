@@ -15,11 +15,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'student',
           {
             no: { type: Sequelize.INTEGER, primaryKey: true },
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           },
           {
             tableName: 'student',
-            timestamps: false,
+            timestamps: false
           }
         );
 
@@ -27,11 +27,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'course',
           {
             no: { type: Sequelize.INTEGER, primaryKey: true },
-            name: Sequelize.STRING,
+            name: Sequelize.STRING
           },
           {
             tableName: 'course',
-            timestamps: false,
+            timestamps: false
           }
         );
 
@@ -44,43 +44,43 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               set(v) {
                 callCount++;
                 this.setDataValue('test_value', v + 1);
-              },
-            },
+              }
+            }
           },
           {
             tableName: 'score',
-            timestamps: false,
+            timestamps: false
           }
         );
 
         this.Student.belongsToMany(this.Course, {
           through: this.Score,
-          foreignKey: 'StudentId',
+          foreignKey: 'StudentId'
         });
         this.Course.belongsToMany(this.Student, {
           through: this.Score,
-          foreignKey: 'CourseId',
+          foreignKey: 'CourseId'
         });
 
         await this.sequelize.sync({ force: true });
 
         const [student, course] = await Promise.all([
           this.Student.create({ no: 1, name: 'ryan' }),
-          this.Course.create({ no: 100, name: 'history' }),
+          this.Course.create({ no: 100, name: 'history' })
         ]);
 
         await student.addCourse(course, {
-          through: { score: 98, test_value: 1000 },
+          through: { score: 98, test_value: 1000 }
         });
         expect(callCount).to.equal(1);
         const score0 = await this.Score.findOne({
-          where: { StudentId: 1, CourseId: 100 },
+          where: { StudentId: 1, CourseId: 100 }
         });
         expect(score0.test_value).to.equal(1001);
 
         const [courses, score] = await Promise.all([
           this.Student.build({ no: 1 }).getCourses({ where: { no: 100 } }),
-          this.Score.findOne({ where: { StudentId: 1, CourseId: 100 } }),
+          this.Score.findOne({ where: { StudentId: 1, CourseId: 100 } })
         ]);
 
         expect(score.test_value).to.equal(1001);
@@ -93,10 +93,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'person',
           {
             name: Sequelize.STRING,
-            nick: Sequelize.STRING,
+            nick: Sequelize.STRING
           },
           {
-            timestamps: false,
+            timestamps: false
           }
         );
 
@@ -106,8 +106,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const person = await Person.findOne({
           attributes: ['nick', ['name', 'toString']],
           where: {
-            name: 'Jozef',
-          },
+            name: 'Jozef'
+          }
         });
 
         expect(person.dataValues['toString']).to.equal('Jozef');
@@ -117,11 +117,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('allows for an attribute to be called "toString" with associations', async function () {
         const Person = this.sequelize.define('person', {
           name: Sequelize.STRING,
-          nick: Sequelize.STRING,
+          nick: Sequelize.STRING
         });
 
         const Computer = this.sequelize.define('computer', {
-          hostname: Sequelize.STRING,
+          hostname: Sequelize.STRING
         });
 
         Person.hasMany(Computer);
@@ -133,11 +133,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const result = await Person.findAll({
           attributes: ['nick', ['name', 'toString']],
           include: {
-            model: Computer,
+            model: Computer
           },
           where: {
-            name: 'Jozef',
-          },
+            name: 'Jozef'
+          }
         });
 
         expect(result.length).to.equal(1);
@@ -150,7 +150,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('quote', () => {
       it('allows for an attribute with dots', async function () {
         const User = this.sequelize.define('user', {
-          'foo.bar.baz': Sequelize.TEXT,
+          'foo.bar.baz': Sequelize.TEXT
         });
 
         await this.sequelize.sync({ force: true });

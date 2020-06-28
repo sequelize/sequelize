@@ -25,16 +25,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it(name, () => {
         const join = sql.generateJoin(include, {
           options,
-          subQuery:
-            options.subQuery === undefined
-              ? options.limit && options.hasMultiAssociation
-              : options.subQuery,
+          subQuery: options.subQuery === undefined ? options.limit && options.hasMultiAssociation : options.subQuery
         });
 
-        return expectsql(
-          `${join.join} ${join.body} ON ${join.condition}`,
-          expectation
-        );
+        return expectsql(`${join.join} ${join.body} ON ${join.condition}`, expectation);
       });
     };
 
@@ -45,15 +39,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
-          field: 'id_user',
+          field: 'id_user'
         },
         companyId: {
           type: DataTypes.INTEGER,
-          field: 'company_id',
-        },
+          field: 'company_id'
+        }
       },
       {
-        tableName: 'user',
+        tableName: 'user'
       }
     );
     const Task = current.define(
@@ -62,11 +56,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         title: Sequelize.STRING,
         userId: {
           type: DataTypes.INTEGER,
-          field: 'user_id',
-        },
+          field: 'user_id'
+        }
       },
       {
-        tableName: 'task',
+        tableName: 'task'
       }
     );
 
@@ -76,43 +70,43 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         name: Sequelize.STRING,
         ownerId: {
           type: Sequelize.INTEGER,
-          field: 'owner_id',
+          field: 'owner_id'
         },
         public: {
-          type: Sequelize.BOOLEAN,
-        },
+          type: Sequelize.BOOLEAN
+        }
       },
       {
-        tableName: 'company',
+        tableName: 'company'
       }
     );
 
     const Profession = current.define(
       'Profession',
       {
-        name: Sequelize.STRING,
+        name: Sequelize.STRING
       },
       {
-        tableName: 'profession',
+        tableName: 'profession'
       }
     );
 
     User.Tasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId' });
     User.Company = User.belongsTo(Company, { foreignKey: 'companyId' });
     User.Profession = User.belongsTo(Profession, {
-      foreignKey: 'professionId',
+      foreignKey: 'professionId'
     });
     Profession.Professionals = Profession.hasMany(User, {
       as: 'Professionals',
-      foreignKey: 'professionId',
+      foreignKey: 'professionId'
     });
     Company.Employees = Company.hasMany(User, {
       as: 'Employees',
-      foreignKey: 'companyId',
+      foreignKey: 'companyId'
     });
     Company.Owner = Company.belongsTo(User, {
       as: 'Owner',
-      foreignKey: 'ownerId',
+      foreignKey: 'ownerId'
     });
 
     /*
@@ -123,11 +117,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       'include[0]',
       {
         model: User,
-        include: [User.Company],
+        include: [User.Company]
       },
       {
-        default:
-          'LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]',
+        default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]'
       }
     );
 
@@ -139,17 +132,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {
             association: User.Company,
             where: { public: true },
-            or: true,
-          },
-        ],
+            or: true
+          }
+        ]
       },
       {
         default:
           'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = true',
-        sqlite:
-          'INNER JOIN `company` AS `Company` ON `User`.`company_id` = `Company`.`id` OR `Company`.`public` = 1',
-        mssql:
-          'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = 1',
+        sqlite: 'INNER JOIN `company` AS `Company` ON `User`.`company_id` = `Company`.`id` OR `Company`.`public` = 1',
+        mssql: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = 1'
       }
     );
 
@@ -161,13 +152,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {
             association: Profession.Professionals,
             limit: 3,
-            include: [User.Company],
-          },
-        ],
+            include: [User.Company]
+          }
+        ]
       },
       {
         default:
-          'LEFT OUTER JOIN [company] AS [Professionals->Company] ON [Professionals].[company_id] = [Professionals->Company].[id]',
+          'LEFT OUTER JOIN [company] AS [Professionals->Company] ON [Professionals].[company_id] = [Professionals->Company].[id]'
       }
     );
 
@@ -176,11 +167,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       {
         model: User,
         subQuery: true,
-        include: [User.Company],
+        include: [User.Company]
       },
       {
-        default:
-          'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]',
+        default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]'
       }
     );
 
@@ -193,15 +183,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {
             association: User.Company,
             required: false,
-            where: { name: 'ABC' },
-          },
-        ],
+            where: { name: 'ABC' }
+          }
+        ]
       },
       {
         default:
           "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = 'ABC'",
         mssql:
-          "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = N'ABC'",
+          "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = N'ABC'"
       }
     );
 
@@ -213,14 +203,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         include: [
           {
             association: User.Company,
-            right: true,
-          },
-        ],
+            right: true
+          }
+        ]
       },
       {
         default: `${
           current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'
-        } OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]`,
+        } OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]`
       }
     );
 
@@ -232,13 +222,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         include: [
           {
             association: User.Company,
-            include: [Company.Owner],
-          },
-        ],
+            include: [Company.Owner]
+          }
+        ]
       },
       {
-        default:
-          'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]',
+        default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]'
       }
     );
 
@@ -253,15 +242,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             include: [
               {
                 association: Company.Owner,
-                include: [User.Profession],
-              },
-            ],
-          },
-        ],
+                include: [User.Profession]
+              }
+            ]
+          }
+        ]
       },
       {
         default:
-          'LEFT OUTER JOIN [profession] AS [Company->Owner->Profession] ON [Company->Owner].[professionId] = [Company->Owner->Profession].[id]',
+          'LEFT OUTER JOIN [profession] AS [Company->Owner->Profession] ON [Company->Owner].[professionId] = [Company->Owner->Profession].[id]'
       }
     );
 
@@ -274,13 +263,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {
             association: User.Company,
             required: true,
-            include: [Company.Owner],
-          },
-        ],
+            include: [Company.Owner]
+          }
+        ]
       },
       {
-        default:
-          'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]',
+        default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]'
       }
     );
 
@@ -289,11 +277,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       {
         model: User,
         subQuery: true,
-        include: [{ association: User.Company, required: true }],
+        include: [{ association: User.Company, required: true }]
       },
       {
-        default:
-          'INNER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]',
+        default: 'INNER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]'
       }
     );
 
@@ -305,11 +292,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       'include[0]',
       {
         model: User,
-        include: [User.Tasks],
+        include: [User.Tasks]
       },
       {
-        default:
-          'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id]',
+        default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id]'
       }
     );
 
@@ -318,12 +304,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       {
         model: User,
         subQuery: true,
-        include: [User.Tasks],
+        include: [User.Tasks]
       },
       {
         // The primary key of the main model will be aliased because it's coming from a subquery that the :M join is not a part of
-        default:
-          'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id]',
+        default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id]'
       }
     );
 
@@ -335,17 +320,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {
             association: User.Tasks,
             on: {
-              [Op.or]: [
-                { '$User.id_user$': { [Op.col]: 'Tasks.user_id' } },
-                { '$Tasks.user_id$': 2 },
-              ],
-            },
-          },
-        ],
+              [Op.or]: [{ '$User.id_user$': { [Op.col]: 'Tasks.user_id' } }, { '$Tasks.user_id$': 2 }]
+            }
+          }
+        ]
       },
       {
-        default:
-          'LEFT OUTER JOIN [task] AS [Tasks] ON ([User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2)',
+        default: 'LEFT OUTER JOIN [task] AS [Tasks] ON ([User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2)'
       }
     );
 
@@ -356,13 +337,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         include: [
           {
             association: User.Tasks,
-            on: { user_id: { [Op.col]: 'User.alternative_id' } },
-          },
-        ],
+            on: { user_id: { [Op.col]: 'User.alternative_id' } }
+          }
+        ]
       },
       {
-        default:
-          'LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id]',
+        default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id]'
       }
     );
 
@@ -381,20 +361,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                   [Op.or]: [
                     {
                       '$Company.owner_id$': {
-                        [Op.col]: 'Company.Owner.id_user',
-                      },
+                        [Op.col]: 'Company.Owner.id_user'
+                      }
                     },
-                    { '$Company.Owner.id_user$': 2 },
-                  ],
-                },
-              },
-            ],
-          },
-        ],
+                    { '$Company.Owner.id_user$': 2 }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
       },
       {
         default:
-          'LEFT OUTER JOIN [user] AS [Company->Owner] ON ([Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = 2)',
+          'LEFT OUTER JOIN [user] AS [Company->Owner] ON ([Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = 2)'
       }
     );
   });

@@ -15,18 +15,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
-            primaryKey: true,
+            primaryKey: true
           },
-          name: { type: DataTypes.STRING, allowNull: false },
+          name: { type: DataTypes.STRING, allowNull: false }
         });
 
         const Comment = current.define('Comment', {
           id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
-            primaryKey: true,
+            primaryKey: true
           },
-          text: { type: DataTypes.STRING, allowNull: false },
+          text: { type: DataTypes.STRING, allowNull: false }
         });
 
         Post.hasMany(Comment);
@@ -41,19 +41,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { text: 'Text', PostId: 2 },
           { text: 'Abc', PostId: 2 },
           { text: 'Semaphor', PostId: 1 },
-          { text: 'Text', PostId: 1 },
+          { text: 'Text', PostId: 1 }
         ]);
 
         const posts = await Post.findAll({
-          attributes: [
-            [
-              Sequelize.fn('COUNT', Sequelize.col('Comments.id')),
-              'comment_count',
-            ],
-          ],
+          attributes: [[Sequelize.fn('COUNT', Sequelize.col('Comments.id')), 'comment_count']],
           include: [{ model: Comment, attributes: [] }],
           group: ['Post.id'],
-          order: [['id']],
+          order: [['id']]
         });
 
         expect(parseInt(posts[0].get('comment_count'), 10)).to.be.equal(3);
@@ -65,18 +60,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
-            primaryKey: true,
+            primaryKey: true
           },
-          name: { type: DataTypes.STRING, allowNull: false },
+          name: { type: DataTypes.STRING, allowNull: false }
         });
 
         const Comment = current.define('Comment', {
           id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
-            primaryKey: true,
+            primaryKey: true
           },
-          text: { type: DataTypes.STRING, allowNull: false },
+          text: { type: DataTypes.STRING, allowNull: false }
         });
 
         Post.hasMany(Comment);
@@ -91,28 +86,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { text: 'Text', PostId: 2 },
           { text: 'Abc', PostId: 2 },
           { text: 'Semaphor', PostId: 1 },
-          { text: 'Text', PostId: 1 },
+          { text: 'Text', PostId: 1 }
         ]);
 
         const posts = await Comment.findAll({
-          attributes: [
-            'PostId',
-            [
-              Sequelize.fn('COUNT', Sequelize.col('Comment.id')),
-              'comment_count',
-            ],
-          ],
+          attributes: ['PostId', [Sequelize.fn('COUNT', Sequelize.col('Comment.id')), 'comment_count']],
           include: [{ model: Post, attributes: [] }],
           group: ['PostId'],
-          order: [['PostId']],
+          order: [['PostId']]
         });
 
-        expect(
-          Object.prototype.hasOwnProperty.call(posts[0].get(), 'id')
-        ).to.equal(false);
-        expect(
-          Object.prototype.hasOwnProperty.call(posts[1].get(), 'id')
-        ).to.equal(false);
+        expect(Object.prototype.hasOwnProperty.call(posts[0].get(), 'id')).to.equal(false);
+        expect(Object.prototype.hasOwnProperty.call(posts[1].get(), 'id')).to.equal(false);
         expect(parseInt(posts[0].get('comment_count'), 10)).to.be.equal(3);
         expect(parseInt(posts[1].get('comment_count'), 10)).to.be.equal(2);
       });

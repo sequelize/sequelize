@@ -24,15 +24,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ownerId: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            field: 'owner_id',
+            field: 'owner_id'
           },
           name: {
-            type: DataTypes.STRING,
-          },
+            type: DataTypes.STRING
+          }
         },
         {
           paranoid: true,
-          timestamps: true,
+          timestamps: true
         }
       );
 
@@ -58,23 +58,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ownerId: {
             type: DataTypes.INTEGER,
             allowNull: false,
-            field: 'owner_id',
+            field: 'owner_id'
           },
           name: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING
           },
           deletedAt: {
             type: DataTypes.DATE,
             allowNull: true,
-            field: 'deleted_at',
-          },
+            field: 'deleted_at'
+          }
         },
         {
           paranoid: true,
           timestamps: true,
           deletedAt: 'deletedAt',
           createdAt: false,
-          updatedAt: false,
+          updatedAt: false
         }
       );
 
@@ -99,21 +99,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             'Model',
             {
               name: {
-                type: DataTypes.STRING,
+                type: DataTypes.STRING
               },
               data: {
-                type: DataTypes.JSON,
+                type: DataTypes.JSON
               },
               deletedAt: {
                 type: DataTypes.DATE,
                 allowNull: true,
-                field: 'deleted_at',
-              },
+                field: 'deleted_at'
+              }
             },
             {
               paranoid: true,
               timestamps: true,
-              deletedAt: 'deletedAt',
+              deletedAt: 'deletedAt'
             }
           );
         });
@@ -128,28 +128,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               name: 'One',
               data: {
                 field: {
-                  deep: true,
-                },
-              },
+                  deep: true
+                }
+              }
             },
             {
               name: 'Two',
               data: {
                 field: {
-                  deep: false,
-                },
-              },
-            },
+                  deep: false
+                }
+              }
+            }
           ]);
 
           await this.Model.destroy({
             where: {
               data: {
                 field: {
-                  deep: true,
-                },
-              },
-            },
+                  deep: true
+                }
+              }
+            }
           });
 
           const records = await this.Model.findAll();

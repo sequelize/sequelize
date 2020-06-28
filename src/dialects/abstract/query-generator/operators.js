@@ -40,7 +40,7 @@ const OperatorHelpers = {
     [Op.and]: ' AND ',
     [Op.or]: ' OR ',
     [Op.col]: 'COL',
-    [Op.placeholder]: '$$PLACEHOLDER$$',
+    [Op.placeholder]: '$$PLACEHOLDER$$'
   },
 
   OperatorsAliasMap: {},
@@ -59,7 +59,7 @@ const OperatorHelpers = {
       return orig;
     }
 
-    Utils.getOperators(orig).forEach((op) => {
+    Utils.getOperators(orig).forEach(op => {
       const item = orig[op];
       if (_.isPlainObject(item)) {
         obj[op] = this._replaceAliases(item);
@@ -76,7 +76,7 @@ const OperatorHelpers = {
       obj[prop] = item;
     });
     return obj;
-  },
+  }
 };
 
 module.exports = OperatorHelpers;

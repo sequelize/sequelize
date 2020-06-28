@@ -14,9 +14,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
     expect(() => {
       User.belongsTo();
-    }).to.throw(
-      "User.belongsTo called with something that's not a subclass of Sequelize.Model"
-    );
+    }).to.throw("User.belongsTo called with something that's not a subclass of Sequelize.Model");
   });
 
   it('warn on invalid options', () => {
@@ -25,16 +23,14 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
     expect(() => {
       User.belongsTo(Task, { targetKey: 'wowow' });
-    }).to.throw(
-      'Unknown attribute "wowow" passed as targetKey, define this attribute on model "Task" first'
-    );
+    }).to.throw('Unknown attribute "wowow" passed as targetKey, define this attribute on model "Task" first');
   });
 
   it('should not override custom methods with association mixin', () => {
     const methods = {
       getTask: 'get',
       setTask: 'set',
-      createTask: 'create',
+      createTask: 'create'
     };
     const User = current.define('User');
     const Task = current.define('Task');
@@ -58,7 +54,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
   describe('association hooks', () => {
     beforeEach(function () {
       this.Projects = this.sequelize.define('Project', {
-        title: DataTypes.STRING,
+        title: DataTypes.STRING
       });
       this.Tasks = this.sequelize.define('Task', { title: DataTypes.STRING });
     });
@@ -79,9 +75,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('BelongsTo');
 
-        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal(
-          'Sequelize'
-        );
+        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', function () {
         const beforeAssociate = sinon.spy();
@@ -103,17 +97,13 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
         const firstArg = afterAssociateArgs[0];
 
-        expect(Object.keys(firstArg).join()).to.equal(
-          'source,target,type,association'
-        );
+        expect(Object.keys(firstArg).join()).to.equal('source,target,type,association');
         expect(firstArg.source).to.equal(this.Projects);
         expect(firstArg.target).to.equal(this.Tasks);
         expect(firstArg.type.name).to.equal('BelongsTo');
         expect(firstArg.association.constructor.name).to.equal('BelongsTo');
 
-        expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal(
-          'Sequelize'
-        );
+        expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', function () {
         const afterAssociate = sinon.spy();

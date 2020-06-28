@@ -17,21 +17,21 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           id: {
             type: Sequelize.BIGINT,
             primaryKey: true,
-            autoIncrement: true,
+            autoIncrement: true
           },
           deletedAt: {
-            type: Sequelize.DATE,
-          },
+            type: Sequelize.DATE
+          }
         },
         {
-          paranoid: true,
+          paranoid: true
         }
       );
 
       before(() => {
         stub = sinon.stub(current, 'query').resolves({
           _previousDataValues: { id: 1 },
-          dataValues: { id: 2 },
+          dataValues: { id: 2 }
         });
       });
 

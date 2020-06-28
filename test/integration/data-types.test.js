@@ -22,14 +22,11 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   });
 
   it('allows me to return values from a custom parse function', async () => {
-    const parse = (Sequelize.DATE.parse = sinon.spy((value) => {
+    const parse = (Sequelize.DATE.parse = sinon.spy(value => {
       return moment(value, 'YYYY-MM-DD HH:mm:ss');
     }));
 
-    const stringify = (Sequelize.DATE.prototype.stringify = sinon.spy(function (
-      value,
-      options
-    ) {
+    const stringify = (Sequelize.DATE.prototype.stringify = sinon.spy(function (value, options) {
       if (!moment.isMoment(value)) {
         value = this._applyTimezone(value, options);
       }
@@ -41,17 +38,17 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const User = current.define(
       'user',
       {
-        dateField: Sequelize.DATE,
+        dateField: Sequelize.DATE
       },
       {
-        timestamps: false,
+        timestamps: false
       }
     );
 
     await current.sync({ force: true });
 
     await User.create({
-      dateField: moment('2011 10 31', 'YYYY MM DD'),
+      dateField: moment('2011 10 31', 'YYYY MM DD')
     });
 
     const obj = await User.findAll();
@@ -65,15 +62,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   });
 
   const testSuccess = async function (Type, value, options) {
-    const parse = (Type.constructor.parse = sinon.spy((value) => {
+    const parse = (Type.constructor.parse = sinon.spy(value => {
       return value;
     }));
 
-    const stringify = (Type.constructor.prototype.stringify = sinon.spy(
-      function () {
-        return Sequelize.ABSTRACT.prototype.stringify.apply(this, arguments);
-      }
-    ));
+    const stringify = (Type.constructor.prototype.stringify = sinon.spy(function () {
+      return Sequelize.ABSTRACT.prototype.stringify.apply(this, arguments);
+    }));
     let bindParam;
     if (options && options.useBindParam) {
       bindParam = Type.constructor.prototype.bindParam = sinon.spy(function () {
@@ -84,10 +79,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const User = current.define(
       'user',
       {
-        field: Type,
+        field: Type
       },
       {
-        timestamps: false,
+        timestamps: false
       }
     );
 
@@ -96,7 +91,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     current.refreshTypes();
 
     await User.create({
-      field: value,
+      field: value
     });
 
     await User.findAll();
@@ -119,9 +114,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     expect(() => {
       current.refreshTypes();
-    }).to.throw(
-      `Parse function not supported for type ${Type.key} in dialect ${dialect}`
-    );
+    }).to.throw(`Parse function not supported for type ${Type.key} in dialect ${dialect}`);
 
     delete Type.constructor.parse;
   };
@@ -146,11 +139,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and bindParam for HSTORE', async () => {
       const Type = new Sequelize.HSTORE();
 
-      await testSuccess(
-        Type,
-        { test: 42, nested: false },
-        { useBindParam: true }
-      );
+      await testSuccess(Type, { test: 42, nested: false }, { useBindParam: true });
     });
   }
 
@@ -247,7 +236,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
   it('should handle JS BigInt type', async function () {
     const User = this.sequelize.define('user', {
-      age: Sequelize.BIGINT,
+      age: Sequelize.BIGINT
     });
 
     const age = BigInt(Number.MAX_SAFE_INTEGER) * 2n;
@@ -257,7 +246,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     expect(BigInt(user.age).toString()).to.equal(age.toString());
 
     const users = await User.findAll({
-      where: { age },
+      where: { age }
     });
 
     expect(users).to.have.lengthOf(1);
@@ -268,7 +257,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('should handle TINYINT booleans', async function () {
       const User = this.sequelize.define('user', {
         id: { type: Sequelize.TINYINT, primaryKey: true },
-        isRegistered: Sequelize.TINYINT,
+        isRegistered: Sequelize.TINYINT
       });
 
       await User.sync({ force: true });
@@ -278,8 +267,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       const registeredUser = await User.findOne({
         where: {
           id: 1,
-          isRegistered: true,
-        },
+          isRegistered: true
+        }
       });
 
       expect(registeredUser).to.be.ok;
@@ -287,15 +276,15 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
       const unregisteredUser0 = await User.create({
         id: 2,
-        isRegistered: false,
+        isRegistered: false
       });
       expect(unregisteredUser0.isRegistered).to.equal(false);
 
       const unregisteredUser = await User.findOne({
         where: {
           id: 2,
-          isRegistered: false,
-        },
+          isRegistered: false
+        }
       });
 
       expect(unregisteredUser).to.be.ok;
@@ -397,21 +386,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and bindParam for GEOMETRY', async () => {
       const Type = new Sequelize.GEOMETRY();
 
-      await testSuccess(
-        Type,
-        { type: 'Point', coordinates: [125.6, 10.1] },
-        { useBindParam: true }
-      );
+      await testSuccess(Type, { type: 'Point', coordinates: [125.6, 10.1] }, { useBindParam: true });
     });
 
     it('should parse an empty GEOMETRY field', async () => {
       const Type = new Sequelize.GEOMETRY();
 
       // MySQL 5.7 or above doesn't support POINT EMPTY
-      if (
-        dialect === 'mysql' &&
-        semver.gte(current.options.databaseVersion, '5.7.0')
-      ) {
+      if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '5.7.0')) {
         return;
       }
 
@@ -419,11 +401,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         if (/^postgres/.test(dialect)) {
           current
             .query('SELECT PostGIS_Lib_Version();')
-            .then((result) => {
-              if (
-                result[0][0] &&
-                semver.lte(result[0][0].postgis_lib_version, '2.1.7')
-              ) {
+            .then(result => {
+              if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
                 resolve(true);
               } else {
                 resolve();
@@ -438,18 +417,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       if (current.dialect.supports.GEOMETRY && runTests) {
         current.refreshTypes();
 
-        const User = current.define(
-          'user',
-          { field: Type },
-          { timestamps: false }
-        );
+        const User = current.define('user', { field: Type }, { timestamps: false });
         const point = { type: 'Point', coordinates: [] };
 
         await current.sync({ force: true });
 
         await User.create({
           //insert a empty GEOMETRY type
-          field: point,
+          field: point
         });
 
         //This case throw unhandled exception
@@ -461,7 +436,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
           expect(users[0].field).to.be.deep.eql({
             type: 'Point',
-            coordinates: [0, 0],
+            coordinates: [0, 0]
           });
         } else {
           expect(users[0].field).to.be.deep.eql(point);
@@ -474,18 +449,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
       current.refreshTypes();
 
-      const User = current.define(
-        'user',
-        { field: Type },
-        { timestamps: false }
-      );
+      const User = current.define('user', { field: Type }, { timestamps: false });
       const point = null;
 
       await current.sync({ force: true });
 
       await User.create({
         // insert a null GEOMETRY type
-        field: point,
+        field: point
       });
 
       //This case throw unhandled exception
@@ -500,7 +471,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       const Model = this.sequelize.define('model', {
         float: Sequelize.FLOAT,
         double: Sequelize.DOUBLE,
-        real: Sequelize.REAL,
+        real: Sequelize.REAL
       });
 
       await Model.sync({ force: true });
@@ -509,7 +480,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         id: 1,
         float: NaN,
         double: Infinity,
-        real: -Infinity,
+        real: -Infinity
       });
 
       const user = await Model.findOne({ where: { id: 1 } });
@@ -526,7 +497,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         decimalPre: Sequelize.DECIMAL(10, 4),
         decimalWithParser: Sequelize.DECIMAL(32, 15),
         decimalWithIntParser: Sequelize.DECIMAL(10, 4),
-        decimalWithFloatParser: Sequelize.DECIMAL(10, 8),
+        decimalWithFloatParser: Sequelize.DECIMAL(10, 8)
       });
 
       const sampleData = {
@@ -535,7 +506,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         decimalPre: 123456.1234,
         decimalWithParser: '12345678123456781.123456781234567',
         decimalWithIntParser: 1.234,
-        decimalWithFloatParser: 0.12345678,
+        decimalWithFloatParser: 0.12345678
       };
 
       await Model.sync({ force: true });
@@ -552,9 +523,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       }
 
       expect(user.get('decimalPre')).to.be.eql('123456.1234');
-      expect(user.get('decimalWithParser')).to.be.eql(
-        '12345678123456781.123456781234567'
-      );
+      expect(user.get('decimalWithParser')).to.be.eql('12345678123456781.123456781234567');
       expect(user.get('decimalWithIntParser')).to.be.eql('1.2340');
       expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
     });
@@ -563,12 +532,12 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
     it('should parse BIGINT as string', async function () {
       const Model = this.sequelize.define('model', {
-        jewelPurity: Sequelize.BIGINT,
+        jewelPurity: Sequelize.BIGINT
       });
 
       const sampleData = {
         id: 1,
-        jewelPurity: '9223372036854775807',
+        jewelPurity: '9223372036854775807'
       };
 
       await Model.sync({ force: true });
@@ -585,8 +554,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         interval: {
           type: Sequelize.RANGE(Sequelize.INTEGER),
           allowNull: false,
-          unique: true,
-        },
+          unique: true
+        }
       });
 
       await Model.sync({ force: true });
@@ -603,8 +572,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         interval: {
           type: Sequelize.RANGE(Sequelize.DATE),
           allowNull: false,
-          unique: true,
-        },
+          unique: true
+        }
       });
       const testDate1 = new Date();
       const testDate2 = new Date(testDate1.getTime() + 10000);
@@ -625,14 +594,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         interval: {
           type: Sequelize.RANGE(Sequelize.DATE),
           allowNull: false,
-          unique: true,
-        },
+          unique: true
+        }
       });
       const testDate1 = new Date();
       const testDate2 = new Date(testDate1.getTime() + 10000);
       const testDateRange = [
         { value: testDate1, inclusive: false },
-        { value: testDate2, inclusive: true },
+        { value: testDate2, inclusive: true }
       ];
 
       await Model.sync({ force: true });
@@ -650,8 +619,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         interval: {
           type: Sequelize.RANGE(Sequelize.DATE),
           allowNull: false,
-          unique: true,
-        },
+          unique: true
+        }
       });
       const testDate1 = new Date();
       const testDate2 = new Date(testDate1.getTime() + 10000);
@@ -672,15 +641,15 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         interval: {
           type: Sequelize.RANGE(Sequelize.DATE),
           allowNull: false,
-          unique: true,
-        },
+          unique: true
+        }
       });
       const testDate1 = new Date();
       const testDate2 = new Date(testDate1.getTime() + 10000);
       const testDateRange = [testDate1, testDate2];
       const dateRangePredicate = [
         { value: testDate1, inclusive: true },
-        { value: testDate1, inclusive: true },
+        { value: testDate1, inclusive: true }
       ];
 
       await Model.sync({ force: true });
@@ -688,8 +657,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
       const m = await Model.findOne({
         where: {
-          interval: { [Op.overlap]: dateRangePredicate },
-        },
+          interval: { [Op.overlap]: dateRangePredicate }
+        }
       });
 
       expect(m).to.exist;
@@ -699,7 +668,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('should allow spaces in ENUM', async function () {
     const Model = this.sequelize.define('user', {
       name: Sequelize.STRING,
-      type: Sequelize.ENUM(['action', 'mecha', 'canon', 'class s']),
+      type: Sequelize.ENUM(['action', 'mecha', 'canon', 'class s'])
     });
 
     await Model.sync({ force: true });
@@ -709,7 +678,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
   it('should return YYYY-MM-DD format string for DATEONLY', async function () {
     const Model = this.sequelize.define('user', {
-      stamp: Sequelize.DATEONLY,
+      stamp: Sequelize.DATEONLY
     });
     const testDate = moment().format('YYYY-MM-DD');
     const newDate = new Date();
@@ -724,7 +693,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     expect(record3.stamp).to.be.eql(testDate);
 
     const record2 = await record3.update({
-      stamp: testDate,
+      stamp: testDate
     });
 
     const record1 = await record2.reload();
@@ -732,7 +701,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     expect(record1.stamp).to.be.eql(testDate);
 
     const record0 = await record1.update({
-      stamp: newDate,
+      stamp: newDate
     });
 
     const record = await record0.reload();
@@ -745,7 +714,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
   it('should return set DATEONLY field to NULL correctly', async function () {
     const Model = this.sequelize.define('user', {
-      stamp: Sequelize.DATEONLY,
+      stamp: Sequelize.DATEONLY
     });
     const testDate = moment().format('YYYY-MM-DD');
 
@@ -759,7 +728,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     expect(record1.stamp).to.be.eql(testDate);
 
     const record0 = await record1.update({
-      stamp: null,
+      stamp: null
     });
 
     const record = await record0.reload();
@@ -770,29 +739,29 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const ByteModel = this.sequelize.define(
       'Model',
       {
-        byteToBool: this.sequelize.Sequelize.BLOB,
+        byteToBool: this.sequelize.Sequelize.BLOB
       },
       {
-        timestamps: false,
+        timestamps: false
       }
     );
 
     const BoolModel = this.sequelize.define(
       'Model',
       {
-        byteToBool: this.sequelize.Sequelize.BOOLEAN,
+        byteToBool: this.sequelize.Sequelize.BOOLEAN
       },
       {
-        timestamps: false,
+        timestamps: false
       }
     );
 
     await ByteModel.sync({
-      force: true,
+      force: true
     });
 
     const byte = await ByteModel.create({
-      byteToBool: Buffer.from([true]),
+      byteToBool: Buffer.from([true])
     });
 
     expect(byte.byteToBool).to.be.ok;

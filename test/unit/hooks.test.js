@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       'beforeDisconnect',
       'afterDisconnect',
       'beforeInit',
-      'afterInit',
+      'afterInit'
     ]) {
       expect(this.Model).to.not.have.property(badHook);
     }
@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('arguments', () => {
     it('hooks can modify passed arguments', async function () {
-      this.Model.addHook('beforeCreate', (options) => {
+      this.Model.addHook('beforeCreate', options => {
         options.answer = 41;
       });
 
@@ -44,8 +44,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       sinon.stub(current, 'query').resolves([
         {
           _previousDataValues: {},
-          dataValues: { id: 1, name: 'abc' },
-        },
+          dataValues: { id: 1, name: 'abc' }
+        }
       ]);
     });
 
@@ -62,14 +62,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.Model = current.define(
           'm',
           {
-            name: Support.Sequelize.STRING,
+            name: Support.Sequelize.STRING
           },
           {
             hooks: {
               beforeSave: this.beforeSaveHook,
               afterSave: this.afterSaveHook,
-              afterCreate: this.afterCreateHook,
-            },
+              afterCreate: this.afterCreateHook
+            }
           }
         );
       });
@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.afterSaveHook = sinon.spy();
 
         this.Model = current.define('m', {
-          name: Support.Sequelize.STRING,
+          name: Support.Sequelize.STRING
         });
 
         this.Model.addHook('beforeSave', this.beforeSaveHook);
@@ -108,7 +108,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.afterSaveHook = sinon.spy();
 
         this.Model = current.define('m', {
-          name: Support.Sequelize.STRING,
+          name: Support.Sequelize.STRING
         });
 
         this.Model.addHook('beforeSave', this.beforeSaveHook);
@@ -160,8 +160,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             {},
             {
               hooks: {
-                beforeCreate: [this.hook1, this.hook2, this.hook3],
-              },
+                beforeCreate: [this.hook1, this.hook2, this.hook3]
+              }
             }
           )
           .runHooks('beforeCreate');
@@ -173,8 +173,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           {},
           {
             hooks: {
-              beforeCreate: this.hook1,
-            },
+              beforeCreate: this.hook1
+            }
           }
         );
         Model.beforeCreate(this.hook2);
@@ -234,8 +234,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           {},
           {
             hooks: {
-              beforeUpdate: localHook,
-            },
+              beforeUpdate: localHook
+            }
           }
         );
 
@@ -257,9 +257,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.sequelize = Support.createSequelizeInstance({
           define: {
             hooks: {
-              beforeCreate: this.beforeCreate,
-            },
-          },
+              beforeCreate: this.beforeCreate
+            }
+          }
         });
       });
 
@@ -269,8 +269,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           {},
           {
             hooks: {
-              beforeUpdate: _.noop, // Just to make sure we can define other hooks without overwriting the global one
-            },
+              beforeUpdate: _.noop // Just to make sure we can define other hooks without overwriting the global one
+            }
           }
         );
 
@@ -285,8 +285,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             {},
             {
               hooks: {
-                beforeCreate: localHook,
-              },
+                beforeCreate: localHook
+              }
             }
           );
 
@@ -361,7 +361,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         'Model',
         {},
         {
-          hooks: { beforeCreate: hook1 },
+          hooks: { beforeCreate: hook1 }
         }
       );
 
@@ -395,9 +395,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         throw new Error('Forbidden');
       });
 
-      await expect(this.Model.runHooks('beforeCreate')).to.be.rejectedWith(
-        'Forbidden'
-      );
+      await expect(this.Model.runHooks('beforeCreate')).to.be.rejectedWith('Forbidden');
     });
 
     it('can return an error by throwing', async function () {
@@ -405,9 +403,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         throw new Error('Forbidden');
       });
 
-      await expect(this.Model.runHooks('beforeCreate')).to.be.rejectedWith(
-        'Forbidden'
-      );
+      await expect(this.Model.runHooks('beforeCreate')).to.be.rejectedWith('Forbidden');
     });
   });
 

@@ -46,9 +46,7 @@ if (dialect === 'mysql') {
     });
 
     it('newlines contained in err message are parsed correctly', () => {
-      const fakeErr = new Error(
-        "Duplicate entry '13888888888\r' for key 'num'"
-      );
+      const fakeErr = new Error("Duplicate entry '13888888888\r' for key 'num'");
 
       fakeErr.code = 1062;
 

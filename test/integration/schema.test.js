@@ -18,10 +18,10 @@ describe(Support.getTestDialectTeaser('Schema'), () => {
     this.User = this.sequelize.define(
       'User',
       {
-        aNumber: { type: DataTypes.INTEGER },
+        aNumber: { type: DataTypes.INTEGER }
       },
       {
-        schema: 'testschema',
+        schema: 'testschema'
       }
     );
 

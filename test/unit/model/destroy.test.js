@@ -11,13 +11,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method destroy', () => {
     const User = current.define('User', {
       name: DataTypes.STRING,
-      secretValue: DataTypes.INTEGER,
+      secretValue: DataTypes.INTEGER
     });
 
     before(function () {
-      this.stubDelete = sinon
-        .stub(current.getQueryInterface(), 'bulkDelete')
-        .resolves([]);
+      this.stubDelete = sinon.stub(current.getQueryInterface(), 'bulkDelete').resolves([]);
     });
 
     beforeEach(function () {

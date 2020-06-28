@@ -19,12 +19,7 @@ class Query extends AbstractQuery {
       }
       return undefined;
     };
-    sql = AbstractQuery.formatBindParameters(
-      sql,
-      values,
-      dialect,
-      replacementFunc
-    )[0];
+    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
     return [sql, bindParam.length > 0 ? bindParam : undefined];
   }
 
@@ -33,8 +28,7 @@ class Query extends AbstractQuery {
     const { connection, options } = this;
 
     //do we need benchmark for this query execution
-    const showWarnings =
-      this.sequelize.options.showWarnings || options.showWarnings;
+    const showWarnings = this.sequelize.options.showWarnings || options.showWarnings;
 
     const complete = this._logQuery(sql, debug, parameters);
 
@@ -42,17 +36,11 @@ class Query extends AbstractQuery {
       parameters && parameters.length
         ? new Promise((resolve, reject) =>
             connection
-              .execute(sql, parameters, (error, result) =>
-                error ? reject(error) : resolve(result)
-              )
+              .execute(sql, parameters, (error, result) => (error ? reject(error) : resolve(result)))
               .setMaxListeners(100)
           )
         : new Promise((resolve, reject) =>
-            connection
-              .query({ sql }, (error, result) =>
-                error ? reject(error) : resolve(result)
-              )
-              .setMaxListeners(100)
+            connection.query({ sql }, (error, result) => (error ? reject(error) : resolve(result))).setMaxListeners(100)
           );
 
     let results;
@@ -109,16 +97,14 @@ class Query extends AbstractQuery {
           data.constructor.name === 'ResultSetHeader' &&
           this.model &&
           this.model.autoIncrementAttribute &&
-          this.model.autoIncrementAttribute ===
-            this.model.primaryKeyAttribute &&
+          this.model.autoIncrementAttribute === this.model.primaryKeyAttribute &&
           this.model.rawAttributes[this.model.primaryKeyAttribute]
         ) {
           const startId = data[this.getInsertIdField()];
           result = [];
           for (let i = startId; i < startId + data.affectedRows; i++) {
             result.push({
-              [this.model.rawAttributes[this.model.primaryKeyAttribute]
-                .field]: i,
+              [this.model.rawAttributes[this.model.primaryKeyAttribute].field]: i
             });
           }
         } else {
@@ -139,16 +125,13 @@ class Query extends AbstractQuery {
       for (const _result of data) {
         const enumRegex = /^enum/i;
         result[_result.Field] = {
-          type: enumRegex.test(_result.Type)
-            ? _result.Type.replace(enumRegex, 'ENUM')
-            : _result.Type.toUpperCase(),
+          type: enumRegex.test(_result.Type) ? _result.Type.replace(enumRegex, 'ENUM') : _result.Type.toUpperCase(),
           allowNull: _result.Null === 'YES',
           defaultValue: _result.Default,
           primaryKey: _result.Key === 'PRI',
           autoIncrement:
-            Object.prototype.hasOwnProperty.call(_result, 'Extra') &&
-            _result.Extra.toLowerCase() === 'auto_increment',
-          comment: _result.Comment ? _result.Comment : null,
+            Object.prototype.hasOwnProperty.call(_result, 'Extra') && _result.Extra.toLowerCase() === 'auto_increment',
+          comment: _result.Comment ? _result.Comment : null
         };
       }
       return result;
@@ -187,16 +170,10 @@ class Query extends AbstractQuery {
 
   async logWarnings(results) {
     const warningResults = await this.run('SHOW WARNINGS');
-    const warningMessage = `MySQL Warnings (${
-      this.connection.uuid || 'default'
-    }): `;
+    const warningMessage = `MySQL Warnings (${this.connection.uuid || 'default'}): `;
     const messages = [];
     for (const _warningRow of warningResults) {
-      if (
-        _warningRow === undefined ||
-        typeof _warningRow[Symbol.iterator] !== 'function'
-      )
-        continue;
+      if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') continue;
       for (const _warningResult of _warningRow) {
         if (Object.prototype.hasOwnProperty.call(_warningResult, 'Message')) {
           messages.push(_warningResult.Message);
@@ -218,9 +195,7 @@ class Query extends AbstractQuery {
 
     switch (errCode) {
       case 1062: {
-        const match = err.message.match(
-          /Duplicate entry '([\s\S]*)' for key '?((.|\s)*?)'?$/
-        );
+        const match = err.message.match(/Duplicate entry '([\s\S]*)' for key '?((.|\s)*?)'?$/);
         let fields = {};
         let message = 'Validation error';
         const values = match ? match[1].split('-') : undefined;
@@ -253,7 +228,7 @@ class Query extends AbstractQuery {
           message,
           errors,
           parent: err,
-          fields,
+          fields
         });
       }
 
@@ -264,22 +239,15 @@ class Query extends AbstractQuery {
           /CONSTRAINT ([`"])(.*)\1 FOREIGN KEY \(\1(.*)\1\) REFERENCES \1(.*)\1 \(\1(.*)\1\)/
         );
         const quoteChar = match ? match[1] : '`';
-        const fields = match
-          ? match[3].split(new RegExp(`${quoteChar}, *${quoteChar}`))
-          : undefined;
+        const fields = match ? match[3].split(new RegExp(`${quoteChar}, *${quoteChar}`)) : undefined;
 
         return new sequelizeErrors.ForeignKeyConstraintError({
           reltype: String(errCode) === '1451' ? 'parent' : 'child',
           table: match ? match[4] : undefined,
           fields,
-          value:
-            (fields &&
-              fields.length &&
-              this.instance &&
-              this.instance[fields[0]]) ||
-            undefined,
+          value: (fields && fields.length && this.instance && this.instance[fields[0]]) || undefined,
           index: match ? match[2] : undefined,
-          parent: err,
+          parent: err
         });
       }
 
@@ -299,20 +267,20 @@ class Query extends AbstractQuery {
       acc[item.Key_name].fields[item.Seq_in_index - 1] = {
         attribute: item.Column_name,
         length: item.Sub_part || undefined,
-        order: item.Collation === 'A' ? 'ASC' : undefined,
+        order: item.Collation === 'A' ? 'ASC' : undefined
       };
       delete item.column_name;
 
       return acc;
     }, {});
 
-    return _.map(data, (item) => ({
+    return _.map(data, item => ({
       primary: item.Key_name === 'PRIMARY',
       fields: item.fields,
       name: item.Key_name,
       tableName: item.Table,
       unique: item.Non_unique !== 1,
-      type: item.Index_type,
+      type: item.Index_type
     }));
   }
 }

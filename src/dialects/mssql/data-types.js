@@ -1,6 +1,6 @@
 const moment = require('moment');
 
-module.exports = (BaseTypes) => {
+module.exports = BaseTypes => {
   const warn = BaseTypes.ABSTRACT.warn.bind(
     undefined,
     'https://msdn.microsoft.com/en-us/library/ms187752%28v=sql.110%29.aspx'
@@ -13,15 +13,8 @@ module.exports = (BaseTypes) => {
    * @private
    */
   function removeUnsupportedIntegerOptions(dataType) {
-    if (
-      dataType._length ||
-      dataType.options.length ||
-      dataType._unsigned ||
-      dataType._zerofill
-    ) {
-      warn(
-        `MSSQL does not support '${dataType.key}' with options. Plain '${dataType.key}' will be used instead.`
-      );
+    if (dataType._length || dataType.options.length || dataType._unsigned || dataType._zerofill) {
+      warn(`MSSQL does not support '${dataType.key}' with options. Plain '${dataType.key}' will be used instead.`);
       dataType._length = undefined;
       dataType.options.length = undefined;
       dataType._unsigned = undefined;
@@ -63,14 +56,10 @@ module.exports = (BaseTypes) => {
       if (this._length) {
         if (this._length.toLowerCase() === 'tiny') {
           // tiny = 2^8
-          warn(
-            'MSSQL does not support BLOB with the `length` = `tiny` option. `VARBINARY(256)` will be used instead.'
-          );
+          warn('MSSQL does not support BLOB with the `length` = `tiny` option. `VARBINARY(256)` will be used instead.');
           return 'VARBINARY(256)';
         }
-        warn(
-          'MSSQL does not support BLOB with the `length` option. `VARBINARY(MAX)` will be used instead.'
-        );
+        warn('MSSQL does not support BLOB with the `length` option. `VARBINARY(MAX)` will be used instead.');
       }
       return 'VARBINARY(MAX)';
     }
@@ -106,14 +95,10 @@ module.exports = (BaseTypes) => {
       if (this._length) {
         if (this._length.toLowerCase() === 'tiny') {
           // tiny = 2^8
-          warn(
-            'MSSQL does not support TEXT with the `length` = `tiny` option. `NVARCHAR(256)` will be used instead.'
-          );
+          warn('MSSQL does not support TEXT with the `length` = `tiny` option. `NVARCHAR(256)` will be used instead.');
           return 'NVARCHAR(256)';
         }
-        warn(
-          'MSSQL does not support TEXT with the `length` option. `NVARCHAR(MAX)` will be used instead.'
-        );
+        warn('MSSQL does not support TEXT with the `length` option. `NVARCHAR(MAX)` will be used instead.');
       }
       return 'NVARCHAR(MAX)';
     }
@@ -177,15 +162,8 @@ module.exports = (BaseTypes) => {
     constructor(length, decimals) {
       super(length, decimals);
       // MSSQL does not support any options for real
-      if (
-        this._length ||
-        this.options.length ||
-        this._unsigned ||
-        this._zerofill
-      ) {
-        warn(
-          'MSSQL does not support REAL with options. Plain `REAL` will be used instead.'
-        );
+      if (this._length || this.options.length || this._unsigned || this._zerofill) {
+        warn('MSSQL does not support REAL with options. Plain `REAL` will be used instead.');
         this._length = undefined;
         this.options.length = undefined;
         this._unsigned = undefined;
@@ -201,9 +179,7 @@ module.exports = (BaseTypes) => {
       // Values between 25-53 result in 15 digits precision (8 bytes storage size)
       // If decimals are provided remove these and print a warning
       if (this._decimals) {
-        warn(
-          'MSSQL does not support Float with decimals. Plain `FLOAT` will be used instead.'
-        );
+        warn('MSSQL does not support Float with decimals. Plain `FLOAT` will be used instead.');
         this._length = undefined;
         this.options.length = undefined;
       }
@@ -238,6 +214,6 @@ module.exports = (BaseTypes) => {
     BIGINT,
     REAL,
     FLOAT,
-    TEXT,
+    TEXT
   };
 };

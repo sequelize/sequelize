@@ -23,26 +23,26 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true,
+            autoIncrement: true
           },
           firstName: {
             type: DataTypes.STRING,
-            defaultValue: 'Someone',
+            defaultValue: 'Someone'
           },
           lastName: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING
           },
           manager: {
             type: DataTypes.INTEGER,
             references: {
               model: 'users',
-              key: 'id',
-            },
+              key: 'id'
+            }
           },
           email: {
             type: DataTypes.STRING,
-            unique: true,
-          },
+            unique: true
+          }
         });
       });
 
@@ -93,25 +93,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.createTable(
           {
             tableName: 'users',
-            schema: 'archive',
+            schema: 'archive'
           },
           {
             id: {
               type: DataTypes.INTEGER,
               primaryKey: true,
-              autoIncrement: true,
+              autoIncrement: true
             },
             firstName: {
               type: DataTypes.STRING,
-              defaultValue: 'Someone',
+              defaultValue: 'Someone'
             },
             lastName: {
-              type: DataTypes.STRING,
+              type: DataTypes.STRING
             },
             email: {
               type: DataTypes.STRING,
-              unique: true,
-            },
+              unique: true
+            }
           }
         );
       });
@@ -120,14 +120,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.removeColumn(
           {
             tableName: 'users',
-            schema: 'archive',
+            schema: 'archive'
           },
           'firstName'
         );
 
         const table = await this.queryInterface.describeTable({
           tableName: 'users',
-          schema: 'archive',
+          schema: 'archive'
         });
 
         expect(table).to.not.have.property('firstName');
@@ -137,14 +137,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.removeColumn(
           {
             tableName: 'users',
-            schema: 'archive',
+            schema: 'archive'
           },
           'lastName'
         );
 
         const table = await this.queryInterface.describeTable({
           tableName: 'users',
-          schema: 'archive',
+          schema: 'archive'
         });
 
         expect(table).to.not.have.property('lastName');
@@ -154,14 +154,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.removeColumn(
           {
             tableName: 'users',
-            schema: 'archive',
+            schema: 'archive'
           },
           'id'
         );
 
         const table = await this.queryInterface.describeTable({
           tableName: 'users',
-          schema: 'archive',
+          schema: 'archive'
         });
 
         expect(table).to.not.have.property('id');
@@ -176,14 +176,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           await this.queryInterface.removeColumn(
             {
               tableName: 'users',
-              schema: 'archive',
+              schema: 'archive'
             },
             'email'
           );
 
           const table = await this.queryInterface.describeTable({
             tableName: 'users',
-            schema: 'archive',
+            schema: 'archive'
           });
 
           expect(table).to.not.have.property('email');

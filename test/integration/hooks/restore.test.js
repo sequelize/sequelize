@@ -11,12 +11,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
       },
       mood: {
         type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
-      },
+        values: ['happy', 'sad', 'neutral']
+      }
     });
 
     this.ParanoidUser = this.sequelize.define(
@@ -25,11 +25,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         username: DataTypes.STRING,
         mood: {
           type: DataTypes.ENUM,
-          values: ['happy', 'sad', 'neutral'],
-        },
+          values: ['happy', 'sad', 'neutral']
+        }
       },
       {
-        paranoid: true,
+        paranoid: true
       }
     );
 
@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         const user = await this.ParanoidUser.create({
           username: 'Toni',
-          mood: 'happy',
+          mood: 'happy'
         });
         await user.destroy();
         await user.restore();
@@ -69,7 +69,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         const user = await this.ParanoidUser.create({
           username: 'Toni',
-          mood: 'happy',
+          mood: 'happy'
         });
         await user.destroy();
         await expect(user.restore()).to.be.rejected;
@@ -89,7 +89,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         const user = await this.ParanoidUser.create({
           username: 'Toni',
-          mood: 'happy',
+          mood: 'happy'
         });
         await user.destroy();
         await expect(user.restore()).to.be.rejected;

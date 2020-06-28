@@ -14,7 +14,7 @@ if (dialect.match(/^postgres/)) {
     beforeEach(async function () {
       this.Booking = this.sequelize.define('Booking', {
         roomNo: DataTypes.INTEGER,
-        period: DataTypes.RANGE(DataTypes.DATE),
+        period: DataTypes.RANGE(DataTypes.DATE)
       });
 
       await this.Booking.sync({ force: true });
@@ -30,7 +30,7 @@ if (dialect.match(/^postgres/)) {
         constraint: 'constraint_name',
         fields: { field1: 1, field2: [123, 321] },
         table: 'table_name',
-        parent: new Error('Test error'),
+        parent: new Error('Test error')
       };
       const err = new Sequelize.ExclusionConstraintError(errDetails);
 
@@ -45,14 +45,14 @@ if (dialect.match(/^postgres/)) {
       await Booking.create({
         roomNo: 1,
         guestName: 'Incognito Visitor',
-        period: [new Date(2015, 0, 1), new Date(2015, 0, 3)],
+        period: [new Date(2015, 0, 1), new Date(2015, 0, 3)]
       });
 
       await expect(
         Booking.create({
           roomNo: 1,
           guestName: 'Frequent Visitor',
-          period: [new Date(2015, 0, 2), new Date(2015, 0, 5)],
+          period: [new Date(2015, 0, 2), new Date(2015, 0, 5)]
         })
       ).to.eventually.be.rejectedWith(Sequelize.ExclusionConstraintError);
     });

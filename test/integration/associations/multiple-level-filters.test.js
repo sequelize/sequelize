@@ -21,41 +21,41 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
 
     await User.bulkCreate([
       {
-        username: 'leia',
+        username: 'leia'
       },
       {
-        username: 'vader',
-      },
+        username: 'vader'
+      }
     ]);
 
     await Project.bulkCreate([
       {
         UserId: 1,
-        title: 'republic',
+        title: 'republic'
       },
       {
         UserId: 2,
-        title: 'empire',
-      },
+        title: 'empire'
+      }
     ]);
 
     await Task.bulkCreate([
       {
         ProjectId: 1,
-        title: 'fight empire',
+        title: 'fight empire'
       },
       {
         ProjectId: 1,
-        title: 'stablish republic',
+        title: 'stablish republic'
       },
       {
         ProjectId: 2,
-        title: 'destroy rebel alliance',
+        title: 'destroy rebel alliance'
       },
       {
         ProjectId: 2,
-        title: 'rule everything',
-      },
+        title: 'rule everything'
+      }
     ]);
 
     const tasks = await Task.findAll({
@@ -63,9 +63,9 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
         {
           model: Project,
           include: [{ model: User, where: { username: 'leia' } }],
-          required: true,
-        },
-      ],
+          required: true
+        }
+      ]
     });
 
     expect(tasks.length).to.be.equal(2);
@@ -88,41 +88,41 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
 
     await User.bulkCreate([
       {
-        username: 'leia',
+        username: 'leia'
       },
       {
-        username: 'vader',
-      },
+        username: 'vader'
+      }
     ]);
 
     await Project.bulkCreate([
       {
         UserId: 1,
-        title: 'republic',
+        title: 'republic'
       },
       {
         UserId: 2,
-        title: 'empire',
-      },
+        title: 'empire'
+      }
     ]);
 
     await Task.bulkCreate([
       {
         ProjectId: 1,
-        title: 'fight empire',
+        title: 'fight empire'
       },
       {
         ProjectId: 1,
-        title: 'stablish republic',
+        title: 'stablish republic'
       },
       {
         ProjectId: 2,
-        title: 'destroy rebel alliance',
+        title: 'destroy rebel alliance'
       },
       {
         ProjectId: 2,
-        title: 'rule everything',
-      },
+        title: 'rule everything'
+      }
     ]);
 
     const tasks = await Task.findAll({
@@ -134,13 +134,13 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
               model: User,
               where: {
                 username: 'leia',
-                id: 1,
-              },
-            },
+                id: 1
+              }
+            }
           ],
-          required: true,
-        },
-      ],
+          required: true
+        }
+      ]
     });
 
     expect(tasks.length).to.be.equal(2);
@@ -163,41 +163,41 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
 
     await User.bulkCreate([
       {
-        username: 'leia',
+        username: 'leia'
       },
       {
-        username: 'vader',
-      },
+        username: 'vader'
+      }
     ]);
 
     await Project.bulkCreate([
       {
         UserId: 1,
-        title: 'republic',
+        title: 'republic'
       },
       {
         UserId: 2,
-        title: 'empire',
-      },
+        title: 'empire'
+      }
     ]);
 
     await Task.bulkCreate([
       {
         ProjectId: 1,
-        title: 'fight empire',
+        title: 'fight empire'
       },
       {
         ProjectId: 1,
-        title: 'stablish republic',
+        title: 'stablish republic'
       },
       {
         ProjectId: 2,
-        title: 'destroy rebel alliance',
+        title: 'destroy rebel alliance'
       },
       {
         ProjectId: 2,
-        title: 'rule everything',
-      },
+        title: 'rule everything'
+      }
     ]);
 
     const users = await User.findAll({
@@ -205,9 +205,9 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
         {
           model: Project,
           include: [{ model: Task, where: { title: 'fight empire' } }],
-          required: true,
-        },
-      ],
+          required: true
+        }
+      ]
     });
 
     expect(users.length).to.be.equal(1);
@@ -225,20 +225,20 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
 
     await User.bulkCreate([
       {
-        username: 'leia',
+        username: 'leia'
       },
       {
-        username: 'vader',
-      },
+        username: 'vader'
+      }
     ]);
 
     await Project.bulkCreate([
       {
-        title: 'republic',
+        title: 'republic'
       },
       {
-        title: 'empire',
-      },
+        title: 'empire'
+      }
     ]);
 
     const user = await User.findByPk(1);
@@ -249,7 +249,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     await user0.setProjects([project0]);
 
     const users = await User.findAll({
-      include: [{ model: Project, where: { title: 'republic' } }],
+      include: [{ model: Project, where: { title: 'republic' } }]
     });
 
     expect(users.length).to.be.equal(1);

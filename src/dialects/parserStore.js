@@ -1,6 +1,6 @@
 const stores = new Map();
 
-module.exports = (dialect) => {
+module.exports = dialect => {
   if (!stores.has(dialect)) {
     stores.set(dialect, new Map());
   }
@@ -16,6 +16,6 @@ module.exports = (dialect) => {
     },
     get(type) {
       return stores.get(dialect).get(type);
-    },
+    }
   };
 };

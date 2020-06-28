@@ -10,21 +10,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     describe('simple merge', () => {
       beforeEach(async function () {
-        this.Foo = this.sequelize.define(
-          'foo',
-          { name: Sequelize.STRING },
-          { timestamps: false }
-        );
-        this.Bar = this.sequelize.define(
-          'bar',
-          { name: Sequelize.STRING },
-          { timestamps: false }
-        );
-        this.Baz = this.sequelize.define(
-          'baz',
-          { name: Sequelize.STRING },
-          { timestamps: false }
-        );
+        this.Foo = this.sequelize.define('foo', { name: Sequelize.STRING }, { timestamps: false });
+        this.Bar = this.sequelize.define('bar', { name: Sequelize.STRING }, { timestamps: false });
+        this.Baz = this.sequelize.define('baz', { name: Sequelize.STRING }, { timestamps: false });
 
         this.Foo.belongsTo(this.Baz, { foreignKey: 'bazId' });
         this.Foo.hasOne(this.Bar, { foreignKey: 'fooId' });
@@ -37,7 +25,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         this.scopes = {
           includeBar: { include: this.Bar },
-          includeBaz: { include: this.Baz },
+          includeBaz: { include: this.Baz }
         };
 
         this.Foo.addScope('includeBar', this.scopes.includeBar);
@@ -47,10 +35,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should merge simple scopes correctly', async function () {
-        const result = await this.Foo.scope(
-          'includeBar',
-          'includeBaz'
-        ).findOne();
+        const result = await this.Foo.scope('includeBar', 'includeBaz').findOne();
         const json = result.toJSON();
         expect(json.bar).to.be.ok;
         expect(json.baz).to.be.ok;
@@ -60,26 +45,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
     describe('complex merge', () => {
       beforeEach(async function () {
-        this.Foo = this.sequelize.define(
-          'foo',
-          { name: Sequelize.STRING },
-          { timestamps: false }
-        );
-        this.Bar = this.sequelize.define(
-          'bar',
-          { name: Sequelize.STRING },
-          { timestamps: false }
-        );
-        this.Baz = this.sequelize.define(
-          'baz',
-          { name: Sequelize.STRING },
-          { timestamps: false }
-        );
-        this.Qux = this.sequelize.define(
-          'qux',
-          { name: Sequelize.STRING },
-          { timestamps: false }
-        );
+        this.Foo = this.sequelize.define('foo', { name: Sequelize.STRING }, { timestamps: false });
+        this.Bar = this.sequelize.define('bar', { name: Sequelize.STRING }, { timestamps: false });
+        this.Baz = this.sequelize.define('baz', { name: Sequelize.STRING }, { timestamps: false });
+        this.Qux = this.sequelize.define('qux', { name: Sequelize.STRING }, { timestamps: false });
 
         this.Foo.hasMany(this.Bar, { foreignKey: 'fooId' });
         this.Bar.hasMany(this.Baz, { foreignKey: 'barId' });
@@ -95,28 +64,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   bazs: [
                     {
                       name: 'baz1',
-                      quxes: [{ name: 'qux1' }, { name: 'qux2' }],
+                      quxes: [{ name: 'qux1' }, { name: 'qux2' }]
                     },
                     {
                       name: 'baz2',
-                      quxes: [{ name: 'qux3' }, { name: 'qux4' }],
-                    },
-                  ],
+                      quxes: [{ name: 'qux3' }, { name: 'qux4' }]
+                    }
+                  ]
                 },
                 {
                   name: 'bar2',
                   bazs: [
                     {
                       name: 'baz3',
-                      quxes: [{ name: 'qux5' }, { name: 'qux6' }],
+                      quxes: [{ name: 'qux5' }, { name: 'qux6' }]
                     },
                     {
                       name: 'baz4',
-                      quxes: [{ name: 'qux7' }, { name: 'qux8' }],
-                    },
-                  ],
-                },
-              ],
+                      quxes: [{ name: 'qux7' }, { name: 'qux8' }]
+                    }
+                  ]
+                }
+              ]
             },
             {
               include: [
@@ -127,13 +96,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                       model: this.Baz,
                       include: [
                         {
-                          model: this.Qux,
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
+                          model: this.Qux
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             }
           );
 
@@ -144,18 +113,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               include: [
                 {
                   model: this.Baz,
-                  include: this.Qux,
-                },
-              ],
-            },
+                  include: this.Qux
+                }
+              ]
+            }
           },
           limitedBars: {
             include: [
               {
                 model: this.Bar,
-                limit: 2,
-              },
-            ],
+                limit: 2
+              }
+            ]
           },
           limitedBazs: {
             include: [
@@ -164,11 +133,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 include: [
                   {
                     model: this.Baz,
-                    limit: 2,
-                  },
-                ],
-              },
-            ],
+                    limit: 2
+                  }
+                ]
+              }
+            ]
           },
           excludeBazName: {
             include: [
@@ -178,13 +147,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   {
                     model: this.Baz,
                     attributes: {
-                      exclude: ['name'],
-                    },
-                  },
-                ],
-              },
-            ],
-          },
+                      exclude: ['name']
+                    }
+                  }
+                ]
+              }
+            ]
+          }
         };
 
         this.Foo.addScope('includeEverything', this.scopes.includeEverything);
@@ -193,25 +162,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Foo.addScope('excludeBazName', this.scopes.excludeBazName);
 
         this.scopePermutations = combinatorics
-          .permutation([
-            'includeEverything',
-            'limitedBars',
-            'limitedBazs',
-            'excludeBazName',
-          ])
+          .permutation(['includeEverything', 'limitedBars', 'limitedBazs', 'excludeBazName'])
           .toArray();
 
-        await this.createFooWithDescendants(
-          await this.sequelize.sync({ force: true })
-        );
+        await this.createFooWithDescendants(await this.sequelize.sync({ force: true }));
       });
 
       it('should merge complex scopes correctly regardless of their order', async function () {
-        const results = await Promise.all(
-          this.scopePermutations.map((scopes) =>
-            this.Foo.scope(...scopes).findOne()
-          )
-        );
+        const results = await Promise.all(this.scopePermutations.map(scopes => this.Foo.scope(...scopes).findOne()));
         const first = results.shift().toJSON();
         for (const result of results) {
           expect(result.toJSON()).to.deep.equal(first);
@@ -234,9 +192,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should merge complex scopes with findOne options correctly regardless of their order', async function () {
         const results = await Promise.all(
-          this.scopePermutations.map(([a, b, c, d]) =>
-            this.Foo.scope(a, b, c).findOne(this.scopes[d])
-          )
+          this.scopePermutations.map(([a, b, c, d]) => this.Foo.scope(a, b, c).findOne(this.scopes[d]))
         );
         const first = results.shift().toJSON();
         for (const result of results) {

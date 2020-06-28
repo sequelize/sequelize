@@ -13,8 +13,8 @@ describe('connection manager', () => {
 
       this.dialect = {
         connectionManager: {
-          connect: sinon.stub().resolves(this.connection),
-        },
+          connect: sinon.stub().resolves(this.connection)
+        }
       };
 
       this.sequelize = Support.createSequelizeInstance();
@@ -24,40 +24,30 @@ describe('connection manager', () => {
       const connection = {};
       this.dialect.connectionManager.connect.resolves(connection);
 
-      const connectionManager = new ConnectionManager(
-        this.dialect,
-        this.sequelize
-      );
+      const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
 
       const config = {};
 
-      await expect(connectionManager._connect(config)).to.eventually.equal(
-        connection
-      );
-      expect(this.dialect.connectionManager.connect).to.have.been.calledWith(
-        config
-      );
+      await expect(connectionManager._connect(config)).to.eventually.equal(connection);
+      expect(this.dialect.connectionManager.connect).to.have.been.calledWith(config);
     });
 
     it('should let beforeConnect hook modify config', async function () {
       const username = Math.random().toString(),
         password = Math.random().toString();
 
-      this.sequelize.beforeConnect((config) => {
+      this.sequelize.beforeConnect(config => {
         config.username = username;
         config.password = password;
         return config;
       });
 
-      const connectionManager = new ConnectionManager(
-        this.dialect,
-        this.sequelize
-      );
+      const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
 
       await connectionManager._connect({});
       expect(this.dialect.connectionManager.connect).to.have.been.calledWith({
         username,
-        password,
+        password
       });
     });
 
@@ -65,10 +55,7 @@ describe('connection manager', () => {
       const spy = sinon.spy();
       this.sequelize.afterConnect(spy);
 
-      const connectionManager = new ConnectionManager(
-        this.dialect,
-        this.sequelize
-      );
+      const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
 
       await connectionManager._connect({});
       expect(spy.callCount).to.equal(1);
@@ -83,8 +70,8 @@ describe('connection manager', () => {
 
       this.dialect = {
         connectionManager: {
-          disconnect: sinon.stub().resolves(this.connection),
-        },
+          disconnect: sinon.stub().resolves(this.connection)
+        }
       };
 
       this.sequelize = Support.createSequelizeInstance();
@@ -94,10 +81,7 @@ describe('connection manager', () => {
       const spy = sinon.spy();
       this.sequelize.beforeDisconnect(spy);
 
-      const connectionManager = new ConnectionManager(
-        this.dialect,
-        this.sequelize
-      );
+      const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
 
       await connectionManager._disconnect(this.connection);
       expect(spy.callCount).to.equal(1);
@@ -108,10 +92,7 @@ describe('connection manager', () => {
       const spy = sinon.spy();
       this.sequelize.afterDisconnect(spy);
 
-      const connectionManager = new ConnectionManager(
-        this.dialect,
-        this.sequelize
-      );
+      const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
 
       await connectionManager._disconnect(this.connection);
       expect(spy.callCount).to.equal(1);

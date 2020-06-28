@@ -43,11 +43,11 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
       Test = S.define(
         'Test',
         {
-          name: DataTypes.STRING,
+          name: DataTypes.STRING
         },
         {
           timestamps: false,
-          paranoid: true,
+          paranoid: true
         }
       );
 
@@ -63,9 +63,9 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
         include: [
           {
             model: B,
-            required: false,
-          },
-        ],
+            required: false
+          }
+        ]
       };
 
     await A.findOne(options);
@@ -79,9 +79,9 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
         include: [
           {
             model: B,
-            required: true,
-          },
-        ],
+            required: true
+          }
+        ]
       };
 
     await A.findOne(options);
@@ -92,21 +92,21 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
     const X = this.sequelize.define(
       'x',
       {
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       },
       {
-        paranoid: false,
+        paranoid: false
       }
     );
 
     const Y = this.sequelize.define(
       'y',
       {
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       },
       {
         timestamps: true,
-        paranoid: true,
+        paranoid: true
       }
     );
 
@@ -125,7 +125,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
     this.clock.tick(1000);
 
     const obj = await X.findAll({
-      include: [Y],
+      include: [Y]
     });
 
     const x = await obj[0];

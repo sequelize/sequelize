@@ -1,11 +1,8 @@
 const _ = require('lodash');
 const wkx = require('wkx');
 
-module.exports = (BaseTypes) => {
-  const warn = BaseTypes.ABSTRACT.warn.bind(
-    undefined,
-    'http://www.postgresql.org/docs/9.4/static/datatype.html'
-  );
+module.exports = BaseTypes => {
+  const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'http://www.postgresql.org/docs/9.4/static/datatype.html');
 
   /**
    * Removes unsupported Postgres options, i.e., LENGTH, UNSIGNED and ZEROFILL, for the integer data types.
@@ -14,12 +11,7 @@ module.exports = (BaseTypes) => {
    * @private
    */
   function removeUnsupportedIntegerOptions(dataType) {
-    if (
-      dataType._length ||
-      dataType.options.length ||
-      dataType._unsigned ||
-      dataType._zerofill
-    ) {
+    if (dataType._length || dataType.options.length || dataType._unsigned || dataType._zerofill) {
       warn(
         `PostgresSQL does not support '${dataType.key}' with LENGTH, UNSIGNED or ZEROFILL. Plain '${dataType.key}' will be used instead.`
       );
@@ -59,11 +51,7 @@ module.exports = (BaseTypes) => {
       return super._stringify(value, options);
     }
     _sanitize(value, options) {
-      if (
-        (!options || (options && !options.raw)) &&
-        value !== Infinity &&
-        value !== -Infinity
-      ) {
+      if ((!options || (options && !options.raw)) && value !== Infinity && value !== -Infinity) {
         if (typeof value === 'string') {
           const lower = value.toLowerCase();
           if (lower === 'infinity') {
@@ -113,9 +101,7 @@ module.exports = (BaseTypes) => {
   class TEXT extends BaseTypes.TEXT {
     toSql() {
       if (this._length) {
-        warn(
-          'PostgreSQL does not support TEXT with options. Plain `TEXT` will be used instead.'
-        );
+        warn('PostgreSQL does not support TEXT with options. Plain `TEXT` will be used instead.');
         this._length = undefined;
       }
       return 'TEXT';
@@ -155,11 +141,7 @@ module.exports = (BaseTypes) => {
         }
         if (typeof value === 'string') {
           // Only take action on valid boolean strings.
-          return value === 'true' || value === 't'
-            ? true
-            : value === 'false' || value === 'f'
-            ? false
-            : value;
+          return value === 'true' || value === 't' ? true : value === 'false' || value === 'f' ? false : value;
         }
         if (typeof value === 'number') {
           // Only take action on valid boolean integers.
@@ -284,23 +266,17 @@ module.exports = (BaseTypes) => {
       // Values between 25-53 result in DOUBLE PRECISION
       // If decimals are provided remove these and print a warning
       if (this._decimals) {
-        warn(
-          'PostgreSQL does not support FLOAT with decimals. Plain `FLOAT` will be used instead.'
-        );
+        warn('PostgreSQL does not support FLOAT with decimals. Plain `FLOAT` will be used instead.');
         this._length = undefined;
         this.options.length = undefined;
         this._decimals = undefined;
       }
       if (this._unsigned) {
-        warn(
-          'PostgreSQL does not support FLOAT unsigned. `UNSIGNED` was removed.'
-        );
+        warn('PostgreSQL does not support FLOAT unsigned. `UNSIGNED` was removed.');
         this._unsigned = undefined;
       }
       if (this._zerofill) {
-        warn(
-          'PostgreSQL does not support FLOAT zerofill. `ZEROFILL` was removed.'
-        );
+        warn('PostgreSQL does not support FLOAT zerofill. `ZEROFILL` was removed.');
         this._zerofill = undefined;
       }
     }
@@ -310,9 +286,7 @@ module.exports = (BaseTypes) => {
   class BLOB extends BaseTypes.BLOB {
     toSql() {
       if (this._length) {
-        warn(
-          'PostgreSQL does not support BLOB (BYTEA) with options. Plain `BYTEA` will be used instead.'
-        );
+        warn('PostgreSQL does not support BLOB (BYTEA) with options. Plain `BYTEA` will be used instead.');
         this._length = undefined;
       }
       return 'BYTEA';
@@ -420,10 +394,7 @@ module.exports = (BaseTypes) => {
       }
       const valueInclusivity = [true, false];
       const valuesStringified = values.map((value, index) => {
-        if (
-          _.isObject(value) &&
-          Object.prototype.hasOwnProperty.call(value, 'value')
-        ) {
+        if (_.isObject(value) && Object.prototype.hasOwnProperty.call(value, 'value')) {
           if (Object.prototype.hasOwnProperty.call(value, 'inclusive')) {
             valueInclusivity[index] = value.inclusive;
           }
@@ -457,16 +428,12 @@ module.exports = (BaseTypes) => {
       return options.bindParam(value);
     }
     toSql() {
-      return BaseTypes.RANGE.types.postgres.subtypes[
-        this._subtype.toLowerCase()
-      ];
+      return BaseTypes.RANGE.types.postgres.subtypes[this._subtype.toLowerCase()];
     }
     toCastType() {
-      return BaseTypes.RANGE.types.postgres.castTypes[
-        this._subtype.toLowerCase()
-      ];
+      return BaseTypes.RANGE.types.postgres.castTypes[this._subtype.toLowerCase()];
     }
-    static parse(value, options = { parser: (val) => val }) {
+    static parse(value, options = { parser: val => val }) {
       return range.parse(value, options.parser);
     }
   }
@@ -480,21 +447,21 @@ module.exports = (BaseTypes) => {
       decimal: 'numrange',
       date: 'tstzrange',
       dateonly: 'daterange',
-      bigint: 'int8range',
+      bigint: 'int8range'
     },
     castTypes: {
       integer: 'int4',
       decimal: 'numeric',
       date: 'timestamptz',
       dateonly: 'date',
-      bigint: 'int8',
-    },
+      bigint: 'int8'
+    }
   };
 
   // TODO: Why are base types being manipulated??
   BaseTypes.ARRAY.prototype.escape = false;
   BaseTypes.ARRAY.prototype._value = function _value(values, options) {
-    return values.map((value) => {
+    return values.map(value => {
       if (options && options.bindParam && this.type && this.type._value) {
         return this.type._value(value, options);
       }
@@ -517,10 +484,7 @@ module.exports = (BaseTypes) => {
 
       if (this.type instanceof BaseTypes.ENUM) {
         castKey = `${Utils.addTicks(
-          Utils.generateEnumName(
-            options.field.Model.getTableName(),
-            options.field.fieldName
-          ),
+          Utils.generateEnumName(options.field.Model.getTableName(), options.field.fieldName),
           '"'
         )}[]`;
       }
@@ -563,6 +527,6 @@ module.exports = (BaseTypes) => {
     GEOGRAPHY,
     HSTORE,
     RANGE,
-    ENUM,
+    ENUM
   };
 };

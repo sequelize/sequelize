@@ -1,9 +1,8 @@
 const wkx = require('wkx');
 const _ = require('lodash');
 const moment = require('moment-timezone');
-module.exports = (BaseTypes) => {
-  BaseTypes.ABSTRACT.prototype.dialectTypes =
-    'https://dev.mysql.com/doc/refman/5.7/en/data-types.html';
+module.exports = BaseTypes => {
+  BaseTypes.ABSTRACT.prototype.dialectTypes = 'https://dev.mysql.com/doc/refman/5.7/en/data-types.html';
 
   /**
    * types: [buffer_type, ...]
@@ -97,9 +96,7 @@ module.exports = (BaseTypes) => {
         this.sqlType = this.type;
         return;
       }
-      throw new Error(
-        `Supported geometry types are: ${SUPPORTED_GEOMETRY_TYPES.join(', ')}`
-      );
+      throw new Error(`Supported geometry types are: ${SUPPORTED_GEOMETRY_TYPES.join(', ')}`);
     }
     static parse(value) {
       value = value.buffer();
@@ -119,17 +116,13 @@ module.exports = (BaseTypes) => {
 
   class ENUM extends BaseTypes.ENUM {
     toSql(options) {
-      return `ENUM(${this.values
-        .map((value) => options.escape(value))
-        .join(', ')})`;
+      return `ENUM(${this.values.map(value => options.escape(value)).join(', ')})`;
     }
   }
 
   class JSONTYPE extends BaseTypes.JSON {
     _stringify(value, options) {
-      return options.operation === 'where' && typeof value === 'string'
-        ? value
-        : JSON.stringify(value);
+      return options.operation === 'where' && typeof value === 'string' ? value : JSON.stringify(value);
     }
   }
 
@@ -140,6 +133,6 @@ module.exports = (BaseTypes) => {
     UUID,
     GEOMETRY,
     DECIMAL,
-    JSON: JSONTYPE,
+    JSON: JSONTYPE
   };
 };

@@ -14,11 +14,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
-          sql.selectQuery(
-            options.table || (model && model.getTableName()),
-            options,
-            options.model
-          ),
+          sql.selectQuery(options.table || (model && model.getTableName()), options, options.model),
           expectation
         );
       });
@@ -28,31 +24,31 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       name: {
         type: DataTypes.STRING,
         field: 'name',
-        allowNull: false,
-      },
+        allowNull: false
+      }
     });
 
     testsql(
       {
         model: User,
-        group: ['name'],
+        group: ['name']
       },
       {
         default: 'SELECT * FROM `Users` AS `User` GROUP BY `name`;',
         postgres: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
-        mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];',
+        mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];'
       }
     );
 
     testsql(
       {
         model: User,
-        group: [],
+        group: []
       },
       {
         default: 'SELECT * FROM `Users` AS `User`;',
         postgres: 'SELECT * FROM "Users" AS "User";',
-        mssql: 'SELECT * FROM [Users] AS [User];',
+        mssql: 'SELECT * FROM [Users] AS [User];'
       }
     );
   });

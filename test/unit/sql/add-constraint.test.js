@@ -17,11 +17,10 @@ if (current.dialect.supports.constraints.addConstraint) {
             sql.addConstraintQuery('myTable', {
               name: 'unique_mytable_mycolumn',
               type: 'UNIQUE',
-              fields: ['myColumn'],
+              fields: ['myColumn']
             }),
             {
-              default:
-                'ALTER TABLE [myTable] ADD CONSTRAINT [unique_mytable_mycolumn] UNIQUE ([myColumn]);',
+              default: 'ALTER TABLE [myTable] ADD CONSTRAINT [unique_mytable_mycolumn] UNIQUE ([myColumn]);'
             }
           );
         });
@@ -30,11 +29,10 @@ if (current.dialect.supports.constraints.addConstraint) {
           expectsql(
             sql.addConstraintQuery('myTable', {
               type: 'UNIQUE',
-              fields: ['myColumn'],
+              fields: ['myColumn']
             }),
             {
-              default:
-                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_uk] UNIQUE ([myColumn]);',
+              default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_uk] UNIQUE ([myColumn]);'
             }
           );
         });
@@ -43,11 +41,11 @@ if (current.dialect.supports.constraints.addConstraint) {
           expectsql(
             sql.addConstraintQuery('myTable', {
               type: 'UNIQUE',
-              fields: ['myColumn1', 'myColumn2'],
+              fields: ['myColumn1', 'myColumn2']
             }),
             {
               default:
-                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn1_myColumn2_uk] UNIQUE ([myColumn1], [myColumn2]);',
+                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn1_myColumn2_uk] UNIQUE ([myColumn1], [myColumn2]);'
             }
           );
         });
@@ -60,14 +58,14 @@ if (current.dialect.supports.constraints.addConstraint) {
               type: 'CHECK',
               fields: ['myColumn'],
               where: {
-                myColumn: ['value1', 'value2', 'value3'],
-              },
+                myColumn: ['value1', 'value2', 'value3']
+              }
             }),
             {
               mssql:
                 "ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (N'value1', N'value2', N'value3'));",
               default:
-                "ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN ('value1', 'value2', 'value3'));",
+                "ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN ('value1', 'value2', 'value3'));"
             }
           );
         });
@@ -82,14 +80,14 @@ if (current.dialect.supports.constraints.addConstraint) {
                 myColumn: {
                   [Op.and]: {
                     [Op.gt]: 50,
-                    [Op.lt]: 100,
-                  },
-                },
-              },
+                    [Op.lt]: 100
+                  }
+                }
+              }
             }),
             {
               default:
-                'ALTER TABLE [myTable] ADD CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100));',
+                'ALTER TABLE [myTable] ADD CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100));'
             }
           );
         });
@@ -102,11 +100,10 @@ if (current.dialect.supports.constraints.addConstraint) {
               sql.addConstraintQuery('myTable', {
                 type: 'default',
                 fields: ['myColumn'],
-                defaultValue: 0,
+                defaultValue: 0
               }),
               {
-                mssql:
-                  'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_df] DEFAULT (0) FOR [myColumn];',
+                mssql: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_df] DEFAULT (0) FOR [myColumn];'
               }
             );
           });
@@ -117,11 +114,11 @@ if (current.dialect.supports.constraints.addConstraint) {
                 type: 'default',
                 fields: ['myColumn'],
                 defaultValue: 'some default value',
-                name: 'default_mytable_null',
+                name: 'default_mytable_null'
               }),
               {
                 mssql:
-                  "ALTER TABLE [myTable] ADD CONSTRAINT [default_mytable_null] DEFAULT (N'some default value') FOR [myColumn];",
+                  "ALTER TABLE [myTable] ADD CONSTRAINT [default_mytable_null] DEFAULT (N'some default value') FOR [myColumn];"
               }
             );
           });
@@ -132,15 +129,15 @@ if (current.dialect.supports.constraints.addConstraint) {
                 sql,
                 {
                   tableName: 'myTable',
-                  schema: 'mySchema',
+                  schema: 'mySchema'
                 },
                 {
                   type: 'default',
                   fields: [
                     {
-                      attribute: 'myColumn',
-                    },
-                  ],
+                      attribute: 'myColumn'
+                    }
+                  ]
                 }
               )
             ).to.throw('Default value must be specifed for DEFAULT CONSTRAINT');
@@ -153,11 +150,10 @@ if (current.dialect.supports.constraints.addConstraint) {
             sql.addConstraintQuery('myTable', {
               name: 'primary_mytable_mycolumn',
               type: 'primary key',
-              fields: ['myColumn'],
+              fields: ['myColumn']
             }),
             {
-              default:
-                'ALTER TABLE [myTable] ADD CONSTRAINT [primary_mytable_mycolumn] PRIMARY KEY ([myColumn]);',
+              default: 'ALTER TABLE [myTable] ADD CONSTRAINT [primary_mytable_mycolumn] PRIMARY KEY ([myColumn]);'
             }
           );
         });
@@ -166,11 +162,10 @@ if (current.dialect.supports.constraints.addConstraint) {
           expectsql(
             sql.addConstraintQuery('myTable', {
               type: 'PRIMARY KEY',
-              fields: ['myColumn'],
+              fields: ['myColumn']
             }),
             {
-              default:
-                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_pk] PRIMARY KEY ([myColumn]);',
+              default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_pk] PRIMARY KEY ([myColumn]);'
             }
           );
         });
@@ -179,11 +174,11 @@ if (current.dialect.supports.constraints.addConstraint) {
           expectsql(
             sql.addConstraintQuery('myTable', {
               type: 'PRIMARY KEY',
-              fields: ['myColumn1', 'myColumn2'],
+              fields: ['myColumn1', 'myColumn2']
             }),
             {
               default:
-                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn1_myColumn2_pk] PRIMARY KEY ([myColumn1], [myColumn2]);',
+                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn1_myColumn2_pk] PRIMARY KEY ([myColumn1], [myColumn2]);'
             }
           );
         });
@@ -198,12 +193,12 @@ if (current.dialect.supports.constraints.addConstraint) {
               fields: ['myColumn'],
               references: {
                 table: 'myOtherTable',
-                field: 'id',
-              },
+                field: 'id'
+              }
             }),
             {
               default:
-                'ALTER TABLE [myTable] ADD CONSTRAINT [foreignkey_mytable_mycolumn] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]);',
+                'ALTER TABLE [myTable] ADD CONSTRAINT [foreignkey_mytable_mycolumn] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]);'
             }
           );
         });
@@ -215,14 +210,14 @@ if (current.dialect.supports.constraints.addConstraint) {
               fields: ['myColumn'],
               references: {
                 table: 'myOtherTable',
-                field: 'id',
+                field: 'id'
               },
               onUpdate: 'cascade',
-              onDelete: 'cascade',
+              onDelete: 'cascade'
             }),
             {
               default:
-                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;',
+                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;'
             }
           );
         });
@@ -231,11 +226,9 @@ if (current.dialect.supports.constraints.addConstraint) {
           expect(
             sql.addConstraintQuery.bind(sql, 'myTable', {
               type: 'foreign key',
-              fields: ['myColumn'],
+              fields: ['myColumn']
             })
-          ).to.throw(
-            'references object with table and field must be specified'
-          );
+          ).to.throw('references object with table and field must be specified');
         });
       });
 
@@ -244,7 +237,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           expect(
             sql.addConstraintQuery.bind(sql, 'myTable', {
               type: 'some type',
-              fields: [],
+              fields: []
             })
           ).to.throw('some type is invalid');
         });
@@ -253,10 +246,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           const options = { type: 'unique', fields: ['myColumn'] };
           const addConstraintQuerySpy = sinon.stub(sql, 'addConstraintQuery');
           sql.addConstraintQuery('myTable', options);
-          expect(sql.addConstraintQuery).to.have.been.calledWith(
-            'myTable',
-            options
-          );
+          expect(sql.addConstraintQuery).to.have.been.calledWith('myTable', options);
           addConstraintQuerySpy.restore();
         });
 
@@ -266,11 +256,9 @@ if (current.dialect.supports.constraints.addConstraint) {
               sql.addConstraintQuery.bind(sql, 'myTable', {
                 type: 'default',
                 defaultValue: 0,
-                fields: [],
+                fields: []
               })
-            ).to.throw(
-              'Default constraints are supported only for MSSQL dialect.'
-            );
+            ).to.throw('Default constraints are supported only for MSSQL dialect.');
           });
         }
       });

@@ -1,10 +1,5 @@
 function checkNamingCollision(association) {
-  if (
-    Object.prototype.hasOwnProperty.call(
-      association.source.rawAttributes,
-      association.as
-    )
-  ) {
+  if (Object.prototype.hasOwnProperty.call(association.source.rawAttributes, association.as)) {
     throw new Error(
       `Naming collision between attribute '${association.as}'` +
         ` and association '${association.as}' on model ${association.source.name}` +
@@ -21,14 +16,13 @@ function addForeignKeyConstraints(newAttribute, source, target, options, key) {
   if (options.foreignKeyConstraint || options.onDelete || options.onUpdate) {
     // Find primary keys: composite keys not supported with this approach
     const primaryKeys = Object.keys(source.primaryKeys).map(
-      (primaryKeyAttribute) =>
-        source.rawAttributes[primaryKeyAttribute].field || primaryKeyAttribute
+      primaryKeyAttribute => source.rawAttributes[primaryKeyAttribute].field || primaryKeyAttribute
     );
 
     if (primaryKeys.length === 1 || !primaryKeys.includes(key)) {
       newAttribute.references = {
         model: source.getTableName(),
-        key: key || primaryKeys[0],
+        key: key || primaryKeys[0]
       };
 
       newAttribute.onDelete = options.onDelete;
@@ -54,9 +48,7 @@ function mixinMethods(association, obj, methods, aliases) {
 
   for (const method of methods) {
     // don't override custom methods
-    if (
-      !Object.prototype.hasOwnProperty.call(obj, association.accessors[method])
-    ) {
+    if (!Object.prototype.hasOwnProperty.call(obj, association.accessors[method])) {
       const realMethod = aliases[method] || method;
 
       obj[association.accessors[method]] = function () {

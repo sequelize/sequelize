@@ -23,9 +23,7 @@ class HasMany extends Association {
     this.foreignKeyAttribute = {};
 
     if (this.options.through) {
-      throw new Error(
-        'N:M associations are not supported with hasMany. Use belongsToMany instead'
-      );
+      throw new Error('N:M associations are not supported with hasMany. Use belongsToMany instead');
     }
 
     /*
@@ -44,7 +42,7 @@ class HasMany extends Association {
       } else {
         this.options.name = {
           plural: this.as,
-          singular: Utils.singularize(this.as),
+          singular: Utils.singularize(this.as)
         };
       }
     } else {
@@ -57,26 +55,18 @@ class HasMany extends Association {
      */
     if (_.isObject(this.options.foreignKey)) {
       this.foreignKeyAttribute = this.options.foreignKey;
-      this.foreignKey =
-        this.foreignKeyAttribute.name || this.foreignKeyAttribute.fieldName;
+      this.foreignKey = this.foreignKeyAttribute.name || this.foreignKeyAttribute.fieldName;
     } else if (this.options.foreignKey) {
       this.foreignKey = this.options.foreignKey;
     }
 
     if (!this.foreignKey) {
-      this.foreignKey = Utils.camelize(
-        [
-          this.source.options.name.singular,
-          this.source.primaryKeyAttribute,
-        ].join('_')
-      );
+      this.foreignKey = Utils.camelize([this.source.options.name.singular, this.source.primaryKeyAttribute].join('_'));
     }
 
     if (this.target.rawAttributes[this.foreignKey]) {
-      this.identifierField =
-        this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
-      this.foreignKeyField =
-        this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
+      this.identifierField = this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
+      this.foreignKeyField = this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
     }
 
     /*
@@ -86,8 +76,7 @@ class HasMany extends Association {
 
     if (this.source.rawAttributes[this.sourceKey]) {
       this.sourceKeyAttribute = this.sourceKey;
-      this.sourceKeyField =
-        this.source.rawAttributes[this.sourceKey].field || this.sourceKey;
+      this.sourceKeyField = this.source.rawAttributes[this.sourceKey].field || this.sourceKey;
     } else {
       this.sourceKeyAttribute = this.source.primaryKeyAttribute;
       this.sourceKeyField = this.source.primaryKeyField;
@@ -109,7 +98,7 @@ class HasMany extends Association {
       removeMultiple: `remove${plural}`,
       hasSingle: `has${singular}`,
       hasAll: `has${plural}`,
-      count: `count${plural}`,
+      count: `count${plural}`
     };
   }
 
@@ -118,24 +107,18 @@ class HasMany extends Association {
   _injectAttributes() {
     const newAttributes = {
       [this.foreignKey]: {
-        type:
-          this.options.keyType ||
-          this.source.rawAttributes[this.sourceKeyAttribute].type,
+        type: this.options.keyType || this.source.rawAttributes[this.sourceKeyAttribute].type,
         allowNull: true,
-        ...this.foreignKeyAttribute,
-      },
+        ...this.foreignKeyAttribute
+      }
     };
 
     // Create a new options object for use with addForeignKeyConstraints, to avoid polluting this.options in case it is later used for a n:m
     const constraintOptions = { ...this.options };
 
     if (this.options.constraints !== false) {
-      const target =
-        this.target.rawAttributes[this.foreignKey] ||
-        newAttributes[this.foreignKey];
-      constraintOptions.onDelete =
-        constraintOptions.onDelete ||
-        (target.allowNull ? 'SET NULL' : 'CASCADE');
+      const target = this.target.rawAttributes[this.foreignKey] || newAttributes[this.foreignKey];
+      constraintOptions.onDelete = constraintOptions.onDelete || (target.allowNull ? 'SET NULL' : 'CASCADE');
       constraintOptions.onUpdate = constraintOptions.onUpdate || 'CASCADE';
     }
 
@@ -151,12 +134,9 @@ class HasMany extends Association {
     this.target.refreshAttributes();
     this.source.refreshAttributes();
 
-    this.identifierField =
-      this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
-    this.foreignKeyField =
-      this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
-    this.sourceKeyField =
-      this.source.rawAttributes[this.sourceKey].field || this.sourceKey;
+    this.identifierField = this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
+    this.foreignKeyField = this.target.rawAttributes[this.foreignKey].field || this.foreignKey;
+    this.sourceKeyField = this.source.rawAttributes[this.sourceKey].field || this.sourceKey;
 
     Helpers.checkNamingCollision(this);
 
@@ -174,13 +154,13 @@ class HasMany extends Association {
       'addMultiple',
       'remove',
       'removeMultiple',
-      'create',
+      'create'
     ];
     const aliases = {
       hasSingle: 'has',
       hasAll: 'has',
       addMultiple: 'add',
-      removeMultiple: 'remove',
+      removeMultiple: 'remove'
     };
 
     Helpers.mixinMethods(this, obj, methods, aliases);
@@ -219,21 +199,19 @@ class HasMany extends Association {
     }
 
     if (instances) {
-      values = instances.map((_instance) =>
-        _instance.get(this.sourceKey, { raw: true })
-      );
+      values = instances.map(_instance => _instance.get(this.sourceKey, { raw: true }));
 
       if (options.limit && instances.length > 1) {
         options.groupedLimit = {
           limit: options.limit,
           on: this, // association
-          values,
+          values
         };
 
         delete options.limit;
       } else {
         where[this.foreignKey] = {
-          [Op.in]: values,
+          [Op.in]: values
         };
         delete options.groupedLimit;
       }
@@ -241,9 +219,7 @@ class HasMany extends Association {
       where[this.foreignKey] = instance.get(this.sourceKey, { raw: true });
     }
 
-    options.where = options.where
-      ? { [Op.and]: [where, options.where] }
-      : where;
+    options.where = options.where ? { [Op.and]: [where, options.where] } : where;
 
     if (Object.prototype.hasOwnProperty.call(options, 'scope')) {
       if (!options.scope) {
@@ -286,15 +262,7 @@ class HasMany extends Association {
     options = Utils.cloneDeep(options);
 
     options.attributes = [
-      [
-        this.sequelize.fn(
-          'COUNT',
-          this.sequelize.col(
-            `${this.target.name}.${this.target.primaryKeyField}`
-          )
-        ),
-        'count',
-      ],
+      [this.sequelize.fn('COUNT', this.sequelize.col(`${this.target.name}.${this.target.primaryKeyField}`)), 'count']
     ];
     options.raw = true;
     options.plain = true;
@@ -324,20 +292,20 @@ class HasMany extends Association {
       ...options,
       scope: false,
       attributes: [this.target.primaryKeyAttribute],
-      raw: true,
+      raw: true
     };
 
-    where[Op.or] = targetInstances.map((instance) => {
+    where[Op.or] = targetInstances.map(instance => {
       if (instance instanceof this.target) {
         return instance.where();
       }
       return {
-        [this.target.primaryKeyAttribute]: instance,
+        [this.target.primaryKeyAttribute]: instance
       };
     });
 
     options.where = {
-      [Op.and]: [where, options.where],
+      [Op.and]: [where, options.where]
     };
 
     const associatedObjects = await this.get(sourceInstance, options);
@@ -365,24 +333,14 @@ class HasMany extends Association {
     const oldAssociations = await this.get(sourceInstance, {
       ...options,
       scope: false,
-      raw: true,
+      raw: true
     });
     const promises = [];
     const obsoleteAssociations = oldAssociations.filter(
-      (old) =>
-        !targetInstances.find(
-          (obj) =>
-            obj[this.target.primaryKeyAttribute] ===
-            old[this.target.primaryKeyAttribute]
-        )
+      old => !targetInstances.find(obj => obj[this.target.primaryKeyAttribute] === old[this.target.primaryKeyAttribute])
     );
     const unassociatedObjects = targetInstances.filter(
-      (obj) =>
-        !oldAssociations.find(
-          (old) =>
-            obj[this.target.primaryKeyAttribute] ===
-            old[this.target.primaryKeyAttribute]
-        )
+      obj => !oldAssociations.find(old => obj[this.target.primaryKeyAttribute] === old[this.target.primaryKeyAttribute])
     );
     let updateWhere;
     let update;
@@ -393,15 +351,14 @@ class HasMany extends Association {
 
       updateWhere = {
         [this.target.primaryKeyAttribute]: obsoleteAssociations.map(
-          (associatedObject) =>
-            associatedObject[this.target.primaryKeyAttribute]
-        ),
+          associatedObject => associatedObject[this.target.primaryKeyAttribute]
+        )
       };
 
       promises.push(
         this.target.unscoped().update(update, {
           ...options,
-          where: updateWhere,
+          where: updateWhere
         })
       );
     }
@@ -414,14 +371,13 @@ class HasMany extends Association {
 
       Object.assign(update, this.scope);
       updateWhere[this.target.primaryKeyAttribute] = unassociatedObjects.map(
-        (unassociatedObject) =>
-          unassociatedObject[this.target.primaryKeyAttribute]
+        unassociatedObject => unassociatedObject[this.target.primaryKeyAttribute]
       );
 
       promises.push(
         this.target.unscoped().update(update, {
           ...options,
-          where: updateWhere,
+          where: updateWhere
         })
       );
     }
@@ -448,14 +404,13 @@ class HasMany extends Association {
 
     const update = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
-      ...this.scope,
+      ...this.scope
     };
 
     const where = {
-      [this.target
-        .primaryKeyAttribute]: targetInstances.map((unassociatedObject) =>
+      [this.target.primaryKeyAttribute]: targetInstances.map(unassociatedObject =>
         unassociatedObject.get(this.target.primaryKeyAttribute)
-      ),
+      )
     };
 
     await this.target.unscoped().update(update, { ...options, where });
@@ -474,16 +429,16 @@ class HasMany extends Association {
    */
   async remove(sourceInstance, targetInstances, options = {}) {
     const update = {
-      [this.foreignKey]: null,
+      [this.foreignKey]: null
     };
 
     targetInstances = this.toInstanceArray(targetInstances);
 
     const where = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
-      [this.target.primaryKeyAttribute]: targetInstances.map((targetInstance) =>
+      [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance =>
         targetInstance.get(this.target.primaryKeyAttribute)
-      ),
+      )
     };
 
     await this.target.unscoped().update(update, { ...options, where });
@@ -503,7 +458,7 @@ class HasMany extends Association {
   async create(sourceInstance, values, options = {}) {
     if (Array.isArray(options)) {
       options = {
-        fields: options,
+        fields: options
       };
     }
 

@@ -33,23 +33,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       validateTest: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        validate: { isInt: true },
+        validate: { isInt: true }
       },
       validateCustom: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: { len: { msg: 'Length failed.', args: [1, 20] } },
+        validate: { len: { msg: 'Length failed.', args: [1, 20] } }
       },
 
       dateAllowNullTrue: {
         type: DataTypes.DATE,
-        allowNull: true,
+        allowNull: true
       },
 
       isSuperUser: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false,
-      },
+        defaultValue: false
+      }
     });
 
     await this.User.sync({ force: true });
@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', {
-          number: Support.Sequelize.INTEGER,
+          number: Support.Sequelize.INTEGER
         });
 
         await User.sync({ force: true });
@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(user1.aNumber).to.be.equal(2);
         const user3 = await user1.increment('bNumber', {
           by: 2,
-          returning: false,
+          returning: false
         });
         expect(user3.bNumber).to.be.equal(0);
       });
@@ -126,7 +126,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user2 = await this.User.findByPk(1);
 
       await user2.update({
-        aNumber: user2.aNumber + 1,
+        aNumber: user2.aNumber + 1
       });
 
       await user1.increment(['aNumber'], { by: 2 });
@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await Promise.all([
         user1.increment(['aNumber'], { by: 2 }),
         user1.increment(['aNumber'], { by: 2 }),
-        user1.increment(['aNumber'], { by: 2 }),
+        user1.increment(['aNumber'], { by: 2 })
       ]);
 
       const user2 = await this.User.findByPk(1);
@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = this.sequelize.define(
         'IncrementUser',
         {
-          aNumber: DataTypes.INTEGER,
+          aNumber: DataTypes.INTEGER
         },
         { timestamps: true }
       );
@@ -179,7 +179,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = this.sequelize.define(
         'IncrementUser',
         {
-          aNumber: DataTypes.INTEGER,
+          aNumber: DataTypes.INTEGER
         },
         { timestamps: true }
       );
@@ -190,9 +190,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       this.clock.tick(1000);
       await user.increment('aNumber', { by: 1, silent: true });
 
-      await expect(User.findByPk(1))
-        .to.eventually.have.property('updatedAt')
-        .equalTime(oldDate);
+      await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
     });
   });
 });

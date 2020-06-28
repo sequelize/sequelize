@@ -29,7 +29,7 @@ class Query extends AbstractQuery {
         bindParam[`$${i + 1}`] = v;
       });
       sql = AbstractQuery.formatBindParameters(sql, values, dialect, {
-        skipValueReplace: true,
+        skipValueReplace: true
       })[0];
     } else {
       bindParam = {};
@@ -39,7 +39,7 @@ class Query extends AbstractQuery {
         }
       }
       sql = AbstractQuery.formatBindParameters(sql, values, dialect, {
-        skipValueReplace: true,
+        skipValueReplace: true
       })[0];
     }
     return [sql, bindParam];
@@ -83,17 +83,14 @@ class Query extends AbstractQuery {
           metaData.constructor.name === 'Statement' &&
           this.model &&
           this.model.autoIncrementAttribute &&
-          this.model.autoIncrementAttribute ===
-            this.model.primaryKeyAttribute &&
+          this.model.autoIncrementAttribute === this.model.primaryKeyAttribute &&
           this.model.rawAttributes[this.model.primaryKeyAttribute]
         ) {
-          const startId =
-            metaData[this.getInsertIdField()] - metaData.changes + 1;
+          const startId = metaData[this.getInsertIdField()] - metaData.changes + 1;
           result = [];
           for (let i = startId; i < startId + metaData.changes; i++) {
             result.push({
-              [this.model.rawAttributes[this.model.primaryKeyAttribute]
-                .field]: i,
+              [this.model.rawAttributes[this.model.primaryKeyAttribute].field]: i
             });
           }
         } else {
@@ -103,7 +100,7 @@ class Query extends AbstractQuery {
     }
 
     if (this.isShowTablesQuery()) {
-      return results.map((row) => row.name);
+      return results.map(row => row.name);
     }
     if (this.isShowConstraintsQuery()) {
       result = results;
@@ -119,7 +116,7 @@ class Query extends AbstractQuery {
       // This is a map of prefix strings to models, e.g. user.projects -> Project model
       const prefixes = this._collectModels(this.options.include);
 
-      results = results.map((result) => {
+      results = results.map(result => {
         return _.mapValues(result, (value, name) => {
           let model;
           if (name.includes('.')) {
@@ -182,19 +179,15 @@ class Query extends AbstractQuery {
           type: _result.type,
           allowNull: _result.notnull === 0,
           defaultValue,
-          primaryKey: _result.pk !== 0,
+          primaryKey: _result.pk !== 0
         };
 
         if (result[_result.name].type === 'TINYINT(1)') {
-          result[_result.name].defaultValue = { '0': false, '1': true }[
-            result[_result.name].defaultValue
-          ];
+          result[_result.name].defaultValue = { '0': false, '1': true }[result[_result.name].defaultValue];
         }
 
         if (typeof result[_result.name].defaultValue === 'string') {
-          result[_result.name].defaultValue = result[
-            _result.name
-          ].defaultValue.replace(/'/g, '');
+          result[_result.name].defaultValue = result[_result.name].defaultValue.replace(/'/g, '');
         }
       }
       return result;
@@ -208,9 +201,7 @@ class Query extends AbstractQuery {
     if (this.sql.includes('PRAGMA foreign_key_list')) {
       return results;
     }
-    if (
-      [QueryTypes.BULKUPDATE, QueryTypes.BULKDELETE].includes(this.options.type)
-    ) {
+    if ([QueryTypes.BULKUPDATE, QueryTypes.BULKDELETE].includes(this.options.type)) {
       return metaData.changes;
     }
     if (this.options.type === QueryTypes.VERSION) {
@@ -235,12 +226,9 @@ class Query extends AbstractQuery {
     let complete;
     if (method === 'exec') {
       // exec does not support bind parameter
-      sql = AbstractQuery.formatBindParameters(
-        sql,
-        this.options.bind,
-        this.options.dialect || 'sqlite',
-        { skipUnescape: true }
-      )[0];
+      sql = AbstractQuery.formatBindParameters(sql, this.options.bind, this.options.dialect || 'sqlite', {
+        skipUnescape: true
+      })[0];
       this.sql = sql;
       complete = this._logQuery(sql, debug);
     } else {
@@ -261,14 +249,7 @@ class Query extends AbstractQuery {
               complete();
               // `this` is passed from sqlite, we have no control over this.
               // eslint-disable-next-line no-invalid-this
-              resolve(
-                query._handleQueryResponse(
-                  this,
-                  columnTypes,
-                  executionError,
-                  results
-                )
-              );
+              resolve(query._handleQueryResponse(this, columnTypes, executionError, results));
               return;
             } catch (error) {
               reject(error);
@@ -294,32 +275,26 @@ class Query extends AbstractQuery {
           }
 
           // If we already have the metadata for the table, there's no need to ask for it again
-          tableNames = tableNames.filter(
-            (tableName) =>
-              !(tableName in columnTypes) && tableName !== 'sqlite_master'
-          );
+          tableNames = tableNames.filter(tableName => !(tableName in columnTypes) && tableName !== 'sqlite_master');
 
           if (!tableNames.length) {
             return executeSql();
           }
           await Promise.all(
             tableNames.map(
-              (tableName) =>
-                new Promise((resolve) => {
+              tableName =>
+                new Promise(resolve => {
                   tableName = tableName.replace(/`/g, '');
                   columnTypes[tableName] = {};
 
-                  conn.all(
-                    `PRAGMA table_info(\`${tableName}\`)`,
-                    (err, results) => {
-                      if (!err) {
-                        for (const result of results) {
-                          columnTypes[tableName][result.name] = result.type;
-                        }
+                  conn.all(`PRAGMA table_info(\`${tableName}\`)`, (err, results) => {
+                    if (!err) {
+                      for (const result of results) {
+                        columnTypes[tableName][result.name] = result.type;
                       }
-                      resolve();
                     }
-                  );
+                    resolve();
+                  });
                 })
             )
           );
@@ -333,16 +308,12 @@ class Query extends AbstractQuery {
     let constraints = sql.split('CONSTRAINT ');
     let referenceTableName, referenceTableKeys, updateAction, deleteAction;
     constraints.splice(0, 1);
-    constraints = constraints.map((constraintSql) => {
+    constraints = constraints.map(constraintSql => {
       //Parse foreign key snippets
       if (constraintSql.includes('REFERENCES')) {
         //Parse out the constraint condition form sql string
-        updateAction = constraintSql.match(
-          /ON UPDATE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT){1}/
-        );
-        deleteAction = constraintSql.match(
-          /ON DELETE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT){1}/
-        );
+        updateAction = constraintSql.match(/ON UPDATE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT){1}/);
+        deleteAction = constraintSql.match(/ON DELETE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT){1}/);
 
         if (updateAction) {
           updateAction = updateAction[1];
@@ -353,20 +324,14 @@ class Query extends AbstractQuery {
         }
 
         const referencesRegex = /REFERENCES.+\((?:[^)(]+|\((?:[^)(]+|\([^)(]*\))*\))*\)/;
-        const referenceConditions = constraintSql
-          .match(referencesRegex)[0]
-          .split(' ');
+        const referenceConditions = constraintSql.match(referencesRegex)[0].split(' ');
         referenceTableName = Utils.removeTicks(referenceConditions[1]);
         let columnNames = referenceConditions[2];
         columnNames = columnNames.replace(/\(|\)/g, '').split(', ');
-        referenceTableKeys = columnNames.map((column) =>
-          Utils.removeTicks(column)
-        );
+        referenceTableKeys = columnNames.map(column => Utils.removeTicks(column));
       }
 
-      const constraintCondition = constraintSql.match(
-        /\((?:[^)(]+|\((?:[^)(]+|\([^)(]*\))*\))*\)/
-      )[0];
+      const constraintCondition = constraintSql.match(/\((?:[^)(]+|\((?:[^)(]+|\([^)(]*\))*\))*\)/)[0];
       constraintSql = constraintSql.replace(/\(.+\)/, '');
       const constraint = constraintSql.split(' ');
 
@@ -382,7 +347,7 @@ class Query extends AbstractQuery {
         sql: sql.replace(/"/g, '`'), //Sqlite returns double quotes for table name
         constraintCondition,
         referenceTableName,
-        referenceTableKeys,
+        referenceTableKeys
       };
     });
 
@@ -409,7 +374,7 @@ class Query extends AbstractQuery {
       case 'SQLITE_CONSTRAINT': {
         if (err.message.includes('FOREIGN KEY constraint failed')) {
           return new sequelizeErrors.ForeignKeyConstraintError({
-            parent: err,
+            parent: err
           });
         }
 
@@ -423,9 +388,7 @@ class Query extends AbstractQuery {
           // Sqlite post 2.2 behavior - Error: SQLITE_CONSTRAINT: UNIQUE constraint failed: table.x, table.y
           match = err.message.match(/UNIQUE constraint failed: (.*)/);
           if (match !== null && match.length >= 2) {
-            fields = match[1]
-              .split(', ')
-              .map((columnWithTable) => columnWithTable.split('.')[1]);
+            fields = match[1].split(', ').map(columnWithTable => columnWithTable.split('.')[1]);
           }
         }
 
@@ -446,7 +409,7 @@ class Query extends AbstractQuery {
         }
 
         if (this.model) {
-          _.forOwn(this.model.uniqueKeys, (constraint) => {
+          _.forOwn(this.model.uniqueKeys, constraint => {
             if (_.isEqual(constraint.fields, fields) && !!constraint.msg) {
               message = constraint.msg;
               return false;
@@ -458,7 +421,7 @@ class Query extends AbstractQuery {
           message,
           errors,
           parent: err,
-          fields,
+          fields
         });
       }
       case 'SQLITE_BUSY':
@@ -472,7 +435,7 @@ class Query extends AbstractQuery {
   async handleShowIndexesQuery(data) {
     // Sqlite returns indexes so the one that was defined last is returned first. Lets reverse that!
     return Promise.all(
-      data.reverse().map(async (item) => {
+      data.reverse().map(async item => {
         item.fields = [];
         item.primary = false;
         item.unique = !!item.unique;
@@ -482,7 +445,7 @@ class Query extends AbstractQuery {
           item.fields[column.seqno] = {
             attribute: column.name,
             length: undefined,
-            order: undefined,
+            order: undefined
           };
         }
 

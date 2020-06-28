@@ -16,55 +16,46 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           username: {
             type: DataTypes.STRING,
-            field: 'user_name',
-          },
+            field: 'user_name'
+          }
         },
         {
           timestamps: false,
-          hasTrigger: true,
+          hasTrigger: true
         }
       );
 
       const options = {
         returning: true,
-        hasTrigger: true,
+        hasTrigger: true
       };
-      expectsql(
-        sql.insertQuery(
-          User.tableName,
-          { user_name: 'triggertest' },
-          User.rawAttributes,
-          options
-        ),
-        {
-          query: {
-            mssql:
-              'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($1); SELECT * FROM @tmp;',
-            postgres:
-              'INSERT INTO "users" ("user_name") VALUES ($1) RETURNING "id","user_name";',
-            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);',
-          },
-          bind: ['triggertest'],
-        }
-      );
+      expectsql(sql.insertQuery(User.tableName, { user_name: 'triggertest' }, User.rawAttributes, options), {
+        query: {
+          mssql:
+            'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($1); SELECT * FROM @tmp;',
+          postgres: 'INSERT INTO "users" ("user_name") VALUES ($1) RETURNING "id","user_name";',
+          default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
+        },
+        bind: ['triggertest']
+      });
     });
   });
 
   describe('dates', () => {
     it('formats the date correctly when inserting', () => {
       const timezoneSequelize = Support.createSequelizeInstance({
-        timezone: Support.getTestDialect() === 'sqlite' ? '+00:00' : 'CET',
+        timezone: Support.getTestDialect() === 'sqlite' ? '+00:00' : 'CET'
       });
 
       const User = timezoneSequelize.define(
         'user',
         {
           date: {
-            type: DataTypes.DATE,
-          },
+            type: DataTypes.DATE
+          }
         },
         {
-          timestamps: false,
+          timestamps: false
         }
       );
 
@@ -79,32 +70,32 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
-            default: 'INSERT INTO `users` (`date`) VALUES ($1);',
+            default: 'INSERT INTO `users` (`date`) VALUES ($1);'
           },
           bind: {
             sqlite: ['2015-01-20 00:00:00.000 +00:00'],
             mysql: ['2015-01-20 01:00:00'],
             mariadb: ['2015-01-20 01:00:00.000'],
-            default: ['2015-01-20 01:00:00.000 +01:00'],
-          },
+            default: ['2015-01-20 01:00:00.000 +01:00']
+          }
         }
       );
     });
 
     it('formats date correctly when sub-second precision is explicitly specified', () => {
       const timezoneSequelize = Support.createSequelizeInstance({
-        timezone: Support.getTestDialect() === 'sqlite' ? '+00:00' : 'CET',
+        timezone: Support.getTestDialect() === 'sqlite' ? '+00:00' : 'CET'
       });
 
       const User = timezoneSequelize.define(
         'user',
         {
           date: {
-            type: DataTypes.DATE(3),
-          },
+            type: DataTypes.DATE(3)
+          }
         },
         {
-          timestamps: false,
+          timestamps: false
         }
       );
 
@@ -119,14 +110,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
-            default: 'INSERT INTO `users` (`date`) VALUES ($1);',
+            default: 'INSERT INTO `users` (`date`) VALUES ($1);'
           },
           bind: {
             sqlite: ['2015-01-20 01:02:03.089 +00:00'],
             mariadb: ['2015-01-20 02:02:03.089'],
             mysql: ['2015-01-20 02:02:03.089'],
-            default: ['2015-01-20 02:02:03.089 +01:00'],
-          },
+            default: ['2015-01-20 02:02:03.089 +01:00']
+          }
         }
       );
     });
@@ -139,32 +130,25 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           username: {
             type: DataTypes.STRING,
-            field: 'user_name',
-          },
+            field: 'user_name'
+          }
         },
         {
-          timestamps: false,
+          timestamps: false
         }
       );
 
-      expectsql(
-        sql.insertQuery(
-          User.tableName,
-          { user_name: 'null\0test' },
-          User.rawAttributes
-        ),
-        {
-          query: {
-            postgres: 'INSERT INTO "users" ("user_name") VALUES ($1);',
-            mssql: 'INSERT INTO [users] ([user_name]) VALUES ($1);',
-            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);',
-          },
-          bind: {
-            postgres: ['null\u0000test'],
-            default: ['null\0test'],
-          },
+      expectsql(sql.insertQuery(User.tableName, { user_name: 'null\0test' }, User.rawAttributes), {
+        query: {
+          postgres: 'INSERT INTO "users" ("user_name") VALUES ($1);',
+          mssql: 'INSERT INTO [users] ([user_name]) VALUES ($1);',
+          default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
+        },
+        bind: {
+          postgres: ['null\u0000test'],
+          default: ['null\0test']
         }
-      );
+      });
     });
   });
 
@@ -176,30 +160,28 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           username: {
             type: DataTypes.STRING,
             field: 'user_name',
-            primaryKey: true,
+            primaryKey: true
           },
           password: {
             type: DataTypes.STRING,
-            field: 'pass_word',
+            field: 'pass_word'
           },
           createdAt: {
             type: DataTypes.DATE,
-            field: 'created_at',
+            field: 'created_at'
           },
           updatedAt: {
             type: DataTypes.DATE,
-            field: 'updated_at',
-          },
+            field: 'updated_at'
+          }
         },
         {
-          timestamps: true,
+          timestamps: true
         }
       );
 
       // mapping primary keys to their "field" override values
-      const primaryKeys = User.primaryKeyAttributes.map(
-        (attr) => User.rawAttributes[attr].field || attr
-      );
+      const primaryKeys = User.primaryKeyAttributes.map(attr => User.rawAttributes[attr].field || attr);
 
       expectsql(
         sql.bulkInsertQuery(
@@ -207,23 +189,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           [{ user_name: 'testuser', pass_word: '12345' }],
           {
             updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
-            upsertKeys: primaryKeys,
+            upsertKeys: primaryKeys
           },
           User.fieldRawAttributesMap
         ),
         {
-          default:
-            "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345');",
+          default: "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345');",
           postgres:
             'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
-          mssql:
-            "INSERT INTO [users] ([user_name],[pass_word]) VALUES (N'testuser',N'12345');",
+          mssql: "INSERT INTO [users] ([user_name],[pass_word]) VALUES (N'testuser',N'12345');",
           mariadb:
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);",
           mysql:
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);",
           sqlite:
-            "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;",
+            "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;"
         }
       );
     });

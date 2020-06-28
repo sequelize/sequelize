@@ -10,12 +10,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
       },
       mood: {
         type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
-      },
+        values: ['happy', 'sad', 'neutral']
+      }
     });
     await this.sequelize.sync({ force: true });
   });
@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       await this.User.bulkCreate([
         { username: 'adam', mood: 'happy' },
         { username: 'joe', mood: 'sad' },
-        { username: 'joe', mood: 'happy' },
+        { username: 'joe', mood: 'happy' }
       ]);
     });
 
@@ -43,13 +43,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeCount hook can change options', async function () {
-        this.User.beforeCount((options) => {
+        this.User.beforeCount(options => {
           options.where.username = 'adam';
         });
 
-        await expect(
-          this.User.count({ where: { username: 'joe' } })
-        ).to.eventually.equal(1);
+        await expect(this.User.count({ where: { username: 'joe' } })).to.eventually.equal(1);
       });
     });
 
@@ -59,9 +57,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        await expect(
-          this.User.count({ where: { username: 'adam' } })
-        ).to.be.rejectedWith('Oops!');
+        await expect(this.User.count({ where: { username: 'adam' } })).to.be.rejectedWith('Oops!');
       });
     });
   });

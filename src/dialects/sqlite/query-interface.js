@@ -22,10 +22,9 @@ class SQLiteQueryInterface extends QueryInterface {
     delete fields[attributeName];
 
     const sql = this.queryGenerator.removeColumnQuery(tableName, fields);
-    const subQueries = sql.split(';').filter((q) => q !== '');
+    const subQueries = sql.split(';').filter(q => q !== '');
 
-    for (const subQuery of subQueries)
-      await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+    for (const subQuery of subQueries) await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
   }
 
   /**
@@ -39,16 +38,12 @@ class SQLiteQueryInterface extends QueryInterface {
     options = options || {};
 
     const fields = await this.describeTable(tableName, options);
-    Object.assign(
-      fields[attributeName],
-      this.normalizeAttribute(dataTypeOrOptions)
-    );
+    Object.assign(fields[attributeName], this.normalizeAttribute(dataTypeOrOptions));
 
     const sql = this.queryGenerator.removeColumnQuery(tableName, fields);
-    const subQueries = sql.split(';').filter((q) => q !== '');
+    const subQueries = sql.split(';').filter(q => q !== '');
 
-    for (const subQuery of subQueries)
-      await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+    for (const subQuery of subQueries) await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
   }
 
   /**
@@ -60,25 +55,15 @@ class SQLiteQueryInterface extends QueryInterface {
    */
   async renameColumn(tableName, attrNameBefore, attrNameAfter, options) {
     options = options || {};
-    const fields = await this.assertTableHasColumn(
-      tableName,
-      attrNameBefore,
-      options
-    );
+    const fields = await this.assertTableHasColumn(tableName, attrNameBefore, options);
 
     fields[attrNameAfter] = { ...fields[attrNameBefore] };
     delete fields[attrNameBefore];
 
-    const sql = this.queryGenerator.renameColumnQuery(
-      tableName,
-      attrNameBefore,
-      attrNameAfter,
-      fields
-    );
-    const subQueries = sql.split(';').filter((q) => q !== '');
+    const sql = this.queryGenerator.renameColumnQuery(tableName, attrNameBefore, attrNameAfter, fields);
+    const subQueries = sql.split(';').filter(q => q !== '');
 
-    for (const subQuery of subQueries)
-      await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+    for (const subQuery of subQueries) await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
   }
 
   /**
@@ -89,29 +74,23 @@ class SQLiteQueryInterface extends QueryInterface {
 
     const constraints = await this.showConstraint(tableName, constraintName);
     // sqlite can't show only one constraint, so we find here the one to remove
-    const constraint = constraints.find(
-      (constaint) => constaint.constraintName === constraintName
-    );
+    const constraint = constraints.find(constaint => constaint.constraintName === constraintName);
 
     if (!constraint) {
       throw new sequelizeErrors.UnknownConstraintError({
         message: `Constraint ${constraintName} on table ${tableName} does not exist`,
         constraint: constraintName,
-        table: tableName,
+        table: tableName
       });
     }
     createTableSql = constraint.sql;
-    constraint.constraintName = this.queryGenerator.quoteIdentifier(
-      constraint.constraintName
-    );
+    constraint.constraintName = this.queryGenerator.quoteIdentifier(constraint.constraintName);
     let constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType} ${constraint.constraintCondition}`;
 
     if (constraint.constraintType === 'FOREIGN KEY') {
-      const referenceTableName = this.queryGenerator.quoteTable(
-        constraint.referenceTableName
-      );
-      constraint.referenceTableKeys = constraint.referenceTableKeys.map(
-        (columnName) => this.queryGenerator.quoteIdentifier(columnName)
+      const referenceTableName = this.queryGenerator.quoteTable(constraint.referenceTableName);
+      constraint.referenceTableKeys = constraint.referenceTableKeys.map(columnName =>
+        this.queryGenerator.quoteIdentifier(columnName)
       );
       const referenceTableKeys = constraint.referenceTableKeys.join(', ');
       constraintSnippet += ` REFERENCES ${referenceTableName} (${referenceTableKeys})`;
@@ -124,15 +103,10 @@ class SQLiteQueryInterface extends QueryInterface {
 
     const fields = await this.describeTable(tableName, options);
 
-    const sql = this.queryGenerator._alterConstraintQuery(
-      tableName,
-      fields,
-      createTableSql
-    );
-    const subQueries = sql.split(';').filter((q) => q !== '');
+    const sql = this.queryGenerator._alterConstraintQuery(tableName, fields, createTableSql);
+    const subQueries = sql.split(';').filter(q => q !== '');
 
-    for (const subQuery of subQueries)
-      await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+    for (const subQuery of subQueries) await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
   }
 
   /**
@@ -149,38 +123,25 @@ class SQLiteQueryInterface extends QueryInterface {
 
     options = cloneDeep(options);
 
-    const constraintSnippet = this.queryGenerator.getConstraintSnippet(
-      tableName,
-      options
-    );
-    const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(
-      tableName
-    );
+    const constraintSnippet = this.queryGenerator.getConstraintSnippet(tableName, options);
+    const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
 
     const constraints = await this.sequelize.query(describeCreateTableSql, {
       ...options,
       type: QueryTypes.SELECT,
-      raw: true,
+      raw: true
     });
     let sql = constraints[0].sql;
     const index = sql.length - 1;
     //Replace ending ')' with constraint snippet - Simulates String.replaceAt
     //http://stackoverflow.com/questions/1431094
-    const createTableSql = `${sql.substr(
-      0,
-      index
-    )}, ${constraintSnippet})${sql.substr(index + 1)};`;
+    const createTableSql = `${sql.substr(0, index)}, ${constraintSnippet})${sql.substr(index + 1)};`;
 
     const fields = await this.describeTable(tableName, options);
-    sql = this.queryGenerator._alterConstraintQuery(
-      tableName,
-      fields,
-      createTableSql
-    );
-    const subQueries = sql.split(';').filter((q) => q !== '');
+    sql = this.queryGenerator._alterConstraintQuery(tableName, fields, createTableSql);
+    const subQueries = sql.split(';').filter(q => q !== '');
 
-    for (const subQuery of subQueries)
-      await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+    for (const subQuery of subQueries) await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
   }
 
   /**
@@ -190,13 +151,13 @@ class SQLiteQueryInterface extends QueryInterface {
     const database = this.sequelize.config.database;
     const query = this.queryGenerator.getForeignKeysQuery(tableName, database);
     const result = await this.sequelize.query(query, options);
-    return result.map((row) => ({
+    return result.map(row => ({
       tableName,
       columnName: row.from,
       referencedTableName: row.table,
       referencedColumnName: row.to,
       tableCatalog: database,
-      referencedTableCatalog: database,
+      referencedTableCatalog: database
     }));
   }
 
@@ -232,11 +193,7 @@ class SQLiteQueryInterface extends QueryInterface {
       tableName = tableName.tableName;
     }
 
-    const sql = this.queryGenerator.describeTableQuery(
-      tableName,
-      schema,
-      schemaDelimiter
-    );
+    const sql = this.queryGenerator.describeTableQuery(tableName, schema, schemaDelimiter);
     options = { ...options, type: QueryTypes.DESCRIBE };
     const sqlIndexes = this.queryGenerator.showIndexesQuery(tableName);
 
@@ -265,14 +222,11 @@ class SQLiteQueryInterface extends QueryInterface {
         }
       }
 
-      const foreignKeys = await this.getForeignKeyReferencesForTable(
-        tableName,
-        options
-      );
+      const foreignKeys = await this.getForeignKeyReferencesForTable(tableName, options);
       for (const foreignKey of foreignKeys) {
         data[foreignKey.columnName].references = {
           model: foreignKey.referencedTableName,
-          key: foreignKey.referencedColumnName,
+          key: foreignKey.referencedColumnName
         };
       }
 

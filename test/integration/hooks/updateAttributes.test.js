@@ -11,12 +11,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
       },
       mood: {
         type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
-      },
+        values: ['happy', 'sad', 'neutral']
+      }
     });
     await this.sequelize.sync({ force: true });
   });
@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         const user = await this.User.create({
           username: 'Toni',
-          mood: 'happy',
+          mood: 'happy'
         });
         const user0 = await user.update({ username: 'Chong' });
         expect(beforeHook).to.have.been.calledOnce;
@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         const user = await this.User.create({
           username: 'Toni',
-          mood: 'happy',
+          mood: 'happy'
         });
         await expect(user.update({ username: 'Chong' })).to.be.rejected;
         expect(beforeHook).to.have.been.calledOnce;
@@ -89,7 +89,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         const user = await this.User.create({
           username: 'Toni',
-          mood: 'happy',
+          mood: 'happy'
         });
         await expect(user.update({ username: 'Chong' })).to.be.rejected;
         expect(beforeHook).to.have.been.calledOnce;
@@ -101,13 +101,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('preserves changes to instance', () => {
       it('beforeValidate', async function () {
-        this.User.beforeValidate((user) => {
+        this.User.beforeValidate(user => {
           user.mood = 'happy';
         });
 
         const user0 = await this.User.create({
           username: 'fireninja',
-          mood: 'invalid',
+          mood: 'invalid'
         });
         const user = await user0.update({ username: 'hero' });
         expect(user.username).to.equal('hero');
@@ -115,13 +115,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('afterValidate', async function () {
-        this.User.afterValidate((user) => {
+        this.User.afterValidate(user => {
           user.mood = 'sad';
         });
 
         const user0 = await this.User.create({
           username: 'fireninja',
-          mood: 'nuetral',
+          mood: 'nuetral'
         });
         const user = await user0.update({ username: 'spider' });
         expect(user.username).to.equal('spider');
@@ -131,14 +131,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave', async function () {
         let hookCalled = 0;
 
-        this.User.beforeSave((user) => {
+        this.User.beforeSave(user => {
           user.mood = 'happy';
           hookCalled++;
         });
 
         const user0 = await this.User.create({
           username: 'fireninja',
-          mood: 'nuetral',
+          mood: 'nuetral'
         });
         const user = await user0.update({ username: 'spider', mood: 'sad' });
         expect(user.username).to.equal('spider');
@@ -149,12 +149,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave with beforeUpdate', async function () {
         let hookCalled = 0;
 
-        this.User.beforeUpdate((user) => {
+        this.User.beforeUpdate(user => {
           user.mood = 'sad';
           hookCalled++;
         });
 
-        this.User.beforeSave((user) => {
+        this.User.beforeSave(user => {
           user.mood = 'happy';
           hookCalled++;
         });

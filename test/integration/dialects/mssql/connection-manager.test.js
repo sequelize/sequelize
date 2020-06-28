@@ -12,41 +12,36 @@ if (dialect.match(/^mssql/)) {
       it('ECONNREFUSED', async () => {
         const sequelize = Support.createSequelizeInstance({
           host: '127.0.0.1',
-          port: 34237,
+          port: 34237
         });
-        await expect(
-          sequelize.connectionManager.getConnection()
-        ).to.have.been.rejectedWith(Sequelize.ConnectionRefusedError);
+        await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+          Sequelize.ConnectionRefusedError
+        );
       });
 
       it('ENOTFOUND', async () => {
         const sequelize = Support.createSequelizeInstance({
-          host: 'http://wowow.example.com',
+          host: 'http://wowow.example.com'
         });
-        await expect(
-          sequelize.connectionManager.getConnection()
-        ).to.have.been.rejectedWith(Sequelize.HostNotFoundError);
+        await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+          Sequelize.HostNotFoundError
+        );
       });
 
       it('EHOSTUNREACH', async () => {
         const sequelize = Support.createSequelizeInstance({
-          host: '255.255.255.255',
+          host: '255.255.255.255'
         });
-        await expect(
-          sequelize.connectionManager.getConnection()
-        ).to.have.been.rejectedWith(Sequelize.HostNotReachableError);
+        await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+          Sequelize.HostNotReachableError
+        );
       });
 
       it('ER_ACCESS_DENIED_ERROR | ELOGIN', async () => {
-        const sequelize = new Support.Sequelize(
-          'localhost',
-          'was',
-          'ddsd',
-          Support.sequelize.options
+        const sequelize = new Support.Sequelize('localhost', 'was', 'ddsd', Support.sequelize.options);
+        await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+          Sequelize.AccessDeniedError
         );
-        await expect(
-          sequelize.connectionManager.getConnection()
-        ).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
       });
     });
   });

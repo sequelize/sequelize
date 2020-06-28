@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       beforeEach(function () {
         this.sequelize = new Support.Sequelize('db', 'user', 'pw', {
           dialect,
-          logging: false,
+          logging: false
         });
       });
 
@@ -56,9 +56,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       describe('called with more than two arguments', () => {
         it('passes the arguments to the logger', function () {
           this.sequelize.log('error', 'my message', 1, { a: 1 });
-          expect(
-            this.stub.withArgs('error', 'my message', 1, { a: 1 }).calledOnce
-          ).to.be.true;
+          expect(this.stub.withArgs('error', 'my message', 1, { a: 1 }).calledOnce).to.be.true;
         });
       });
     });
@@ -68,7 +66,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         this.spy = spy();
         this.sequelize = new Support.Sequelize('db', 'user', 'pw', {
           dialect,
-          logging: this.spy,
+          logging: this.spy
         });
       });
 
@@ -82,8 +80,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         const timeTaken = 5;
         const options = { correlationId: 'ABC001' };
         this.sequelize.log(message, timeTaken, options);
-        expect(this.spy.withArgs(message, timeTaken, options).calledOnce).to.be
-          .true;
+        expect(this.spy.withArgs(message, timeTaken, options).calledOnce).to.be.true;
       });
     });
   });

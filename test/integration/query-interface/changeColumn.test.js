@@ -23,32 +23,32 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.queryInterface.createTable(
         {
           tableName: 'users',
-          schema: 'archive',
+          schema: 'archive'
         },
         {
           id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true,
+            autoIncrement: true
           },
-          currency: DataTypes.INTEGER,
+          currency: DataTypes.INTEGER
         }
       );
 
       await this.queryInterface.changeColumn(
         {
           tableName: 'users',
-          schema: 'archive',
+          schema: 'archive'
         },
         'currency',
         {
-          type: DataTypes.FLOAT,
+          type: DataTypes.FLOAT
         }
       );
 
       const table = await this.queryInterface.describeTable({
         tableName: 'users',
-        schema: 'archive',
+        schema: 'archive'
       });
 
       if (dialect === 'postgres' || dialect === 'postgres-native') {
@@ -61,25 +61,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('should change columns', async function () {
       await this.queryInterface.createTable(
         {
-          tableName: 'users',
+          tableName: 'users'
         },
         {
           id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true,
+            autoIncrement: true
           },
-          currency: DataTypes.INTEGER,
+          currency: DataTypes.INTEGER
         }
       );
 
       await this.queryInterface.changeColumn('users', 'currency', {
         type: DataTypes.FLOAT,
-        allowNull: true,
+        allowNull: true
       });
 
       const table = await this.queryInterface.describeTable({
-        tableName: 'users',
+        tableName: 'users'
       });
 
       if (dialect === 'postgres' || dialect === 'postgres-native') {
@@ -95,31 +95,31 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should work with enums (case 1)', async function () {
         await this.queryInterface.createTable(
           {
-            tableName: 'users',
+            tableName: 'users'
           },
           {
-            firstName: DataTypes.STRING,
+            firstName: DataTypes.STRING
           }
         );
 
         await this.queryInterface.changeColumn('users', 'firstName', {
-          type: DataTypes.ENUM(['value1', 'value2', 'value3']),
+          type: DataTypes.ENUM(['value1', 'value2', 'value3'])
         });
       });
 
       it('should work with enums (case 2)', async function () {
         await this.queryInterface.createTable(
           {
-            tableName: 'users',
+            tableName: 'users'
           },
           {
-            firstName: DataTypes.STRING,
+            firstName: DataTypes.STRING
           }
         );
 
         await this.queryInterface.changeColumn('users', 'firstName', {
           type: DataTypes.ENUM,
-          values: ['value1', 'value2', 'value3'],
+          values: ['value1', 'value2', 'value3']
         });
       });
 
@@ -129,21 +129,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.createTable(
           {
             tableName: 'users',
-            schema: 'archive',
+            schema: 'archive'
           },
           {
-            firstName: DataTypes.STRING,
+            firstName: DataTypes.STRING
           }
         );
 
         await this.queryInterface.changeColumn(
           {
             tableName: 'users',
-            schema: 'archive',
+            schema: 'archive'
           },
           'firstName',
           {
-            type: DataTypes.ENUM(['value1', 'value2', 'value3']),
+            type: DataTypes.ENUM(['value1', 'value2', 'value3'])
           }
         );
       });
@@ -157,27 +157,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             id: {
               type: DataTypes.INTEGER,
               primaryKey: true,
-              autoIncrement: true,
+              autoIncrement: true
             },
             level_id: {
               type: DataTypes.INTEGER,
-              allowNull: false,
-            },
+              allowNull: false
+            }
           });
 
           await this.queryInterface.createTable('level', {
             id: {
               type: DataTypes.INTEGER,
               primaryKey: true,
-              autoIncrement: true,
-            },
+              autoIncrement: true
+            }
           });
         });
 
         it('able to change column to foreign key', async function () {
-          const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable(
-            'users'
-          );
+          const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
           expect(foreignKeys).to.be.an('array');
           expect(foreignKeys).to.be.empty;
 
@@ -185,15 +183,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             type: DataTypes.INTEGER,
             references: {
               model: 'level',
-              key: 'id',
+              key: 'id'
             },
             onUpdate: 'cascade',
-            onDelete: 'cascade',
+            onDelete: 'cascade'
           });
 
-          const newForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable(
-            'users'
-          );
+          const newForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
           expect(newForeignKeys).to.be.an('array');
           expect(newForeignKeys).to.have.lengthOf(1);
           expect(newForeignKeys[0].columnName).to.be.equal('level_id');
@@ -208,63 +204,55 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           // 6. look for new table structure information
           // 7. compare foreign keys and tables(before and after the changes)
           const firstTable = await this.queryInterface.describeTable({
-            tableName: 'users',
+            tableName: 'users'
           });
 
           await this.queryInterface.changeColumn('users', 'level_id', {
             type: DataTypes.INTEGER,
             references: {
               model: 'level',
-              key: 'id',
+              key: 'id'
             },
             onUpdate: 'cascade',
-            onDelete: 'cascade',
+            onDelete: 'cascade'
           });
 
-          const keys = await this.queryInterface.getForeignKeyReferencesForTable(
-            'users'
-          );
+          const keys = await this.queryInterface.getForeignKeyReferencesForTable('users');
           const firstForeignKeys = keys;
 
           await this.queryInterface.changeColumn('users', 'level_id', {
             type: DataTypes.INTEGER,
-            allowNull: true,
+            allowNull: true
           });
 
-          const newForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable(
-            'users'
-          );
+          const newForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
           expect(firstForeignKeys.length).to.be.equal(newForeignKeys.length);
           expect(firstForeignKeys[0].columnName).to.be.equal('level_id');
-          expect(firstForeignKeys[0].columnName).to.be.equal(
-            newForeignKeys[0].columnName
-          );
+          expect(firstForeignKeys[0].columnName).to.be.equal(newForeignKeys[0].columnName);
 
           const describedTable = await this.queryInterface.describeTable({
-            tableName: 'users',
+            tableName: 'users'
           });
 
           expect(describedTable.level_id).to.have.property('allowNull');
-          expect(describedTable.level_id.allowNull).to.not.equal(
-            firstTable.level_id.allowNull
-          );
+          expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
           expect(describedTable.level_id.allowNull).to.be.equal(true);
         });
 
         it('should change the comment of column', async function () {
           const describedTable = await this.queryInterface.describeTable({
-            tableName: 'users',
+            tableName: 'users'
           });
 
           expect(describedTable.level_id.comment).to.be.equal(null);
 
           await this.queryInterface.changeColumn('users', 'level_id', {
             type: DataTypes.INTEGER,
-            comment: 'FooBar',
+            comment: 'FooBar'
           });
 
           const describedTable2 = await this.queryInterface.describeTable({
-            tableName: 'users',
+            tableName: 'users'
           });
           expect(describedTable2.level_id.comment).to.be.equal('FooBar');
         });
@@ -275,110 +263,89 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should not remove unique constraints when adding or modifying columns', async function () {
         await this.queryInterface.createTable(
           {
-            tableName: 'Foos',
+            tableName: 'Foos'
           },
           {
             id: {
               allowNull: false,
               autoIncrement: true,
               primaryKey: true,
-              type: DataTypes.INTEGER,
+              type: DataTypes.INTEGER
             },
             name: {
               allowNull: false,
               unique: true,
-              type: DataTypes.STRING,
+              type: DataTypes.STRING
             },
             email: {
               allowNull: false,
               unique: true,
-              type: DataTypes.STRING,
-            },
+              type: DataTypes.STRING
+            }
           }
         );
 
         await this.queryInterface.addColumn('Foos', 'phone', {
           type: DataTypes.STRING,
           defaultValue: null,
-          allowNull: true,
+          allowNull: true
         });
 
         let table = await this.queryInterface.describeTable({
-          tableName: 'Foos',
+          tableName: 'Foos'
         });
-        expect(table.phone.allowNull).to.equal(
-          true,
-          '(1) phone column should allow null values'
-        );
-        expect(table.phone.defaultValue).to.equal(
-          null,
-          '(1) phone column should have a default value of null'
-        );
-        expect(table.email.unique).to.equal(
-          true,
-          '(1) email column should remain unique'
-        );
-        expect(table.name.unique).to.equal(
-          true,
-          '(1) name column should remain unique'
-        );
+        expect(table.phone.allowNull).to.equal(true, '(1) phone column should allow null values');
+        expect(table.phone.defaultValue).to.equal(null, '(1) phone column should have a default value of null');
+        expect(table.email.unique).to.equal(true, '(1) email column should remain unique');
+        expect(table.name.unique).to.equal(true, '(1) name column should remain unique');
 
         await this.queryInterface.changeColumn('Foos', 'email', {
           type: DataTypes.STRING,
-          allowNull: true,
+          allowNull: true
         });
 
         table = await this.queryInterface.describeTable({
-          tableName: 'Foos',
+          tableName: 'Foos'
         });
-        expect(table.email.allowNull).to.equal(
-          true,
-          '(2) email column should allow null values'
-        );
-        expect(table.email.unique).to.equal(
-          true,
-          '(2) email column should remain unique'
-        );
-        expect(table.name.unique).to.equal(
-          true,
-          '(2) name column should remain unique'
-        );
+        expect(table.email.allowNull).to.equal(true, '(2) email column should allow null values');
+        expect(table.email.unique).to.equal(true, '(2) email column should remain unique');
+        expect(table.name.unique).to.equal(true, '(2) name column should remain unique');
       });
 
       it('should add unique constraints to 2 columns and keep allowNull', async function () {
         await this.queryInterface.createTable(
           {
-            tableName: 'Foos',
+            tableName: 'Foos'
           },
           {
             id: {
               allowNull: false,
               autoIncrement: true,
               primaryKey: true,
-              type: DataTypes.INTEGER,
+              type: DataTypes.INTEGER
             },
             name: {
               allowNull: false,
-              type: DataTypes.STRING,
+              type: DataTypes.STRING
             },
             email: {
               allowNull: true,
-              type: DataTypes.STRING,
-            },
+              type: DataTypes.STRING
+            }
           }
         );
 
         await this.queryInterface.changeColumn('Foos', 'name', {
           type: DataTypes.STRING,
-          unique: true,
+          unique: true
         });
         await this.queryInterface.changeColumn('Foos', 'email', {
           type: DataTypes.STRING,
-          unique: true,
+          unique: true
         });
 
         const table = await this.queryInterface.describeTable({
-          tableName: 'Foos',
+          tableName: 'Foos'
         });
         expect(table.name.allowNull).to.equal(false);
         expect(table.name.unique).to.equal(true);
@@ -396,41 +363,22 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await Task.sync({ force: true });
 
         await this.queryInterface.addColumn('Tasks', 'bar', DataTypes.INTEGER);
-        let refs = await this.queryInterface.getForeignKeyReferencesForTable(
-          'Tasks'
-        );
-        expect(refs.length).to.equal(
-          1,
-          'should keep foreign key after adding column'
-        );
+        let refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        expect(refs.length).to.equal(1, 'should keep foreign key after adding column');
         expect(refs[0].columnName).to.equal('UserId');
         expect(refs[0].referencedTableName).to.equal('Users');
         expect(refs[0].referencedColumnName).to.equal('id');
 
-        await this.queryInterface.changeColumn(
-          'Tasks',
-          'bar',
-          DataTypes.STRING
-        );
-        refs = await this.queryInterface.getForeignKeyReferencesForTable(
-          'Tasks'
-        );
-        expect(refs.length).to.equal(
-          1,
-          'should keep foreign key after changing column'
-        );
+        await this.queryInterface.changeColumn('Tasks', 'bar', DataTypes.STRING);
+        refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        expect(refs.length).to.equal(1, 'should keep foreign key after changing column');
         expect(refs[0].columnName).to.equal('UserId');
         expect(refs[0].referencedTableName).to.equal('Users');
         expect(refs[0].referencedColumnName).to.equal('id');
 
         await this.queryInterface.renameColumn('Tasks', 'bar', 'foo');
-        refs = await this.queryInterface.getForeignKeyReferencesForTable(
-          'Tasks'
-        );
-        expect(refs.length).to.equal(
-          1,
-          'should keep foreign key after renaming column'
-        );
+        refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        expect(refs.length).to.equal(1, 'should keep foreign key after renaming column');
         expect(refs[0].columnName).to.equal('UserId');
         expect(refs[0].referencedTableName).to.equal('Users');
         expect(refs[0].referencedColumnName).to.equal('id');

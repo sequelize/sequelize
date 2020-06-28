@@ -34,23 +34,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       validateTest: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        validate: { isInt: true },
+        validate: { isInt: true }
       },
       validateCustom: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: { len: { msg: 'Length failed.', args: [1, 20] } },
+        validate: { len: { msg: 'Length failed.', args: [1, 20] } }
       },
 
       dateAllowNullTrue: {
         type: DataTypes.DATE,
-        allowNull: true,
+        allowNull: true
       },
 
       isSuperUser: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false,
-      },
+        defaultValue: false
+      }
     });
 
     await this.User.sync({ force: true });
@@ -61,16 +61,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', {
-          username: Support.Sequelize.STRING,
+          username: Support.Sequelize.STRING
         });
 
         await User.sync({ force: true });
         const user = await User.create({ username: 'foo' });
         const t = await sequelize.transaction();
-        await User.update(
-          { username: 'bar' },
-          { where: { username: 'foo' }, transaction: t }
-        );
+        await User.update({ username: 'bar' }, { where: { username: 'foo' }, transaction: t });
         const user1 = await user.reload();
         expect(user1.username).to.equal('foo');
         const user0 = await user1.reload({ transaction: t });
@@ -97,9 +94,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       // options.where should be ignored
       await user.reload({ where: { id: anotherUser.get('id') } });
-      expect(user.get('id'))
-        .to.equal(primaryKey)
-        .and.not.equal(anotherUser.get('id'));
+      expect(user.get('id')).to.equal(primaryKey).and.not.equal(anotherUser.get('id'));
     });
 
     it('should update the values on all references to the DAO', async function () {
@@ -116,24 +111,24 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should support updating a subset of attributes', async function () {
       const user1 = await this.User.create({
         aNumber: 1,
-        bNumber: 1,
+        bNumber: 1
       });
 
       await this.User.update(
         {
-          bNumber: 2,
+          bNumber: 2
         },
         {
           where: {
-            id: user1.get('id'),
-          },
+            id: user1.get('id')
+          }
         }
       );
 
       const user0 = user1;
 
       const user = await user0.reload({
-        attributes: ['bNumber'],
+        attributes: ['bNumber']
       });
 
       expect(user.get('aNumber')).to.equal(1);
@@ -170,11 +165,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       const leBook = await Book.findOne({
         where: { id: book.id },
-        include: [Page],
+        include: [Page]
       });
 
       const page0 = await page.update({
-        content: 'something totally different',
+        content: 'something totally different'
       });
       expect(leBook.Pages.length).to.equal(1);
       expect(leBook.Pages[0].content).to.equal('om nom nom');
@@ -199,13 +194,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await book.setPages([page]);
 
       const leBook = await Book.findOne({
-        where: { id: book.id },
+        where: { id: book.id }
       });
 
       const oldOptions = leBook._options;
 
       const leBook0 = await leBook.reload({
-        include: [Page],
+        include: [Page]
       });
 
       expect(oldOptions).not.to.equal(leBook0._options);
@@ -237,15 +232,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         {
           brand: 'the brand',
           Player: {
-            name: 'the player',
-          },
+            name: 'the player'
+          }
         },
         { include: [Player] }
       );
 
       const lePlayer1 = await Player.findOne({
         where: { id: shoe.Player.id },
-        include: [Shoe],
+        include: [Shoe]
       });
 
       expect(lePlayer1.Shoe).not.to.be.null;
@@ -269,19 +264,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           name: 'the team',
           Players: [
             {
-              name: 'the player1',
+              name: 'the player1'
             },
             {
-              name: 'the player2',
-            },
-          ],
+              name: 'the player2'
+            }
+          ]
         },
         { include: [Player] }
       );
 
       const leTeam1 = await Team.findOne({
         where: { id: team.id },
-        include: [Player],
+        include: [Player]
       });
 
       expect(leTeam1.Players).not.to.be.empty;
@@ -306,19 +301,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           name: 'the team',
           Players: [
             {
-              name: 'the player1',
+              name: 'the player1'
             },
             {
-              name: 'the player2',
-            },
-          ],
+              name: 'the player2'
+            }
+          ]
         },
         { include: [Player] }
       );
 
       const leTeam1 = await Team.findOne({
         where: { id: team.id },
-        include: [Player],
+        include: [Player]
       });
 
       expect(leTeam1.Players).to.have.length(2);
@@ -330,18 +325,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should inject default scope when reloading', async function () {
       const Bar = this.sequelize.define('Bar', {
-        name: DataTypes.TEXT,
+        name: DataTypes.TEXT
       });
 
       const Foo = this.sequelize.define(
         'Foo',
         {
-          name: DataTypes.TEXT,
+          name: DataTypes.TEXT
         },
         {
           defaultScope: {
-            include: [{ model: Bar }],
-          },
+            include: [{ model: Bar }]
+          }
         }
       );
 

@@ -25,12 +25,11 @@ class ConnectionManager extends AbstractConnectionManager {
 
   // Expose this as a method so that the parsing may be updated when the user has added additional, custom types
   _refreshTypeParser(dataType) {
-    const arrayParserBuilder = (parser) => {
-      return (value) =>
-        this.lib.types.arrayParser.create(value, parser).parse();
+    const arrayParserBuilder = parser => {
+      return value => this.lib.types.arrayParser.create(value, parser).parse();
     };
-    const rangeParserBuilder = (parser) => {
-      return (value) => dataType.parse(value, { parser });
+    const rangeParserBuilder = parser => {
+      return value => dataType.parse(value, { parser });
     };
 
     // Set range parsers
@@ -50,22 +49,22 @@ class ConnectionManager extends AbstractConnectionManager {
     }
 
     // Create parsers for normal or enum data types
-    const parser = (value) => dataType.parse(value);
+    const parser = value => dataType.parse(value);
     const arrayParser = arrayParserBuilder(parser);
 
     // Set enum parsers
     if (dataType.key.toLowerCase() === 'enum') {
-      this.enumOids.oids.forEach((oid) => {
+      this.enumOids.oids.forEach(oid => {
         this.oidParserMap.set(oid, parser);
       });
-      this.enumOids.arrayOids.forEach((arrayOid) => {
+      this.enumOids.arrayOids.forEach(arrayOid => {
         this.oidParserMap.set(arrayOid, arrayParser);
       });
       return;
     }
 
     // Set parsers for normal data types
-    dataType.types.postgres.forEach((name) => {
+    dataType.types.postgres.forEach(name => {
       if (!this.nameOidMap[name]) return;
       this.oidParserMap.set(this.nameOidMap[name].oid, parser);
 
@@ -86,16 +85,10 @@ class ConnectionManager extends AbstractConnectionManager {
 
   async connect(config) {
     config.user = config.username;
-    const connectionConfig = _.pick(config, [
-      'user',
-      'password',
-      'host',
-      'database',
-      'port',
-    ]);
+    const connectionConfig = _.pick(config, ['user', 'password', 'host', 'database', 'port']);
 
     connectionConfig.types = {
-      getTypeParser: ConnectionManager.prototype.getTypeParser.bind(this),
+      getTypeParser: ConnectionManager.prototype.getTypeParser.bind(this)
     };
 
     if (config.dialectOptions) {
@@ -122,7 +115,7 @@ class ConnectionManager extends AbstractConnectionManager {
           // Times out queries after a set time in milliseconds. Added in pg v7.3
           'statement_timeout',
           // Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. Added in pg v7.17.0 only supported in postgres >= 10
-          'idle_in_transaction_session_timeout',
+          'idle_in_transaction_session_timeout'
         ])
       );
     }
@@ -132,14 +125,12 @@ class ConnectionManager extends AbstractConnectionManager {
 
       const connection = new this.lib.Client(connectionConfig);
 
-      const parameterHandler = (message) => {
+      const parameterHandler = message => {
         switch (message.parameterName) {
           case 'server_version':
             if (this.sequelize.options.databaseVersion === 0) {
               const version = semver.coerce(message.parameterValue).version;
-              this.sequelize.options.databaseVersion = semver.valid(version)
-                ? version
-                : this.dialect.defaultVersion;
+              this.sequelize.options.databaseVersion = semver.valid(version) ? version : this.dialect.defaultVersion;
             }
             break;
           case 'standard_conforming_strings':
@@ -151,11 +142,7 @@ class ConnectionManager extends AbstractConnectionManager {
       const endHandler = () => {
         debug('connection timeout');
         if (!responded) {
-          reject(
-            new sequelizeErrors.ConnectionTimedOutError(
-              new Error('Connection timed out')
-            )
-          );
+          reject(new sequelizeErrors.ConnectionTimedOutError(new Error('Connection timed out')));
         }
       };
 
@@ -168,15 +155,12 @@ class ConnectionManager extends AbstractConnectionManager {
         connection.connection.on('parameterStatus', parameterHandler);
       }
 
-      connection.connect((err) => {
+      connection.connect(err => {
         responded = true;
 
         if (!this.sequelize.config.native) {
           // remove parameter handler
-          connection.connection.removeListener(
-            'parameterStatus',
-            parameterHandler
-          );
+          connection.connection.removeListener('parameterStatus', parameterHandler);
         }
 
         if (err) {
@@ -245,7 +229,7 @@ class ConnectionManager extends AbstractConnectionManager {
       await this._refreshDynamicOIDs(connection);
     }
     // Don't let a Postgres restart (or error) to take down the whole app
-    connection.on('error', (error) => {
+    connection.on('error', error => {
       connection._invalid = true;
       debug(`connection error ${error.code || error.message}`);
       this.pool.destroy(connection);
@@ -260,7 +244,7 @@ class ConnectionManager extends AbstractConnectionManager {
       return;
     }
 
-    return await promisify((callback) => connection.end(callback))();
+    return await promisify(callback => connection.end(callback))();
   }
 
   validate(connection) {
@@ -272,10 +256,7 @@ class ConnectionManager extends AbstractConnectionManager {
     const supportedVersion = '8.3.0';
 
     // Check for supported version
-    if (
-      (databaseVersion && semver.gte(databaseVersion, supportedVersion)) ===
-      false
-    ) {
+    if ((databaseVersion && semver.gte(databaseVersion, supportedVersion)) === false) {
       return;
     }
 
@@ -320,8 +301,7 @@ class ConnectionManager extends AbstractConnectionManager {
       // Mapping ranges(of base types) and their arrays
       if (row.rngtypid) {
         newNameOidMap[row.typname].rangeOid = row.rngtypid;
-        if (row.rngtyparray)
-          newNameOidMap[row.typname].arrayRangeOid = row.rngtyparray;
+        if (row.rngtyparray) newNameOidMap[row.typname].arrayRangeOid = row.rngtyparray;
       }
     }
 

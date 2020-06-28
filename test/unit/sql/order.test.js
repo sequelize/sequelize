@@ -19,11 +19,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
-          sql.selectQuery(
-            options.table || (model && model.getTableName()),
-            options,
-            options.model
-          ),
+          sql.selectQuery(options.table || (model && model.getTableName()), options, options.model),
           expectation
         );
       });
@@ -37,27 +33,27 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
-          field: 'id',
+          field: 'id'
         },
         name: {
           type: DataTypes.STRING,
           field: 'name',
-          allowNull: false,
+          allowNull: false
         },
         createdAt: {
           type: DataTypes.DATE,
           field: 'created_at',
-          allowNull: false,
+          allowNull: false
         },
         updatedAt: {
           type: DataTypes.DATE,
           field: 'updated_at',
-          allowNull: true,
-        },
+          allowNull: true
+        }
       },
       {
         tableName: 'user',
-        timestamps: true,
+        timestamps: true
       }
     );
 
@@ -68,27 +64,27 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
-          field: 'id',
+          field: 'id'
         },
         name: {
           type: DataTypes.STRING,
           field: 'name',
-          allowNull: false,
+          allowNull: false
         },
         createdAt: {
           type: DataTypes.DATE,
           field: 'created_at',
-          allowNull: false,
+          allowNull: false
         },
         updatedAt: {
           type: DataTypes.DATE,
           field: 'updated_at',
-          allowNull: true,
-        },
+          allowNull: true
+        }
       },
       {
         tableName: 'project',
-        timestamps: true,
+        timestamps: true
       }
     );
 
@@ -99,32 +95,32 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
-          field: 'id',
+          field: 'id'
         },
         userId: {
           type: DataTypes.INTEGER,
           field: 'user_id',
-          allowNull: false,
+          allowNull: false
         },
         projectId: {
           type: DataTypes.INTEGER,
           field: 'project_id',
-          allowNull: false,
+          allowNull: false
         },
         createdAt: {
           type: DataTypes.DATE,
           field: 'created_at',
-          allowNull: false,
+          allowNull: false
         },
         updatedAt: {
           type: DataTypes.DATE,
           field: 'updated_at',
-          allowNull: true,
-        },
+          allowNull: true
+        }
       },
       {
         tableName: 'project_user',
-        timestamps: true,
+        timestamps: true
       }
     );
 
@@ -135,32 +131,32 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
-          field: 'id',
+          field: 'id'
         },
         name: {
           type: DataTypes.STRING,
           field: 'name',
-          allowNull: false,
+          allowNull: false
         },
         projectId: {
           type: DataTypes.INTEGER,
           field: 'project_id',
-          allowNull: false,
+          allowNull: false
         },
         createdAt: {
           type: DataTypes.DATE,
           field: 'created_at',
-          allowNull: false,
+          allowNull: false
         },
         updatedAt: {
           type: DataTypes.DATE,
           field: 'updated_at',
-          allowNull: true,
-        },
+          allowNull: true
+        }
       },
       {
         tableName: 'task',
-        timestamps: true,
+        timestamps: true
       }
     );
 
@@ -171,32 +167,32 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
-          field: 'id',
+          field: 'id'
         },
         name: {
           type: DataTypes.STRING,
           field: 'name',
-          allowNull: false,
+          allowNull: false
         },
         taskId: {
           type: DataTypes.INTEGER,
           field: 'task_id',
-          allowNull: false,
+          allowNull: false
         },
         createdAt: {
           type: DataTypes.DATE,
           field: 'created_at',
-          allowNull: false,
+          allowNull: false
         },
         updatedAt: {
           type: DataTypes.DATE,
           field: 'updated_at',
-          allowNull: true,
-        },
+          allowNull: true
+        }
       },
       {
         tableName: 'subtask',
-        timestamps: true,
+        timestamps: true
       }
     );
 
@@ -205,44 +201,44 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       as: 'ProjectUserProjects',
       through: ProjectUser,
       foreignKey: 'user_id',
-      otherKey: 'project_id',
+      otherKey: 'project_id'
     });
 
     Project.belongsToMany(User, {
       as: 'ProjectUserUsers',
       through: ProjectUser,
       foreignKey: 'project_id',
-      otherKey: 'user_id',
+      otherKey: 'user_id'
     });
 
     Project.hasMany(Task, {
       as: 'Tasks',
-      foreignKey: 'project_id',
+      foreignKey: 'project_id'
     });
 
     ProjectUser.belongsTo(User, {
       as: 'User',
-      foreignKey: 'user_id',
+      foreignKey: 'user_id'
     });
 
     ProjectUser.belongsTo(User, {
       as: 'Project',
-      foreignKey: 'project_id',
+      foreignKey: 'project_id'
     });
 
     Task.belongsTo(Project, {
       as: 'Project',
-      foreignKey: 'project_id',
+      foreignKey: 'project_id'
     });
 
     Task.hasMany(Subtask, {
       as: 'Subtasks',
-      foreignKey: 'task_id',
+      foreignKey: 'task_id'
     });
 
     Subtask.belongsTo(Task, {
       as: 'Task',
-      foreignKey: 'task_id',
+      foreignKey: 'task_id'
     });
 
     testsql(
@@ -259,56 +255,56 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 {
                   association: Task.associations.Project,
                   required: true,
-                  attributes: ['id', 'name', 'createdAt'],
-                },
-              ],
-            },
+                  attributes: ['id', 'name', 'createdAt']
+                }
+              ]
+            }
           ],
-          model: Subtask,
+          model: Subtask
         }).include,
         order: [
           // order with multiple simple association syntax with direction
           [
             {
               model: Task,
-              as: 'Task',
+              as: 'Task'
             },
             {
               model: Project,
-              as: 'Project',
+              as: 'Project'
             },
             'createdAt',
-            'ASC',
+            'ASC'
           ],
           // order with multiple simple association syntax without direction
           [
             {
               model: Task,
-              as: 'Task',
+              as: 'Task'
             },
             {
               model: Project,
-              as: 'Project',
+              as: 'Project'
             },
-            'createdAt',
+            'createdAt'
           ],
 
           // order with simple association syntax with direction
           [
             {
               model: Task,
-              as: 'Task',
+              as: 'Task'
             },
             'createdAt',
-            'ASC',
+            'ASC'
           ],
           // order with simple association syntax without direction
           [
             {
               model: Task,
-              as: 'Task',
+              as: 'Task'
             },
-            'createdAt',
+            'createdAt'
           ],
 
           // through model object as array with direction
@@ -322,12 +318,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           [Task, 'createdAt'],
 
           // through association object as array with direction
-          [
-            Subtask.associations.Task,
-            Task.associations.Project,
-            'createdAt',
-            'ASC',
-          ],
+          [Subtask.associations.Task, Task.associations.Project, 'createdAt', 'ASC'],
           // through association object as array without direction
           [Subtask.associations.Task, Task.associations.Project, 'createdAt'],
 
@@ -351,14 +342,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           // main order as array without direction
           ['createdAt'],
           // main order as string
-          'createdAt',
-        ],
+          'createdAt'
+        ]
       },
       {
         default:
           'SELECT [Subtask].[id], [Subtask].[name], [Subtask].[createdAt], [Task].[id] AS [Task.id], [Task].[name] AS [Task.name], [Task].[created_at] AS [Task.createdAt], [Task->Project].[id] AS [Task.Project.id], [Task->Project].[name] AS [Task.Project.name], [Task->Project].[created_at] AS [Task.Project.createdAt] FROM [subtask] AS [Subtask] INNER JOIN [task] AS [Task] ON [Subtask].[task_id] = [Task].[id] INNER JOIN [project] AS [Task->Project] ON [Task].[project_id] = [Task->Project].[id] ORDER BY [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Subtask].[created_at] ASC, [Subtask].[created_at], [Subtask].[created_at];',
         postgres:
-          'SELECT "Subtask"."id", "Subtask"."name", "Subtask"."createdAt", "Task"."id" AS "Task.id", "Task"."name" AS "Task.name", "Task"."created_at" AS "Task.createdAt", "Task->Project"."id" AS "Task.Project.id", "Task->Project"."name" AS "Task.Project.name", "Task->Project"."created_at" AS "Task.Project.createdAt" FROM "subtask" AS "Subtask" INNER JOIN "task" AS "Task" ON "Subtask"."task_id" = "Task"."id" INNER JOIN "project" AS "Task->Project" ON "Task"."project_id" = "Task->Project"."id" ORDER BY "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Subtask"."created_at" ASC, "Subtask"."created_at", "Subtask"."created_at";',
+          'SELECT "Subtask"."id", "Subtask"."name", "Subtask"."createdAt", "Task"."id" AS "Task.id", "Task"."name" AS "Task.name", "Task"."created_at" AS "Task.createdAt", "Task->Project"."id" AS "Task.Project.id", "Task->Project"."name" AS "Task.Project.name", "Task->Project"."created_at" AS "Task.Project.createdAt" FROM "subtask" AS "Subtask" INNER JOIN "task" AS "Task" ON "Subtask"."task_id" = "Task"."id" INNER JOIN "project" AS "Task->Project" ON "Task"."project_id" = "Task->Project"."id" ORDER BY "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Subtask"."created_at" ASC, "Subtask"."created_at", "Subtask"."created_at";'
       }
     );
 
@@ -366,19 +357,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       {
         model: Subtask,
         attributes: ['id', 'name'],
-        order: [Support.sequelize.random()],
+        order: [Support.sequelize.random()]
       },
       {
-        mssql:
-          'SELECT [id], [name] FROM [subtask] AS [Subtask] ORDER BY RAND();',
-        mariadb:
-          'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
-        mysql:
-          'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
-        postgres:
-          'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
-        sqlite:
-          'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();',
+        mssql: 'SELECT [id], [name] FROM [subtask] AS [Subtask] ORDER BY RAND();',
+        mariadb: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
+        mysql: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
+        postgres: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
+        sqlite: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();'
       }
     );
 
@@ -386,41 +372,25 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('Error on invalid association', () => {
         return expect(
           Subtask.findAll({
-            order: [[Project, 'createdAt', 'ASC']],
+            order: [[Project, 'createdAt', 'ASC']]
           })
-        ).to.eventually.be.rejectedWith(
-          Error,
-          "Unable to find a valid association for model, 'Project'"
-        );
+        ).to.eventually.be.rejectedWith(Error, "Unable to find a valid association for model, 'Project'");
       });
 
       it('Error on invalid structure', () => {
         return expect(
           Subtask.findAll({
-            order: [
-              [
-                Subtask.associations.Task,
-                'createdAt',
-                Task.associations.Project,
-                'ASC',
-              ],
-            ],
+            order: [[Subtask.associations.Task, 'createdAt', Task.associations.Project, 'ASC']]
           })
-        ).to.eventually.be.rejectedWith(
-          Error,
-          'Unknown structure passed to order / group: Project'
-        );
+        ).to.eventually.be.rejectedWith(Error, 'Unknown structure passed to order / group: Project');
       });
 
       it('Error when the order is a string', () => {
         return expect(
           Subtask.findAll({
-            order: 'i am a silly string',
+            order: 'i am a silly string'
           })
-        ).to.eventually.be.rejectedWith(
-          Error,
-          'Order must be type of array or instance of a valid sequelize method.'
-        );
+        ).to.eventually.be.rejectedWith(Error, 'Order must be type of array or instance of a valid sequelize method.');
       });
 
       it('Error when the order contains a `{raw: "..."}` object', () => {
@@ -428,9 +398,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           Subtask.findAll({
             order: [
               {
-                raw: 'this should throw an error',
-              },
-            ],
+                raw: 'this should throw an error'
+              }
+            ]
           })
         ).to.eventually.be.rejectedWith(
           Error,
@@ -444,10 +414,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             order: [
               [
                 {
-                  raw: 'this should throw an error',
-                },
-              ],
-            ],
+                  raw: 'this should throw an error'
+                }
+              ]
+            ]
           })
         ).to.eventually.be.rejectedWith(
           Error,

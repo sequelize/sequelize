@@ -11,12 +11,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
       },
       mood: {
         type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
-      },
+        values: ['happy', 'sad', 'neutral']
+      }
     });
     await this.sequelize.sync({ force: true });
   });
@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         const user = await this.User.create({
           username: 'Toni',
-          mood: 'happy',
+          mood: 'happy'
         });
         await user.destroy();
         expect(beforeHook).to.have.been.calledOnce;
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         const user = await this.User.create({
           username: 'Toni',
-          mood: 'happy',
+          mood: 'happy'
         });
         await expect(user.destroy()).to.be.rejected;
         expect(beforeHook).to.have.been.calledOnce;
@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         const user = await this.User.create({
           username: 'Toni',
-          mood: 'happy',
+          mood: 'happy'
         });
         await expect(user.destroy()).to.be.rejected;
         expect(beforeHook).to.have.been.calledOnce;
@@ -91,14 +91,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               type: DataTypes.VIRTUAL(DataTypes.INTEGER, ['updatedBy']),
               get() {
                 return this.updatedBy - 1;
-              },
-            },
+              }
+            }
           },
           {
             paranoid: true,
             hooks: {
-              beforeDestroy: (instance) => (instance.updatedBy = 1),
-            },
+              beforeDestroy: instance => (instance.updatedBy = 1)
+            }
           }
         );
       });
@@ -112,9 +112,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should not throw error when a beforeDestroy hook changes a virtual column', async function () {
-        this.ParanoidUser.beforeDestroy(
-          (instance) => (instance.virtualField = 2)
-        );
+        this.ParanoidUser.beforeDestroy(instance => (instance.virtualField = 2));
 
         await this.ParanoidUser.sync({ force: true });
         const user0 = await this.ParanoidUser.create({ username: 'user1' });

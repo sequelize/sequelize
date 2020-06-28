@@ -16,34 +16,25 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           username: {
             type: DataTypes.STRING,
-            field: 'user_name',
-          },
+            field: 'user_name'
+          }
         },
         {
-          timestamps: false,
+          timestamps: false
         }
       );
 
       const options = {
-        returning: false,
+        returning: false
       };
-      expectsql(
-        sql.updateQuery(
-          User.tableName,
-          { user_name: 'triggertest' },
-          { id: 2 },
-          options,
-          User.rawAttributes
-        ),
-        {
-          query: {
-            default: 'UPDATE [users] SET [user_name]=$1 WHERE [id] = $2',
-          },
-          bind: {
-            default: ['triggertest', 2],
-          },
+      expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.rawAttributes), {
+        query: {
+          default: 'UPDATE [users] SET [user_name]=$1 WHERE [id] = $2'
+        },
+        bind: {
+          default: ['triggertest', 2]
         }
-      );
+      });
     });
 
     it('with temp table for trigger', () => {
@@ -52,40 +43,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           username: {
             type: DataTypes.STRING,
-            field: 'user_name',
-          },
+            field: 'user_name'
+          }
         },
         {
           timestamps: false,
-          hasTrigger: true,
+          hasTrigger: true
         }
       );
 
       const options = {
         returning: true,
-        hasTrigger: true,
+        hasTrigger: true
       };
-      expectsql(
-        sql.updateQuery(
-          User.tableName,
-          { user_name: 'triggertest' },
-          { id: 2 },
-          options,
-          User.rawAttributes
-        ),
-        {
-          query: {
-            mssql:
-              'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$1 OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp WHERE [id] = $2; SELECT * FROM @tmp',
-            postgres:
-              'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2 RETURNING "id","user_name"',
-            default: 'UPDATE `users` SET `user_name`=$1 WHERE `id` = $2',
-          },
-          bind: {
-            default: ['triggertest', 2],
-          },
+      expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.rawAttributes), {
+        query: {
+          mssql:
+            'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$1 OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp WHERE [id] = $2; SELECT * FROM @tmp',
+          postgres: 'UPDATE "users" SET "user_name"=$1 WHERE "id" = $2 RETURNING "id","user_name"',
+          default: 'UPDATE `users` SET `user_name`=$1 WHERE `id` = $2'
+        },
+        bind: {
+          default: ['triggertest', 2]
         }
-      );
+      });
     });
 
     it('works with limit', () => {
@@ -93,41 +74,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         'User',
         {
           username: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING
           },
           userId: {
-            type: DataTypes.INTEGER,
-          },
+            type: DataTypes.INTEGER
+          }
         },
         {
-          timestamps: false,
+          timestamps: false
         }
       );
 
-      expectsql(
-        sql.updateQuery(
-          User.tableName,
-          { username: 'new.username' },
-          { username: 'username' },
-          { limit: 1 }
-        ),
-        {
-          query: {
-            mssql:
-              'UPDATE TOP(1) [Users] SET [username]=$1 WHERE [username] = $2',
-            mariadb:
-              'UPDATE `Users` SET `username`=$1 WHERE `username` = $2 LIMIT 1',
-            mysql:
-              'UPDATE `Users` SET `username`=$1 WHERE `username` = $2 LIMIT 1',
-            sqlite:
-              'UPDATE `Users` SET `username`=$1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `username` = $2 LIMIT 1)',
-            default: 'UPDATE [Users] SET [username]=$1 WHERE [username] = $2',
-          },
-          bind: {
-            default: ['new.username', 'username'],
-          },
+      expectsql(sql.updateQuery(User.tableName, { username: 'new.username' }, { username: 'username' }, { limit: 1 }), {
+        query: {
+          mssql: 'UPDATE TOP(1) [Users] SET [username]=$1 WHERE [username] = $2',
+          mariadb: 'UPDATE `Users` SET `username`=$1 WHERE `username` = $2 LIMIT 1',
+          mysql: 'UPDATE `Users` SET `username`=$1 WHERE `username` = $2 LIMIT 1',
+          sqlite:
+            'UPDATE `Users` SET `username`=$1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `username` = $2 LIMIT 1)',
+          default: 'UPDATE [Users] SET [username]=$1 WHERE [username] = $2'
+        },
+        bind: {
+          default: ['new.username', 'username']
         }
-      );
+      });
     });
   });
 });

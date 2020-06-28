@@ -122,7 +122,7 @@ class Association {
       input = [input];
     }
 
-    return input.map((element) => {
+    return input.map(element => {
       if (element instanceof this.target) return element;
 
       const tmpInstance = {};

@@ -19,8 +19,8 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
     this.sequelize = Support.getSequelizeInstance(null, null, null, {
       replication: {
         write: Support.getConnectionOptions(),
-        read: [Support.getConnectionOptions()],
-      },
+        read: [Support.getConnectionOptions()]
+      }
     });
 
     expect(this.sequelize.connectionManager.pool.write).to.be.ok;
@@ -29,19 +29,13 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
     this.User = this.sequelize.define('User', {
       firstName: {
         type: DataTypes.STRING,
-        field: 'first_name',
-      },
+        field: 'first_name'
+      }
     });
 
     await this.User.sync({ force: true });
-    readSpy = sandbox.spy(
-      this.sequelize.connectionManager.pool.read,
-      'acquire'
-    );
-    writeSpy = sandbox.spy(
-      this.sequelize.connectionManager.pool.write,
-      'acquire'
-    );
+    readSpy = sandbox.spy(this.sequelize.connectionManager.pool.read, 'acquire');
+    writeSpy = sandbox.spy(this.sequelize.connectionManager.pool.write, 'acquire');
   });
 
   afterEach(() => {
@@ -61,7 +55,7 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
   it('should be able to make a write', async function () {
     await expectWriteCalls(
       await this.User.create({
-        firstName: Math.random().toString(),
+        firstName: Math.random().toString()
       })
     );
   });
@@ -72,7 +66,7 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
 
   it('should run read-only transactions on the replica', async function () {
     await expectReadCalls(
-      await this.sequelize.transaction({ readOnly: true }, (transaction) => {
+      await this.sequelize.transaction({ readOnly: true }, transaction => {
         return this.User.findAll({ transaction });
       })
     );
@@ -80,7 +74,7 @@ describe(Support.getTestDialectTeaser('Replication'), () => {
 
   it('should run non-read-only transactions on the primary', async function () {
     await expectWriteCalls(
-      await this.sequelize.transaction((transaction) => {
+      await this.sequelize.transaction(transaction => {
         return this.User.findAll({ transaction });
       })
     );

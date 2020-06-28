@@ -17,14 +17,14 @@ if (dialect === 'sqlite') {
         emergencyContact: DataTypes.JSON,
         dateField: {
           type: DataTypes.DATE,
-          field: 'date_field',
-        },
+          field: 'date_field'
+        }
       });
       this.Project = this.sequelize.define('project', {
         dateField: {
           type: DataTypes.DATE,
-          field: 'date_field',
-        },
+          field: 'date_field'
+        }
       });
 
       this.User.hasMany(this.Project);
@@ -41,7 +41,7 @@ if (dialect === 'sqlite') {
         await this.User.create({ username: 'new user' });
 
         const users = await this.User.findAll({
-          where: { createdAt: { [Op.gt]: new Date(2012, 1, 1) } },
+          where: { createdAt: { [Op.gt]: new Date(2012, 1, 1) } }
         });
 
         expect(users).to.have.length(1);
@@ -49,7 +49,7 @@ if (dialect === 'sqlite') {
 
       it('handles dates with aliasses correctly #3611', async function () {
         await this.User.create({
-          dateField: new Date(2010, 10, 10),
+          dateField: new Date(2010, 10, 10)
         });
 
         const obj = await this.User.findAll();
@@ -61,20 +61,18 @@ if (dialect === 'sqlite') {
       it('handles dates in includes correctly #2644', async function () {
         await this.User.create(
           {
-            projects: [{ dateField: new Date(1990, 5, 5) }],
+            projects: [{ dateField: new Date(1990, 5, 5) }]
           },
           { include: [this.Project] }
         );
 
         const obj = await this.User.findAll({
-          include: [this.Project],
+          include: [this.Project]
         });
 
         const user = await obj[0];
         expect(user.projects[0].get('dateField')).to.be.an.instanceof(Date);
-        expect(user.projects[0].get('dateField')).to.equalTime(
-          new Date(1990, 5, 5)
-        );
+        expect(user.projects[0].get('dateField')).to.equalTime(new Date(1990, 5, 5));
       });
     });
 
@@ -83,20 +81,17 @@ if (dialect === 'sqlite') {
         await Promise.all([
           this.User.create({
             username: 'swen',
-            emergency_contact: { name: 'kate' },
+            emergency_contact: { name: 'kate' }
           }),
           this.User.create({
             username: 'anna',
-            emergency_contact: { name: 'joe' },
-          }),
+            emergency_contact: { name: 'joe' }
+          })
         ]);
 
         const user = await this.User.findOne({
-          where: Sequelize.json(
-            "json_extract(emergency_contact, '$.name')",
-            'kate'
-          ),
-          attributes: ['username', 'emergency_contact'],
+          where: Sequelize.json("json_extract(emergency_contact, '$.name')", 'kate'),
+          attributes: ['username', 'emergency_contact']
         });
 
         expect(user.emergency_contact.name).to.equal('kate');
@@ -106,17 +101,17 @@ if (dialect === 'sqlite') {
         await Promise.all([
           this.User.create({
             username: 'swen',
-            emergency_contact: { name: 'kate' },
+            emergency_contact: { name: 'kate' }
           }),
           this.User.create({
             username: 'anna',
-            emergency_contact: ['kate', 'joe'],
-          }),
+            emergency_contact: ['kate', 'joe']
+          })
         ]);
 
         const user = await this.User.findOne({
           where: Sequelize.json('json_type(emergency_contact)', 'array'),
-          attributes: ['username', 'emergency_contact'],
+          attributes: ['username', 'emergency_contact']
         });
 
         expect(user.username).to.equal('anna');
@@ -131,7 +126,7 @@ if (dialect === 'sqlite') {
 
         await expect(
           Payments.bulkCreate([{ id: 1 }, { id: 1 }], {
-            ignoreDuplicates: false,
+            ignoreDuplicates: false
           })
         ).to.eventually.be.rejected;
       });

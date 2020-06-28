@@ -20,7 +20,7 @@ class MySQLQueryInterface extends QueryInterface {
           ? tableName
           : {
               tableName,
-              schema: this.sequelize.config.database,
+              schema: this.sequelize.config.database
             },
         columnName
       ),
@@ -30,22 +30,19 @@ class MySQLQueryInterface extends QueryInterface {
     //Exclude primary key constraint
     if (results.length && results[0].constraint_name !== 'PRIMARY') {
       await Promise.all(
-        results.map((constraint) =>
-          this.sequelize.query(
-            this.queryGenerator.dropForeignKeyQuery(
-              tableName,
-              constraint.constraint_name
-            ),
-            { raw: true, ...options }
-          )
+        results.map(constraint =>
+          this.sequelize.query(this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraint_name), {
+            raw: true,
+            ...options
+          })
         )
       );
     }
 
-    return await this.sequelize.query(
-      this.queryGenerator.removeColumnQuery(tableName, columnName),
-      { raw: true, ...options }
-    );
+    return await this.sequelize.query(this.queryGenerator.removeColumnQuery(tableName, columnName), {
+      raw: true,
+      ...options
+    });
   }
 
   /**
@@ -58,12 +55,7 @@ class MySQLQueryInterface extends QueryInterface {
     options.updateOnDuplicate = Object.keys(updateValues);
 
     const model = options.model;
-    const sql = this.queryGenerator.insertQuery(
-      tableName,
-      insertValues,
-      model.rawAttributes,
-      options
-    );
+    const sql = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
     return await this.sequelize.query(sql, options);
   }
 
@@ -76,14 +68,14 @@ class MySQLQueryInterface extends QueryInterface {
         ? tableName
         : {
             tableName,
-            schema: this.sequelize.config.database,
+            schema: this.sequelize.config.database
           },
       constraintName
     );
 
     const constraints = await this.sequelize.query(sql, {
       ...options,
-      type: this.sequelize.QueryTypes.SHOWCONSTRAINTS,
+      type: this.sequelize.QueryTypes.SHOWCONSTRAINTS
     });
 
     const constraint = constraints[0];
@@ -92,20 +84,14 @@ class MySQLQueryInterface extends QueryInterface {
       throw new sequelizeErrors.UnknownConstraintError({
         message: `Constraint ${constraintName} on table ${tableName} does not exist`,
         constraint: constraintName,
-        table: tableName,
+        table: tableName
       });
     }
 
     if (constraint.constraintType === 'FOREIGN KEY') {
-      query = this.queryGenerator.dropForeignKeyQuery(
-        tableName,
-        constraintName
-      );
+      query = this.queryGenerator.dropForeignKeyQuery(tableName, constraintName);
     } else {
-      query = this.queryGenerator.removeIndexQuery(
-        constraint.tableName,
-        constraint.constraintName
-      );
+      query = this.queryGenerator.removeIndexQuery(constraint.tableName, constraint.constraintName);
     }
 
     return await this.sequelize.query(query, options);

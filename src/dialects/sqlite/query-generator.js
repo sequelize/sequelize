@@ -22,9 +22,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
 
     const primaryKeys = [];
     const needsMultiplePrimaryKeys =
-      Object.values(attributes).filter((definition) =>
-        definition.includes('PRIMARY KEY')
-      ).length > 1;
+      Object.values(attributes).filter(definition => definition.includes('PRIMARY KEY')).length > 1;
     const attrArray = [];
 
     for (const attr in attributes) {
@@ -36,14 +34,10 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
         if (dataType.includes('PRIMARY KEY')) {
           if (dataType.includes('INT')) {
             // Only INTEGER is allowed for primary key, see https://github.com/sequelize/sequelize/issues/969 (no lenght, unsigned etc)
-            dataTypeString = containsAutoIncrement
-              ? 'INTEGER PRIMARY KEY AUTOINCREMENT'
-              : 'INTEGER PRIMARY KEY';
+            dataTypeString = containsAutoIncrement ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INTEGER PRIMARY KEY';
 
             if (dataType.includes(' REFERENCES')) {
-              dataTypeString += dataType.substr(
-                dataType.indexOf(' REFERENCES')
-              );
+              dataTypeString += dataType.substr(dataType.indexOf(' REFERENCES'));
             }
           }
 
@@ -62,16 +56,12 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
 
     const table = this.quoteTable(tableName);
     let attrStr = attrArray.join(', ');
-    const pkString = primaryKeys
-      .map((pk) => this.quoteIdentifier(pk))
-      .join(', ');
+    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, (columns) => {
+      _.each(options.uniqueKeys, columns => {
         if (columns.customIndex) {
-          attrStr += `, UNIQUE (${columns.fields
-            .map((field) => this.quoteIdentifier(field))
-            .join(', ')})`;
+          attrStr += `, UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
         }
       });
     }
@@ -153,20 +143,14 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
       return value.toISOString();
     }
     if (Array.isArray(value) && value[0] instanceof Date) {
-      return value.map((val) => val.toISOString());
+      return value.map(val => val.toISOString());
     }
     return value;
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
     if (smth instanceof Utils.Json) {
-      return super.handleSequelizeMethod(
-        smth,
-        tableName,
-        factory,
-        options,
-        prepend
-      );
+      return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
     }
 
     if (smth instanceof Utils.Cast) {
@@ -204,11 +188,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     options = options || {};
     _.defaults(options, this.options);
 
-    attrValueHash = Utils.removeNullValuesFromHash(
-      attrValueHash,
-      options.omitNull,
-      options
-    );
+    attrValueHash = Utils.removeNullValuesFromHash(attrValueHash, options.omitNull, options);
 
     const modelAttributeMap = {};
     const values = [];
@@ -227,10 +207,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     for (const key in attrValueHash) {
       const value = attrValueHash[key];
 
-      if (
-        value instanceof Utils.SequelizeMethod ||
-        options.bindParam === false
-      ) {
+      if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
         values.push(
           `${this.quoteIdentifier(key)}=${this.escape(
             value,
@@ -256,15 +233,12 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     if (options.limit) {
       query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(
         ','
-      )} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(
-        tableName
-      )} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(
-        options.limit
-      )})`;
+      )} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(
+        where,
+        whereOptions
+      )} LIMIT ${this.escape(options.limit)})`;
     } else {
-      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(
-        ','
-      )} ${this.whereQuery(where, whereOptions)}`;
+      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`;
     }
 
     return { query, bind };
@@ -274,13 +248,11 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     return [
       `DELETE FROM ${this.quoteTable(tableName)}`,
       options.restartIdentity
-        ? `; DELETE FROM ${this.quoteTable(
-            'sqlite_sequence'
-          )} WHERE ${this.quoteIdentifier('name')} = ${Utils.addTicks(
+        ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${Utils.addTicks(
             Utils.removeTicks(this.quoteTable(tableName), '`'),
             "'"
           )};`
-        : '',
+        : ''
     ].join('');
   }
 
@@ -294,9 +266,9 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     }
 
     if (options.limit) {
-      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(
-        tableName
-      )} ${whereClause} LIMIT ${this.escape(options.limit)})`;
+      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(
+        options.limit
+      )})`;
     }
 
     return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`;
@@ -311,10 +283,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
       if (_.isObject(dataType)) {
         let sql = dataType.type.toString();
 
-        if (
-          Object.prototype.hasOwnProperty.call(dataType, 'allowNull') &&
-          !dataType.allowNull
-        ) {
+        if (Object.prototype.hasOwnProperty.call(dataType, 'allowNull') && !dataType.allowNull) {
           sql += ' NOT NULL';
         }
 
@@ -385,9 +354,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(
-        `${tableName}_${indexNameOrAttributes.join('_')}`
-      );
+      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
     }
 
     return `DROP INDEX IF EXISTS ${this.quoteIdentifier(indexName)}`;
@@ -397,7 +364,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     const table = {
       _schema: schema,
       _schemaDelimiter: schemaDelimiter,
-      tableName,
+      tableName
     };
     return `PRAGMA TABLE_INFO(${this.quoteTable(this.addSchema(table))});`;
   }
@@ -413,7 +380,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     if (typeof tableName === 'object') {
       backupTableName = {
         tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
+        schema: tableName.schema
       };
     } else {
       backupTableName = `${tableName}_backup`;
@@ -422,7 +389,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     const quotedTableName = this.quoteTable(tableName);
     const quotedBackupTableName = this.quoteTable(backupTableName);
     const attributeNames = Object.keys(attributes)
-      .map((attr) => this.quoteIdentifier(attr))
+      .map(attr => this.quoteIdentifier(attr))
       .join(', ');
 
     // Temporary table cannot work for foreign keys.
@@ -447,7 +414,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     if (typeof tableName === 'object') {
       backupTableName = {
         tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
+        schema: tableName.schema
       };
     } else {
       backupTableName = `${tableName}_backup`;
@@ -455,15 +422,12 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     const quotedTableName = this.quoteTable(tableName);
     const quotedBackupTableName = this.quoteTable(backupTableName);
     const attributeNames = Object.keys(attributes)
-      .map((attr) => this.quoteIdentifier(attr))
+      .map(attr => this.quoteIdentifier(attr))
       .join(', ');
 
     return (
       `${createTableSql
-        .replace(
-          `CREATE TABLE ${quotedTableName}`,
-          `CREATE TABLE ${quotedBackupTableName}`
-        )
+        .replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)
         .replace(
           `CREATE TABLE ${quotedTableName.replace(/`/g, '"')}`,
           `CREATE TABLE ${quotedBackupTableName}`
@@ -481,7 +445,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     if (typeof tableName === 'object') {
       backupTableName = {
         tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
+        schema: tableName.schema
       };
     } else {
       backupTableName = `${tableName}_backup`;
@@ -490,16 +454,14 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     const quotedTableName = this.quoteTable(tableName);
     const quotedBackupTableName = this.quoteTable(backupTableName);
     const attributeNamesImport = Object.keys(attributes)
-      .map((attr) =>
+      .map(attr =>
         attrNameAfter === attr
-          ? `${this.quoteIdentifier(attrNameBefore)} AS ${this.quoteIdentifier(
-              attr
-            )}`
+          ? `${this.quoteIdentifier(attrNameBefore)} AS ${this.quoteIdentifier(attr)}`
           : this.quoteIdentifier(attr)
       )
       .join(', ');
     const attributeNamesExport = Object.keys(attributes)
-      .map((attr) => this.quoteIdentifier(attr))
+      .map(attr => this.quoteIdentifier(attr))
       .join(', ');
 
     // Temporary tables don't support foreign keys, so creating a temporary table will not allow foreign keys to be preserved
@@ -540,9 +502,7 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
   }
 
   replaceBooleanDefaults(sql) {
-    return sql
-      .replace(/DEFAULT '?false'?/g, 'DEFAULT 0')
-      .replace(/DEFAULT '?true'?/g, 'DEFAULT 1');
+    return sql.replace(/DEFAULT '?false'?/g, 'DEFAULT 0').replace(/DEFAULT '?true'?/g, 'DEFAULT 1');
   }
 
   /**

@@ -62,7 +62,7 @@ if (current.dialect.supports.transactions) {
         let t;
 
         await expect(
-          this.sequelize.transaction((transaction) => {
+          this.sequelize.transaction(transaction => {
             t = transaction;
             throw new Error('Yolo');
           })
@@ -75,7 +75,7 @@ if (current.dialect.supports.transactions) {
         let t;
 
         await expect(
-          this.sequelize.transaction(async (transaction) => {
+          this.sequelize.transaction(async transaction => {
             t = transaction;
             throw new Error('Swag');
           })
@@ -90,12 +90,12 @@ if (current.dialect.supports.transactions) {
 
         await expect(
           (async () => {
-            await this.sequelize.transaction((t) => {
+            await this.sequelize.transaction(t => {
               transaction = t;
               transaction.afterCommit(hook);
               return this.sequelize.query('SELECT 1+1', {
                 transaction,
-                type: QueryTypes.SELECT,
+                type: QueryTypes.SELECT
               });
             });
 
@@ -109,7 +109,7 @@ if (current.dialect.supports.transactions) {
         const hook = sinon.spy();
 
         await expect(
-          this.sequelize.transaction(async (transaction) => {
+          this.sequelize.transaction(async transaction => {
             transaction.afterCommit(hook);
             throw new Error('Rollback');
           })
@@ -124,16 +124,16 @@ if (current.dialect.supports.transactions) {
           const SumSumSum = this.sequelize.define('transaction', {
             value: {
               type: Support.Sequelize.DECIMAL(10, 3),
-              field: 'value',
-            },
+              field: 'value'
+            }
           });
 
-          const transTest = (val) => {
+          const transTest = val => {
             return this.sequelize.transaction(
               {
-                isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE,
+                isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE
               },
-              async (t) => {
+              async t => {
                 await SumSumSum.sum('value', { transaction: t });
                 await SumSumSum.create({ value: -val }, { transaction: t });
               }
@@ -142,9 +142,7 @@ if (current.dialect.supports.transactions) {
 
           await SumSumSum.sync({ force: true });
 
-          await expect(
-            Promise.all([transTest(80), transTest(80)])
-          ).to.eventually.be.rejectedWith(
+          await expect(Promise.all([transTest(80), transTest(80)])).to.eventually.be.rejectedWith(
             'could not serialize access due to read/write dependencies among transactions'
           );
 
@@ -158,9 +156,7 @@ if (current.dialect.supports.transactions) {
       const t = await this.sequelize.transaction();
       await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
       await t.commit();
-      await expect(
-        this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })
-      )
+      await expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }))
         .to.be.eventually.rejectedWith(
           Error,
           /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
@@ -175,19 +171,17 @@ if (current.dialect.supports.transactions) {
           const t = await this.sequelize.transaction();
           await this.sequelize.query('SELECT 1+1', {
             transaction: t,
-            raw: true,
+            raw: true
           });
           await Promise.all([
             expect(t.commit()).to.eventually.be.fulfilled,
-            expect(
-              this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })
-            )
+            expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }))
               .to.be.eventually.rejectedWith(
                 Error,
                 /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
               )
               .and.have.deep.property('sql')
-              .that.equal('SELECT 1+1'),
+              .that.equal('SELECT 1+1')
           ]);
         })()
       ).to.be.eventually.fulfilled;
@@ -199,21 +193,19 @@ if (current.dialect.supports.transactions) {
           const t = await this.sequelize.transaction();
           await this.sequelize.query('SELECT 1+1', {
             transaction: t,
-            raw: true,
+            raw: true
           });
           await t.rollback();
           return await this.sequelize.query('SELECT 1+1', {
             transaction: t,
-            raw: true,
+            raw: true
           });
         })()
       ).to.eventually.be.rejected;
     });
 
     it('should not rollback if connection was not acquired', async function () {
-      this.sinon
-        .stub(this.sequelize.connectionManager, '_connect')
-        .returns(new Promise(() => {}));
+      this.sinon.stub(this.sequelize.connectionManager, '_connect').returns(new Promise(() => {}));
 
       const transaction = new Transaction(this.sequelize);
 
@@ -224,18 +216,16 @@ if (current.dialect.supports.transactions) {
 
     it('does not allow queries immediately after rollback call', async function () {
       await expect(
-        this.sequelize.transaction().then(async (t) => {
+        this.sequelize.transaction().then(async t => {
           await Promise.all([
             expect(t.rollback()).to.eventually.be.fulfilled,
-            expect(
-              this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })
-            )
+            expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }))
               .to.be.eventually.rejectedWith(
                 Error,
                 /rollback has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
               )
               .and.have.deep.property('sql')
-              .that.equal('SELECT 1+1'),
+              .that.equal('SELECT 1+1')
           ]);
         })
       ).to.eventually.be.fulfilled;
@@ -248,9 +238,7 @@ if (current.dialect.supports.transactions) {
           await t.commit();
           return await t.commit();
         })()
-      ).to.be.rejectedWith(
-        'Transaction cannot be committed because it has been finished with state: commit'
-      );
+      ).to.be.rejectedWith('Transaction cannot be committed because it has been finished with state: commit');
     });
 
     it('should run hooks if a non-auto callback transaction is committed', async function () {
@@ -371,9 +359,7 @@ if (current.dialect.supports.transactions) {
           await t.rollback();
           return await t.commit();
         })()
-      ).to.be.rejectedWith(
-        'Transaction cannot be committed because it has been finished with state: rollback'
-      );
+      ).to.be.rejectedWith('Transaction cannot be committed because it has been finished with state: rollback');
     });
 
     it('does not allow rollbacks after commit', async function () {
@@ -383,9 +369,7 @@ if (current.dialect.supports.transactions) {
           await t.commit();
           return await t.rollback();
         })()
-      ).to.be.rejectedWith(
-        'Transaction cannot be rolled back because it has been finished with state: commit'
-      );
+      ).to.be.rejectedWith('Transaction cannot be rolled back because it has been finished with state: commit');
     });
 
     it('does not allow rollbacks after rollback', async function () {
@@ -395,16 +379,14 @@ if (current.dialect.supports.transactions) {
           await t.rollback();
           return await t.rollback();
         })()
-      ).to.be.rejectedWith(
-        'Transaction cannot be rolled back because it has been finished with state: rollback'
-      );
+      ).to.be.rejectedWith('Transaction cannot be rolled back because it has been finished with state: rollback');
     });
 
     it('works even if a transaction: null option is passed', async function () {
       this.sinon.spy(this.sequelize, 'query');
 
       const t = await this.sequelize.transaction({
-        transaction: null,
+        transaction: null
       });
 
       await t.commit();
@@ -419,7 +401,7 @@ if (current.dialect.supports.transactions) {
       this.sinon.spy(this.sequelize, 'query');
 
       const t = await this.sequelize.transaction({
-        transaction: undefined,
+        transaction: undefined
       });
 
       await t.commit();
@@ -436,8 +418,8 @@ if (current.dialect.supports.transactions) {
           const Task = this.sequelize.define('task', {
             id: {
               type: Sequelize.INTEGER,
-              primaryKey: true,
-            },
+              primaryKey: true
+            }
           });
 
           // This gets called twice simultaneously, and we expect at least one of the calls to encounter a
@@ -449,17 +431,17 @@ if (current.dialect.supports.transactions) {
           // tl;dr; This test is designed to ensure that this function never inserts and commits a new row.
           const update = async (from, to) =>
             this.sequelize
-              .transaction(async (transaction) => {
+              .transaction(async transaction => {
                 try {
                   try {
                     await Task.findAll({
                       where: {
                         id: {
-                          [Sequelize.Op.eq]: from,
-                        },
+                          [Sequelize.Op.eq]: from
+                        }
                       },
                       lock: 'UPDATE',
-                      transaction,
+                      transaction
                     });
 
                     await delay(10);
@@ -469,11 +451,11 @@ if (current.dialect.supports.transactions) {
                       {
                         where: {
                           id: {
-                            [Sequelize.Op.ne]: to,
-                          },
+                            [Sequelize.Op.ne]: to
+                          }
                         },
                         lock: transaction.LOCK.UPDATE,
-                        transaction,
+                        transaction
                       }
                     );
                   } catch (e) {
@@ -497,25 +479,17 @@ if (current.dialect.supports.transactions) {
 
           const count = await Task.count();
           // If we were actually inside a transaction when we called `Task.create({ id: 2 })`, no new rows should be added.
-          expect(count).to.equal(
-            2,
-            'transactions were fully rolled-back, and no new rows were added'
-          );
+          expect(count).to.equal(2, 'transactions were fully rolled-back, and no new rows were added');
         });
       });
     }
 
     if (dialect === 'sqlite') {
       it('provides persistent transactions', async () => {
-        const sequelize = new Support.Sequelize(
-            'database',
-            'username',
-            'password',
-            { dialect: 'sqlite' }
-          ),
+        const sequelize = new Support.Sequelize('database', 'username', 'password', { dialect: 'sqlite' }),
           User = sequelize.define('user', {
             username: Support.Sequelize.STRING,
-            awesome: Support.Sequelize.BOOLEAN,
+            awesome: Support.Sequelize.BOOLEAN
           });
 
         const t1 = await sequelize.transaction();
@@ -525,7 +499,7 @@ if (current.dialect.supports.transactions) {
         await t0.commit();
         const persistentTransaction = await sequelize.transaction();
         const users = await User.findAll({
-          transaction: persistentTransaction,
+          transaction: persistentTransaction
         });
         expect(users.length).to.equal(1);
 
@@ -542,10 +516,10 @@ if (current.dialect.supports.transactions) {
           expect(t.options.type).to.equal('DEFERRED');
         });
 
-        Object.keys(Transaction.TYPES).forEach((key) => {
+        Object.keys(Transaction.TYPES).forEach(key => {
           it(`should allow specification of ${key} type`, async function () {
             const t = await this.sequelize.transaction({
-              type: key,
+              type: key
             });
 
             await t.rollback();
@@ -559,12 +533,12 @@ if (current.dialect.supports.transactions) {
       it('automatically retries on SQLITE_BUSY failure', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', {
-          username: Support.Sequelize.STRING,
+          username: Support.Sequelize.STRING
         });
         await User.sync({ force: true });
         const newTransactionFunc = async function () {
           const t = await sequelize.transaction({
-            type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE,
+            type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE
           });
           await User.create({}, { transaction: t });
           return t.commit();
@@ -578,39 +552,36 @@ if (current.dialect.supports.transactions) {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', {
           id: { type: Support.Sequelize.INTEGER, primaryKey: true },
-          username: Support.Sequelize.STRING,
+          username: Support.Sequelize.STRING
         });
         await User.sync({ force: true });
         const newTransactionFunc = async function () {
           const t = await sequelize.transaction({
             type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE,
-            retry: { match: ['NO_MATCH'] },
+            retry: { match: ['NO_MATCH'] }
           });
           // introduce delay to force the busy state race condition to fail
           await delay(1000);
-          await User.create(
-            { id: null, username: `test ${t.id}` },
-            { transaction: t }
-          );
+          await User.create({ id: null, username: `test ${t.id}` }, { transaction: t });
           return t.commit();
         };
-        await expect(
-          Promise.all([newTransactionFunc(), newTransactionFunc()])
-        ).to.be.rejectedWith('SQLITE_BUSY: database is locked');
+        await expect(Promise.all([newTransactionFunc(), newTransactionFunc()])).to.be.rejectedWith(
+          'SQLITE_BUSY: database is locked'
+        );
       });
     }
 
     describe('isolation levels', () => {
       it('should read the most recent committed rows when using the READ COMMITTED isolation level', async function () {
         const User = this.sequelize.define('user', {
-          username: Support.Sequelize.STRING,
+          username: Support.Sequelize.STRING
         });
 
         await expect(
           this.sequelize.sync({ force: true }).then(() => {
             return this.sequelize.transaction(
               { isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED },
-              async (transaction) => {
+              async transaction => {
                 const users0 = await User.findAll({ transaction });
                 await expect(users0).to.have.lengthOf(0);
                 await User.create({ username: 'jan' }); // Create a User outside of the transaction
@@ -626,16 +597,16 @@ if (current.dialect.supports.transactions) {
       if (!['sqlite', 'mssql'].includes(dialect)) {
         it('should not read newly committed rows when using the REPEATABLE READ isolation level', async function () {
           const User = this.sequelize.define('user', {
-            username: Support.Sequelize.STRING,
+            username: Support.Sequelize.STRING
           });
 
           await expect(
             this.sequelize.sync({ force: true }).then(() => {
               return this.sequelize.transaction(
                 {
-                  isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ,
+                  isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ
                 },
-                async (transaction) => {
+                async transaction => {
                   const users0 = await User.findAll({ transaction });
                   await expect(users0).to.have.lengthOf(0);
                   await User.create({ username: 'jan' }); // Create a User outside of the transaction
@@ -652,14 +623,14 @@ if (current.dialect.supports.transactions) {
       if (!['sqlite', 'postgres', 'postgres-native'].includes(dialect)) {
         it('should block updates after reading a row using SERIALIZABLE', async function () {
           const User = this.sequelize.define('user', {
-              username: Support.Sequelize.STRING,
+              username: Support.Sequelize.STRING
             }),
             transactionSpy = sinon.spy();
 
           await this.sequelize.sync({ force: true });
           await User.create({ username: 'jan' });
           const transaction = await this.sequelize.transaction({
-            isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE,
+            isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE
           });
           await User.findAll({ transaction });
 
@@ -669,13 +640,13 @@ if (current.dialect.supports.transactions) {
               { username: 'joe' },
               {
                 where: {
-                  username: 'jan',
-                },
+                  username: 'jan'
+                }
               }
             ).then(() => expect(transactionSpy).to.have.been.called),
             delay(2000)
               .then(() => transaction.commit())
-              .then(transactionSpy),
+              .then(transactionSpy)
           ]);
         });
       }
@@ -686,7 +657,7 @@ if (current.dialect.supports.transactions) {
         it('supports for update', async function () {
           const User = this.sequelize.define('user', {
               username: Support.Sequelize.STRING,
-              awesome: Support.Sequelize.BOOLEAN,
+              awesome: Support.Sequelize.BOOLEAN
             }),
             t1Spy = sinon.spy(),
             t2Spy = sinon.spy();
@@ -697,24 +668,24 @@ if (current.dialect.supports.transactions) {
 
           const t1Jan = await User.findOne({
             where: {
-              username: 'jan',
+              username: 'jan'
             },
             lock: t1.LOCK.UPDATE,
-            transaction: t1,
+            transaction: t1
           });
 
           const t2 = await this.sequelize.transaction({
-            isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED,
+            isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
           });
 
           await Promise.all([
             (async () => {
               await User.findOne({
                 where: {
-                  username: 'jan',
+                  username: 'jan'
                 },
                 lock: t2.LOCK.UPDATE,
-                transaction: t2,
+                transaction: t2
               });
 
               t2Spy();
@@ -724,17 +695,17 @@ if (current.dialect.supports.transactions) {
             (async () => {
               await t1Jan.update(
                 {
-                  awesome: true,
+                  awesome: true
                 },
                 {
-                  transaction: t1,
+                  transaction: t1
                 }
               );
 
               t1Spy();
               await delay(2000);
               return await t1.commit();
-            })(),
+            })()
           ]);
         });
 
@@ -742,22 +713,19 @@ if (current.dialect.supports.transactions) {
           it('supports for update with skip locked', async function () {
             const User = this.sequelize.define('user', {
               username: Support.Sequelize.STRING,
-              awesome: Support.Sequelize.BOOLEAN,
+              awesome: Support.Sequelize.BOOLEAN
             });
 
             await this.sequelize.sync({ force: true });
 
-            await Promise.all([
-              User.create({ username: 'jan' }),
-              User.create({ username: 'joe' }),
-            ]);
+            await Promise.all([User.create({ username: 'jan' }), User.create({ username: 'joe' })]);
 
             const t1 = await this.sequelize.transaction();
 
             const results = await User.findAll({
               limit: 1,
               lock: true,
-              transaction: t1,
+              transaction: t1
             });
 
             const firstUserId = results[0].id;
@@ -767,7 +735,7 @@ if (current.dialect.supports.transactions) {
               limit: 1,
               lock: true,
               skipLocked: true,
-              transaction: t2,
+              transaction: t2
             });
 
             expect(secondResults[0].id).to.not.equal(firstUserId);
@@ -778,11 +746,11 @@ if (current.dialect.supports.transactions) {
 
         it('fail locking with outer joins', async function () {
           const User = this.sequelize.define('User', {
-              username: Support.Sequelize.STRING,
+              username: Support.Sequelize.STRING
             }),
             Task = this.sequelize.define('Task', {
               title: Support.Sequelize.STRING,
-              active: Support.Sequelize.BOOLEAN,
+              active: Support.Sequelize.BOOLEAN
             });
 
           User.belongsToMany(Task, { through: 'UserTasks' });
@@ -792,48 +760,42 @@ if (current.dialect.supports.transactions) {
 
           const [john, task1] = await Promise.all([
             User.create({ username: 'John' }),
-            Task.create({ title: 'Get rich', active: false }),
+            Task.create({ title: 'Get rich', active: false })
           ]);
 
           await john.setTasks([task1]);
 
-          await this.sequelize.transaction((t1) => {
+          await this.sequelize.transaction(t1 => {
             if (current.dialect.supports.lockOuterJoinFailure) {
               return expect(
                 User.findOne({
                   where: {
-                    username: 'John',
+                    username: 'John'
                   },
                   include: [Task],
                   lock: t1.LOCK.UPDATE,
-                  transaction: t1,
+                  transaction: t1
                 })
-              ).to.be.rejectedWith(
-                'FOR UPDATE cannot be applied to the nullable side of an outer join'
-              );
+              ).to.be.rejectedWith('FOR UPDATE cannot be applied to the nullable side of an outer join');
             }
 
             return User.findOne({
               where: {
-                username: 'John',
+                username: 'John'
               },
               include: [Task],
               lock: t1.LOCK.UPDATE,
-              transaction: t1,
+              transaction: t1
             });
           });
         });
 
         if (current.dialect.supports.lockOf) {
           it('supports for update of table', async function () {
-            const User = this.sequelize.define(
-                'User',
-                { username: Support.Sequelize.STRING },
-                { tableName: 'Person' }
-              ),
+            const User = this.sequelize.define('User', { username: Support.Sequelize.STRING }, { tableName: 'Person' }),
               Task = this.sequelize.define('Task', {
                 title: Support.Sequelize.STRING,
-                active: Support.Sequelize.BOOLEAN,
+                active: Support.Sequelize.BOOLEAN
               });
 
             User.belongsToMany(Task, { through: 'UserTasks' });
@@ -844,41 +806,41 @@ if (current.dialect.supports.transactions) {
             const [john, task1] = await Promise.all([
               User.create({ username: 'John' }),
               Task.create({ title: 'Get rich', active: false }),
-              Task.create({ title: 'Die trying', active: false }),
+              Task.create({ title: 'Die trying', active: false })
             ]);
 
             await john.setTasks([task1]);
 
-            await this.sequelize.transaction(async (t1) => {
+            await this.sequelize.transaction(async t1 => {
               const t1John = await User.findOne({
                 where: {
-                  username: 'John',
+                  username: 'John'
                 },
                 include: [Task],
                 lock: {
                   level: t1.LOCK.UPDATE,
-                  of: User,
+                  of: User
                 },
-                transaction: t1,
+                transaction: t1
               });
 
               // should not be blocked by the lock of the other transaction
-              await this.sequelize.transaction((t2) => {
+              await this.sequelize.transaction(t2 => {
                 return Task.update(
                   {
-                    active: true,
+                    active: true
                   },
                   {
                     where: {
-                      active: false,
+                      active: false
                     },
-                    transaction: t2,
+                    transaction: t2
                   }
                 );
               });
 
               return t1John.save({
-                transaction: t1,
+                transaction: t1
               });
             });
           });
@@ -888,7 +850,7 @@ if (current.dialect.supports.transactions) {
           it('supports for key share', async function () {
             const User = this.sequelize.define('user', {
                 username: Support.Sequelize.STRING,
-                awesome: Support.Sequelize.BOOLEAN,
+                awesome: Support.Sequelize.BOOLEAN
               }),
               t1Spy = sinon.spy(),
               t2Spy = sinon.spy();
@@ -899,10 +861,10 @@ if (current.dialect.supports.transactions) {
 
             const t1Jan = await User.findOne({
               where: {
-                username: 'jan',
+                username: 'jan'
               },
               lock: t1.LOCK.NO_KEY_UPDATE,
-              transaction: t1,
+              transaction: t1
             });
 
             const t2 = await this.sequelize.transaction();
@@ -911,10 +873,10 @@ if (current.dialect.supports.transactions) {
               (async () => {
                 await User.findOne({
                   where: {
-                    username: 'jan',
+                    username: 'jan'
                   },
                   lock: t2.LOCK.KEY_SHARE,
-                  transaction: t2,
+                  transaction: t2
                 });
 
                 t2Spy();
@@ -923,10 +885,10 @@ if (current.dialect.supports.transactions) {
               (async () => {
                 await t1Jan.update(
                   {
-                    awesome: true,
+                    awesome: true
                   },
                   {
-                    transaction: t1,
+                    transaction: t1
                   }
                 );
 
@@ -934,7 +896,7 @@ if (current.dialect.supports.transactions) {
                 t1Spy();
                 expect(t1Spy).to.have.been.calledAfter(t2Spy);
                 return await t1.commit();
-              })(),
+              })()
             ]);
           });
         }
@@ -944,7 +906,7 @@ if (current.dialect.supports.transactions) {
             'user',
             {
               username: Support.Sequelize.STRING,
-              awesome: Support.Sequelize.BOOLEAN,
+              awesome: Support.Sequelize.BOOLEAN
             },
             { timestamps: false }
           );
@@ -959,17 +921,17 @@ if (current.dialect.supports.transactions) {
           const t1 = await this.sequelize.transaction();
           const t1Jan = await User.findByPk(user.id, {
             lock: t1.LOCK.SHARE,
-            transaction: t1,
+            transaction: t1
           });
 
           const t2 = await this.sequelize.transaction({
-            isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED,
+            isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED
           });
 
           await Promise.all([
             (async () => {
               const t2Jan = await User.findByPk(user.id, {
-                transaction: t2,
+                transaction: t2
               });
 
               t2FindSpy();
@@ -984,7 +946,7 @@ if (current.dialect.supports.transactions) {
               await delay(2000);
               t1CommitSpy();
               await t1.commit();
-            })(),
+            })()
           ]);
 
           // (t2) find call should have returned before (t1) commit

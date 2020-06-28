@@ -19,7 +19,7 @@ const FOREIGN_KEY_FIELDS = [
   'REFERENCED_TABLE_SCHEMA as referencedTableSchema',
   'REFERENCED_TABLE_SCHEMA as referencedTableCatalog',
   'REFERENCED_TABLE_NAME as referencedTableName',
-  'REFERENCED_COLUMN_NAME as referencedColumnName',
+  'REFERENCED_COLUMN_NAME as referencedColumnName'
 ].join(',');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
@@ -31,7 +31,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
     this.OperatorMap = {
       ...this.OperatorMap,
       [Op.regexp]: 'REGEXP',
-      [Op.notRegexp]: 'NOT REGEXP',
+      [Op.notRegexp]: 'NOT REGEXP'
     };
   }
 
@@ -39,16 +39,15 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
     options = {
       charset: null,
       collate: null,
-      ...options,
+      ...options
     };
 
     return Utils.joinSQLFragments([
       'CREATE DATABASE IF NOT EXISTS',
       this.quoteIdentifier(databaseName),
-      options.charset &&
-        `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
+      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
       options.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
-      ';',
+      ';'
     ]);
   }
 
@@ -73,7 +72,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       engine: 'InnoDB',
       charset: null,
       rowFormat: null,
-      ...options,
+      ...options
     };
 
     const primaryKeys = [];
@@ -91,20 +90,10 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
         if (dataType.includes('REFERENCES')) {
           // MySQL doesn't support inline REFERENCES declarations: move to the end
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
-          attrStr.push(
-            `${this.quoteIdentifier(attr)} ${match[1].replace(
-              'PRIMARY KEY',
-              ''
-            )}`
-          );
+          attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
           foreignKeys[attr] = match[2];
         } else {
-          attrStr.push(
-            `${this.quoteIdentifier(attr)} ${dataType.replace(
-              'PRIMARY KEY',
-              ''
-            )}`
-          );
+          attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
         }
       } else if (dataType.includes('REFERENCES')) {
         // MySQL doesn't support inline REFERENCES declarations: move to the end
@@ -118,9 +107,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
 
     const table = this.quoteTable(tableName);
     let attributesClause = attrStr.join(', ');
-    const pkString = primaryKeys
-      .map((pk) => this.quoteIdentifier(pk))
-      .join(', ');
+    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
@@ -128,10 +115,8 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
           if (typeof indexName !== 'string') {
             indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
           }
-          attributesClause += `, UNIQUE ${this.quoteIdentifier(
-            indexName
-          )} (${columns.fields
-            .map((field) => this.quoteIdentifier(field))
+          attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields
+            .map(field => this.quoteIdentifier(field))
             .join(', ')})`;
         }
       });
@@ -143,9 +128,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
 
     for (const fkey in foreignKeys) {
       if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
-        attributesClause += `, FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${
-          foreignKeys[fkey]
-        }`;
+        attributesClause += `, FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
       }
     }
 
@@ -154,15 +137,12 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       table,
       `(${attributesClause})`,
       `ENGINE=${options.engine}`,
-      options.comment &&
-        typeof options.comment === 'string' &&
-        `COMMENT ${this.escape(options.comment)}`,
+      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
-      options.initialAutoIncrement &&
-        `AUTO_INCREMENT=${options.initialAutoIncrement}`,
+      options.initialAutoIncrement && `AUTO_INCREMENT=${options.initialAutoIncrement}`,
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
-      ';',
+      ';'
     ]);
   }
 
@@ -171,7 +151,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       this.addSchema({
         tableName,
         _schema: schema,
-        _schemaDelimiter: schemaDelimiter,
+        _schemaDelimiter: schemaDelimiter
       })
     );
 
@@ -179,13 +159,11 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
   }
 
   showTablesQuery(database) {
-    let query =
-      "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'";
+    let query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'";
     if (database) {
       query += ` AND TABLE_SCHEMA = ${this.escape(database)}`;
     } else {
-      query +=
-        " AND TABLE_SCHEMA NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS')";
+      query += " AND TABLE_SCHEMA NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS')";
     }
     return `${query};`;
   }
@@ -199,9 +177,9 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       this.attributeToSQL(dataType, {
         context: 'addColumn',
         tableName: table,
-        foreignKey: key,
+        foreignKey: key
       }),
-      ';',
+      ';'
     ]);
   }
 
@@ -211,7 +189,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       this.quoteTable(tableName),
       'DROP',
       this.quoteIdentifier(attributeName),
-      ';',
+      ';'
     ]);
   }
 
@@ -226,9 +204,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         constraintString.push(`FOREIGN KEY (${attrName}) ${definition}`);
       } else {
-        attrString.push(
-          `\`${attributeName}\` \`${attributeName}\` ${definition}`
-        );
+        attrString.push(`\`${attributeName}\` \`${attributeName}\` ${definition}`);
       }
     }
 
@@ -237,7 +213,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       this.quoteTable(tableName),
       attrString.length && `CHANGE ${attrString.join(', ')}`,
       constraintString.length && `ADD ${constraintString.join(', ')}`,
-      ';',
+      ';'
     ]);
   }
 
@@ -249,13 +225,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       attrString.push(`\`${attrBefore}\` \`${attrName}\` ${definition}`);
     }
 
-    return Utils.joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'CHANGE',
-      attrString.join(', '),
-      ';',
-    ]);
+    return Utils.joinSQLFragments(['ALTER TABLE', this.quoteTable(tableName), 'CHANGE', attrString.join(', '), ';']);
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
@@ -263,11 +233,8 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       // Parse nested object
       if (smth.conditions) {
         const conditions = this.parseConditionObject(smth.conditions).map(
-          (condition) =>
-            `${this.jsonPathExtractionQuery(
-              condition.path[0],
-              _.tail(condition.path)
-            )} = '${condition.value}'`
+          condition =>
+            `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`
         );
 
         return conditions.join(' AND ');
@@ -297,24 +264,14 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       } else if (smth.json && /boolean/i.test(smth.type)) {
         // true or false cannot be casted as booleans within a JSON structure
         smth.type = 'char';
-      } else if (
-        /double precision/i.test(smth.type) ||
-        /boolean/i.test(smth.type) ||
-        /integer/i.test(smth.type)
-      ) {
+      } else if (/double precision/i.test(smth.type) || /boolean/i.test(smth.type) || /integer/i.test(smth.type)) {
         smth.type = 'decimal';
       } else if (/text/i.test(smth.type)) {
         smth.type = 'char';
       }
     }
 
-    return super.handleSequelizeMethod(
-      smth,
-      tableName,
-      factory,
-      options,
-      prepend
-    );
+    return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
   }
 
   _toJSONValue(value) {
@@ -353,7 +310,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
   showIndexesQuery(tableName, options) {
     return Utils.joinSQLFragments([
       `SHOW INDEX FROM ${this.quoteTable(tableName)}`,
-      options && options.database && `FROM \`${options.database}\``,
+      options && options.database && `FROM \`${options.database}\``
     ]);
   }
 
@@ -372,7 +329,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       `WHERE table_name='${tableName}'`,
       constraintName && `AND constraint_name = '${constraintName}'`,
       schemaName && `AND TABLE_SCHEMA = '${schemaName}'`,
-      ';',
+      ';'
     ]);
   }
 
@@ -380,28 +337,21 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(
-        `${tableName}_${indexNameOrAttributes.join('_')}`
-      );
+      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
     }
 
-    return Utils.joinSQLFragments([
-      'DROP INDEX',
-      this.quoteIdentifier(indexName),
-      'ON',
-      this.quoteTable(tableName),
-    ]);
+    return Utils.joinSQLFragments(['DROP INDEX', this.quoteIdentifier(indexName), 'ON', this.quoteTable(tableName)]);
   }
 
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
-        type: attribute,
+        type: attribute
       };
     }
 
     const attributeString = attribute.type.toString({
-      escape: this.escape.bind(this),
+      escape: this.escape.bind(this)
     });
     let template = attributeString;
 
@@ -444,9 +394,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
     if (attribute.references) {
       if (options && options.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
-        const fkName = this.quoteIdentifier(
-          `${options.tableName}_${attrName}_foreign_idx`
-        );
+        const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);
 
         template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
       }
@@ -536,10 +484,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
     }
 
     // Check invalid json statement
-    if (
-      hasJsonFunction &&
-      (hasInvalidToken || openingBrackets !== closingBrackets)
-    ) {
+    if (hasJsonFunction && (hasInvalidToken || openingBrackets !== closingBrackets)) {
       throw new Error(`Invalid json statement: ${stmt}`);
     }
 
@@ -563,7 +508,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       `FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '${tableName}'`,
       `AND CONSTRAINT_NAME!='PRIMARY' AND CONSTRAINT_SCHEMA='${schemaName}'`,
       'AND REFERENCED_TABLE_NAME IS NOT NULL',
-      ';',
+      ';'
     ]);
   }
 
@@ -588,16 +533,16 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       [
         `REFERENCED_TABLE_NAME = ${quotedTableName}`,
         table.schema && `AND REFERENCED_TABLE_SCHEMA = ${quotedSchemaName}`,
-        `AND REFERENCED_COLUMN_NAME = ${quotedColumnName}`,
+        `AND REFERENCED_COLUMN_NAME = ${quotedColumnName}`
       ],
       ') OR (',
       [
         `TABLE_NAME = ${quotedTableName}`,
         table.schema && `AND TABLE_SCHEMA = ${quotedSchemaName}`,
         `AND COLUMN_NAME = ${quotedColumnName}`,
-        'AND REFERENCED_TABLE_NAME IS NOT NULL',
+        'AND REFERENCED_TABLE_NAME IS NOT NULL'
       ],
-      ')',
+      ')'
     ]);
   }
 
@@ -615,7 +560,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       this.quoteTable(tableName),
       'DROP FOREIGN KEY',
       this.quoteIdentifier(foreignKey),
-      ';',
+      ';'
     ]);
   }
 }

@@ -47,7 +47,7 @@ const validQueryKeywords = new Set([
   'type',
   'hooks',
   'force',
-  'name',
+  'name'
 ]);
 
 // List of attributes that should not be implicitly passed into subqueries/includes.
@@ -61,7 +61,7 @@ const nonCascadingOptions = [
   'offset',
   'plain',
   'group',
-  'having',
+  'having'
 ];
 
 /**
@@ -120,13 +120,11 @@ class Model {
       isNewRecord: true,
       _schema: this.constructor._schema,
       _schemaDelimiter: this.constructor._schemaDelimiter,
-      ...options,
+      ...options
     };
 
     if (options.attributes) {
-      options.attributes = options.attributes.map((attribute) =>
-        Array.isArray(attribute) ? attribute[1] : attribute
-      );
+      options.attributes = options.attributes.map(attribute => (Array.isArray(attribute) ? attribute[1] : attribute));
     }
 
     if (!options.includeValidated) {
@@ -163,11 +161,9 @@ class Model {
       defaults = {};
 
       if (this.constructor._hasDefaultValues) {
-        defaults = _.mapValues(this.constructor._defaultValues, (valueFn) => {
+        defaults = _.mapValues(this.constructor._defaultValues, valueFn => {
           const value = valueFn();
-          return value && value instanceof Utils.SequelizeMethod
-            ? value
-            : _.cloneDeep(value);
+          return value && value instanceof Utils.SequelizeMethod ? value : _.cloneDeep(value);
         });
       }
 
@@ -175,10 +171,8 @@ class Model {
       // removing this breaks bulkCreate
       // do after default values since it might have UUID as a default value
       if (this.constructor.primaryKeyAttributes.length) {
-        this.constructor.primaryKeyAttributes.forEach((primaryKeyAttribute) => {
-          if (
-            !Object.prototype.hasOwnProperty.call(defaults, primaryKeyAttribute)
-          ) {
+        this.constructor.primaryKeyAttributes.forEach(primaryKeyAttribute => {
+          if (!Object.prototype.hasOwnProperty.call(defaults, primaryKeyAttribute)) {
             defaults[primaryKeyAttribute] = null;
           }
         });
@@ -188,9 +182,7 @@ class Model {
         this.constructor._timestampAttributes.createdAt &&
         defaults[this.constructor._timestampAttributes.createdAt]
       ) {
-        this.dataValues[
-          this.constructor._timestampAttributes.createdAt
-        ] = Utils.toDefaultValue(
+        this.dataValues[this.constructor._timestampAttributes.createdAt] = Utils.toDefaultValue(
           defaults[this.constructor._timestampAttributes.createdAt],
           this.sequelize.options.dialect
         );
@@ -201,9 +193,7 @@ class Model {
         this.constructor._timestampAttributes.updatedAt &&
         defaults[this.constructor._timestampAttributes.updatedAt]
       ) {
-        this.dataValues[
-          this.constructor._timestampAttributes.updatedAt
-        ] = Utils.toDefaultValue(
+        this.dataValues[this.constructor._timestampAttributes.updatedAt] = Utils.toDefaultValue(
           defaults[this.constructor._timestampAttributes.updatedAt],
           this.sequelize.options.dialect
         );
@@ -214,9 +204,7 @@ class Model {
         this.constructor._timestampAttributes.deletedAt &&
         defaults[this.constructor._timestampAttributes.deletedAt]
       ) {
-        this.dataValues[
-          this.constructor._timestampAttributes.deletedAt
-        ] = Utils.toDefaultValue(
+        this.dataValues[this.constructor._timestampAttributes.deletedAt] = Utils.toDefaultValue(
           defaults[this.constructor._timestampAttributes.deletedAt],
           this.sequelize.options.dialect
         );
@@ -225,11 +213,7 @@ class Model {
 
       for (key in defaults) {
         if (values[key] === undefined) {
-          this.set(
-            key,
-            Utils.toDefaultValue(defaults[key], this.sequelize.options.dialect),
-            { raw: true }
-          );
+          this.set(key, Utils.toDefaultValue(defaults[key], this.sequelize.options.dialect), { raw: true });
           delete values[key];
         }
       }
@@ -253,18 +237,11 @@ class Model {
     if (_.get(options, 'groupedLimit.on.options.paranoid')) {
       const throughModel = _.get(options, 'groupedLimit.on.through.model');
       if (throughModel) {
-        options.groupedLimit.through = this._paranoidClause(
-          throughModel,
-          options.groupedLimit.through
-        );
+        options.groupedLimit.through = this._paranoidClause(throughModel, options.groupedLimit.through);
       }
     }
 
-    if (
-      !model.options.timestamps ||
-      !model.options.paranoid ||
-      options.paranoid === false
-    ) {
+    if (!model.options.timestamps || !model.options.paranoid || options.paranoid === false) {
       // This model is not paranoid, nothing to do here;
       return options;
     }
@@ -273,20 +250,15 @@ class Model {
     const deletedAtAttribute = model.rawAttributes[deletedAtCol];
     const deletedAtObject = {};
 
-    let deletedAtDefaultValue = Object.prototype.hasOwnProperty.call(
-      deletedAtAttribute,
-      'defaultValue'
-    )
+    let deletedAtDefaultValue = Object.prototype.hasOwnProperty.call(deletedAtAttribute, 'defaultValue')
       ? deletedAtAttribute.defaultValue
       : null;
 
     deletedAtDefaultValue = deletedAtDefaultValue || {
-      [Op.eq]: null,
+      [Op.eq]: null
     };
 
-    deletedAtObject[
-      deletedAtAttribute.field || deletedAtCol
-    ] = deletedAtDefaultValue;
+    deletedAtObject[deletedAtAttribute.field || deletedAtCol] = deletedAtDefaultValue;
 
     if (Utils.isWhereEmpty(options.where)) {
       options.where = deletedAtObject;
@@ -317,8 +289,8 @@ class Model {
           allowNull: false,
           primaryKey: true,
           autoIncrement: true,
-          _autoGenerated: true,
-        },
+          _autoGenerated: true
+        }
       };
     }
 
@@ -326,7 +298,7 @@ class Model {
       tail[this._timestampAttributes.createdAt] = {
         type: DataTypes.DATE,
         allowNull: false,
-        _autoGenerated: true,
+        _autoGenerated: true
       };
     }
 
@@ -334,14 +306,14 @@ class Model {
       tail[this._timestampAttributes.updatedAt] = {
         type: DataTypes.DATE,
         allowNull: false,
-        _autoGenerated: true,
+        _autoGenerated: true
       };
     }
 
     if (this._timestampAttributes.deletedAt) {
       tail[this._timestampAttributes.deletedAt] = {
         type: DataTypes.DATE,
-        _autoGenerated: true,
+        _autoGenerated: true
       };
     }
 
@@ -350,13 +322,13 @@ class Model {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
-        _autoGenerated: true,
+        _autoGenerated: true
       };
     }
 
     const newRawAttributes = {
       ...head,
-      ...this.rawAttributes,
+      ...this.rawAttributes
     };
     _.each(tail, (value, attr) => {
       if (newRawAttributes[attr] === undefined) {
@@ -379,9 +351,7 @@ class Model {
         const definition = this.rawAttributes[name];
         if (definition && definition.autoIncrement) {
           if (this.autoIncrementAttribute) {
-            throw new Error(
-              'Invalid Instance definition. Only one autoincrement field allowed.'
-            );
+            throw new Error('Invalid Instance definition. Only one autoincrement field allowed.');
           }
           this.autoIncrementAttribute = name;
         }
@@ -401,17 +371,13 @@ class Model {
     }
 
     // convert all included elements to { model: Model } form
-    options.include = options.include.map((include) =>
-      this._conformInclude(include, self)
-    );
+    options.include = options.include.map(include => this._conformInclude(include, self));
   }
 
   static _transformStringAssociation(include, self) {
     if (self && typeof include === 'string') {
       if (!Object.prototype.hasOwnProperty.call(self.associations, include)) {
-        throw new Error(
-          `Association with alias "${include}" does not exist on ${self.name}`
-        );
+        throw new Error(`Association with alias "${include}" does not exist on ${self.name}`);
       }
       return self.associations[include];
     }
@@ -442,10 +408,7 @@ class Model {
 
       if (_.isPlainObject(include)) {
         if (include.association) {
-          include.association = this._transformStringAssociation(
-            include.association,
-            self
-          );
+          include.association = this._transformStringAssociation(include.association, self);
 
           if (self && include.association.target.name === self.name) {
             model = include.association.source;
@@ -472,9 +435,7 @@ class Model {
       }
     }
 
-    throw new Error(
-      'Include unexpected. Element has to be either a Model, an Association or an object.'
-    );
+    throw new Error('Include unexpected. Element has to be either a Model, an Association or an object.');
   }
 
   static _expandIncludeAllElement(includes, include) {
@@ -493,7 +454,7 @@ class Model {
         HasMany: true,
         One: ['BelongsTo', 'HasOne'],
         Has: ['HasOne', 'HasMany'],
-        Many: ['HasMany'],
+        Many: ['HasMany']
       };
 
       for (let i = 0; i < all.length; i++) {
@@ -538,7 +499,7 @@ class Model {
 
     const used = [];
     (function addAllIncludes(parent, includes) {
-      _.forEach(parent.associations, (association) => {
+      _.forEach(parent.associations, association => {
         if (all !== true && !all.includes(association.associationType)) {
           return;
         }
@@ -597,17 +558,12 @@ class Model {
       options.topLimit = options.limit;
     }
 
-    options.include = options.include.map((include) => {
+    options.include = options.include.map(include => {
       include = this._conformInclude(include);
       include.parent = options;
       include.topLimit = options.topLimit;
 
-      this._validateIncludedElement.call(
-        options.model,
-        include,
-        tableNames,
-        options
-      );
+      this._validateIncludedElement.call(options.model, include, tableNames, options);
 
       if (include.duplicating === undefined) {
         include.duplicating = include.association.isMultiAssociation;
@@ -619,21 +575,15 @@ class Model {
       options.hasDuplicating = options.hasDuplicating || include.hasDuplicating;
       options.hasRequired = options.hasRequired || include.required;
 
-      options.hasWhere =
-        options.hasWhere || include.hasWhere || !!include.where;
+      options.hasWhere = options.hasWhere || include.hasWhere || !!include.where;
       return include;
     });
 
     for (const include of options.include) {
       include.hasParentWhere = options.hasParentWhere || !!options.where;
-      include.hasParentRequired =
-        options.hasParentRequired || !!options.required;
+      include.hasParentRequired = options.hasParentRequired || !!options.required;
 
-      if (
-        include.subQuery !== false &&
-        options.hasDuplicating &&
-        options.topLimit
-      ) {
+      if (include.subQuery !== false && options.hasDuplicating && options.topLimit) {
         if (include.duplicating) {
           include.subQuery = false;
           include.subQueryFilter = include.hasRequired;
@@ -649,10 +599,7 @@ class Model {
         } else {
           include.subQueryFilter = false;
           include.subQuery =
-            include.subQuery ||
-            (include.hasParentRequired &&
-              include.hasRequired &&
-              !include.separate);
+            include.subQuery || (include.hasParentRequired && include.hasRequired && !include.separate);
         }
       }
 
@@ -660,11 +607,7 @@ class Model {
       options.includeNames.push(include.as);
 
       // Set top level options
-      if (
-        options.topModel === options.model &&
-        options.subQuery === undefined &&
-        options.topLimit
-      ) {
+      if (options.topModel === options.model && options.subQuery === undefined && options.topLimit) {
         if (include.subQuery) {
           options.subQuery = include.subQuery;
         } else if (include.hasDuplicating) {
@@ -673,23 +616,13 @@ class Model {
       }
 
       /* Legacy */
-      options.hasIncludeWhere =
-        options.hasIncludeWhere || include.hasIncludeWhere || !!include.where;
-      options.hasIncludeRequired =
-        options.hasIncludeRequired ||
-        include.hasIncludeRequired ||
-        !!include.required;
+      options.hasIncludeWhere = options.hasIncludeWhere || include.hasIncludeWhere || !!include.where;
+      options.hasIncludeRequired = options.hasIncludeRequired || include.hasIncludeRequired || !!include.required;
 
-      if (
-        include.association.isMultiAssociation ||
-        include.hasMultiAssociation
-      ) {
+      if (include.association.isMultiAssociation || include.hasMultiAssociation) {
         options.hasMultiAssociation = true;
       }
-      if (
-        include.association.isSingleAssociation ||
-        include.hasSingleAssociation
-      ) {
+      if (include.association.isSingleAssociation || include.hasSingleAssociation) {
         options.hasSingleAssociation = true;
       }
     }
@@ -706,9 +639,7 @@ class Model {
     if (include.attributes && !options.raw) {
       include.model._expandAttributes(include);
 
-      include.originalAttributes = include.model._injectDependentVirtualAttributes(
-        include.attributes
-      );
+      include.originalAttributes = include.model._injectDependentVirtualAttributes(include.attributes);
 
       include = Utils.mapFinderOptions(include, include.model);
 
@@ -716,13 +647,9 @@ class Model {
         _.each(include.model.primaryKeys, (attr, key) => {
           // Include the primary key if it's not already included - take into account that the pk might be aliased (due to a .field prop)
           if (
-            !include.attributes.some((includeAttr) => {
+            !include.attributes.some(includeAttr => {
               if (attr.field !== key) {
-                return (
-                  Array.isArray(includeAttr) &&
-                  includeAttr[0] === attr.field &&
-                  includeAttr[1] === key
-                );
+                return Array.isArray(includeAttr) && includeAttr[0] === attr.field && includeAttr[1] === key;
               }
               return includeAttr === key;
             })
@@ -744,9 +671,7 @@ class Model {
     }
 
     // check if the current Model is actually associated with the passed Model - or it's a pseudo include
-    const association =
-      include.association ||
-      this._getIncludedAssociation(include.model, include.as);
+    const association = include.association || this._getIncludedAssociation(include.model, include.as);
 
     include.association = association;
     include.as = association.as;
@@ -754,8 +679,7 @@ class Model {
     // If through, we create a pseudo child include, to ease our parsing later on
     if (
       include.association.through &&
-      Object(include.association.through.model) ===
-        include.association.through.model
+      Object(include.association.through.model) === include.association.through.model
     ) {
       if (!include.include) include.include = [];
       const through = include.association.through;
@@ -764,10 +688,10 @@ class Model {
         model: through.model,
         as: through.model.name,
         association: {
-          isSingleAssociation: true,
+          isSingleAssociation: true
         },
         _pseudo: true,
-        parent: include,
+        parent: include
       });
 
       if (through.scope) {
@@ -852,9 +776,7 @@ class Model {
     const associations = this.getAssociations(targetModel);
     let association = null;
     if (associations.length === 0) {
-      throw new sequelizeErrors.EagerLoadingError(
-        `${targetModel.name} is not associated to ${this.name}!`
-      );
+      throw new sequelizeErrors.EagerLoadingError(`${targetModel.name} is not associated to ${this.name}!`);
     }
     if (associations.length === 1) {
       association = this.getAssociationForAlias(targetModel, targetAlias);
@@ -862,9 +784,7 @@ class Model {
         return association;
       }
       if (targetAlias) {
-        const existingAliases = this.getAssociations(targetModel).map(
-          (association) => association.as
-        );
+        const existingAliases = this.getAssociations(targetModel).map(association => association.as);
         throw new sequelizeErrors.EagerLoadingError(
           `${targetModel.name} is associated to ${this.name} using an alias. ` +
             `You've included an alias (${targetAlias}), but it does not match the alias(es) defined in your association (${existingAliases.join(
@@ -904,7 +824,7 @@ class Model {
       }
     }
 
-    includes.forEach((include) => {
+    includes.forEach(include => {
       this._expandIncludeAll.call(include.model, include);
     });
   }
@@ -916,7 +836,7 @@ class Model {
 
     index = _.defaults(index, {
       type: '',
-      parser: null,
+      parser: null
     });
 
     if (index.type && index.type.toLowerCase() === 'unique') {
@@ -931,10 +851,8 @@ class Model {
     if (!options.include) return;
 
     options.include = _(options.include)
-      .groupBy(
-        (include) => `${include.model && include.model.name}-${include.as}`
-      )
-      .map((includes) => this._assignOptions(...includes))
+      .groupBy(include => `${include.model && include.model.name}-${include.as}`)
+      .map(includes => this._assignOptions(...includes))
       .value();
   }
 
@@ -956,11 +874,7 @@ class Model {
       if (_.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
         return Object.assign(objValue, srcValue);
       }
-    } else if (
-      key === 'attributes' &&
-      _.isPlainObject(objValue) &&
-      _.isPlainObject(srcValue)
-    ) {
+    } else if (key === 'attributes' && _.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
       return _.assignWith(objValue, srcValue, (objValue, srcValue) => {
         if (Array.isArray(objValue) && Array.isArray(srcValue)) {
           return _.union(objValue, srcValue);
@@ -1096,11 +1010,11 @@ class Model {
       {
         name: {
           plural: Utils.pluralize(options.modelName),
-          singular: Utils.singularize(options.modelName),
+          singular: Utils.singularize(options.modelName)
         },
         indexes: [],
         omitNull: globalOptions.omitNull,
-        schema: globalOptions.schema,
+        schema: globalOptions.schema
       },
       options
     );
@@ -1125,14 +1039,12 @@ class Model {
       defaultScope: {},
       scopes: {},
       indexes: [],
-      ...options,
+      ...options
     };
 
     // if you call "define" multiple times for the same modelName, do not clutter the factory
     if (this.sequelize.isDefined(this.name)) {
-      this.sequelize.modelManager.removeModel(
-        this.sequelize.modelManager.getModel(this.name)
-      );
+      this.sequelize.modelManager.removeModel(this.sequelize.modelManager.getModel(this.name));
     }
 
     this.associations = {};
@@ -1170,15 +1082,10 @@ class Model {
       attribute = this.sequelize.normalizeAttribute(attribute);
 
       if (attribute.type === undefined) {
-        throw new Error(
-          `Unrecognized datatype for attribute "${this.name}.${name}"`
-        );
+        throw new Error(`Unrecognized datatype for attribute "${this.name}.${name}"`);
       }
 
-      if (
-        attribute.allowNull !== false &&
-        _.get(attribute, 'validate.notNull')
-      ) {
+      if (attribute.allowNull !== false && _.get(attribute, 'validate.notNull')) {
         throw new Error(
           `Invalid definition for "${this.name}.${name}", "notNull" validator is only allowed with "allowNull:false"`
         );
@@ -1192,9 +1099,7 @@ class Model {
     });
 
     const tableName = this.getTableName();
-    this._indexes = this.options.indexes.map((index) =>
-      Utils.nameIndex(this._conformIndex(index), tableName)
-    );
+    this._indexes = this.options.indexes.map(index => Utils.nameIndex(this._conformIndex(index), tableName));
 
     this.primaryKeys = {};
     this._readOnlyAttributes = new Set();
@@ -1203,28 +1108,22 @@ class Model {
     // setup names of timestamp attributes
     if (this.options.timestamps) {
       if (this.options.createdAt !== false) {
-        this._timestampAttributes.createdAt =
-          this.options.createdAt || 'createdAt';
+        this._timestampAttributes.createdAt = this.options.createdAt || 'createdAt';
         this._readOnlyAttributes.add(this._timestampAttributes.createdAt);
       }
       if (this.options.updatedAt !== false) {
-        this._timestampAttributes.updatedAt =
-          this.options.updatedAt || 'updatedAt';
+        this._timestampAttributes.updatedAt = this.options.updatedAt || 'updatedAt';
         this._readOnlyAttributes.add(this._timestampAttributes.updatedAt);
       }
       if (this.options.paranoid && this.options.deletedAt !== false) {
-        this._timestampAttributes.deletedAt =
-          this.options.deletedAt || 'deletedAt';
+        this._timestampAttributes.deletedAt = this.options.deletedAt || 'deletedAt';
         this._readOnlyAttributes.add(this._timestampAttributes.deletedAt);
       }
     }
 
     // setup name for version attribute
     if (this.options.version) {
-      this._versionAttribute =
-        typeof this.options.version === 'string'
-          ? this.options.version
-          : 'version';
+      this._versionAttribute = typeof this.options.version === 'string' ? this.options.version : 'version';
       this._readOnlyAttributes.add(this._versionAttribute);
     }
 
@@ -1250,13 +1149,10 @@ class Model {
     this.prototype._customGetters = {};
     this.prototype._customSetters = {};
 
-    ['get', 'set'].forEach((type) => {
+    ['get', 'set'].forEach(type => {
       const opt = `${type}terMethods`;
       const funcs = { ...this.options[opt] };
-      const _custom =
-        type === 'get'
-          ? this.prototype._customGetters
-          : this.prototype._customSetters;
+      const _custom = type === 'get' ? this.prototype._customGetters : this.prototype._customSetters;
 
       _.each(funcs, (method, attribute) => {
         _custom[attribute] = method;
@@ -1293,7 +1189,7 @@ class Model {
       _.each(funcs, (fct, name) => {
         if (!attributeManipulation[name]) {
           attributeManipulation[name] = {
-            configurable: true,
+            configurable: true
           };
         }
         attributeManipulation[name][type] = fct;
@@ -1342,10 +1238,7 @@ class Model {
 
       if (definition.type instanceof DataTypes.BOOLEAN) {
         this._hasBooleanAttributes = true;
-      } else if (
-        definition.type instanceof DataTypes.DATE ||
-        definition.type instanceof DataTypes.DATEONLY
-      ) {
+      } else if (definition.type instanceof DataTypes.DATE || definition.type instanceof DataTypes.DATEONLY) {
         this._hasDateAttributes = true;
       } else if (definition.type instanceof DataTypes.JSON) {
         this._jsonAttributes.add(name);
@@ -1354,22 +1247,12 @@ class Model {
       }
 
       if (Object.prototype.hasOwnProperty.call(definition, 'defaultValue')) {
-        this._defaultValues[name] = () =>
-          Utils.toDefaultValue(
-            definition.defaultValue,
-            this.sequelize.options.dialect
-          );
+        this._defaultValues[name] = () => Utils.toDefaultValue(definition.defaultValue, this.sequelize.options.dialect);
       }
 
-      if (
-        Object.prototype.hasOwnProperty.call(definition, 'unique') &&
-        definition.unique
-      ) {
+      if (Object.prototype.hasOwnProperty.call(definition, 'unique') && definition.unique) {
         let idxName;
-        if (
-          typeof definition.unique === 'object' &&
-          Object.prototype.hasOwnProperty.call(definition.unique, 'name')
-        ) {
+        if (typeof definition.unique === 'object' && Object.prototype.hasOwnProperty.call(definition.unique, 'name')) {
           idxName = definition.unique.name;
         } else if (typeof definition.unique === 'string') {
           idxName = definition.unique;
@@ -1392,15 +1275,12 @@ class Model {
         this.prototype.validators[name] = definition.validate;
       }
 
-      if (
-        definition.index === true &&
-        definition.type instanceof DataTypes.JSONB
-      ) {
+      if (definition.index === true && definition.type instanceof DataTypes.JSONB) {
         this._indexes.push(
           Utils.nameIndex(
             this._conformIndex({
               fields: [definition.field || name],
-              using: 'gin',
+              using: 'gin'
             }),
             this.getTableName()
           )
@@ -1428,42 +1308,31 @@ class Model {
 
     this._hasDefaultValues = !_.isEmpty(this._defaultValues);
 
-    this.tableAttributes = _.omitBy(this.rawAttributes, (_a, key) =>
-      this._virtualAttributes.has(key)
-    );
+    this.tableAttributes = _.omitBy(this.rawAttributes, (_a, key) => this._virtualAttributes.has(key));
 
-    this.prototype._hasCustomGetters = Object.keys(
-      this.prototype._customGetters
-    ).length;
-    this.prototype._hasCustomSetters = Object.keys(
-      this.prototype._customSetters
-    ).length;
+    this.prototype._hasCustomGetters = Object.keys(this.prototype._customGetters).length;
+    this.prototype._hasCustomSetters = Object.keys(this.prototype._customSetters).length;
 
     for (const key of Object.keys(attributeManipulation)) {
       if (Object.prototype.hasOwnProperty.call(Model.prototype, key)) {
-        this.sequelize.log(
-          `Not overriding built-in method from model attribute: ${key}`
-        );
+        this.sequelize.log(`Not overriding built-in method from model attribute: ${key}`);
         continue;
       }
       Object.defineProperty(this.prototype, key, attributeManipulation[key]);
     }
 
     this.prototype.rawAttributes = this.rawAttributes;
-    this.prototype._isAttribute = (key) =>
-      Object.prototype.hasOwnProperty.call(this.prototype.rawAttributes, key);
+    this.prototype._isAttribute = key => Object.prototype.hasOwnProperty.call(this.prototype.rawAttributes, key);
 
     // Primary key convenience constiables
     this.primaryKeyAttributes = Object.keys(this.primaryKeys);
     this.primaryKeyAttribute = this.primaryKeyAttributes[0];
     if (this.primaryKeyAttribute) {
-      this.primaryKeyField =
-        this.rawAttributes[this.primaryKeyAttribute].field ||
-        this.primaryKeyAttribute;
+      this.primaryKeyField = this.rawAttributes[this.primaryKeyAttribute].field || this.primaryKeyAttribute;
     }
 
     this._hasPrimaryKeys = this.primaryKeyAttributes.length > 0;
-    this._isPrimaryKey = (key) => this.primaryKeyAttributes.includes(key);
+    this._isPrimaryKey = key => this.primaryKeyAttributes.includes(key);
   }
 
   /**
@@ -1507,7 +1376,7 @@ class Model {
     if (options.alter) {
       const tableInfos = await Promise.all([
         this.queryInterface.describeTable(tableName, options),
-        this.queryInterface.getForeignKeyReferencesForTable(tableName, options),
+        this.queryInterface.getForeignKeyReferencesForTable(tableName, options)
       ]);
       const columns = tableInfos[0];
       // Use for alter foreign keys
@@ -1515,8 +1384,7 @@ class Model {
       const removedConstraints = {};
 
       for (const columnName in attributes) {
-        if (!Object.prototype.hasOwnProperty.call(attributes, columnName))
-          continue;
+        if (!Object.prototype.hasOwnProperty.call(attributes, columnName)) continue;
         if (!columns[columnName] && !columns[attributes[columnName].field]) {
           await this.queryInterface.addColumn(
             tableName,
@@ -1527,20 +1395,12 @@ class Model {
         }
       }
 
-      if (
-        options.alter === true ||
-        (typeof options.alter === 'object' && options.alter.drop !== false)
-      ) {
+      if (options.alter === true || (typeof options.alter === 'object' && options.alter.drop !== false)) {
         for (const columnName in columns) {
-          if (!Object.prototype.hasOwnProperty.call(columns, columnName))
-            continue;
+          if (!Object.prototype.hasOwnProperty.call(columns, columnName)) continue;
           const currentAttribute = rawAttributes[columnName];
           if (!currentAttribute) {
-            await this.queryInterface.removeColumn(
-              tableName,
-              columnName,
-              options
-            );
+            await this.queryInterface.removeColumn(tableName, columnName, options);
             continue;
           }
           if (currentAttribute.primaryKey) continue;
@@ -1558,33 +1418,22 @@ class Model {
                 (schema ? foreignKeyReference.tableSchema === schema : true) &&
                 foreignKeyReference.referencedTableName === references.model &&
                 foreignKeyReference.referencedColumnName === references.key &&
-                (schema
-                  ? foreignKeyReference.referencedTableSchema === schema
-                  : true) &&
+                (schema ? foreignKeyReference.referencedTableSchema === schema : true) &&
                 !removedConstraints[constraintName]
               ) {
                 // Remove constraint on foreign keys.
-                await this.queryInterface.removeConstraint(
-                  tableName,
-                  constraintName,
-                  options
-                );
+                await this.queryInterface.removeConstraint(tableName, constraintName, options);
                 removedConstraints[constraintName] = true;
               }
             }
           }
-          await this.queryInterface.changeColumn(
-            tableName,
-            columnName,
-            currentAttribute,
-            options
-          );
+          await this.queryInterface.changeColumn(tableName, columnName, currentAttribute, options);
         }
       }
     }
     let indexes = await this.queryInterface.showIndex(tableName, options);
     indexes = this._indexes
-      .filter((item1) => !indexes.some((item2) => item1.name === item2.name))
+      .filter(item1 => !indexes.some(item2 => item1.name === item2.name))
       .sort((index1, index2) => {
         if (this.sequelize.options.dialect === 'postgres') {
           // move concurrent indexes to the bottom to avoid weird deadlocks
@@ -1617,10 +1466,7 @@ class Model {
    * @returns {Promise}
    */
   static async drop(options) {
-    return await this.queryInterface.dropTable(
-      this.getTableName(options),
-      options
-    );
+    return await this.queryInterface.dropTable(this.getTableName(options), options);
   }
 
   static async dropSchema(schema) {
@@ -1698,14 +1544,10 @@ class Model {
     options = { override: false, ...options };
 
     if (
-      ((name === 'defaultScope' &&
-        Object.keys(this.options.defaultScope).length > 0) ||
-        name in this.options.scopes) &&
+      ((name === 'defaultScope' && Object.keys(this.options.defaultScope).length > 0) || name in this.options.scopes) &&
       options.override === false
     ) {
-      throw new Error(
-        `The scope ${name} already exists. Pass { override: true } as options to silence this error`
-      );
+      throw new Error(`The scope ${name} already exists. Pass { override: true } as options to silence this error`);
     }
 
     if (name === 'defaultScope') {
@@ -1783,15 +1625,9 @@ class Model {
 
       if (_.isPlainObject(option)) {
         if (option.method) {
-          if (
-            Array.isArray(option.method) &&
-            !!self.options.scopes[option.method[0]]
-          ) {
+          if (Array.isArray(option.method) && !!self.options.scopes[option.method[0]]) {
             scopeName = option.method[0];
-            scope = self.options.scopes[scopeName].apply(
-              self,
-              option.method.slice(1)
-            );
+            scope = self.options.scopes[scopeName].apply(self, option.method.slice(1));
           } else if (self.options.scopes[option.method]) {
             scopeName = option.method;
             scope = self.options.scopes[scopeName].apply(self);
@@ -1799,10 +1635,7 @@ class Model {
         } else {
           scope = option;
         }
-      } else if (
-        option === 'defaultScope' &&
-        _.isPlainObject(self.options.defaultScope)
-      ) {
+      } else if (option === 'defaultScope' && _.isPlainObject(self.options.defaultScope)) {
         scope = self.options.defaultScope;
       } else {
         scopeName = option;
@@ -1818,9 +1651,7 @@ class Model {
         this._assignOptions(self._scope, Utils.cloneDeep(scope));
         self._scopeNames.push(scopeName ? scopeName : 'defaultScope');
       } else {
-        throw new sequelizeErrors.SequelizeScopeError(
-          `Invalid scope ${scopeName} called.`
-        );
+        throw new sequelizeErrors.SequelizeScopeError(`Invalid scope ${scopeName} called.`);
       }
     }
 
@@ -1937,13 +1768,8 @@ class Model {
     }
 
     if (options !== undefined && options.attributes) {
-      if (
-        !Array.isArray(options.attributes) &&
-        !_.isPlainObject(options.attributes)
-      ) {
-        throw new sequelizeErrors.QueryError(
-          'The attributes option must be an array of column names or an object'
-        );
+      if (!Array.isArray(options.attributes) && !_.isPlainObject(options.attributes)) {
+        throw new sequelizeErrors.QueryError('The attributes option must be an array of column names or an object');
       }
     }
 
@@ -1957,10 +1783,7 @@ class Model {
     _.defaults(options, { hooks: true });
 
     // set rejectOnEmpty option, defaults to model options
-    options.rejectOnEmpty = Object.prototype.hasOwnProperty.call(
-      options,
-      'rejectOnEmpty'
-    )
+    options.rejectOnEmpty = Object.prototype.hasOwnProperty.call(options, 'rejectOnEmpty')
       ? options.rejectOnEmpty
       : this.options.rejectOnEmpty;
 
@@ -1976,9 +1799,7 @@ class Model {
     if (options.hooks) {
       await this.runHooks('beforeFindAfterExpandIncludeAll', options);
     }
-    options.originalAttributes = this._injectDependentVirtualAttributes(
-      options.attributes
-    );
+    options.originalAttributes = this._injectDependentVirtualAttributes(options.attributes);
 
     if (options.include) {
       options.hasJoin = true;
@@ -1991,21 +1812,15 @@ class Model {
         !options.raw &&
         this.primaryKeyAttribute &&
         !options.attributes.includes(this.primaryKeyAttribute) &&
-        (!options.group ||
-          !options.hasSingleAssociation ||
-          options.hasMultiAssociation)
+        (!options.group || !options.hasSingleAssociation || options.hasMultiAssociation)
       ) {
-        options.attributes = [this.primaryKeyAttribute].concat(
-          options.attributes
-        );
+        options.attributes = [this.primaryKeyAttribute].concat(options.attributes);
       }
     }
 
     if (!options.attributes) {
       options.attributes = Object.keys(this.rawAttributes);
-      options.originalAttributes = this._injectDependentVirtualAttributes(
-        options.attributes
-      );
+      options.originalAttributes = this._injectDependentVirtualAttributes(options.attributes);
     }
 
     // whereCollection is used for non-primary key updates
@@ -2019,11 +1834,7 @@ class Model {
       await this.runHooks('beforeFindAfterOptions', options);
     }
     const selectOptions = { ...options, tableNames: Object.keys(tableNames) };
-    const results = await this.queryInterface.select(
-      this,
-      this.getTableName(selectOptions),
-      selectOptions
-    );
+    const results = await this.queryInterface.select(this, this.getTableName(selectOptions), selectOptions);
     if (options.hooks) {
       await this.runHooks('afterFind', results, options);
     }
@@ -2047,18 +1858,11 @@ class Model {
       return;
     }
 
-    const unrecognizedOptions = Object.keys(options).filter(
-      (k) => !validQueryKeywords.has(k)
-    );
-    const unexpectedModelAttributes = _.intersection(
-      unrecognizedOptions,
-      validColumnNames
-    );
+    const unrecognizedOptions = Object.keys(options).filter(k => !validQueryKeywords.has(k));
+    const unexpectedModelAttributes = _.intersection(unrecognizedOptions, validColumnNames);
     if (!options.where && unexpectedModelAttributes.length > 0) {
       logger.warn(
-        `Model attributes (${unexpectedModelAttributes.join(
-          ', '
-        )}) passed into finder method options of model ${
+        `Model attributes (${unexpectedModelAttributes.join(', ')}) passed into finder method options of model ${
           this.name
         }, but the options.where object is empty. Did you forget to use options.where?`
       );
@@ -2070,13 +1874,8 @@ class Model {
     if (!attributes || !Array.isArray(attributes)) return attributes;
 
     for (const attribute of attributes) {
-      if (
-        this._virtualAttributes.has(attribute) &&
-        this.rawAttributes[attribute].type.fields
-      ) {
-        attributes = attributes.concat(
-          this.rawAttributes[attribute].type.fields
-        );
+      if (this._virtualAttributes.has(attribute) && this.rawAttributes[attribute].type.fields) {
+        attributes = attributes.concat(this.rawAttributes[attribute].type.fields);
       }
     }
 
@@ -2094,7 +1893,7 @@ class Model {
     if (!results.length) return original;
 
     await Promise.all(
-      options.include.map(async (include) => {
+      options.include.map(async include => {
         if (!include.separate) {
           return await Model._findSeparate(
             results.reduce((memo, result) => {
@@ -2112,38 +1911,19 @@ class Model {
               return memo;
             }, []),
             {
-              ..._.omit(
-                options,
-                'include',
-                'attributes',
-                'order',
-                'where',
-                'limit',
-                'offset',
-                'plain',
-                'scope'
-              ),
-              include: include.include || [],
+              ..._.omit(options, 'include', 'attributes', 'order', 'where', 'limit', 'offset', 'plain', 'scope'),
+              include: include.include || []
             }
           );
         }
 
         const map = await include.association.get(results, {
           ..._.omit(options, nonCascadingOptions),
-          ..._.omit(include, [
-            'parent',
-            'association',
-            'as',
-            'originalAttributes',
-          ]),
+          ..._.omit(include, ['parent', 'association', 'as', 'originalAttributes'])
         });
 
         for (const result of results) {
-          result.set(
-            include.association.as,
-            map[result.get(include.association.sourceKey)],
-            { raw: true }
-          );
+          result.set(include.association.as, map[result.get(include.association.sourceKey)], { raw: true });
         }
       })
     );
@@ -2172,13 +1952,9 @@ class Model {
 
     options = Utils.cloneDeep(options) || {};
 
-    if (
-      typeof param === 'number' ||
-      typeof param === 'string' ||
-      Buffer.isBuffer(param)
-    ) {
+    if (typeof param === 'number' || typeof param === 'string' || Buffer.isBuffer(param)) {
       options.where = {
-        [this.primaryKeyAttribute]: param,
+        [this.primaryKeyAttribute]: param
       };
     } else {
       throw new Error(`Argument passed to findByPk is invalid: ${param}`);
@@ -2211,7 +1987,7 @@ class Model {
     if (options.limit === undefined) {
       const uniqueSingleColumns = _.chain(this.uniqueKeys)
         .values()
-        .filter((c) => c.fields.length === 1)
+        .filter(c => c.fields.length === 1)
         .map('column')
         .value();
 
@@ -2221,8 +1997,7 @@ class Model {
         !_.some(
           options.where,
           (value, key) =>
-            (key === this.primaryKeyAttribute ||
-              uniqueSingleColumns.includes(key)) &&
+            (key === this.primaryKeyAttribute || uniqueSingleColumns.includes(key)) &&
             (Utils.isPrimitive(value) || Buffer.isBuffer(value))
         )
       ) {
@@ -2233,7 +2008,7 @@ class Model {
     // Bypass a possible overloaded findAll.
     return await this.findAll(
       _.defaults(options, {
-        plain: true,
+        plain: true
       })
     );
   }
@@ -2284,13 +2059,8 @@ class Model {
     options.attributes = _.unionBy(
       options.attributes,
       group,
-      [
-        [
-          this.sequelize.fn(aggregateFunction, aggregateColumn),
-          aggregateFunction,
-        ],
-      ],
-      (a) => (Array.isArray(a) ? a[1] : a)
+      [[this.sequelize.fn(aggregateFunction, aggregateColumn), aggregateFunction]],
+      a => (Array.isArray(a) ? a[1] : a)
     );
 
     if (!options.dataType) {
@@ -2307,12 +2077,7 @@ class Model {
     Utils.mapOptionFieldNames(options, this);
     options = this._paranoidClause(this, options);
 
-    const value = await this.queryInterface.rawSelect(
-      this.getTableName(options),
-      options,
-      aggregateFunction,
-      this
-    );
+    const value = await this.queryInterface.rawSelect(this.getTableName(options), options, aggregateFunction, this);
     if (value === null) {
       return 0;
     }
@@ -2413,14 +2178,11 @@ class Model {
       countOptions.attributes = undefined;
     }
 
-    const [count, rows] = await Promise.all([
-      this.count(countOptions),
-      this.findAll(options),
-    ]);
+    const [count, rows] = await Promise.all([this.count(countOptions), this.findAll(options)]);
 
     return {
       count,
-      rows: count === 0 ? [] : rows,
+      rows: count === 0 ? [] : rows
     };
   }
 
@@ -2500,12 +2262,10 @@ class Model {
     }
 
     if (options.attributes) {
-      options.attributes = options.attributes.map((attribute) =>
-        Array.isArray(attribute) ? attribute[1] : attribute
-      );
+      options.attributes = options.attributes.map(attribute => (Array.isArray(attribute) ? attribute[1] : attribute));
     }
 
-    return valueSets.map((values) => this.build(values, options));
+    return valueSets.map(values => this.build(values, options));
   }
 
   /**
@@ -2542,7 +2302,7 @@ class Model {
       attributes: options.fields,
       include: options.include,
       raw: options.raw,
-      silent: options.silent,
+      silent: options.silent
     }).save(options);
   }
 
@@ -2612,14 +2372,10 @@ class Model {
 
     if (options.defaults) {
       const defaults = Object.keys(options.defaults);
-      const unknownDefaults = defaults.filter(
-        (name) => !this.rawAttributes[name]
-      );
+      const unknownDefaults = defaults.filter(name => !this.rawAttributes[name]);
 
       if (unknownDefaults.length) {
-        logger.warn(
-          `Unknown attributes (${unknownDefaults}) passed to defaults option of findOrCreate`
-        );
+        logger.warn(`Unknown attributes (${unknownDefaults}) passed to defaults option of findOrCreate`);
       }
     }
 
@@ -2639,9 +2395,7 @@ class Model {
       transaction = t;
       options.transaction = t;
 
-      const found = await this.findOne(
-        Utils.defaults({ transaction }, options)
-      );
+      const found = await this.findOne(Utils.defaults({ transaction }, options));
       if (found !== null) {
         return [found, false];
       }
@@ -2665,28 +2419,17 @@ class Model {
       } catch (err) {
         if (!(err instanceof sequelizeErrors.UniqueConstraintError)) throw err;
         const flattenedWhere = Utils.flattenObjectDeep(options.where);
-        const flattenedWhereKeys = Object.keys(flattenedWhere).map((name) =>
-          _.last(name.split('.'))
-        );
-        const whereFields = flattenedWhereKeys.map((name) =>
-          _.get(this.rawAttributes, `${name}.field`, name)
-        );
+        const flattenedWhereKeys = Object.keys(flattenedWhere).map(name => _.last(name.split('.')));
+        const whereFields = flattenedWhereKeys.map(name => _.get(this.rawAttributes, `${name}.field`, name));
         const defaultFields =
           options.defaults &&
           Object.keys(options.defaults)
-            .filter((name) => this.rawAttributes[name])
-            .map((name) => this.rawAttributes[name].field || name);
+            .filter(name => this.rawAttributes[name])
+            .map(name => this.rawAttributes[name].field || name);
 
         const errFieldKeys = Object.keys(err.fields);
-        const errFieldsWhereIntersects = Utils.intersects(
-          errFieldKeys,
-          whereFields
-        );
-        if (
-          defaultFields &&
-          !errFieldsWhereIntersects &&
-          Utils.intersects(errFieldKeys, defaultFields)
-        ) {
+        const errFieldsWhereIntersects = Utils.intersects(errFieldKeys, whereFields);
+        if (defaultFields && !errFieldsWhereIntersects && Utils.intersects(errFieldKeys, defaultFields)) {
           throw err;
         }
 
@@ -2705,7 +2448,7 @@ class Model {
         const otherCreated = await this.findOne(
           Utils.defaults(
             {
-              transaction: internalTransaction ? null : transaction,
+              transaction: internalTransaction ? null : transaction
             },
             options
           )
@@ -2739,9 +2482,7 @@ class Model {
    */
   static async findCreateFind(options) {
     if (!options || !options.where) {
-      throw new Error(
-        'Missing where attribute in the options parameter passed to findCreateFind.'
-      );
+      throw new Error('Missing where attribute in the options parameter passed to findCreateFind.');
     }
 
     let values = { ...options.defaults };
@@ -2792,13 +2533,12 @@ class Model {
       hooks: true,
       returning: true,
       validate: true,
-      ...Utils.cloneDeep(options),
+      ...Utils.cloneDeep(options)
     };
 
     const createdAtAttr = this._timestampAttributes.createdAt;
     const updatedAtAttr = this._timestampAttributes.updatedAt;
-    const hasPrimary =
-      this.primaryKeyField in values || this.primaryKeyAttribute in values;
+    const hasPrimary = this.primaryKeyField in values || this.primaryKeyAttribute in values;
     const instance = this.build(values);
 
     options.model = this;
@@ -2814,16 +2554,8 @@ class Model {
     }
     // Map field names
     const updatedDataValues = _.pick(instance.dataValues, changed);
-    const insertValues = Utils.mapValueFieldNames(
-      instance.dataValues,
-      Object.keys(instance.rawAttributes),
-      this
-    );
-    const updateValues = Utils.mapValueFieldNames(
-      updatedDataValues,
-      options.fields,
-      this
-    );
+    const insertValues = Utils.mapValueFieldNames(instance.dataValues, Object.keys(instance.rawAttributes), this);
+    const updateValues = Utils.mapValueFieldNames(updatedDataValues, options.fields, this);
     const now = Utils.now(this.sequelize.options.dialect);
 
     // Attach createdAt
@@ -2833,17 +2565,12 @@ class Model {
     }
     if (updatedAtAttr && !insertValues[updatedAtAttr]) {
       const field = this.rawAttributes[updatedAtAttr].field || updatedAtAttr;
-      insertValues[field] = updateValues[field] =
-        this._getDefaultTimestamp(updatedAtAttr) || now;
+      insertValues[field] = updateValues[field] = this._getDefaultTimestamp(updatedAtAttr) || now;
     }
 
     // Build adds a null value for the primary key, if none was given by the user.
     // We need to remove that because of some Postgres technicalities.
-    if (
-      !hasPrimary &&
-      this.primaryKeyAttribute &&
-      !this.rawAttributes[this.primaryKeyAttribute].defaultValue
-    ) {
+    if (!hasPrimary && this.primaryKeyAttribute && !this.rawAttributes[this.primaryKeyAttribute].defaultValue) {
       delete insertValues[this.primaryKeyField];
       delete updateValues[this.primaryKeyField];
     }
@@ -2909,9 +2636,7 @@ class Model {
       }
     }
 
-    const instances = records.map((values) =>
-      this.build(values, { isNewRecord: true, include: options.include })
-    );
+    const instances = records.map(values => this.build(values, { isNewRecord: true, include: options.include }));
 
     const recursiveBulkCreate = async (instances, options) => {
       options = {
@@ -2919,7 +2644,7 @@ class Model {
         hooks: true,
         individualHooks: false,
         ignoreDuplicates: false,
-        ...options,
+        ...options
       };
 
       if (options.returning === undefined) {
@@ -2931,9 +2656,7 @@ class Model {
       }
 
       if (options.ignoreDuplicates && ['mssql'].includes(dialect)) {
-        throw new Error(
-          `${dialect} does not support the ignoreDuplicates option.`
-        );
+        throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
       if (
         options.updateOnDuplicate &&
@@ -2942,9 +2665,7 @@ class Model {
         dialect !== 'sqlite' &&
         dialect !== 'postgres'
       ) {
-        throw new Error(
-          `${dialect} does not support the updateOnDuplicate option.`
-        );
+        throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 
       const model = options.model;
@@ -2954,18 +2675,13 @@ class Model {
       const updatedAtAttr = model._timestampAttributes.updatedAt;
 
       if (options.updateOnDuplicate !== undefined) {
-        if (
-          Array.isArray(options.updateOnDuplicate) &&
-          options.updateOnDuplicate.length
-        ) {
+        if (Array.isArray(options.updateOnDuplicate) && options.updateOnDuplicate.length) {
           options.updateOnDuplicate = _.intersection(
             _.without(Object.keys(model.tableAttributes), createdAtAttr),
             options.updateOnDuplicate
           );
         } else {
-          throw new Error(
-            'updateOnDuplicate option only supports non-empty array.'
-          );
+          throw new Error('updateOnDuplicate option only supports non-empty array.');
         }
       }
 
@@ -2980,7 +2696,7 @@ class Model {
         validateOptions.hooks = options.individualHooks;
 
         await Promise.all(
-          instances.map(async (instance) => {
+          instances.map(async instance => {
             try {
               await instance.validate(validateOptions);
             } catch (err) {
@@ -2996,11 +2712,11 @@ class Model {
       }
       if (options.individualHooks) {
         await Promise.all(
-          instances.map(async (instance) => {
+          instances.map(async instance => {
             const individualOptions = {
               ...options,
               validate: false,
-              hooks: true,
+              hooks: true
             };
             delete individualOptions.fields;
             delete individualOptions.individualHooks;
@@ -3013,8 +2729,8 @@ class Model {
         if (options.include && options.include.length) {
           await Promise.all(
             options.include
-              .filter((include) => include.association instanceof BelongsTo)
-              .map(async (include) => {
+              .filter(include => include.association instanceof BelongsTo)
+              .map(async include => {
                 const associationInstances = [];
                 const associationInstanceIndexToInstanceMap = [];
 
@@ -3034,21 +2750,18 @@ class Model {
                   .omit(['association'])
                   .defaults({
                     transaction: options.transaction,
-                    logging: options.logging,
+                    logging: options.logging
                   })
                   .value();
 
-                const createdAssociationInstances = await recursiveBulkCreate(
-                  associationInstances,
-                  includeOptions
-                );
+                const createdAssociationInstances = await recursiveBulkCreate(associationInstances, includeOptions);
                 for (const idx in createdAssociationInstances) {
                   const associationInstance = createdAssociationInstances[idx];
                   const instance = associationInstanceIndexToInstanceMap[idx];
 
                   await include.association.set(instance, associationInstance, {
                     save: false,
-                    logging: options.logging,
+                    logging: options.logging
                   });
                 }
               })
@@ -3057,7 +2770,7 @@ class Model {
 
         // Create all in one query
         // Recreate records from instances to represent any changes made in hooks or validation
-        records = instances.map((instance) => {
+        records = instances.map(instance => {
           const values = instance.dataValues;
 
           // set createdAt/updatedAt attributes
@@ -3084,35 +2797,27 @@ class Model {
         // Map attributes to fields for serial identification
         const fieldMappedAttributes = {};
         for (const attr in model.tableAttributes) {
-          fieldMappedAttributes[model.rawAttributes[attr].field || attr] =
-            model.rawAttributes[attr];
+          fieldMappedAttributes[model.rawAttributes[attr].field || attr] = model.rawAttributes[attr];
         }
 
         // Map updateOnDuplicate attributes to fields
         if (options.updateOnDuplicate) {
-          options.updateOnDuplicate = options.updateOnDuplicate.map(
-            (attr) => model.rawAttributes[attr].field || attr
-          );
+          options.updateOnDuplicate = options.updateOnDuplicate.map(attr => model.rawAttributes[attr].field || attr);
           // Get primary keys for postgres to enable updateOnDuplicate
-          options.upsertKeys = _.chain(model.primaryKeys)
-            .values()
-            .map('field')
-            .value();
+          options.upsertKeys = _.chain(model.primaryKeys).values().map('field').value();
           if (Object.keys(model.uniqueKeys).length > 0) {
             options.upsertKeys = _.chain(model.uniqueKeys)
               .values()
-              .filter((c) => c.fields.length >= 1)
-              .map((c) => c.fields)
-              .reduce((c) => c[0])
+              .filter(c => c.fields.length >= 1)
+              .map(c => c.fields)
+              .reduce(c => c[0])
               .value();
           }
         }
 
         // Map returning attributes to fields
         if (options.returning && Array.isArray(options.returning)) {
-          options.returning = options.returning.map((attr) =>
-            _.get(model.rawAttributes[attr], 'field', attr)
-          );
+          options.returning = options.returning.map(attr => _.get(model.rawAttributes[attr], 'field', attr));
         }
 
         const results = await model.queryInterface.bulkInsert(
@@ -3142,8 +2847,7 @@ class Model {
 
                 const attr = _.find(
                   model.rawAttributes,
-                  (attribute) =>
-                    attribute.fieldName === key || attribute.field === key
+                  attribute => attribute.fieldName === key || attribute.field === key
                 );
 
                 instance.dataValues[(attr && attr.fieldName) || key] = record;
@@ -3157,14 +2861,13 @@ class Model {
         await Promise.all(
           options.include
             .filter(
-              (include) =>
+              include =>
                 !(
                   include.association instanceof BelongsTo ||
-                  (include.parent &&
-                    include.parent.association instanceof BelongsToMany)
+                  (include.parent && include.parent.association instanceof BelongsToMany)
                 )
             )
-            .map(async (include) => {
+            .map(async include => {
               const associationInstances = [];
               const associationInstanceIndexToInstanceMap = [];
 
@@ -3177,17 +2880,12 @@ class Model {
                     if (!(include.association instanceof BelongsToMany)) {
                       associationInstance.set(
                         include.association.foreignKey,
-                        instance.get(
-                          include.association.sourceKey ||
-                            instance.constructor.primaryKeyAttribute,
-                          { raw: true }
-                        ),
+                        instance.get(include.association.sourceKey || instance.constructor.primaryKeyAttribute, {
+                          raw: true
+                        }),
                         { raw: true }
                       );
-                      Object.assign(
-                        associationInstance,
-                        include.association.scope
-                      );
+                      Object.assign(associationInstance, include.association.scope);
                     }
                     associationInstances.push(associationInstance);
                     associationInstanceIndexToInstanceMap.push(instance);
@@ -3203,14 +2901,11 @@ class Model {
                 .omit(['association'])
                 .defaults({
                   transaction: options.transaction,
-                  logging: options.logging,
+                  logging: options.logging
                 })
                 .value();
 
-              const createdAssociationInstances = await recursiveBulkCreate(
-                associationInstances,
-                includeOptions
-              );
+              const createdAssociationInstances = await recursiveBulkCreate(associationInstances, includeOptions);
               if (include.association instanceof BelongsToMany) {
                 const valueSets = [];
 
@@ -3219,39 +2914,27 @@ class Model {
                   const instance = associationInstanceIndexToInstanceMap[idx];
 
                   const values = {
-                    [include.association.foreignKey]: instance.get(
-                      instance.constructor.primaryKeyAttribute,
-                      { raw: true }
-                    ),
-                    [include.association
-                      .otherKey]: associationInstance.get(
+                    [include.association.foreignKey]: instance.get(instance.constructor.primaryKeyAttribute, {
+                      raw: true
+                    }),
+                    [include.association.otherKey]: associationInstance.get(
                       associationInstance.constructor.primaryKeyAttribute,
                       { raw: true }
                     ),
                     // Include values defined in the association
-                    ...include.association.through.scope,
+                    ...include.association.through.scope
                   };
-                  if (
-                    associationInstance[include.association.through.model.name]
-                  ) {
-                    for (const attr of Object.keys(
-                      include.association.through.model.rawAttributes
-                    )) {
+                  if (associationInstance[include.association.through.model.name]) {
+                    for (const attr of Object.keys(include.association.through.model.rawAttributes)) {
                       if (
-                        include.association.through.model.rawAttributes[attr]
-                          ._autoGenerated ||
+                        include.association.through.model.rawAttributes[attr]._autoGenerated ||
                         attr === include.association.foreignKey ||
                         attr === include.association.otherKey ||
-                        typeof associationInstance[
-                          include.association.through.model.name
-                        ][attr] === undefined
+                        typeof associationInstance[include.association.through.model.name][attr] === undefined
                       ) {
                         continue;
                       }
-                      values[attr] =
-                        associationInstance[
-                          include.association.through.model.name
-                        ][attr];
+                      values[attr] = associationInstance[include.association.through.model.name][attr];
                     }
                   }
 
@@ -3262,14 +2945,11 @@ class Model {
                   .omit(['association', 'attributes'])
                   .defaults({
                     transaction: options.transaction,
-                    logging: options.logging,
+                    logging: options.logging
                   })
                   .value();
                 throughOptions.model = include.association.throughModel;
-                const throughInstances = include.association.throughModel.bulkBuild(
-                  valueSets,
-                  throughOptions
-                );
+                const throughInstances = include.association.throughModel.bulkBuild(valueSets, throughOptions);
 
                 await recursiveBulkCreate(throughInstances, throughOptions);
               }
@@ -3278,16 +2958,14 @@ class Model {
       }
 
       // map fields back to attributes
-      instances.forEach((instance) => {
+      instances.forEach(instance => {
         for (const attr in model.rawAttributes) {
           if (
             model.rawAttributes[attr].field &&
-            instance.dataValues[model.rawAttributes[attr].field] !==
-              undefined &&
+            instance.dataValues[model.rawAttributes[attr].field] !== undefined &&
             model.rawAttributes[attr].field !== attr
           ) {
-            instance.dataValues[attr] =
-              instance.dataValues[model.rawAttributes[attr].field];
+            instance.dataValues[attr] = instance.dataValues[model.rawAttributes[attr].field];
             delete instance.dataValues[model.rawAttributes[attr].field];
           }
           instance._previousDataValues[attr] = instance.dataValues[attr];
@@ -3353,9 +3031,7 @@ class Model {
     this._injectScope(options);
 
     if (!options || !(options.where || options.truncate)) {
-      throw new Error(
-        'Missing where or truncate attribute in the options parameter of model.destroy.'
-      );
+      throw new Error('Missing where or truncate attribute in the options parameter of model.destroy.');
     }
 
     if (
@@ -3374,7 +3050,7 @@ class Model {
       individualHooks: false,
       force: false,
       cascade: false,
-      restartIdentity: false,
+      restartIdentity: false
     });
 
     options.type = QueryTypes.BULKDELETE;
@@ -3393,14 +3069,10 @@ class Model {
         where: options.where,
         transaction: options.transaction,
         logging: options.logging,
-        benchmark: options.benchmark,
+        benchmark: options.benchmark
       });
 
-      await Promise.all(
-        instances.map((instance) =>
-          this.runHooks('beforeDestroy', instance, options)
-        )
-      );
+      await Promise.all(instances.map(instance => this.runHooks('beforeDestroy', instance, options)));
     }
     let result;
     // Run delete query (or update if paranoid)
@@ -3409,18 +3081,12 @@ class Model {
       options.type = QueryTypes.BULKUPDATE;
 
       const attrValueHash = {};
-      const deletedAtAttribute = this.rawAttributes[
-        this._timestampAttributes.deletedAt
-      ];
-      const field = this.rawAttributes[this._timestampAttributes.deletedAt]
-        .field;
+      const deletedAtAttribute = this.rawAttributes[this._timestampAttributes.deletedAt];
+      const field = this.rawAttributes[this._timestampAttributes.deletedAt].field;
       const where = {
-        [field]: Object.prototype.hasOwnProperty.call(
-          deletedAtAttribute,
-          'defaultValue'
-        )
+        [field]: Object.prototype.hasOwnProperty.call(deletedAtAttribute, 'defaultValue')
           ? deletedAtAttribute.defaultValue
-          : null,
+          : null
       };
 
       attrValueHash[field] = Utils.now(this.sequelize.options.dialect);
@@ -3432,20 +3098,11 @@ class Model {
         this.rawAttributes
       );
     } else {
-      result = await this.queryInterface.bulkDelete(
-        this.getTableName(options),
-        options.where,
-        options,
-        this
-      );
+      result = await this.queryInterface.bulkDelete(this.getTableName(options), options.where, options, this);
     }
     // Run afterDestroy hook on each record individually
     if (options.individualHooks) {
-      await Promise.all(
-        instances.map((instance) =>
-          this.runHooks('afterDestroy', instance, options)
-        )
-      );
+      await Promise.all(instances.map(instance => this.runHooks('afterDestroy', instance, options)));
     }
     // Run after hook
     if (options.hooks) {
@@ -3469,13 +3126,12 @@ class Model {
    * @returns {Promise}
    */
   static async restore(options) {
-    if (!this._timestampAttributes.deletedAt)
-      throw new Error('Model is not paranoid');
+    if (!this._timestampAttributes.deletedAt) throw new Error('Model is not paranoid');
 
     options = {
       hooks: true,
       individualHooks: false,
-      ...options,
+      ...options
     };
 
     options.type = QueryTypes.RAW;
@@ -3496,29 +3152,20 @@ class Model {
         transaction: options.transaction,
         logging: options.logging,
         benchmark: options.benchmark,
-        paranoid: false,
+        paranoid: false
       });
 
-      await Promise.all(
-        instances.map((instance) =>
-          this.runHooks('beforeRestore', instance, options)
-        )
-      );
+      await Promise.all(instances.map(instance => this.runHooks('beforeRestore', instance, options)));
     }
     // Run undelete query
     const attrValueHash = {};
     const deletedAtCol = this._timestampAttributes.deletedAt;
     const deletedAtAttribute = this.rawAttributes[deletedAtCol];
-    const deletedAtDefaultValue = Object.prototype.hasOwnProperty.call(
-      deletedAtAttribute,
-      'defaultValue'
-    )
+    const deletedAtDefaultValue = Object.prototype.hasOwnProperty.call(deletedAtAttribute, 'defaultValue')
       ? deletedAtAttribute.defaultValue
       : null;
 
-    attrValueHash[
-      deletedAtAttribute.field || deletedAtCol
-    ] = deletedAtDefaultValue;
+    attrValueHash[deletedAtAttribute.field || deletedAtCol] = deletedAtDefaultValue;
     options.omitNull = false;
     const result = await this.queryInterface.bulkUpdate(
       this.getTableName(options),
@@ -3529,11 +3176,7 @@ class Model {
     );
     // Run afterDestroy hook on each record individually
     if (options.individualHooks) {
-      await Promise.all(
-        instances.map((instance) =>
-          this.runHooks('afterRestore', instance, options)
-        )
-      );
+      await Promise.all(instances.map(instance => this.runHooks('afterRestore', instance, options)));
     }
     // Run after hook
     if (options.hooks) {
@@ -3579,14 +3222,14 @@ class Model {
         individualHooks: false,
         returning: false,
         force: false,
-        sideEffects: true,
+        sideEffects: true
       })
     );
 
     options.type = QueryTypes.BULKUPDATE;
 
     // Clone values so it doesn't get modified for caller scope and ignore undefined values
-    values = _.omitBy(values, (value) => value === undefined);
+    values = _.omitBy(values, value => value === undefined);
 
     // Remove values that are not in the options.fields
     if (options.fields && options.fields instanceof Array) {
@@ -3597,10 +3240,7 @@ class Model {
       }
     } else {
       const updatedAtAttr = this._timestampAttributes.updatedAt;
-      options.fields = _.intersection(
-        Object.keys(values),
-        Object.keys(this.tableAttributes)
-      );
+      options.fields = _.intersection(Object.keys(values), Object.keys(this.tableAttributes));
       if (updatedAtAttr && !options.fields.includes(updatedAtAttr)) {
         options.fields.push(updatedAtAttr);
       }
@@ -3608,8 +3248,7 @@ class Model {
 
     if (this._timestampAttributes.updatedAt && !options.silent) {
       values[this._timestampAttributes.updatedAt] =
-        this._getDefaultTimestamp(this._timestampAttributes.updatedAt) ||
-        Utils.now(this.sequelize.options.dialect);
+        this._getDefaultTimestamp(this._timestampAttributes.updatedAt) || Utils.now(this.sequelize.options.dialect);
     }
 
     options.model = this;
@@ -3618,11 +3257,7 @@ class Model {
     // Validate
     if (options.validate) {
       const build = this.build(values);
-      build.set(
-        this._timestampAttributes.updatedAt,
-        values[this._timestampAttributes.updatedAt],
-        { raw: true }
-      );
+      build.set(this._timestampAttributes.updatedAt, values[this._timestampAttributes.updatedAt], { raw: true });
 
       if (options.sideEffects) {
         Object.assign(values, _.pick(build.get(), build.changed()));
@@ -3630,10 +3265,7 @@ class Model {
       }
 
       // We want to skip validations for all other fields
-      options.skip = _.difference(
-        Object.keys(this.rawAttributes),
-        Object.keys(values)
-      );
+      options.skip = _.difference(Object.keys(this.rawAttributes), Object.keys(values));
       const attributes = await build.validate(options);
       options.skip = undefined;
       if (attributes && attributes.dataValues) {
@@ -3659,7 +3291,7 @@ class Model {
         transaction: options.transaction,
         logging: options.logging,
         benchmark: options.benchmark,
-        paranoid: options.paranoid,
+        paranoid: options.paranoid
       });
 
       if (instances.length) {
@@ -3669,7 +3301,7 @@ class Model {
         let different = false;
 
         instances = await Promise.all(
-          instances.map(async (instance) => {
+          instances.map(async instance => {
             // Record updates in instances dataValues
             Object.assign(instance.dataValues, values);
             // Set the changed fields on the instance
@@ -3710,11 +3342,11 @@ class Model {
           }
         } else {
           instances = await Promise.all(
-            instances.map(async (instance) => {
+            instances.map(async instance => {
               const individualOptions = {
                 ...options,
                 hooks: false,
-                validate: false,
+                validate: false
               };
               delete individualOptions.individualHooks;
 
@@ -3730,8 +3362,7 @@ class Model {
       result = [instances.length, instances];
     } else if (
       _.isEmpty(valuesUse) ||
-      (Object.keys(valuesUse).length === 1 &&
-        valuesUse[this._timestampAttributes.updatedAt])
+      (Object.keys(valuesUse).length === 1 && valuesUse[this._timestampAttributes.updatedAt])
     ) {
       // only updatedAt is being passed, then skip update
       result = [0];
@@ -3756,11 +3387,7 @@ class Model {
     }
 
     if (options.individualHooks) {
-      await Promise.all(
-        instances.map((instance) =>
-          this.runHooks('afterUpdate', instance, options)
-        )
-      );
+      await Promise.all(instances.map(instance => this.runHooks('afterUpdate', instance, options)));
       result[1] = instances;
     }
     // Run after hook
@@ -3783,16 +3410,13 @@ class Model {
   static async describe(schema, options) {
     return await this.queryInterface.describeTable(this.tableName, {
       schema: schema || this._schema || undefined,
-      ...options,
+      ...options
     });
   }
 
   static _getDefaultTimestamp(attr) {
     if (!!this.rawAttributes[attr] && !!this.rawAttributes[attr].defaultValue) {
-      return Utils.toDefaultValue(
-        this.rawAttributes[attr].defaultValue,
-        this.sequelize.options.dialect
-      );
+      return Utils.toDefaultValue(this.rawAttributes[attr].defaultValue, this.sequelize.options.dialect);
     }
     return undefined;
   }
@@ -3804,9 +3428,7 @@ class Model {
     let attributes = Object.keys(this.rawAttributes);
 
     if (options.attributes.exclude) {
-      attributes = attributes.filter(
-        (elem) => !options.attributes.exclude.includes(elem)
-      );
+      attributes = attributes.filter(elem => !options.attributes.exclude.includes(elem));
     }
 
     if (options.attributes.include) {
@@ -3862,12 +3484,8 @@ class Model {
     options = options || {};
     if (typeof fields === 'string') fields = [fields];
     if (Array.isArray(fields)) {
-      fields = fields.map((f) => {
-        if (
-          this.rawAttributes[f] &&
-          this.rawAttributes[f].field &&
-          this.rawAttributes[f].field !== f
-        ) {
+      fields = fields.map(f => {
+        if (this.rawAttributes[f] && this.rawAttributes[f].field && this.rawAttributes[f].field !== f) {
           return this.rawAttributes[f].field;
         }
         return f;
@@ -3880,7 +3498,7 @@ class Model {
     options = Utils.defaults({}, options, {
       by: 1,
       where: {},
-      increment: true,
+      increment: true
     });
     const isSubtraction = !options.increment;
 
@@ -3912,15 +3530,10 @@ class Model {
     const extraAttributesToBeUpdated = {};
 
     const updatedAtAttr = this._timestampAttributes.updatedAt;
-    if (
-      !options.silent &&
-      updatedAtAttr &&
-      !incrementAmountsByField[updatedAtAttr]
-    ) {
+    if (!options.silent && updatedAtAttr && !incrementAmountsByField[updatedAtAttr]) {
       const attrName = this.rawAttributes[updatedAtAttr].field || updatedAtAttr;
       extraAttributesToBeUpdated[attrName] =
-        this._getDefaultTimestamp(updatedAtAttr) ||
-        Utils.now(this.sequelize.options.dialect);
+        this._getDefaultTimestamp(updatedAtAttr) || Utils.now(this.sequelize.options.dialect);
     }
 
     const tableName = this.getTableName(options);
@@ -3981,19 +3594,14 @@ class Model {
     return this.increment(fields, {
       by: 1,
       ...options,
-      increment: false,
+      increment: false
     });
   }
 
   static _optionsMustContainWhere(options) {
+    assert(options && options.where, 'Missing where attribute in the options parameter');
     assert(
-      options && options.where,
-      'Missing where attribute in the options parameter'
-    );
-    assert(
-      _.isPlainObject(options.where) ||
-        Array.isArray(options.where) ||
-        options.where instanceof Utils.SequelizeMethod,
+      _.isPlainObject(options.where) || Array.isArray(options.where) || options.where instanceof Utils.SequelizeMethod,
       'Expected plain object, array or sequelize method in the options.where parameter'
     );
   }
@@ -4006,13 +3614,10 @@ class Model {
    * @returns {object}
    */
   where(checkVersion) {
-    const where = this.constructor.primaryKeyAttributes.reduce(
-      (result, attribute) => {
-        result[attribute] = this.get(attribute, { raw: true });
-        return result;
-      },
-      {}
-    );
+    const where = this.constructor.primaryKeyAttributes.reduce((result, attribute) => {
+      result[attribute] = this.get(attribute, { raw: true });
+      return result;
+    }, {});
 
     if (_.size(where) === 0) {
       return this.constructor.options.whereCollection;
@@ -4077,20 +3682,13 @@ class Model {
     options = options || {};
 
     if (key) {
-      if (
-        Object.prototype.hasOwnProperty.call(this._customGetters, key) &&
-        !options.raw
-      ) {
+      if (Object.prototype.hasOwnProperty.call(this._customGetters, key) && !options.raw) {
         return this._customGetters[key].call(this, key, options);
       }
 
-      if (
-        options.plain &&
-        this._options.include &&
-        this._options.includeNames.includes(key)
-      ) {
+      if (options.plain && this._options.include && this._options.includeNames.includes(key)) {
         if (Array.isArray(this.dataValues[key])) {
-          return this.dataValues[key].map((instance) => instance.get(options));
+          return this.dataValues[key].map(instance => instance.get(options));
         }
         if (this.dataValues[key] instanceof Model) {
           return this.dataValues[key].get(options);
@@ -4101,20 +3699,13 @@ class Model {
       return this.dataValues[key];
     }
 
-    if (
-      this._hasCustomGetters ||
-      (options.plain && this._options.include) ||
-      options.clone
-    ) {
+    if (this._hasCustomGetters || (options.plain && this._options.include) || options.clone) {
       const values = {};
       let _key;
 
       if (this._hasCustomGetters) {
         for (_key in this._customGetters) {
-          if (
-            this._options.attributes &&
-            !this._options.attributes.includes(_key)
-          ) {
+          if (this._options.attributes && !this._options.attributes.includes(_key)) {
             continue;
           }
 
@@ -4199,7 +3790,7 @@ class Model {
       } else {
         // Loop and call set
         if (options.attributes) {
-          const setKeys = (data) => {
+          const setKeys = data => {
             for (const k of data) {
               if (values[k] === undefined) {
                 continue;
@@ -4244,11 +3835,7 @@ class Model {
       }
     } else {
       // Check if we have included models, and if this key matches the include model names/aliases
-      if (
-        this._options &&
-        this._options.include &&
-        this._options.includeNames.includes(key)
-      ) {
+      if (this._options && this._options.include && this._options.includeNames.includes(key)) {
         // Pass it on to the include handler
         this._setInclude(key, value, options);
         return this;
@@ -4257,10 +3844,7 @@ class Model {
       if (!options.raw) {
         // If attribute is not in model definition, return
         if (!this._isAttribute(key)) {
-          if (
-            key.includes('.') &&
-            this.constructor._jsonAttributes.has(key.split('.')[0])
-          ) {
+          if (key.includes('.') && this.constructor._jsonAttributes.has(key.split('.')[0])) {
             const previousNestedValue = Dottie.get(this.dataValues, key);
             if (!_.isEqual(previousNestedValue, value)) {
               Dottie.set(this.dataValues, key, value);
@@ -4271,11 +3855,7 @@ class Model {
         }
 
         // If attempting to set primary key and primary key is already defined, return
-        if (
-          this.constructor._hasPrimaryKeys &&
-          originalValue &&
-          this.constructor._isPrimaryKey(key)
-        ) {
+        if (this.constructor._hasPrimaryKeys && originalValue && this.constructor._isPrimaryKey(key)) {
           return this;
         }
 
@@ -4292,16 +3872,9 @@ class Model {
       // If there's a data type sanitizer
       if (
         !(value instanceof Utils.SequelizeMethod) &&
-        Object.prototype.hasOwnProperty.call(
-          this.constructor._dataTypeSanitizers,
-          key
-        )
+        Object.prototype.hasOwnProperty.call(this.constructor._dataTypeSanitizers, key)
       ) {
-        value = this.constructor._dataTypeSanitizers[key].call(
-          this,
-          value,
-          options
-        );
+        value = this.constructor._dataTypeSanitizers[key].call(this, value, options);
       }
 
       // Set when the value has changed and not raw
@@ -4312,14 +3885,8 @@ class Model {
         // Check for data type type comparators
         (!(value instanceof Utils.SequelizeMethod) &&
           this.constructor._dataTypeChanges[key] &&
-          this.constructor._dataTypeChanges[key].call(
-            this,
-            value,
-            originalValue,
-            options
-          )) || // Check default
-          (!this.constructor._dataTypeChanges[key] &&
-            !_.isEqual(value, originalValue)))
+          this.constructor._dataTypeChanges[key].call(this, value, originalValue, options)) || // Check default
+          (!this.constructor._dataTypeChanges[key] && !_.isEqual(value, originalValue)))
       ) {
         this._previousDataValues[key] = originalValue;
         this.changed(key, true);
@@ -4394,15 +3961,13 @@ class Model {
       return this._previousDataValues[key];
     }
 
-    return _.pickBy(this._previousDataValues, (value, key) =>
-      this.changed(key)
-    );
+    return _.pickBy(this._previousDataValues, (value, key) => this.changed(key));
   }
 
   _setInclude(key, value, options) {
     if (!Array.isArray(value)) value = [value];
     if (value[0] instanceof Model) {
-      value = value.map((instance) => instance.dataValues);
+      value = value.map(instance => instance.dataValues);
     }
 
     const include = this._options.includeMap[key];
@@ -4416,28 +3981,20 @@ class Model {
       includeMap: include.includeMap,
       includeValidated: true,
       raw: options.raw,
-      attributes: include.originalAttributes,
+      attributes: include.originalAttributes
     };
     let isEmpty;
 
-    if (
-      include.originalAttributes === undefined ||
-      include.originalAttributes.length
-    ) {
+    if (include.originalAttributes === undefined || include.originalAttributes.length) {
       if (association.isSingleAssociation) {
         if (Array.isArray(value)) {
           value = value[0];
         }
-        isEmpty =
-          (value && value[primaryKeyAttribute] === null) || value === null;
-        this[accessor] = this.dataValues[accessor] = isEmpty
-          ? null
-          : include.model.build(value, childOptions);
+        isEmpty = (value && value[primaryKeyAttribute] === null) || value === null;
+        this[accessor] = this.dataValues[accessor] = isEmpty ? null : include.model.build(value, childOptions);
       } else {
         isEmpty = value[0] && value[0][primaryKeyAttribute] === null;
-        this[accessor] = this.dataValues[accessor] = isEmpty
-          ? []
-          : include.model.bulkBuild(value, childOptions);
+        this[accessor] = this.dataValues[accessor] = isEmpty ? [] : include.model.bulkBuild(value, childOptions);
       }
     }
   }
@@ -4465,25 +4022,20 @@ class Model {
    */
   async save(options) {
     if (arguments.length > 1) {
-      throw new Error(
-        'The second argument was removed in favor of the options object.'
-      );
+      throw new Error('The second argument was removed in favor of the options object.');
     }
 
     options = Utils.cloneDeep(options);
     options = _.defaults(options, {
       hooks: true,
-      validate: true,
+      validate: true
     });
 
     if (!options.fields) {
       if (this.isNewRecord) {
         options.fields = Object.keys(this.constructor.rawAttributes);
       } else {
-        options.fields = _.intersection(
-          this.changed(),
-          Object.keys(this.constructor.rawAttributes)
-        );
+        options.fields = _.intersection(this.changed(), Object.keys(this.constructor.rawAttributes));
       }
 
       options.defaultFields = options.fields;
@@ -4498,8 +4050,7 @@ class Model {
     }
 
     const primaryKeyName = this.constructor.primaryKeyAttribute;
-    const primaryKeyAttribute =
-      primaryKeyName && this.constructor.rawAttributes[primaryKeyName];
+    const primaryKeyAttribute = primaryKeyName && this.constructor.rawAttributes[primaryKeyName];
     const createdAtAttr = this.constructor._timestampAttributes.createdAt;
     const versionAttr = this.constructor._versionAttribute;
     const hook = this.isNewRecord ? 'Create' : 'Update';
@@ -4507,27 +4058,16 @@ class Model {
     const now = Utils.now(this.sequelize.options.dialect);
     let updatedAtAttr = this.constructor._timestampAttributes.updatedAt;
 
-    if (
-      updatedAtAttr &&
-      options.fields.length >= 1 &&
-      !options.fields.includes(updatedAtAttr)
-    ) {
+    if (updatedAtAttr && options.fields.length >= 1 && !options.fields.includes(updatedAtAttr)) {
       options.fields.push(updatedAtAttr);
     }
-    if (
-      versionAttr &&
-      options.fields.length >= 1 &&
-      !options.fields.includes(versionAttr)
-    ) {
+    if (versionAttr && options.fields.length >= 1 && !options.fields.includes(versionAttr)) {
       options.fields.push(versionAttr);
     }
 
-    if (
-      options.silent === true &&
-      !(this.isNewRecord && this.get(updatedAtAttr, { raw: true }))
-    ) {
+    if (options.silent === true && !(this.isNewRecord && this.get(updatedAtAttr, { raw: true }))) {
       // UpdateAtAttr might have been added as a result of Object.keys(Model.rawAttributes). In that case we have to remove it again
-      _.remove(options.fields, (val) => val === updatedAtAttr);
+      _.remove(options.fields, val => val === updatedAtAttr);
       updatedAtAttr = false;
     }
 
@@ -4536,38 +4076,25 @@ class Model {
         options.fields.push(createdAtAttr);
       }
 
-      if (
-        primaryKeyAttribute &&
-        primaryKeyAttribute.defaultValue &&
-        !options.fields.includes(primaryKeyName)
-      ) {
+      if (primaryKeyAttribute && primaryKeyAttribute.defaultValue && !options.fields.includes(primaryKeyName)) {
         options.fields.unshift(primaryKeyName);
       }
     }
 
     if (this.isNewRecord === false) {
-      if (
-        primaryKeyName &&
-        this.get(primaryKeyName, { raw: true }) === undefined
-      ) {
+      if (primaryKeyName && this.get(primaryKeyName, { raw: true }) === undefined) {
         throw new Error(
           'You attempted to save an instance with no primary key, this is not allowed since it would result in a global update'
         );
       }
     }
 
-    if (
-      updatedAtAttr &&
-      !options.silent &&
-      options.fields.includes(updatedAtAttr)
-    ) {
-      this.dataValues[updatedAtAttr] =
-        this.constructor._getDefaultTimestamp(updatedAtAttr) || now;
+    if (updatedAtAttr && !options.silent && options.fields.includes(updatedAtAttr)) {
+      this.dataValues[updatedAtAttr] = this.constructor._getDefaultTimestamp(updatedAtAttr) || now;
     }
 
     if (this.isNewRecord && createdAtAttr && !this.dataValues[createdAtAttr]) {
-      this.dataValues[createdAtAttr] =
-        this.constructor._getDefaultTimestamp(createdAtAttr) || now;
+      this.dataValues[createdAtAttr] = this.constructor._getDefaultTimestamp(createdAtAttr) || now;
     }
 
     // Validate
@@ -4587,10 +4114,7 @@ class Model {
 
       await this.constructor.runHooks(`before${hook}`, this, options);
       if (options.defaultFields && !this.isNewRecord) {
-        afterHookValues = _.pick(
-          this.dataValues,
-          _.difference(this.changed(), ignoreChanged)
-        );
+        afterHookValues = _.pick(this.dataValues, _.difference(this.changed(), ignoreChanged));
 
         hookChanged = [];
         for (const key of Object.keys(afterHookValues)) {
@@ -4606,25 +4130,17 @@ class Model {
         if (options.validate) {
           // Validate again
 
-          options.skip = _.difference(
-            Object.keys(this.constructor.rawAttributes),
-            hookChanged
-          );
+          options.skip = _.difference(Object.keys(this.constructor.rawAttributes), hookChanged);
           await this.validate(options);
           delete options.skip;
         }
       }
     }
-    if (
-      options.fields.length &&
-      this.isNewRecord &&
-      this._options.include &&
-      this._options.include.length
-    ) {
+    if (options.fields.length && this.isNewRecord && this._options.include && this._options.include.length) {
       await Promise.all(
         this._options.include
-          .filter((include) => include.association instanceof BelongsTo)
-          .map(async (include) => {
+          .filter(include => include.association instanceof BelongsTo)
+          .map(async include => {
             const instance = this.get(include.as);
             if (!instance) return;
 
@@ -4633,7 +4149,7 @@ class Model {
               .defaults({
                 transaction: options.transaction,
                 logging: options.logging,
-                parentRecord: this,
+                parentRecord: this
               })
               .value();
 
@@ -4641,25 +4157,17 @@ class Model {
 
             await this[include.association.accessors.set](instance, {
               save: false,
-              logging: options.logging,
+              logging: options.logging
             });
           })
       );
     }
-    const realFields = options.fields.filter(
-      (field) => !this.constructor._virtualAttributes.has(field)
-    );
+    const realFields = options.fields.filter(field => !this.constructor._virtualAttributes.has(field));
     if (!realFields.length) return this;
     if (!this.changed() && !this.isNewRecord) return this;
 
-    const versionFieldName =
-      _.get(this.constructor.rawAttributes[versionAttr], 'field') ||
-      versionAttr;
-    const values = Utils.mapValueFieldNames(
-      this.dataValues,
-      options.fields,
-      this.constructor
-    );
+    const versionFieldName = _.get(this.constructor.rawAttributes[versionAttr], 'field') || versionAttr;
+    const values = Utils.mapValueFieldNames(this.dataValues, options.fields, this.constructor);
     let query = null;
     let args = [];
     let where;
@@ -4673,25 +4181,17 @@ class Model {
         values[versionFieldName] = parseInt(values[versionFieldName], 10) + 1;
       }
       query = 'update';
-      args = [
-        this,
-        this.constructor.getTableName(options),
-        values,
-        where,
-        options,
-      ];
+      args = [this, this.constructor.getTableName(options), values, where, options];
     }
 
-    const [result, rowsUpdated] = await this.constructor.queryInterface[query](
-      ...args
-    );
+    const [result, rowsUpdated] = await this.constructor.queryInterface[query](...args);
     if (versionAttr) {
       // Check to see that a row was updated, otherwise it's an optimistic locking error.
       if (rowsUpdated < 1) {
         throw new sequelizeErrors.OptimisticLockError({
           modelName: this.constructor.name,
           values,
-          where,
+          where
         });
       } else {
         result.dataValues[versionAttr] = values[versionFieldName];
@@ -4716,14 +4216,13 @@ class Model {
       await Promise.all(
         this._options.include
           .filter(
-            (include) =>
+            include =>
               !(
                 include.association instanceof BelongsTo ||
-                (include.parent &&
-                  include.parent.association instanceof BelongsToMany)
+                (include.parent && include.parent.association instanceof BelongsToMany)
               )
           )
-          .map(async (include) => {
+          .map(async include => {
             let instances = this.get(include.as);
 
             if (!instances) return;
@@ -4734,60 +4233,43 @@ class Model {
               .defaults({
                 transaction: options.transaction,
                 logging: options.logging,
-                parentRecord: this,
+                parentRecord: this
               })
               .value();
 
             // Instances will be updated in place so we can safely treat HasOne like a HasMany
             await Promise.all(
-              instances.map(async (instance) => {
+              instances.map(async instance => {
                 if (include.association instanceof BelongsToMany) {
                   await instance.save(includeOptions);
                   const values0 = {
-                    [include.association.foreignKey]: this.get(
-                      this.constructor.primaryKeyAttribute,
-                      { raw: true }
-                    ),
-                    [include.association.otherKey]: instance.get(
-                      instance.constructor.primaryKeyAttribute,
-                      { raw: true }
-                    ),
+                    [include.association.foreignKey]: this.get(this.constructor.primaryKeyAttribute, { raw: true }),
+                    [include.association.otherKey]: instance.get(instance.constructor.primaryKeyAttribute, {
+                      raw: true
+                    }),
                     // Include values defined in the association
-                    ...include.association.through.scope,
+                    ...include.association.through.scope
                   };
 
                   if (instance[include.association.through.model.name]) {
-                    for (const attr of Object.keys(
-                      include.association.through.model.rawAttributes
-                    )) {
+                    for (const attr of Object.keys(include.association.through.model.rawAttributes)) {
                       if (
-                        include.association.through.model.rawAttributes[attr]
-                          ._autoGenerated ||
+                        include.association.through.model.rawAttributes[attr]._autoGenerated ||
                         attr === include.association.foreignKey ||
                         attr === include.association.otherKey ||
-                        typeof instance[include.association.through.model.name][
-                          attr
-                        ] === undefined
+                        typeof instance[include.association.through.model.name][attr] === undefined
                       ) {
                         continue;
                       }
-                      values0[attr] =
-                        instance[include.association.through.model.name][attr];
+                      values0[attr] = instance[include.association.through.model.name][attr];
                     }
                   }
 
-                  await include.association.throughModel.create(
-                    values0,
-                    includeOptions
-                  );
+                  await include.association.throughModel.create(values0, includeOptions);
                 } else {
                   instance.set(
                     include.association.foreignKey,
-                    this.get(
-                      include.association.sourceKey ||
-                        this.constructor.primaryKeyAttribute,
-                      { raw: true }
-                    ),
+                    this.get(include.association.sourceKey || this.constructor.primaryKeyAttribute, { raw: true }),
                     { raw: true }
                   );
                   Object.assign(instance, include.association.scope);
@@ -4827,11 +4309,11 @@ class Model {
   async reload(options) {
     options = Utils.defaults(
       {
-        where: this.where(),
+        where: this.where()
       },
       options,
       {
-        include: this._options.include || undefined,
+        include: this._options.include || undefined
       }
     );
 
@@ -4846,7 +4328,7 @@ class Model {
     // re-set instance values
     this.set(reloaded.dataValues, {
       raw: true,
-      reset: true && !options.attributes,
+      reset: true && !options.attributes
     });
 
     return this;
@@ -4884,7 +4366,7 @@ class Model {
    */
   async update(values, options) {
     // Clone values so it doesn't get modified for caller scope and ignore undefined values
-    values = _.omitBy(values, (value) => value === undefined);
+    values = _.omitBy(values, value => value === undefined);
 
     const changedBefore = this.changed() || [];
 
@@ -4923,7 +4405,7 @@ class Model {
     options = {
       hooks: true,
       force: false,
-      ...options,
+      ...options
     };
 
     // Run before hook
@@ -4933,16 +4415,10 @@ class Model {
     const where = this.where(true);
 
     let result;
-    if (
-      this.constructor._timestampAttributes.deletedAt &&
-      options.force === false
-    ) {
+    if (this.constructor._timestampAttributes.deletedAt && options.force === false) {
       const attributeName = this.constructor._timestampAttributes.deletedAt;
       const attribute = this.constructor.rawAttributes[attributeName];
-      const defaultValue = Object.prototype.hasOwnProperty.call(
-        attribute,
-        'defaultValue'
-      )
+      const defaultValue = Object.prototype.hasOwnProperty.call(attribute, 'defaultValue')
         ? attribute.defaultValue
         : null;
       const currentValue = this.getDataValue(attributeName);
@@ -4954,12 +4430,11 @@ class Model {
 
       result = await this.save({ ...options, hooks: false });
     } else {
-      result = await this.constructor.queryInterface.delete(
-        this,
-        this.constructor.getTableName(options),
-        where,
-        { type: QueryTypes.DELETE, limit: null, ...options }
-      );
+      result = await this.constructor.queryInterface.delete(this, this.constructor.getTableName(options), where, {
+        type: QueryTypes.DELETE,
+        limit: null,
+        ...options
+      });
     }
     // Run after hook
     if (options.hooks) {
@@ -4980,17 +4455,11 @@ class Model {
       throw new Error('Model is not paranoid');
     }
 
-    const deletedAtAttribute = this.constructor.rawAttributes[
-      this.constructor._timestampAttributes.deletedAt
-    ];
-    const defaultValue = Object.prototype.hasOwnProperty.call(
-      deletedAtAttribute,
-      'defaultValue'
-    )
+    const deletedAtAttribute = this.constructor.rawAttributes[this.constructor._timestampAttributes.deletedAt];
+    const defaultValue = Object.prototype.hasOwnProperty.call(deletedAtAttribute, 'defaultValue')
       ? deletedAtAttribute.defaultValue
       : null;
-    const deletedAt =
-      this.get(this.constructor._timestampAttributes.deletedAt) || null;
+    const deletedAt = this.get(this.constructor._timestampAttributes.deletedAt) || null;
     const isSet = deletedAt !== defaultValue;
 
     return isSet;
@@ -5006,13 +4475,12 @@ class Model {
    * @returns {Promise}
    */
   async restore(options) {
-    if (!this.constructor._timestampAttributes.deletedAt)
-      throw new Error('Model is not paranoid');
+    if (!this.constructor._timestampAttributes.deletedAt) throw new Error('Model is not paranoid');
 
     options = {
       hooks: true,
       force: false,
-      ...options,
+      ...options
     };
 
     // Run before hook
@@ -5021,10 +4489,7 @@ class Model {
     }
     const deletedAtCol = this.constructor._timestampAttributes.deletedAt;
     const deletedAtAttribute = this.constructor.rawAttributes[deletedAtCol];
-    const deletedAtDefaultValue = Object.prototype.hasOwnProperty.call(
-      deletedAtAttribute,
-      'defaultValue'
-    )
+    const deletedAtDefaultValue = Object.prototype.hasOwnProperty.call(deletedAtAttribute, 'defaultValue')
       ? deletedAtAttribute.defaultValue
       : null;
 
@@ -5032,7 +4497,7 @@ class Model {
     const result = await this.save({
       ...options,
       hooks: false,
-      omitNull: false,
+      omitNull: false
     });
     // Run after hook
     if (options.hooks) {
@@ -5118,7 +4583,7 @@ class Model {
     return this.increment(fields, {
       by: 1,
       ...options,
-      increment: false,
+      increment: false
     });
   }
 
@@ -5139,9 +4604,7 @@ class Model {
     }
 
     return this.constructor.primaryKeyAttributes.every(
-      (attribute) =>
-        this.get(attribute, { raw: true }) ===
-        other.get(attribute, { raw: true })
+      attribute => this.get(attribute, { raw: true }) === other.get(attribute, { raw: true })
     );
   }
 
@@ -5153,7 +4616,7 @@ class Model {
    * @returns {boolean}
    */
   equalsOneOf(others) {
-    return others.some((other) => this.equals(other));
+    return others.some(other => this.equals(other));
   }
 
   setValidators(attribute, validators) {
@@ -5173,7 +4636,7 @@ class Model {
   toJSON() {
     return _.cloneDeep(
       this.get({
-        plain: true,
+        plain: true
       })
     );
   }

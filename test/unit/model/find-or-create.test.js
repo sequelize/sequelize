@@ -24,13 +24,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         'User',
         {},
         {
-          name: 'John',
+          name: 'John'
         }
       );
 
-      this.transactionStub = stub(this.User.sequelize, 'transaction').rejects(
-        new Error('abort')
-      );
+      this.transactionStub = stub(this.User.sequelize, 'transaction').rejects(new Error('abort'));
 
       this.clsStub = stub(current.constructor._cls, 'get').returns({ id: 123 });
     });
@@ -43,8 +41,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should use transaction from cls if available', async function () {
       const options = {
         where: {
-          name: 'John',
-        },
+          name: 'John'
+        }
       };
 
       try {
@@ -52,19 +50,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect.fail('expected to fail');
       } catch (err) {
         if (!/abort/.test(err.message)) throw err;
-        expect(this.clsStub.calledOnce).to.equal(
-          true,
-          'expected to ask for transaction'
-        );
+        expect(this.clsStub.calledOnce).to.equal(true, 'expected to ask for transaction');
       }
     });
 
     it('should not use transaction from cls if provided as argument', async function () {
       const options = {
         where: {
-          name: 'John',
+          name: 'John'
         },
-        transaction: { id: 123 },
+        transaction: { id: 123 }
       };
 
       try {

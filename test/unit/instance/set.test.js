@@ -11,17 +11,17 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('set', () => {
     it('sets nested keys in JSON objects', () => {
       const User = current.define('User', {
-        meta: DataTypes.JSONB,
+        meta: DataTypes.JSONB
       });
       const user = User.build(
         {
           meta: {
-            location: 'Stockhollm',
-          },
+            location: 'Stockhollm'
+          }
         },
         {
           isNewRecord: false,
-          raw: true,
+          raw: true
         }
       );
 
@@ -39,8 +39,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         meta: {
           type: DataTypes.JSONB,
           allowNull: false,
-          defaultValue: {},
-        },
+          defaultValue: {}
+        }
       });
       const user1 = User.build({});
       user1.set('meta.location', 'Stockhollm');
@@ -52,30 +52,28 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {
         date: {
           type: DataTypes.DATE,
-          allowNull: true,
-        },
+          allowNull: true
+        }
       });
       const user1 = User.build({
-        date: null,
+        date: null
       });
       user1.set('date', '1970-01-01');
       expect(user1.get('date')).to.be.ok;
-      expect(user1.get('date').getTime()).to.equal(
-        new Date('1970-01-01').getTime()
-      );
+      expect(user1.get('date').getTime()).to.equal(new Date('1970-01-01').getTime());
     });
 
     it('overwrites non-date originalValue with date', () => {
       const User = current.define('User', {
-        date: DataTypes.DATE,
+        date: DataTypes.DATE
       });
       const user = User.build(
         {
-          date: ' ',
+          date: ' '
         },
         {
           isNewRecord: false,
-          raw: true,
+          raw: true
         }
       );
 
@@ -86,9 +84,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('custom setter', () => {
       before(function () {
-        this.stubCreate = sinon
-          .stub(current.getQueryInterface(), 'insert')
-          .callsFake(async (instance) => [instance, 1]);
+        this.stubCreate = sinon.stub(current.getQueryInterface(), 'insert').callsFake(async instance => [instance, 1]);
       });
 
       after(function () {
@@ -107,13 +103,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
               val = val.replace(/^\+/, '00').replace(/\(0\)|[\s+/.\-()]/g, '');
             }
             this.setDataValue('phoneNumber', val);
-          },
-        },
+          }
+        }
       });
 
       it('does not set field to changed if field is set to the same value with custom setter using primitive value', async () => {
         const user = User.build({
-          phoneNumber: '+1 234 567',
+          phoneNumber: '+1 234 567'
         });
         await user.save();
         expect(user.changed('phoneNumber')).to.be.false;
@@ -124,7 +120,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('sets field to changed if field is set to the another value with custom setter using primitive value', async () => {
         const user = User.build({
-          phoneNumber: '+1 234 567',
+          phoneNumber: '+1 234 567'
         });
         await user.save();
         expect(user.changed('phoneNumber')).to.be.false;
@@ -135,7 +131,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('does not set field to changed if field is set to the same value with custom setter using object', async () => {
         const user = User.build({
-          phoneNumber: '+1 234 567',
+          phoneNumber: '+1 234 567'
         });
         await user.save();
         expect(user.changed('phoneNumber')).to.be.false;
@@ -146,7 +142,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('sets field to changed if field is set to the another value with custom setter using object', async () => {
         const user = User.build({
-          phoneNumber: '+1 234 567',
+          phoneNumber: '+1 234 567'
         });
         await user.save();
         expect(user.changed('phoneNumber')).to.be.false;

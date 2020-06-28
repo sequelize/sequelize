@@ -23,18 +23,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 },
                 get() {
                   return this.getDataValue('field1');
-                },
+                }
               },
               field2: {
                 type: Sequelize.VIRTUAL,
                 get() {
                   return 42;
-                },
+                }
               },
               virtualWithDefault: {
                 type: Sequelize.VIRTUAL,
-                defaultValue: 'cake',
-              },
+                defaultValue: 'cake'
+              }
             },
             { timestamps: false }
           );
@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should not be ignored in dataValues get', function () {
           const user = this.User.build({
             field1: 'field1_value',
-            field2: 'field2_value',
+            field2: 'field2_value'
           });
 
           expect(user.get()).to.deep.equal({
@@ -66,33 +66,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             field1: 'field1_value',
             virtualWithDefault: 'cake',
             field2: 42,
-            id: null,
+            id: null
           });
         });
 
         it('should be ignored in table creation', async function () {
-          const fields = await this.sequelize
-            .getQueryInterface()
-            .describeTable(this.User.tableName);
+          const fields = await this.sequelize.getQueryInterface().describeTable(this.User.tableName);
           expect(Object.keys(fields).length).to.equal(2);
         });
 
         it('should be ignored in find, findAll and includes', async function () {
           await Promise.all([
             this.User.findOne({
-              logging: this.sqlAssert,
+              logging: this.sqlAssert
             }),
             this.User.findAll({
-              logging: this.sqlAssert,
+              logging: this.sqlAssert
             }),
             this.Task.findAll({
               include: [this.User],
-              logging: this.sqlAssert,
+              logging: this.sqlAssert
             }),
             this.Project.findAll({
               include: [this.User],
-              logging: this.sqlAssert,
-            }),
+              logging: this.sqlAssert
+            })
           ]);
         });
 
@@ -100,20 +98,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const Post = this.sequelize.define('Post', {
             text: Sequelize.TEXT,
             someBoolean: {
-              type: Sequelize.VIRTUAL,
-            },
+              type: Sequelize.VIRTUAL
+            }
           });
 
           await this.sequelize.sync({ force: true });
           await Post.bulkCreate([{ text: 'text1' }, { text: 'text2' }]);
           let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
           if (dialect === 'mssql') {
-            boolQuery =
-              'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
+            boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
           }
 
           const post = await Post.findOne({
-            attributes: ['id', 'text', Sequelize.literal(boolQuery)],
+            attributes: ['id', 'text', Sequelize.literal(boolQuery)]
           });
           expect(post.get('someBoolean')).to.be.ok;
           expect(post.get().someBoolean).to.be.ok;
@@ -121,7 +118,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should be ignored in create and update', async function () {
           const user0 = await this.User.create({
-            field1: 'something',
+            field1: 'something'
           });
 
           // We already verified that the virtual is not added to the table definition,
@@ -132,10 +129,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           const user = await user0.update(
             {
-              field1: 'something else',
+              field1: 'something else'
             },
             {
-              fields: ['storage'],
+              fields: ['storage']
             }
           );
 
@@ -147,11 +144,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.User.bulkCreate(
             [
               {
-                field1: 'something',
-              },
+                field1: 'something'
+              }
             ],
             {
-              logging: this.sqlAssert,
+              logging: this.sqlAssert
             }
           );
 
@@ -163,16 +160,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.User.bulkCreate(
             [
               {
-                field1: 'something',
-              },
+                field1: 'something'
+              }
             ],
             {
-              logging: this.sqlAssert,
+              logging: this.sqlAssert
             }
           );
 
           const users0 = await this.User.findAll({
-            logging: this.sqlAssert,
+            logging: this.sqlAssert
           });
 
           const user0 = users0[0].get();
@@ -182,9 +179,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           const users = await this.User.findAll({
             attributes: {
-              exclude: ['field1'],
+              exclude: ['field1']
             },
-            logging: this.sqlAssert,
+            logging: this.sqlAssert
           });
 
           const user = users[0].get();
@@ -202,9 +199,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: [
               {
                 attributes: ['field2', 'id'],
-                model: this.User,
-              },
-            ],
+                model: this.User
+              }
+            ]
           });
 
           const user = tasks[0].user.get();

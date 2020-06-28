@@ -16,13 +16,13 @@ if (dialect.match(/^mssql/)) {
           field: 'id',
           type: Sequelize.INTEGER,
           primaryKey: true,
-          autoIncrement: true,
+          autoIncrement: true
         },
         UserID: {
           field: 'userid',
           type: Sequelize.UUID,
-          allowNull: false,
-        },
+          allowNull: false
+        }
       });
 
       const User = this.sequelize.define('User', {
@@ -30,31 +30,26 @@ if (dialect.match(/^mssql/)) {
           field: 'userid',
           type: Sequelize.UUID,
           defaultValue: Sequelize.UUIDV4,
-          primaryKey: true,
+          primaryKey: true
         },
         UserName: {
           field: 'username',
           type: Sequelize.STRING(50),
-          allowNull: false,
-        },
+          allowNull: false
+        }
       });
 
       LoginLog.belongsTo(User, {
-        foreignKey: 'UserID',
+        foreignKey: 'UserID'
       });
       User.hasMany(LoginLog, {
-        foreignKey: 'UserID',
+        foreignKey: 'UserID'
       });
 
       await this.sequelize.sync({ force: true });
 
       const [vyom, shakti, nikita, arya] = await User.bulkCreate(
-        [
-          { UserName: 'Vayom' },
-          { UserName: 'Shaktimaan' },
-          { UserName: 'Nikita' },
-          { UserName: 'Aryamaan' },
-        ],
+        [{ UserName: 'Vayom' }, { UserName: 'Shaktimaan' }, { UserName: 'Nikita' }, { UserName: 'Aryamaan' }],
         { returning: true }
       );
 
@@ -62,7 +57,7 @@ if (dialect.match(/^mssql/)) {
         vyom.createLoginLog(),
         shakti.createLoginLog(),
         nikita.createLoginLog(),
-        arya.createLoginLog(),
+        arya.createLoginLog()
       ]);
 
       const logs = await LoginLog.findAll({
@@ -71,14 +66,14 @@ if (dialect.match(/^mssql/)) {
             model: User,
             where: {
               UserName: {
-                [Op.like]: '%maan%',
-              },
-            },
-          },
+                [Op.like]: '%maan%'
+              }
+            }
+          }
         ],
         order: [[User, 'UserName', 'DESC']],
         offset: 0,
-        limit: 10,
+        limit: 10
       });
 
       expect(logs).to.have.length(2);
@@ -92,14 +87,14 @@ if (dialect.match(/^mssql/)) {
             model: User,
             where: {
               UserName: {
-                [Op.like]: '%maan%',
-              },
-            },
-          },
+                [Op.like]: '%maan%'
+              }
+            }
+          }
         ],
         order: [['id', 'DESC']],
         offset: 0,
-        limit: 10,
+        limit: 10
       });
 
       expect(otherLogs).to.have.length(2);
@@ -112,17 +107,17 @@ if (dialect.match(/^mssql/)) {
           {
             model: LoginLog,
             separate: true,
-            order: ['id'],
-          },
+            order: ['id']
+          }
         ],
         where: {
           UserName: {
-            [Op.like]: '%maan%',
-          },
+            [Op.like]: '%maan%'
+          }
         },
         order: ['UserName', ['UserID', 'DESC']],
         offset: 0,
-        limit: 10,
+        limit: 10
       });
 
       expect(separateUsers).to.have.length(2);
@@ -139,7 +134,7 @@ if (dialect.match(/^mssql/)) {
         {
           timestamps: false,
           freezeTableName: true,
-          schema: 'a',
+          schema: 'a'
         }
       );
       const Toys = this.sequelize.define(
@@ -148,7 +143,7 @@ if (dialect.match(/^mssql/)) {
         {
           timestamps: false,
           freezeTableName: true,
-          schema: 'a',
+          schema: 'a'
         }
       );
       const Parent = this.sequelize.define(
@@ -157,16 +152,16 @@ if (dialect.match(/^mssql/)) {
         {
           timestamps: false,
           freezeTableName: true,
-          schema: 'a',
+          schema: 'a'
         }
       );
 
       Child.hasOne(Toys, {
-        onDelete: 'CASCADE',
+        onDelete: 'CASCADE'
       });
 
       Parent.hasOne(Toys, {
-        onDelete: 'CASCADE',
+        onDelete: 'CASCADE'
       });
 
       const spy = sinon.spy();
@@ -174,13 +169,11 @@ if (dialect.match(/^mssql/)) {
       await this.sequelize.queryInterface.createSchema('a');
       await this.sequelize.sync({
         force: true,
-        logging: spy,
+        logging: spy
       });
 
       expect(spy).to.have.been.called;
-      const log = spy.args.find((arg) =>
-        arg[0].includes("IF OBJECT_ID('[a].[Toys]', 'U') IS NULL CREATE TABLE")
-      )[0];
+      const log = spy.args.find(arg => arg[0].includes("IF OBJECT_ID('[a].[Toys]', 'U') IS NULL CREATE TABLE"))[0];
 
       expect(log.match(/ON DELETE CASCADE/g).length).to.equal(2);
     });
@@ -189,15 +182,13 @@ if (dialect.match(/^mssql/)) {
       const Users = this.sequelize.define(
         '_Users',
         {
-          username: Sequelize.STRING('MAX'),
+          username: Sequelize.STRING('MAX')
         },
         { freezeTableName: true }
       );
 
       await Users.sync({ force: true });
-      const metadata = await this.sequelize
-        .getQueryInterface()
-        .describeTable('_Users');
+      const metadata = await this.sequelize.getQueryInterface().describeTable('_Users');
       const username = metadata.username;
       expect(username.type).to.include('(MAX)');
     });
@@ -206,15 +197,13 @@ if (dialect.match(/^mssql/)) {
       const Users = this.sequelize.define(
         '_Users',
         {
-          username: Sequelize.CHAR(10),
+          username: Sequelize.CHAR(10)
         },
         { freezeTableName: true }
       );
 
       await Users.sync({ force: true });
-      const metadata = await this.sequelize
-        .getQueryInterface()
-        .describeTable('_Users');
+      const metadata = await this.sequelize.getQueryInterface().describeTable('_Users');
       const username = metadata.username;
       expect(username.type).to.include('(10)');
     });
@@ -225,11 +214,11 @@ if (dialect.match(/^mssql/)) {
         {
           business_id: {
             type: Sequelize.BIGINT,
-            allowNull: false,
-          },
+            allowNull: false
+          }
         },
         {
-          freezeTableName: true,
+          freezeTableName: true
         }
       );
 
@@ -238,7 +227,7 @@ if (dialect.match(/^mssql/)) {
       await BigIntTable.sync({ force: true });
 
       await BigIntTable.create({
-        business_id: bigIntValue,
+        business_id: bigIntValue
       });
 
       const record = await BigIntTable.findOne();
@@ -251,11 +240,11 @@ if (dialect.match(/^mssql/)) {
         {
           status: {
             type: Sequelize.BOOLEAN,
-            allowNull: false,
-          },
+            allowNull: false
+          }
         },
         {
-          freezeTableName: true,
+          freezeTableName: true
         }
       );
 
@@ -264,7 +253,7 @@ if (dialect.match(/^mssql/)) {
       await BooleanTable.sync({ force: true });
 
       await BooleanTable.create({
-        status: value,
+        status: value
       });
 
       const record = await BooleanTable.findOne();

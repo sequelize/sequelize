@@ -8,8 +8,7 @@ const chai = require('chai'),
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES] Query', () => {
-    const taskAlias =
-      'AnActualVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
+    const taskAlias = 'AnActualVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
     const teamAlias = 'Toto';
 
     const executeTest = async (options, test) => {
@@ -27,7 +26,7 @@ if (dialect.match(/^postgres/)) {
       User.belongsToMany(Team, {
         as: teamAlias,
         foreignKey: 'teamId',
-        through: 'UserTeam',
+        through: 'UserTeam'
       });
       Team.belongsToMany(User, { foreignKey: 'userId', through: 'UserTeam' });
 
@@ -37,7 +36,7 @@ if (dialect.match(/^postgres/)) {
       const user = await User.create({
         name: 'test',
         task_id: task.id,
-        updatedAt: new Date(),
+        updatedAt: new Date()
       });
       await user[`add${teamAlias}`](team);
 
@@ -46,13 +45,13 @@ if (dialect.match(/^postgres/)) {
           include: [
             {
               model: Task,
-              as: taskAlias,
+              as: taskAlias
             },
             {
               model: Team,
-              as: teamAlias,
-            },
-          ],
+              as: teamAlias
+            }
+          ]
         })
       );
     };
@@ -60,7 +59,7 @@ if (dialect.match(/^postgres/)) {
     it('should throw due to alias being truncated', async function () {
       const options = { ...this.sequelize.options, minifyAliases: false };
 
-      await executeTest(options, (res) => {
+      await executeTest(options, res => {
         expect(res[taskAlias]).to.not.exist;
       });
     });
@@ -68,42 +67,42 @@ if (dialect.match(/^postgres/)) {
     it('should be able to retrieve include due to alias minifying', async function () {
       const options = { ...this.sequelize.options, minifyAliases: true };
 
-      await executeTest(options, (res) => {
+      await executeTest(options, res => {
         expect(res[taskAlias].title).to.be.equal('SuperTask');
       });
     });
 
     it('should throw due to table name being truncated', async () => {
       const sequelize = Support.createSequelizeInstance({
-        minifyAliases: true,
+        minifyAliases: true
       });
 
       const User = sequelize.define(
         'user_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
         {
           name: DataTypes.STRING,
-          email: DataTypes.STRING,
+          email: DataTypes.STRING
         },
         {
-          tableName: 'user',
+          tableName: 'user'
         }
       );
       const Project = sequelize.define(
         'project_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
         {
-          name: DataTypes.STRING,
+          name: DataTypes.STRING
         },
         {
-          tableName: 'project',
+          tableName: 'project'
         }
       );
       const Company = sequelize.define(
         'company_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
         {
-          name: DataTypes.STRING,
+          name: DataTypes.STRING
         },
         {
-          tableName: 'company',
+          tableName: 'company'
         }
       );
       User.hasMany(Project, { foreignKey: 'userId' });
@@ -115,14 +114,14 @@ if (dialect.match(/^postgres/)) {
       await Project.create({
         name: 'Manhattan',
         companyId: comp.id,
-        userId: user.id,
+        userId: user.id
       });
 
       await User.findAll({
         include: {
           model: Project,
-          include: Company,
-        },
+          include: Company
+        }
       });
     });
   });

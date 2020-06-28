@@ -70,20 +70,13 @@ if (dialect.match(/^postgres/)) {
 
         await this.queryInterface.dropFunction('rftest2', []).catch(() => {});
 
-        await this.queryInterface.createFunction(
-          'rftest1',
-          [],
-          'varchar',
-          'plpgsql',
-          "return 'testreturn';",
-          {}
-        );
+        await this.queryInterface.createFunction('rftest1', [], 'varchar', 'plpgsql', "return 'testreturn';", {});
       });
 
       it('renames a function', async function () {
         await this.queryInterface.renameFunction('rftest1', [], 'rftest2');
         const res = await this.sequelize.query('select rftest2();', {
-          type: this.sequelize.QueryTypes.SELECT,
+          type: this.sequelize.QueryTypes.SELECT
         });
         expect(res[0].rftest2).to.be.eql('testreturn');
       });
@@ -123,7 +116,7 @@ if (dialect.match(/^postgres/)) {
         );
         // validate
         const res = await this.sequelize.query("select create_job('test');", {
-          type: this.sequelize.QueryTypes.SELECT,
+          type: this.sequelize.QueryTypes.SELECT
         });
         expect(res[0].create_job).to.be.eql('test');
       });
@@ -142,7 +135,7 @@ if (dialect.match(/^postgres/)) {
         );
         // validate
         const res = await this.sequelize.query("select create_job('test');", {
-          type: this.sequelize.QueryTypes.SELECT,
+          type: this.sequelize.QueryTypes.SELECT
         });
         expect(res[0].create_job).to.be.eql('test');
       });
@@ -154,28 +147,14 @@ if (dialect.match(/^postgres/)) {
         await Promise.all([
           // requires functionName
           expect(
-            this.queryInterface.createFunction(
-              null,
-              [{ name: 'test' }],
-              'integer',
-              'plpgsql',
-              body,
-              options
-            )
+            this.queryInterface.createFunction(null, [{ name: 'test' }], 'integer', 'plpgsql', body, options)
           ).to.be.rejectedWith(
             /createFunction missing some parameters. Did you pass functionName, returnType, language and body/
           ),
 
           // requires Parameters array
           expect(
-            this.queryInterface.createFunction(
-              'create_job',
-              null,
-              'integer',
-              'plpgsql',
-              body,
-              options
-            )
+            this.queryInterface.createFunction('create_job', null, 'integer', 'plpgsql', body, options)
           ).to.be.rejectedWith(/function parameters array required/),
 
           // requires returnType
@@ -194,17 +173,8 @@ if (dialect.match(/^postgres/)) {
 
           // requires type in parameter array
           expect(
-            this.queryInterface.createFunction(
-              'create_job',
-              [{ name: 'test' }],
-              'integer',
-              'plpgsql',
-              body,
-              options
-            )
-          ).to.be.rejectedWith(
-            /function or trigger used with a parameter without any type/
-          ),
+            this.queryInterface.createFunction('create_job', [{ name: 'test' }], 'integer', 'plpgsql', body, options)
+          ).to.be.rejectedWith(/function or trigger used with a parameter without any type/),
 
           // requires language
           expect(
@@ -232,7 +202,7 @@ if (dialect.match(/^postgres/)) {
             )
           ).to.be.rejectedWith(
             /createFunction missing some parameters. Did you pass functionName, returnType, language and body/
-          ),
+          )
         ]);
       });
 
@@ -261,7 +231,7 @@ if (dialect.match(/^postgres/)) {
         );
         // validate
         const res = await this.sequelize.query("select create_job('abc');", {
-          type: this.sequelize.QueryTypes.SELECT,
+          type: this.sequelize.QueryTypes.SELECT
         });
         expect(res[0].create_job).to.be.eql('second');
       });
@@ -269,60 +239,30 @@ if (dialect.match(/^postgres/)) {
       it('produces an error when options.variables is missing expected parameters', function () {
         const body = 'return 1;';
         expect(
-          this.queryInterface.createFunction(
-            'test_func',
-            [],
-            'integer',
-            'plpgsql',
-            body,
-            [],
-            { variables: 100 }
-          )
-        ).to.be.rejectedWith(
-          /expandFunctionVariableList: function variables must be an array/
-        );
+          this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], { variables: 100 })
+        ).to.be.rejectedWith(/expandFunctionVariableList: function variables must be an array/);
 
         expect(
-          this.queryInterface.createFunction(
-            'test_func',
-            [],
-            'integer',
-            'plpgsql',
-            body,
-            [],
-            { variables: [{ name: 'myVar' }] }
-          )
+          this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], {
+            variables: [{ name: 'myVar' }]
+          })
         ).to.be.rejectedWith(/function variable must have a name and type/);
 
         expect(
-          this.queryInterface.createFunction(
-            'test_func',
-            [],
-            'integer',
-            'plpgsql',
-            body,
-            [],
-            { variables: [{ type: 'integer' }] }
-          )
+          this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], {
+            variables: [{ type: 'integer' }]
+          })
         ).to.be.rejectedWith(/function variable must have a name and type/);
       });
 
       it('uses declared variables', async function () {
         const body = 'RETURN myVar + 1;';
         const options = {
-          variables: [{ type: 'integer', name: 'myVar', default: 100 }],
+          variables: [{ type: 'integer', name: 'myVar', default: 100 }]
         };
-        await this.queryInterface.createFunction(
-          'add_one',
-          [],
-          'integer',
-          'plpgsql',
-          body,
-          [],
-          options
-        );
+        await this.queryInterface.createFunction('add_one', [], 'integer', 'plpgsql', body, [], options);
         const res = await this.sequelize.query('select add_one();', {
-          type: this.sequelize.QueryTypes.SELECT,
+          type: this.sequelize.QueryTypes.SELECT
         });
         expect(res[0].add_one).to.be.eql(101);
       });
@@ -335,27 +275,18 @@ if (dialect.match(/^postgres/)) {
 
         // make sure we have a droptest function in place.
         await this.queryInterface
-          .createFunction(
-            'droptest',
-            [{ type: 'varchar', name: 'test' }],
-            'varchar',
-            'plpgsql',
-            body,
-            options
-          )
+          .createFunction('droptest', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', body, options)
           // suppress errors.. this could fail if the function is already there.. thats ok.
           .catch(() => {});
       });
 
       it('can drop a function', async function () {
         // call drop function
-        await this.queryInterface.dropFunction('droptest', [
-          { type: 'varchar', name: 'test' },
-        ]);
+        await this.queryInterface.dropFunction('droptest', [{ type: 'varchar', name: 'test' }]);
         await expect(
           // now call the function we attempted to drop.. if dropFunction worked as expect it should produce an error.
           this.sequelize.query("select droptest('test');", {
-            type: this.sequelize.QueryTypes.SELECT,
+            type: this.sequelize.QueryTypes.SELECT
           })
           // test that we did get the expected error indicating that droptest was properly removed.
         ).to.be.rejectedWith(/.*function droptest.* does not exist/);
@@ -363,19 +294,15 @@ if (dialect.match(/^postgres/)) {
 
       it('produces an error when missing expected parameters', async function () {
         await Promise.all([
-          expect(this.queryInterface.dropFunction()).to.be.rejectedWith(
-            /.*requires functionName/
+          expect(this.queryInterface.dropFunction()).to.be.rejectedWith(/.*requires functionName/),
+
+          expect(this.queryInterface.dropFunction('droptest')).to.be.rejectedWith(
+            /.*function parameters array required/
           ),
 
-          expect(
-            this.queryInterface.dropFunction('droptest')
-          ).to.be.rejectedWith(/.*function parameters array required/),
-
-          expect(
-            this.queryInterface.dropFunction('droptest', [{ name: 'test' }])
-          ).to.be.rejectedWith(
+          expect(this.queryInterface.dropFunction('droptest', [{ name: 'test' }])).to.be.rejectedWith(
             /.*function or trigger used with a parameter without any type/
-          ),
+          )
         ]);
       });
     });
@@ -387,7 +314,7 @@ if (dialect.match(/^postgres/)) {
         await this.queryInterface.createTable('Group', {
           username: DataTypes.STRING,
           isAdmin: DataTypes.BOOLEAN,
-          from: DataTypes.STRING,
+          from: DataTypes.STRING
         });
       });
 
@@ -400,33 +327,29 @@ if (dialect.match(/^postgres/)) {
               WHEN 'foo' THEN 'bar'
               ELSE 'baz'
             END
-          )`),
+          )`)
           ],
           { name: 'group_username_case' }
         );
 
         const indexes = await this.queryInterface.showIndex('Group');
-        const indexColumns = _.uniq(indexes.map((index) => index.name));
+        const indexColumns = _.uniq(indexes.map(index => index.name));
 
         expect(indexColumns).to.include('group_username_case');
       });
 
       it('adds, reads and removes a named functional index to the table', async function () {
-        await this.queryInterface.addIndex(
-          'Group',
-          [this.sequelize.fn('lower', this.sequelize.col('username'))],
-          {
-            name: 'group_username_lower',
-          }
-        );
+        await this.queryInterface.addIndex('Group', [this.sequelize.fn('lower', this.sequelize.col('username'))], {
+          name: 'group_username_lower'
+        });
 
         const indexes0 = await this.queryInterface.showIndex('Group');
-        const indexColumns0 = _.uniq(indexes0.map((index) => index.name));
+        const indexColumns0 = _.uniq(indexes0.map(index => index.name));
 
         expect(indexColumns0).to.include('group_username_lower');
         await this.queryInterface.removeIndex('Group', 'group_username_lower');
         const indexes = await this.queryInterface.showIndex('Group');
-        const indexColumns = _.uniq(indexes.map((index) => index.name));
+        const indexColumns = _.uniq(indexes.map(index => index.name));
         expect(indexColumns).to.be.empty;
       });
     });
