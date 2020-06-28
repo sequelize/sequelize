@@ -2,16 +2,20 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
-  current   = Support.sequelize;
+  Support = require('../support'),
+  current = Support.sequelize;
 
 describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
   if (current.dialect.supports.schemas) {
     const Project = current.define('project'),
-      Company = current.define('company', {}, {
-        schema: 'default',
-        schemaDelimiter: '&'
-      });
+      Company = current.define(
+        'company',
+        {},
+        {
+          schema: 'default',
+          schemaDelimiter: '&',
+        }
+      );
 
     describe('schema', () => {
       it('should work with no default schema', () => {
@@ -49,7 +53,9 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able to override the default schema delimiter', () => {
-        expect(Company.schema(Company._schema, '^')._schemaDelimiter).to.equal('^');
+        expect(Company.schema(Company._schema, '^')._schemaDelimiter).to.equal(
+          '^'
+        );
       });
 
       it('should support multiple, coexistent schema delimiter models', () => {

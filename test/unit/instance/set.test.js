@@ -11,16 +11,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('set', () => {
     it('sets nested keys in JSON objects', () => {
       const User = current.define('User', {
-        meta: DataTypes.JSONB
+        meta: DataTypes.JSONB,
       });
-      const user = User.build({
-        meta: {
-          location: 'Stockhollm'
+      const user = User.build(
+        {
+          meta: {
+            location: 'Stockhollm',
+          },
+        },
+        {
+          isNewRecord: false,
+          raw: true,
         }
-      }, {
-        isNewRecord: false,
-        raw: true
-      });
+      );
 
       const meta = user.get('meta');
 
@@ -36,8 +39,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         meta: {
           type: DataTypes.JSONB,
           allowNull: false,
-          defaultValue: {}
-        }
+          defaultValue: {},
+        },
       });
       const user1 = User.build({});
       user1.set('meta.location', 'Stockhollm');
@@ -49,27 +52,32 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {
         date: {
           type: DataTypes.DATE,
-          allowNull: true
-        }
+          allowNull: true,
+        },
       });
       const user1 = User.build({
-        date: null
+        date: null,
       });
       user1.set('date', '1970-01-01');
       expect(user1.get('date')).to.be.ok;
-      expect(user1.get('date').getTime()).to.equal(new Date('1970-01-01').getTime());
+      expect(user1.get('date').getTime()).to.equal(
+        new Date('1970-01-01').getTime()
+      );
     });
 
     it('overwrites non-date originalValue with date', () => {
       const User = current.define('User', {
-        date: DataTypes.DATE
+        date: DataTypes.DATE,
       });
-      const user = User.build({
-        date: ' '
-      }, {
-        isNewRecord: false,
-        raw: true
-      });
+      const user = User.build(
+        {
+          date: ' ',
+        },
+        {
+          isNewRecord: false,
+          raw: true,
+        }
+      );
 
       user.set('date', new Date());
       expect(user.get('date')).to.be.an.instanceof(Date);
@@ -77,11 +85,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('custom setter', () => {
-      before(function() {
-        this.stubCreate = sinon.stub(current.getQueryInterface(), 'insert').callsFake(async instance => [instance, 1]);
+      before(function () {
+        this.stubCreate = sinon
+          .stub(current.getQueryInterface(), 'insert')
+          .callsFake(async (instance) => [instance, 1]);
       });
 
-      after(function() {
+      after(function () {
         this.stubCreate.restore();
       });
 
@@ -97,51 +107,51 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
               val = val.replace(/^\+/, '00').replace(/\(0\)|[\s+/.\-()]/g, '');
             }
             this.setDataValue('phoneNumber', val);
-          }
-        }
+          },
+        },
       });
 
       it('does not set field to changed if field is set to the same value with custom setter using primitive value', async () => {
         const user = User.build({
-          phoneNumber: '+1 234 567'
+          phoneNumber: '+1 234 567',
         });
         await user.save();
         expect(user.changed('phoneNumber')).to.be.false;
 
-        user.set('phoneNumber', '+1 (0) 234567');// Canonical equivalent of existing phone number
+        user.set('phoneNumber', '+1 (0) 234567'); // Canonical equivalent of existing phone number
         expect(user.changed('phoneNumber')).to.be.false;
       });
 
       it('sets field to changed if field is set to the another value with custom setter using primitive value', async () => {
         const user = User.build({
-          phoneNumber: '+1 234 567'
+          phoneNumber: '+1 234 567',
         });
         await user.save();
         expect(user.changed('phoneNumber')).to.be.false;
 
-        user.set('phoneNumber', '+1 (0) 765432');// Canonical non-equivalent of existing phone number
+        user.set('phoneNumber', '+1 (0) 765432'); // Canonical non-equivalent of existing phone number
         expect(user.changed('phoneNumber')).to.be.true;
       });
 
       it('does not set field to changed if field is set to the same value with custom setter using object', async () => {
         const user = User.build({
-          phoneNumber: '+1 234 567'
+          phoneNumber: '+1 234 567',
         });
         await user.save();
         expect(user.changed('phoneNumber')).to.be.false;
 
-        user.set('phoneNumber', { country: '1', area: '234', local: '567' });// Canonical equivalent of existing phone number
+        user.set('phoneNumber', { country: '1', area: '234', local: '567' }); // Canonical equivalent of existing phone number
         expect(user.changed('phoneNumber')).to.be.false;
       });
 
       it('sets field to changed if field is set to the another value with custom setter using object', async () => {
         const user = User.build({
-          phoneNumber: '+1 234 567'
+          phoneNumber: '+1 234 567',
         });
         await user.save();
         expect(user.changed('phoneNumber')).to.be.false;
 
-        user.set('phoneNumber', { country: '1', area: '765', local: '432' });// Canonical non-equivalent of existing phone number
+        user.set('phoneNumber', { country: '1', area: '765', local: '432' }); // Canonical non-equivalent of existing phone number
         expect(user.changed('phoneNumber')).to.be.true;
       });
     });

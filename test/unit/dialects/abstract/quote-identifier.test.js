@@ -7,9 +7,7 @@ const chai = require('chai'),
 describe('QuoteIdentifier', () => {
   it('unknown dialect', () => {
     expect(
-      QuoteHelper.quoteIdentifier.bind(this, 'unknown', 'id', {})).to.throw(
-      Error);
+      QuoteHelper.quoteIdentifier.bind(this, 'unknown', 'id', {})
+    ).to.throw(Error);
   });
-
 });
-

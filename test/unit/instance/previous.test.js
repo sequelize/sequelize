@@ -18,8 +18,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           },
           get() {
             this.getDataValue('textCustom');
-          }
-        }
+          },
+        },
       });
 
       const instance = Model.build({ text: 'a', textCustom: 'abc' });

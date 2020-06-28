@@ -1,11 +1,11 @@
 'use strict';
 
-const  chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support');
 
 describe(Support.getTestDialectTeaser('Alias'), () => {
-  it('should uppercase the first letter in alias getter, but not in eager loading', async function() {
+  it('should uppercase the first letter in alias getter, but not in eager loading', async function () {
     const User = this.sequelize.define('user', {}),
       Task = this.sequelize.define('task', {});
 
@@ -20,15 +20,21 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
     expect(task0.getOwner).to.be.ok;
 
     const [user, task] = await Promise.all([
-      User.findOne({ where: { id: 1 }, include: [{ model: Task, as: 'assignments' }] }),
-      Task.findOne({ where: { id: 1 }, include: [{ model: User, as: 'owner' }] })
+      User.findOne({
+        where: { id: 1 },
+        include: [{ model: Task, as: 'assignments' }],
+      }),
+      Task.findOne({
+        where: { id: 1 },
+        include: [{ model: User, as: 'owner' }],
+      }),
     ]);
 
     expect(user.assignments).to.be.ok;
     expect(task.owner).to.be.ok;
   });
 
-  it('shouldnt touch the passed alias', async function() {
+  it('shouldnt touch the passed alias', async function () {
     const User = this.sequelize.define('user', {}),
       Task = this.sequelize.define('task', {});
 
@@ -43,15 +49,21 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
     expect(task0.getOWNER).to.be.ok;
 
     const [user, task] = await Promise.all([
-      User.findOne({ where: { id: 1 }, include: [{ model: Task, as: 'ASSIGNMENTS' }] }),
-      Task.findOne({ where: { id: 1 }, include: [{ model: User, as: 'OWNER' }] })
+      User.findOne({
+        where: { id: 1 },
+        include: [{ model: Task, as: 'ASSIGNMENTS' }],
+      }),
+      Task.findOne({
+        where: { id: 1 },
+        include: [{ model: User, as: 'OWNER' }],
+      }),
     ]);
 
     expect(user.ASSIGNMENTS).to.be.ok;
     expect(task.OWNER).to.be.ok;
   });
 
-  it('should allow me to pass my own plural and singular forms to hasMany', async function() {
+  it('should allow me to pass my own plural and singular forms to hasMany', async function () {
     const User = this.sequelize.define('user', {}),
       Task = this.sequelize.define('task', {});
 
@@ -62,18 +74,25 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
     expect(user0.getTaskz).to.be.ok;
     expect(user0.addTask).to.be.ok;
     expect(user0.addTaskz).to.be.ok;
-    const user = await User.findOne({ where: { id: 1 }, include: [{ model: Task, as: 'taskz' }] });
+    const user = await User.findOne({
+      where: { id: 1 },
+      include: [{ model: Task, as: 'taskz' }],
+    });
     expect(user.taskz).to.be.ok;
   });
 
-  it('should allow me to define plural and singular forms on the model', async function() {
+  it('should allow me to define plural and singular forms on the model', async function () {
     const User = this.sequelize.define('user', {}),
-      Task = this.sequelize.define('task', {}, {
-        name: {
-          singular: 'assignment',
-          plural: 'assignments'
+      Task = this.sequelize.define(
+        'task',
+        {},
+        {
+          name: {
+            singular: 'assignment',
+            plural: 'assignments',
+          },
         }
-      });
+      );
 
     User.hasMany(Task);
 

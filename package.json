@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "6.1.0",
+  "version": "0.0.0-development",
   "maintainers": [
     "Sascha Depold <sascha@depold.com>",
     "Jan Aagaard Meier <janzeh@gmail.com>",
@@ -20,13 +20,11 @@
   "main": "index.js",
   "types": "types",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=14.0.0"
   },
   "files": [
     "lib",
-    "types/index.d.ts",
-    "types/lib",
-    "types/type-helpers"
+    "types"
   ],
   "license": "MIT",
   "dependencies": {
@@ -47,8 +45,10 @@
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-angular": "^8.3.4",
-    "@types/node": "^12.12.42",
+    "@types/node": "^14.0.14",
     "@types/validator": "^10.11.0",
+    "@typescript-eslint/eslint-plugin": "^3.4.0",
+    "@typescript-eslint/parser": "^3.4.0",
     "acorn": "^7.2.0",
     "chai": "^4.x",
     "chai-as-promised": "^7.x",
@@ -64,8 +64,10 @@
     "esdoc-inject-style-plugin": "^1.0.0",
     "esdoc-standard-plugin": "^1.0.0",
     "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-jsdoc": "^20.4.0",
     "eslint-plugin-mocha": "^6.2.2",
+    "eslint-plugin-prettier": "^3.1.4",
     "fs-jetpack": "^2.4.0",
     "husky": "^4.2.5",
     "js-combinatorics": "^0.5.5",
@@ -82,13 +84,14 @@
     "p-timeout": "^3.2.0",
     "pg": "^8.2.1",
     "pg-hstore": "^2.x",
+    "prettier": "^2.0.5",
     "rimraf": "^3.0.2",
     "semantic-release": "^17.0.7",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.3.0",
     "sqlite3": "^4.2.0",
     "tedious": "8.3.0",
-    "typescript": "^3.9.3"
+    "typescript": "^3.9.5"
   },
   "keywords": [
     "mysql",
@@ -110,7 +113,8 @@
     ]
   },
   "lint-staged": {
-    "*.js": "eslint"
+    "*.js": "eslint",
+    "*.ts": "eslint"
   },
   "husky": {
     "hooks": {
@@ -128,8 +132,13 @@
   "publishConfig": {
     "tag": "latest"
   },
+  "prettier": {
+    "singleQuote": true
+  },
   "scripts": {
-    "lint": "eslint lib test --quiet",
+    "tsc": "tsc",
+    "pretty": "prettier src test --write",
+    "lint": "eslint --ext .js,.ts src test --quiet",
     "lint-docs": "markdownlint docs",
     "test": "npm run teaser && npm run test-unit && npm run test-integration",
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
@@ -162,7 +171,6 @@
     "test-postgresn": "npm run test-postgres-native",
     "test-mssql": "cross-env DIALECT=mssql npm test",
     "test-all": "npm run test-mariadb && npm run test-mysql && npm run test-sqlite && npm run test-postgres && npm run test-postgres-native && npm run test-mssql",
-    "test-typings": "tsc -b types/tsconfig.json &&  dtslint --expectOnly types/test",
     "cover": "rimraf coverage && npm run teaser && npm run cover-integration && npm run cover-unit && npm run merge-coverage",
     "cover-integration": "cross-env COVERAGE=true nyc --reporter=lcovonly mocha --require scripts/mocha-bootload -t 30000 --exit \"test/integration/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
     "cover-unit": "cross-env COVERAGE=true nyc --reporter=lcovonly mocha --require scripts/mocha-bootload -t 30000 --exit \"test/unit/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",

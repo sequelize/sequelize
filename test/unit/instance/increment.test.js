@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
-  current   = Support.sequelize,
+  Support = require('../support'),
+  current = Support.sequelize,
   Sequelize = Support.Sequelize,
-  sinon     = require('sinon');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('increment', () => {
@@ -15,17 +15,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         id: {
           type: Sequelize.BIGINT,
           primaryKey: true,
-          autoIncrement: true
-        }
+          autoIncrement: true,
+        },
       });
 
       before(() => {
-        stub = sinon.stub(current, 'query').resolves(
-          {
-            _previousDataValues: { id: 1 },
-            dataValues: { id: 3 }
-          }
-        );
+        stub = sinon.stub(current, 'query').resolves({
+          _previousDataValues: { id: 1 },
+          dataValues: { id: 3 },
+        });
       });
 
       after(() => {

@@ -9,7 +9,11 @@ const chai = require('chai'),
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES] Sequelize', () => {
     async function checkTimezoneParsing(baseOptions) {
-      const options = { ...baseOptions, timezone: 'Asia/Kolkata', timestamps: true };
+      const options = {
+        ...baseOptions,
+        timezone: 'Asia/Kolkata',
+        timestamps: true,
+      };
       const sequelize = Support.createSequelizeInstance(options);
 
       const tzTable = sequelize.define('tz_table', { foo: DataTypes.STRING });
@@ -18,7 +22,7 @@ if (dialect.match(/^postgres/)) {
       expect(row).to.be.not.null;
     }
 
-    it('should correctly parse the moment based timezone while fetching hstore oids', async function() {
+    it('should correctly parse the moment based timezone while fetching hstore oids', async function () {
       await checkTimezoneParsing(this.sequelize.options);
     });
 
@@ -28,13 +32,17 @@ if (dialect.match(/^postgres/)) {
     });
 
     it('should allow overriding client_min_messages', async () => {
-      const sequelize = Support.createSequelizeInstance({ clientMinMessages: 'ERROR' });
+      const sequelize = Support.createSequelizeInstance({
+        clientMinMessages: 'ERROR',
+      });
       const result = await sequelize.query('SHOW client_min_messages');
       expect(result[0].client_min_messages).to.equal('error');
     });
 
     it('should not set client_min_messages if clientMinMessages is false', async () => {
-      const sequelize = Support.createSequelizeInstance({ clientMinMessages: false });
+      const sequelize = Support.createSequelizeInstance({
+        clientMinMessages: false,
+      });
       const result = await sequelize.query('SHOW client_min_messages');
       // `notice` is Postgres's default
       expect(result[0].client_min_messages).to.equal('notice');
@@ -46,7 +54,7 @@ if (dialect.match(/^postgres/)) {
       DataTypes.GEOMETRY,
       DataTypes.HSTORE,
       DataTypes.GEOGRAPHY,
-      DataTypes.CITEXT
+      DataTypes.CITEXT,
     ];
 
     // Expect at least these
@@ -55,7 +63,7 @@ if (dialect.match(/^postgres/)) {
       decimal: 'numeric',
       date: 'timestamptz',
       dateonly: 'date',
-      bigint: 'int8'
+      bigint: 'int8',
     };
 
     function reloadDynamicOIDs(sequelize) {
@@ -65,7 +73,7 @@ if (dialect.match(/^postgres/)) {
 
       // Force start of connection manager to reload dynamic OIDs
       const User = sequelize.define('User', {
-        perms: DataTypes.ENUM(['foo', 'bar'])
+        perms: DataTypes.ENUM(['foo', 'bar']),
       });
 
       return User.sync({ force: true });
@@ -74,23 +82,28 @@ if (dialect.match(/^postgres/)) {
     it('should fetch regular dynamic oids and create parsers', async () => {
       const sequelize = Support.sequelize;
       await reloadDynamicOIDs(sequelize);
-      dynamicTypesToCheck.forEach(type => {
-        expect(type.types.postgres,
-          `DataType.${type.key}.types.postgres`).to.not.be.empty;
+      dynamicTypesToCheck.forEach((type) => {
+        expect(type.types.postgres, `DataType.${type.key}.types.postgres`).to
+          .not.be.empty;
 
         for (const name of type.types.postgres) {
           const entry = sequelize.connectionManager.nameOidMap[name];
           const oidParserMap = sequelize.connectionManager.oidParserMap;
 
           expect(entry.oid, `nameOidMap[${name}].oid`).to.be.a('number');
-          expect(entry.arrayOid, `nameOidMap[${name}].arrayOid`).to.be.a('number');
+          expect(entry.arrayOid, `nameOidMap[${name}].arrayOid`).to.be.a(
+            'number'
+          );
 
-          expect(oidParserMap.get(entry.oid),
-            `oidParserMap.get(nameOidMap[${name}].oid)`).to.be.a('function');
-          expect(oidParserMap.get(entry.arrayOid),
-            `oidParserMap.get(nameOidMap[${name}].arrayOid)`).to.be.a('function');
+          expect(
+            oidParserMap.get(entry.oid),
+            `oidParserMap.get(nameOidMap[${name}].oid)`
+          ).to.be.a('function');
+          expect(
+            oidParserMap.get(entry.arrayOid),
+            `oidParserMap.get(nameOidMap[${name}].arrayOid)`
+          ).to.be.a('function');
         }
-
       });
     });
 
@@ -104,10 +117,16 @@ if (dialect.match(/^postgres/)) {
       expect(enumOids.arrayOids, 'enumOids.arrayOids').to.not.be.empty;
 
       for (const oid of enumOids.oids) {
-        expect(oidParserMap.get(oid), 'oidParserMap.get(enumOids.oids)').to.be.a('function');
+        expect(
+          oidParserMap.get(oid),
+          'oidParserMap.get(enumOids.oids)'
+        ).to.be.a('function');
       }
       for (const arrayOid of enumOids.arrayOids) {
-        expect(oidParserMap.get(arrayOid), 'oidParserMap.get(enumOids.arrayOids)').to.be.a('function');
+        expect(
+          oidParserMap.get(arrayOid),
+          'oidParserMap.get(enumOids.arrayOids)'
+        ).to.be.a('function');
       }
     });
 
@@ -123,12 +142,15 @@ if (dialect.match(/^postgres/)) {
           expect(entry[key], `nameOidMap[${name}][${key}]`).to.be.a('number');
         }
 
-        expect(oidParserMap.get(entry.rangeOid),
-          `oidParserMap.get(nameOidMap[${name}].rangeOid)`).to.be.a('function');
-        expect(oidParserMap.get(entry.arrayRangeOid),
-          `oidParserMap.get(nameOidMap[${name}].arrayRangeOid)`).to.be.a('function');
+        expect(
+          oidParserMap.get(entry.rangeOid),
+          `oidParserMap.get(nameOidMap[${name}].rangeOid)`
+        ).to.be.a('function');
+        expect(
+          oidParserMap.get(entry.arrayRangeOid),
+          `oidParserMap.get(nameOidMap[${name}].arrayRangeOid)`
+        ).to.be.a('function');
       }
     });
-
   });
 }

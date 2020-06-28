@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         expect(Utils.underscoredIf('fooBar', true)).to.equal('foo_bar');
       });
 
-      it('doesn\'t underscore if second param is false', () => {
+      it("doesn't underscore if second param is false", () => {
         expect(Utils.underscoredIf('fooBar', false)).to.equal('fooBar');
       });
     });
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         expect(Utils.camelizeIf('foo_bar', true)).to.equal('fooBar');
       });
 
-      it('doesn\'t camelize if second param is false', () => {
+      it("doesn't camelize if second param is false", () => {
         expect(Utils.underscoredIf('fooBar', true)).to.equal('foo_bar');
       });
     });
@@ -71,7 +71,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         Utils.cloneDeep({
           clone() {
             throw new Error('clone method called');
-          }
+          },
         });
       }).to.not.throw();
     });
@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     it('should not call clone methods on arrays', () => {
       expect(() => {
         const arr = [];
-        arr.clone = function() {
+        arr.clone = function () {
           throw new Error('clone method called');
         };
 
@@ -90,36 +90,45 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   if (Support.getTestDialect() === 'postgres') {
     describe('json', () => {
-      beforeEach(function() {
+      beforeEach(function () {
         this.queryGenerator = this.sequelize.getQueryInterface().queryGenerator;
       });
 
-      it('successfully parses a complex nested condition hash', function() {
+      it('successfully parses a complex nested condition hash', function () {
         const conditions = {
           metadata: {
             language: 'icelandic',
-            pg_rating: { 'dk': 'G' }
+            pg_rating: { dk: 'G' },
           },
-          another_json_field: { x: 1 }
+          another_json_field: { x: 1 },
         };
-        const expected = '("metadata"#>>\'{language}\') = \'icelandic\' AND ("metadata"#>>\'{pg_rating,dk}\') = \'G\' AND ("another_json_field"#>>\'{x}\') = \'1\'';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))).to.deep.equal(expected);
+        const expected =
+          "(\"metadata\"#>>'{language}') = 'icelandic' AND (\"metadata\"#>>'{pg_rating,dk}') = 'G' AND (\"another_json_field\"#>>'{x}') = '1'";
+        expect(
+          this.queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))
+        ).to.deep.equal(expected);
       });
 
-      it('successfully parses a string using dot notation', function() {
+      it('successfully parses a string using dot notation', function () {
         const path = 'metadata.pg_rating.dk';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal('("metadata"#>>\'{pg_rating,dk}\')');
+        expect(
+          this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))
+        ).to.equal('("metadata"#>>\'{pg_rating,dk}\')');
       });
 
-      it('allows postgres json syntax', function() {
+      it('allows postgres json syntax', function () {
         const path = 'metadata->pg_rating->>dk';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(path);
+        expect(
+          this.queryGenerator.handleSequelizeMethod(new Utils.Json(path))
+        ).to.equal(path);
       });
 
-      it('can take a value to compare against', function() {
+      it('can take a value to compare against', function () {
         const path = 'metadata.pg_rating.is';
         const value = 'U';
-        expect(this.queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal('("metadata"#>>\'{pg_rating,is}\') = \'U\'');
+        expect(
+          this.queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))
+        ).to.equal("(\"metadata\"#>>'{pg_rating,is}') = 'U'");
       });
     });
   }
@@ -138,10 +147,10 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('Sequelize.fn', () => {
     let Airplane;
 
-    beforeEach(async function() {
+    beforeEach(async function () {
       Airplane = this.sequelize.define('Airplane', {
         wings: DataTypes.INTEGER,
-        engines: DataTypes.INTEGER
+        engines: DataTypes.INTEGER,
       });
 
       await Airplane.sync({ force: true });
@@ -149,36 +158,56 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       await Airplane.bulkCreate([
         {
           wings: 2,
-          engines: 0
-        }, {
+          engines: 0,
+        },
+        {
           wings: 4,
-          engines: 1
-        }, {
+          engines: 1,
+        },
+        {
           wings: 2,
-          engines: 2
-        }
+          engines: 2,
+        },
       ]);
     });
 
     if (Support.getTestDialect() !== 'mssql') {
-      it('accepts condition object (with cast)', async function() {
+      it('accepts condition object (with cast)', async function () {
         const type = Support.getTestDialect() === 'mysql' ? 'unsigned' : 'int';
 
         const [airplane] = await Airplane.findAll({
           attributes: [
             [this.sequelize.fn('COUNT', '*'), 'count'],
-            [Sequelize.fn('SUM', Sequelize.cast({
-              engines: 1
-            }, type)), 'count-engines'],
-            [Sequelize.fn('SUM', Sequelize.cast({
-              [Op.or]: {
-                engines: {
-                  [Op.gt]: 1
-                },
-                wings: 4
-              }
-            }, type)), 'count-engines-wings']
-          ]
+            [
+              Sequelize.fn(
+                'SUM',
+                Sequelize.cast(
+                  {
+                    engines: 1,
+                  },
+                  type
+                )
+              ),
+              'count-engines',
+            ],
+            [
+              Sequelize.fn(
+                'SUM',
+                Sequelize.cast(
+                  {
+                    [Op.or]: {
+                      engines: {
+                        [Op.gt]: 1,
+                      },
+                      wings: 4,
+                    },
+                  },
+                  type
+                )
+              ),
+              'count-engines-wings',
+            ],
+          ],
         });
 
         // TODO: `parseInt` should not be needed, see #10533
@@ -188,23 +217,32 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       });
     }
 
-    if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres') {
-      it('accepts condition object (auto casting)', async function() {
+    if (
+      Support.getTestDialect() !== 'mssql' &&
+      Support.getTestDialect() !== 'postgres'
+    ) {
+      it('accepts condition object (auto casting)', async function () {
         const [airplane] = await Airplane.findAll({
           attributes: [
             [this.sequelize.fn('COUNT', '*'), 'count'],
-            [Sequelize.fn('SUM', {
-              engines: 1
-            }), 'count-engines'],
-            [Sequelize.fn('SUM', {
-              [Op.or]: {
-                engines: {
-                  [Op.gt]: 1
+            [
+              Sequelize.fn('SUM', {
+                engines: 1,
+              }),
+              'count-engines',
+            ],
+            [
+              Sequelize.fn('SUM', {
+                [Op.or]: {
+                  engines: {
+                    [Op.gt]: 1,
+                  },
+                  wings: 4,
                 },
-                wings: 4
-              }
-            }), 'count-engines-wings']
-          ]
+              }),
+              'count-engines-wings',
+            ],
+          ],
         });
 
         // TODO: `parseInt` should not be needed, see #10533
@@ -230,9 +268,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
           city: null,
           coordinates: {
             longitude: 55.6779627,
-            latitude: 12.5964313
-          }
-        }
+            latitude: 12.5964313,
+          },
+        },
       };
       const returnedValue = Utils.flattenObjectDeep(value);
       expect(returnedValue).to.deep.equal({
@@ -240,7 +278,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         'address.street': 'Fake St. 123',
         'address.city': null,
         'address.coordinates.longitude': 55.6779627,
-        'address.coordinates.latitude': 12.5964313
+        'address.coordinates.latitude': 12.5964313,
       });
     });
   });

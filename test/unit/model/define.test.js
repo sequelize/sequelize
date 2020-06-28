@@ -11,12 +11,16 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('define', () => {
     it('should allow custom timestamps with underscored: true', () => {
-      const Model = current.define('User', {}, {
-        createdAt: 'createdAt',
-        updatedAt: 'updatedAt',
-        timestamps: true,
-        underscored: true
-      });
+      const Model = current.define(
+        'User',
+        {},
+        {
+          createdAt: 'createdAt',
+          updatedAt: 'updatedAt',
+          timestamps: true,
+          underscored: true,
+        }
+      );
 
       expect(Model.rawAttributes).to.haveOwnProperty('createdAt');
       expect(Model.rawAttributes).to.haveOwnProperty('updatedAt');
@@ -31,17 +35,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should throw when id is added but not marked as PK', () => {
       expect(() => {
         current.define('foo', {
-          id: DataTypes.INTEGER
+          id: DataTypes.INTEGER,
         });
-      }).to.throw("A column called 'id' was added to the attributes of 'foos' but not marked with 'primaryKey: true'");
+      }).to.throw(
+        "A column called 'id' was added to the attributes of 'foos' but not marked with 'primaryKey: true'"
+      );
 
       expect(() => {
         current.define('bar', {
           id: {
-            type: DataTypes.INTEGER
-          }
+            type: DataTypes.INTEGER,
+          },
         });
-      }).to.throw("A column called 'id' was added to the attributes of 'bars' but not marked with 'primaryKey: true'");
+      }).to.throw(
+        "A column called 'id' was added to the attributes of 'bars' but not marked with 'primaryKey: true'"
+      );
     });
 
     it('should defend against null or undefined "unique" attributes', () => {
@@ -49,15 +57,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         current.define('baz', {
           foo: {
             type: DataTypes.STRING,
-            unique: null
+            unique: null,
           },
           bar: {
             type: DataTypes.STRING,
-            unique: undefined
+            unique: undefined,
           },
           bop: {
-            type: DataTypes.DATE
-          }
+            type: DataTypes.DATE,
+          },
         });
       }).not.to.throw();
     });
@@ -66,8 +74,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(() => {
         current.define('bar', {
           name: {
-            type: DataTypes.MY_UNKNOWN_TYPE
-          }
+            type: DataTypes.MY_UNKNOWN_TYPE,
+          },
         });
       }).to.throw('Unrecognized datatype for attribute "bar.name"');
     });
@@ -80,12 +88,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             allowNull: true,
             validate: {
               notNull: {
-                msg: 'Please enter the name'
-              }
-            }
-          }
+                msg: 'Please enter the name',
+              },
+            },
+          },
         });
-      }).to.throw('Invalid definition for "user.name", "notNull" validator is only allowed with "allowNull:false"');
+      }).to.throw(
+        'Invalid definition for "user.name", "notNull" validator is only allowed with "allowNull:false"'
+      );
 
       expect(() => {
         current.define('part', {
@@ -93,12 +103,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             type: DataTypes.STRING,
             validate: {
               notNull: {
-                msg: 'Please enter the part name'
-              }
-            }
-          }
+                msg: 'Please enter the part name',
+              },
+            },
+          },
         });
-      }).to.throw('Invalid definition for "part.name", "notNull" validator is only allowed with "allowNull:false"');
+      }).to.throw(
+        'Invalid definition for "part.name", "notNull" validator is only allowed with "allowNull:false"'
+      );
     });
 
     describe('datatype warnings', () => {
@@ -113,13 +125,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('warn for unsupported INTEGER options', () => {
         current.define('A', {
           age: {
-            type: DataTypes.TINYINT.UNSIGNED
-          }
+            type: DataTypes.TINYINT.UNSIGNED,
+          },
         });
 
-        if (dialect === 'postgres' || dialect === 'sqlite' || dialect === 'mssql') {
+        if (
+          dialect === 'postgres' ||
+          dialect === 'sqlite' ||
+          dialect === 'mssql'
+        ) {
           expect(true).to.equal(console.warn.calledOnce);
-          expect(console.warn.args[0][0]).to.contain("does not support 'TINYINT'");
+          expect(console.warn.args[0][0]).to.contain(
+            "does not support 'TINYINT'"
+          );
         } else {
           expect(false).to.equal(console.warn.calledOnce);
         }

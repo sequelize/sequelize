@@ -8,9 +8,9 @@ const chai = require('chai'),
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] Regressions', () => {
-    it('properly fetch OIDs after sync, #8749', async function() {
+    it('properly fetch OIDs after sync, #8749', async function () {
       const User = this.sequelize.define('User', {
-        active: Sequelize.BOOLEAN
+        active: Sequelize.BOOLEAN,
       });
 
       /**
@@ -19,9 +19,7 @@ if (dialect.match(/^postgres/)) {
        * We are testing that OID refresh keep base type intact
        */
       const Media = this.sequelize.define('Media', {
-        type: Sequelize.ENUM([
-          'image', 'video', 'audio'
-        ])
+        type: Sequelize.ENUM(['image', 'video', 'audio']),
       });
 
       User.hasMany(Media);

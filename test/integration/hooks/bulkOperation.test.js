@@ -7,34 +7,38 @@ const chai = require('chai'),
   sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
       },
       mood: {
         type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral']
-      }
+        values: ['happy', 'sad', 'neutral'],
+      },
     });
 
-    this.ParanoidUser = this.sequelize.define('ParanoidUser', {
-      username: DataTypes.STRING,
-      mood: {
-        type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral']
+    this.ParanoidUser = this.sequelize.define(
+      'ParanoidUser',
+      {
+        username: DataTypes.STRING,
+        mood: {
+          type: DataTypes.ENUM,
+          values: ['happy', 'sad', 'neutral'],
+        },
+      },
+      {
+        paranoid: true,
       }
-    }, {
-      paranoid: true
-    });
+    );
 
     await this.sequelize.sync({ force: true });
   });
 
   describe('#bulkCreate', () => {
     describe('on success', () => {
-      it('should run hooks', async function() {
+      it('should run hooks', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
@@ -44,7 +48,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         await this.User.bulkCreate([
           { username: 'Cheech', mood: 'sad' },
-          { username: 'Chong', mood: 'sad' }
+          { username: 'Chong', mood: 'sad' },
         ]);
 
         expect(beforeBulk).to.have.been.calledOnce;
@@ -53,50 +57,54 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on error', () => {
-      it('should return an error from before', async function() {
+      it('should return an error from before', async function () {
         this.User.beforeBulkCreate(() => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.User.bulkCreate([
-          { username: 'Cheech', mood: 'sad' },
-          { username: 'Chong', mood: 'sad' }
-        ])).to.be.rejected;
+        await expect(
+          this.User.bulkCreate([
+            { username: 'Cheech', mood: 'sad' },
+            { username: 'Chong', mood: 'sad' },
+          ])
+        ).to.be.rejected;
       });
 
-      it('should return an error from after', async function() {
+      it('should return an error from after', async function () {
         this.User.afterBulkCreate(() => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.User.bulkCreate([
-          { username: 'Cheech', mood: 'sad' },
-          { username: 'Chong', mood: 'sad' }
-        ])).to.be.rejected;
+        await expect(
+          this.User.bulkCreate([
+            { username: 'Cheech', mood: 'sad' },
+            { username: 'Chong', mood: 'sad' },
+          ])
+        ).to.be.rejected;
       });
     });
 
     describe('with the {individualHooks: true} option', () => {
-      beforeEach(async function() {
+      beforeEach(async function () {
         this.User = this.sequelize.define('User', {
           username: {
             type: DataTypes.STRING,
-            defaultValue: ''
+            defaultValue: '',
           },
           beforeHookTest: {
             type: DataTypes.BOOLEAN,
-            defaultValue: false
+            defaultValue: false,
           },
           aNumber: {
             type: DataTypes.INTEGER,
-            defaultValue: 0
-          }
+            defaultValue: 0,
+          },
         });
 
         await this.User.sync({ force: true });
       });
 
-      it('should run the afterCreate/beforeCreate functions for each item created successfully', async function() {
+      it('should run the afterCreate/beforeCreate functions for each item created successfully', async function () {
         let beforeBulkCreate = false,
           afterBulkCreate = false;
 
@@ -108,16 +116,19 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           afterBulkCreate = true;
         });
 
-        this.User.beforeCreate(async user => {
+        this.User.beforeCreate(async (user) => {
           user.beforeHookTest = true;
         });
 
-        this.User.afterCreate(async user => {
+        this.User.afterCreate(async (user) => {
           user.username = `User${user.id}`;
         });
 
-        const records = await this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], { fields: ['aNumber'], individualHooks: true });
-        records.forEach(record => {
+        const records = await this.User.bulkCreate(
+          [{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }],
+          { fields: ['aNumber'], individualHooks: true }
+        );
+        records.forEach((record) => {
           expect(record.username).to.equal(`User${record.id}`);
           expect(record.beforeHookTest).to.be.true;
         });
@@ -125,7 +136,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(afterBulkCreate).to.be.true;
       });
 
-      it('should run the afterCreate/beforeCreate functions for each item created with an error', async function() {
+      it('should run the afterCreate/beforeCreate functions for each item created with an error', async function () {
         let beforeBulkCreate = false,
           afterBulkCreate = false;
 
@@ -141,12 +152,15 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('You shall not pass!');
         });
 
-        this.User.afterCreate(async user => {
+        this.User.afterCreate(async (user) => {
           user.username = `User${user.id}`;
         });
 
         try {
-          await this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], { fields: ['aNumber'], individualHooks: true });
+          await this.User.bulkCreate(
+            [{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }],
+            { fields: ['aNumber'], individualHooks: true }
+          );
         } catch (err) {
           expect(err).to.be.instanceOf(Error);
           expect(beforeBulkCreate).to.be.true;
@@ -158,7 +172,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('#bulkUpdate', () => {
     describe('on success', () => {
-      it('should run hooks', async function() {
+      it('should run hooks', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
@@ -167,7 +181,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         await this.User.bulkCreate([
           { username: 'Cheech', mood: 'sad' },
-          { username: 'Chong', mood: 'sad' }
+          { username: 'Chong', mood: 'sad' },
         ]);
 
         await this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } });
@@ -177,54 +191,58 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on error', () => {
-      it('should return an error from before', async function() {
+      it('should return an error from before', async function () {
         this.User.beforeBulkUpdate(() => {
           throw new Error('Whoops!');
         });
 
         await this.User.bulkCreate([
           { username: 'Cheech', mood: 'sad' },
-          { username: 'Chong', mood: 'sad' }
+          { username: 'Chong', mood: 'sad' },
         ]);
 
-        await expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be.rejected;
+        await expect(
+          this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })
+        ).to.be.rejected;
       });
 
-      it('should return an error from after', async function() {
+      it('should return an error from after', async function () {
         this.User.afterBulkUpdate(() => {
           throw new Error('Whoops!');
         });
 
         await this.User.bulkCreate([
           { username: 'Cheech', mood: 'sad' },
-          { username: 'Chong', mood: 'sad' }
+          { username: 'Chong', mood: 'sad' },
         ]);
 
-        await expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be.rejected;
+        await expect(
+          this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })
+        ).to.be.rejected;
       });
     });
 
     describe('with the {individualHooks: true} option', () => {
-      beforeEach(async function() {
+      beforeEach(async function () {
         this.User = this.sequelize.define('User', {
           username: {
             type: DataTypes.STRING,
-            defaultValue: ''
+            defaultValue: '',
           },
           beforeHookTest: {
             type: DataTypes.BOOLEAN,
-            defaultValue: false
+            defaultValue: false,
           },
           aNumber: {
             type: DataTypes.INTEGER,
-            defaultValue: 0
-          }
+            defaultValue: 0,
+          },
         });
 
         await this.User.sync({ force: true });
       });
 
-      it('should run the after/before functions for each item created successfully', async function() {
+      it('should run the after/before functions for each item created successfully', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
@@ -232,21 +250,26 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.afterBulkUpdate(afterBulk);
 
-        this.User.beforeUpdate(user => {
+        this.User.beforeUpdate((user) => {
           expect(user.changed()).to.not.be.empty;
           user.beforeHookTest = true;
         });
 
-        this.User.afterUpdate(user => {
+        this.User.afterUpdate((user) => {
           user.username = `User${user.id}`;
         });
 
         await this.User.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
+          { aNumber: 1 },
+          { aNumber: 1 },
+          { aNumber: 1 },
         ]);
 
-        const [, records] = await this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true });
-        records.forEach(record => {
+        const [, records] = await this.User.update(
+          { aNumber: 10 },
+          { where: { aNumber: 1 }, individualHooks: true }
+        );
+        records.forEach((record) => {
           expect(record.username).to.equal(`User${record.id}`);
           expect(record.beforeHookTest).to.be.true;
         });
@@ -254,8 +277,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(afterBulk).to.have.been.calledOnce;
       });
 
-      it('should run the after/before functions for each item created successfully changing some data before updating', async function() {
-        this.User.beforeUpdate(user => {
+      it('should run the after/before functions for each item created successfully changing some data before updating', async function () {
+        this.User.beforeUpdate((user) => {
           expect(user.changed()).to.not.be.empty;
           if (user.get('id') === 1) {
             user.set('aNumber', user.get('aNumber') + 3);
@@ -263,16 +286,21 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         await this.User.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
+          { aNumber: 1 },
+          { aNumber: 1 },
+          { aNumber: 1 },
         ]);
 
-        const [, records] = await this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true });
-        records.forEach(record => {
+        const [, records] = await this.User.update(
+          { aNumber: 10 },
+          { where: { aNumber: 1 }, individualHooks: true }
+        );
+        records.forEach((record) => {
           expect(record.aNumber).to.equal(10 + (record.id === 1 ? 3 : 0));
         });
       });
 
-      it('should run the after/before functions for each item created with an error', async function() {
+      it('should run the after/before functions for each item created with an error', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
@@ -284,14 +312,20 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('You shall not pass!');
         });
 
-        this.User.afterUpdate(user => {
+        this.User.afterUpdate((user) => {
           user.username = `User${user.id}`;
         });
 
-        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] });
+        await this.User.bulkCreate(
+          [{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }],
+          { fields: ['aNumber'] }
+        );
 
         try {
-          await this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true });
+          await this.User.update(
+            { aNumber: 10 },
+            { where: { aNumber: 1 }, individualHooks: true }
+          );
         } catch (err) {
           expect(err).to.be.instanceOf(Error);
           expect(err.message).to.be.equal('You shall not pass!');
@@ -304,7 +338,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('#bulkDestroy', () => {
     describe('on success', () => {
-      it('should run hooks', async function() {
+      it('should run hooks', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
@@ -318,44 +352,48 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on error', () => {
-      it('should return an error from before', async function() {
+      it('should return an error from before', async function () {
         this.User.beforeBulkDestroy(() => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be.rejected;
+        await expect(
+          this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })
+        ).to.be.rejected;
       });
 
-      it('should return an error from after', async function() {
+      it('should return an error from after', async function () {
         this.User.afterBulkDestroy(() => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be.rejected;
+        await expect(
+          this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })
+        ).to.be.rejected;
       });
     });
 
     describe('with the {individualHooks: true} option', () => {
-      beforeEach(async function() {
+      beforeEach(async function () {
         this.User = this.sequelize.define('User', {
           username: {
             type: DataTypes.STRING,
-            defaultValue: ''
+            defaultValue: '',
           },
           beforeHookTest: {
             type: DataTypes.BOOLEAN,
-            defaultValue: false
+            defaultValue: false,
           },
           aNumber: {
             type: DataTypes.INTEGER,
-            defaultValue: 0
-          }
+            defaultValue: 0,
+          },
         });
 
         await this.User.sync({ force: true });
       });
 
-      it('should run the after/before functions for each item created successfully', async function() {
+      it('should run the after/before functions for each item created successfully', async function () {
         let beforeBulk = false,
           afterBulk = false,
           beforeHook = false,
@@ -378,17 +416,22 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         await this.User.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
+          { aNumber: 1 },
+          { aNumber: 1 },
+          { aNumber: 1 },
         ]);
 
-        await this.User.destroy({ where: { aNumber: 1 }, individualHooks: true });
+        await this.User.destroy({
+          where: { aNumber: 1 },
+          individualHooks: true,
+        });
         expect(beforeBulk).to.be.true;
         expect(afterBulk).to.be.true;
         expect(beforeHook).to.be.true;
         expect(afterHook).to.be.true;
       });
 
-      it('should run the after/before functions for each item created with an error', async function() {
+      it('should run the after/before functions for each item created with an error', async function () {
         let beforeBulk = false,
           afterBulk = false,
           beforeHook = false,
@@ -411,10 +454,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           afterHook = true;
         });
 
-        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] });
+        await this.User.bulkCreate(
+          [{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }],
+          { fields: ['aNumber'] }
+        );
 
         try {
-          await this.User.destroy({ where: { aNumber: 1 }, individualHooks: true });
+          await this.User.destroy({
+            where: { aNumber: 1 },
+            individualHooks: true,
+          });
         } catch (err) {
           expect(err).to.be.instanceOf(Error);
           expect(beforeBulk).to.be.true;
@@ -427,62 +476,76 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   });
 
   describe('#bulkRestore', () => {
-    beforeEach(async function() {
+    beforeEach(async function () {
       await this.ParanoidUser.bulkCreate([
         { username: 'adam', mood: 'happy' },
-        { username: 'joe', mood: 'sad' }
+        { username: 'joe', mood: 'sad' },
       ]);
 
       await this.ParanoidUser.destroy({ truncate: true });
     });
 
     describe('on success', () => {
-      it('should run hooks', async function() {
+      it('should run hooks', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
         this.ParanoidUser.beforeBulkRestore(beforeBulk);
         this.ParanoidUser.afterBulkRestore(afterBulk);
 
-        await this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } });
+        await this.ParanoidUser.restore({
+          where: { username: 'adam', mood: 'happy' },
+        });
         expect(beforeBulk).to.have.been.calledOnce;
         expect(afterBulk).to.have.been.calledOnce;
       });
     });
 
     describe('on error', () => {
-      it('should return an error from before', async function() {
+      it('should return an error from before', async function () {
         this.ParanoidUser.beforeBulkRestore(() => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } })).to.be.rejected;
+        await expect(
+          this.ParanoidUser.restore({
+            where: { username: 'adam', mood: 'happy' },
+          })
+        ).to.be.rejected;
       });
 
-      it('should return an error from after', async function() {
+      it('should return an error from after', async function () {
         this.ParanoidUser.afterBulkRestore(() => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } })).to.be.rejected;
+        await expect(
+          this.ParanoidUser.restore({
+            where: { username: 'adam', mood: 'happy' },
+          })
+        ).to.be.rejected;
       });
     });
 
     describe('with the {individualHooks: true} option', () => {
-      beforeEach(async function() {
-        this.ParanoidUser = this.sequelize.define('ParanoidUser', {
-          aNumber: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0
+      beforeEach(async function () {
+        this.ParanoidUser = this.sequelize.define(
+          'ParanoidUser',
+          {
+            aNumber: {
+              type: DataTypes.INTEGER,
+              defaultValue: 0,
+            },
+          },
+          {
+            paranoid: true,
           }
-        }, {
-          paranoid: true
-        });
+        );
 
         await this.ParanoidUser.sync({ force: true });
       });
 
-      it('should run the after/before functions for each item restored successfully', async function() {
+      it('should run the after/before functions for each item restored successfully', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy(),
           beforeHook = sinon.spy(),
@@ -494,18 +557,23 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.ParanoidUser.afterRestore(afterHook);
 
         await this.ParanoidUser.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
+          { aNumber: 1 },
+          { aNumber: 1 },
+          { aNumber: 1 },
         ]);
 
         await this.ParanoidUser.destroy({ where: { aNumber: 1 } });
-        await this.ParanoidUser.restore({ where: { aNumber: 1 }, individualHooks: true });
+        await this.ParanoidUser.restore({
+          where: { aNumber: 1 },
+          individualHooks: true,
+        });
         expect(beforeBulk).to.have.been.calledOnce;
         expect(afterBulk).to.have.been.calledOnce;
         expect(beforeHook).to.have.been.calledThrice;
         expect(afterHook).to.have.been.calledThrice;
       });
 
-      it('should run the after/before functions for each item restored with an error', async function() {
+      it('should run the after/before functions for each item restored with an error', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy(),
           beforeHook = sinon.spy(),
@@ -521,9 +589,15 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.ParanoidUser.afterRestore(afterHook);
 
         try {
-          await this.ParanoidUser.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] });
+          await this.ParanoidUser.bulkCreate(
+            [{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }],
+            { fields: ['aNumber'] }
+          );
           await this.ParanoidUser.destroy({ where: { aNumber: 1 } });
-          await this.ParanoidUser.restore({ where: { aNumber: 1 }, individualHooks: true });
+          await this.ParanoidUser.restore({
+            where: { aNumber: 1 },
+            individualHooks: true,
+          });
         } catch (err) {
           expect(err).to.be.instanceOf(Error);
           expect(beforeBulk).to.have.been.calledOnce;

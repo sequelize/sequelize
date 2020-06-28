@@ -6,11 +6,16 @@ const expect = require('chai').expect;
 describe('errors', () => {
   it('should maintain stack trace with message', () => {
     const errorsWithMessage = [
-      'BaseError', 'ValidationError', 'InstanceError',
-      'EmptyResultError', 'EagerLoadingError', 'AssociationError', 'QueryError'
+      'BaseError',
+      'ValidationError',
+      'InstanceError',
+      'EmptyResultError',
+      'EagerLoadingError',
+      'AssociationError',
+      'QueryError',
     ];
 
-    errorsWithMessage.forEach(errorName => {
+    errorsWithMessage.forEach((errorName) => {
       function throwError() {
         throw new errors[errorName]('this is a message');
       }
@@ -24,17 +29,24 @@ describe('errors', () => {
       const stackParts = err.stack.split('\n');
       const fullErrorName = `Sequelize${errorName}`;
       expect(stackParts[0]).to.equal(`${fullErrorName}: this is a message`);
-      expect(stackParts[1]).to.match(/^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/);
+      expect(stackParts[1]).to.match(
+        /^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/
+      );
     });
   });
 
   it('should maintain stack trace without message', () => {
     const errorsWithoutMessage = [
-      'ConnectionError', 'ConnectionRefusedError', 'ConnectionTimedOutError',
-      'AccessDeniedError', 'HostNotFoundError', 'HostNotReachableError', 'InvalidConnectionError'
+      'ConnectionError',
+      'ConnectionRefusedError',
+      'ConnectionTimedOutError',
+      'AccessDeniedError',
+      'HostNotFoundError',
+      'HostNotReachableError',
+      'InvalidConnectionError',
     ];
 
-    errorsWithoutMessage.forEach(errorName => {
+    errorsWithoutMessage.forEach((errorName) => {
       function throwError() {
         throw new errors[errorName](null);
       }
@@ -49,23 +61,27 @@ describe('errors', () => {
 
       const fullErrorName = `Sequelize${errorName}`;
       expect(stackParts[0]).to.equal(fullErrorName);
-      expect(stackParts[1]).to.match(/^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/);
+      expect(stackParts[1]).to.match(
+        /^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/
+      );
     });
   });
 
   describe('AggregateError', () => {
     it('get .message works', () => {
       const { AggregateError } = errors;
-      expect(String(
-        new AggregateError([
-          new Error('foo'),
-          new Error('bar\nbaz'),
+      expect(
+        String(
           new AggregateError([
-            new Error('this\nis\na\ntest'),
-            new Error('qux')
+            new Error('foo'),
+            new Error('bar\nbaz'),
+            new AggregateError([
+              new Error('this\nis\na\ntest'),
+              new Error('qux'),
+            ]),
           ])
-        ])
-      )).to.equal(
+        )
+      ).to.equal(
         `AggregateError of:
   Error: foo
   Error: bar
@@ -76,7 +92,8 @@ describe('errors', () => {
       a
       test
     Error: qux
-`);
+`
+      );
     });
   });
 });

@@ -2,15 +2,15 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
+  Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  current   = Support.sequelize;
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {
     it('returns copy of json', () => {
       const User = current.define('User', {
-        name: DataTypes.STRING
+        name: DataTypes.STRING,
       });
       const user = User.build({ name: 'my-name' });
       const json1 = user.toJSON();
@@ -26,9 +26,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('returns clone of JSON data-types', () => {
       const User = current.define('User', {
         name: DataTypes.STRING,
-        permissions: DataTypes.JSON
+        permissions: DataTypes.JSON,
       });
-      const user = User.build({ name: 'my-name', permissions: { admin: true, special: 'foobar' } });
+      const user = User.build({
+        name: 'my-name',
+        permissions: { admin: true, special: 'foobar' },
+      });
       const json = user.toJSON();
 
       expect(json)
@@ -37,9 +40,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       json.permissions.admin = false;
 
-      expect(user.permissions)
-        .to.have.property('admin')
-        .that.equals(true);
+      expect(user.permissions).to.have.property('admin').that.equals(true);
     });
   });
 });

@@ -7,30 +7,37 @@ const DataTypes = require('../../../lib/data-types');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
-  beforeEach(function() {
+  beforeEach(function () {
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
   });
 
-  afterEach(async function() {
+  afterEach(async function () {
     await Support.dropTestSchemas(this.sequelize);
   });
 
   describe('describeTable', () => {
     if (Support.sequelize.dialect.supports.schemas) {
-      it('reads the metadata of the table with schema', async function() {
+      it('reads the metadata of the table with schema', async function () {
         const MyTable1 = this.sequelize.define('my_table', {
-          username1: DataTypes.STRING
+          username1: DataTypes.STRING,
         });
 
-        const MyTable2 = this.sequelize.define('my_table', {
-          username2: DataTypes.STRING
-        }, { schema: 'test_meta' });
+        const MyTable2 = this.sequelize.define(
+          'my_table',
+          {
+            username2: DataTypes.STRING,
+          },
+          { schema: 'test_meta' }
+        );
 
         await this.sequelize.createSchema('test_meta');
         await MyTable1.sync({ force: true });
         await MyTable2.sync({ force: true });
-        const metadata0 = await this.queryInterface.describeTable('my_tables', 'test_meta');
+        const metadata0 = await this.queryInterface.describeTable(
+          'my_tables',
+          'test_meta'
+        );
         expect(metadata0.username2).not.to.be.undefined;
         const metadata = await this.queryInterface.describeTable('my_tables');
         expect(metadata.username1).not.to.be.undefined;
@@ -39,23 +46,29 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    it('rejects when no data is available', async function() {
+    it('rejects when no data is available', async function () {
       await expect(
         this.queryInterface.describeTable('_some_random_missing_table')
-      ).to.be.rejectedWith('No description found for "_some_random_missing_table" table. Check the table name and schema; remember, they _are_ case sensitive.');
+      ).to.be.rejectedWith(
+        'No description found for "_some_random_missing_table" table. Check the table name and schema; remember, they _are_ case sensitive.'
+      );
     });
 
-    it('reads the metadata of the table', async function() {
-      const Users = this.sequelize.define('_Users', {
-        username: DataTypes.STRING,
-        city: {
-          type: DataTypes.STRING,
-          defaultValue: null,
-          comment: 'Users City'
+    it('reads the metadata of the table', async function () {
+      const Users = this.sequelize.define(
+        '_Users',
+        {
+          username: DataTypes.STRING,
+          city: {
+            type: DataTypes.STRING,
+            defaultValue: null,
+            comment: 'Users City',
+          },
+          isAdmin: DataTypes.BOOLEAN,
+          enumVals: DataTypes.ENUM('hello', 'world'),
         },
-        isAdmin: DataTypes.BOOLEAN,
-        enumVals: DataTypes.ENUM('hello', 'world')
-      }, { freezeTableName: true });
+        { freezeTableName: true }
+      );
 
       await Users.sync({ force: true });
       const metadata = await this.queryInterface.describeTable('_Users');
@@ -120,32 +133,45 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(enumVals.special).to.be.instanceof(Array);
         expect(enumVals.special).to.have.length(2);
       } else if (dialect === 'mysql') {
-        expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
+        expect(enumVals.type).to.eql("ENUM('hello','world')");
       }
 
-      if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
+      if (
+        dialect === 'postgres' ||
+        dialect === 'mysql' ||
+        dialect === 'mssql'
+      ) {
         expect(city.comment).to.equal('Users City');
         expect(username.comment).to.equal(null);
       }
     });
 
-    it('should correctly determine the primary key columns', async function() {
-      const Country = this.sequelize.define('_Country', {
-        code: { type: DataTypes.STRING, primaryKey: true },
-        name: { type: DataTypes.STRING, allowNull: false }
-      }, { freezeTableName: true });
-      const Alumni = this.sequelize.define('_Alumni', {
-        year: { type: DataTypes.INTEGER, primaryKey: true },
-        num: { type: DataTypes.INTEGER, primaryKey: true },
-        username: { type: DataTypes.STRING, allowNull: false, unique: true },
-        dob: { type: DataTypes.DATEONLY, allowNull: false },
-        dod: { type: DataTypes.DATEONLY, allowNull: true },
-        city: { type: DataTypes.STRING, allowNull: false },
-        ctrycod: {
-          type: DataTypes.STRING, allowNull: false,
-          references: { model: Country, key: 'code' }
-        }
-      }, { freezeTableName: true });
+    it('should correctly determine the primary key columns', async function () {
+      const Country = this.sequelize.define(
+        '_Country',
+        {
+          code: { type: DataTypes.STRING, primaryKey: true },
+          name: { type: DataTypes.STRING, allowNull: false },
+        },
+        { freezeTableName: true }
+      );
+      const Alumni = this.sequelize.define(
+        '_Alumni',
+        {
+          year: { type: DataTypes.INTEGER, primaryKey: true },
+          num: { type: DataTypes.INTEGER, primaryKey: true },
+          username: { type: DataTypes.STRING, allowNull: false, unique: true },
+          dob: { type: DataTypes.DATEONLY, allowNull: false },
+          dod: { type: DataTypes.DATEONLY, allowNull: true },
+          city: { type: DataTypes.STRING, allowNull: false },
+          ctrycod: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            references: { model: Country, key: 'code' },
+          },
+        },
+        { freezeTableName: true }
+      );
 
       await Country.sync({ force: true });
       const metacountry = await this.queryInterface.describeTable('_Country');

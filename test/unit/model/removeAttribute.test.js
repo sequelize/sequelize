@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
-  current   = Support.sequelize,
+  Support = require('../support'),
+  current = Support.sequelize,
   _ = require('lodash'),
   DataTypes = require('../../../lib/data-types');
 
@@ -11,7 +11,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('removeAttribute', () => {
     it('should support removing the primary key', () => {
       const Model = current.define('m', {
-        name: DataTypes.STRING
+        name: DataTypes.STRING,
       });
 
       expect(Model.primaryKeyAttribute).not.to.be.undefined;
@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not add undefined attribute after removing primary key', () => {
       const Model = current.define('m', {
-        name: DataTypes.STRING
+        name: DataTypes.STRING,
       });
 
       Model.removeAttribute('id');

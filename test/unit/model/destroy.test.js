@@ -8,34 +8,37 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-
   describe('method destroy', () => {
     const User = current.define('User', {
       name: DataTypes.STRING,
-      secretValue: DataTypes.INTEGER
+      secretValue: DataTypes.INTEGER,
     });
 
-    before(function() {
-      this.stubDelete = sinon.stub(current.getQueryInterface(), 'bulkDelete').resolves([]);
+    before(function () {
+      this.stubDelete = sinon
+        .stub(current.getQueryInterface(), 'bulkDelete')
+        .resolves([]);
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.deloptions = { where: { secretValue: '1' } };
       this.cloneOptions = { ...this.deloptions };
       this.stubDelete.resetHistory();
     });
 
-    afterEach(function() {
+    afterEach(function () {
       delete this.deloptions;
       delete this.cloneOptions;
     });
 
-    after(function() {
+    after(function () {
       this.stubDelete.restore();
     });
 
     it('can detect complex objects', async () => {
-      const Where = function() { this.secretValue = '1'; };
+      const Where = function () {
+        this.secretValue = '1';
+      };
 
       await expect(User.destroy({ where: new Where() })).to.be.rejected;
     });

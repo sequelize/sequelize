@@ -2,41 +2,45 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
+  Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  current   = Support.sequelize;
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('build', () => {
     it('should populate NOW default values', async () => {
-      const Model = current.define('Model', {
-          created_time: {
-            type: DataTypes.DATE,
-            allowNull: true,
-            defaultValue: DataTypes.NOW
+      const Model = current.define(
+          'Model',
+          {
+            created_time: {
+              type: DataTypes.DATE,
+              allowNull: true,
+              defaultValue: DataTypes.NOW,
+            },
+            updated_time: {
+              type: DataTypes.DATE,
+              allowNull: true,
+              defaultValue: DataTypes.NOW,
+            },
+            ip: {
+              type: DataTypes.STRING,
+              validate: {
+                isIP: true,
+              },
+            },
+            ip2: {
+              type: DataTypes.STRING,
+              validate: {
+                isIP: {
+                  msg: 'test',
+                },
+              },
+            },
           },
-          updated_time: {
-            type: DataTypes.DATE,
-            allowNull: true,
-            defaultValue: DataTypes.NOW
-          },
-          ip: {
-            type: DataTypes.STRING,
-            validate: {
-              isIP: true
-            }
-          },
-          ip2: {
-            type: DataTypes.STRING,
-            validate: {
-              isIP: {
-                msg: 'test'
-              }
-            }
+          {
+            timestamp: false,
           }
-        }, {
-          timestamp: false
-        }),
+        ),
         instance = Model.build({ ip: '127.0.0.1', ip2: '0.0.0.0' });
 
       expect(instance.get('created_time')).to.be.ok;
@@ -54,11 +58,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4
-          }
+            defaultValue: DataTypes.UUIDV4,
+          },
         }),
-        instance  = Model.build({
-          id: undefined
+        instance = Model.build({
+          id: undefined,
         });
 
       expect(instance.get('id')).not.to.be.undefined;
@@ -69,15 +73,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const Model = current.define('Model', {
           number1: {
             type: DataTypes.INTEGER,
-            defaultValue: 1
+            defaultValue: 1,
           },
           number2: {
             type: DataTypes.INTEGER,
-            defaultValue: 2
-          }
+            defaultValue: 2,
+          },
         }),
         instance = Model.build({
-          number1: undefined
+          number1: undefined,
         });
 
       expect(instance.get('number1')).not.to.be.undefined;
@@ -90,8 +94,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const Model = current.define('Model', {
           data: {
             type: DataTypes.JSONB,
-            defaultValue: { foo: 'bar' }
-          }
+            defaultValue: { foo: 'bar' },
+          },
         }),
         instance = Model.build();
       instance.data.foo = 'biz';

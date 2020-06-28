@@ -18,7 +18,7 @@ describe('Sequelize', () => {
     it('works when dialect explicitly supplied', () => {
       expect(() => {
         new Sequelize('localhost', 'test', 'test', {
-          dialect: 'mysql'
+          dialect: 'mysql',
         });
       }).not.to.throw(Error);
     });
@@ -28,7 +28,7 @@ describe('Sequelize', () => {
     expect(() => {
       new Sequelize('localhost', 'test', 'test', {
         dialect: 'mysql',
-        pool: false
+        pool: false,
       });
     }).to.throw('Support for pool:false was removed in v4.0');
   });
@@ -40,8 +40,8 @@ describe('Sequelize', () => {
         dialect,
         dialectOptions: {
           supportBigNumbers: true,
-          bigNumberStrings: true
-        }
+          bigNumberStrings: true,
+        },
       });
       const config = sequelize.config;
 
@@ -57,7 +57,9 @@ describe('Sequelize', () => {
 
   describe('Instantiation with a URL string', () => {
     it('should accept username, password, host, port, and database', () => {
-      const sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
+      const sequelize = new Sequelize(
+        'mysql://user:pass@example.com:9821/dbname'
+      );
       const config = sequelize.config;
       const options = sequelize.options;
 
@@ -70,14 +72,16 @@ describe('Sequelize', () => {
       expect(config.port).to.equal('9821');
     });
 
-    describe('sqllite path inititalization', () =>{
-      const current   = Support.sequelize;
+    describe('sqllite path inititalization', () => {
+      const current = Support.sequelize;
       if (current.dialect.name === 'sqlite') {
         it('should accept relative paths for sqlite', () => {
           const sequelize = new Sequelize('sqlite:subfolder/dbname.db');
           const options = sequelize.options;
           expect(options.dialect).to.equal('sqlite');
-          expect(options.storage).to.equal(path.resolve('subfolder', 'dbname.db'));
+          expect(options.storage).to.equal(
+            path.resolve('subfolder', 'dbname.db')
+          );
         });
 
         it('should accept absolute paths for sqlite', () => {
@@ -88,10 +92,14 @@ describe('Sequelize', () => {
         });
 
         it('should prefer storage in options object', () => {
-          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', { storage: '/completely/different/path.db' });
+          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', {
+            storage: '/completely/different/path.db',
+          });
           const options = sequelize.options;
           expect(options.dialect).to.equal('sqlite');
-          expect(options.storage).to.equal(path.resolve('/completely/different/path.db'));
+          expect(options.storage).to.equal(
+            path.resolve('/completely/different/path.db')
+          );
         });
 
         it('should be able to use :memory:', () => {
@@ -126,7 +134,7 @@ describe('Sequelize', () => {
       const options = {
         username: 'root',
         password: 'pass',
-        database: 'dbname'
+        database: 'dbname',
       };
       const sequelize = new Sequelize('mysql://example.com:9821', options);
       const config = sequelize.config;
@@ -138,7 +146,7 @@ describe('Sequelize', () => {
 
     it('should use the default port when no other is specified', () => {
       const sequelize = new Sequelize('dbname', 'root', 'pass', {
-          dialect
+          dialect,
         }),
         config = sequelize.config;
       let port;
@@ -156,20 +164,25 @@ describe('Sequelize', () => {
     });
 
     it('should pass query string parameters to dialectOptions', () => {
-      const sequelize = new Sequelize('mysql://example.com:9821/dbname?ssl=true');
+      const sequelize = new Sequelize(
+        'mysql://example.com:9821/dbname?ssl=true'
+      );
       const dialectOptions = sequelize.config.dialectOptions;
 
       expect(dialectOptions.ssl).to.equal('true');
     });
 
     it('should merge query string parameters to options', () => {
-      const sequelize = new Sequelize('mysql://example.com:9821/dbname?ssl=true&application_name=client', {
-        storage: '/completely/different/path.db',
-        dialectOptions: {
-          supportBigNumbers: true,
-          application_name: 'server' // eslint-disable-line
+      const sequelize = new Sequelize(
+        'mysql://example.com:9821/dbname?ssl=true&application_name=client',
+        {
+          storage: '/completely/different/path.db',
+          dialectOptions: {
+            supportBigNumbers: true,
+            application_name: 'server', // eslint-disable-line
+          },
         }
-      });
+      );
 
       const options = sequelize.options;
       const dialectOptions = sequelize.config.dialectOptions;
@@ -181,13 +194,20 @@ describe('Sequelize', () => {
     });
 
     it('should handle JSON options', () => {
-      const sequelizeWithOptions = new Sequelize('mysql://example.com:9821/dbname?options={"encrypt":true}&anotherOption=1');
-      expect(sequelizeWithOptions.options.dialectOptions.options.encrypt).to.be.true;
-      expect(sequelizeWithOptions.options.dialectOptions.anotherOption).to.equal('1');
+      const sequelizeWithOptions = new Sequelize(
+        'mysql://example.com:9821/dbname?options={"encrypt":true}&anotherOption=1'
+      );
+      expect(sequelizeWithOptions.options.dialectOptions.options.encrypt).to.be
+        .true;
+      expect(
+        sequelizeWithOptions.options.dialectOptions.anotherOption
+      ).to.equal('1');
     });
-    
+
     it('should use query string host if specified', () => {
-      const sequelize = new Sequelize('mysql://localhost:9821/dbname?host=example.com');
+      const sequelize = new Sequelize(
+        'mysql://localhost:9821/dbname?host=example.com'
+      );
 
       const options = sequelize.options;
       expect(options.host).to.equal('example.com');
