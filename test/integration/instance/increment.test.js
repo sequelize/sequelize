@@ -8,19 +8,19 @@ const chai = require('chai'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
-  before(function() {
+  before(function () {
     this.clock = sinon.useFakeTimers();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     this.clock.reset();
   });
 
-  after(function() {
+  after(function () {
     this.clock.restore();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
       uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
@@ -56,14 +56,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   });
 
   describe('increment', () => {
-    beforeEach(async function() {
+    beforeEach(async function () {
       await this.User.create({ id: 1, aNumber: 0, bNumber: 0 });
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', async function() {
+      it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
+        const User = sequelize.define('User', {
+          number: Support.Sequelize.INTEGER
+        });
 
         await User.sync({ force: true });
         const user = await User.create({ number: 1 });
@@ -78,44 +80,47 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     }
 
     if (current.dialect.supports.returnValues.returning) {
-      it('supports returning', async function() {
+      it('supports returning', async function () {
         const user1 = await this.User.findByPk(1);
         await user1.increment('aNumber', { by: 2 });
         expect(user1.aNumber).to.be.equal(2);
-        const user3 = await user1.increment('bNumber', { by: 2, returning: false });
+        const user3 = await user1.increment('bNumber', {
+          by: 2,
+          returning: false
+        });
         expect(user3.bNumber).to.be.equal(0);
       });
     }
 
-    it('supports where conditions', async function() {
+    it('supports where conditions', async function () {
       const user1 = await this.User.findByPk(1);
       await user1.increment(['aNumber'], { by: 2, where: { bNumber: 1 } });
       const user3 = await this.User.findByPk(1);
       expect(user3.aNumber).to.be.equal(0);
     });
 
-    it('with array', async function() {
+    it('with array', async function () {
       const user1 = await this.User.findByPk(1);
       await user1.increment(['aNumber'], { by: 2 });
       const user3 = await this.User.findByPk(1);
       expect(user3.aNumber).to.be.equal(2);
     });
 
-    it('with single field', async function() {
+    it('with single field', async function () {
       const user1 = await this.User.findByPk(1);
       await user1.increment('aNumber', { by: 2 });
       const user3 = await this.User.findByPk(1);
       expect(user3.aNumber).to.be.equal(2);
     });
 
-    it('with single field and no value', async function() {
+    it('with single field and no value', async function () {
       const user1 = await this.User.findByPk(1);
       await user1.increment('aNumber');
       const user2 = await this.User.findByPk(1);
       expect(user2.aNumber).to.be.equal(1);
     });
 
-    it('should still work right with other concurrent updates', async function() {
+    it('should still work right with other concurrent updates', async function () {
       const user1 = await this.User.findByPk(1);
       // Select the user again (simulating a concurrent query)
       const user2 = await this.User.findByPk(1);
@@ -129,7 +134,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user5.aNumber).to.be.equal(3);
     });
 
-    it('should still work right with other concurrent increments', async function() {
+    it('should still work right with other concurrent increments', async function () {
       const user1 = await this.User.findByPk(1);
 
       await Promise.all([
@@ -142,18 +147,22 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user2.aNumber).to.equal(6);
     });
 
-    it('with key value pair', async function() {
+    it('with key value pair', async function () {
       const user1 = await this.User.findByPk(1);
-      await user1.increment({ 'aNumber': 1, 'bNumber': 2 });
+      await user1.increment({ aNumber: 1, bNumber: 2 });
       const user3 = await this.User.findByPk(1);
       expect(user3.aNumber).to.be.equal(1);
       expect(user3.bNumber).to.be.equal(2);
     });
 
-    it('with timestamps set to true', async function() {
-      const User = this.sequelize.define('IncrementUser', {
-        aNumber: DataTypes.INTEGER
-      }, { timestamps: true });
+    it('with timestamps set to true', async function () {
+      const User = this.sequelize.define(
+        'IncrementUser',
+        {
+          aNumber: DataTypes.INTEGER
+        },
+        { timestamps: true }
+      );
 
       await User.sync({ force: true });
       const user1 = await User.create({ aNumber: 1 });
@@ -166,10 +175,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await expect(user).to.have.property('updatedAt').afterTime(oldDate);
     });
 
-    it('with timestamps set to true and options.silent set to true', async function() {
-      const User = this.sequelize.define('IncrementUser', {
-        aNumber: DataTypes.INTEGER
-      }, { timestamps: true });
+    it('with timestamps set to true and options.silent set to true', async function () {
+      const User = this.sequelize.define(
+        'IncrementUser',
+        {
+          aNumber: DataTypes.INTEGER
+        },
+        { timestamps: true }
+      );
 
       await User.sync({ force: true });
       const user = await User.create({ aNumber: 1 });

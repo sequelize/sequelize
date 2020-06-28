@@ -10,11 +10,11 @@ const chai = require('chai'),
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAOFactory', () => {
-    after(function() {
+    after(function () {
       this.sequelize.options.storage = ':memory:';
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
       this.sequelize.options.storage = dbFile;
       this.User = this.sequelize.define('User', {
         age: DataTypes.INTEGER,
@@ -33,8 +33,12 @@ if (dialect === 'sqlite') {
         });
 
         describe('create', () => {
-          it('creates a table entry', async function() {
-            const user = await this.User.create({ age: 21, name: 'John Wayne', bio: 'noot noot' });
+          it('creates a table entry', async function () {
+            const user = await this.User.create({
+              age: 21,
+              name: 'John Wayne',
+              bio: 'noot noot'
+            });
             expect(user.age).to.equal(21);
             expect(user.name).to.equal('John Wayne');
             expect(user.bio).to.equal('noot noot');
@@ -46,7 +50,7 @@ if (dialect === 'sqlite') {
             expect(usernames).to.contain('John Wayne');
           });
 
-          it('should allow the creation of an object with options as attribute', async function() {
+          it('should allow the creation of an object with options as attribute', async function () {
             const Person = this.sequelize.define('Person', {
               name: DataTypes.STRING,
               options: DataTypes.TEXT
@@ -63,7 +67,7 @@ if (dialect === 'sqlite') {
             expect(people.options).to.deep.equal(options);
           });
 
-          it('should allow the creation of an object with a boolean (true) as attribute', async function() {
+          it('should allow the creation of an object with a boolean (true) as attribute', async function () {
             const Person = this.sequelize.define('Person', {
               name: DataTypes.STRING,
               has_swag: DataTypes.BOOLEAN
@@ -79,7 +83,7 @@ if (dialect === 'sqlite') {
             expect(people.has_swag).to.be.ok;
           });
 
-          it('should allow the creation of an object with a boolean (false) as attribute', async function() {
+          it('should allow the creation of an object with a boolean (false) as attribute', async function () {
             const Person = this.sequelize.define('Person', {
               name: DataTypes.STRING,
               has_swag: DataTypes.BOOLEAN
@@ -97,16 +101,17 @@ if (dialect === 'sqlite') {
         });
 
         describe('.findOne', () => {
-          beforeEach(async function() {
+          beforeEach(async function () {
             await this.User.create({ name: 'user', bio: 'footbar' });
           });
 
-          it('finds normal lookups', async function() {
+          it('finds normal lookups', async function () {
             const user = await this.User.findOne({ where: { name: 'user' } });
             expect(user.name).to.equal('user');
           });
 
-          it.skip('should make aliased attributes available', async function() { // eslint-disable-line mocha/no-skipped-tests
+          it.skip('should make aliased attributes available', async function () {
+            // eslint-disable-line mocha/no-skipped-tests
             const user = await this.User.findOne({
               where: { name: 'user' },
               attributes: ['id', ['name', 'username']]
@@ -117,21 +122,21 @@ if (dialect === 'sqlite') {
         });
 
         describe('.all', () => {
-          beforeEach(async function() {
+          beforeEach(async function () {
             await this.User.bulkCreate([
               { name: 'user', bio: 'foobar' },
               { name: 'user', bio: 'foobar' }
             ]);
           });
 
-          it('should return all users', async function() {
+          it('should return all users', async function () {
             const users = await this.User.findAll();
             expect(users).to.have.length(2);
           });
         });
 
         describe('.min', () => {
-          it('should return the min value', async function() {
+          it('should return the min value', async function () {
             const users = [];
 
             for (let i = 2; i < 5; i++) {
@@ -145,7 +150,7 @@ if (dialect === 'sqlite') {
         });
 
         describe('.max', () => {
-          it('should return the max value', async function() {
+          it('should return the max value', async function () {
             const users = [];
 
             for (let i = 2; i <= 5; i++) {

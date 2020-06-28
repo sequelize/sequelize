@@ -8,7 +8,7 @@ const chai = require('chai'),
 
 describe('connection manager', () => {
   describe('_connect', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.connection = {};
 
       this.dialect = {
@@ -20,7 +20,7 @@ describe('connection manager', () => {
       this.sequelize = Support.createSequelizeInstance();
     });
 
-    it('should resolve connection on dialect connection manager', async function() {
+    it('should resolve connection on dialect connection manager', async function () {
       const connection = {};
       this.dialect.connectionManager.connect.resolves(connection);
 
@@ -32,7 +32,7 @@ describe('connection manager', () => {
       expect(this.dialect.connectionManager.connect).to.have.been.calledWith(config);
     });
 
-    it('should let beforeConnect hook modify config', async function() {
+    it('should let beforeConnect hook modify config', async function () {
       const username = Math.random().toString(),
         password = Math.random().toString();
 
@@ -51,7 +51,7 @@ describe('connection manager', () => {
       });
     });
 
-    it('should call afterConnect', async function() {
+    it('should call afterConnect', async function () {
       const spy = sinon.spy();
       this.sequelize.afterConnect(spy);
 
@@ -65,7 +65,7 @@ describe('connection manager', () => {
   });
 
   describe('_disconnect', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.connection = {};
 
       this.dialect = {
@@ -77,7 +77,7 @@ describe('connection manager', () => {
       this.sequelize = Support.createSequelizeInstance();
     });
 
-    it('should call beforeDisconnect', async function() {
+    it('should call beforeDisconnect', async function () {
       const spy = sinon.spy();
       this.sequelize.beforeDisconnect(spy);
 
@@ -88,7 +88,7 @@ describe('connection manager', () => {
       expect(spy.firstCall.args[0]).to.equal(this.connection);
     });
 
-    it('should call afterDisconnect', async function() {
+    it('should call afterDisconnect', async function () {
       const spy = sinon.spy();
       this.sequelize.afterDisconnect(spy);
 

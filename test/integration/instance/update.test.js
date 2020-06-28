@@ -10,15 +10,15 @@ const chai = require('chai'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
-  before(function() {
+  before(function () {
     this.clock = sinon.useFakeTimers();
   });
-  after(function() {
+  after(function () {
     this.clock.restore();
   });
 
   describe('update', () => {
-    beforeEach(async function() {
+    beforeEach(async function () {
       this.User = this.sequelize.define('User', {
         username: { type: DataTypes.STRING },
         uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
@@ -62,9 +62,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', async function() {
+      it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        const User = sequelize.define('User', {
+          username: Support.Sequelize.STRING
+        });
 
         await User.sync({ force: true });
         const user = await User.create({ username: 'foo' });
@@ -78,8 +80,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     }
 
-    it('should update fields that are not specified on create', async function() {
-      const User = this.sequelize.define(`User${  config.rand()}`, {
+    it('should update fields that are not specified on create', async function () {
+      const User = this.sequelize.define(`User${config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING
@@ -87,12 +89,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       await User.sync({ force: true });
 
-      const user1 = await User.create({
-        name: 'snafu',
-        email: 'email'
-      }, {
-        fields: ['name', 'email']
-      });
+      const user1 = await User.create(
+        {
+          name: 'snafu',
+          email: 'email'
+        },
+        {
+          fields: ['name', 'email']
+        }
+      );
 
       const user0 = await user1.update({ bio: 'swag' });
       const user = await user0.reload();
@@ -101,23 +106,30 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.get('bio')).to.equal('swag');
     });
 
-    it('should succeed in updating when values are unchanged (without timestamps)', async function() {
-      const User = this.sequelize.define(`User${  config.rand()}`, {
-        name: DataTypes.STRING,
-        bio: DataTypes.TEXT,
-        email: DataTypes.STRING
-      }, {
-        timestamps: false
-      });
+    it('should succeed in updating when values are unchanged (without timestamps)', async function () {
+      const User = this.sequelize.define(
+        `User${config.rand()}`,
+        {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          email: DataTypes.STRING
+        },
+        {
+          timestamps: false
+        }
+      );
 
       await User.sync({ force: true });
 
-      const user1 = await User.create({
-        name: 'snafu',
-        email: 'email'
-      }, {
-        fields: ['name', 'email']
-      });
+      const user1 = await User.create(
+        {
+          name: 'snafu',
+          email: 'email'
+        },
+        {
+          fields: ['name', 'email']
+        }
+      );
 
       const user0 = await user1.update({
         name: 'snafu',
@@ -129,16 +141,20 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.get('email')).to.equal('email');
     });
 
-    it('should update timestamps with milliseconds', async function() {
-      const User = this.sequelize.define(`User${  config.rand()}`, {
-        name: DataTypes.STRING,
-        bio: DataTypes.TEXT,
-        email: DataTypes.STRING,
-        createdAt: { type: DataTypes.DATE(6), allowNull: false },
-        updatedAt: { type: DataTypes.DATE(6), allowNull: false }
-      }, {
-        timestamps: true
-      });
+    it('should update timestamps with milliseconds', async function () {
+      const User = this.sequelize.define(
+        `User${config.rand()}`,
+        {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          email: DataTypes.STRING,
+          createdAt: { type: DataTypes.DATE(6), allowNull: false },
+          updatedAt: { type: DataTypes.DATE(6), allowNull: false }
+        },
+        {
+          timestamps: true
+        }
+      );
 
       this.clock.tick(2100); //move the clock forward 2100 ms.
 
@@ -157,7 +173,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.get('createdAt')).to.equalTime(testDate);
     });
 
-    it('should only save passed attributes', async function() {
+    it('should only save passed attributes', async function () {
       const user = this.User.build();
       await user.save();
       user.set('validateTest', 5);
@@ -173,7 +189,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.validateTest).to.not.be.equal(5);
     });
 
-    it('should save attributes affected by setters', async function() {
+    it('should save attributes affected by setters', async function () {
       const user = this.User.build();
       await user.update({ validateSideEffect: 5 });
       expect(user.validateSideEffect).to.be.equal(5);
@@ -183,8 +199,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('hooks', () => {
-      it('should update attributes added in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${  config.rand()}`, {
+      it('should update attributes added in hooks when default fields are used', async function () {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -213,8 +229,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(user.get('email')).to.equal('B');
       });
 
-      it('should update attributes changed in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${  config.rand()}`, {
+      it('should update attributes changed in hooks when default fields are used', async function () {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: DataTypes.STRING
@@ -244,8 +260,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(user.get('email')).to.equal('C');
       });
 
-      it('should validate attributes added in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${  config.rand()}`, {
+      it('should validate attributes added in hooks when default fields are used', async function () {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -268,16 +284,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: 'valid.email@gmail.com'
         });
 
-        await expect(user0.update({
-          name: 'B'
-        })).to.be.rejectedWith(Sequelize.ValidationError);
+        await expect(
+          user0.update({
+            name: 'B'
+          })
+        ).to.be.rejectedWith(Sequelize.ValidationError);
 
         const user = await User.findOne({});
         expect(user.get('email')).to.equal('valid.email@gmail.com');
       });
 
-      it('should validate attributes changed in hooks when default fields are used', async function() {
-        const User = this.sequelize.define(`User${  config.rand()}`, {
+      it('should validate attributes changed in hooks when default fields are used', async function () {
+        const User = this.sequelize.define(`User${config.rand()}`, {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
           email: {
@@ -300,18 +318,20 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: 'valid.email@gmail.com'
         });
 
-        await expect(user0.update({
-          name: 'B',
-          email: 'still.valid.email@gmail.com'
-        })).to.be.rejectedWith(Sequelize.ValidationError);
+        await expect(
+          user0.update({
+            name: 'B',
+            email: 'still.valid.email@gmail.com'
+          })
+        ).to.be.rejectedWith(Sequelize.ValidationError);
 
         const user = await User.findOne({});
         expect(user.get('email')).to.equal('valid.email@gmail.com');
       });
     });
 
-    it('should not set attributes that are not specified by fields', async function() {
-      const User = this.sequelize.define(`User${  config.rand()}`, {
+    it('should not set attributes that are not specified by fields', async function () {
+      const User = this.sequelize.define(`User${config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING
@@ -324,41 +344,44 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         email: 'email'
       });
 
-      const user = await user0.update({
-        bio: 'heyo',
-        email: 'heho'
-      }, {
-        fields: ['bio']
-      });
+      const user = await user0.update(
+        {
+          bio: 'heyo',
+          email: 'heho'
+        },
+        {
+          fields: ['bio']
+        }
+      );
 
       expect(user.get('name')).to.equal('snafu');
       expect(user.get('email')).to.equal('email');
       expect(user.get('bio')).to.equal('heyo');
     });
 
-    it('updates attributes in the database', async function() {
+    it('updates attributes in the database', async function () {
       const user = await this.User.create({ username: 'user' });
       expect(user.username).to.equal('user');
       const user0 = await user.update({ username: 'person' });
       expect(user0.username).to.equal('person');
     });
 
-    it('ignores unknown attributes', async function() {
+    it('ignores unknown attributes', async function () {
       const user = await this.User.create({ username: 'user' });
       const user0 = await user.update({ username: 'person', foo: 'bar' });
       expect(user0.username).to.equal('person');
       expect(user0.foo).not.to.exist;
     });
 
-    it('ignores undefined attributes', async function() {
+    it('ignores undefined attributes', async function () {
       await this.User.sync({ force: true });
       const user = await this.User.create({ username: 'user' });
       const user0 = await user.update({ username: undefined });
       expect(user0.username).to.equal('user');
     });
 
-    it('doesn\'t update primary keys or timestamps', async function() {
-      const User = this.sequelize.define(`User${  config.rand()}`, {
+    it("doesn't update primary keys or timestamps", async function () {
+      const User = this.sequelize.define(`User${config.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         identifier: { type: DataTypes.STRING, primaryKey: true }
@@ -388,7 +411,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user0.identifier).to.equal(oldIdentifier);
     });
 
-    it('stores and restores null values', async function() {
+    it('stores and restores null values', async function () {
       const Download = this.sequelize.define('download', {
         startedAt: DataTypes.DATE,
         canceledAt: DataTypes.DATE,
@@ -424,7 +447,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it('should support logging', async function() {
+    it('should support logging', async function () {
       const spy = sinon.spy();
 
       const user = await this.User.create({});

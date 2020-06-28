@@ -12,7 +12,7 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.JSON) {
     describe('JSON', () => {
-      beforeEach(async function() {
+      beforeEach(async function () {
         this.Event = this.sequelize.define('Event', {
           data: {
             type: DataTypes.JSON,
@@ -26,7 +26,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       if (current.dialect.supports.lock) {
-        it('findOrCreate supports transactions, json and locks', async function() {
+        it('findOrCreate supports transactions, json and locks', async function () {
           const transaction = await current.transaction();
 
           await this.Event.findOrCreate({
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
 
       describe('create', () => {
-        it('should create an instance with JSON data', async function() {
+        it('should create an instance with JSON data', async function () {
           await this.Event.create({
             data: {
               name: {
@@ -80,40 +80,46 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('update', () => {
-        it('should update with JSON column (dot notation)', async function() {
-          await this.Event.bulkCreate([{
-            id: 1,
-            data: {
-              name: {
-                first: 'Homer',
-                last: 'Simpson'
-              },
-              employment: 'Nuclear Safety Inspector'
+        it('should update with JSON column (dot notation)', async function () {
+          await this.Event.bulkCreate([
+            {
+              id: 1,
+              data: {
+                name: {
+                  first: 'Homer',
+                  last: 'Simpson'
+                },
+                employment: 'Nuclear Safety Inspector'
+              }
+            },
+            {
+              id: 2,
+              data: {
+                name: {
+                  first: 'Rick',
+                  last: 'Sanchez'
+                },
+                employment: 'Multiverse Scientist'
+              }
             }
-          }, {
-            id: 2,
-            data: {
-              name: {
-                first: 'Rick',
-                last: 'Sanchez'
-              },
-              employment: 'Multiverse Scientist'
-            }
-          }]);
+          ]);
 
-          await this.Event.update({
-            'data': {
-              name: {
-                first: 'Rick',
-                last: 'Sanchez'
-              },
-              employment: 'Galactic Fed Prisioner'
+          await this.Event.update(
+            {
+              data: {
+                name: {
+                  first: 'Rick',
+                  last: 'Sanchez'
+                },
+                employment: 'Galactic Fed Prisioner'
+              }
+            },
+            {
+              where: {
+                'data.name.first': 'Rick'
+              }
             }
-          }, {
-            where: {
-              'data.name.first': 'Rick'
-            }
-          });
+          );
 
           const event = await this.Event.findByPk(2);
           expect(event.get('data')).to.eql({
@@ -125,44 +131,50 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should update with JSON column (JSON notation)', async function() {
-          await this.Event.bulkCreate([{
-            id: 1,
-            data: {
-              name: {
-                first: 'Homer',
-                last: 'Simpson'
-              },
-              employment: 'Nuclear Safety Inspector'
-            }
-          }, {
-            id: 2,
-            data: {
-              name: {
-                first: 'Rick',
-                last: 'Sanchez'
-              },
-              employment: 'Multiverse Scientist'
-            }
-          }]);
-
-          await this.Event.update({
-            'data': {
-              name: {
-                first: 'Rick',
-                last: 'Sanchez'
-              },
-              employment: 'Galactic Fed Prisioner'
-            }
-          }, {
-            where: {
+        it('should update with JSON column (JSON notation)', async function () {
+          await this.Event.bulkCreate([
+            {
+              id: 1,
               data: {
                 name: {
-                  first: 'Rick'
+                  first: 'Homer',
+                  last: 'Simpson'
+                },
+                employment: 'Nuclear Safety Inspector'
+              }
+            },
+            {
+              id: 2,
+              data: {
+                name: {
+                  first: 'Rick',
+                  last: 'Sanchez'
+                },
+                employment: 'Multiverse Scientist'
+              }
+            }
+          ]);
+
+          await this.Event.update(
+            {
+              data: {
+                name: {
+                  first: 'Rick',
+                  last: 'Sanchez'
+                },
+                employment: 'Galactic Fed Prisioner'
+              }
+            },
+            {
+              where: {
+                data: {
+                  name: {
+                    first: 'Rick'
+                  }
                 }
               }
             }
-          });
+          );
 
           const event = await this.Event.findByPk(2);
           expect(event.get('data')).to.eql({
@@ -174,7 +186,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should update an instance with JSON data', async function() {
+        it('should update an instance with JSON data', async function () {
           const event0 = await this.Event.create({
             data: {
               name: {
@@ -209,24 +221,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('find', () => {
-        it('should be possible to query a nested value', async function() {
-          await Promise.all([this.Event.create({
-            data: {
-              name: {
-                first: 'Homer',
-                last: 'Simpson'
-              },
-              employment: 'Nuclear Safety Inspector'
-            }
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Marge',
-                last: 'Simpson'
-              },
-              employment: 'Housewife'
-            }
-          })]);
+        it('should be possible to query a nested value', async function () {
+          await Promise.all([
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Homer',
+                  last: 'Simpson'
+                },
+                employment: 'Nuclear Safety Inspector'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: 'Housewife'
+              }
+            })
+          ]);
 
           const events = await this.Event.findAll({
             where: {
@@ -248,17 +263,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should be possible to query dates with array operators', async function() {
+        it('should be possible to query dates with array operators', async function () {
           const now = moment().milliseconds(0).toDate();
           const before = moment().milliseconds(0).subtract(1, 'day').toDate();
           const after = moment().milliseconds(0).add(1, 'day').toDate();
 
-          await Promise.all([this.Event.create({
-            json: {
-              user: 'Homer',
-              lastLogin: now
-            }
-          })]);
+          await Promise.all([
+            this.Event.create({
+              json: {
+                user: 'Homer',
+                lastLogin: now
+              }
+            })
+          ]);
 
           const events0 = await this.Event.findAll({
             where: {
@@ -293,13 +310,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should be possible to query a boolean with array operators', async function() {
-          await Promise.all([this.Event.create({
-            json: {
-              user: 'Homer',
-              active: true
-            }
-          })]);
+        it('should be possible to query a boolean with array operators', async function () {
+          await Promise.all([
+            this.Event.create({
+              json: {
+                user: 'Homer',
+                active: true
+              }
+            })
+          ]);
 
           const events0 = await this.Event.findAll({
             where: {
@@ -334,24 +353,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should be possible to query a nested integer value', async function() {
-          await Promise.all([this.Event.create({
-            data: {
-              name: {
-                first: 'Homer',
-                last: 'Simpson'
-              },
-              age: 40
-            }
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Marge',
-                last: 'Simpson'
-              },
-              age: 37
-            }
-          })]);
+        it('should be possible to query a nested integer value', async function () {
+          await Promise.all([
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Homer',
+                  last: 'Simpson'
+                },
+                age: 40
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                age: 37
+              }
+            })
+          ]);
 
           const events = await this.Event.findAll({
             where: {
@@ -375,24 +397,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should be possible to query a nested null value', async function() {
-          await Promise.all([this.Event.create({
-            data: {
-              name: {
-                first: 'Homer',
-                last: 'Simpson'
-              },
-              employment: 'Nuclear Safety Inspector'
-            }
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Marge',
-                last: 'Simpson'
-              },
-              employment: null
-            }
-          })]);
+        it('should be possible to query a nested null value', async function () {
+          await Promise.all([
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Homer',
+                  last: 'Simpson'
+                },
+                employment: 'Nuclear Safety Inspector'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: null
+              }
+            })
+          ]);
 
           const events = await this.Event.findAll({
             where: {
@@ -412,36 +437,39 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should be possible to query for nested fields with hyphens/dashes, #8718', async function() {
-          await Promise.all([this.Event.create({
-            data: {
-              name: {
-                first: 'Homer',
-                last: 'Simpson'
-              },
-              status_report: {
-                'red-indicator': {
-                  'level$$level': true
-                }
-              },
-              employment: 'Nuclear Safety Inspector'
-            }
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Marge',
-                last: 'Simpson'
-              },
-              employment: null
-            }
-          })]);
+        it('should be possible to query for nested fields with hyphens/dashes, #8718', async function () {
+          await Promise.all([
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Homer',
+                  last: 'Simpson'
+                },
+                status_report: {
+                  'red-indicator': {
+                    level$$level: true
+                  }
+                },
+                employment: 'Nuclear Safety Inspector'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: null
+              }
+            })
+          ]);
 
           const events = await this.Event.findAll({
             where: {
               data: {
                 status_report: {
                   'red-indicator': {
-                    'level$$level': true
+                    level$$level: true
                   }
                 }
               }
@@ -456,14 +484,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
             status_report: {
               'red-indicator': {
-                'level$$level': true
+                level$$level: true
               }
             },
             employment: 'Nuclear Safety Inspector'
           });
         });
 
-        it('should be possible to query multiple nested values', async function() {
+        it('should be possible to query multiple nested values', async function () {
           await this.Event.create({
             data: {
               name: {
@@ -474,23 +502,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
 
-          await Promise.all([this.Event.create({
-            data: {
-              name: {
-                first: 'Marge',
-                last: 'Simpson'
-              },
-              employment: 'Housewife'
-            }
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Bart',
-                last: 'Simpson'
-              },
-              employment: 'None'
-            }
-          })]);
+          await Promise.all([
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: 'Housewife'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Bart',
+                  last: 'Simpson'
+                },
+                employment: 'None'
+              }
+            })
+          ]);
 
           const events = await this.Event.findAll({
             where: {
@@ -503,9 +534,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 }
               }
             },
-            order: [
-              ['id', 'ASC']
-            ]
+            order: [['id', 'ASC']]
           });
 
           expect(events.length).to.equal(2);
@@ -527,7 +556,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should be possible to query a nested value and order results', async function() {
+        it('should be possible to query a nested value and order results', async function () {
           await this.Event.create({
             data: {
               name: {
@@ -538,23 +567,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
 
-          await Promise.all([this.Event.create({
-            data: {
-              name: {
-                first: 'Marge',
-                last: 'Simpson'
-              },
-              employment: 'Housewife'
-            }
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Bart',
-                last: 'Simpson'
-              },
-              employment: 'None'
-            }
-          })]);
+          await Promise.all([
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: 'Housewife'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Bart',
+                  last: 'Simpson'
+                },
+                employment: 'None'
+              }
+            })
+          ]);
 
           const events = await this.Event.findAll({
             where: {
@@ -564,9 +596,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 }
               }
             },
-            order: [
-              ['data.name.first']
-            ]
+            order: [['data.name.first']]
           });
 
           expect(events.length).to.equal(3);
@@ -598,7 +628,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('destroy', () => {
-        it('should be possible to destroy with where', async function() {
+        it('should be possible to destroy with where', async function () {
           const conditionSearch = {
             where: {
               data: {
@@ -607,31 +637,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           };
 
-          await Promise.all([this.Event.create({
-            data: {
-              name: {
-                first: 'Elliot',
-                last: 'Alderson'
-              },
-              employment: 'Hacker'
-            }
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Christian',
-                last: 'Slater'
-              },
-              employment: 'Hacker'
-            }
-          }), this.Event.create({
-            data: {
-              name: {
-                first: ' Tyrell',
-                last: 'Wellick'
-              },
-              employment: 'CTO'
-            }
-          })]);
+          await Promise.all([
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Elliot',
+                  last: 'Alderson'
+                },
+                employment: 'Hacker'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Christian',
+                  last: 'Slater'
+                },
+                employment: 'Hacker'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: ' Tyrell',
+                  last: 'Wellick'
+                },
+                employment: 'CTO'
+              }
+            })
+          ]);
 
           await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
           await this.Event.destroy(conditionSearch);
@@ -641,14 +675,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('sql injection attacks', () => {
-        beforeEach(async function() {
+        beforeEach(async function () {
           this.Model = this.sequelize.define('Model', {
             data: DataTypes.JSON
           });
           await this.sequelize.sync({ force: true });
         });
 
-        it('should properly escape the single quotes', async function() {
+        it('should properly escape the single quotes', async function () {
           await this.Model.create({
             data: {
               type: 'Point',
@@ -659,7 +693,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should properly escape path keys', async function() {
+        it('should properly escape path keys', async function () {
           await this.Model.findAll({
             raw: true,
             attributes: ['id'],
@@ -671,7 +705,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should properly escape path keys with sequelize.json', async function() {
+        it('should properly escape path keys with sequelize.json', async function () {
           await this.Model.findAll({
             raw: true,
             attributes: ['id'],
@@ -679,7 +713,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should properly escape the single quotes in array', async function() {
+        it('should properly escape the single quotes in array', async function () {
           await this.Model.create({
             data: {
               type: 'Point',
@@ -688,7 +722,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should be possible to find with properly escaped select query', async function() {
+        it('should be possible to find with properly escaped select query', async function () {
           await this.Model.create({
             data: {
               type: 'Point',
@@ -717,7 +751,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should query an instance with JSONB data and order while trying to inject', async function() {
+        it('should query an instance with JSONB data and order while trying to inject', async function () {
           await this.Event.create({
             data: {
               name: {
@@ -728,23 +762,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
 
-          await Promise.all([this.Event.create({
-            data: {
-              name: {
-                first: 'Marge',
-                last: 'Simpson'
-              },
-              employment: 'Housewife'
-            }
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Bart',
-                last: 'Simpson'
-              },
-              employment: 'None'
-            }
-          })]);
+          await Promise.all([
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson'
+                },
+                employment: 'Housewife'
+              }
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Bart',
+                  last: 'Simpson'
+                },
+                employment: 'None'
+              }
+            })
+          ]);
 
           if (current.options.dialect === 'sqlite') {
             const events = await this.Event.findAll({
@@ -755,9 +792,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   }
                 }
               },
-              order: [
-                ["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]
-              ]
+              order: [["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]]
             });
 
             expect(events).to.be.ok;
@@ -771,22 +806,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return;
           }
           if (current.options.dialect === 'postgres') {
-            await expect(this.Event.findAll({
-              where: {
-                data: {
-                  name: {
-                    last: 'Simpson'
+            await expect(
+              this.Event.findAll({
+                where: {
+                  data: {
+                    name: {
+                      last: 'Simpson'
+                    }
                   }
-                }
-              },
-              order: [
-                ["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]
-              ]
-            })).to.eventually.be.rejectedWith(Error);
+                },
+                order: [["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]]
+              })
+            ).to.eventually.be.rejectedWith(Error);
           }
         });
       });
     });
   }
-
 });

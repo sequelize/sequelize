@@ -128,7 +128,6 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     chai.expect(deprecationStub).to.have.been.calledOnce;
   });
 
-
   it('should allow forced reads from the write pool', async () => {
     const master = { ...poolEntry };
     master.host = 'the-boss';

@@ -10,7 +10,7 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method count', () => {
-    before(function() {
+    before(function () {
       this.oldFindAll = Sequelize.Model.findAll;
       this.oldAggregate = Sequelize.Model.aggregate;
 
@@ -28,17 +28,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Project.belongsTo(this.User);
     });
 
-    after(function() {
+    after(function () {
       Sequelize.Model.findAll = this.oldFindAll;
       Sequelize.Model.aggregate = this.oldAggregate;
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.stub = Sequelize.Model.aggregate = sinon.stub().resolves();
     });
 
     describe('should pass the same options to model.aggregate as findAndCountAll', () => {
-      it('with includes', async function() {
+      it('with includes', async function () {
         const queryObject = {
           include: [this.Project]
         };
@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(count).to.eql(findAndCountAll);
       });
 
-      it('attributes should be stripped in case of findAndCountAll', async function() {
+      it('attributes should be stripped in case of findAndCountAll', async function () {
         const queryObject = {
           attributes: ['username']
         };
@@ -62,6 +62,5 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(count).to.eql(findAndCountAll);
       });
     });
-
   });
 });

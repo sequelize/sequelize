@@ -6,7 +6,7 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   });
 
   describe('#count', () => {
-    beforeEach(async function() {
+    beforeEach(async function () {
       await this.User.bulkCreate([
         { username: 'adam', mood: 'happy' },
         { username: 'joe', mood: 'sad' },
@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on success', () => {
-      it('hook runs', async function() {
+      it('hook runs', async function () {
         let beforeHook = false;
 
         this.User.beforeCount(() => {
@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(beforeHook).to.be.true;
       });
 
-      it('beforeCount hook can change options', async function() {
+      it('beforeCount hook can change options', async function () {
         this.User.beforeCount(options => {
           options.where.username = 'adam';
         });
@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on error', () => {
-      it('in beforeCount hook returns error', async function() {
+      it('in beforeCount hook returns error', async function () {
         this.User.beforeCount(() => {
           throw new Error('Oops!');
         });
@@ -61,5 +61,4 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
   });
-
 });

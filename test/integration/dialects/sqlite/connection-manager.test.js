@@ -18,7 +18,7 @@ if (dialect === 'sqlite') {
       jetpack.remove(directoryName);
     });
 
-    it('close connection and remove journal and wal files', async function() {
+    it('close connection and remove journal and wal files', async function () {
       const sequelize = Support.createSequelizeInstance({
         storage: jetpack.path(fileName)
       });

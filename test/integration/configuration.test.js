@@ -17,7 +17,7 @@ if (dialect === 'sqlite') {
 
 describe(Support.getTestDialectTeaser('Configuration'), () => {
   describe('Connections problems should fail with a nice message', () => {
-    it('when we don\'t have the correct server details', async () => {
+    it("when we don't have the correct server details", async () => {
       const options = {
         logging: false,
         host: '0.0.0.1',
@@ -25,12 +25,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         dialect
       };
 
-      const constructorArgs = [
-        config[dialect].database,
-        config[dialect].username,
-        config[dialect].password,
-        options
-      ];
+      const constructorArgs = [config[dialect].database, config[dialect].username, config[dialect].password, options];
 
       let willBeRejectedWithArgs = [[Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]];
 
@@ -45,7 +40,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
     });
 
-    it('when we don\'t have the correct login information', async () => {
+    it("when we don't have the correct login information", async () => {
       if (dialect === 'mssql') {
         // NOTE: Travis seems to be having trouble with this test against the
         //       AWS instance. Works perfectly fine on a local setup.
@@ -53,19 +48,34 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         return;
       }
 
-      const seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', { logging: false, host: config[dialect].host, port: 1, dialect });
+      const seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', {
+        logging: false,
+        host: config[dialect].host,
+        port: 1,
+        dialect
+      });
       if (dialect === 'sqlite') {
         // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
         await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
       } else {
-        await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
+        await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(
+          Sequelize.ConnectionRefusedError,
+          'connect ECONNREFUSED'
+        );
       }
     });
 
-    it('when we don\'t have a valid dialect.', () => {
+    it("when we don't have a valid dialect.", () => {
       expect(() => {
-        new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, { host: '0.0.0.1', port: config[dialect].port, dialect: 'some-fancy-dialect' });
-      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mariadb, mysql, postgres, and sqlite.');
+        new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {
+          host: '0.0.0.1',
+          port: config[dialect].port,
+          dialect: 'some-fancy-dialect'
+        });
+      }).to.throw(
+        Error,
+        'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mariadb, mysql, postgres, and sqlite.'
+      );
     });
   });
 
@@ -104,9 +114,11 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
           expect(sequelizeReadWrite0.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READWRITE);
 
           await Promise.all([
-            sequelizeReadOnly0.query(createTableFoo)
+            sequelizeReadOnly0
+              .query(createTableFoo)
               .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
-            sequelizeReadWrite0.query(createTableFoo)
+            sequelizeReadWrite0
+              .query(createTableFoo)
               .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file')
           ]);
 
@@ -129,7 +141,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
           });
 
           await Promise.all([
-            sequelizeReadOnly.query(createTableBar)
+            sequelizeReadOnly
+              .query(createTableBar)
               .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
             sequelizeReadWrite.query(createTableBar)
           ]);
@@ -139,5 +152,4 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       });
     }
   });
-
 });

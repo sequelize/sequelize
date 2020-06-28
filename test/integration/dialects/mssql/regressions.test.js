@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  sinon =  require('sinon'),
+  sinon = require('sinon'),
   Support = require('../../support'),
   Sequelize = Support.Sequelize,
   Op = Sequelize.Op,
@@ -10,7 +10,7 @@ const chai = require('chai'),
 
 if (dialect.match(/^mssql/)) {
   describe(Support.getTestDialectTeaser('Regressions'), () => {
-    it('does not duplicate columns in ORDER BY statement, #9008', async function() {
+    it('does not duplicate columns in ORDER BY statement, #9008', async function () {
       const LoginLog = this.sequelize.define('LoginLog', {
         ID: {
           field: 'id',
@@ -48,12 +48,10 @@ if (dialect.match(/^mssql/)) {
 
       await this.sequelize.sync({ force: true });
 
-      const [vyom, shakti, nikita, arya] = await User.bulkCreate([
-        { UserName: 'Vayom' },
-        { UserName: 'Shaktimaan' },
-        { UserName: 'Nikita' },
-        { UserName: 'Aryamaan' }
-      ], { returning: true });
+      const [vyom, shakti, nikita, arya] = await User.bulkCreate(
+        [{ UserName: 'Vayom' }, { UserName: 'Shaktimaan' }, { UserName: 'Nikita' }, { UserName: 'Aryamaan' }],
+        { returning: true }
+      );
 
       await Promise.all([
         vyom.createLoginLog(),
@@ -109,9 +107,7 @@ if (dialect.match(/^mssql/)) {
           {
             model: LoginLog,
             separate: true,
-            order: [
-              'id'
-            ]
+            order: ['id']
           }
         ],
         where: {
@@ -131,7 +127,7 @@ if (dialect.match(/^mssql/)) {
       expect(separateUsers[1].get('LoginLogs')).to.have.length(1);
     });
 
-    it('allow referencing FK to different tables in a schema with onDelete, #10125', async function() {
+    it('allow referencing FK to different tables in a schema with onDelete, #10125', async function () {
       const Child = this.sequelize.define(
         'Child',
         {},
@@ -177,15 +173,19 @@ if (dialect.match(/^mssql/)) {
       });
 
       expect(spy).to.have.been.called;
-      const log = spy.args.find(arg => arg[0].includes('IF OBJECT_ID(\'[a].[Toys]\', \'U\') IS NULL CREATE TABLE'))[0];
+      const log = spy.args.find(arg => arg[0].includes("IF OBJECT_ID('[a].[Toys]', 'U') IS NULL CREATE TABLE"))[0];
 
       expect(log.match(/ON DELETE CASCADE/g).length).to.equal(2);
     });
 
-    it('sets the varchar(max) length correctly on describeTable', async function() {
-      const Users = this.sequelize.define('_Users', {
-        username: Sequelize.STRING('MAX')
-      }, { freezeTableName: true });
+    it('sets the varchar(max) length correctly on describeTable', async function () {
+      const Users = this.sequelize.define(
+        '_Users',
+        {
+          username: Sequelize.STRING('MAX')
+        },
+        { freezeTableName: true }
+      );
 
       await Users.sync({ force: true });
       const metadata = await this.sequelize.getQueryInterface().describeTable('_Users');
@@ -193,10 +193,14 @@ if (dialect.match(/^mssql/)) {
       expect(username.type).to.include('(MAX)');
     });
 
-    it('sets the char(10) length correctly on describeTable', async function() {
-      const Users = this.sequelize.define('_Users', {
-        username: Sequelize.CHAR(10)
-      }, { freezeTableName: true });
+    it('sets the char(10) length correctly on describeTable', async function () {
+      const Users = this.sequelize.define(
+        '_Users',
+        {
+          username: Sequelize.CHAR(10)
+        },
+        { freezeTableName: true }
+      );
 
       await Users.sync({ force: true });
       const metadata = await this.sequelize.getQueryInterface().describeTable('_Users');
@@ -204,15 +208,19 @@ if (dialect.match(/^mssql/)) {
       expect(username.type).to.include('(10)');
     });
 
-    it('saves value bigger than 2147483647, #11245', async function() {
-      const BigIntTable =  this.sequelize.define('BigIntTable', {
-        business_id: {
-          type: Sequelize.BIGINT,
-          allowNull: false
+    it('saves value bigger than 2147483647, #11245', async function () {
+      const BigIntTable = this.sequelize.define(
+        'BigIntTable',
+        {
+          business_id: {
+            type: Sequelize.BIGINT,
+            allowNull: false
+          }
+        },
+        {
+          freezeTableName: true
         }
-      }, {
-        freezeTableName: true
-      });
+      );
 
       const bigIntValue = 2147483648;
 
@@ -226,15 +234,19 @@ if (dialect.match(/^mssql/)) {
       expect(Number(record.business_id)).to.equals(bigIntValue);
     });
 
-    it('saves boolean is true, #12090', async function() {
-      const BooleanTable =  this.sequelize.define('BooleanTable', {
-        status: {
-          type: Sequelize.BOOLEAN,
-          allowNull: false
+    it('saves boolean is true, #12090', async function () {
+      const BooleanTable = this.sequelize.define(
+        'BooleanTable',
+        {
+          status: {
+            type: Sequelize.BOOLEAN,
+            allowNull: false
+          }
+        },
+        {
+          freezeTableName: true
         }
-      }, {
-        freezeTableName: true
-      });
+      );
 
       const value = true;
 

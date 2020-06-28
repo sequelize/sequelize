@@ -13,7 +13,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         // #9813 testcase
         const Project = current.define('Project', { name: DataTypes.STRING });
         const LevelTwo = current.define('LevelTwo', { name: DataTypes.STRING });
-        const LevelThree = current.define('LevelThree', { type: DataTypes.INTEGER });
+        const LevelThree = current.define('LevelThree', {
+          type: DataTypes.INTEGER
+        });
 
         Project.hasMany(LevelTwo);
         LevelTwo.belongsTo(Project);
@@ -32,10 +34,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               LevelTwo.create({ name: 'testL22' })
             ]);
 
-            await Promise.all([
-              project.addLevelTwo(level21),
-              project.addLevelTwo(level22)
-            ]);
+            await Promise.all([project.addLevelTwo(level21), project.addLevelTwo(level22)]);
 
             // one include case
             const projects0 = await Project.findAll({

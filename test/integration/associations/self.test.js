@@ -6,26 +6,32 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Self'), () => {
-  it('supports freezeTableName', async function() {
-    const Group = this.sequelize.define('Group', {}, {
-      tableName: 'user_group',
-      timestamps: false,
-      underscored: true,
-      freezeTableName: true
-    });
+  it('supports freezeTableName', async function () {
+    const Group = this.sequelize.define(
+      'Group',
+      {},
+      {
+        tableName: 'user_group',
+        timestamps: false,
+        underscored: true,
+        freezeTableName: true
+      }
+    );
 
     Group.belongsTo(Group, { as: 'Parent', foreignKey: 'parent_id' });
     await Group.sync({ force: true });
 
     await Group.findAll({
-      include: [{
-        model: Group,
-        as: 'Parent'
-      }]
+      include: [
+        {
+          model: Group,
+          as: 'Parent'
+        }
+      ]
     });
   });
 
-  it('can handle 1:m associations', async function() {
+  it('can handle 1:m associations', async function () {
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
     Person.hasMany(Person, { as: 'Children', foreignKey: 'parent_id' });
@@ -43,11 +49,21 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     await mary.setChildren([john, chris]);
   });
 
-  it('can handle n:m associations', async function() {
+  it('can handle n:m associations', async function () {
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
-    Person.belongsToMany(Person, { as: 'Parents', through: 'Family', foreignKey: 'ChildId', otherKey: 'PersonId' });
-    Person.belongsToMany(Person, { as: 'Childs', through: 'Family', foreignKey: 'PersonId', otherKey: 'ChildId' });
+    Person.belongsToMany(Person, {
+      as: 'Parents',
+      through: 'Family',
+      foreignKey: 'ChildId',
+      otherKey: 'PersonId'
+    });
+    Person.belongsToMany(Person, {
+      as: 'Childs',
+      through: 'Family',
+      foreignKey: 'PersonId',
+      otherKey: 'ChildId'
+    });
 
     const foreignIdentifiers = Object.values(Person.associations).map(v => v.foreignIdentifier);
     const rawAttributes = Object.keys(this.sequelize.models.Family.rawAttributes);
@@ -72,21 +88,35 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     expect(children.map(v => v.id)).to.have.members([mary.id, chris.id]);
   });
 
-  it('can handle n:m associations with pre-defined through table', async function() {
+  it('can handle n:m associations with pre-defined through table', async function () {
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
-    const Family = this.sequelize.define('Family', {
-      preexisting_child: {
-        type: DataTypes.INTEGER,
-        primaryKey: true
+    const Family = this.sequelize.define(
+      'Family',
+      {
+        preexisting_child: {
+          type: DataTypes.INTEGER,
+          primaryKey: true
+        },
+        preexisting_parent: {
+          type: DataTypes.INTEGER,
+          primaryKey: true
+        }
       },
-      preexisting_parent: {
-        type: DataTypes.INTEGER,
-        primaryKey: true
-      }
-    }, { timestamps: false });
+      { timestamps: false }
+    );
 
-    Person.belongsToMany(Person, { as: 'Parents', through: Family, foreignKey: 'preexisting_child', otherKey: 'preexisting_parent' });
-    Person.belongsToMany(Person, { as: 'Children', through: Family, foreignKey: 'preexisting_parent', otherKey: 'preexisting_child' });
+    Person.belongsToMany(Person, {
+      as: 'Parents',
+      through: Family,
+      foreignKey: 'preexisting_child',
+      otherKey: 'preexisting_parent'
+    });
+    Person.belongsToMany(Person, {
+      as: 'Children',
+      through: Family,
+      foreignKey: 'preexisting_parent',
+      otherKey: 'preexisting_child'
+    });
 
     const foreignIdentifiers = Object.values(Person.associations).map(v => v.foreignIdentifier);
     const rawAttributes = Object.keys(Family.rawAttributes);

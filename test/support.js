@@ -55,7 +55,7 @@ const Support = {
    * during this test (instead of failing the test)
    */
   nextUnhandledRejection() {
-    return new Promise((resolve, reject) => onNextUnhandledRejection = reject);
+    return new Promise((resolve, reject) => (onNextUnhandledRejection = reject));
   },
 
   /**
@@ -68,7 +68,7 @@ const Support = {
    * @returns {Error[]} destArray
    */
   captureUnhandledRejections(destArray = []) {
-    return unhandledRejections = destArray;
+    return (unhandledRejections = destArray);
   },
 
   async prepareTransactionTest(sequelize) {
@@ -164,7 +164,8 @@ const Support = {
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(`${__dirname}/../lib/dialects`)
+    return fs
+      .readdirSync(`${__dirname}/../lib/dialects`)
       .filter(file => !file.includes('.js') && !file.includes('abstract'));
   },
 
@@ -238,10 +239,10 @@ const Support = {
 };
 
 if (global.beforeEach) {
-  before(function() {
+  before(function () {
     this.sequelize = Support.sequelize;
   });
-  beforeEach(function() {
+  beforeEach(function () {
     this.sequelize = Support.sequelize;
   });
 }

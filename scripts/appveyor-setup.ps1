@@ -32,7 +32,7 @@ $config = @{
       encrypt = $false
       requestTimeout = 25000
       cryptoCredentialsDetails = @{
-        ciphers = "RC4-MD5"
+        ciphers = "AES128-SHA256"
       }
     }
   }

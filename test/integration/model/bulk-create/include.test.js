@@ -9,53 +9,69 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('bulkCreate', () => {
     describe('include', () => {
-      it('should bulkCreate data for BelongsTo relations', async function() {
-        const Product = this.sequelize.define('Product', {
-          title: Sequelize.STRING
-        }, {
-          hooks: {
-            afterBulkCreate(products) {
-              products.forEach(product => {
-                product.isIncludeCreatedOnAfterCreate = !!(product.User && product.User.id);
-              });
+      it('should bulkCreate data for BelongsTo relations', async function () {
+        const Product = this.sequelize.define(
+          'Product',
+          {
+            title: Sequelize.STRING
+          },
+          {
+            hooks: {
+              afterBulkCreate(products) {
+                products.forEach(product => {
+                  product.isIncludeCreatedOnAfterCreate = !!(product.User && product.User.id);
+                });
+              }
             }
           }
-        });
-        const User = this.sequelize.define('User', {
-          first_name: Sequelize.STRING,
-          last_name: Sequelize.STRING
-        }, {
-          hooks: {
-            beforeBulkCreate(users, options) {
-              users.forEach(user => {
-                user.createOptions = options;
-              });
+        );
+        const User = this.sequelize.define(
+          'User',
+          {
+            first_name: Sequelize.STRING,
+            last_name: Sequelize.STRING
+          },
+          {
+            hooks: {
+              beforeBulkCreate(users, options) {
+                users.forEach(user => {
+                  user.createOptions = options;
+                });
+              }
             }
           }
-        });
+        );
 
         Product.belongsTo(User);
 
         await this.sequelize.sync({ force: true });
 
-        const savedProducts = await Product.bulkCreate([{
-          title: 'Chair',
-          User: {
-            first_name: 'Mick',
-            last_name: 'Broadstone'
+        const savedProducts = await Product.bulkCreate(
+          [
+            {
+              title: 'Chair',
+              User: {
+                first_name: 'Mick',
+                last_name: 'Broadstone'
+              }
+            },
+            {
+              title: 'Table',
+              User: {
+                first_name: 'John',
+                last_name: 'Johnson'
+              }
+            }
+          ],
+          {
+            include: [
+              {
+                model: User,
+                myOption: 'option'
+              }
+            ]
           }
-        }, {
-          title: 'Table',
-          User: {
-            first_name: 'John',
-            last_name: 'Johnson'
-          }
-        }], {
-          include: [{
-            model: User,
-            myOption: 'option'
-          }]
-        });
+        );
 
         expect(savedProducts[0].isIncludeCreatedOnAfterCreate).to.be.true;
         expect(savedProducts[0].User.createOptions.myOption).to.be.equal('option');
@@ -83,7 +99,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(persistedProducts[1].User.last_name).to.be.equal('Johnson');
       });
 
-      it('should bulkCreate data for BelongsTo relations with no nullable FK', async function() {
+      it('should bulkCreate data for BelongsTo relations with no nullable FK', async function () {
         const Product = this.sequelize.define('Product', {
           title: Sequelize.STRING
         });
@@ -99,21 +115,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await this.sequelize.sync({ force: true });
 
-        const savedProducts = await Product.bulkCreate([{
-          title: 'Chair',
-          User: {
-            first_name: 'Mick'
+        const savedProducts = await Product.bulkCreate(
+          [
+            {
+              title: 'Chair',
+              User: {
+                first_name: 'Mick'
+              }
+            },
+            {
+              title: 'Table',
+              User: {
+                first_name: 'John'
+              }
+            }
+          ],
+          {
+            include: [
+              {
+                model: User
+              }
+            ]
           }
-        }, {
-          title: 'Table',
-          User: {
-            first_name: 'John'
-          }
-        }], {
-          include: [{
-            model: User
-          }]
-        });
+        );
 
         expect(savedProducts[0]).to.exist;
         expect(savedProducts[0].title).to.be.equal('Chair');
@@ -126,7 +150,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(savedProducts[1].User.first_name).to.be.equal('John');
       });
 
-      it('should bulkCreate data for BelongsTo relations with alias', async function() {
+      it('should bulkCreate data for BelongsTo relations with alias', async function () {
         const Product = this.sequelize.define('Product', {
           title: Sequelize.STRING
         });
@@ -139,21 +163,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await this.sequelize.sync({ force: true });
 
-        const savedProducts = await Product.bulkCreate([{
-          title: 'Chair',
-          creator: {
-            first_name: 'Matt',
-            last_name: 'Hansen'
+        const savedProducts = await Product.bulkCreate(
+          [
+            {
+              title: 'Chair',
+              creator: {
+                first_name: 'Matt',
+                last_name: 'Hansen'
+              }
+            },
+            {
+              title: 'Table',
+              creator: {
+                first_name: 'John',
+                last_name: 'Johnson'
+              }
+            }
+          ],
+          {
+            include: [Creator]
           }
-        }, {
-          title: 'Table',
-          creator: {
-            first_name: 'John',
-            last_name: 'Johnson'
-          }
-        }], {
-          include: [Creator]
-        });
+        );
 
         const persistedProducts = await Promise.all([
           Product.findOne({
@@ -175,55 +205,72 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(persistedProducts[1].creator.last_name).to.be.equal('Johnson');
       });
 
-      it('should bulkCreate data for HasMany relations', async function() {
-        const Product = this.sequelize.define('Product', {
-          title: Sequelize.STRING
-        }, {
-          hooks: {
-            afterBulkCreate(products) {
-              products.forEach(product => {
-                product.areIncludesCreatedOnAfterCreate = product.Tags &&
-                  product.Tags.every(tag => {
-                    return !!tag.id;
-                  });
-              });
+      it('should bulkCreate data for HasMany relations', async function () {
+        const Product = this.sequelize.define(
+          'Product',
+          {
+            title: Sequelize.STRING
+          },
+          {
+            hooks: {
+              afterBulkCreate(products) {
+                products.forEach(product => {
+                  product.areIncludesCreatedOnAfterCreate =
+                    product.Tags &&
+                    product.Tags.every(tag => {
+                      return !!tag.id;
+                    });
+                });
+              }
             }
           }
-        });
-        const Tag = this.sequelize.define('Tag', {
-          name: Sequelize.STRING
-        }, {
-          hooks: {
-            afterBulkCreate(tags, options) {
-              tags.forEach(tag => tag.createOptions = options);
+        );
+        const Tag = this.sequelize.define(
+          'Tag',
+          {
+            name: Sequelize.STRING
+          },
+          {
+            hooks: {
+              afterBulkCreate(tags, options) {
+                tags.forEach(tag => (tag.createOptions = options));
+              }
             }
           }
-        });
+        );
 
         Product.hasMany(Tag);
 
         await this.sequelize.sync({ force: true });
 
-        const savedProducts = await Product.bulkCreate([{
-          id: 1,
-          title: 'Chair',
-          Tags: [
-            { id: 1, name: 'Alpha' },
-            { id: 2, name: 'Beta' }
-          ]
-        }, {
-          id: 2,
-          title: 'Table',
-          Tags: [
-            { id: 3, name: 'Gamma' },
-            { id: 4, name: 'Delta' }
-          ]
-        }], {
-          include: [{
-            model: Tag,
-            myOption: 'option'
-          }]
-        });
+        const savedProducts = await Product.bulkCreate(
+          [
+            {
+              id: 1,
+              title: 'Chair',
+              Tags: [
+                { id: 1, name: 'Alpha' },
+                { id: 2, name: 'Beta' }
+              ]
+            },
+            {
+              id: 2,
+              title: 'Table',
+              Tags: [
+                { id: 3, name: 'Gamma' },
+                { id: 4, name: 'Delta' }
+              ]
+            }
+          ],
+          {
+            include: [
+              {
+                model: Tag,
+                myOption: 'option'
+              }
+            ]
+          }
+        );
 
         expect(savedProducts[0].areIncludesCreatedOnAfterCreate).to.be.true;
         expect(savedProducts[0].Tags[0].createOptions.myOption).to.be.equal('option');
@@ -251,7 +298,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(persistedProducts[1].Tags.length).to.equal(2);
       });
 
-      it('should bulkCreate data for HasMany relations with alias', async function() {
+      it('should bulkCreate data for HasMany relations with alias', async function () {
         const Product = this.sequelize.define('Product', {
           title: Sequelize.STRING
         });
@@ -263,23 +310,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await this.sequelize.sync({ force: true });
 
-        const savedProducts = await Product.bulkCreate([{
-          id: 1,
-          title: 'Chair',
-          categories: [
-            { id: 1, name: 'Alpha' },
-            { id: 2, name: 'Beta' }
-          ]
-        }, {
-          id: 2,
-          title: 'Table',
-          categories: [
-            { id: 3, name: 'Gamma' },
-            { id: 4, name: 'Delta' }
-          ]
-        }], {
-          include: [Categories]
-        });
+        const savedProducts = await Product.bulkCreate(
+          [
+            {
+              id: 1,
+              title: 'Chair',
+              categories: [
+                { id: 1, name: 'Alpha' },
+                { id: 2, name: 'Beta' }
+              ]
+            },
+            {
+              id: 2,
+              title: 'Table',
+              categories: [
+                { id: 3, name: 'Gamma' },
+                { id: 4, name: 'Delta' }
+              ]
+            }
+          ],
+          {
+            include: [Categories]
+          }
+        );
 
         const persistedProducts = await Promise.all([
           Product.findOne({
@@ -299,7 +352,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(persistedProducts[1].categories.length).to.equal(2);
       });
 
-      it('should bulkCreate data for HasOne relations', async function() {
+      it('should bulkCreate data for HasOne relations', async function () {
         const User = this.sequelize.define('User', {
           username: Sequelize.STRING
         });
@@ -312,19 +365,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await this.sequelize.sync({ force: true });
 
-        const savedUsers = await User.bulkCreate([{
-          username: 'Muzzy',
-          Task: {
-            title: 'Eat Clocks'
+        const savedUsers = await User.bulkCreate(
+          [
+            {
+              username: 'Muzzy',
+              Task: {
+                title: 'Eat Clocks'
+              }
+            },
+            {
+              username: 'Walker',
+              Task: {
+                title: 'Walk'
+              }
+            }
+          ],
+          {
+            include: [Task]
           }
-        }, {
-          username: 'Walker',
-          Task: {
-            title: 'Walk'
-          }
-        }], {
-          include: [Task]
-        });
+        );
 
         const persistedUsers = await Promise.all([
           User.findOne({
@@ -341,7 +400,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(persistedUsers[1].Task).to.be.ok;
       });
 
-      it('should bulkCreate data for HasOne relations with alias', async function() {
+      it('should bulkCreate data for HasOne relations with alias', async function () {
         const User = this.sequelize.define('User', {
           username: Sequelize.STRING
         });
@@ -352,22 +411,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const Job = User.hasOne(Task, { as: 'job' });
 
-
         await this.sequelize.sync({ force: true });
 
-        const savedUsers = await User.bulkCreate([{
-          username: 'Muzzy',
-          job: {
-            title: 'Eat Clocks'
+        const savedUsers = await User.bulkCreate(
+          [
+            {
+              username: 'Muzzy',
+              job: {
+                title: 'Eat Clocks'
+              }
+            },
+            {
+              username: 'Walker',
+              job: {
+                title: 'Walk'
+              }
+            }
+          ],
+          {
+            include: [Job]
           }
-        }, {
-          username: 'Walker',
-          job: {
-            title: 'Walk'
-          }
-        }], {
-          include: [Job]
-        });
+        );
 
         const persistedUsers = await Promise.all([
           User.findOne({
@@ -384,58 +448,75 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(persistedUsers[1].job).to.be.ok;
       });
 
-      it('should bulkCreate data for BelongsToMany relations', async function() {
-        const User = this.sequelize.define('User', {
-          username: DataTypes.STRING
-        }, {
-          hooks: {
-            afterBulkCreate(users) {
-              users.forEach(user => {
-                user.areIncludesCreatedOnAfterCreate = user.Tasks &&
-                  user.Tasks.every(task => {
-                    return !!task.id;
-                  });
-              });
+      it('should bulkCreate data for BelongsToMany relations', async function () {
+        const User = this.sequelize.define(
+          'User',
+          {
+            username: DataTypes.STRING
+          },
+          {
+            hooks: {
+              afterBulkCreate(users) {
+                users.forEach(user => {
+                  user.areIncludesCreatedOnAfterCreate =
+                    user.Tasks &&
+                    user.Tasks.every(task => {
+                      return !!task.id;
+                    });
+                });
+              }
             }
           }
-        });
+        );
 
-        const Task = this.sequelize.define('Task', {
-          title: DataTypes.STRING,
-          active: DataTypes.BOOLEAN
-        }, {
-          hooks: {
-            afterBulkCreate(tasks, options) {
-              tasks.forEach(task => {
-                task.createOptions = options;
-              });
+        const Task = this.sequelize.define(
+          'Task',
+          {
+            title: DataTypes.STRING,
+            active: DataTypes.BOOLEAN
+          },
+          {
+            hooks: {
+              afterBulkCreate(tasks, options) {
+                tasks.forEach(task => {
+                  task.createOptions = options;
+                });
+              }
             }
           }
-        });
+        );
 
         User.belongsToMany(Task, { through: 'user_task' });
         Task.belongsToMany(User, { through: 'user_task' });
 
         await this.sequelize.sync({ force: true });
 
-        const savedUsers = await User.bulkCreate([{
-          username: 'John',
-          Tasks: [
-            { title: 'Get rich', active: true },
-            { title: 'Die trying', active: false }
-          ]
-        }, {
-          username: 'Jack',
-          Tasks: [
-            { title: 'Prepare sandwich', active: true },
-            { title: 'Each sandwich', active: false }
-          ]
-        }], {
-          include: [{
-            model: Task,
-            myOption: 'option'
-          }]
-        });
+        const savedUsers = await User.bulkCreate(
+          [
+            {
+              username: 'John',
+              Tasks: [
+                { title: 'Get rich', active: true },
+                { title: 'Die trying', active: false }
+              ]
+            },
+            {
+              username: 'Jack',
+              Tasks: [
+                { title: 'Prepare sandwich', active: true },
+                { title: 'Each sandwich', active: false }
+              ]
+            }
+          ],
+          {
+            include: [
+              {
+                model: Task,
+                myOption: 'option'
+              }
+            ]
+          }
+        );
 
         expect(savedUsers[0].areIncludesCreatedOnAfterCreate).to.be.true;
         expect(savedUsers[0].Tasks[0].createOptions.myOption).to.be.equal('option');
@@ -463,40 +544,52 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(persistedUsers[1].Tasks.length).to.equal(2);
       });
 
-      it('should bulkCreate data for polymorphic BelongsToMany relations', async function() {
-        const Post = this.sequelize.define('Post', {
-          title: DataTypes.STRING
-        }, {
-          tableName: 'posts',
-          underscored: true
-        });
+      it('should bulkCreate data for polymorphic BelongsToMany relations', async function () {
+        const Post = this.sequelize.define(
+          'Post',
+          {
+            title: DataTypes.STRING
+          },
+          {
+            tableName: 'posts',
+            underscored: true
+          }
+        );
 
-        const Tag = this.sequelize.define('Tag', {
-          name: DataTypes.STRING
-        }, {
-          tableName: 'tags',
-          underscored: true
-        });
+        const Tag = this.sequelize.define(
+          'Tag',
+          {
+            name: DataTypes.STRING
+          },
+          {
+            tableName: 'tags',
+            underscored: true
+          }
+        );
 
-        const ItemTag = this.sequelize.define('ItemTag', {
-          tag_id: {
-            type: DataTypes.INTEGER,
-            references: {
-              model: 'tags',
-              key: 'id'
+        const ItemTag = this.sequelize.define(
+          'ItemTag',
+          {
+            tag_id: {
+              type: DataTypes.INTEGER,
+              references: {
+                model: 'tags',
+                key: 'id'
+              }
+            },
+            taggable_id: {
+              type: DataTypes.INTEGER,
+              references: null
+            },
+            taggable: {
+              type: DataTypes.STRING
             }
           },
-          taggable_id: {
-            type: DataTypes.INTEGER,
-            references: null
-          },
-          taggable: {
-            type: DataTypes.STRING
+          {
+            tableName: 'item_tag',
+            underscored: true
           }
-        }, {
-          tableName: 'item_tag',
-          underscored: true
-        });
+        );
 
         Post.belongsToMany(Tag, {
           as: 'tags',
@@ -524,35 +617,42 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await this.sequelize.sync({ force: true });
 
-        const savedPosts = await Post.bulkCreate([{
-          title: 'Polymorphic Associations',
-          tags: [
+        const savedPosts = await Post.bulkCreate(
+          [
             {
-              name: 'polymorphic'
+              title: 'Polymorphic Associations',
+              tags: [
+                {
+                  name: 'polymorphic'
+                },
+                {
+                  name: 'associations'
+                }
+              ]
             },
             {
-              name: 'associations'
+              title: 'Second Polymorphic Associations',
+              tags: [
+                {
+                  name: 'second polymorphic'
+                },
+                {
+                  name: 'second associations'
+                }
+              ]
             }
-          ]
-        }, {
-          title: 'Second Polymorphic Associations',
-          tags: [
-            {
-              name: 'second polymorphic'
-            },
-            {
-              name: 'second associations'
-            }
-          ]
-        }], {
-          include: [{
-            model: Tag,
-            as: 'tags',
-            through: {
-              model: ItemTag
-            }
-          }]
-        }
+          ],
+          {
+            include: [
+              {
+                model: Tag,
+                as: 'tags',
+                through: {
+                  model: ItemTag
+                }
+              }
+            ]
+          }
         );
 
         // The saved post should include the two tags
@@ -561,10 +661,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         // The saved post should be able to retrieve the two tags
         // using the convenience accessor methods
-        const savedTagGroups = await Promise.all([
-          savedPosts[0].getTags(),
-          savedPosts[1].getTags()
-        ]);
+        const savedTagGroups = await Promise.all([savedPosts[0].getTags(), savedPosts[1].getTags()]);
 
         // All nested tags should be returned
         expect(savedTagGroups[0].length).to.equal(2);
@@ -580,7 +677,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(itemTags[3].taggable).to.equal('post');
       });
 
-      it('should bulkCreate data for BelongsToMany relations with alias', async function() {
+      it('should bulkCreate data for BelongsToMany relations with alias', async function () {
         const User = this.sequelize.define('User', {
           username: DataTypes.STRING
         });
@@ -590,26 +687,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           active: DataTypes.BOOLEAN
         });
 
-        const Jobs = User.belongsToMany(Task, { through: 'user_job', as: 'jobs' });
+        const Jobs = User.belongsToMany(Task, {
+          through: 'user_job',
+          as: 'jobs'
+        });
         Task.belongsToMany(User, { through: 'user_job' });
 
         await this.sequelize.sync({ force: true });
 
-        const savedUsers = await User.bulkCreate([{
-          username: 'John',
-          jobs: [
-            { title: 'Get rich', active: true },
-            { title: 'Die trying', active: false }
-          ]
-        }, {
-          username: 'Jack',
-          jobs: [
-            { title: 'Prepare sandwich', active: true },
-            { title: 'Eat sandwich', active: false }
-          ]
-        }], {
-          include: [Jobs]
-        });
+        const savedUsers = await User.bulkCreate(
+          [
+            {
+              username: 'John',
+              jobs: [
+                { title: 'Get rich', active: true },
+                { title: 'Die trying', active: false }
+              ]
+            },
+            {
+              username: 'Jack',
+              jobs: [
+                { title: 'Prepare sandwich', active: true },
+                { title: 'Eat sandwich', active: false }
+              ]
+            }
+          ],
+          {
+            include: [Jobs]
+          }
+        );
 
         const persistedUsers = await Promise.all([
           User.findOne({

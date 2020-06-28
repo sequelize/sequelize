@@ -60,11 +60,11 @@ function attachMSSQLUniqueId(connection) {
 describe(Support.getTestDialectTeaser('Pooling'), () => {
   if (dialect === 'sqlite' || process.env.DIALECT === 'postgres-native') return;
 
-  beforeEach(function() {
+  beforeEach(function () {
     this.sinon = sinon.createSandbox();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     this.sinon.restore();
   });
 
@@ -180,7 +180,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
   });
 
   describe('acquire', () => {
-    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', async function() {
+    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', async function () {
       this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
         databaseVersion: '1.2.3',
@@ -189,15 +189,14 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
         }
       });
 
-      this.sinon.stub(this.testInstance.connectionManager, '_connect')
-        .returns(new Promise(() => {}));
+      this.sinon.stub(this.testInstance.connectionManager, '_connect').returns(new Promise(() => {}));
 
-      await expect(
-        this.testInstance.authenticate()
-      ).to.eventually.be.rejectedWith(Sequelize.ConnectionAcquireTimeoutError);
+      await expect(this.testInstance.authenticate()).to.eventually.be.rejectedWith(
+        Sequelize.ConnectionAcquireTimeoutError
+      );
     });
 
-    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', async function() {
+    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', async function () {
       this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
         databaseVersion: '1.2.3',
@@ -207,8 +206,7 @@ describe(Support.getTestDialectTeaser('Pooling'), () => {
         }
       });
 
-      this.sinon.stub(this.testInstance.connectionManager, '_connect')
-        .returns(new Promise(() => {}));
+      this.sinon.stub(this.testInstance.connectionManager, '_connect').returns(new Promise(() => {}));
 
       await expect(
         this.testInstance.transaction(async () => {

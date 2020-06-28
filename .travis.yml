@@ -35,46 +35,48 @@ before_script:
   - if [ $MYSQL_VER ]; then wait_for tcp://${MYSQL_VER}:3306; fi
 
 script:
-  - |-
-    npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info
+  - npm run tsc
+  - npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info
 
 jobs:
   include:
     - stage: lint
-      node_js: '10'
+      node_js: '12'
       script:
         - npm run lint
         - npm run lint-docs
-        - npm run test-typings
     - stage: test
-      node_js: '10'
+      node_js: '12'
       env: DIALECT=sqlite
     - stage: test
-      node_js: '10'
+      node_js: '12'
       sudo: required
       env: MARIADB_VER=mariadb-103 SEQ_MARIADB_PORT=8960 DIALECT=mariadb
     - stage: test
-      node_js: '10'
+      node_js: '12'
       sudo: required
       env: MYSQL_VER=mysql-57 SEQ_MYSQL_PORT=8980 DIALECT=mysql
     - stage: test
-      node_js: '10'
+      node_js: '12'
       sudo: required
       env: POSTGRES_VER=postgres-10 SEQ_PG_PORT=8991 DIALECT=postgres
     - stage: test
-      node_js: '10'
+      node_js: '12'
       sudo: required
       env: POSTGRES_VER=postgres-10 SEQ_PG_PORT=8991 SEQ_PG_MINIFY_ALIASES=1 DIALECT=postgres
       script:
-        - npm run test-integration
+        - npm run tsc
+        - npm run cover-integration
+        - bash <(curl -s https://codecov.io/bash) -f coverage/integration.info
     - stage: test
-      node_js: '10'
+      node_js: '12'
       sudo: required
       env: POSTGRES_VER=postgres-95 SEQ_PG_PORT=8990 DIALECT=postgres-native
     - stage: release
-      node_js: '10'
+      node_js: '12'
       script:
-        - npm run semantic-release
+        - npm run tsc
+        #- npm run semantic-release
 
 stages:
   - lint

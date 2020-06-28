@@ -10,7 +10,7 @@ const chai = require('chai'),
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAO', () => {
-    beforeEach(async function() {
+    beforeEach(async function () {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
         emergency_contact: DataTypes.JSON,
@@ -32,7 +32,7 @@ if (dialect === 'sqlite') {
     });
 
     describe('findAll', () => {
-      it('handles dates correctly', async function() {
+      it('handles dates correctly', async function () {
         const user = this.User.build({ username: 'user' });
 
         user.dataValues.createdAt = new Date(2011, 4, 4);
@@ -47,7 +47,7 @@ if (dialect === 'sqlite') {
         expect(users).to.have.length(1);
       });
 
-      it('handles dates with aliasses correctly #3611', async function() {
+      it('handles dates with aliasses correctly #3611', async function () {
         await this.User.create({
           dateField: new Date(2010, 10, 10)
         });
@@ -58,12 +58,13 @@ if (dialect === 'sqlite') {
         expect(user.get('dateField')).to.equalTime(new Date(2010, 10, 10));
       });
 
-      it('handles dates in includes correctly #2644', async function() {
-        await this.User.create({
-          projects: [
-            { dateField: new Date(1990, 5, 5) }
-          ]
-        }, { include: [this.Project] });
+      it('handles dates in includes correctly #2644', async function () {
+        await this.User.create(
+          {
+            projects: [{ dateField: new Date(1990, 5, 5) }]
+          },
+          { include: [this.Project] }
+        );
 
         const obj = await this.User.findAll({
           include: [this.Project]
@@ -76,24 +77,36 @@ if (dialect === 'sqlite') {
     });
 
     describe('json', () => {
-      it('should be able to retrieve a row with json_extract function', async function() {
+      it('should be able to retrieve a row with json_extract function', async function () {
         await Promise.all([
-          this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
-          this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
+          this.User.create({
+            username: 'swen',
+            emergency_contact: { name: 'kate' }
+          }),
+          this.User.create({
+            username: 'anna',
+            emergency_contact: { name: 'joe' }
+          })
         ]);
 
         const user = await this.User.findOne({
-          where: Sequelize.json('json_extract(emergency_contact, \'$.name\')', 'kate'),
+          where: Sequelize.json("json_extract(emergency_contact, '$.name')", 'kate'),
           attributes: ['username', 'emergency_contact']
         });
 
         expect(user.emergency_contact.name).to.equal('kate');
       });
 
-      it('should be able to retrieve a row by json_type function', async function() {
+      it('should be able to retrieve a row by json_type function', async function () {
         await Promise.all([
-          this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
-          this.User.create({ username: 'anna', emergency_contact: ['kate', 'joe'] })
+          this.User.create({
+            username: 'swen',
+            emergency_contact: { name: 'kate' }
+          }),
+          this.User.create({
+            username: 'anna',
+            emergency_contact: ['kate', 'joe']
+          })
         ]);
 
         const user = await this.User.findOne({
@@ -106,12 +119,16 @@ if (dialect === 'sqlite') {
     });
 
     describe('regression tests', () => {
-      it('do not crash while parsing unique constraint errors', async function() {
+      it('do not crash while parsing unique constraint errors', async function () {
         const Payments = this.sequelize.define('payments', {});
 
         await Payments.sync({ force: true });
 
-        await expect(Payments.bulkCreate([{ id: 1 }, { id: 1 }], { ignoreDuplicates: false })).to.eventually.be.rejected;
+        await expect(
+          Payments.bulkCreate([{ id: 1 }, { id: 1 }], {
+            ignoreDuplicates: false
+          })
+        ).to.eventually.be.rejected;
       });
     });
   });

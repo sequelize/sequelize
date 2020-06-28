@@ -6,7 +6,7 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.Payment = this.sequelize.define('Payment', {
       amount: DataTypes.DECIMAL,
       mood: {
@@ -26,16 +26,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('sum', () => {
-
-    it('should sum without rows', async function() {
+    it('should sum without rows', async function () {
       await expect(this.Payment.sum('amount', { where: { mood: 'sad' } })).to.eventually.be.equal(0);
     });
 
-    it('should sum when is 0', async function() {
+    it('should sum when is 0', async function () {
       await expect(this.Payment.sum('amount', { where: { mood: 'neutral' } })).to.eventually.be.equal(0);
     });
 
-    it('should sum', async function() {
+    it('should sum', async function () {
       await expect(this.Payment.sum('amount', { where: { mood: 'happy' } })).to.eventually.be.equal(100);
     });
   });

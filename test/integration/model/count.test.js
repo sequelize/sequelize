@@ -7,7 +7,7 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('count', () => {
-    beforeEach(async function() {
+    beforeEach(async function () {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
         age: DataTypes.INTEGER
@@ -22,33 +22,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.sequelize.sync({ force: true });
     });
 
-    it('should count rows', async function() {
-      await this.User.bulkCreate([
-        { username: 'foo' },
-        { username: 'bar' }
-      ]);
+    it('should count rows', async function () {
+      await this.User.bulkCreate([{ username: 'foo' }, { username: 'bar' }]);
 
       await expect(this.User.count()).to.eventually.equal(2);
     });
 
-    it('should support include', async function() {
-      await this.User.bulkCreate([
-        { username: 'foo' },
-        { username: 'bar' }
-      ]);
+    it('should support include', async function () {
+      await this.User.bulkCreate([{ username: 'foo' }, { username: 'bar' }]);
 
       const user = await this.User.findOne();
       await user.createProject({ name: 'project1' });
 
-      await expect(this.User.count({
-        include: [{
-          model: this.Project,
-          where: { name: 'project1' }
-        }]
-      })).to.eventually.equal(1);
+      await expect(
+        this.User.count({
+          include: [
+            {
+              model: this.Project,
+              where: { name: 'project1' }
+            }
+          ]
+        })
+      ).to.eventually.equal(1);
     });
 
-    it('should count groups correctly and return attributes', async function() {
+    it('should count groups correctly and return attributes', async function () {
       await this.User.bulkCreate([
         { username: 'foo' },
         { username: 'bar' },
@@ -68,7 +66,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(users[1].createdAt).to.exist;
     });
 
-    it('should not return NaN', async function() {
+    it('should not return NaN', async function () {
       await this.User.bulkCreate([
         { username: 'valak', age: 10 },
         { username: 'conjuring', age: 20 },
@@ -98,7 +96,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count).to.be.eql([]);
     });
 
-    it('should be able to specify column for COUNT()', async function() {
+    it('should be able to specify column for COUNT()', async function () {
       await this.User.bulkCreate([
         { username: 'ember', age: 10 },
         { username: 'angular', age: 20 },
@@ -116,7 +114,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count).to.be.eql(2);
     });
 
-    it('should be able to specify NO column for COUNT() with DISTINCT', async function() {
+    it('should be able to specify NO column for COUNT() with DISTINCT', async function () {
       await this.User.bulkCreate([
         { username: 'ember', age: 10 },
         { username: 'angular', age: 20 },
@@ -130,7 +128,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count).to.be.eql(3);
     });
 
-    it('should be able to use where clause on included models', async function() {
+    it('should be able to use where clause on included models', async function () {
       const countOptions = {
         col: 'username',
         include: [this.Project],
@@ -139,10 +137,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       };
 
-      await this.User.bulkCreate([
-        { username: 'foo' },
-        { username: 'bar' }
-      ]);
+      await this.User.bulkCreate([{ username: 'foo' }, { username: 'bar' }]);
 
       const user = await this.User.findOne();
       await user.createProject({ name: 'project1' });
@@ -153,7 +148,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count).to.be.eql(0);
     });
 
-    it('should be able to specify column for COUNT() with includes', async function() {
+    it('should be able to specify column for COUNT() with includes', async function () {
       await this.User.bulkCreate([
         { username: 'ember', age: 10 },
         { username: 'angular', age: 20 },
@@ -177,7 +172,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count).to.be.eql(2);
     });
 
-    it('should work correctly with include and whichever raw option', async function() {
+    it('should work correctly with include and whichever raw option', async function () {
       const Post = this.sequelize.define('Post', {});
       this.User.hasMany(Post);
       await Post.sync({ force: true });
@@ -197,6 +192,5 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(counts).to.deep.equal([1, 1, 1, 1, 1, 1, 1, 1]);
     });
-
   });
 });

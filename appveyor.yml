@@ -10,11 +10,12 @@ shallow_clone: true
 
 environment:
   matrix:
-    - { NODE_VERSION: 10, DIALECT: mssql, COVERAGE: true }
+    - { NODE_VERSION: 12, DIALECT: mssql, COVERAGE: true }
 
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
   - npm ci
+  - npm install --save-dev codecov
 
 build: off
 
@@ -22,15 +23,11 @@ before_test:
   - ps: . .\scripts\appveyor-setup.ps1
 
 test_script:
+  - npm run tsc
   - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
 
 after_test:
-  - ps: |
-      $env:PATH = 'C:\Program Files\Git\usr\bin;' + $env:PATH
-      if (Test-Path env:\COVERAGE) {
-        Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-        bash codecov.sh -f "coverage\lcov.info"
-      }
+  - npx codecov
 
 branches:
   only:

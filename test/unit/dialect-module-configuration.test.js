@@ -11,7 +11,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('dialectModule options', () => {
     it('options.dialectModule', () => {
       const dialectModule = {
-        verbose: () => { return dialectModule; }
+        verbose: () => {
+          return dialectModule;
+        }
       };
 
       const sequelize = new Sequelize('dbname', 'root', 'pass', {
@@ -26,12 +28,23 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       let dialectPath = path.join(process.cwd(), 'node_modules');
 
       switch (dialect) {
-        case 'postgres': dialectPath = path.join(dialectPath, 'pg'); break;
-        case 'mysql': dialectPath = path.join(dialectPath, 'mysql2'); break;
-        case 'mariadb': dialectPath = path.join(dialectPath, 'mariadb'); break;
-        case 'mssql': dialectPath = path.join(dialectPath, 'tedious'); break;
-        case 'sqlite': dialectPath = path.join(dialectPath, 'sqlite3'); break;
-        default: throw Error('Unsupported dialect');
+        case 'postgres':
+          dialectPath = path.join(dialectPath, 'pg');
+          break;
+        case 'mysql':
+          dialectPath = path.join(dialectPath, 'mysql2');
+          break;
+        case 'mariadb':
+          dialectPath = path.join(dialectPath, 'mariadb');
+          break;
+        case 'mssql':
+          dialectPath = path.join(dialectPath, 'tedious');
+          break;
+        case 'sqlite':
+          dialectPath = path.join(dialectPath, 'sqlite3');
+          break;
+        default:
+          throw Error('Unsupported dialect');
       }
 
       // this will throw if invalid path is passed

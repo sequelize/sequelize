@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
+  Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  current   = Support.sequelize;
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {
@@ -28,18 +28,17 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         name: DataTypes.STRING,
         permissions: DataTypes.JSON
       });
-      const user = User.build({ name: 'my-name', permissions: { admin: true, special: 'foobar' } });
+      const user = User.build({
+        name: 'my-name',
+        permissions: { admin: true, special: 'foobar' }
+      });
       const json = user.toJSON();
 
-      expect(json)
-        .to.have.property('permissions')
-        .that.does.not.equal(user.permissions);
+      expect(json).to.have.property('permissions').that.does.not.equal(user.permissions);
 
       json.permissions.admin = false;
 
-      expect(user.permissions)
-        .to.have.property('admin')
-        .that.equals(true);
+      expect(user.permissions).to.have.property('admin').that.equals(true);
     });
   });
 });

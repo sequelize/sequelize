@@ -2,17 +2,15 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
-  current   = Support.sequelize,
+  Support = require('../support'),
+  current = Support.sequelize,
   Sequelize = Support.Sequelize,
-  sinon     = require('sinon');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('save', () => {
     it('should disallow saves if no primary key values is present', async () => {
-      const Model = current.define('User', {
-
-        }),
+      const Model = current.define('User', {}),
         instance = Model.build({}, { isNewRecord: false });
 
       await expect(instance.save()).to.be.rejected;
@@ -29,12 +27,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       before(() => {
-        stub = sinon.stub(current, 'query').resolves(
-          [{
+        stub = sinon.stub(current, 'query').resolves([
+          {
             _previousDataValues: {},
             dataValues: { id: 1 }
-          }, 1]
-        );
+          },
+          1
+        ]);
       });
 
       after(() => {

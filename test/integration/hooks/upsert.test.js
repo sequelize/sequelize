@@ -8,7 +8,7 @@ const chai = require('chai'),
 
 if (Support.sequelize.dialect.supports.upserts) {
   describe(Support.getTestDialectTeaser('Hooks'), () => {
-    beforeEach(async function() {
+    beforeEach(async function () {
       this.User = this.sequelize.define('User', {
         username: {
           type: DataTypes.STRING,
@@ -25,7 +25,7 @@ if (Support.sequelize.dialect.supports.upserts) {
 
     describe('#upsert', () => {
       describe('on success', () => {
-        it('should run hooks', async function() {
+        it('should run hooks', async function () {
           const beforeHook = sinon.spy(),
             afterHook = sinon.spy();
 
@@ -39,7 +39,7 @@ if (Support.sequelize.dialect.supports.upserts) {
       });
 
       describe('on error', () => {
-        it('should return an error from before', async function() {
+        it('should return an error from before', async function () {
           const beforeHook = sinon.spy(),
             afterHook = sinon.spy();
 
@@ -54,7 +54,7 @@ if (Support.sequelize.dialect.supports.upserts) {
           expect(afterHook).not.to.have.been.called;
         });
 
-        it('should return an error from after', async function() {
+        it('should return an error from after', async function () {
           const beforeHook = sinon.spy(),
             afterHook = sinon.spy();
 
@@ -71,7 +71,7 @@ if (Support.sequelize.dialect.supports.upserts) {
       });
 
       describe('preserves changes to values', () => {
-        it('beforeUpsert', async function() {
+        it('beforeUpsert', async function () {
           let hookCalled = 0;
           const valuesOriginal = { mood: 'sad', username: 'leafninja' };
 

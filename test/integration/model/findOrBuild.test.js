@@ -6,7 +6,7 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
       age: DataTypes.INTEGER
@@ -21,13 +21,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     await this.sequelize.sync({ force: true });
   });
 
-
   describe('findOrBuild', () => {
-    it('initialize with includes', async function() {
-      const [, user2] = await this.User.bulkCreate([
-        { username: 'Mello', age: 10 },
-        { username: 'Mello', age: 20 }
-      ], { returning: true });
+    it('initialize with includes', async function () {
+      const [, user2] = await this.User.bulkCreate(
+        [
+          { username: 'Mello', age: 10 },
+          { username: 'Mello', age: 20 }
+        ],
+        { returning: true }
+      );
 
       const project = await this.Project.create({
         name: 'Investigate'
@@ -43,9 +45,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         where: {
           age: 20
         },
-        include: [{
-          model: this.Project
-        }]
+        include: [
+          {
+            model: this.Project
+          }
+        ]
       });
 
       expect(created).to.be.false;

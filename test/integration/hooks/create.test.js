@@ -8,7 +8,7 @@ const chai = require('chai'),
   sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
-  beforeEach(async function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('#create', () => {
     describe('on success', () => {
-      it('should run hooks', async function() {
+      it('should run hooks', async function () {
         const beforeHook = sinon.spy(),
           afterHook = sinon.spy(),
           beforeSave = sinon.spy(),
@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on error', () => {
-      it('should return an error from before', async function() {
+      it('should return an error from before', async function () {
         const beforeHook = sinon.spy(),
           beforeSave = sinon.spy(),
           afterHook = sinon.spy(),
@@ -65,12 +65,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(afterSave).not.to.have.been.called;
       });
 
-      it('should return an error from after', async function() {
+      it('should return an error from after', async function () {
         const beforeHook = sinon.spy(),
           beforeSave = sinon.spy(),
           afterHook = sinon.spy(),
           afterSave = sinon.spy();
-
 
         this.User.beforeCreate(beforeHook);
         this.User.afterCreate(() => {
@@ -88,7 +87,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
 
-    it('should not trigger hooks on parent when using N:M association setters', async function() {
+    it('should not trigger hooks on parent when using N:M association setters', async function () {
       const A = this.sequelize.define('A', {
         name: Sequelize.STRING
       });
@@ -107,17 +106,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      const [a, b] = await Promise.all([
-        A.create({ name: 'a' }),
-        B.create({ name: 'b' })
-      ]);
+      const [a, b] = await Promise.all([A.create({ name: 'a' }), B.create({ name: 'b' })]);
 
       await a.addB(b);
       expect(hookCalled).to.equal(1);
     });
 
     describe('preserves changes to instance', () => {
-      it('beforeValidate', async function() {
+      it('beforeValidate', async function () {
         let hookCalled = 0;
 
         this.User.beforeValidate(user => {
@@ -125,13 +121,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           hookCalled++;
         });
 
-        const user = await this.User.create({ mood: 'sad', username: 'leafninja' });
+        const user = await this.User.create({
+          mood: 'sad',
+          username: 'leafninja'
+        });
         expect(user.mood).to.equal('happy');
         expect(user.username).to.equal('leafninja');
         expect(hookCalled).to.equal(1);
       });
 
-      it('afterValidate', async function() {
+      it('afterValidate', async function () {
         let hookCalled = 0;
 
         this.User.afterValidate(user => {
@@ -139,13 +138,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           hookCalled++;
         });
 
-        const user = await this.User.create({ mood: 'sad', username: 'fireninja' });
+        const user = await this.User.create({
+          mood: 'sad',
+          username: 'fireninja'
+        });
         expect(user.mood).to.equal('neutral');
         expect(user.username).to.equal('fireninja');
         expect(hookCalled).to.equal(1);
       });
 
-      it('beforeCreate', async function() {
+      it('beforeCreate', async function () {
         let hookCalled = 0;
 
         this.User.beforeCreate(user => {
@@ -159,7 +161,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(hookCalled).to.equal(1);
       });
 
-      it('beforeSave', async function() {
+      it('beforeSave', async function () {
         let hookCalled = 0;
 
         this.User.beforeSave(user => {
@@ -173,7 +175,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(hookCalled).to.equal(1);
       });
 
-      it('beforeSave with beforeCreate', async function() {
+      it('beforeSave with beforeCreate', async function () {
         let hookCalled = 0;
 
         this.User.beforeCreate(user => {

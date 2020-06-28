@@ -9,10 +9,10 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findOne', () => {
-    it('should include a non required model, with conditions and two includes N:M 1:M', async function() {
-      const A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }), 
-        B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }), 
-        C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true }), 
+    it('should include a non required model, with conditions and two includes N:M 1:M', async function () {
+      const A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }),
+        B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }),
+        C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true }),
         D = this.sequelize.define('D', { name: DataTypes.STRING(40) }, { paranoid: true });
 
       // Associations
@@ -33,18 +33,21 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await A.findOne({
         include: [
-          { model: B, required: false, include: [
-            { model: C, required: false },
-            { model: D }
-          ] }
+          {
+            model: B,
+            required: false,
+            include: [{ model: C, required: false }, { model: D }]
+          }
         ]
       });
     });
 
-    it('should work with a 1:M to M:1 relation with a where on the last include', async function() {
+    it('should work with a 1:M to M:1 relation with a where on the last include', async function () {
       const Model = this.sequelize.define('Model', {});
       const Model2 = this.sequelize.define('Model2', {});
-      const Model4 = this.sequelize.define('Model4', { something: { type: DataTypes.INTEGER } });
+      const Model4 = this.sequelize.define('Model4', {
+        something: { type: DataTypes.INTEGER }
+      });
 
       Model.belongsTo(Model2);
       Model2.hasMany(Model);
@@ -56,20 +59,25 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await Model.findOne({
         include: [
-          { model: Model2, include: [
-            { model: Model4, where: { something: 2 } }
-          ] }
+          {
+            model: Model2,
+            include: [{ model: Model4, where: { something: 2 } }]
+          }
         ]
       });
     });
 
-    it('should include a model with a where condition but no required', async function() {
+    it('should include a model with a where condition but no required', async function () {
       const User = this.sequelize.define('User', {}, { paranoid: false }),
-        Task = this.sequelize.define('Task', {
-          deletedAt: {
-            type: DataTypes.DATE
-          }
-        }, { paranoid: false });
+        Task = this.sequelize.define(
+          'Task',
+          {
+            deletedAt: {
+              type: DataTypes.DATE
+            }
+          },
+          { paranoid: false }
+        );
 
       User.hasMany(Task, { foreignKey: 'userId' });
       Task.belongsTo(User, { foreignKey: 'userId' });
@@ -87,16 +95,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const user = await User.findOne({
-        include: [
-          { model: Task, where: { deletedAt: null }, required: false }
-        ]
+        include: [{ model: Task, where: { deletedAt: null }, required: false }]
       });
 
       expect(user).to.be.ok;
       expect(user.Tasks.length).to.equal(0);
     });
 
-    it('should include a model with a where clause when the PK field name and attribute name are different', async function() {
+    it('should include a model with a where clause when the PK field name and attribute name are different', async function () {
       const User = this.sequelize.define('User', {
           id: {
             type: DataTypes.UUID,
@@ -124,16 +130,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const user = await User.findOne({
-        include: [
-          { model: Task, where: { searchString: 'one' } }
-        ]
+        include: [{ model: Task, where: { searchString: 'one' } }]
       });
 
       expect(user).to.be.ok;
       expect(user.Tasks.length).to.equal(1);
     });
 
-    it('should include a model with a through.where and required true clause when the PK field name and attribute name are different', async function() {
+    it('should include a model with a through.where and required true clause when the PK field name and attribute name are different', async function () {
       const A = this.sequelize.define('a', {}),
         B = this.sequelize.define('b', {}),
         AB = this.sequelize.define('a_b', {
@@ -147,24 +151,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       A.belongsToMany(B, { through: AB });
       B.belongsToMany(A, { through: AB });
 
-      await this.sequelize
-        .sync({ force: true });
+      await this.sequelize.sync({ force: true });
 
       const [a0, b] = await Promise.all([A.create({}), B.create({})]);
       await a0.addB(b, { through: { name: 'Foobar' } });
 
       const a = await A.findOne({
-        include: [
-          { model: B, through: { where: { name: 'Foobar' } }, required: true }
-        ]
+        include: [{ model: B, through: { where: { name: 'Foobar' } }, required: true }]
       });
 
       expect(a).to.not.equal(null);
       expect(a.get('bs')).to.have.length(1);
     });
 
-
-    it('should still pull the main record when an included model is not required and has where restrictions without matches', async function() {
+    it('should still pull the main record when an included model is not required and has where restrictions without matches', async function () {
       const A = this.sequelize.define('a', {
           name: DataTypes.STRING(40)
         }),
@@ -175,8 +175,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       A.belongsToMany(B, { through: 'a_b' });
       B.belongsToMany(A, { through: 'a_b' });
 
-      await this.sequelize
-        .sync({ force: true });
+      await this.sequelize.sync({ force: true });
 
       await A.create({
         name: 'Foobar'
@@ -184,16 +183,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const a = await A.findOne({
         where: { name: 'Foobar' },
-        include: [
-          { model: B, where: { name: 'idontexist' }, required: false }
-        ]
+        include: [{ model: B, where: { name: 'idontexist' }, required: false }]
       });
 
       expect(a).to.not.equal(null);
       expect(a.get('bs')).to.deep.equal([]);
     });
 
-    it('should support a nested include (with a where)', async function() {
+    it('should support a nested include (with a where)', async function () {
       const A = this.sequelize.define('A', {
         name: DataTypes.STRING
       });
@@ -212,8 +209,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       B.hasMany(C);
       C.belongsTo(B);
 
-      await this.sequelize
-        .sync({ force: true });
+      await this.sequelize.sync({ force: true });
 
       const a = await A.findOne({
         include: [
@@ -232,8 +228,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(a).to.not.exist;
     });
 
-    it('should support a belongsTo with the targetKey option', async function() {
-      const User = this.sequelize.define('User', { username: { type: DataTypes.STRING, unique: true } }),
+    it('should support a belongsTo with the targetKey option', async function () {
+      const User = this.sequelize.define('User', {
+          username: { type: DataTypes.STRING, unique: true }
+        }),
         Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       User.removeAttribute('id');
       Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
@@ -252,7 +250,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(foundTask.User.username).to.equal('bob');
     });
 
-    it('should support many levels of belongsTo (with a lower level having a where)', async function() {
+    it('should support many levels of belongsTo (with a lower level having a where)', async function () {
       const A = this.sequelize.define('a', {}),
         B = this.sequelize.define('b', {}),
         C = this.sequelize.define('c', {}),
@@ -276,85 +274,134 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      const [a0, b] = await Promise.all([A.create({}), (function(singles) {
-        let promise = Promise.resolve(),
-          previousInstance,
-          b;
+      const [a0, b] = await Promise.all([
+        A.create({}),
+        (function (singles) {
+          let promise = Promise.resolve(),
+            previousInstance,
+            b;
 
-        singles.forEach(model => {
-          const values = {};
+          singles.forEach(model => {
+            const values = {};
 
-          if (model.name === 'g') {
-            values.name = 'yolo';
-          }
-
-          promise = (async () => {
-            await promise;
-            const instance = await model.create(values);
-            if (previousInstance) {
-              await previousInstance[`set${_.upperFirst(model.name)}`](instance);
-              previousInstance = instance;
-              return;
+            if (model.name === 'g') {
+              values.name = 'yolo';
             }
-            previousInstance = b = instance;
-          })();
-        });
 
-        promise = promise.then(() => {
-          return b;
-        });
+            promise = (async () => {
+              await promise;
+              const instance = await model.create(values);
+              if (previousInstance) {
+                await previousInstance[`set${_.upperFirst(model.name)}`](instance);
+                previousInstance = instance;
+                return;
+              }
+              previousInstance = b = instance;
+            })();
+          });
 
-        return promise;
-      })([B, C, D, E, F, G, H])]);
+          promise = promise.then(() => {
+            return b;
+          });
+
+          return promise;
+        })([B, C, D, E, F, G, H])
+      ]);
 
       await a0.setB(b);
 
       const a = await A.findOne({
         include: [
-          { model: B, include: [
-            { model: C, include: [
-              { model: D, include: [
-                { model: E, include: [
-                  { model: F, include: [
-                    { model: G, where: {
-                      name: 'yolo'
-                    }, include: [
-                      { model: H }
-                    ] }
-                  ] }
-                ] }
-              ] }
-            ] }
-          ] }
+          {
+            model: B,
+            include: [
+              {
+                model: C,
+                include: [
+                  {
+                    model: D,
+                    include: [
+                      {
+                        model: E,
+                        include: [
+                          {
+                            model: F,
+                            include: [
+                              {
+                                model: G,
+                                where: {
+                                  name: 'yolo'
+                                },
+                                include: [{ model: H }]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
         ]
       });
 
       expect(a.b.c.d.e.f.g.h).to.be.ok;
     });
 
-    it('should work with combinding a where and a scope', async function() {
-      const User = this.sequelize.define('User', {
-        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        name: DataTypes.STRING
-      }, { underscored: true });
+    it('should work with combinding a where and a scope', async function () {
+      const User = this.sequelize.define(
+        'User',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          name: DataTypes.STRING
+        },
+        { underscored: true }
+      );
 
-      const Post = this.sequelize.define('Post', {
-        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, unique: true },
-        owner_id: { type: DataTypes.INTEGER, unique: 'combiIndex' },
-        owner_type: { type: DataTypes.ENUM, values: ['user', 'org'], defaultValue: 'user', unique: 'combiIndex' },
-        'private': { type: DataTypes.BOOLEAN, defaultValue: false }
-      }, { underscored: true });
+      const Post = this.sequelize.define(
+        'Post',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            unique: true
+          },
+          owner_id: { type: DataTypes.INTEGER, unique: 'combiIndex' },
+          owner_type: {
+            type: DataTypes.ENUM,
+            values: ['user', 'org'],
+            defaultValue: 'user',
+            unique: 'combiIndex'
+          },
+          private: { type: DataTypes.BOOLEAN, defaultValue: false }
+        },
+        { underscored: true }
+      );
 
-      User.hasMany(Post, { foreignKey: 'owner_id', scope: { owner_type: 'user'  }, as: 'UserPosts', constraints: false });
-      Post.belongsTo(User, { foreignKey: 'owner_id', as: 'Owner', constraints: false });
+      User.hasMany(Post, {
+        foreignKey: 'owner_id',
+        scope: { owner_type: 'user' },
+        as: 'UserPosts',
+        constraints: false
+      });
+      Post.belongsTo(User, {
+        foreignKey: 'owner_id',
+        as: 'Owner',
+        constraints: false
+      });
 
       await this.sequelize.sync({ force: true });
 
       await User.findOne({
         where: { id: 2 },
-        include: [
-          { model: Post, as: 'UserPosts', where: { 'private': true } }
-        ]
+        include: [{ model: Post, as: 'UserPosts', where: { private: true } }]
       });
     });
   });

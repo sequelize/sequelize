@@ -19,22 +19,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       delete current.constructor._cls;
     });
 
-    beforeEach(function() {
-      this.User = current.define('User', {}, {
-        name: 'John'
-      });
+    beforeEach(function () {
+      this.User = current.define(
+        'User',
+        {},
+        {
+          name: 'John'
+        }
+      );
 
       this.transactionStub = stub(this.User.sequelize, 'transaction').rejects(new Error('abort'));
 
       this.clsStub = stub(current.constructor._cls, 'get').returns({ id: 123 });
     });
 
-    afterEach(function() {
+    afterEach(function () {
       this.transactionStub.restore();
       this.clsStub.restore();
     });
 
-    it('should use transaction from cls if available', async function() {
+    it('should use transaction from cls if available', async function () {
       const options = {
         where: {
           name: 'John'
@@ -50,7 +54,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    it('should not use transaction from cls if provided as argument', async function() {
+    it('should not use transaction from cls if provided as argument', async function () {
       const options = {
         where: {
           name: 'John'

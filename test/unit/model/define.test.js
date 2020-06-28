@@ -11,12 +11,16 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('define', () => {
     it('should allow custom timestamps with underscored: true', () => {
-      const Model = current.define('User', {}, {
-        createdAt: 'createdAt',
-        updatedAt: 'updatedAt',
-        timestamps: true,
-        underscored: true
-      });
+      const Model = current.define(
+        'User',
+        {},
+        {
+          createdAt: 'createdAt',
+          updatedAt: 'updatedAt',
+          timestamps: true,
+          underscored: true
+        }
+      );
 
       expect(Model.rawAttributes).to.haveOwnProperty('createdAt');
       expect(Model.rawAttributes).to.haveOwnProperty('updatedAt');

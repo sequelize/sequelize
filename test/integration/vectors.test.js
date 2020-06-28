@@ -8,12 +8,16 @@ const chai = require('chai'),
 chai.should();
 
 describe(Support.getTestDialectTeaser('Vectors'), () => {
-  it('should not allow insert backslash', async function() {
-    const Student = this.sequelize.define('student', {
-      name: Sequelize.STRING
-    }, {
-      tableName: 'student'
-    });
+  it('should not allow insert backslash', async function () {
+    const Student = this.sequelize.define(
+      'student',
+      {
+        name: Sequelize.STRING
+      },
+      {
+        tableName: 'student'
+      }
+    );
 
     await Student.sync({ force: true });
 

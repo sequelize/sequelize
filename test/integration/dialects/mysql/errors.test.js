@@ -9,7 +9,6 @@ const DataTypes = require('../../../../lib/data-types');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Errors', () => {
-
     const validateError = async (promise, errClass, errValues) => {
       const wanted = { ...errValues };
 
@@ -23,18 +22,32 @@ if (dialect === 'mysql') {
     };
 
     describe('ForeignKeyConstraintError', () => {
-      beforeEach(function() {
+      beforeEach(function () {
         this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
-        this.User = this.sequelize.define('user', { username: DataTypes.STRING });
-        this.UserTasks = this.sequelize.define('tasksusers', { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
+        this.User = this.sequelize.define('user', {
+          username: DataTypes.STRING
+        });
+        this.UserTasks = this.sequelize.define('tasksusers', {
+          userId: DataTypes.INTEGER,
+          taskId: DataTypes.INTEGER
+        });
 
-        this.User.belongsToMany(this.Task, { onDelete: 'RESTRICT', through: 'tasksusers' });
-        this.Task.belongsToMany(this.User, { onDelete: 'RESTRICT', through: 'tasksusers' });
+        this.User.belongsToMany(this.Task, {
+          onDelete: 'RESTRICT',
+          through: 'tasksusers'
+        });
+        this.Task.belongsToMany(this.User, {
+          onDelete: 'RESTRICT',
+          through: 'tasksusers'
+        });
 
-        this.Task.belongsTo(this.User, { foreignKey: 'primaryUserId', as: 'primaryUsers' });
+        this.Task.belongsTo(this.User, {
+          foreignKey: 'primaryUserId',
+          as: 'primaryUsers'
+        });
       });
 
-      it('in context of DELETE restriction', async function() {
+      it('in context of DELETE restriction', async function () {
         await this.sequelize.sync({ force: true });
 
         const [user1, task1] = await Promise.all([
@@ -62,7 +75,7 @@ if (dialect === 'mysql') {
         ]);
       });
 
-      it('in context of missing relation', async function() {
+      it('in context of missing relation', async function () {
         await this.sequelize.sync({ force: true });
 
         await validateError(

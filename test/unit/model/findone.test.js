@@ -11,26 +11,26 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method findOne', () => {
-    before(function() {
+    before(function () {
       this.oldFindAll = Sequelize.Model.findAll;
     });
-    after(function() {
+    after(function () {
       Sequelize.Model.findAll = this.oldFindAll;
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.stub = Sequelize.Model.findAll = sinon.stub().resolves();
     });
 
     describe('should not add limit when querying on a primary key', () => {
-      it('with id primary key', async function() {
+      it('with id primary key', async function () {
         const Model = current.define('model');
 
         await Model.findOne({ where: { id: 42 } });
         expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
       });
 
-      it('with custom primary key', async function() {
+      it('with custom primary key', async function () {
         const Model = current.define('model', {
           uid: {
             type: DataTypes.INTEGER,
@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
       });
 
-      it('with blob primary key', async function() {
+      it('with blob primary key', async function () {
         const Model = current.define('model', {
           id: {
             type: DataTypes.BLOB,
@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should add limit when using { $ gt on the primary key', async function() {
+    it('should add limit when using { $ gt on the primary key', async function () {
       const Model = current.define('model');
 
       await Model.findOne({ where: { id: { [Op.gt]: 42 } } });
@@ -65,7 +65,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('should not add limit when querying on an unique key', () => {
-      it('with custom unique key', async function() {
+      it('with custom unique key', async function () {
         const Model = current.define('model', {
           unique: {
             type: DataTypes.INTEGER,
@@ -77,7 +77,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
       });
 
-      it('with blob unique key', async function() {
+      it('with blob unique key', async function () {
         const Model = current.define('model', {
           unique: {
             type: DataTypes.BLOB,
@@ -90,7 +90,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should add limit when using multi-column unique key', async function() {
+    it('should add limit when using multi-column unique key', async function () {
       const Model = current.define('model', {
         unique1: {
           type: DataTypes.INTEGER,

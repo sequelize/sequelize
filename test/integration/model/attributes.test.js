@@ -8,41 +8,59 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('attributes', () => {
     describe('set', () => {
-      it('should only be called once when used on a join model called with an association getter', async function() {
+      it('should only be called once when used on a join model called with an association getter', async function () {
         let callCount = 0;
 
-        this.Student = this.sequelize.define('student', {
-          no: { type: Sequelize.INTEGER, primaryKey: true },
-          name: Sequelize.STRING
-        }, {
-          tableName: 'student',
-          timestamps: false
-        });
-
-        this.Course = this.sequelize.define('course', {
-          no: { type: Sequelize.INTEGER, primaryKey: true },
-          name: Sequelize.STRING
-        }, {
-          tableName: 'course',
-          timestamps: false
-        });
-
-        this.Score = this.sequelize.define('score', {
-          score: Sequelize.INTEGER,
-          test_value: {
-            type: Sequelize.INTEGER,
-            set(v) {
-              callCount++;
-              this.setDataValue('test_value', v + 1);
-            }
+        this.Student = this.sequelize.define(
+          'student',
+          {
+            no: { type: Sequelize.INTEGER, primaryKey: true },
+            name: Sequelize.STRING
+          },
+          {
+            tableName: 'student',
+            timestamps: false
           }
-        }, {
-          tableName: 'score',
-          timestamps: false
-        });
+        );
 
-        this.Student.belongsToMany(this.Course, { through: this.Score, foreignKey: 'StudentId' });
-        this.Course.belongsToMany(this.Student, { through: this.Score, foreignKey: 'CourseId' });
+        this.Course = this.sequelize.define(
+          'course',
+          {
+            no: { type: Sequelize.INTEGER, primaryKey: true },
+            name: Sequelize.STRING
+          },
+          {
+            tableName: 'course',
+            timestamps: false
+          }
+        );
+
+        this.Score = this.sequelize.define(
+          'score',
+          {
+            score: Sequelize.INTEGER,
+            test_value: {
+              type: Sequelize.INTEGER,
+              set(v) {
+                callCount++;
+                this.setDataValue('test_value', v + 1);
+              }
+            }
+          },
+          {
+            tableName: 'score',
+            timestamps: false
+          }
+        );
+
+        this.Student.belongsToMany(this.Course, {
+          through: this.Score,
+          foreignKey: 'StudentId'
+        });
+        this.Course.belongsToMany(this.Student, {
+          through: this.Score,
+          foreignKey: 'CourseId'
+        });
 
         await this.sequelize.sync({ force: true });
 
@@ -51,9 +69,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Course.create({ no: 100, name: 'history' })
         ]);
 
-        await student.addCourse(course, { through: { score: 98, test_value: 1000 } });
+        await student.addCourse(course, {
+          through: { score: 98, test_value: 1000 }
+        });
         expect(callCount).to.equal(1);
-        const score0 = await this.Score.findOne({ where: { StudentId: 1, CourseId: 100 } });
+        const score0 = await this.Score.findOne({
+          where: { StudentId: 1, CourseId: 100 }
+        });
         expect(score0.test_value).to.equal(1001);
 
         const [courses, score] = await Promise.all([
@@ -66,22 +88,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(callCount).to.equal(1);
       });
 
-      it('allows for an attribute to be called "toString"', async function() {
-        const Person = this.sequelize.define('person', {
-          name: Sequelize.STRING,
-          nick: Sequelize.STRING
-        }, {
-          timestamps: false
-        });
+      it('allows for an attribute to be called "toString"', async function () {
+        const Person = this.sequelize.define(
+          'person',
+          {
+            name: Sequelize.STRING,
+            nick: Sequelize.STRING
+          },
+          {
+            timestamps: false
+          }
+        );
 
         await this.sequelize.sync({ force: true });
         await Person.create({ name: 'Jozef', nick: 'Joe' });
 
         const person = await Person.findOne({
-          attributes: [
-            'nick',
-            ['name', 'toString']
-          ],
+          attributes: ['nick', ['name', 'toString']],
           where: {
             name: 'Jozef'
           }
@@ -91,7 +114,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(person.get('toString')).to.equal('Jozef');
       });
 
-      it('allows for an attribute to be called "toString" with associations', async function() {
+      it('allows for an attribute to be called "toString" with associations', async function () {
         const Person = this.sequelize.define('person', {
           name: Sequelize.STRING,
           nick: Sequelize.STRING
@@ -108,10 +131,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await person.createComputer({ hostname: 'laptop' });
 
         const result = await Person.findAll({
-          attributes: [
-            'nick',
-            ['name', 'toString']
-          ],
+          attributes: ['nick', ['name', 'toString']],
           include: {
             model: Computer
           },
@@ -128,7 +148,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('quote', () => {
-      it('allows for an attribute with dots', async function() {
+      it('allows for an attribute with dots', async function () {
         const User = this.sequelize.define('user', {
           'foo.bar.baz': Sequelize.TEXT
         });

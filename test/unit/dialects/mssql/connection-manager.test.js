@@ -9,7 +9,7 @@ const chai = require('chai'),
 
 if (dialect === 'mssql') {
   describe('[MSSQL Specific] Connection Manager', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.config = {
         dialect: 'mssql',
         database: 'none',
@@ -22,12 +22,7 @@ if (dialect === 'mssql') {
           domain: 'TEST.COM'
         }
       };
-      this.instance = new Sequelize(
-        this.config.database,
-        this.config.username,
-        this.config.password,
-        this.config
-      );
+      this.instance = new Sequelize(this.config.database, this.config.username, this.config.password, this.config);
       this.Connection = {};
       const self = this;
       this.connectionStub = sinon.stub(this.instance.connectionManager, 'lib').value({
@@ -37,11 +32,11 @@ if (dialect === 'mssql') {
       });
     });
 
-    afterEach(function() {
+    afterEach(function () {
       this.connectionStub.restore();
     });
 
-    it('connectionManager._connect() does not delete `domain` from config.dialectOptions', async function() {
+    it('connectionManager._connect() does not delete `domain` from config.dialectOptions', async function () {
       this.Connection = {
         STATE: {},
         state: '',
@@ -61,7 +56,7 @@ if (dialect === 'mssql') {
       expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
     });
 
-    it('connectionManager._connect() should reject if end was called and connect was not', async function() {
+    it('connectionManager._connect() should reject if end was called and connect was not', async function () {
       this.Connection = {
         STATE: {},
         state: '',
@@ -84,7 +79,7 @@ if (dialect === 'mssql') {
       }
     });
 
-    it('connectionManager._connect() should call connect if state is initialized', async function() {
+    it('connectionManager._connect() should call connect if state is initialized', async function () {
       const connectStub = sinon.stub();
       const INITIALIZED = { name: 'INITIALIZED' };
       this.Connection = {
