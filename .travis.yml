@@ -6,6 +6,7 @@ language: node_js
 branches:
   only:
     - master
+    - v6
   except:
     - /^v\d+\.\d+\.\d+$/
 
@@ -80,4 +81,4 @@ stages:
   - lint
   - test
   - name: release
-    if: branch = master AND type = push AND fork = false
+    if: branch = v6 AND type = push AND fork = false

@@ -119,7 +119,7 @@
     }
   },
   "release": {
-    "branch": "master",
+    "branch": "v6",
     "verifyConditions": [
       "@semantic-release/npm",
       "@semantic-release/github"
