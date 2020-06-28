@@ -15,11 +15,7 @@ In order to avoid installation bloat for non TS users, you must install the foll
 
 Example of a minimal TypeScript project with strict type-checking for attributes.
 
-<!--
-NOTE! 
-Keep the following code in sync with `typescriptDocs/ModelInit.ts` to ensure
-it typechecks correctly.
--->
+**NOTE:** Keep the following code in sync with `typescriptDocs/ModelInit.ts` to ensure it typechecks correctly.
 
 ```ts
 import {
@@ -33,9 +29,9 @@ import {
   HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin,
   Optional,
-} from 'sequelize';
+} from "sequelize";
 
-const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
+const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
 
 // These are all the attributes in the User model
 interface UserAttributes {
@@ -45,7 +41,7 @@ interface UserAttributes {
 }
 
 // Some attributes are optional in `User.build` and `User.create` calls
-interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
 
 class User extends Model<UserAttributes, UserCreationAttributes>
   implements UserAttributes {
@@ -81,7 +77,7 @@ interface ProjectAttributes {
   name: string;
 }
 
-interface ProjectCreationAttributes extends Optional<ProjectAttributes, 'id'> {}
+interface ProjectCreationAttributes extends Optional<ProjectAttributes, "id"> {}
 
 class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   implements ProjectAttributes {
@@ -126,8 +122,8 @@ Project.init(
   },
   {
     sequelize,
-    tableName: 'projects',
-  },
+    tableName: "projects",
+  }
 );
 
 User.init(
@@ -147,9 +143,9 @@ User.init(
     },
   },
   {
-    tableName: 'users',
+    tableName: "users",
     sequelize, // passing the `sequelize` instance is required
-  },
+  }
 );
 
 Address.init(
@@ -163,30 +159,30 @@ Address.init(
     },
   },
   {
-    tableName: 'address',
+    tableName: "address",
     sequelize, // passing the `sequelize` instance is required
-  },
+  }
 );
 
 // Here we associate which actually populates out pre-declared `association` static and other methods.
 User.hasMany(Project, {
-  sourceKey: 'id',
-  foreignKey: 'ownerId',
-  as: 'projects', // this determines the name in `associations`!
+  sourceKey: "id",
+  foreignKey: "ownerId",
+  as: "projects", // this determines the name in `associations`!
 });
 
-Address.belongsTo(User, { targetKey: 'id' });
-User.hasOne(Address, { sourceKey: 'id' });
+Address.belongsTo(User, { targetKey: "id" });
+User.hasOne(Address, { sourceKey: "id" });
 
 async function doStuffWithUser() {
   const newUser = await User.create({
-    name: 'Johnny',
-    preferredName: 'John',
+    name: "Johnny",
+    preferredName: "John",
   });
   console.log(newUser.id, newUser.name, newUser.preferredName);
 
   const project = await newUser.createProject({
-    name: 'first!',
+    name: "first!",
   });
 
   const ourUser = await User.findByPk(1, {
@@ -204,16 +200,13 @@ async function doStuffWithUser() {
 
 The typings for Sequelize v5 allowed you to define models without specifying types for the attributes. This is still possible for backwards compatibility and for cases where you feel strict typing for attributes isn't worth it.
 
-<!--
-NOTE! 
-Keep the following code in sync with `typescriptDocs/ModelInitNoAttributes.ts` to ensure
+**NOTE:** Keep the following code in sync with `typescriptDocs/ModelInitNoAttributes.ts` to ensure
 it typechecks correctly.
--->
 
 ```ts
-import { Sequelize, Model, DataTypes } from 'sequelize';
+import { Sequelize, Model, DataTypes } from "sequelize";
 
-const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
+const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
 
 class User extends Model {
   public id!: number; // Note that the `null assertion` `!` is required in strict mode.
@@ -238,19 +231,19 @@ User.init(
     },
   },
   {
-    tableName: 'users',
+    tableName: "users",
     sequelize, // passing the `sequelize` instance is required
-  },
+  }
 );
 
 async function doStuffWithUserModel() {
   const newUser = await User.create({
-    name: 'Johnny',
-    preferredName: 'John',
+    name: "Johnny",
+    preferredName: "John",
   });
   console.log(newUser.id, newUser.name, newUser.preferredName);
 
-  const foundUser = await User.findOne({ where: { name: 'Johnny' } });
+  const foundUser = await User.findOne({ where: { name: "Johnny" } });
   if (foundUser === null) return;
   console.log(foundUser.name);
 }
@@ -260,16 +253,13 @@ async function doStuffWithUserModel() {
 
 In Sequelize versions before v5, the default way of defining a model involved using `sequelize.define`. It's still possible to define models with that, and you can also add typings to these models using interfaces.
 
-<!--
-NOTE! 
-Keep the following code in sync with `typescriptDocs/Define.ts` to ensure
+**NOTE:** Keep the following code in sync with `typescriptDocs/Define.ts` to ensure
 it typechecks correctly.
--->
 
 ```ts
-import { Sequelize, Model, DataTypes, Optional } from 'sequelize';
+import { Sequelize, Model, DataTypes, Optional } from "sequelize";
 
-const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
+const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
 
 // We recommend you declare an interface for the attributes, for stricter typechecking
 interface UserAttributes {
@@ -278,21 +268,21 @@ interface UserAttributes {
 }
 
 // Some fields are optional when calling UserModel.create() or UserModel.build()
-interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
 
 // We need to declare an interface for our model that is basically what our class would be
 interface UserInstance
   extends Model<UserAttributes, UserCreationAttributes>,
     UserAttributes {}
 
-const UserModel = sequelize.define<UserInstance>('User', {
+const UserModel = sequelize.define<UserInstance>("User", {
   id: {
     primaryKey: true,
     type: DataTypes.INTEGER.UNSIGNED,
   },
   name: {
     type: DataTypes.STRING,
-  }
+  },
 });
 
 async function doStuff() {
@@ -305,16 +295,13 @@ async function doStuff() {
 
 If you're comfortable with somewhat less strict typing for the attributes on a model, you can save some code by defining the Instance to just extend `Model` without any attributes in the generic types.
 
-<!--
-NOTE! 
-Keep the following code in sync with `typescriptDocs/DefineNoAttributes.ts` to ensure
+**NOTE:** Keep the following code in sync with `typescriptDocs/DefineNoAttributes.ts` to ensure
 it typechecks correctly.
--->
 
 ```ts
-import { Sequelize, Model, DataTypes } from 'sequelize';
+import { Sequelize, Model, DataTypes } from "sequelize";
 
-const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
+const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
 
 // We need to declare an interface for our model that is basically what our class would be
 interface UserInstance extends Model {
@@ -322,7 +309,7 @@ interface UserInstance extends Model {
   name: string;
 }
 
-const UserModel = sequelize.define<UserInstance>('User', {
+const UserModel = sequelize.define<UserInstance>("User", {
   id: {
     primaryKey: true,
     type: DataTypes.INTEGER.UNSIGNED,
