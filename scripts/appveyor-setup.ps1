@@ -6,7 +6,7 @@ Start-Service sqlbrowser
 [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement") | Out-Null
 
 $serverName = $env:COMPUTERNAME
-$instanceName = 'SQL2019'
+$instanceName = 'SQL2017'
 $smo = 'Microsoft.SqlServer.Management.Smo.'
 $wmi = new-object ($smo + 'Wmi.ManagedComputer')
 
@@ -33,6 +33,7 @@ $config = @{
       requestTimeout = 25000
       cryptoCredentialsDetails = @{
         ciphers = "RC4-MD5"
+        minVersion = "TLSv1"
       }
     }
   }

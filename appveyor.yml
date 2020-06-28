@@ -4,16 +4,13 @@ platform:
   - x64
 
 services:
-  - mssql2019
+  - mssql2017
 
 shallow_clone: true
 
 environment:
   matrix:
     - { NODE_VERSION: 12, DIALECT: mssql, COVERAGE: true }
-
-init:
-  - net start MSSQL$SQL2019
 
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
