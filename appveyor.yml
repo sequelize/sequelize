@@ -30,7 +30,7 @@ after_test:
   - ps: |
       $env:PATH = 'C:\Program Files\Git\usr\bin;' + $env:PATH
       if (Test-Path env:\COVERAGE) {
-        bash ./node_modules/.bin/codecov
+        node ./node_modules/.bin/codecov
       }
 
 branches:
