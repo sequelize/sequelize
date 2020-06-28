@@ -215,12 +215,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
           if (dialect === 'sqlite') {
             // SQLite doesn't treat primary key as index
-            expect(results).to.have.length(4);
+            // However it does create an extra "autoindex", except primary == false
+            expect(results).to.have.length(4 + 1);
           } else {
             expect(results).to.have.length(4 + 1);
             expect(results.filter(r => r.primary)).to.have.length(1);
           }
 
+          if (dialect === 'sqlite') {
+            expect(results.filter(r => r.name === 'sqlite_autoindex_testSyncs_1')).to.have.length(1);
+          }
           expect(results.filter(r => r.name === 'another_index_email_mobile')).to.have.length(1);
           expect(results.filter(r => r.name === 'another_index_phone_mobile')).to.have.length(1);
           expect(results.filter(r => r.name === 'another_index_email')).to.have.length(1);
@@ -254,7 +258,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const results = await this.sequelize.getQueryInterface().showIndex(User.getTableName());
           if (dialect === 'sqlite') {
             // SQLite doesn't treat primary key as index
-            expect(results).to.have.length(4);
+            // However it does create an extra "autoindex", except primary == false
+            expect(results).to.have.length(4 + 1);
           } else {
             expect(results).to.have.length(4 + 1);
             expect(results.filter(r => r.primary)).to.have.length(1);

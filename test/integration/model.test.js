@@ -2014,7 +2014,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       let table = await this.sequelize.queryInterface.describeTable('Publics', {
         logging(sql) {
-          if (['sqlite', 'mysql', 'mssql', 'mariadb'].includes(dialect)) {
+          if (dialect === 'sqlite' && sql.includes('TABLE_INFO')) {
+            test++;
+            expect(sql).to.not.contain('special');
+          }
+          else if (['mysql', 'mssql', 'mariadb'].includes(dialect)) {
             test++;
             expect(sql).to.not.contain('special');
           }
@@ -2029,7 +2033,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       table = await this.sequelize.queryInterface.describeTable('Publics', {
         schema: 'special',
         logging(sql) {
-          if (['sqlite', 'mysql', 'mssql', 'mariadb'].includes(dialect)) {
+          if (dialect === 'sqlite' && sql.includes('TABLE_INFO')) {
+            test++;
+            expect(sql).to.contain('special');
+          }
+          else if (['mysql', 'mssql', 'mariadb'].includes(dialect)) {
             test++;
             expect(sql).to.contain('special');
           }
