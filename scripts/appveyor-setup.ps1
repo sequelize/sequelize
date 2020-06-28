@@ -6,7 +6,7 @@ Start-Service sqlbrowser
 [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement") | Out-Null
 
 $serverName = $env:COMPUTERNAME
-$instanceName = 'SQL2017'
+$instanceName = 'SQL2019'
 $smo = 'Microsoft.SqlServer.Management.Smo.'
 $wmi = new-object ($smo + 'Wmi.ManagedComputer')
 

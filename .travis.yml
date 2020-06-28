@@ -66,7 +66,8 @@ jobs:
       env: POSTGRES_VER=postgres-10 SEQ_PG_PORT=8991 SEQ_PG_MINIFY_ALIASES=1 DIALECT=postgres
       script:
         - npm run tsc
-        - npm run test-integration
+        - npm run cover-integration
+        - bash <(curl -s https://codecov.io/bash) -f coverage/integration.info
     - stage: test
       node_js: '12'
       sudo: required
