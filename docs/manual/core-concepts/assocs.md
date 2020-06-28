@@ -287,8 +287,8 @@ const ActorMovies = sequelize.define('ActorMovies', {
     }
   }
 });
-Movie.belongsToMany(Actor, { through: 'ActorMovies' });
-Actor.belongsToMany(Movie, { through: 'ActorMovies' });
+Movie.belongsToMany(Actor, { through: ActorMovies });
+Actor.belongsToMany(Movie, { through: ActorMovies });
 ```
 
 The above yields the following SQL in PostgreSQL, which is equivalent to the one shown above:
