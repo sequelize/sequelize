@@ -15,6 +15,7 @@ environment:
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
   - npm ci
+  - npm i --save-dev codecov
 
 build: off
 
@@ -25,12 +26,7 @@ test_script:
   - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
 
 after_test:
-  - ps: |
-      $env:PATH = 'C:\Program Files\Git\usr\bin;' + $env:PATH
-      if (Test-Path env:\COVERAGE) {
-        Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-        bash codecov.sh -f "coverage\lcov.info"
-      }
+  - npx codecov
 
 branches:
   only:
