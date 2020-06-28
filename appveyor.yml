@@ -27,11 +27,7 @@ test_script:
   - 'IF "%COVERAGE%" == "true" (npm run cover) ELSE (npm test)'
 
 after_test:
-  - ps: |
-      $env:PATH = 'C:\Program Files\Git\usr\bin;' + $env:PATH
-      if (Test-Path env:\COVERAGE) {
-        bash ./node_modules/.bin/codecov
-      }
+  - npx codecov
 
 branches:
   only:
