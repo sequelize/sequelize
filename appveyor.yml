@@ -15,7 +15,7 @@ environment:
 install:
   - ps: Install-Product node $env:NODE_VERSION x64
   - npm ci
-  - npm install codecov
+  - npm install --save-dev codecov
 
 build: off
 
@@ -30,7 +30,7 @@ after_test:
   - ps: |
       $env:PATH = 'C:\Program Files\Git\usr\bin;' + $env:PATH
       if (Test-Path env:\COVERAGE) {
-        node ./node_modules/.bin/codecov
+        bash ./node_modules/.bin/codecov
       }
 
 branches:
