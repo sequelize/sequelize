@@ -2586,6 +2586,8 @@ class Model {
       options
     );
 
+    instance.isNewRecord = false;
+
     if (options.hooks) {
       await this.runHooks('afterUpsert', result, options);
       return result;
