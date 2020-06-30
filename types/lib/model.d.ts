@@ -2849,6 +2849,8 @@ export type ModelType = typeof Model;
 // must come first for unknown reasons.
 export type ModelCtor<M extends Model> = typeof Model & { new(): M };
 
+export type ModelDefined<S, T> = ModelCtor<Model<S, T>>;
+
 export type ModelStatic<M extends Model> = { new(): M };
 
 export default Model;
