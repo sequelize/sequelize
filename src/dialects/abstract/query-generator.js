@@ -1541,7 +1541,7 @@ class QueryGenerator {
               ? this.quoteAttribute(attr, options.model)
               : this.escape(attr);
         }
-        if (!_.isEmpty(options.include) && !attr.includes('.') && addTable) {
+        if (!_.isEmpty(options.include) && (!attr.includes('.') || options.dotnotation) && addTable) {
           attr = `${mainTableAs}.${attr}`;
         }
 
