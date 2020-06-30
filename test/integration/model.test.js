@@ -2376,7 +2376,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return UserPublic.schema('special').sync({ force: true }).then(() => {
           return this.sequelize.queryInterface.describeTable('Publics', {
             logging(sql) {
-              if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql' || dialect === 'mariadb') {
+              if (dialect === 'sqlite' && sql.includes('TABLE_INFO')) {
+                count++;
+                expect(sql).to.not.contain('special');
+              }
+              else if (['mysql', 'mssql', 'mariadb'].includes(dialect)) {
                 expect(sql).to.not.contain('special');
                 count++;
               }
@@ -2389,7 +2393,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.sequelize.queryInterface.describeTable('Publics', {
               schema: 'special',
               logging(sql) {
-                if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql' || dialect === 'mariadb') {
+                if (dialect === 'sqlite' && sql.includes('TABLE_INFO')) {
+                  count++;
+                  expect(sql).to.contain('special');
+                }
+                else if (['mysql', 'mssql', 'mariadb'].includes(dialect)) {
                   expect(sql).to.contain('special');
                   count++;
                 }
