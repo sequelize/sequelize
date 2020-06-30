@@ -177,7 +177,7 @@ Address.init(
 
 // And with a functional approach defining a module looks like this
 const Note: ModelDefined<
-  NoteAttributes, 
+  NoteAttributes,
   NoteCreationAttributes
 > = sequelize.define(
   'Note',
