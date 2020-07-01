@@ -964,7 +964,7 @@ export interface SetOptions {
 /**
  * Options used for Instance.save method
  */
-export interface SaveOptions<TAttributes = any> extends Logging, Transactionable, Silent {
+export interface SaveOptions<TAttributes = any> extends Logging, Transactionable, Silent, Hookable {
   /**
    * An optional array of strings, representing database columns. If fields is provided, only those columns
    * will be validated and saved.
