@@ -69,7 +69,8 @@ if (current.dialect.name === 'mssql') {
 
       // the main purpose of this test is to validate this does not throw
       expectsql(this.queryGenerator.upsertQuery('test_table', updateValues, insertValues, where, testTable), {
-        mssql: ''
+        mssql:
+          "MERGE INTO [test_table] WITH(HOLDLOCK) AS [test_table_target] USING (VALUES(N''Charlie'', 24, 0)) AS [test_table_source](Name, Age, Online) ON [test_table_target].Name = [test_table_source].Name AND [test_table_target].Online = [test_table_source].Online WHEN MATCHED THEN UPDATE SET Age = 24 WHEN NOT MATCHED THEN INSERT (Name, Age, Online) VALUES(N''Charlie'', 24, 0) OUTPUT $action, INSERTED.*;"
       });
     });
 
