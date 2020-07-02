@@ -23,7 +23,7 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('upsertQuery with falsey values', async function () {
+    it('upsertQuery with falsey values', function () {
       let testTable = this.sequelize.define(
         'test_table',
         {
@@ -45,11 +45,23 @@ if (current.dialect.name === 'mssql') {
         }
       );
 
-      await testTable.upsert({
+      const insertValues = {
         Name: 'Charlie',
         Age: 24,
         IsOnline: false
-      });
+      };
+
+      const updateValues = {
+        Age: 24
+      };
+
+      const whereValues = {
+        Name: 'Charlie',
+        IsOnline: false
+      };
+
+      // the main purpose of this test is to validate this does not throw
+      this.queryGenerator.upsertQuery('test_table', updateValues, insertValues, whereValues, testTable);
     });
 
     it('createDatabaseQuery with collate', function () {
