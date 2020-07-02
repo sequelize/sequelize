@@ -3,6 +3,7 @@
 const Support = require('../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
+const DataTypes = require('../../../../lib/data-types');
 const TableHints = require('../../../../lib/table-hints');
 const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator');
 
@@ -19,6 +20,35 @@ if (current.dialect.name === 'mssql') {
       expectsql(this.queryGenerator.createDatabaseQuery('myDatabase'), {
         mssql:
           "IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN CREATE DATABASE [myDatabase] ; END;"
+      });
+    });
+
+    it('upsertQuery with falsey values', async function () {
+      let testTable = this.sequelize.define(
+        'test_table',
+        {
+          Name: {
+            type: DataTypes.STRING,
+            primaryKey: true
+          },
+          Age: {
+            type: DataTypes.INTEGER
+          },
+          IsOnline: {
+            type: DataTypes.BOOLEAN,
+            primaryKey: true
+          }
+        },
+        {
+          freezeTableName: true,
+          timestamps: false
+        }
+      );
+
+      await testTable.upsert({
+        Name: 'Charlie',
+        Age: 24,
+        IsOnline: false
       });
     });
 
