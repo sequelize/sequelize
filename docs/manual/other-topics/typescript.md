@@ -15,7 +15,9 @@ In order to avoid installation bloat for non TS users, you must install the foll
 
 Example of a minimal TypeScript project with strict type-checking for attributes.
 
-**NOTE:** Keep the following code in sync with `typescriptDocs/ModelInit.ts` to ensure it typechecks correctly.
+<!-- 
+**NOTE:** Keep the following code in sync with `/types/test/typescriptDocs/ModelInit.ts` to ensure it typechecks correctly.
+-->
 
 ```ts
 import {
