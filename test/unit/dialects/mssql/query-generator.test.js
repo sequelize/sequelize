@@ -68,7 +68,9 @@ if (current.dialect.name === 'mssql') {
       };
 
       // the main purpose of this test is to validate this does not throw
-      this.queryGenerator.upsertQuery('test_table', updateValues, insertValues, where, testTable);
+      expectsql(this.queryGenerator.upsertQuery('test_table', updateValues, insertValues, where, testTable), {
+        mssql: ''
+      });
     });
 
     it('createDatabaseQuery with collate', function () {
