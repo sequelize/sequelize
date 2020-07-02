@@ -56,10 +56,12 @@ if (current.dialect.name === 'mssql') {
         Age: 24
       };
 
-      const whereValues = {
-        Name: 'Charlie',
-        IsOnline: false
-      };
+      const whereValues = [
+        {
+          Name: 'Charlie',
+          IsOnline: false
+        }
+      ];
 
       const where = {
         [Op.or]: whereValues
