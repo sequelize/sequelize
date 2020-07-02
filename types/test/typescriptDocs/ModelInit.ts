@@ -4,6 +4,7 @@
 import {
   Sequelize,
   Model,
+  ModelDefined,
   DataTypes,
   HasManyGetAssociationsMixin,
   HasManyAddAssociationMixin,
@@ -12,9 +13,9 @@ import {
   HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin,
   Optional,
-} from 'sequelize';
+} from "sequelize";
 
-const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
+const sequelize = new Sequelize("mysql://root:asd123@localhost:3306/mydb");
 
 // These are all the attributes in the User model
 interface UserAttributes {
@@ -24,7 +25,7 @@ interface UserAttributes {
 }
 
 // Some attributes are optional in `User.build` and `User.create` calls
-interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
 
 class User extends Model<UserAttributes, UserCreationAttributes>
   implements UserAttributes {
@@ -60,7 +61,7 @@ interface ProjectAttributes {
   name: string;
 }
 
-interface ProjectCreationAttributes extends Optional<ProjectAttributes, 'id'> {}
+interface ProjectCreationAttributes extends Optional<ProjectAttributes, "id"> {}
 
 class Project extends Model<ProjectAttributes, ProjectCreationAttributes>
   implements ProjectAttributes {
@@ -87,6 +88,17 @@ class Address extends Model<AddressAttributes> implements AddressAttributes {
   public readonly updatedAt!: Date;
 }
 
+// You can also define modules in a functional way
+interface NoteAttributes {
+  id: number;
+  title: string;
+  content: string;
+}
+
+// You can also set multiple attributes optional at once
+interface NoteCreationAttributes
+  extends Optional<NoteAttributes, "id" | "title"> {}
+
 Project.init(
   {
     id: {
@@ -105,8 +117,8 @@ Project.init(
   },
   {
     sequelize,
-    tableName: 'projects',
-  },
+    tableName: "projects",
+  }
 );
 
 User.init(
@@ -126,9 +138,9 @@ User.init(
     },
   },
   {
-    tableName: 'users',
+    tableName: "users",
     sequelize, // passing the `sequelize` instance is required
-  },
+  }
 );
 
 Address.init(
@@ -142,30 +154,56 @@ Address.init(
     },
   },
   {
-    tableName: 'address',
+    tableName: "address",
     sequelize, // passing the `sequelize` instance is required
+  }
+);
+
+// And with a functional approach defining a module looks like this
+const Note: ModelDefined<
+  NoteAttributes,
+  NoteCreationAttributes
+> = sequelize.define(
+  "Note",
+  {
+    id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    title: {
+      type: new DataTypes.STRING(64),
+      defaultValue: "Unnamed Note",
+    },
+    content: {
+      type: new DataTypes.STRING(4096),
+      allowNull: false,
+    },
   },
+  {
+    tableName: "notes",
+  }
 );
 
 // Here we associate which actually populates out pre-declared `association` static and other methods.
 User.hasMany(Project, {
-  sourceKey: 'id',
-  foreignKey: 'ownerId',
-  as: 'projects', // this determines the name in `associations`!
+  sourceKey: "id",
+  foreignKey: "ownerId",
+  as: "projects", // this determines the name in `associations`!
 });
 
-Address.belongsTo(User, { targetKey: 'id' });
-User.hasOne(Address, { sourceKey: 'id' });
+Address.belongsTo(User, { targetKey: "id" });
+User.hasOne(Address, { sourceKey: "id" });
 
 async function doStuffWithUser() {
   const newUser = await User.create({
-    name: 'Johnny',
-    preferredName: 'John',
+    name: "Johnny",
+    preferredName: "John",
   });
   console.log(newUser.id, newUser.name, newUser.preferredName);
 
   const project = await newUser.createProject({
-    name: 'first!',
+    name: "first!",
   });
 
   const ourUser = await User.findByPk(1, {
