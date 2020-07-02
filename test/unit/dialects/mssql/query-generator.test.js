@@ -4,6 +4,7 @@ const Support = require('../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const DataTypes = require('../../../../lib/data-types');
+const Op = require('../../../../lib/operators');
 const TableHints = require('../../../../lib/table-hints');
 const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator');
 
@@ -60,8 +61,12 @@ if (current.dialect.name === 'mssql') {
         IsOnline: false
       };
 
+      const where = {
+        [Op.or]: whereValues
+      };
+
       // the main purpose of this test is to validate this does not throw
-      this.queryGenerator.upsertQuery('test_table', updateValues, insertValues, whereValues, testTable);
+      this.queryGenerator.upsertQuery('test_table', updateValues, insertValues, where, testTable);
     });
 
     it('createDatabaseQuery with collate', function () {
