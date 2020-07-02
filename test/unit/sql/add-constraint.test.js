@@ -203,6 +203,25 @@ if (current.dialect.supports.constraints.addConstraint) {
           );
         });
 
+        it('supports composite keys', () => {
+          expectsql(
+            sql.addConstraintQuery('myTable', {
+              type: 'foreign key',
+              fields: ['myColumn', 'anotherColumn'],
+              references: {
+                table: 'myOtherTable',
+                fields: ['id1', 'id2']
+              },
+              onUpdate: 'cascade',
+              onDelete: 'cascade'
+            }),
+            {
+              default:
+                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_anotherColumn_myOtherTable_fk] FOREIGN KEY ([myColumn], [anotherColumn]) REFERENCES [myOtherTable] ([id1], [id2]) ON UPDATE CASCADE ON DELETE CASCADE;'
+            }
+          );
+        });
+
         it('uses onDelete, onUpdate', () => {
           expectsql(
             sql.addConstraintQuery('myTable', {
