@@ -73,14 +73,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not create primary key with generatePrimaryKey false', () => {
-      const baz = current.define('bar', {
-        name: {
-          type: DataTypes.INTEGER.UNSIGNED
+      const baz = current.define('bar', 
+        {
+          name: {
+            type: DataTypes.INTEGER.UNSIGNED
+          },
         },
         {
           generatePrimaryKey: false,
         }
-      });
+      );
 
       expect(baz.rawAttributes.id).to.equal(undefined);
     });
