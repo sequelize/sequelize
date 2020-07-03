@@ -77,10 +77,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         {
           name: {
             type: DataTypes.INTEGER.UNSIGNED
-          },
+          }
         },
         {
-          generatePrimaryKey: false,
+          generatePrimaryKey: false
         }
       );
 
