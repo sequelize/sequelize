@@ -3,6 +3,8 @@
 const Support = require('../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
+const DataTypes = require('../../../../lib/data-types');
+const Op = require('../../../../lib/operators');
 const TableHints = require('../../../../lib/table-hints');
 const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator');
 
@@ -18,6 +20,56 @@ if (current.dialect.name === 'mssql') {
     it('createDatabaseQuery', function() {
       expectsql(this.queryGenerator.createDatabaseQuery('myDatabase'), {
         mssql: "IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN CREATE DATABASE [myDatabase] ; END;"
+      });
+    });
+
+    it('upsertQuery with falsey values', function() {
+      const testTable = this.sequelize.define(
+        'test_table',
+        {
+          Name: {
+            type: DataTypes.STRING,
+            primaryKey: true
+          },
+          Age: {
+            type: DataTypes.INTEGER
+          },
+          IsOnline: {
+            type: DataTypes.BOOLEAN,
+            primaryKey: true
+          }
+        },
+        {
+          freezeTableName: true,
+          timestamps: false
+        }
+      );
+
+      const insertValues = {
+        Name: 'Charlie',
+        Age: 24,
+        IsOnline: false
+      };
+
+      const updateValues = {
+        Age: 24
+      };
+
+      const whereValues = [
+        {
+          Name: 'Charlie',
+          IsOnline: false
+        }
+      ];
+
+      const where = {
+        [Op.or]: whereValues
+      };
+
+      // the main purpose of this test is to validate this does not throw
+      expectsql(this.queryGenerator.upsertQuery('test_table', updateValues, insertValues, where, testTable), {
+        mssql:
+          "MERGE INTO [test_table] WITH(HOLDLOCK) AS [test_table_target] USING (VALUES(24)) AS [test_table_source]([Age]) ON [test_table_target].[Name] = [test_table_source].[Name] AND [test_table_target].[IsOnline] = [test_table_source].[IsOnline] WHEN MATCHED THEN UPDATE SET [test_table_target].[Name] = N'Charlie', [test_table_target].[Age] = 24, [test_table_target].[IsOnline] = 0 WHEN NOT MATCHED THEN INSERT ([Age]) VALUES(24) OUTPUT $action, INSERTED.*;"
       });
     });
 
