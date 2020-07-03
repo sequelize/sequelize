@@ -1372,13 +1372,13 @@ export interface ModelOptions<M extends Model = Model> {
    * Define the default search scope to use for this model. Scopes have the same form as the options passed to
    * find / findAll.
    */
-  defaultScope?: FindOptions<M['_attributes']>;
+  defaultScope?: FindOptions<M["_attributes"]>;
 
   /**
    * More scopes, defined in the same way as defaultScope above. See `Model.scope` for more information about
    * how scopes are defined, and what you can do with them
    */
-  scopes?: ModelScopeOptions<M['_attributes']>;
+  scopes?: ModelScopeOptions<M["_attributes"]>;
 
   /**
    * Don't persits null values. This means that all columns with null values will not be saved.
@@ -1469,6 +1469,12 @@ export interface ModelOptions<M extends Model = Model> {
   collate?: string;
 
   /**
+   * It will generate a primary key with column name id,
+   * if no other primary key was found and this boolean is set to true.
+   */
+  generatePrimaryKey?: boolean;
+
+  /**
    * Set the initial AUTO_INCREMENT value for the table in MySQL.
    */
   initialAutoIncrement?: string;
@@ -1478,7 +1484,7 @@ export interface ModelOptions<M extends Model = Model> {
    * See Hooks for more information about hook
    * functions and their signatures. Each property can either be a function, or an array of functions.
    */
-  hooks?: Partial<ModelHooks<M, M['_attributes']>>;
+  hooks?: Partial<ModelHooks<M, M["_attributes"]>>;
 
   /**
    * An object of model wide validations. Validations have access to all model values via `this`. If the
