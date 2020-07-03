@@ -72,6 +72,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw('Unrecognized datatype for attribute "bar.name"');
     });
 
+    it('should not create primary key with generatePrimaryKey false', () => {
+      const baz = current.define('bar', {
+        name: {
+          type: DataTypes.INTEGER.UNSIGNED
+        },
+        {
+          generatePrimaryKey: false,
+        }
+      });
+
+      expect(baz.rawAttributes.id).to.equal(undefined);
+    });
+
     it('should throw for notNull validator without allowNull', () => {
       expect(() => {
         current.define('user', {
