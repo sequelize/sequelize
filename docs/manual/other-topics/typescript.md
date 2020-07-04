@@ -15,12 +15,13 @@ In order to avoid installation bloat for non TS users, you must install the foll
 
 Example of a minimal TypeScript project with strict type-checking for attributes.
 
-**NOTE:** Keep the following code in sync with `typescriptDocs/ModelInit.ts` to ensure it typechecks correctly.
+**NOTE:** Keep the following code in sync with `/types/test/typescriptDocs/ModelInit.ts` to ensure it typechecks correctly.
 
 ```ts
 import {
   Sequelize,
   Model,
+  ModelDefined,
   DataTypes,
   HasManyGetAssociationsMixin,
   HasManyAddAssociationMixin,
@@ -104,6 +105,16 @@ class Address extends Model<AddressAttributes> implements AddressAttributes {
   public readonly updatedAt!: Date;
 }
 
+// You can also define modules in a functional way
+interface NoteAttributes {
+  id: number;
+  title: string;
+  content: string;
+}
+
+// You can also set multiple attributes optional at once
+interface NoteCreationAttributes extends Optional<NoteAttributes, 'id' | 'title'> {};
+
 Project.init(
   {
     id: {
@@ -161,6 +172,32 @@ Address.init(
   {
     tableName: "address",
     sequelize, // passing the `sequelize` instance is required
+  }
+);
+
+// And with a functional approach defining a module looks like this
+const Note: ModelDefined<
+  NoteAttributes,
+  NoteCreationAttributes
+> = sequelize.define(
+  'Note',
+  {
+    id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    title: {
+      type: new DataTypes.STRING(64),
+      defaultValue: 'Unnamed Note',
+    },
+    content: {
+      type: new DataTypes.STRING(4096),
+      allowNull: false,
+    },
+  },
+  {
+    tableName: 'notes',
   }
 );
 
