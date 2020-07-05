@@ -58,7 +58,10 @@
         "sourceType": "module",
         "project": "./tsconfig.json"
       },
-      "plugins": ["jsdoc", "@typescript-eslint"]
+      "plugins": ["jsdoc", "@typescript-eslint"],
+      "rules": {
+        "@typescript-eslint/ban-types": "warn"
+      }
     }
   ]
 }

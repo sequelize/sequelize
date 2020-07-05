@@ -6,11 +6,18 @@
  * @private
  */
 
-const debug = require('debug');
-const util = require('util');
+import debug from 'debug';
+import { inspect } from 'util';
+
+interface LoggerConfig {
+  context?: string;
+  debug?: boolean;
+}
 
 class Logger {
-  constructor(config) {
+  config: LoggerConfig;
+
+  constructor(config: LoggerConfig = {}) {
     this.config = {
       context: 'sequelize',
       debug: true,
@@ -18,16 +25,16 @@ class Logger {
     };
   }
 
-  warn(message) {
+  warn(message: string) {
     // eslint-disable-next-line no-console
     console.warn(`(${this.config.context}) Warning: ${message}`);
   }
 
-  inspect(value) {
-    return util.inspect(value, false, 3);
+  inspect(value: object) {
+    return inspect(value, false, 3);
   }
 
-  debugContext(name) {
+  debugContext(name: string) {
     return debug(`${this.config.context}:${name}`);
   }
 }

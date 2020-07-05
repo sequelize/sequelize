@@ -2,9 +2,11 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": false,
+    "strict": true,
     "declaration": false,
     "module": "commonjs",
     "noImplicitAny": true,
+    "esModuleInterop": true,
     "outDir": "lib",
     "preserveConstEnums": true,
     "removeComments": false,
