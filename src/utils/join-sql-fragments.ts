@@ -1,7 +1,7 @@
-function doesNotWantLeadingSpace(str) {
+function doesNotWantLeadingSpace(str: string) {
   return /^[;,)]/.test(str);
 }
-function doesNotWantTrailingSpace(str) {
+function doesNotWantTrailingSpace(str: string) {
   return /\($/.test(str);
 }
 
@@ -14,9 +14,10 @@ function doesNotWantTrailingSpace(str) {
  *
  * @param {string[]} parts
  * @returns {string}
+ *
  * @private
  */
-function singleSpaceJoinHelper(parts) {
+function singleSpaceJoinHelper(parts: string[]): string {
   return parts.reduce(
     ({ skipNextLeadingSpace, result }, part) => {
       if (skipNextLeadingSpace || doesNotWantLeadingSpace(part)) {
@@ -36,12 +37,14 @@ function singleSpaceJoinHelper(parts) {
   ).result;
 }
 
+type SQLFragment = string | unknown | SQLFragment[];
+
 /**
  * Joins an array with a single space, auto trimming when needed.
  *
  * Certain elements do not get leading/trailing spaces.
  *
- * @param {any[]} array The array to be joined. Falsy values are skipped. If an
+ * @param {unknown[]} array The array to be joined. Falsy values are skipped. If an
  * element is another array, this function will be called recursively on that array.
  * Otherwise, if a non-string, non-falsy value is present, a TypeError will be thrown.
  *
@@ -49,7 +52,7 @@ function singleSpaceJoinHelper(parts) {
  *
  * @private
  */
-function joinSQLFragments(array) {
+export function joinSQLFragments(array: SQLFragment[]): string {
   if (array.length === 0) return '';
 
   // Skip falsy fragments
@@ -66,21 +69,19 @@ function joinSQLFragments(array) {
   // Ensure strings
   for (const fragment of array) {
     if (fragment && typeof fragment !== 'string') {
-      const error = new TypeError(
-        `Tried to construct a SQL string with a non-string, non-falsy fragment (${fragment}).`
+      throw new Error(
+        `Tried to construct a SQL string with a non-string, non-falsy fragment (${fragment}) with args (${array}).`
       );
-      error.args = array;
-      error.fragment = fragment;
-      throw error;
     }
   }
 
+  let strings = array.filter(item => typeof item === 'string').map(item => item + '');
+
   // Trim fragments
-  array = array.map(x => x.trim());
+  strings = strings.map(item => item.trim());
 
   // Skip full-whitespace fragments (empty after the above trim)
-  array = array.filter(x => x !== '');
+  strings = strings.filter(item => item !== '');
 
-  return singleSpaceJoinHelper(array);
+  return singleSpaceJoinHelper(strings);
 }
-exports.joinSQLFragments = joinSQLFragments;

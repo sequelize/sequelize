@@ -4,9 +4,10 @@
  *
  * @param {Function} Class The class instance to wrap as invocable.
  * @returns {Proxy} Wrapped class instance.
+ *
  * @private
  */
-function classToInvokable(Class) {
+export function classToInvokable(Class: new (...args: unknown[]) => typeof Class) {
   return new Proxy(Class, {
     apply(Target, thisArg, args) {
       return new Target(...args);
@@ -15,8 +16,7 @@ function classToInvokable(Class) {
       return new Target(...args);
     },
     get(target, p) {
-      return target[p];
+      return Reflect.get(target, p);
     }
   });
 }
-exports.classToInvokable = classToInvokable;
