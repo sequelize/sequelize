@@ -1,10 +1,27 @@
-const DatabaseError = require('./../database-error');
+import DatabaseError, { SQLError } from './../database-error';
+
+interface ForeignKeyConstraintErrorOptions {
+  parent: SQLError;
+  message: string;
+  fields: string[];
+  table: string;
+  value: string;
+  index: string;
+  reltype: string;
+}
 
 /**
  * Thrown when a foreign key constraint is violated in the database
  */
 class ForeignKeyConstraintError extends DatabaseError {
-  constructor(options) {
+  message: string;
+  fields: string[];
+  table: string;
+  value: string;
+  index: string;
+  reltype: string;
+
+  constructor(options: ForeignKeyConstraintErrorOptions) {
     options = options || {};
     options.parent = options.parent || { sql: '' };
 
@@ -20,4 +37,4 @@ class ForeignKeyConstraintError extends DatabaseError {
   }
 }
 
-module.exports = ForeignKeyConstraintError;
+export default ForeignKeyConstraintError;

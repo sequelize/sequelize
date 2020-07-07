@@ -1,4 +1,4 @@
-const BaseError = require('./base-error');
+import BaseError from './base-error';
 
 /**
  * Validation Error. Thrown when the sequelize validation has failed. The error contains an `errors` property,
@@ -10,10 +10,13 @@ const BaseError = require('./base-error');
  * @property errors {ValidationErrorItems[]}
  */
 class ValidationError extends BaseError {
-  constructor(message, errors) {
+  errors: Array<ValidationErrorItem>;
+
+  constructor(message: string, errors: Array<ValidationErrorItem>) {
     super(message);
     this.name = 'SequelizeValidationError';
     this.message = 'Validation Error';
+
     /**
      *
      * @type {ValidationErrorItem[]}
@@ -26,7 +29,7 @@ class ValidationError extends BaseError {
 
       // ... otherwise create a concatenated message out of existing errors.
     } else if (this.errors.length > 0 && this.errors[0].message) {
-      this.message = this.errors.map(err => `${err.type || err.origin}: ${err.message}`).join(',\n');
+      this.message = this.errors.map(err => `${err.type || err.origin || 'Unknown'}: ${err.message}`).join(',\n');
     }
   }
 
@@ -34,24 +37,60 @@ class ValidationError extends BaseError {
    * Gets all validation error items for the path / field specified.
    *
    * @param {string} path The path to be checked for error items
-   *
-   * @returns {Array<ValidationErrorItem>} Validation error items for the specified path
    */
-  get(path) {
+  get(path: string): ValidationErrorItem[] {
     return this.errors.reduce((reduced, error) => {
       if (error.path === path) {
         reduced.push(error);
       }
       return reduced;
-    }, []);
+    }, [] as ValidationErrorItem[]);
   }
+}
+
+/**
+ * An enum that defines valid ValidationErrorItem `origin` values
+ *
+ * @property CORE       {string}  specifies errors that originate from the sequelize "core"
+ * @property DB         {string}  specifies validation errors that originate from the storage engine
+ * @property FUNCTION   {string}  specifies validation errors that originate from validator functions (both built-in and custom) defined for a given attribute
+ */
+enum Origins {
+  CORE = 'CORE',
+  DB = 'DB',
+  FUNCTION = 'FUNCTION'
+}
+
+/**
+ * An object that is used internally by the `ValidationErrorItem` class
+ * that maps current `type` strings (as given to ValidationErrorItem.constructor()) to
+ * our new `origin` values.
+ */
+enum TypeStringMap {
+  'notnull violation' = 'CORE',
+  'string violation' = 'CORE',
+  'unique violation' = 'DB',
+  'validation error' = 'FUNCTION'
 }
 
 /**
  * Validation Error Item
  * Instances of this class are included in the `ValidationError.errors` property.
  */
-class ValidationErrorItem {
+export class ValidationErrorItem {
+  message: string;
+  type: keyof typeof Origins | string | null;
+  path: string | null;
+  value: string | null;
+  origin?: keyof typeof Origins | null;
+  instance: object | null;
+  validatorKey: string | null;
+  validatorName: string | null;
+  validatorArgs: unknown[];
+
+  static Origins = Origins;
+  static TypeStringMap = TypeStringMap;
+
   /**
    * Creates new validation error item
    *
@@ -60,11 +99,20 @@ class ValidationErrorItem {
    * @param {string} path The field that triggered the validation error
    * @param {string} value The value that generated the error
    * @param {object} [inst] the DAO instance that caused the validation error
-   * @param {object} [validatorKey] a validation "key", used for identification
+   * @param {string} [validatorKey] a validation "key", used for identification
    * @param {string} [fnName] property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable
-   * @param {string} [fnArgs] parameters used with the BUILT-IN validator function, if applicable
+   * @param {unknown[]} [fnArgs] parameters used with the BUILT-IN validator function, if applicable
    */
-  constructor(message, type, path, value, inst, validatorKey, fnName, fnArgs) {
+  constructor(
+    message: string,
+    type?: keyof typeof Origins | string,
+    path?: string,
+    value?: string,
+    inst?: object,
+    validatorKey?: string,
+    fnName?: string,
+    fnArgs?: unknown[]
+  ) {
     /**
      * An error message
      *
@@ -77,7 +125,8 @@ class ValidationErrorItem {
      *
      * @type {string}
      */
-    this.type = null;
+    this.type = type || null;
+    this.origin = null;
 
     /**
      * The field that triggered the validation error
@@ -92,8 +141,6 @@ class ValidationErrorItem {
      * @type {string}
      */
     this.value = value !== undefined ? value : null;
-
-    this.origin = null;
 
     /**
      * The DAO instance that caused the validation error
@@ -119,16 +166,16 @@ class ValidationErrorItem {
     /**
      * Parameters used with the BUILT-IN validator function, if applicable
      *
-     * @type {string}
+     * @type {unknown[]}
      */
     this.validatorArgs = fnArgs || [];
 
     if (type) {
-      if (ValidationErrorItem.Origins[type]) {
-        this.origin = type;
+      if (ValidationErrorItem.Origins[type as keyof typeof Origins]) {
+        this.origin = type as keyof typeof Origins;
       } else {
         const lowercaseType = `${type}`.toLowerCase().trim();
-        const realType = ValidationErrorItem.TypeStringMap[lowercaseType];
+        const realType = TypeStringMap[lowercaseType as keyof typeof TypeStringMap];
 
         if (realType && ValidationErrorItem.Origins[realType]) {
           this.origin = realType;
@@ -136,8 +183,6 @@ class ValidationErrorItem {
         }
       }
     }
-
-    // This doesn't need captureStackTrace because it's not a subclass of Error
   }
 
   /**
@@ -154,7 +199,7 @@ class ValidationErrorItem {
    *
    * @private
    */
-  getValidatorKey(useTypeAsNS, NSSeparator) {
+  getValidatorKey(useTypeAsNS: boolean, NSSeparator: string): string {
     const useTANS = useTypeAsNS === undefined || !!useTypeAsNS;
     const NSSep = NSSeparator === undefined ? '.' : NSSeparator;
 
@@ -174,33 +219,4 @@ class ValidationErrorItem {
   }
 }
 
-/**
- * An enum that defines valid ValidationErrorItem `origin` values
- *
- * @type {object}
- * @property CORE       {string}  specifies errors that originate from the sequelize "core"
- * @property DB         {string}  specifies validation errors that originate from the storage engine
- * @property FUNCTION   {string}  specifies validation errors that originate from validator functions (both built-in and custom) defined for a given attribute
- */
-ValidationErrorItem.Origins = {
-  CORE: 'CORE',
-  DB: 'DB',
-  FUNCTION: 'FUNCTION'
-};
-
-/**
- * An object that is used internally by the `ValidationErrorItem` class
- * that maps current `type` strings (as given to ValidationErrorItem.constructor()) to
- * our new `origin` values.
- *
- * @type {object}
- */
-ValidationErrorItem.TypeStringMap = {
-  'notnull violation': 'CORE',
-  'string violation': 'CORE',
-  'unique violation': 'DB',
-  'validation error': 'FUNCTION'
-};
-
-module.exports = ValidationError;
-module.exports.ValidationErrorItem = ValidationErrorItem;
+export default ValidationError;

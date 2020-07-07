@@ -1,14 +1,12 @@
-const BaseError = require('./base-error');
+import BaseError from './base-error';
 
 /**
  * A wrapper for multiple Errors
- *
- * @param {Error[]} [errors] Array of errors
- *
- * @property errors {Error[]}
  */
 class AggregateError extends BaseError {
-  constructor(errors) {
+  errors: Error[];
+
+  constructor(errors: Error[]) {
     super();
     this.errors = errors;
     this.name = 'AggregateError';
@@ -28,4 +26,4 @@ class AggregateError extends BaseError {
   }
 }
 
-module.exports = AggregateError;
+export default AggregateError;

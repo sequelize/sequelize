@@ -1,13 +1,13 @@
-const BaseError = require('./base-error');
+import BaseError from './base-error';
 
 /**
  * Thrown when a record was not found, Usually used with rejectOnEmpty mode (see message for details)
  */
 class EmptyResultError extends BaseError {
-  constructor(message) {
+  constructor(message: string) {
     super(message);
     this.name = 'SequelizeEmptyResultError';
   }
 }
 
-module.exports = EmptyResultError;
+export default EmptyResultError;

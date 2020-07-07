@@ -16,7 +16,6 @@ class ModelManager {
 
   removeModel(modelToRemove) {
     this.models = this.models.filter(model => model.name !== modelToRemove.name);
-
     delete this.sequelize.models[modelToRemove.name];
   }
 

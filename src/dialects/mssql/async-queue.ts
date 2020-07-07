@@ -1,31 +1,35 @@
-const BaseError = require('../../errors/base-error');
-const ConnectionError = require('../../errors/connection-error');
+import BaseError from '../../errors/base-error';
+import ConnectionError from '../../errors/connection-error';
 
 /**
  * Thrown when a connection to a database is closed while an operation is in progress
  */
-class AsyncQueueError extends BaseError {
-  constructor(message) {
+export class AsyncQueueError extends BaseError {
+  constructor(message: string) {
     super(message);
     this.name = 'SequelizeAsyncQueueError';
   }
 }
 
-exports.AsyncQueueError = AsyncQueueError;
+export default class AsyncQueue {
+  previous: Promise<unknown>;
+  closed: boolean;
+  rejectCurrent: Function;
 
-class AsyncQueue {
   constructor() {
     this.previous = Promise.resolve();
     this.closed = false;
     this.rejectCurrent = () => {};
   }
-  close() {
+
+  close(): void {
     this.closed = true;
     this.rejectCurrent(
       new ConnectionError(new AsyncQueueError('the connection was closed before this query could finish executing'))
     );
   }
-  enqueue(asyncFunction) {
+
+  enqueue(asyncFunction: () => Promise<unknown>): Promise<unknown> {
     // This outer promise might seems superflous since down below we return asyncFunction().then(resolve, reject).
     // However, this ensures that this.previous will never be a rejected promise so the queue will
     // always keep going, while still communicating rejection from asyncFunction to the user.
@@ -42,5 +46,3 @@ class AsyncQueue {
     });
   }
 }
-
-exports.default = AsyncQueue;

@@ -2,7 +2,7 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../index'),
-  AggregateError = require('../../../lib/errors/aggregate-error'),
+  AggregateError = require('../../../lib/errors/aggregate-error').default,
   Op = Sequelize.Op,
   expect = chai.expect,
   Support = require('../support'),
@@ -337,14 +337,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const { errors } = error;
         expect(errors).to.have.length(2);
 
-        const e0name0 = errors[0].errors.get('name')[0];
+        const e0name0 = errors[0].error.get('name')[0];
 
         expect(errors[0].record.code).to.equal('1234');
         expect(e0name0.type || e0name0.origin).to.equal('notNull Violation');
 
         expect(errors[1].record.name).to.equal('bar');
         expect(errors[1].record.code).to.equal('1');
-        expect(errors[1].errors.get('code')[0].message).to.equal(expectedValidationError);
+        expect(errors[1].error.get('code')[0].message).to.equal(expectedValidationError);
       }
     });
 

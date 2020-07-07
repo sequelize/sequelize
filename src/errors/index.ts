@@ -1,0 +1,56 @@
+import BaseError from './base-error';
+
+import AggregateError from './aggregate-error';
+import AssociationError from './association-error';
+import BulkRecordError from './bulk-record-error';
+import ConnectionError from './connection-error';
+import DatabaseError from './database-error';
+import EagerLoadingError from './eager-loading-error';
+import EmptyResultError from './empty-result-error';
+import InstanceError from './instance-error';
+import OptimisticLockError from './optimistic-lock-error';
+import QueryError from './query-error';
+import ScopeError from './scope-error';
+import ValidationError, { ValidationErrorItem } from './validation-error';
+import { AsyncQueueError } from '../dialects/mssql/async-queue';
+
+import AccessDeniedError from './connection/access-denied-error';
+import ConnectionAcquireTimeoutError from './connection/connection-acquire-timeout-error';
+import ConnectionRefusedError from './connection/connection-refused-error';
+import ConnectionTimedOutError from './connection/connection-timed-out-error';
+import HostNotFoundError from './connection/host-not-found-error';
+import HostNotReachableError from './connection/host-not-reachable-error';
+import InvalidConnectionError from './connection/invalid-connection-error';
+
+import ExclusionConstraintError from './database/exclusion-constraint-error';
+import ForeignKeyConstraintError from './database/foreign-key-constraint-error';
+import TimeoutError from './database/timeout-error';
+import UnknownConstraintError from './database/unknown-constraint-error';
+import UniqueConstraintError from './validation/unique-constraint-error';
+
+export { BaseError };
+export { AccessDeniedError };
+export { AggregateError };
+export { AssociationError };
+export { AsyncQueueError };
+export { BulkRecordError };
+export { ConnectionAcquireTimeoutError };
+export { ConnectionError };
+export { ConnectionRefusedError };
+export { ConnectionTimedOutError };
+export { DatabaseError };
+export { EagerLoadingError };
+export { EmptyResultError };
+export { ExclusionConstraintError };
+export { ForeignKeyConstraintError };
+export { HostNotFoundError };
+export { HostNotReachableError };
+export { InstanceError };
+export { InvalidConnectionError };
+export { OptimisticLockError };
+export { QueryError };
+export { ScopeError };
+export { TimeoutError };
+export { UniqueConstraintError };
+export { UnknownConstraintError };
+export { ValidationError, ValidationErrorItem };
