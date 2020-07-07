@@ -1,13 +1,13 @@
-const DatabaseError = require('./../database-error');
+import DatabaseError, { SQLError } from './../database-error';
 
 /**
  * Thrown when a database query times out because of a deadlock
  */
 class TimeoutError extends DatabaseError {
-  constructor(parent) {
+  constructor(parent: SQLError) {
     super(parent);
     this.name = 'SequelizeTimeoutError';
   }
 }
 
-module.exports = TimeoutError;
+export default TimeoutError;

@@ -1,10 +1,22 @@
-const DatabaseError = require('./../database-error');
+import DatabaseError, { SQLError } from './../database-error';
+
+interface UnknownConstraintErrorOptions {
+  parent: SQLError;
+  message: string;
+  constraint: string;
+  fields: string[];
+  table: string;
+}
 
 /**
  * Thrown when constraint name is not found in the database
  */
 class UnknownConstraintError extends DatabaseError {
-  constructor(options) {
+  constraint: string;
+  fields: string[];
+  table: string;
+
+  constructor(options: UnknownConstraintErrorOptions) {
     options = options || {};
     options.parent = options.parent || { sql: '' };
 
@@ -18,4 +30,4 @@ class UnknownConstraintError extends DatabaseError {
   }
 }
 
-module.exports = UnknownConstraintError;
+export default UnknownConstraintError;

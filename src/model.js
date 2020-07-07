@@ -1651,7 +1651,7 @@ class Model {
         this._assignOptions(self._scope, Utils.cloneDeep(scope));
         self._scopeNames.push(scopeName ? scopeName : 'defaultScope');
       } else {
-        throw new sequelizeErrors.SequelizeScopeError(`Invalid scope ${scopeName} called.`);
+        throw new sequelizeErrors.ScopeError(`Invalid scope ${scopeName} called.`);
       }
     }
 

@@ -1,10 +1,26 @@
-const ValidationError = require('./../validation-error');
+import ValidationError, { ValidationErrorItem } from './../validation-error';
+
+interface SQLError extends Error {
+  sql: string;
+}
+
+interface UniqueConstraintErrorOptions {
+  parent: SQLError;
+  message: string;
+  errors: ValidationErrorItem[];
+  fields: string[];
+}
 
 /**
  * Thrown when a unique constraint is violated in the database
  */
 class UniqueConstraintError extends ValidationError {
-  constructor(options) {
+  fields: string[];
+  parent: SQLError;
+  original: SQLError;
+  sql: string;
+
+  constructor(options: UniqueConstraintErrorOptions) {
     options = options || {};
     options.parent = options.parent || { sql: '' };
     options.message = options.message || options.parent.message || 'Validation Error';
@@ -12,7 +28,6 @@ class UniqueConstraintError extends ValidationError {
     super(options.message, options.errors);
 
     this.name = 'SequelizeUniqueConstraintError';
-    this.errors = options.errors;
     this.fields = options.fields;
     this.parent = options.parent;
     this.original = options.parent;
@@ -20,4 +35,4 @@ class UniqueConstraintError extends ValidationError {
   }
 }
 
-module.exports = UniqueConstraintError;
+export default UniqueConstraintError;

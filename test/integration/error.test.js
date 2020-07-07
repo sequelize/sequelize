@@ -26,7 +26,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
           null
         )
       ]);
-      const optimisticLockError = new Sequelize.OptimisticLockError();
+      const optimisticLockError = new Sequelize.OptimisticLockError({});
 
       expect(error).to.be.instanceOf(Sequelize.Error);
       expect(error).to.be.instanceOf(Error);

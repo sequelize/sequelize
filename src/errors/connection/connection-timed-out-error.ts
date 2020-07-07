@@ -1,13 +1,13 @@
-const ConnectionError = require('./../connection-error');
+import ConnectionError from '../connection-error';
 
 /**
  * Thrown when a connection to a database times out
  */
 class ConnectionTimedOutError extends ConnectionError {
-  constructor(parent) {
+  constructor(parent: Error) {
     super(parent);
     this.name = 'SequelizeConnectionTimedOutError';
   }
 }
 
-module.exports = ConnectionTimedOutError;
+export default ConnectionTimedOutError;

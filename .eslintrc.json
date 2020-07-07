@@ -60,7 +60,8 @@
       },
       "plugins": ["jsdoc", "@typescript-eslint"],
       "rules": {
-        "@typescript-eslint/ban-types": "warn"
+        "@typescript-eslint/ban-types": "off",
+        "@typescript-eslint/no-empty-function": "off"
       }
     }
   ]
