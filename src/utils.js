@@ -1,6 +1,9 @@
 const DataTypes = require('./data-types');
 const SqlString = require('./sql-string');
 const _ = require('lodash');
+// _.isNative includes a check for core-js and throws an error if present.
+// Depending on _baseIsNative bypasses the core-js check
+const baseIsNative = require('lodash/_baseIsNative');
 const uuidv1 = require('uuid').v1;
 const uuidv4 = require('uuid').v4;
 const operators = require('./operators');
@@ -49,7 +52,7 @@ function mergeDefaults(a, b) {
   return _.mergeWith(a, b, (objectValue, sourceValue) => {
     // If it's an object, let _ handle it this time, we will be called again for each property
     if (!_.isPlainObject(objectValue) && objectValue !== undefined) {
-      if (_.isFunction(objectValue) && _.isNative(objectValue)) {
+      if (_.isFunction(objectValue) && baseIsNative(objectValue)) {
         return sourceValue || objectValue;
       }
       return objectValue;
