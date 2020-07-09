@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       beforeEach(function () {
         this.query = sinon.stub(current, 'query').resolves();
-        this.stub = sinon.stub(current.getQueryInterface(), 'upsert').resolves([true, undefined]);
+        this.stub = sinon.stub(current.getQueryInterface(), 'upsert').resolves([this.User.build(), true]);
       });
 
       afterEach(function () {
