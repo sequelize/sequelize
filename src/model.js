@@ -2586,6 +2586,9 @@ class Model {
       options
     );
 
+    const [record] = result;
+    record.isNewRecord = false;
+
     if (options.hooks) {
       await this.runHooks('afterUpsert', result, options);
       return result;
