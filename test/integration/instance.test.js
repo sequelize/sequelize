@@ -85,6 +85,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.isNewRecord).to.not.be.ok;
     });
 
+    it('returns false for upserted objects', async function() {
+      // adding id here so MSSQL doesn't fail. It needs a primary key to upsert
+      const [user] = await this.User.upsert({ id: 2, username: 'user' });
+      expect(user.isNewRecord).to.not.be.ok;
+    });
+
     it('returns false for objects found by find method', async function() {
       await this.User.create({ username: 'user' });
       const user = await this.User.create({ username: 'user' });
