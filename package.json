@@ -90,6 +90,26 @@
     "tedious": "8.3.0",
     "typescript": "^3.9.3"
   },
+  "peerDependenciesMeta": {
+    "pg": {
+      "optional": true
+    },
+    "pg-hstore": {
+      "optional": true
+    },
+    "mysql2": {
+      "optional": true
+    },
+    "mariadb": {
+      "optional": true
+    },
+    "sqlite3": {
+      "optional": true
+    },
+    "tedious": {
+      "optional": true
+    }
+  },
   "keywords": [
     "mysql",
     "mariadb",
