@@ -45,7 +45,7 @@ services:
     container_name: postgres-12
 
   # MariaDB
-  mariadb-103:
+  mariadb-105:
     image: mariadb:10.5
     environment:
       MYSQL_ROOT_PASSWORD: lollerskates
@@ -56,7 +56,7 @@ services:
     - $MARIADB_ENTRYPOINT:/docker-entrypoint-initdb.d
     ports:
     - "8960:3306"
-    container_name: mariadb-103
+    container_name: mariadb-105
 
   # MySQL
   mysql-57:

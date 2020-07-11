@@ -51,7 +51,7 @@ jobs:
     - stage: test
       node_js: '12'
       sudo: required
-      env: MARIADB_VER=mariadb-103 SEQ_MARIADB_PORT=8960 DIALECT=mariadb
+      env: MARIADB_VER=mariadb-105 SEQ_MARIADB_PORT=8960 DIALECT=mariadb
     - stage: test
       node_js: '12'
       sudo: required
