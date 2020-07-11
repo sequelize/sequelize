@@ -55,28 +55,6 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  describe('defaults', () => {
-    it('defaults normal object', () => {
-      expect(Utils.defaults({ a: 1, c: 3 }, { b: 2 }, { c: 4, d: 4 })).to.eql({
-        a: 1,
-        b: 2,
-        c: 3,
-        d: 4
-      });
-    });
-
-    it('defaults symbol keys', () => {
-      expect(
-        Utils.defaults({ a: 1, [Symbol.for('c')]: 3 }, { b: 2 }, { [Symbol.for('c')]: 4, [Symbol.for('d')]: 4 })
-      ).to.eql({
-        a: 1,
-        b: 2,
-        [Symbol.for('c')]: 3,
-        [Symbol.for('d')]: 4
-      });
-    });
-  });
-
   describe('mapFinderOptions', () => {
     it('virtual attribute dependencies', () => {
       expect(

@@ -570,42 +570,6 @@ function camelizeObjectKeys(obj) {
 exports.camelizeObjectKeys = camelizeObjectKeys;
 
 /**
- * Assigns own and inherited enumerable string and symbol keyed properties of source
- * objects to the destination object.
- *
- * https://lodash.com/docs/4.17.4#defaults
- *
- * **Note:** This method mutates `object`.
- *
- * @param {object} object The destination object.
- * @param {...object} [sources] The source objects.
- * @returns {object} Returns `object`.
- * @private
- */
-function defaults(object, ...sources) {
-  object = Object(object);
-
-  sources.forEach(source => {
-    if (source) {
-      source = Object(source);
-
-      getComplexKeys(source).forEach(key => {
-        const value = object[key];
-        if (
-          value === undefined ||
-          (_.eq(value, Object.prototype[key]) && !Object.prototype.hasOwnProperty.call(object, key))
-        ) {
-          object[key] = source[key];
-        }
-      });
-    }
-  });
-
-  return object;
-}
-exports.defaults = defaults;
-
-/**
  *
  * @param {object} index
  * @param {Array}  index.fields

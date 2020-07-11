@@ -2331,7 +2331,7 @@ class Model {
     if (instance === null) {
       values = { ...options.defaults };
       if (_.isPlainObject(options.where)) {
-        values = Utils.defaults(values, options.where);
+        values = { ...options.where, ...values };
       }
 
       instance = this.build(values, options);
@@ -2395,14 +2395,14 @@ class Model {
       transaction = t;
       options.transaction = t;
 
-      const found = await this.findOne(Utils.defaults({ transaction }, options));
+      const found = await this.findOne({ ...options, transaction });
       if (found !== null) {
         return [found, false];
       }
 
       values = { ...options.defaults };
       if (_.isPlainObject(options.where)) {
-        values = Utils.defaults(values, options.where);
+        values = { ...options.where, ...values };
       }
 
       options.exception = true;
@@ -2445,14 +2445,10 @@ class Model {
         }
 
         // Someone must have created a matching instance inside the same transaction since we last did a find. Let's find it!
-        const otherCreated = await this.findOne(
-          Utils.defaults(
-            {
-              transaction: internalTransaction ? null : transaction
-            },
-            options
-          )
-        );
+        const otherCreated = await this.findOne({
+          ...options,
+          transaction: internalTransaction ? null : transaction
+        });
 
         // Sanity check, ideally we caught this at the defaultFeilds/err.fields check
         // But if we didn't and instance is null, we will throw
@@ -2487,7 +2483,7 @@ class Model {
 
     let values = { ...options.defaults };
     if (_.isPlainObject(options.where)) {
-      values = Utils.defaults(values, options.where);
+      values = { ...options.where, ...values };
     }
 
     const found = await this.findOne(options);
@@ -3498,11 +3494,13 @@ class Model {
     this._injectScope(options);
     this._optionsMustContainWhere(options);
 
-    options = Utils.defaults({}, options, {
+    options = {
       by: 1,
       where: {},
-      increment: true
-    });
+      increment: true,
+      ...options
+    };
+
     const isSubtraction = !options.increment;
 
     Utils.mapOptionFieldNames(options, this);
@@ -4310,15 +4308,11 @@ class Model {
    * @returns {Promise<Model>}
    */
   async reload(options) {
-    options = Utils.defaults(
-      {
-        where: this.where()
-      },
-      options,
-      {
-        include: this._options.include || undefined
-      }
-    );
+    options = {
+      include: this._options.include || undefined,
+      ...options,
+      where: this.where()
+    };
 
     const reloaded = await this.constructor.findOne(options);
     if (!reloaded) {
