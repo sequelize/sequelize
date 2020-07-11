@@ -46,7 +46,7 @@ services:
 
   # MariaDB
   mariadb-103:
-    image: mariadb:10.3
+    image: mariadb:10.5
     environment:
       MYSQL_ROOT_PASSWORD: lollerskates
       MYSQL_DATABASE: sequelize_test
