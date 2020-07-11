@@ -4,6 +4,9 @@
   "timezone": "Asia/Kolkata",
   "prConcurrentLimit": 4,
   "rangeStrategy": "auto",
+  "lockFileMaintenance": {
+    "enabled": true
+  },
   "packageRules": [
     {
       "depTypeList": ["devDependencies"],
