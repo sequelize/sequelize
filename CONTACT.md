@@ -6,4 +6,3 @@ You can use the information below to contact maintainers directly. We will try t
 ### Via Email
 
 - **Jan Aagaard Meier** janzeh@gmail.com
-- **Sushant Dhiman** sushantdhiman@outlook.com
