@@ -1,33 +1,29 @@
-const Toposort = require('toposort-class');
-const _ = require('lodash');
+import Toposort from 'toposort-class';
+import * as _ from 'lodash';
+import Model from './model';
+import { TableName } from './common';
 
-class ModelManager {
-  constructor(sequelize) {
-    this.models = [];
-    this.sequelize = sequelize;
-  }
+export class ModelManager {
+  private models: typeof Model[] = [];
+  constructor(private sequelize: any) {}
 
-  addModel(model) {
+  public addModel<T extends typeof Model>(model: T): T {
     this.models.push(model);
     this.sequelize.models[model.name] = model;
-
     return model;
   }
 
-  removeModel(modelToRemove) {
+  public removeModel(modelToRemove: typeof Model): void {
     this.models = this.models.filter(model => model.name !== modelToRemove.name);
     delete this.sequelize.models[modelToRemove.name];
   }
 
-  getModel(against, options) {
-    options = _.defaults(options || {}, {
-      attribute: 'name'
-    });
-
-    return this.models.find(model => model[options.attribute] === against);
+  public getModel(against: unknown, options: { attribute?: keyof typeof Model } = {}): typeof Model | undefined {
+    const attribute = options.attribute || 'name';
+    return this.models.find(model => model[attribute] === against);
   }
 
-  get all() {
+  public get all(): typeof Model[] {
     return this.models;
   }
 
@@ -39,19 +35,13 @@ class ModelManager {
    * @param {object} [options] iterator options
    * @private
    */
-  forEachModel(iterator, options) {
-    const models = {};
+  public forEachModel(iterator: (m: typeof Model) => void, options: { reverse: boolean } = { reverse: true }): void {
+    const models: Record<string, typeof Model> = {};
     const sorter = new Toposort();
-    let sorted;
-    let dep;
-
-    options = _.defaults(options || {}, {
-      reverse: true
-    });
 
     for (const model of this.models) {
       let deps = [];
-      let tableName = model.getTableName();
+      let tableName = model.getTableName() as string | TableName;
 
       if (_.isObject(tableName)) {
         tableName = `${tableName.schema}.${tableName.tableName}`;
@@ -64,13 +54,13 @@ class ModelManager {
           const attribute = model.rawAttributes[attrName];
 
           if (attribute.references) {
-            dep = attribute.references.model;
+            const dep = attribute.references.model as typeof Model;
 
             if (_.isObject(dep)) {
-              dep = `${dep.schema}.${dep.tableName}`;
+              deps.push(`${dep.schema}.${dep.tableName}`);
+            } else {
+              deps.push(dep);
             }
-
-            deps.push(dep);
           }
         }
       }
@@ -80,16 +70,15 @@ class ModelManager {
       sorter.add(tableName, deps);
     }
 
-    sorted = sorter.sort();
+    let sorted = sorter.sort();
     if (options.reverse) {
       sorted = sorted.reverse();
     }
     for (const name of sorted) {
-      iterator(models[name], name);
+      iterator(models[name]);
     }
   }
 }
 
 module.exports = ModelManager;
-module.exports.ModelManager = ModelManager;
 module.exports.default = ModelManager;
