@@ -7,7 +7,7 @@ export class ModelManager {
   private models: typeof Model[] = [];
   constructor(private sequelize: any) {}
 
-  public addModel(model: typeof Model): typeof Model {
+  public addModel<T extends typeof Model>(model: T): T {
     this.models.push(model);
     this.sequelize.models[model.name] = model;
     return model;
