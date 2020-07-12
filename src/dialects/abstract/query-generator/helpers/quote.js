@@ -32,13 +32,14 @@ const postgresReservedWords = 'all,analyse,analyze,and,any,array,as,asc,asymmetr
  * @returns {string}
  * @private
  */
-function quoteIdentifier(dialect, identifier, options) {
+function quoteIdentifier(dialect, identifier, options = {}) {
   if (identifier === '*') return identifier;
 
-  options = Utils.defaults(options || {}, {
+  options = {
+    ...options,
     force: false,
     quoteIdentifiers: true
-  });
+  };
 
   switch (dialect) {
     case 'sqlite':
