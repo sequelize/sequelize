@@ -55,7 +55,7 @@
     "acorn": "7.2.0",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
-    "chai-datetime": "1.6.0",
+    "chai-datetime": "1.7.0",
     "cheerio": "1.0.0-rc.3",
     "cls-hooked": "4.2.2",
     "cross-env": "7.0.2",
