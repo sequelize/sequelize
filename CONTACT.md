@@ -5,4 +5,5 @@ You can use the information below to contact maintainers directly. We will try t
 
 ### Via Email
 
+- **Pedro Augusto de Paula Barbosa** papb1996@gmail.com
 - **Jan Aagaard Meier** janzeh@gmail.com
