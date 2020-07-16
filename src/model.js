@@ -2808,13 +2808,16 @@ class Model {
           options.updateOnDuplicate = options.updateOnDuplicate.map(attr => model.rawAttributes[attr].field || attr);
           // Get primary keys for postgres to enable updateOnDuplicate
           options.upsertKeys = _.chain(model.primaryKeys).values().map('field').value();
-          if (Object.keys(model.uniqueKeys).length > 0) {
-            options.upsertKeys = _.chain(model.uniqueKeys)
-              .values()
-              .filter(c => c.fields.length >= 1)
-              .map(c => c.fields)
-              .reduce(c => c[0])
-              .value();
+          let onConflictKeys = [...Object.keys(model.uniqueKeys)];
+          model._indexes.forEach(index => {
+            if (index.unique) {
+              index.fields.forEach(uniqueKey => {
+                onConflictKeys.push(uniqueKey)
+              });
+            }
+          })
+          if (onConflictKeys.length > 0) {
+            options.upsertKeys = onConflictKeys
           }
         }
 
