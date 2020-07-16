@@ -26,7 +26,7 @@ export function escape(val: unknown, timeZone: string | null, dialect: string, f
       // for us. Postgres actually has a boolean type with true/false literals,
       // but sequelize doesn't use it yet.
       if (dialect === 'sqlite' || dialect === 'mssql') {
-        return String(+!!val);
+        return val ? '1' : '0';
       }
       return (!!val).toString();
     case 'number':
@@ -49,7 +49,7 @@ export function escape(val: unknown, timeZone: string | null, dialect: string, f
       return (dataTypes as any)[dialect].BLOB.prototype.stringify(val);
     }
 
-    return dataTypes.BLOB.prototype.stringify(val, undefined);
+    return dataTypes.BLOB.prototype.stringify(val, undefined); // TODO: Remove unknown
   }
 
   if (Array.isArray(val)) {
@@ -101,7 +101,7 @@ export function escape(val: unknown, timeZone: string | null, dialect: string, f
 }
 
 export function format(sql: string, values: unknown[], dialect: string): string {
-  values = ([] as unknown[]).concat(values);
+  values = values.slice();
 
   if (typeof sql !== 'string') {
     throw new Error(`Invalid SQL string provided: ${sql}`);
@@ -118,7 +118,7 @@ export function format(sql: string, values: unknown[], dialect: string): string 
 
 export function formatNamedParameters(sql: string, values: Record<string, string>, dialect: string): string {
   return sql.replace(/:+(?!\d)(\w+)/g, (value, key) => {
-    if (dialect === 'postgres' && value.slice(0, 2) === '::') {
+    if (dialect === 'postgres' && value.startsWith('::')) {
       return value;
     }
 
