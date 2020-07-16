@@ -379,6 +379,51 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]
       });
     });
+
+    it('should join subsequent scopes when where or include', () => {
+      Company.addScope('scope', {
+        include: [{ model: Project, where: { something: false, somethingElse: 99 } }],
+        where: { something: false }
+      });
+      Company.addScope('otherScope', {
+        include: [{ model: Project, limit: 1 }],
+        where: { somethingElse: true }
+      });
+      expect(Company.scope(['scope', 'otherScope'])._scope).to.deep.equal({
+        include: [
+          {
+            model: Project,
+            where: { something: false, somethingElse: 99 },
+            limit: 1
+          }
+        ],
+        where: {
+          something: false,
+          somethingElse: true
+        }
+      });
+    });
+
+    it('should not join subsequent scopes when not where or include', () => {
+      Company.addScope('orderScope', {
+        order: [
+          ['field1', 'ASC'],
+          ['field2', 'ASC']
+        ]
+      });
+      Company.addScope('otherOrderScope', {
+        order: [
+          ['field1', 'DESC'],
+          ['field2', 'DESC']
+        ]
+      });
+      expect(Company.scope(['orderScope', 'otherOrderScope'])._scope).to.deep.equal({
+        order: [
+          ['field1', 'DESC'],
+          ['field2', 'DESC']
+        ]
+      });
+    });
   });
 
   describe('_injectScope', () => {
