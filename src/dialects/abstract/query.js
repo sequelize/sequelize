@@ -457,10 +457,6 @@ class AbstractQuery {
      * Previous set won't necessarily be parent set (one parent could have two children, one child would then be previous set for the other)
      */
 
-    /*
-     * Author (MH) comment: This code is an unreadable mess, but it's performant.
-     * groupJoinData is a performance critical function so we prioritize perf over readability.
-     */
     if (!rows.length) {
       return [];
     }
@@ -469,14 +465,32 @@ class AbstractQuery {
 
     const memoKeyPrefix = makeDoublePrefixMemoizer();
 
+    const uniqueKeyMap = {};
+
+    const getUniqueKeyAttributes = model => {
+      if (model.uniqueKeys.length === 0) {
+        return [];
+      }
+      if (Object.prototype.hasOwnProperty.call(uniqueKeyMap, model)) {
+        return uniqueKeyMap[model];
+      }
+      const uniqueKeys = [];
+      for (const { fields: uniqueFields } of Object.values(model.uniqueKeys)) {
+        for (const attribute of Object.values(model.rawAttributes)) {
+          if (uniqueFields.includes(attribute.field)) {
+            uniqueKeys.push(attribute.fieldName);
+          }
+        }
+      }
+      uniqueKeyMap[model] = uniqueKeys;
+
+      return uniqueKeys;
+    };
+
     /**
      * @type {string}
      */
     let prevKey;
-    /**
-     * @type {object}
-     */
-    let values;
     /**
      * @type {boolean}
      */
@@ -489,7 +503,7 @@ class AbstractQuery {
 
     const resultMap = {};
 
-    const computeHashKeyForInstance = (row, prevKeyPrefix, topHash) => {
+    const computeHashKeyForInstance = (row, prevKeyPrefix, topHash, values) => {
       const length = prevKeyPrefix.length;
       /**
        * @type {string}
@@ -504,6 +518,7 @@ class AbstractQuery {
        */
       let itemHash = topHash;
 
+      let isEmpty = false;
       for (let i = 0; i < length; i++) {
         /**
          * @type {string}
@@ -513,6 +528,15 @@ class AbstractQuery {
         for (const primKeyAttr of includeMap[prefix].model.primaryKeyAttributes) {
           itemHash += stringify(row[`${prefix}.${primKeyAttr}`]);
         }
+        if (includeMap[prefix].model.primaryKeyAttributes.length === 0) {
+          const uniqueKeyAttributes = getUniqueKeyAttributes(includeOptions.model);
+          for (const uniqAttr of uniqueKeyAttributes) {
+            if (row[`${prefix}.${uniqAttr}`] !== null) {
+              itemHash += stringify(row[`${prefix}.${uniqAttr}`]);
+            }
+          }
+        }
+        isEmpty = itemHash === prefix;
         if (!parentHash) {
           parentHash = topHash;
         }
@@ -549,13 +573,16 @@ class AbstractQuery {
       if (!parent[lastKeyPrefix]) {
         parent[lastKeyPrefix] = [];
       }
-      parent[lastKeyPrefix].push((resultMap[itemHash] = values));
+      if (!isEmpty) {
+        resultMap[itemHash] = values;
+        parent[lastKeyPrefix].push(resultMap[itemHash]);
+      }
     };
 
     const rowsLength = rows.length;
     const results = checkExisting ? [] : new Array(rowsLength);
-    // Keys are the same for all rows, so only need to compute them on the first row
 
+    // Keys are the same for all rows, so only need to compute them on the first row
     const keys = rowsLength > 0 ? Object.keys(rows[0]) : undefined;
     const keyPrefixes = keys ? new Array(keys.length) : undefined;
     // precompute prefixes and include maps
@@ -609,8 +636,19 @@ class AbstractQuery {
         for (const primKeyAttr of includeOptions.model.primaryKeyAttributes) {
           topHash += stringify(row[primKeyAttr]);
         }
+
+        if (topHash === '') {
+          const uniqueKeyAttributes = getUniqueKeyAttributes(includeOptions.model);
+          for (const uniqAttr of uniqueKeyAttributes) {
+            topHash += stringify(row[uniqAttr]);
+          }
+        }
       }
 
+      /**
+       * @type {object}
+       */
+      let values;
       const topValues = (values = {});
       let prevKeyPrefix = undefined;
       for (let j = 0; j < keys.length; ++j) {
@@ -620,7 +658,7 @@ class AbstractQuery {
         // End of key set
         if (prevKeyPrefix !== undefined && prevKeyPrefix !== keyPrefix) {
           if (checkExisting) {
-            computeHashKeyForInstance(row, prevKeyPrefix, topHash);
+            computeHashKeyForInstance(row, prevKeyPrefix, topHash, values);
 
             // Reset values
             values = {};
@@ -646,7 +684,7 @@ class AbstractQuery {
       }
 
       if (checkExisting) {
-        computeHashKeyForInstance(row, prevKeyPrefix, topHash);
+        computeHashKeyForInstance(row, prevKeyPrefix, topHash, values);
         if (!topExists) {
           results.push(topValues);
         }

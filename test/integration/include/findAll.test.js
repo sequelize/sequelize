@@ -2023,5 +2023,44 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         expect(product.Prices).to.be.an('array');
       }
     });
+
+    it('should return correct associations when no primary key exists', async function () {
+      const Foo = this.sequelize.define('Foo', {
+        name: {
+          type: Sequelize.STRING,
+          unique: true
+        }
+      });
+
+      Foo.removeAttribute('id');
+
+      const Bar = this.sequelize.define('Bar', {
+        name: {
+          type: Sequelize.STRING,
+          unique: true
+        }
+      });
+
+      Bar.removeAttribute('id');
+
+      Foo.hasMany(Bar, { foreignKey: 'fooName', targetKey: 'name', sourceKey: 'name' });
+      Bar.belongsTo(Foo, { foreignKey: 'fooName', targetKey: 'name', sourceKey: 'name' });
+
+      await this.sequelize.sync({ force: true });
+      await Foo.bulkCreate([{ name: 'foo-a' }, { name: 'foo-b' }]);
+      await Bar.bulkCreate([{ name: 'bar-a', fooName: 'foo-a' }]);
+      await Bar.bulkCreate([{ name: 'bar-b', fooName: 'foo-a' }]);
+
+      let result = await Foo.findAll({ include: { all: true }, order: [['name', 'desc']] });
+      expect(result[0].Bars.length).be.eq(0);
+      expect(result[1].Bars.length).be.eq(2);
+      result = await Foo.findAll({ include: { all: true }, order: [['name', 'asc']] });
+      expect(result[0].Bars.length).be.eq(2);
+      expect(result[1].Bars.length).be.eq(0);
+      await Bar.bulkCreate([{ name: 'bar-c', fooName: 'foo-b' }]);
+      result = await Foo.findAll({ include: { all: true }, order: [['name', 'asc']] });
+      expect(result[0].Bars.length).be.eq(2);
+      expect(result[1].Bars.length).be.eq(1);
+    });
   });
 });
