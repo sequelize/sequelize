@@ -2812,12 +2812,12 @@ class Model {
           model._indexes.forEach(index => {
             if (index.unique) {
               index.fields.forEach(uniqueKey => {
-                onConflictKeys.push(uniqueKey)
+                onConflictKeys.push(uniqueKey);
               });
             }
-          })
+          });
           if (onConflictKeys.length > 0) {
-            options.upsertKeys = onConflictKeys
+            options.upsertKeys = onConflictKeys;
           }
         }
 
