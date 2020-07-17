@@ -561,6 +561,11 @@ export interface FindOptions<TAttributes = any>
   skipLocked?: boolean;
 
   /**
+   * Exclude all attributes from included tables
+   */
+  includeIgnoreAttributes?: boolean;
+
+  /**
    * Return raw result. See sequelize.query for more information.
    */
   raw?: boolean;
