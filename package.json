@@ -73,7 +73,7 @@
     "eslint-plugin-prettier": "3.1.4",
     "fs-jetpack": "2.4.0",
     "husky": "4.2.5",
-    "js-combinatorics": "0.5.5",
+    "js-combinatorics": "0.6.1",
     "lcov-result-merger": "3.1.0",
     "lint-staged": "10.2.6",
     "mariadb": "2.3.1",
