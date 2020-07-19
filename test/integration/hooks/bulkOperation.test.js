@@ -4,11 +4,10 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  sinon = require('sinon'),
-  Promise = require('bluebird');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
-  beforeEach(function() {
+  beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
@@ -20,22 +19,26 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       }
     });
 
-    this.ParanoidUser = this.sequelize.define('ParanoidUser', {
-      username: DataTypes.STRING,
-      mood: {
-        type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral']
+    this.ParanoidUser = this.sequelize.define(
+      'ParanoidUser',
+      {
+        username: DataTypes.STRING,
+        mood: {
+          type: DataTypes.ENUM,
+          values: ['happy', 'sad', 'neutral']
+        }
+      },
+      {
+        paranoid: true
       }
-    }, {
-      paranoid: true
-    });
+    );
 
-    return this.sequelize.sync({ force: true });
+    await this.sequelize.sync({ force: true });
   });
 
   describe('#bulkCreate', () => {
     describe('on success', () => {
-      it('should run hooks', function() {
+      it('should run hooks', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
@@ -43,42 +46,46 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.afterBulkCreate(afterBulk);
 
-        return this.User.bulkCreate([
+        await this.User.bulkCreate([
           { username: 'Cheech', mood: 'sad' },
           { username: 'Chong', mood: 'sad' }
-        ]).then(() => {
-          expect(beforeBulk).to.have.been.calledOnce;
-          expect(afterBulk).to.have.been.calledOnce;
-        });
+        ]);
+
+        expect(beforeBulk).to.have.been.calledOnce;
+        expect(afterBulk).to.have.been.calledOnce;
       });
     });
 
     describe('on error', () => {
-      it('should return an error from before', function() {
+      it('should return an error from before', async function () {
         this.User.beforeBulkCreate(() => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.User.bulkCreate([
-          { username: 'Cheech', mood: 'sad' },
-          { username: 'Chong', mood: 'sad' }
-        ])).to.be.rejected;
+        await expect(
+          this.User.bulkCreate([
+            { username: 'Cheech', mood: 'sad' },
+            { username: 'Chong', mood: 'sad' }
+          ])
+        ).to.be.rejected;
       });
 
-      it('should return an error from after', function() {
+      it('should return an error from after', async function () {
         this.User.afterBulkCreate(() => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.User.bulkCreate([
-          { username: 'Cheech', mood: 'sad' },
-          { username: 'Chong', mood: 'sad' }
-        ])).to.be.rejected;
+        await expect(
+          this.User.bulkCreate([
+            { username: 'Cheech', mood: 'sad' },
+            { username: 'Chong', mood: 'sad' }
+          ])
+        ).to.be.rejected;
       });
     });
 
     describe('with the {individualHooks: true} option', () => {
-      beforeEach(function() {
+      beforeEach(async function () {
         this.User = this.sequelize.define('User', {
           username: {
             type: DataTypes.STRING,
@@ -94,126 +101,125 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           }
         });
 
-        return this.User.sync({ force: true });
+        await this.User.sync({ force: true });
       });
 
-      it('should run the afterCreate/beforeCreate functions for each item created successfully', function() {
+      it('should run the afterCreate/beforeCreate functions for each item created successfully', async function () {
         let beforeBulkCreate = false,
           afterBulkCreate = false;
 
-        this.User.beforeBulkCreate(() => {
+        this.User.beforeBulkCreate(async () => {
           beforeBulkCreate = true;
-          return Promise.resolve();
         });
 
-        this.User.afterBulkCreate(() => {
+        this.User.afterBulkCreate(async () => {
           afterBulkCreate = true;
-          return Promise.resolve();
         });
 
-        this.User.beforeCreate(user => {
+        this.User.beforeCreate(async user => {
           user.beforeHookTest = true;
-          return Promise.resolve();
         });
 
-        this.User.afterCreate(user => {
+        this.User.afterCreate(async user => {
           user.username = `User${user.id}`;
-          return Promise.resolve();
         });
 
-        return this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], { fields: ['aNumber'], individualHooks: true }).then(records => {
-          records.forEach(record => {
-            expect(record.username).to.equal(`User${record.id}`);
-            expect(record.beforeHookTest).to.be.true;
-          });
-          expect(beforeBulkCreate).to.be.true;
-          expect(afterBulkCreate).to.be.true;
+        const records = await this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], {
+          fields: ['aNumber'],
+          individualHooks: true
         });
+        records.forEach(record => {
+          expect(record.username).to.equal(`User${record.id}`);
+          expect(record.beforeHookTest).to.be.true;
+        });
+        expect(beforeBulkCreate).to.be.true;
+        expect(afterBulkCreate).to.be.true;
       });
 
-      it('should run the afterCreate/beforeCreate functions for each item created with an error', function() {
+      it('should run the afterCreate/beforeCreate functions for each item created with an error', async function () {
         let beforeBulkCreate = false,
           afterBulkCreate = false;
 
-        this.User.beforeBulkCreate(() => {
+        this.User.beforeBulkCreate(async () => {
           beforeBulkCreate = true;
-          return Promise.resolve();
         });
 
-        this.User.afterBulkCreate(() => {
+        this.User.afterBulkCreate(async () => {
           afterBulkCreate = true;
-          return Promise.resolve();
         });
 
-        this.User.beforeCreate(() => {
-          return Promise.reject(new Error('You shall not pass!'));
+        this.User.beforeCreate(async () => {
+          throw new Error('You shall not pass!');
         });
 
-        this.User.afterCreate(user => {
+        this.User.afterCreate(async user => {
           user.username = `User${user.id}`;
-          return Promise.resolve();
         });
 
-        return this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], { fields: ['aNumber'], individualHooks: true }).catch(err => {
+        try {
+          await this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], {
+            fields: ['aNumber'],
+            individualHooks: true
+          });
+        } catch (err) {
           expect(err).to.be.instanceOf(Error);
           expect(beforeBulkCreate).to.be.true;
           expect(afterBulkCreate).to.be.false;
-        });
+        }
       });
     });
   });
 
   describe('#bulkUpdate', () => {
     describe('on success', () => {
-      it('should run hooks', function() {
+      it('should run hooks', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
         this.User.beforeBulkUpdate(beforeBulk);
         this.User.afterBulkUpdate(afterBulk);
 
-        return this.User.bulkCreate([
+        await this.User.bulkCreate([
           { username: 'Cheech', mood: 'sad' },
           { username: 'Chong', mood: 'sad' }
-        ]).then(() => {
-          return this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } }).then(() => {
-            expect(beforeBulk).to.have.been.calledOnce;
-            expect(afterBulk).to.have.been.calledOnce;
-          });
-        });
+        ]);
+
+        await this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } });
+        expect(beforeBulk).to.have.been.calledOnce;
+        expect(afterBulk).to.have.been.calledOnce;
       });
     });
 
     describe('on error', () => {
-      it('should return an error from before', function() {
+      it('should return an error from before', async function () {
         this.User.beforeBulkUpdate(() => {
           throw new Error('Whoops!');
         });
 
-        return this.User.bulkCreate([
+        await this.User.bulkCreate([
           { username: 'Cheech', mood: 'sad' },
           { username: 'Chong', mood: 'sad' }
-        ]).then(() => {
-          return expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be.rejected;
-        });
+        ]);
+
+        await expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be.rejected;
       });
 
-      it('should return an error from after', function() {
+      it('should return an error from after', async function () {
         this.User.afterBulkUpdate(() => {
           throw new Error('Whoops!');
         });
 
-        return this.User.bulkCreate([
+        await this.User.bulkCreate([
           { username: 'Cheech', mood: 'sad' },
           { username: 'Chong', mood: 'sad' }
-        ]).then(() => {
-          return expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be.rejected;
-        });
+        ]);
+
+        await expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be.rejected;
       });
     });
 
     describe('with the {individualHooks: true} option', () => {
-      beforeEach(function() {
+      beforeEach(async function () {
         this.User = this.sequelize.define('User', {
           username: {
             type: DataTypes.STRING,
@@ -229,10 +235,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           }
         });
 
-        return this.User.sync({ force: true });
+        await this.User.sync({ force: true });
       });
 
-      it('should run the after/before functions for each item created successfully', function() {
+      it('should run the after/before functions for each item created successfully', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
@@ -249,21 +255,18 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.username = `User${user.id}`;
         });
 
-        return this.User.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
-        ]).then(() => {
-          return this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true }).then(([, records]) => {
-            records.forEach(record => {
-              expect(record.username).to.equal(`User${record.id}`);
-              expect(record.beforeHookTest).to.be.true;
-            });
-            expect(beforeBulk).to.have.been.calledOnce;
-            expect(afterBulk).to.have.been.calledOnce;
-          });
+        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }]);
+
+        const [, records] = await this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true });
+        records.forEach(record => {
+          expect(record.username).to.equal(`User${record.id}`);
+          expect(record.beforeHookTest).to.be.true;
         });
+        expect(beforeBulk).to.have.been.calledOnce;
+        expect(afterBulk).to.have.been.calledOnce;
       });
 
-      it('should run the after/before functions for each item created successfully changing some data before updating', function() {
+      it('should run the after/before functions for each item created successfully changing some data before updating', async function () {
         this.User.beforeUpdate(user => {
           expect(user.changed()).to.not.be.empty;
           if (user.get('id') === 1) {
@@ -271,18 +274,15 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           }
         });
 
-        return this.User.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
-        ]).then(() => {
-          return this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true }).then(([, records]) => {
-            records.forEach(record => {
-              expect(record.aNumber).to.equal(10 + (record.id === 1 ? 3 : 0));
-            });
-          });
+        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }]);
+
+        const [, records] = await this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true });
+        records.forEach(record => {
+          expect(record.aNumber).to.equal(10 + (record.id === 1 ? 3 : 0));
         });
       });
 
-      it('should run the after/before functions for each item created with an error', function() {
+      it('should run the after/before functions for each item created with an error', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
@@ -298,54 +298,55 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.username = `User${user.id}`;
         });
 
-        return this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] }).then(() => {
-          return this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true }).catch(err => {
-            expect(err).to.be.instanceOf(Error);
-            expect(err.message).to.be.equal('You shall not pass!');
-            expect(beforeBulk).to.have.been.calledOnce;
-            expect(afterBulk).not.to.have.been.called;
-          });
-        });
+        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] });
+
+        try {
+          await this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true });
+        } catch (err) {
+          expect(err).to.be.instanceOf(Error);
+          expect(err.message).to.be.equal('You shall not pass!');
+          expect(beforeBulk).to.have.been.calledOnce;
+          expect(afterBulk).not.to.have.been.called;
+        }
       });
     });
   });
 
   describe('#bulkDestroy', () => {
     describe('on success', () => {
-      it('should run hooks', function() {
+      it('should run hooks', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
         this.User.beforeBulkDestroy(beforeBulk);
         this.User.afterBulkDestroy(afterBulk);
 
-        return this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } }).then(() => {
-          expect(beforeBulk).to.have.been.calledOnce;
-          expect(afterBulk).to.have.been.calledOnce;
-        });
+        await this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } });
+        expect(beforeBulk).to.have.been.calledOnce;
+        expect(afterBulk).to.have.been.calledOnce;
       });
     });
 
     describe('on error', () => {
-      it('should return an error from before', function() {
+      it('should return an error from before', async function () {
         this.User.beforeBulkDestroy(() => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be.rejected;
+        await expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be.rejected;
       });
 
-      it('should return an error from after', function() {
+      it('should return an error from after', async function () {
         this.User.afterBulkDestroy(() => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be.rejected;
+        await expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be.rejected;
       });
     });
 
     describe('with the {individualHooks: true} option', () => {
-      beforeEach(function() {
+      beforeEach(async function () {
         this.User = this.sequelize.define('User', {
           username: {
             type: DataTypes.STRING,
@@ -361,144 +362,155 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           }
         });
 
-        return this.User.sync({ force: true });
+        await this.User.sync({ force: true });
       });
 
-      it('should run the after/before functions for each item created successfully', function() {
+      it('should run the after/before functions for each item created successfully', async function () {
         let beforeBulk = false,
           afterBulk = false,
           beforeHook = false,
           afterHook = false;
 
-        this.User.beforeBulkDestroy(() => {
+        this.User.beforeBulkDestroy(async () => {
           beforeBulk = true;
-          return Promise.resolve();
         });
 
-        this.User.afterBulkDestroy(() => {
+        this.User.afterBulkDestroy(async () => {
           afterBulk = true;
-          return Promise.resolve();
         });
 
-        this.User.beforeDestroy(() => {
+        this.User.beforeDestroy(async () => {
           beforeHook = true;
-          return Promise.resolve();
         });
 
-        this.User.afterDestroy(() => {
+        this.User.afterDestroy(async () => {
           afterHook = true;
-          return Promise.resolve();
         });
 
-        return this.User.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
-        ]).then(() => {
-          return this.User.destroy({ where: { aNumber: 1 }, individualHooks: true }).then(() => {
-            expect(beforeBulk).to.be.true;
-            expect(afterBulk).to.be.true;
-            expect(beforeHook).to.be.true;
-            expect(afterHook).to.be.true;
-          });
+        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }]);
+
+        await this.User.destroy({
+          where: { aNumber: 1 },
+          individualHooks: true
         });
+        expect(beforeBulk).to.be.true;
+        expect(afterBulk).to.be.true;
+        expect(beforeHook).to.be.true;
+        expect(afterHook).to.be.true;
       });
 
-      it('should run the after/before functions for each item created with an error', function() {
+      it('should run the after/before functions for each item created with an error', async function () {
         let beforeBulk = false,
           afterBulk = false,
           beforeHook = false,
           afterHook = false;
 
-        this.User.beforeBulkDestroy(() => {
+        this.User.beforeBulkDestroy(async () => {
           beforeBulk = true;
-          return Promise.resolve();
         });
 
-        this.User.afterBulkDestroy(() => {
+        this.User.afterBulkDestroy(async () => {
           afterBulk = true;
-          return Promise.resolve();
         });
 
-        this.User.beforeDestroy(() => {
+        this.User.beforeDestroy(async () => {
           beforeHook = true;
-          return Promise.reject(new Error('You shall not pass!'));
+          throw new Error('You shall not pass!');
         });
 
-        this.User.afterDestroy(() => {
+        this.User.afterDestroy(async () => {
           afterHook = true;
-          return Promise.resolve();
         });
 
-        return this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] }).then(() => {
-          return this.User.destroy({ where: { aNumber: 1 }, individualHooks: true }).catch(err => {
-            expect(err).to.be.instanceOf(Error);
-            expect(beforeBulk).to.be.true;
-            expect(beforeHook).to.be.true;
-            expect(afterBulk).to.be.false;
-            expect(afterHook).to.be.false;
+        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] });
+
+        try {
+          await this.User.destroy({
+            where: { aNumber: 1 },
+            individualHooks: true
           });
-        });
+        } catch (err) {
+          expect(err).to.be.instanceOf(Error);
+          expect(beforeBulk).to.be.true;
+          expect(beforeHook).to.be.true;
+          expect(afterBulk).to.be.false;
+          expect(afterHook).to.be.false;
+        }
       });
     });
   });
 
   describe('#bulkRestore', () => {
-    beforeEach(function() {
-      return this.ParanoidUser.bulkCreate([
+    beforeEach(async function () {
+      await this.ParanoidUser.bulkCreate([
         { username: 'adam', mood: 'happy' },
         { username: 'joe', mood: 'sad' }
-      ]).then(() => {
-        return this.ParanoidUser.destroy({ truncate: true });
-      });
+      ]);
+
+      await this.ParanoidUser.destroy({ truncate: true });
     });
 
     describe('on success', () => {
-      it('should run hooks', function() {
+      it('should run hooks', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy();
 
         this.ParanoidUser.beforeBulkRestore(beforeBulk);
         this.ParanoidUser.afterBulkRestore(afterBulk);
 
-        return this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } }).then(() => {
-          expect(beforeBulk).to.have.been.calledOnce;
-          expect(afterBulk).to.have.been.calledOnce;
+        await this.ParanoidUser.restore({
+          where: { username: 'adam', mood: 'happy' }
         });
+        expect(beforeBulk).to.have.been.calledOnce;
+        expect(afterBulk).to.have.been.calledOnce;
       });
     });
 
     describe('on error', () => {
-      it('should return an error from before', function() {
+      it('should return an error from before', async function () {
         this.ParanoidUser.beforeBulkRestore(() => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } })).to.be.rejected;
+        await expect(
+          this.ParanoidUser.restore({
+            where: { username: 'adam', mood: 'happy' }
+          })
+        ).to.be.rejected;
       });
 
-      it('should return an error from after', function() {
+      it('should return an error from after', async function () {
         this.ParanoidUser.afterBulkRestore(() => {
           throw new Error('Whoops!');
         });
 
-        return expect(this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } })).to.be.rejected;
+        await expect(
+          this.ParanoidUser.restore({
+            where: { username: 'adam', mood: 'happy' }
+          })
+        ).to.be.rejected;
       });
     });
 
     describe('with the {individualHooks: true} option', () => {
-      beforeEach(function() {
-        this.ParanoidUser = this.sequelize.define('ParanoidUser', {
-          aNumber: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0
+      beforeEach(async function () {
+        this.ParanoidUser = this.sequelize.define(
+          'ParanoidUser',
+          {
+            aNumber: {
+              type: DataTypes.INTEGER,
+              defaultValue: 0
+            }
+          },
+          {
+            paranoid: true
           }
-        }, {
-          paranoid: true
-        });
+        );
 
-        return this.ParanoidUser.sync({ force: true });
+        await this.ParanoidUser.sync({ force: true });
       });
 
-      it('should run the after/before functions for each item restored successfully', function() {
+      it('should run the after/before functions for each item restored successfully', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy(),
           beforeHook = sinon.spy(),
@@ -509,21 +521,20 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.ParanoidUser.beforeRestore(beforeHook);
         this.ParanoidUser.afterRestore(afterHook);
 
-        return this.ParanoidUser.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }
-        ]).then(() => {
-          return this.ParanoidUser.destroy({ where: { aNumber: 1 } });
-        }).then(() => {
-          return this.ParanoidUser.restore({ where: { aNumber: 1 }, individualHooks: true });
-        }).then(() => {
-          expect(beforeBulk).to.have.been.calledOnce;
-          expect(afterBulk).to.have.been.calledOnce;
-          expect(beforeHook).to.have.been.calledThrice;
-          expect(afterHook).to.have.been.calledThrice;
+        await this.ParanoidUser.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }]);
+
+        await this.ParanoidUser.destroy({ where: { aNumber: 1 } });
+        await this.ParanoidUser.restore({
+          where: { aNumber: 1 },
+          individualHooks: true
         });
+        expect(beforeBulk).to.have.been.calledOnce;
+        expect(afterBulk).to.have.been.calledOnce;
+        expect(beforeHook).to.have.been.calledThrice;
+        expect(afterHook).to.have.been.calledThrice;
       });
 
-      it('should run the after/before functions for each item restored with an error', function() {
+      it('should run the after/before functions for each item restored with an error', async function () {
         const beforeBulk = sinon.spy(),
           afterBulk = sinon.spy(),
           beforeHook = sinon.spy(),
@@ -531,24 +542,27 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.ParanoidUser.beforeBulkRestore(beforeBulk);
         this.ParanoidUser.afterBulkRestore(afterBulk);
-        this.ParanoidUser.beforeRestore(() => {
+        this.ParanoidUser.beforeRestore(async () => {
           beforeHook();
-          return Promise.reject(new Error('You shall not pass!'));
+          throw new Error('You shall not pass!');
         });
 
         this.ParanoidUser.afterRestore(afterHook);
 
-        return this.ParanoidUser.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] }).then(() => {
-          return this.ParanoidUser.destroy({ where: { aNumber: 1 } });
-        }).then(() => {
-          return this.ParanoidUser.restore({ where: { aNumber: 1 }, individualHooks: true });
-        }).catch(err => {
+        try {
+          await this.ParanoidUser.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] });
+          await this.ParanoidUser.destroy({ where: { aNumber: 1 } });
+          await this.ParanoidUser.restore({
+            where: { aNumber: 1 },
+            individualHooks: true
+          });
+        } catch (err) {
           expect(err).to.be.instanceOf(Error);
           expect(beforeBulk).to.have.been.calledOnce;
           expect(beforeHook).to.have.been.calledThrice;
           expect(afterBulk).not.to.have.been.called;
           expect(afterHook).not.to.have.been.called;
-        });
+        }
       });
     });
   });

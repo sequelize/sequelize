@@ -2,35 +2,40 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
-  current   = Support.sequelize,
+  Support = require('../support'),
+  current = Support.sequelize,
   Sequelize = Support.Sequelize,
-  sinon     = require('sinon');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('restore', () => {
     describe('options tests', () => {
       let stub, instance;
-      const Model = current.define('User', {
-        id: {
-          type: Sequelize.BIGINT,
-          primaryKey: true,
-          autoIncrement: true
+      const Model = current.define(
+        'User',
+        {
+          id: {
+            type: Sequelize.BIGINT,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          deletedAt: {
+            type: Sequelize.DATE
+          }
         },
-        deletedAt: {
-          type: Sequelize.DATE
+        {
+          paranoid: true
         }
-      }, {
-        paranoid: true
-      });
+      );
 
       before(() => {
-        stub = sinon.stub(current, 'query').resolves(
-          [{
+        stub = sinon.stub(current, 'query').resolves([
+          {
             _previousDataValues: { id: 1 },
             dataValues: { id: 2 }
-          }, 1]
-        );
+          },
+          1
+        ]);
       });
 
       after(() => {

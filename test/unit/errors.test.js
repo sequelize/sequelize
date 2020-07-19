@@ -6,8 +6,13 @@ const expect = require('chai').expect;
 describe('errors', () => {
   it('should maintain stack trace with message', () => {
     const errorsWithMessage = [
-      'BaseError', 'ValidationError', 'InstanceError',
-      'EmptyResultError', 'EagerLoadingError', 'AssociationError', 'QueryError'
+      'BaseError',
+      'ValidationError',
+      'InstanceError',
+      'EmptyResultError',
+      'EagerLoadingError',
+      'AssociationError',
+      'QueryError'
     ];
 
     errorsWithMessage.forEach(errorName => {
@@ -30,8 +35,13 @@ describe('errors', () => {
 
   it('should maintain stack trace without message', () => {
     const errorsWithoutMessage = [
-      'ConnectionError', 'ConnectionRefusedError', 'ConnectionTimedOutError',
-      'AccessDeniedError', 'HostNotFoundError', 'HostNotReachableError', 'InvalidConnectionError'
+      'ConnectionError',
+      'ConnectionRefusedError',
+      'ConnectionTimedOutError',
+      'AccessDeniedError',
+      'HostNotFoundError',
+      'HostNotReachableError',
+      'InvalidConnectionError'
     ];
 
     errorsWithoutMessage.forEach(errorName => {
@@ -50,6 +60,33 @@ describe('errors', () => {
       const fullErrorName = `Sequelize${errorName}`;
       expect(stackParts[0]).to.equal(fullErrorName);
       expect(stackParts[1]).to.match(/^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/);
+    });
+  });
+
+  describe('AggregateError', () => {
+    it('get .message works', () => {
+      const { AggregateError } = errors;
+      expect(
+        String(
+          new AggregateError([
+            new Error('foo'),
+            new Error('bar\nbaz'),
+            new AggregateError([new Error('this\nis\na\ntest'), new Error('qux')])
+          ])
+        )
+      ).to.equal(
+        `AggregateError of:
+  Error: foo
+  Error: bar
+    baz
+  AggregateError of:
+    Error: this
+      is
+      a
+      test
+    Error: qux
+`
+      );
     });
   });
 });

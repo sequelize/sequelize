@@ -6,9 +6,8 @@ const chai = require('chai'),
   DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-
   describe('not breaking built-ins', () => {
-    it('it should not break instance.set by defining a model set attribute', function() {
+    it('it should not break instance.set by defining a model set attribute', function () {
       const User = this.sequelize.define('OverWrittenKeys', {
         set: DataTypes.STRING
       });

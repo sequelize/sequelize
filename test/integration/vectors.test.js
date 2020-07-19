@@ -8,22 +8,25 @@ const chai = require('chai'),
 chai.should();
 
 describe(Support.getTestDialectTeaser('Vectors'), () => {
-  it('should not allow insert backslash', function() {
-    const Student = this.sequelize.define('student', {
-      name: Sequelize.STRING
-    }, {
-      tableName: 'student'
+  it('should not allow insert backslash', async function () {
+    const Student = this.sequelize.define(
+      'student',
+      {
+        name: Sequelize.STRING
+      },
+      {
+        tableName: 'student'
+      }
+    );
+
+    await Student.sync({ force: true });
+
+    const result0 = await Student.create({
+      name: 'Robert\\\'); DROP TABLE "students"; --'
     });
 
-    return Student.sync({ force: true }).then(() => {
-      return Student.create({
-        name: 'Robert\\\'); DROP TABLE "students"; --'
-      }).then(result => {
-        expect(result.get('name')).to.equal('Robert\\\'); DROP TABLE "students"; --');
-        return Student.findAll();
-      }).then(result => {
-        expect(result[0].name).to.equal('Robert\\\'); DROP TABLE "students"; --');
-      });
-    });
+    expect(result0.get('name')).to.equal('Robert\\\'); DROP TABLE "students"; --');
+    const result = await Student.findAll();
+    expect(result[0].name).to.equal('Robert\\\'); DROP TABLE "students"; --');
   });
 });

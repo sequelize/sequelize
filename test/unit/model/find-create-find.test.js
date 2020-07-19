@@ -5,50 +5,52 @@ const chai = require('chai'),
   Support = require('../support'),
   UniqueConstraintError = require('../../../lib/errors').UniqueConstraintError,
   current = Support.sequelize,
-  sinon = require('sinon'),
-  Promise = require('bluebird');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findCreateFind', () => {
     const Model = current.define('Model', {});
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.sinon = sinon.createSandbox();
-      this.sinon.usingPromise(Promise);
     });
 
-    afterEach(function() {
+    afterEach(function () {
       this.sinon.restore();
     });
 
-    it('should return the result of the first find call if not empty', function() {
+    it('should return the result of the first find call if not empty', async function () {
       const result = {},
         where = { prop: Math.random().toString() },
         findSpy = this.sinon.stub(Model, 'findOne').resolves(result);
 
-      return expect(Model.findCreateFind({
-        where
-      })).to.eventually.eql([result, false]).then(() => {
-        expect(findSpy).to.have.been.calledOnce;
-        expect(findSpy.getCall(0).args[0].where).to.equal(where);
-      });
+      await expect(
+        Model.findCreateFind({
+          where
+        })
+      ).to.eventually.eql([result, false]);
+
+      expect(findSpy).to.have.been.calledOnce;
+      expect(findSpy.getCall(0).args[0].where).to.equal(where);
     });
 
-    it('should create if first find call is empty', function() {
+    it('should create if first find call is empty', async function () {
       const result = {},
         where = { prop: Math.random().toString() },
         createSpy = this.sinon.stub(Model, 'create').resolves(result);
 
       this.sinon.stub(Model, 'findOne').resolves(null);
 
-      return expect(Model.findCreateFind({
-        where
-      })).to.eventually.eql([result, true]).then(() => {
-        expect(createSpy).to.have.been.calledWith(where);
-      });
+      await expect(
+        Model.findCreateFind({
+          where
+        })
+      ).to.eventually.eql([result, true]);
+
+      expect(createSpy).to.have.been.calledWith(where);
     });
 
-    it('should do a second find if create failed do to unique constraint', function() {
+    it('should do a second find if create failed do to unique constraint', async function () {
       const result = {},
         where = { prop: Math.random().toString() },
         findSpy = this.sinon.stub(Model, 'findOne');
@@ -58,12 +60,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       findSpy.onFirstCall().resolves(null);
       findSpy.onSecondCall().resolves(result);
 
-      return expect(Model.findCreateFind({
-        where
-      })).to.eventually.eql([result, false]).then(() => {
-        expect(findSpy).to.have.been.calledTwice;
-        expect(findSpy.getCall(1).args[0].where).to.equal(where);
-      });
+      await expect(
+        Model.findCreateFind({
+          where
+        })
+      ).to.eventually.eql([result, false]);
+
+      expect(findSpy).to.have.been.calledTwice;
+      expect(findSpy.getCall(1).args[0].where).to.equal(where);
     });
   });
 });

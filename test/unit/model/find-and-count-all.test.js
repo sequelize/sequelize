@@ -5,18 +5,15 @@ const chai = require('chai'),
   Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require('../../../lib/data-types'),
-  Promise = require('bluebird').getNewLibraryCopy();
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAndCountAll', () => {
     describe('should handle promise rejection', () => {
-      before(function() {
+      before(function () {
         this.stub = sinon.stub();
 
-        Promise.onPossiblyUnhandledRejection(() => {
-          this.stub();
-        });
+        process.on('unhandledRejection', this.stub);
 
         this.User = current.define('User', {
           username: DataTypes.STRING,
@@ -28,19 +25,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.count = sinon.stub(this.User, 'count').rejects(new Error());
       });
 
-      after(function() {
+      after(function () {
         this.findAll.resetBehavior();
         this.count.resetBehavior();
       });
 
-      it('with errors in count and findAll both', function() {
-        return this.User.findAndCountAll({})
-          .then(() => {
-            throw new Error();
-          })
-          .catch(() => {
-            expect(this.stub.callCount).to.eql(0);
-          });
+      it('with errors in count and findAll both', async function () {
+        try {
+          await this.User.findAndCountAll({});
+          throw new Error();
+        } catch (err) {
+          expect(this.stub.callCount).to.eql(0);
+        }
       });
     });
   });

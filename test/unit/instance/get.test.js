@@ -3,13 +3,13 @@
 const chai = require('chai'),
   sinon = require('sinon'),
   expect = chai.expect,
-  Support   = require('../support'),
+  Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  current   = Support.sequelize;
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('get', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.getSpy = sinon.spy();
       this.User = current.define('User', {
         name: {
@@ -19,13 +19,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
-    it('invokes getter if raw: false', function() {
+    it('invokes getter if raw: false', function () {
       this.User.build().get('name');
 
       expect(this.getSpy).to.have.been.called;
     });
 
-    it('does not invoke getter if raw: true', function() {
+    it('does not invoke getter if raw: true', function () {
       this.User.build().get('name', { raw: true });
 
       expect(this.getSpy).not.to.have.been.called;

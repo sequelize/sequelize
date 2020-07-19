@@ -31,6 +31,7 @@ module.exports = {
     port: env.SEQ_MSSQL_PORT || env.SEQ_PORT || 1433,
     dialectOptions: {
       options: {
+        encrypt: false,
         requestTimeout: 60000
       }
     },
@@ -76,6 +77,7 @@ module.exports = {
     pool: {
       max: env.SEQ_PG_POOL_MAX || env.SEQ_POOL_MAX || 5,
       idle: env.SEQ_PG_POOL_IDLE || env.SEQ_POOL_IDLE || 3000
-    }
+    },
+    minifyAliases: env.SEQ_PG_MINIFY_ALIASES
   }
 };

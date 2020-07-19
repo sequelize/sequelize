@@ -14,6 +14,7 @@ _Please make sure to review and check all of these items:_
 - [ ] Does the description below contain a link to an existing issue (Closes #[issue]) or a description of the issue you are solving?
 - [ ] Have you added new tests to prevent regressions?
 - [ ] Is a documentation update included (if this change modifies existing APIs, or introduces new ones)?
+- [ ] Did you update the typescript typings accordingly (if applicable)?
 - [ ] Did you follow the commit message conventions explained in [CONTRIBUTING.md](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md)?
 
 <!-- NOTE: these things are not required to open a PR and can be done afterwards / while the PR is open. -->

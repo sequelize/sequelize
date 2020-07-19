@@ -11,7 +11,7 @@ describe(Support.getTestDialectTeaser('Warning'), () => {
   // We can only test MySQL warnings when using MySQL.
   if (dialect === 'mysql') {
     describe('logging', () => {
-      it('logs warnings when there are warnings', () => {
+      it('logs warnings when there are warnings', async () => {
         const logger = sinon.spy(console, 'log');
         const sequelize = Support.createSequelizeInstance({
           logging: logger,
@@ -23,20 +23,17 @@ describe(Support.getTestDialectTeaser('Warning'), () => {
           name: Sequelize.DataTypes.STRING(1, true)
         });
 
-        return sequelize.sync({ force: true }).then(() => {
-          return sequelize.authenticate();
-        }).then(() => {
-          return sequelize.query("SET SESSION sql_mode='';");
-        }).then(() => {
-          return Model.create({
-            name: 'very-long-long-name'
-          });
-        }).then(() => {
-          // last log is warning message
-          expect(logger.args[logger.args.length - 1][0]).to.be.match(/^MySQL Warnings \(default\):.*/m);
-        }, () => {
-          expect.fail();
+        await sequelize.sync({ force: true });
+        await sequelize.authenticate();
+        await sequelize.query("SET SESSION sql_mode='';");
+
+        await Model.create({
+          name: 'very-long-long-name'
         });
+
+        // last log is warning message
+        expect(logger.args[logger.args.length - 1][0]).to.be.match(/^MySQL Warnings \(default\):.*/m);
+        logger.restore();
       });
     });
   }

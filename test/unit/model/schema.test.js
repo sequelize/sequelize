@@ -2,16 +2,20 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
-  current   = Support.sequelize;
+  Support = require('../support'),
+  current = Support.sequelize;
 
 describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
   if (current.dialect.supports.schemas) {
     const Project = current.define('project'),
-      Company = current.define('company', {}, {
-        schema: 'default',
-        schemaDelimiter: '&'
-      });
+      Company = current.define(
+        'company',
+        {},
+        {
+          schema: 'default',
+          schemaDelimiter: '&'
+        }
+      );
 
     describe('schema', () => {
       it('should work with no default schema', () => {

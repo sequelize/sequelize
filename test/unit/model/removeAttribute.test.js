@@ -2,8 +2,8 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
-  current   = Support.sequelize,
+  Support = require('../support'),
+  current = Support.sequelize,
   _ = require('lodash'),
   DataTypes = require('../../../lib/data-types');
 

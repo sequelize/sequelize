@@ -1,6 +1,6 @@
 <div>
   <div class="center logo">
-    ![logo](/manual/asset/logo-small.png)
+    ![logo](manual/asset/logo-small.png)
   </div>
   <div class="center sequelize">Sequelize</div>
 </div>
@@ -13,40 +13,37 @@
 [![Last commit](https://badgen.net/github/last-commit/sequelize/sequelize)](https://github.com/sequelize/sequelize)
 [![Merged PRs](https://badgen.net/github/merged-prs/sequelize/sequelize)](https://github.com/sequelize/sequelize)
 [![GitHub stars](https://badgen.net/github/stars/sequelize/sequelize)](https://github.com/sequelize/sequelize)
-[![Bountysource](https://www.bountysource.com/badge/team?team_id=955&style=bounties_received)](https://www.bountysource.com/teams/sequelize/issues?utm_source=Sequelize&utm_medium=shield&utm_campaign=bounties_received)
 [![Slack Status](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com/)
 [![node](https://badgen.net/npm/node/sequelize)](https://www.npmjs.com/package/sequelize)
 [![License](https://badgen.net/github/license/sequelize/sequelize)](https://github.com/sequelize/sequelize/blob/master/LICENSE)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite and Microsoft SQL Server. It features solid transaction support, relations, eager and lazy loading, read replication and more.
+Sequelize is a promise-based Node.js [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping) for [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite) and [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server). It features solid transaction support, relations, eager and lazy loading, read replication and more.
 
-Sequelize follows [SEMVER](http://semver.org). Supports Node v6 and above to use ES6 features.
+Sequelize follows [Semantic Versioning](http://semver.org) and supports Node v10 and above.
 
-**Sequelize v5** was released on March 13, 2019. [Official TypeScript typings are now included](manual/typescript).
-
-You are currently looking at the **Tutorials and Guides** for Sequelize. You might also be interested in the [API Reference](identifiers).
+You are currently looking at the **Tutorials and Guides** for Sequelize. You might also be interested in the [API Reference](identifiers.html).
 
 ## Quick example
 
 ```js
-const Sequelize = require('sequelize');
-const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname');
+const { Sequelize, Model, DataTypes } = require('sequelize');
+const sequelize = new Sequelize('sqlite::memory:');
 
-class User extends Sequelize.Model {}
+class User extends Model {}
 User.init({
-  username: Sequelize.STRING,
-  birthday: Sequelize.DATE
+  username: DataTypes.STRING,
+  birthday: DataTypes.DATE
 }, { sequelize, modelName: 'user' });
 
-sequelize.sync()
-  .then(() => User.create({
+(async () => {
+  await sequelize.sync();
+  const jane = await User.create({
     username: 'janedoe',
     birthday: new Date(1980, 6, 20)
-  }))
-  .then(jane => {
-    console.log(jane.toJSON());
   });
+  console.log(jane.toJSON());
+})();
 ```
 
-To learn more about how to use Sequelize, read the tutorials available in the left menu. Begin with [Getting Started](manual/getting-started).
+To learn more about how to use Sequelize, read the tutorials available in the left menu. Begin with [Getting Started](manual/getting-started.html).

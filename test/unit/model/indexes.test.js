@@ -24,46 +24,62 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should set the unique property when type is unique', () => {
-      const Model = current.define('m', {}, {
-        indexes: [
-          {
-            type: 'unique',
-            fields: ['name']
-          },
-          {
-            type: 'UNIQUE',
-            fields: ['name']
-          }
-        ]
-      });
+      const Model = current.define(
+        'm',
+        {},
+        {
+          indexes: [
+            {
+              type: 'unique',
+              fields: ['name']
+            },
+            {
+              type: 'UNIQUE',
+              fields: ['name']
+            }
+          ]
+        }
+      );
 
       expect(Model._indexes[0].unique).to.eql(true);
       expect(Model._indexes[1].unique).to.eql(true);
     });
 
     it('should not set rawAttributes when indexes are defined via options', () => {
-      const User = current.define('User', {
-        username: DataTypes.STRING
-      }, {
-        indexes: [{
-          unique: true,
-          fields: ['username']
-        }]
-      });
+      const User = current.define(
+        'User',
+        {
+          username: DataTypes.STRING
+        },
+        {
+          indexes: [
+            {
+              unique: true,
+              fields: ['username']
+            }
+          ]
+        }
+      );
 
       expect(User.rawAttributes.username.unique).to.be.undefined;
     });
 
     it('should not set rawAttributes when composite unique indexes are defined via options', () => {
-      const User = current.define('User', {
-        name: DataTypes.STRING,
-        address: DataTypes.STRING
-      }, {
-        indexes: [{
-          unique: 'users_name_address',
-          fields: ['name', 'address']
-        }]
-      });
+      const User = current.define(
+        'User',
+        {
+          name: DataTypes.STRING,
+          address: DataTypes.STRING
+        },
+        {
+          indexes: [
+            {
+              unique: 'users_name_address',
+              fields: ['name', 'address']
+            }
+          ]
+        }
+      );
 
       expect(User.rawAttributes.name.unique).to.be.undefined;
       expect(User.rawAttributes.address.unique).to.be.undefined;

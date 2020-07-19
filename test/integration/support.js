@@ -4,7 +4,7 @@ const Support = require('../support');
 
 const runningQueries = new Set();
 
-before(function() {
+before(function () {
   this.sequelize.addHook('beforeQuery', (options, query) => {
     runningQueries.add(query);
   });
@@ -13,15 +13,20 @@ before(function() {
   });
 });
 
-beforeEach(function() {
-  return Support.clearDatabase(this.sequelize);
+beforeEach(async function () {
+  await Support.clearDatabase(this.sequelize);
 });
 
-afterEach(function() {
+afterEach(function () {
   if (runningQueries.size === 0) {
     return;
   }
-  throw new Error(`Expected 0 running queries. ${runningQueries.size} queries still running in ${this.currentTest.fullTitle()}`);
+  let msg = `Expected 0 running queries. ${
+    runningQueries.size
+  } queries still running in ${this.currentTest.fullTitle()}\n`;
+  msg += 'Queries:\n\n';
+  msg += [...runningQueries].map(query => `${query.uuid}: ${query.sql}`).join('\n');
+  throw new Error(msg);
 });
 
 module.exports = Support;
