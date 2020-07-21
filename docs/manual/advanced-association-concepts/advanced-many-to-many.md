@@ -48,8 +48,8 @@ With this, we can now track an extra information at the through table, namely th
 Example:
 
 ```js
-const amidala = User.create({ username: 'p4dm3', points: 1000 });
-const queen = Profile.create({ name: 'Queen' });
+const amidala = await User.create({ username: 'p4dm3', points: 1000 });
+const queen = await Profile.create({ name: 'Queen' });
 await amidala.addProfile(queen, { through: { selfGranted: false } });
 const result = await User.findOne({
   where: { username: 'p4dm3' },
