@@ -1,8 +1,8 @@
-const dataTypes = require('./data-types');
-const { logger } = require('./utils/logger');
+import * as dataTypes from './data-types';
+import { logger } from './utils/logger';
 
-function arrayToList(array, timeZone, dialect, format) {
-  return array.reduce((sql, val, i) => {
+function arrayToList(array: unknown[], timeZone: string | null, dialect: string, format: boolean): string {
+  return array.reduce<string>((sql, val, i) => {
     if (i !== 0) {
       sql += ', ';
     }
@@ -14,9 +14,8 @@ function arrayToList(array, timeZone, dialect, format) {
     return sql;
   }, '');
 }
-exports.arrayToList = arrayToList;
 
-function escape(val, timeZone, dialect, format) {
+export function escape(val: unknown, timeZone: string | null, dialect: string, format = false): string {
   let prependN = false;
   if (val === undefined || val === null) {
     return 'NULL';
@@ -27,7 +26,7 @@ function escape(val, timeZone, dialect, format) {
       // for us. Postgres actually has a boolean type with true/false literals,
       // but sequelize doesn't use it yet.
       if (dialect === 'sqlite' || dialect === 'mssql') {
-        return +!!val;
+        return val ? '1' : '0';
       }
       return (!!val).toString();
     case 'number':
@@ -40,21 +39,21 @@ function escape(val, timeZone, dialect, format) {
   }
 
   if (val instanceof Date) {
-    val = dataTypes[dialect].DATE.prototype.stringify(val, {
+    val = (dataTypes as any)[dialect].DATE.prototype.stringify(val, {
       timezone: timeZone
     });
   }
 
   if (Buffer.isBuffer(val)) {
-    if (dataTypes[dialect].BLOB) {
-      return dataTypes[dialect].BLOB.prototype.stringify(val);
+    if ((dataTypes as any)[dialect].BLOB) {
+      return (dataTypes as any)[dialect].BLOB.prototype.stringify(val);
     }
 
-    return dataTypes.BLOB.prototype.stringify(val);
+    return dataTypes.BLOB.prototype.stringify(val, undefined); // TODO: Remove unknown
   }
 
   if (Array.isArray(val)) {
-    const partialEscape = escVal => escape(escVal, timeZone, dialect, format);
+    const partialEscape = (escVal: string) => escape(escVal, timeZone, dialect, format);
     if (dialect === 'postgres' && !format) {
       return dataTypes.ARRAY.prototype.stringify(val, {
         escape: partialEscape
@@ -63,7 +62,7 @@ function escape(val, timeZone, dialect, format) {
     return arrayToList(val, timeZone, dialect, format);
   }
 
-  if (!val.replace) {
+  if (typeof val !== 'string') {
     throw new Error(`Invalid value ${logger.inspect(val)}`);
   }
 
@@ -74,7 +73,8 @@ function escape(val, timeZone, dialect, format) {
 
     if (dialect === 'postgres') {
       // null character is not allowed in Postgres
-      val = val.replace(/\0/g, '\\0');
+      // Todo: type inference broken.
+      val = (val as string).replace(/\0/g, '\\0');
     }
   } else {
     // eslint-disable-next-line no-control-regex
@@ -99,10 +99,9 @@ function escape(val, timeZone, dialect, format) {
   }
   return `${(prependN ? "N'" : "'") + val}'`;
 }
-exports.escape = escape;
 
-function format(sql, values, timeZone, dialect) {
-  values = [].concat(values);
+export function format(sql: string, values: unknown[], dialect: string): string {
+  values = values.slice();
 
   if (typeof sql !== 'string') {
     throw new Error(`Invalid SQL string provided: ${sql}`);
@@ -113,21 +112,19 @@ function format(sql, values, timeZone, dialect) {
       return match;
     }
 
-    return escape(values.shift(), timeZone, dialect, true);
+    return escape(values.shift(), null, dialect, true);
   });
 }
-exports.format = format;
 
-function formatNamedParameters(sql, values, timeZone, dialect) {
+export function formatNamedParameters(sql: string, values: Record<string, string>, dialect: string): string {
   return sql.replace(/:+(?!\d)(\w+)/g, (value, key) => {
-    if ('postgres' === dialect && '::' === value.slice(0, 2)) {
+    if (dialect === 'postgres' && value.startsWith('::')) {
       return value;
     }
 
     if (values[key] !== undefined) {
-      return escape(values[key], timeZone, dialect, true);
+      return escape(values[key], null, dialect, true);
     }
     throw new Error(`Named parameter "${value}" has no value in the given object.`);
   });
 }
-exports.formatNamedParameters = formatNamedParameters;

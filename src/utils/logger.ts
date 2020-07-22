@@ -14,8 +14,8 @@ interface LoggerConfig {
   debug?: boolean;
 }
 
-class Logger {
-  config: LoggerConfig;
+export class Logger {
+  private config: LoggerConfig;
 
   constructor(config: LoggerConfig = {}) {
     this.config = {
@@ -25,20 +25,18 @@ class Logger {
     };
   }
 
-  warn(message: string) {
+  public warn(message: string): void {
     // eslint-disable-next-line no-console
     console.warn(`(${this.config.context}) Warning: ${message}`);
   }
 
-  inspect(value: object) {
+  public inspect(value: any): string {
     return inspect(value, false, 3);
   }
 
-  debugContext(name: string) {
+  public debugContext(name: string): debug.Debugger {
     return debug(`${this.config.context}:${name}`);
   }
 }
 
-exports.logger = new Logger();
-
-exports.Logger = Logger;
+export const logger = new Logger();

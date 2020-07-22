@@ -113,17 +113,12 @@ function pluralize(str) {
 exports.pluralize = pluralize;
 
 function format(arr, dialect) {
-  const timeZone = null;
-  // Make a clone of the array beacuse format modifies the passed args
-  return SqlString.format(arr[0], arr.slice(1), timeZone, dialect);
+  // Make a clone of the array because format modifies the passed args
+  return SqlString.format(arr[0], arr.slice(1), dialect);
 }
 exports.format = format;
 
-function formatNamedParameters(sql, parameters, dialect) {
-  const timeZone = null;
-  return SqlString.formatNamedParameters(sql, parameters, timeZone, dialect);
-}
-exports.formatNamedParameters = formatNamedParameters;
+exports.formatNamedParameters = SqlString.formatNamedParameters;
 
 function cloneDeep(obj, onlyPlain) {
   obj = obj || {};
