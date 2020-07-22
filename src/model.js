@@ -4333,6 +4333,7 @@ class Model {
       raw: true,
       reset: true && !options.attributes
     });
+    this.isNewRecord = false;
 
     return this;
   }
