@@ -2822,9 +2822,9 @@ class Model {
           if (Object.keys(model.uniqueKeys).length > 0) {
             const restOnConflictKeys = _.chain(model.uniqueKeys)
               .values()
-              .filter((c) => c.fields.length >= 1)
-              .map((c) => c.fields)
-              .reduce((c) => c[0])
+              .filter(c => c.fields.length >= 1)
+              .map(c => c.fields)
+              .reduce(c => c[0])
               .value();
 
             onConflictKeys.push(...restOnConflictKeys);
