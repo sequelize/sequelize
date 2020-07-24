@@ -638,7 +638,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(people[1].name).to.equal('Bob');
           });
 
-          it('when the primary key column names and model field names are different and have composite unique index constraints', async function () {
+          it('when the primary key column names and model field names are different and have composite unique index constraints', async function() {
             const Person = this.sequelize.define(
               'Person',
               {
