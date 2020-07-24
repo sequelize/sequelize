@@ -139,6 +139,8 @@ class BelongsTo extends Association {
 
     if (Object.prototype.hasOwnProperty.call(options, 'schema')) {
       Target = Target.schema(options.schema, options.schemaDelimiter);
+    } else if (instances._options && instances._options._schema) {
+      Target = Target.schema(instances._options._schema);
     }
 
     if (!Array.isArray(instances)) {
