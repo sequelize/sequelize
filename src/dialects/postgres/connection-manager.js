@@ -65,11 +65,18 @@ class ConnectionManager extends AbstractConnectionManager {
 
     // Set parsers for normal data types
     dataType.types.postgres.forEach(name => {
-      if (!this.nameOidMap[name]) return;
-      this.oidParserMap.set(this.nameOidMap[name].oid, parser);
-
-      if (!this.nameOidMap[name].arrayOid) return;
-      this.oidParserMap.set(this.nameOidMap[name].arrayOid, arrayParser);
+      if(this.sequelize.options.dataTypes && this.sequelize.options.dataTypes[name] && typeof this.sequelize.options.dataTypes[name].parser ==='function'){
+        const optionsParser = this.sequelize.options.dataTypes[name].parser
+        if (! this.nameOidMap[name]) return;
+        this.oidParserMap.set(this.nameOidMap[name].oid, optionsParser);
+        if (! this.nameOidMap[name].arrayOid) return;
+        this.oidParserMap.set(this.nameOidMap[name].arrayOid, arrayParserBuilder(optionsParser));
+      }else{
+        if (! this.nameOidMap[name]) return;
+        this.oidParserMap.set(this.nameOidMap[name].oid, parser);
+        if (! this.nameOidMap[name].arrayOid) return;
+        this.oidParserMap.set(this.nameOidMap[name].arrayOid, arrayParser);
+      }
     });
   }
 
