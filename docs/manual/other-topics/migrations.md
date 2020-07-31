@@ -330,6 +330,34 @@ module.exports = {
 };
 ```
 
+The next example is of a migration that uses where, you can create an unique index commposed of multiple field with a condition, who permit relation to exist multiple time but only one can have the condition value:
+
+```js
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    queryInterface.createTable('Person', {
+      name: Sequelize.DataTypes.STRING,
+      bool: {
+        type: Sequelize.DataTypes.BOOLEAN,
+        defaultValue: false
+      }
+    }).then((queryInterface, Sequelize) => {
+      queryInterface.addIndex(
+        'Person',
+        ['name', 'bool'],
+        {
+          indicesType: 'UNIQUE',
+          where: { bool : 'true' },
+        }
+      );
+    });
+  },
+  down: (queryInterface, Sequelize) => {
+    return queryInterface.dropTable('Person');
+  }
+}
+```
+
 ### The `.sequelizerc` file
 
 This is a special configuration file. It lets you specify the following options that you would usually pass as arguments to CLI:
