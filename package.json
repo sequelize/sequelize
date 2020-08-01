@@ -59,7 +59,7 @@
     "cheerio": "1.0.0-rc.3",
     "cls-hooked": "4.2.2",
     "cross-env": "7.0.2",
-    "delay": "4.3.0",
+    "delay": "4.4.0",
     "dtslint": "3.6.4",
     "env-cmd": "10.1.0",
     "esdoc": "1.1.0",
