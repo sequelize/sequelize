@@ -1107,11 +1107,14 @@ class Model {
 
     // setup names of timestamp attributes
     if (this.options.timestamps) {
-      ['createdAt', 'updatedAt', 'deletedAt'].forEach(key => {
+      for (const key of ['createdAt', 'updatedAt', 'deletedAt']) {
         if (!['undefined', 'string', 'boolean'].includes(typeof this.options[key])) {
-          throw new Error(`Value for attribute "${key}" must be a string or a boolean`);
+          throw new Error(`Value for "${key}" option must be a string or a boolean, got ${typeof this.options[key]}`);
         }
-      });
+        if (this.options[key] === '') {
+          throw new Error(`Value for "${key}" option cannot be an empty string`);
+        }
+      }
 
       if (this.options.createdAt !== false) {
         this._timestampAttributes.createdAt =
