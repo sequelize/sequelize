@@ -146,7 +146,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(defaultFunction.callCount).to.equal(2);
     });
 
-    it('should throw `TypeError` when value for updatedAt, createdAt, or deletedAt is neither string nor boolean', async function () {
+    it('should throw `TypeError` when value for updatedAt, createdAt, or deletedAt is neither string nor boolean', async function() {
       const modelName = 'UserCol';
       const attributes = { aNumber: Sequelize.INTEGER };
 
@@ -161,7 +161,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw(Error, 'Value for "deletedAt" option must be a string or a boolean, got function');
     });
 
-    it('should allow me to use `true` as a value for updatedAt, createdAt, and deletedAt fields', async function () {
+    it('should allow me to use `true` as a value for updatedAt, createdAt, and deletedAt fields', async function() {
       const UserTable = this.sequelize.define(
         'UserCol',
         {
