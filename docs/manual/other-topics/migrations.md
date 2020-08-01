@@ -330,7 +330,7 @@ module.exports = {
 };
 ```
 
-The next example is of a migration that uses where, you can create an unique index commposed of multiple field with a condition, who permit relation to exist multiple time but only one can have the condition value:
+The next example is of a migration that creates an unique index composed of multiple fields with a condition, which allows a relation to exist multiple times but only one can satisfy the condition:
 
 ```js
 module.exports = {
