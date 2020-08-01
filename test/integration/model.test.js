@@ -178,6 +178,46 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(defaultFunction.callCount).to.equal(2);
     });
 
+    it('should throw `TypeError` when value for updatedAt, createdAt, or deletedAt is neither string nor boolean', async function () {
+      const modelName = 'UserCol';
+      const attributes = { aNumber: Sequelize.INTEGER };
+
+      expect(() => {
+        this.sequelize.define(modelName, attributes, { timestamps: true, updatedAt: {} });
+      }).to.throw(Error, 'Value for attribute "updatedAt" must be a string or a boolean');
+      expect(() => {
+        this.sequelize.define(modelName, attributes, { timestamps: true, createdAt: 100 });
+      }).to.throw(Error, 'Value for attribute "createdAt" must be a string or a boolean');
+      expect(() => {
+        this.sequelize.define(modelName, attributes, { timestamps: true, deletedAt: () => {} });
+      }).to.throw(Error, 'Value for attribute "deletedAt" must be a string or a boolean');
+    });
+
+    it('should allow me to use `true` as a value for updatedAt, createdAt, and deletedAt fields', async function () {
+      const UserTable = this.sequelize.define(
+        'UserCol',
+        {
+          aNumber: Sequelize.INTEGER
+        },
+        {
+          timestamps: true,
+          updatedAt: true,
+          createdAt: true,
+          deletedAt: true,
+          paranoid: true
+        }
+      );
+
+      await UserTable.sync({ force: true });
+      const user = await UserTable.create({ aNumber: 4 });
+      expect(user['true']).to.not.exist;
+      expect(user.updatedAt).to.exist;
+      expect(user.createdAt).to.exist;
+      await user.destroy();
+      await user.reload({ paranoid: false });
+      expect(user.deletedAt).to.exist;
+    });
+
     it('should allow me to override updatedAt, createdAt, and deletedAt fields', async function () {
       const UserTable = this.sequelize.define(
         'UserCol',
