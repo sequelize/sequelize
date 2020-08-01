@@ -1107,16 +1107,25 @@ class Model {
 
     // setup names of timestamp attributes
     if (this.options.timestamps) {
+      ['createdAt', 'updatedAt', 'deletedAt'].forEach(key => {
+        if (!['undefined', 'string', 'boolean'].includes(typeof this.options[key])) {
+          throw new Error(`Value for attribute "${key}" must be a string or a boolean`);
+        }
+      });
+
       if (this.options.createdAt !== false) {
-        this._timestampAttributes.createdAt = this.options.createdAt || 'createdAt';
+        this._timestampAttributes.createdAt =
+          typeof this.options.createdAt === 'string' ? this.options.createdAt : 'createdAt';
         this._readOnlyAttributes.add(this._timestampAttributes.createdAt);
       }
       if (this.options.updatedAt !== false) {
-        this._timestampAttributes.updatedAt = this.options.updatedAt || 'updatedAt';
+        this._timestampAttributes.updatedAt =
+          typeof this.options.updatedAt === 'string' ? this.options.updatedAt : 'updatedAt';
         this._readOnlyAttributes.add(this._timestampAttributes.updatedAt);
       }
       if (this.options.paranoid && this.options.deletedAt !== false) {
-        this._timestampAttributes.deletedAt = this.options.deletedAt || 'deletedAt';
+        this._timestampAttributes.deletedAt =
+          typeof this.options.deletedAt === 'string' ? this.options.deletedAt : 'deletedAt';
         this._readOnlyAttributes.add(this._timestampAttributes.deletedAt);
       }
     }
