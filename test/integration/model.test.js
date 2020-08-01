@@ -184,13 +184,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(() => {
         this.sequelize.define(modelName, attributes, { timestamps: true, updatedAt: {} });
-      }).to.throw(Error, 'Value for attribute "updatedAt" must be a string or a boolean');
+      }).to.throw(Error, 'Value for "updatedAt" option must be a string or a boolean, got object');
       expect(() => {
         this.sequelize.define(modelName, attributes, { timestamps: true, createdAt: 100 });
-      }).to.throw(Error, 'Value for attribute "createdAt" must be a string or a boolean');
+      }).to.throw(Error, 'Value for "createdAt" option must be a string or a boolean, got number');
       expect(() => {
         this.sequelize.define(modelName, attributes, { timestamps: true, deletedAt: () => {} });
-      }).to.throw(Error, 'Value for attribute "deletedAt" must be a string or a boolean');
+      }).to.throw(Error, 'Value for "deletedAt" option must be a string or a boolean, got function');
     });
 
     it('should allow me to use `true` as a value for updatedAt, createdAt, and deletedAt fields', async function () {
