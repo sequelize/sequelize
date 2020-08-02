@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", ":semanticCommits"],
+  "extends": ["config:base", ":semanticCommits", ":preserveSemverRanges"],
   "timezone": "Asia/Kolkata",
   "prConcurrentLimit": 4,
   "rangeStrategy": "auto",
