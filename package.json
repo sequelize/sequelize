@@ -52,7 +52,7 @@
     "@types/validator": "10.11.3",
     "@typescript-eslint/eslint-plugin": "3.4.0",
     "@typescript-eslint/parser": "3.4.0",
-    "acorn": "7.2.0",
+    "acorn": "7.4.0",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.7.0",
