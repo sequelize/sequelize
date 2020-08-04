@@ -1033,7 +1033,7 @@ class Model {
       underscored: false,
       paranoid: false,
       rejectOnEmpty: false,
-      whereCollection: null,
+      whereCollection: new WeakSet(),
       schema: null,
       schemaDelimiter: '',
       defaultScope: {},
@@ -1835,9 +1835,6 @@ class Model {
       options.originalAttributes = this._injectDependentVirtualAttributes(options.attributes);
     }
 
-    // whereCollection is used for non-primary key updates
-    this.options.whereCollection = options.where || null;
-
     Utils.mapFinderOptions(options, this);
 
     options = this._paranoidClause(this, options);
@@ -1862,7 +1859,24 @@ class Model {
       throw new sequelizeErrors.EmptyResultError();
     }
 
+    // whereCollection is used for non-primary key updates
+    this.wrapWhereCollection(results, options.where);
+
     return await Model._findSeparate(results, options);
+  }
+
+  static wrapWhereCollection(results, where = null) {
+    if (!Array.isArray(results)) {
+      results = [results];
+    }
+
+    if (!(results[0] instanceof this)) {
+      return;
+    }
+
+    results.forEach(result => {
+      this.options.whereCollection.add(result, where);
+    });
   }
 
   static warnOnInvalidOptions(options, validColumnNames) {
@@ -3635,7 +3649,7 @@ class Model {
     }, {});
 
     if (_.size(where) === 0) {
-      return this.constructor.options.whereCollection;
+      return this.constructor.options.whereCollection.get(this);
     }
     const versionAttr = this.constructor._versionAttribute;
     if (checkVersion && versionAttr) {
