@@ -12,6 +12,7 @@ import Model, {
   ModelAttributes,
   ModelOptions,
   UpdateOptions,
+  UpsertOptions,
 } from './model';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
 
