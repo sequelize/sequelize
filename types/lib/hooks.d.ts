@@ -57,6 +57,11 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterSync(options: SyncOptions): HookReturn;
   beforeBulkSync(options: SyncOptions): HookReturn;
   afterBulkSync(options: SyncOptions): HookReturn;
+  beforeUpsert(attributes: ModelAttributes<M, TAttributes>, options: UpsertOptions<TAttributes>): HookReturn;
+  /**
+   * result is an array of 2 elements [instance, a boolean indicating whether row was created:true or updated:false]
+   */
+  afterUpsert(result: [M, boolean], options: UpsertOptions<TAttributes>): HookReturn;
 }
 
 export interface SequelizeHooks<
