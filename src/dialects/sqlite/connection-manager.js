@@ -50,11 +50,11 @@ class ConnectionManager extends AbstractConnectionManager {
     const dialectOptions = this.sequelize.options.dialectOptions;
     const defaultReadWriteMode = this.lib.OPEN_READWRITE | this.lib.OPEN_CREATE;
     const config = this.config;
+
     options.readWriteMode = (dialectOptions && dialectOptions.mode) || defaultReadWriteMode;
 
     if (this.connections[options.inMemory || options.uuid]) {
-      const connections = this.connections[options.inMemory || options.uuid];
-      return connections;
+      return this.connections[options.inMemory || options.uuid];
     }
 
     if (!options.inMemory && (options.readWriteMode & this.lib.OPEN_CREATE) !== 0) {
