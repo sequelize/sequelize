@@ -49,11 +49,12 @@ class ConnectionManager extends AbstractConnectionManager {
 
     const dialectOptions = this.sequelize.options.dialectOptions;
     const defaultReadWriteMode = this.lib.OPEN_READWRITE | this.lib.OPEN_CREATE;
-
+    const config = this.config;
     options.readWriteMode = (dialectOptions && dialectOptions.mode) || defaultReadWriteMode;
 
     if (this.connections[options.inMemory || options.uuid]) {
-      return this.connections[options.inMemory || options.uuid];
+      const connections = this.connections[options.inMemory || options.uuid];
+      return connections;
     }
 
     if (!options.inMemory && (options.readWriteMode & this.lib.OPEN_CREATE) !== 0) {
@@ -61,6 +62,7 @@ class ConnectionManager extends AbstractConnectionManager {
       fs.mkdirSync(path.dirname(options.storage), { recursive: true });
     }
 
+    await this.sequelize.runHooks('beforeConnect', config);
     const connection = await new Promise((resolve, reject) => {
       this.connections[options.inMemory || options.uuid] = new this.lib.Database(
         options.storage,
@@ -83,6 +85,7 @@ class ConnectionManager extends AbstractConnectionManager {
       connection.run('PRAGMA FOREIGN_KEYS=ON');
     }
 
+    await this.sequelize.runHooks('afterConnect', config);
     return connection;
   }
 
