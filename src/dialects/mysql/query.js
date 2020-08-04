@@ -51,6 +51,9 @@ class Query extends AbstractQuery {
       // MySQL automatically rolls-back transactions in the event of a deadlock
       if (options.transaction && err.errno === 1213) {
         options.transaction.finished = 'rollback';
+        if (!options.transaction.parent) {
+          options.transaction.cleanup();
+        }
       }
       err.sql = sql;
       err.parameters = parameters;
