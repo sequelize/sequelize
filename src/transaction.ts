@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type TransactionOpts = {
+  type?: string;
+  isolationLevel?: string;
+  deferrable: string;
+  transaction: Transaction;
+};
 /**
  * The transaction object is used to identify a running transaction.
  * It is created by calling `Sequelize.transaction()`.
@@ -7,6 +14,19 @@
  * @see {@link Sequelize.transaction}
  */
 class Transaction {
+  private sequelize: any;
+  private savepoints: any[];
+  private _afterCommitHooks: any[];
+  private options: TransactionOpts & {
+    type: string;
+    isolationLevel: string;
+    readOnly: boolean;
+  };
+  private id: string;
+  private name: string;
+  private parent: Transaction;
+  private finished?: string;
+  private connection: any;
   /**
    * Creates a new transaction instance
    *
@@ -16,7 +36,7 @@ class Transaction {
    * @param {string} [options.isolationLevel] Sets the isolation level of the transaction.
    * @param {string} [options.deferrable] Sets the constraints to be deferred or immediately checked. PostgreSQL only
    */
-  constructor(sequelize, options) {
+  constructor(sequelize: any, options: TransactionOpts) {
     this.sequelize = sequelize;
     this.savepoints = [];
     this._afterCommitHooks = [];
@@ -94,7 +114,7 @@ class Transaction {
     }
   }
 
-  async prepareEnvironment(useCLS) {
+  async prepareEnvironment(useCLS: boolean) {
     let connectionPromise;
 
     if (useCLS === undefined) {
@@ -104,7 +124,10 @@ class Transaction {
     if (this.parent) {
       connectionPromise = Promise.resolve(this.parent.connection);
     } else {
-      const acquireOptions = { uuid: this.id };
+      const acquireOptions: {
+        uuid: string;
+        type?: string;
+      } = { uuid: this.id };
       if (this.options.readOnly) {
         acquireOptions.type = 'SELECT';
       }
@@ -176,7 +199,7 @@ class Transaction {
    * @name afterCommit
    * @memberof Sequelize.Transaction
    */
-  afterCommit(fn) {
+  afterCommit(fn: () => void) {
     if (!fn || typeof fn !== 'function') {
       throw new Error('"fn" must be a function');
     }
