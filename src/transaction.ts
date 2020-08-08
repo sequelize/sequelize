@@ -5,6 +5,7 @@ type TransactionOpts = {
   deferrable: string;
   transaction: Transaction;
 };
+type Fn = (args: any) => void;
 /**
  * The transaction object is used to identify a running transaction.
  * It is created by calling `Sequelize.transaction()`.
@@ -15,8 +16,8 @@ type TransactionOpts = {
  */
 class Transaction {
   private sequelize: any;
-  private savepoints: any[];
-  private _afterCommitHooks: any[];
+  private savepoints: Transaction[];
+  private _afterCommitHooks: Fn[];
   private options: TransactionOpts & {
     type: string;
     isolationLevel: string;
@@ -199,7 +200,7 @@ class Transaction {
    * @name afterCommit
    * @memberof Sequelize.Transaction
    */
-  afterCommit(fn: () => void) {
+  afterCommit(fn: Fn) {
     if (!fn || typeof fn !== 'function') {
       throw new Error('"fn" must be a function');
     }
