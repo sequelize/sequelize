@@ -2271,12 +2271,12 @@ class QueryGenerator {
 
     /* eslint-disable */
     if (options.offset != null && options.limit == null) {
-      fragment += ' LIMIT ' + this.escape(options.offset) + ', ' + 10000000000000;
+      fragment += ' LIMIT ' + this.escape(parseInt(options.offset)) + ', ' + 10000000000000;
     } else if (options.limit != null) {
       if (options.offset != null) {
-        fragment += ' LIMIT ' + this.escape(options.offset) + ', ' + this.escape(options.limit);
+        fragment += ' LIMIT ' + this.escape(parseInt(options.offset)) + ', ' + this.escape(options.limit);
       } else {
-        fragment += ' LIMIT ' + this.escape(options.limit);
+        fragment += ' LIMIT ' + this.escape(parseInt(options.limit));
       }
     }
     /* eslint-enable */
