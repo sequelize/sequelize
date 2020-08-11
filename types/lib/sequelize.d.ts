@@ -1231,6 +1231,7 @@ export class Sequelize extends Hooks {
   public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
   public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SHOWTABLES>): Promise<string[]>;
   public query(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
+  public query<M extends Model>(sql: string | { query: string; values: unknown[] }, options: QueryOptionsWithModel<M> & { plain: true; }): Promise<M>;
   public query<M extends Model>(
     sql: string | { query: string; values: unknown[] },
     options: QueryOptionsWithModel<M>
