@@ -115,7 +115,9 @@ class ConnectionManager extends AbstractConnectionManager {
           // Times out queries after a set time in milliseconds. Added in pg v7.3
           'statement_timeout',
           // Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. Added in pg v7.17.0 only supported in postgres >= 10
-          'idle_in_transaction_session_timeout'
+          'idle_in_transaction_session_timeout',
+          // Number of milliseconds to wait to connect. Added in pg v7.11.0
+          'connectionTimeoutMillis'
         ])
       );
     }
