@@ -46,7 +46,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
   createSchema(schema) {
     return [
       'IF NOT EXISTS (SELECT schema_name',
-      'FROM information_schema.schemata',
+      'FROM INFORMATION_SCHEMA.SCHEMATA',
       'WHERE schema_name =',
       wrapSingleQuote(schema),
       ')',
@@ -63,7 +63,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     const quotedSchema = wrapSingleQuote(schema);
     return [
       'IF EXISTS (SELECT schema_name',
-      'FROM information_schema.schemata',
+      'FROM INFORMATION_SCHEMA.SCHEMATA',
       'WHERE schema_name =',
       quotedSchema,
       ')',
