@@ -103,6 +103,49 @@ describe(Support.getTestDialectTeaser('Connection Manager'), () => {
     chai.expect(calls[3].args[0].host).to.eql('slave1');
   });
 
+  it('should connect to the read pool if the query type is read', async () => {
+    if (Support.getTestDialect() === 'sqlite') {
+      return;
+    }
+
+    const slave1 = { ...poolEntry };
+    const slave2 = { ...poolEntry };
+    slave1.host = 'slave1';
+    slave2.host = 'slave2';
+
+    const options = {
+      replication: {
+        write: { ...poolEntry },
+        read: [slave1, slave2]
+      }
+    };
+    const sequelize = Support.createSequelizeInstance(options);
+    const connectionManager = new ConnectionManager(sequelize.dialect, sequelize);
+
+    const res = {
+      queryType: 'read'
+    };
+
+    const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
+    sandbox.stub(connectionManager, '_disconnect').resolves(res);
+    sandbox.stub(sequelize, 'databaseVersion').resolves(sequelize.dialect.defaultVersion);
+    connectionManager.initPools();
+
+    const queryOptions = {
+      priority: 0,
+      type: 'read',
+      useMaster: false
+    };
+
+    const _getConnection = connectionManager.getConnection.bind(connectionManager, queryOptions);
+
+    await _getConnection();
+
+    // First call is the get connection for DB versions - ignore
+    const calls = connectStub.getCalls();
+    chai.expect(calls[1].args[0].host).to.eql('slave1');
+  });
+
   it('should trigger deprecation for non supported engine version', async () => {
     const deprecationStub = sandbox.stub(deprecations, 'unsupportedEngine');
     const sequelize = Support.createSequelizeInstance();
