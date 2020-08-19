@@ -27,6 +27,8 @@ MyModel.hasOne(OtherModel, { as: 'OtherModelAlias' });
 
 MyModel.findOne({ include: ['OtherModelAlias'] });
 
+MyModel.update({}, { where: { foo: 'bar' }, paranoid: false });
+
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
 MyModel.init({
