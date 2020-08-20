@@ -1206,13 +1206,17 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }
     }
 
-    if (current.dialect.supports.TSVESCTOR) { 
+    if (current.dialect.supports.TSVESCTOR) {
       describe('Op.match', () => {
-        testsql('username', {
-          [Op.match]: Support.sequelize.fn('to_tsvector', 'swagger')
-        }, {
-          postgres: "[username] @@ to_tsvector('swagger')"
-        });
+        testsql(
+          'username',
+          {
+            [Op.match]: Support.sequelize.fn('to_tsvector', 'swagger')
+          },
+          {
+            postgres: "[username] @@ to_tsvector('swagger')"
+          }
+        );
       });
     }
 
