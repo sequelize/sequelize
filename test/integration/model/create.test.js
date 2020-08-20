@@ -1060,6 +1060,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
+    if (dialect === 'postgres') {
+      it('allows the creation of a TSVECTOR field', async function () {
+        const User = this.sequelize.define('UserWithTSVECTOR', {
+          name: Sequelize.TSVECTOR
+        });
+
+        await User.sync({ force: true });
+        await User.create({ name: 'John Doe' });
+      });
+
+      it('TSVECTOR only allow string', async function () {
+        const User = this.sequelize.define('UserWithTSVECTOR', {
+          username: { type: Sequelize.TSVECTOR }
+        });
+
+        try {
+          await User.sync({ force: true });
+          await User.create({ username: 42 });
+        } catch (err) {
+          if (!(err instanceof Sequelize.ValidationError)) throw err;
+          expect(err).to.be.ok;
+        }
+      });
+    }
+
     if (current.dialect.supports.index.functionBased) {
       it("doesn't allow duplicated records with unique function based indexes", async function () {
         const User = this.sequelize.define('UserWithUniqueUsernameFunctionIndex', {
