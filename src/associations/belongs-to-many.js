@@ -593,13 +593,25 @@ class BelongsToMany extends Association {
       const obsoleteAssociations = [];
       const promises = [];
       const defaultAttributes = options.through || {};
+      const currentRowsFkMap = {};
+      for (const currentRow of currentRows) {
+        const fk = currentRow[foreignIdentifier];
+        currentRowsFkMap[fk] = true;
+      }
 
-      const unassociatedObjects = newAssociatedObjects.filter(
-        obj => !currentRows.some(currentRow => currentRow[foreignIdentifier] === obj.get(targetKey))
-      );
+      const newAssociatedObjectMap = {};
+      for (const newAssociatedObject of newAssociatedObjects) {
+        const targetValue = newAssociatedObject.get(targetKey);
+        newAssociatedObjectMap[targetValue] = newAssociatedObject;
+      }
+
+      const unassociatedObjects = newAssociatedObjects.filter(obj => {
+        const tk = obj.get(targetKey);
+        return !currentRowsFkMap[tk];
+      });
 
       for (const currentRow of currentRows) {
-        const newObj = newAssociatedObjects.find(obj => currentRow[foreignIdentifier] === obj.get(targetKey));
+        const newObj = newAssociatedObjectMap[currentRow[foreignIdentifier]];
 
         if (!newObj) {
           obsoleteAssociations.push(currentRow);

@@ -336,12 +336,24 @@ class HasMany extends Association {
       raw: true
     });
     const promises = [];
-    const obsoleteAssociations = oldAssociations.filter(
-      old => !targetInstances.find(obj => obj[this.target.primaryKeyAttribute] === old[this.target.primaryKeyAttribute])
-    );
-    const unassociatedObjects = targetInstances.filter(
-      obj => !oldAssociations.find(old => obj[this.target.primaryKeyAttribute] === old[this.target.primaryKeyAttribute])
-    );
+    const targetInstancesPkMap = {};
+    for (const targetInstance of targetInstances) {
+      const pk = targetInstance[this.target.primaryKeyAttribute];
+      targetInstancesPkMap[pk] = true;
+    }
+    const obsoleteAssociations = oldAssociations.filter(old => {
+      const pk = old[this.target.primaryKeyAttribute];
+      return !targetInstancesPkMap[pk];
+    });
+    const oldAssociationsPkMap = {};
+    for (const oldAssociation of oldAssociations) {
+      const pk = oldAssociation[this.target.primaryKeyAttribute];
+      oldAssociationsPkMap[pk] = true;
+    }
+    const unassociatedObjects = targetInstances.filter(obj => {
+      const pk = obj[this.target.primaryKeyAttribute];
+      return !oldAssociationsPkMap[pk];
+    });
     let updateWhere;
     let update;
 
