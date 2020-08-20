@@ -925,7 +925,6 @@ class MACADDR extends ABSTRACT {
   }
 }
 
-
 /**
  * The TSVECTOR type stores text search vectors.
  *
@@ -933,7 +932,10 @@ class MACADDR extends ABSTRACT {
  *
  */
 class TSVECTOR extends ABSTRACT {
-  validate() {
+  validate(value) {
+    if (typeof value !== 'string') {
+      throw new sequelizeErrors.ValidationError(util.format('%j is not a valid string', value));
+    }
     return true;
   }
 }
@@ -1023,7 +1025,7 @@ const DataTypes = (module.exports = {
   MACADDR,
   CITEXT,
   TSVECTOR
-};
+});
 
 _.each(DataTypes, (dataType, name) => {
   // guard for aliases
