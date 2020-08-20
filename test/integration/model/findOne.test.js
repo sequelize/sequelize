@@ -273,6 +273,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(user.username).to.equal('longUserNAME');
         });
       }
+
+      if (dialect === 'postgres') {
+        it('should allow case-sensitive find on TSVECTOR type', async function () {
+          const User = this.sequelize.define('UserWithCaseInsensitiveName', {
+            username: Sequelize.TSVECTOR
+          });
+
+          await User.sync({ force: true });
+          await User.create({ username: 'longUserNAME' });
+          const user = await User.findOne({
+            where: { username: 'longUserNAME' }
+          });
+          expect(user).to.exist;
+          expect(user.username).to.equal("'longUserNAME'");
+        });
+      }
     });
 
     describe('eager loading', () => {
