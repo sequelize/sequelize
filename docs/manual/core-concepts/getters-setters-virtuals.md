@@ -15,7 +15,7 @@ const User = sequelize.define('user', {
   username: {
     type: DataTypes.STRING,
     get() {
-      const rawValue = this.getDataValue(username);
+      const rawValue = this.getDataValue('username');
       return rawValue ? rawValue.toUpperCase() : null;
     }
   }
