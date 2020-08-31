@@ -384,6 +384,47 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('truncate', () => {
+    it('truncates all models sequentially in cascade', async function () {
+      const Project = this.sequelize.define(`project-${config.rand()}`, { title: DataTypes.STRING });
+      const Project2 = this.sequelize.define(`project2-${config.rand()}`, { title: DataTypes.STRING });
+      const TopProject = this.sequelize.define(`top-project-${config.rand()}`, { title: DataTypes.STRING });
+      Project.belongsTo(TopProject);
+      Project2.belongsTo(TopProject);
+      TopProject.hasMany(Project);
+      TopProject.hasMany(Project2);
+      await this.sequelize.sync({ force: true });
+      const project = await Project.create(
+        { title: 'bla', topProject: { title: 'topProject1' } },
+        { include: TopProject }
+      );
+      expect(project).to.exist;
+      expect(project.title).to.equal('bla');
+      expect(project.id).to.equal(1);
+      const project2 = await Project2.create(
+        { title: 'bla2', topProject: { title: 'topProject2' } },
+        { include: TopProject }
+      );
+      expect(project2).to.exist;
+      expect(project2.title).to.equal('bla2');
+      expect(project2.id).to.equal(1);
+      try {
+        await this.sequelize.truncate({ cascade: true });
+
+        expect(await Project.count()).to.equal(0);
+        expect(await Project2.count()).to.equal(0);
+        expect(await TopProject.count()).to.equal(0);
+      } catch (e) {
+        if (this.sequelize.dialect.supports.truncateCascade) {
+          expect.fail(
+            e,
+            undefined,
+            `truncate with cascade for dialect ${this.sequelize.dialect.name} failed with ${e.message}`
+          );
+        } else {
+          expect(e).to.be.instanceOf(Error, 'truncate with cascade is not supported for the current dialect');
+        }
+      }
+    });
     it('truncates all models', async function () {
       const Project = this.sequelize.define(`project${config.rand()}`, {
         id: {

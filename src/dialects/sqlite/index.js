@@ -43,7 +43,8 @@ SqliteDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototype
   },
   joinTableDependent: false,
   groupedLimit: false,
-  JSON: true
+  JSON: true,
+  truncateCascade: true
 });
 
 SqliteDialect.prototype.defaultVersion = '3.8.0';

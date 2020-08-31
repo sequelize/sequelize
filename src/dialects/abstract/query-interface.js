@@ -965,6 +965,9 @@ class QueryInterface {
     options = _.defaults(options, { limit: null });
 
     if (options.truncate === true) {
+      if (options.cascade && !this.sequelize.dialect.supports.truncateCascade) {
+        throw new Error('truncate with cascade is not supported for the current dialect');
+      }
       return this.sequelize.query(this.queryGenerator.truncateTableQuery(tableName, options), options);
     }
 
