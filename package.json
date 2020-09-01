@@ -60,7 +60,7 @@
     "cls-hooked": "4.2.2",
     "cross-env": "7.0.2",
     "delay": "4.4.0",
-    "dtslint": "3.6.4",
+    "dtslint": "3.7.0",
     "env-cmd": "10.1.0",
     "esdoc": "1.1.0",
     "esdoc-ecmascript-proposal-plugin": "1.0.0",
