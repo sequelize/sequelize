@@ -817,7 +817,6 @@ class Sequelize {
    */
   async truncate(options) {
     const models = [];
-
     this.modelManager.forEachModel(
       model => {
         if (model) {
@@ -828,7 +827,7 @@ class Sequelize {
     );
 
     if (options && options.cascade) {
-      for (const model of models) model.truncate(options);
+      for (const model of models) await model.truncate(options);
     } else {
       await Promise.all(models.map(model => model.truncate(options)));
     }
