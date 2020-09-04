@@ -618,6 +618,47 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(idx2.unique).not.to.be.ok;
       }
     });
+
+    it('allows us to define a named enum type', function () {
+      if (dialect === 'postgres') {
+        const UserWithNamedEnum = this.sequelize.define('UserWithNamedEnum', {
+          current_mood: {
+            type: Sequelize.ENUM({
+              name: 'mood',
+              values: ['happy', 'sad', 'neutral']
+            })
+          }
+        });
+
+        return UserWithNamedEnum.sync({ force: true }).then(() => {
+          return expect(UserWithNamedEnum.create({ current_mood: 'happy' })).to.eventually.have.property(
+            'current_mood',
+            'happy'
+          );
+        });
+      }
+    });
+
+    it('allows us to define an array of a named enum', function () {
+      if (dialect === 'postgres') {
+        const UserWithArrayNamedEnum = this.sequelize.define('UserWithNamedEnum', {
+          moods: {
+            type: Sequelize.ARRAY(
+              Sequelize.ENUM({
+                name: 'mood',
+                values: ['happy', 'sad', 'neutral']
+              })
+            )
+          }
+        });
+
+        return UserWithArrayNamedEnum.sync({ force: true }).then(() => {
+          return expect(UserWithArrayNamedEnum.create({ moods: ['happy', 'sad'] }))
+            .to.eventually.have.property('moods')
+            .that.deep.equals(['happy', 'sad']);
+        });
+      }
+    });
   });
 
   describe('build', () => {

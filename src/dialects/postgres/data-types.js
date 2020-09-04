@@ -484,7 +484,7 @@ module.exports = BaseTypes => {
 
       if (this.type instanceof BaseTypes.ENUM) {
         castKey = `${Utils.addTicks(
-          Utils.generateEnumName(options.field.Model.getTableName(), options.field.fieldName),
+          this.type.name || Utils.generateEnumName(options.field.Model.getTableName(), options.field.fieldName),
           '"'
         )}[]`;
       }
