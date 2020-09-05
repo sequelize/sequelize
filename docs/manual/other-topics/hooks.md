@@ -6,7 +6,7 @@ Hooks (also known as lifecycle events), are functions which are called before an
 
 ## Available hooks
 
-Sequelize provides a lot of hooks. The full list can be found in directly in the [source code - lib/hooks.js](https://github.com/sequelize/sequelize/blob/master/lib/hooks.js#L7).
+Sequelize provides a lot of hooks. The full list can be found in directly in the [source code - lib/hooks.js](https://github.com/sequelize/sequelize/blob/master/src/hooks.js#L5).
 
 ## Hooks firing order
 
@@ -57,23 +57,26 @@ There are currently three ways to programmatically add hooks:
 ```js
 // Method 1 via the .init() method
 class User extends Model {}
-User.init({
-  username: DataTypes.STRING,
-  mood: {
-    type: DataTypes.ENUM,
-    values: ['happy', 'sad', 'neutral']
-  }
-}, {
-  hooks: {
-    beforeValidate: (user, options) => {
-      user.mood = 'happy';
-    },
-    afterValidate: (user, options) => {
-      user.username = 'Toni';
+User.init(
+  {
+    username: DataTypes.STRING,
+    mood: {
+      type: DataTypes.ENUM,
+      values: ['happy', 'sad', 'neutral']
     }
   },
-  sequelize
-});
+  {
+    hooks: {
+      beforeValidate: (user, options) => {
+        user.mood = 'happy';
+      },
+      afterValidate: (user, options) => {
+        user.username = 'Toni';
+      }
+    },
+    sequelize
+  }
+);
 
 // Method 2 via the .addHook() method
 User.addHook('beforeValidate', (user, options) => {
@@ -101,9 +104,12 @@ Only a hook with name param can be removed.
 
 ```js
 class Book extends Model {}
-Book.init({
-  title: DataTypes.STRING
-}, { sequelize });
+Book.init(
+  {
+    title: DataTypes.STRING
+  },
+  { sequelize }
+);
 
 Book.addHook('afterCreate', 'notifyUsers', (book, options) => {
   // ...
@@ -136,15 +142,19 @@ This adds a default hook to all models, which is run if the model does not defin
 
 ```js
 const User = sequelize.define('User', {});
-const Project = sequelize.define('Project', {}, {
-  hooks: {
-    beforeCreate() {
-      // Do other stuff
+const Project = sequelize.define(
+  'Project',
+  {},
+  {
+    hooks: {
+      beforeCreate() {
+        // Do other stuff
+      }
     }
   }
-});
+);
 
-await User.create({});    // Runs the global hook
+await User.create({}); // Runs the global hook
 await Project.create({}); // Runs its own hook (because the global hook is overwritten)
 ```
 
@@ -160,15 +170,19 @@ This hook is always run, whether or not the model specifies its own `beforeCreat
 
 ```js
 const User = sequelize.define('User', {});
-const Project = sequelize.define('Project', {}, {
-  hooks: {
-    beforeCreate() {
-      // Do other stuff
+const Project = sequelize.define(
+  'Project',
+  {},
+  {
+    hooks: {
+      beforeCreate() {
+        // Do other stuff
+      }
     }
   }
-});
+);
 
-await User.create({});    // Runs the global hook
+await User.create({}); // Runs the global hook
 await Project.create({}); // Runs its own hook, followed by the global hook
 ```
 
@@ -184,45 +198,45 @@ new Sequelize(..., {
 });
 ```
 
-Note that the above is not the same as the *Default Hooks* mentioned above. That one uses the `define` option of the constructor. This one does not.
+Note that the above is not the same as the _Default Hooks_ mentioned above. That one uses the `define` option of the constructor. This one does not.
 
 ### Connection Hooks
 
 Sequelize provides four hooks that are executed immediately before and after a database connection is obtained or released:
 
-* `sequelize.beforeConnect(callback)`
-  * The callback has the form `async (config) => /* ... */`
-* `sequelize.afterConnect(callback)`
-  * The callback has the form `async (connection, config) => /* ... */`
-* `sequelize.beforeDisconnect(callback)`
-  * The callback has the form `async (connection) => /* ... */`
-* `sequelize.afterDisconnect(callback)`
-  * The callback has the form `async (connection) => /* ... */`
+- `sequelize.beforeConnect(callback)`
+  - The callback has the form `async (config) => /* ... */`
+- `sequelize.afterConnect(callback)`
+  - The callback has the form `async (connection, config) => /* ... */`
+- `sequelize.beforeDisconnect(callback)`
+  - The callback has the form `async (connection) => /* ... */`
+- `sequelize.afterDisconnect(callback)`
+  - The callback has the form `async (connection) => /* ... */`
 
 These hooks can be useful if you need to asynchronously obtain database credentials, or need to directly access the low-level database connection after it has been created.
 
 For example, we can asynchronously obtain a database password from a rotating token store, and mutate Sequelize's configuration object with the new credentials:
 
 ```js
-sequelize.beforeConnect(async (config) => {
+sequelize.beforeConnect(async config => {
   config.password = await getAuthToken();
 });
 ```
 
-These hooks may *only* be declared as a permanent global hook, as the connection pool is shared by all models.
+These hooks may _only_ be declared as a permanent global hook, as the connection pool is shared by all models.
 
 ## Instance hooks
 
 The following hooks will emit whenever you're editing a single object:
 
-* `beforeValidate`
-* `afterValidate` / `validationFailed`
-* `beforeCreate` / `beforeUpdate` / `beforeSave` / `beforeDestroy`
-* `afterCreate` / `afterUpdate` / `afterSave` / `afterDestroy`
+- `beforeValidate`
+- `afterValidate` / `validationFailed`
+- `beforeCreate` / `beforeUpdate` / `beforeSave` / `beforeDestroy`
+- `afterCreate` / `afterUpdate` / `afterSave` / `afterDestroy`
 
 ```js
 User.beforeCreate(user => {
-  if (user.accessLevel > 10 && user.username !== "Boss") {
+  if (user.accessLevel > 10 && user.username !== 'Boss') {
     throw new Error("You can't grant this user an access level above 10!");
   }
 });
@@ -235,7 +249,7 @@ try {
   await User.create({ username: 'Not a Boss', accessLevel: 20 });
 } catch (error) {
   console.log(error); // You can't grant this user an access level above 10!
-};
+}
 ```
 
 The following example will be successful:
@@ -249,18 +263,18 @@ console.log(user); // user object with username 'Boss' and accessLevel of 20
 
 Sometimes you'll be editing more than one record at a time by using methods like `bulkCreate`, `update` and `destroy`. The following hooks will emit whenever you're using one of those methods:
 
-* `YourModel.beforeBulkCreate(callback)`
-  * The callback has the form `(instances, options) => /* ... */`
-* `YourModel.beforeBulkUpdate(callback)`
-  * The callback has the form `(options) => /* ... */`
-* `YourModel.beforeBulkDestroy(callback)`
-  * The callback has the form `(options) => /* ... */`
-* `YourModel.afterBulkCreate(callback)`
-  * The callback has the form `(instances, options) => /* ... */`
-* `YourModel.afterBulkUpdate(callback)`
-  * The callback has the form `(options) => /* ... */`
-* `YourModel.afterBulkDestroy(callback)`
-  * The callback has the form `(options) => /* ... */`
+- `YourModel.beforeBulkCreate(callback)`
+  - The callback has the form `(instances, options) => /* ... */`
+- `YourModel.beforeBulkUpdate(callback)`
+  - The callback has the form `(options) => /* ... */`
+- `YourModel.beforeBulkDestroy(callback)`
+  - The callback has the form `(options) => /* ... */`
+- `YourModel.afterBulkCreate(callback)`
+  - The callback has the form `(instances, options) => /* ... */`
+- `YourModel.afterBulkUpdate(callback)`
+  - The callback has the form `(options) => /* ... */`
+- `YourModel.afterBulkDestroy(callback)`
+  - The callback has the form `(options) => /* ... */`
 
 Note: methods like `bulkCreate` do not emit individual hooks by default - only the bulk hooks. However, if you want individual hooks to be emitted as well, you can pass the `{ individualHooks: true }` option to the query call. However, this can drastically impact performance, depending on the number of records involved (since, among other things, all instances will be loaded into memory). Examples:
 
@@ -271,10 +285,13 @@ await Model.destroy({
 });
 // This will select all records that are about to be deleted and emit `beforeDestroy` and `afterDestroy` on each instance.
 
-await Model.update({ username: 'Tony' }, {
-  where: { accessLevel: 0 },
-  individualHooks: true
-});
+await Model.update(
+  { username: 'Tony' },
+  {
+    where: { accessLevel: 0 },
+    individualHooks: true
+  }
+);
 // This will select all records that are about to be updated and emit `beforeUpdate` and `afterUpdate` on each instance.
 ```
 
@@ -295,12 +312,15 @@ User.beforeBulkCreate((users, options) => {
 });
 
 // Bulk updating existing users with updateOnDuplicate option
-await Users.bulkCreate([
-  { id: 1, isMember: true },
-  { id: 2, isMember: false }
-], {
-  updateOnDuplicate: ['isMember']
-});
+await Users.bulkCreate(
+  [
+    { id: 1, isMember: true },
+    { id: 2, isMember: false }
+  ],
+  {
+    updateOnDuplicate: ['isMember']
+  }
+);
 ```
 
 ## Associations
@@ -309,20 +329,26 @@ For the most part hooks will work the same for instances when being associated.
 
 ### One-to-One and One-to-Many associations
 
-* When using `add`/`set` mixin methods the `beforeUpdate` and `afterUpdate` hooks will run.
+- When using `add`/`set` mixin methods the `beforeUpdate` and `afterUpdate` hooks will run.
 
-* The `beforeDestroy` and `afterDestroy` hooks will only be called on associations that have `onDelete: 'CASCADE'` and `hooks: true`. For example:
+- The `beforeDestroy` and `afterDestroy` hooks will only be called on associations that have `onDelete: 'CASCADE'` and `hooks: true`. For example:
 
 ```js
 class Projects extends Model {}
-Projects.init({
-  title: DataTypes.STRING
-}, { sequelize });
+Projects.init(
+  {
+    title: DataTypes.STRING
+  },
+  { sequelize }
+);
 
 class Tasks extends Model {}
-Tasks.init({
-  title: DataTypes.STRING
-}, { sequelize });
+Tasks.init(
+  {
+    title: DataTypes.STRING
+  },
+  { sequelize }
+);
 
 Projects.hasMany(Tasks, { onDelete: 'CASCADE', hooks: true });
 Tasks.belongsTo(Projects);
@@ -340,28 +366,32 @@ However, adding `hooks: true` explicitly tells Sequelize that optimization is no
 
 ### Many-to-Many associations
 
-* When using `add` mixin methods for `belongsToMany` relationships (that will add one or more records to the junction table) the `beforeBulkCreate` and `afterBulkCreate` hooks in the junction model will run.
-  * If `{ individualHooks: true }` was passed to the call, then each individual hook will also run.
+- When using `add` mixin methods for `belongsToMany` relationships (that will add one or more records to the junction table) the `beforeBulkCreate` and `afterBulkCreate` hooks in the junction model will run.
 
-* When using `remove` mixin methods for `belongsToMany` relationships (that will remove one or more records to the junction table) the `beforeBulkDestroy` and `afterBulkDestroy` hooks in the junction model will run.
-  * If `{ individualHooks: true }` was passed to the call, then each individual hook will also run.
+  - If `{ individualHooks: true }` was passed to the call, then each individual hook will also run.
+
+- When using `remove` mixin methods for `belongsToMany` relationships (that will remove one or more records to the junction table) the `beforeBulkDestroy` and `afterBulkDestroy` hooks in the junction model will run.
+  - If `{ individualHooks: true }` was passed to the call, then each individual hook will also run.
 
 If your association is Many-to-Many, you may be interested in firing hooks on the through model when using the `remove` call. Internally, sequelize is using `Model.destroy` resulting in calling the `bulkDestroy` instead of the `before/afterDestroy` hooks on each through instance.
 
 ## Hooks and Transactions
 
-Many model operations in Sequelize allow you to specify a transaction in the options parameter of the method. If a transaction *is* specified in the original call, it will be present in the options parameter passed to the hook function. For example, consider the following snippet:
+Many model operations in Sequelize allow you to specify a transaction in the options parameter of the method. If a transaction _is_ specified in the original call, it will be present in the options parameter passed to the hook function. For example, consider the following snippet:
 
 ```js
 User.addHook('afterCreate', async (user, options) => {
   // We can use `options.transaction` to perform some other call
   // using the same transaction of the call that triggered this hook
-  await User.update({ mood: 'sad' }, {
-    where: {
-      id: user.id
-    },
-    transaction: options.transaction
-  });
+  await User.update(
+    { mood: 'sad' },
+    {
+      where: {
+        id: user.id
+      },
+      transaction: options.transaction
+    }
+  );
 });
 
 await sequelize.transaction(async t => {
@@ -379,7 +409,7 @@ If we had not included the transaction option in our call to `User.update` in th
 
 It is very important to recognize that sequelize may make use of transactions internally for certain operations such as `Model.findOrCreate`. If your hook functions execute read or write operations that rely on the object's presence in the database, or modify the object's stored values like the example in the preceding section, you should always specify `{ transaction: options.transaction }`:
 
-* If a transaction was used, then `{ transaction: options.transaction }` will ensure it is used again;
-* Otherwise, `{ transaction: options.transaction }` will be equivalent to `{ transaction: undefined }`, which won't use a transaction (which is ok).
+- If a transaction was used, then `{ transaction: options.transaction }` will ensure it is used again;
+- Otherwise, `{ transaction: options.transaction }` will be equivalent to `{ transaction: undefined }`, which won't use a transaction (which is ok).
 
 This way your hooks will always behave correctly.
