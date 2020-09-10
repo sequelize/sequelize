@@ -302,6 +302,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         clock.restore();
       });
 
+      it('falls back to a noop (e.g. ON CONFLICT DO NOTHING) if no update values are found in the upsert data', async function() {
+        const clock = sinon.useFakeTimers();
+        // notice how the data does not actually have the update fields.
+        await this.User.upsert({ id: 42, username: 'jack' }, { fields: ['baz'] });
+        clock.tick(5000);
+        await this.User.upsert({ id: 42, username: 'jill' }, { fields: ['baz'] });
+        const user = await this.User.findByPk(42);
+        // just making sure the user exists, i.e. the insert happened.
+        expect(user).to.be.ok;
+        expect(user.username).to.equal('jack');  // second upsert should not have updated username.
+        clock.restore();
+      });
+
       it('does not update using default values', async function() {
         await this.User.create({ id: 42, username: 'john', baz: 'new baz value' });
         const user0 = await this.User.findByPk(42);
@@ -578,16 +591,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should return default value set by the database (upsert)', async function() {      
+        it('should return default value set by the database (upsert)', async function() {
           const User = this.sequelize.define('User', {
             name: { type: DataTypes.STRING, primaryKey: true },
             code: { type: Sequelize.INTEGER, defaultValue: Sequelize.literal(2020) }
           });
-    
+
           await User.sync({ force: true });
-    
+
           const [user, created] = await User.upsert({ name: 'Test default value' }, { returning: true });
-      
+
           expect(user.name).to.be.equal('Test default value');
           expect(user.code).to.be.equal(2020);
 
