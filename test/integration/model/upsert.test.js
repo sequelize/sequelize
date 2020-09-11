@@ -343,6 +343,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         clock.restore();
       });
 
+      it('does not overwrite createdAt when supplied as an explicit insert value when using fields', async function () {
+        const clock = sinon.useFakeTimers();
+        const originalCreatedAt = new Date('2010-01-01T12:00:00.000Z');
+        await this.User.upsert(
+          { id: 42, username: 'john', createdAt: originalCreatedAt },
+          { fields: ['id', 'username'] }
+        );
+        const user = await this.User.findByPk(42);
+        expect(user.createdAt).to.deep.equal(originalCreatedAt);
+        clock.restore();
+      });
+
       it('does not update using default values', async function () {
         await this.User.create({
           id: 42,
