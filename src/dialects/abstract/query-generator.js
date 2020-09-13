@@ -2739,7 +2739,7 @@ class QueryGenerator {
         if (value instanceof Utils.Literal) {
           return this._joinKeyValue(key, value.val, comparator, options.prefix);
         }
-
+        value = [...value];
         if (value.length) {
           return this._joinKeyValue(
             key,
@@ -2769,6 +2769,7 @@ class QueryGenerator {
         return this._joinKeyValue(key, `(${this.escape(value, field)})`, comparator, options.prefix);
       case Op.between:
       case Op.notBetween:
+        value = [...value];
         return this._joinKeyValue(
           key,
           `${this.escape(value[0], field)} AND ${this.escape(value[1], field)}`,
