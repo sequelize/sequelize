@@ -430,6 +430,49 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user.city).to.equal('New City');
       });
 
+      it('works when composite indexes are created via indexes array', async () => {
+        const ConditionalIndexModel = current.define('ConditionalIndexModel', {
+          primary_id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          first_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+          },
+          second_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+          },
+          stamped_at: DataTypes.DATE
+        }, {
+          indexes: [
+            {
+              unique: true,
+              fields: ['first_id', 'second_id'],
+              where: {
+                stamped_at: null
+              }
+            }
+          ]
+        });
+
+        await ConditionalIndexModel.sync({ force: true });
+        const [, created] = await ConditionalIndexModel.upsert({
+          first_id: 1,
+          second_id: 2
+        });
+        if (dialect === 'sqlite' || dialect === 'postgres') {
+          expect(created).to.be.null;
+        } else {
+          expect(created).to.be.ok;
+        }
+        const instance = await ConditionalIndexModel.findOne({ where: { first_id: 1, second_id: 2 } });
+        expect(instance).not.to.be.null;
+        expect(instance.stamped_at).to.be.null;
+      });
+
       if (dialect === 'mssql') {
         it('Should throw foreignKey violation for MERGE statement as ForeignKeyConstraintError', async function() {
           const User = this.sequelize.define('User', {
