@@ -306,6 +306,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(users).to.have.length(0);
     });
 
+    it('should work without options', async function () {
+      await this.ParanoidUser.create({ username: 'cuss' });
+      const users = await this.ParanoidUser.findAll();
+      expect(users).to.have.length(1);
+    });
+
     it('sequelize.and as where should include paranoid condition', async function () {
       await this.ParanoidUser.create({ username: 'cuss' });
 
