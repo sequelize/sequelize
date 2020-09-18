@@ -4,7 +4,7 @@ const execSync = require('child_process').execSync;
 let isDbReady = false;
 
 function checkDb() {
-  const logs = execSync('docker logs db2server').toString();
+  const logs = execSync('docker logs db2').toString();
   if (logs.match(/Setup has completed/)) {
     isDbReady = true;
     clearTimeout(timeoutObj);

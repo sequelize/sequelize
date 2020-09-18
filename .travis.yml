@@ -33,7 +33,7 @@ before_script:
   - "if [ $MARIADB_VER ]; then docker run --link ${MARIADB_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
   - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
-  - "if [ $DB2_VER ]; then docker run --link ${DB2_VER}:db -e CHECK_PORT=50000 -e CHECK_HOST=db --net sequelize_default giorgos/takis; node $TRAVIS_BUILD_DIR/test/config/db2/checkdb.js; fi"
+  - "if [ $DB2_VER ]; then $TRAVIS_BUILD_DIR/test/config/db2/setup-docker.sh; fi"
 
 script:
   - |-
