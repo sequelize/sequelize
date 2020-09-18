@@ -451,6 +451,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user0 = await this.User.findOne(query);
       expect(user0.username).to.equal('fnord');
     });
+    it('can use function without optoins', async function () {
+      await this.User.create({ username: 'fnord' });
+      const user = await this.User.findOne();
+      expect(user.username).to.equal('fnord');
+    });
     it('returns null for null, undefined, and unset boolean values', async function () {
       const Setting = this.sequelize.define(
         'SettingHelper',
