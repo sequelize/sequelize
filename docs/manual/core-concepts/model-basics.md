@@ -167,7 +167,7 @@ console.log("All tables dropped!");
 
 ### Database safety check
 
-As shown above, the `sync` and `drop` operations are destructive. Sequelize acceps a `match` option as an additional safety check, which receives a RegExp:
+As shown above, the `sync` and `drop` operations are destructive. Sequelize accepts a `match` option as an additional safety check, which receives a RegExp:
 
 ```js
 // This will run .sync() only if database name ends with '_test'
