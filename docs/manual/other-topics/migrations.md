@@ -69,25 +69,30 @@ Sequelize will use the default connection port for each dialect (for example, fo
 
 **Note:** _If your database doesn't exist yet, you can just call `db:create` command. With proper access it will create that database for you._
 
-## Creating the first Model (and Migration)
+## Creating the first Model/Migration
 
-Once you have properly configured CLI config file you are ready to create your first migration. It's as simple as executing a simple command.
+Once you have properly configured CLI config file you are ready to create your first model/migration. It's as simple as executing a simple command.
 
 We will use `model:generate` command. This command requires two options:
 
 - `name`: the name of the model;
 - `attributes`: the list of model attributes.
 
-Let's create a model named `User`.
+### Create `User` model
 
 ```text
 npx sequelize-cli model:generate --name User --attributes firstName:string,lastName:string,email:string
 ```
 
-This will:
+This will create a model file `user` in `models` folder.
 
-- Create a model file `user` in `models` folder;
-- Create a migration file with name like `XXXXXXXXXXXXXX-create-user.js` in `migrations` folder.
+### Create `User` migration
+
+```
+npx sequelize-cli migration:generate --name create-user
+```
+
+This will create a migration file with name like `XXXXXXXXXXXXXX-create-user.js` in `migrations` folder.
 
 **Note:** _Sequelize will only use Model files, it's the table representation. On the other hand, the migration file is a change in that model or more specifically that table, used by CLI. Treat migrations like a commit or a log for some change in database._
 
