@@ -1087,6 +1087,12 @@ class Sequelize {
       options = undefined;
     }
 
+    options = options || {};
+
+    if (options.transaction === undefined && Sequelize._cls) {
+      options.transaction = Sequelize._cls.get('transaction');
+    }
+
     const transaction = new Transaction(this, options);
 
     if (!autoCallback) {

@@ -1247,7 +1247,6 @@ class QueryInterface {
     }
 
     options = { ...options, transaction: transaction.parent || transaction };
-    options.transaction.name = transaction.parent ? transaction.name : undefined;
     const sql = this.queryGenerator.startTransactionQuery(transaction);
 
     return await this.sequelize.query(sql, options);
@@ -1298,7 +1297,6 @@ class QueryInterface {
       supportsSearchPath: false,
       completesTransaction: true
     };
-    options.transaction.name = transaction.parent ? transaction.name : undefined;
     const sql = this.queryGenerator.rollbackTransactionQuery(transaction);
     const promise = this.sequelize.query(sql, options);
 

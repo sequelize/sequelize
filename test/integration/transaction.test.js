@@ -412,6 +412,97 @@ if (current.dialect.supports.transactions) {
       }
     });
 
+    it('commit and rollback nested transactions', async function () {
+      const TransactionTest = this.sequelize.define(
+        'transaction_test',
+        {
+          name: Support.Sequelize.STRING
+        },
+        { timestamps: false }
+      );
+      await this.sequelize.sync({ force: true });
+      await TransactionTest.truncate();
+      await this.sequelize.transaction(async t1 => {
+        await TransactionTest.create({ name: 'name1' });
+
+        await expect(
+          this.sequelize.transaction({ transaction: t1 }, async t2 => {
+            await TransactionTest.create({ name: 'name2' }, { transaction: t2 });
+            await t2.rollback();
+          })
+        ).to.eventually.be.rejectedWith(
+          'Transaction cannot be committed because it has been finished with state: rollback'
+        );
+        await expect(
+          this.sequelize.transaction({ transaction: t1 }, async t2 => {
+            await TransactionTest.create({ name: 'name3' }, { transaction: t2 });
+            await t2.rollback();
+          })
+        ).to.eventually.be.rejectedWith(
+          'Transaction cannot be committed because it has been finished with state: rollback'
+        );
+        await this.sequelize.transaction({ transaction: t1 }, async t2 => {
+          await TransactionTest.create({ name: 'name4' }, { transaction: t2 });
+        });
+        await expect(
+          this.sequelize.transaction({ transaction: t1 }, async t2 => {
+            await TransactionTest.create({ name: 'name5' }, { transaction: t2 });
+            await t2.rollback();
+          })
+        ).to.eventually.be.rejectedWith(
+          'Transaction cannot be committed because it has been finished with state: rollback'
+        );
+      });
+      const results = (await TransactionTest.findAll()).map(({ name }) => name).sort();
+
+      expect(results.length).to.equal(2);
+      expect(results).to.deep.equal(['name1', 'name4']);
+    });
+
+    it('commit and rollback 3 level nested transactions', async function () {
+      const TransactionTest = this.sequelize.define(
+        'transaction_test',
+        {
+          name: Support.Sequelize.STRING
+        },
+        { timestamps: false }
+      );
+      await this.sequelize.sync({ force: true });
+      await TransactionTest.truncate();
+      await this.sequelize.transaction(async t => {
+        await TransactionTest.create({ name: 'name0' });
+        await this.sequelize.transaction({ transaction: t }, async t1 => {
+          await TransactionTest.create({ name: 'name1' });
+          await this.sequelize.transaction({ transaction: t1 }, async t2 => {
+            await TransactionTest.create({ name: 'name2' }, { transaction: t2 });
+          });
+          await expect(
+            this.sequelize.transaction({ transaction: t1 }, async t2 => {
+              await TransactionTest.create({ name: 'name3' }, { transaction: t2 });
+              await t2.rollback();
+            })
+          ).to.eventually.be.rejectedWith(
+            'Transaction cannot be committed because it has been finished with state: rollback'
+          );
+          await this.sequelize.transaction({ transaction: t1 }, async t2 => {
+            await TransactionTest.create({ name: 'name4' }, { transaction: t2 });
+          });
+          await expect(
+            this.sequelize.transaction({ transaction: t1 }, async t2 => {
+              await TransactionTest.create({ name: 'name5' }, { transaction: t2 });
+              await t2.rollback();
+            })
+          ).to.eventually.be.rejectedWith(
+            'Transaction cannot be committed because it has been finished with state: rollback'
+          );
+        });
+      });
+      const results = (await TransactionTest.findAll()).map(({ name }) => name).sort();
+
+      expect(results.length).to.equal(4);
+      expect(results).to.deep.equal(['name0', 'name1', 'name2', 'name4']);
+    });
+
     if (dialect === 'mysql' || dialect === 'mariadb') {
       describe('deadlock handling', () => {
         it('should treat deadlocked transaction as rollback', async function () {
