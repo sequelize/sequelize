@@ -4,6 +4,7 @@ const Utils = require('../../utils');
 const QueryTypes = require('../../query-types');
 const Op = require('../../operators');
 const { QueryInterface } = require('../abstract/query-interface');
+const Transaction = require('../../transaction');
 
 /**
  * The interface that Sequelize uses to talk with MSSQL database
@@ -81,6 +82,17 @@ class MSSqlQueryInterface extends QueryInterface {
 
     const sql = this.queryGenerator.upsertQuery(tableName, insertValues, updateValues, where, model, options);
     return await this.sequelize.query(sql, options);
+  }
+
+  async rollbackTransaction(transaction, options) {
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to rollback a transaction without transaction object!');
+    }
+    for (const t of transaction.savepoints.reverse().filter(({ finished }) => finished !== 'rollback')) {
+      delete t.finished;
+      await t.rollback();
+    }
+    return super.rollbackTransaction(transaction, options);
   }
 }
 

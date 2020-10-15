@@ -31,7 +31,7 @@ class Transaction {
       ...options
     };
 
-    this.parent = this.options.transaction;
+    this.parent = this.options.transaction && this.options.transaction.getActiveSavepoint();
 
     if (this.parent) {
       this.id = this.parent.id;
@@ -43,7 +43,15 @@ class Transaction {
 
     delete this.options.transaction;
   }
-
+  /**
+   * Return transaction object that was created last and it active or current transaction either
+   *
+   * @returns {Transaction}
+   */
+  getActiveSavepoint() {
+    const sp = this.savepoints.length && this.savepoints[this.savepoints.length - 1];
+    return sp && !sp.finished ? sp.getActiveSavepoint() : this;
+  }
   /**
    * Commit the transaction
    *
