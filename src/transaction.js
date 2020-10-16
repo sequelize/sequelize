@@ -103,24 +103,22 @@ class Transaction {
   }
 
   async prepareEnvironment(useCLS) {
-    let connectionPromise;
-
     if (useCLS === undefined) {
       useCLS = true;
     }
 
+    let connection;
     if (this.parent) {
-      connectionPromise = Promise.resolve(this.parent.connection);
+      connection = this.parent.connection;
     } else {
       const acquireOptions = { uuid: this.id };
       if (this.options.readOnly) {
         acquireOptions.type = 'SELECT';
       }
-      connectionPromise = this.sequelize.connectionManager.getConnection(acquireOptions);
+      connection = await this.sequelize.connectionManager.getConnection(acquireOptions);
     }
 
     let result;
-    const connection = await connectionPromise;
     this.connection = connection;
     this.connection.uuid = this.id;
 

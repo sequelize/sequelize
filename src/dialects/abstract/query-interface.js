@@ -1230,7 +1230,7 @@ class QueryInterface {
       return;
     }
 
-    options = { ...options, transaction: transaction.parent || transaction };
+    options = { ...options, transaction };
 
     const sql = this.queryGenerator.setIsolationLevelQuery(value, {
       parent: transaction.parent
@@ -1246,14 +1246,14 @@ class QueryInterface {
       throw new Error('Unable to start a transaction without transaction object!');
     }
 
-    options = { ...options, transaction: transaction.parent || transaction };
+    options = { ...options, transaction };
     const sql = this.queryGenerator.startTransactionQuery(transaction);
 
     return await this.sequelize.query(sql, options);
   }
 
   async deferConstraints(transaction, options) {
-    options = { ...options, transaction: transaction.parent || transaction };
+    options = { ...options, transaction };
 
     const sql = this.queryGenerator.deferConstraintsQuery(options);
 
@@ -1273,7 +1273,7 @@ class QueryInterface {
 
     options = {
       ...options,
-      transaction: transaction.parent || transaction,
+      transaction,
       supportsSearchPath: false,
       completesTransaction: true
     };
@@ -1293,7 +1293,7 @@ class QueryInterface {
 
     options = {
       ...options,
-      transaction: transaction.parent || transaction,
+      transaction,
       supportsSearchPath: false,
       completesTransaction: true
     };
