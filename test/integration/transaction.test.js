@@ -40,6 +40,22 @@ if (current.dialect.supports.transactions) {
         }
       });
     });
+    describe('Errors passing transaction object', () => {
+      it('should call query interface transaction methods and reject for a non transaction object', async function () {
+        await expect(this.sequelize.getQueryInterface().setIsolationLevel({}, true, {})).to.eventually.be.rejectedWith(
+          'Unable to set isolation level for a transaction without transaction object!'
+        );
+        await expect(this.sequelize.getQueryInterface().startTransaction({}, {})).to.eventually.be.rejectedWith(
+          'Unable to start a transaction without transaction object!'
+        );
+        await expect(this.sequelize.getQueryInterface().commitTransaction({}, {})).to.eventually.be.rejectedWith(
+          'Unable to commit a transaction without transaction object!'
+        );
+        await expect(this.sequelize.getQueryInterface().rollbackTransaction({}, {})).to.eventually.be.rejectedWith(
+          'Unable to rollback a transaction without transaction object!'
+        );
+      });
+    });
 
     describe('commit', () => {
       it('is a commit method available', () => {
