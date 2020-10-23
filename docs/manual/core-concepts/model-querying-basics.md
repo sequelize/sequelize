@@ -77,7 +77,7 @@ You can use [`sequelize.fn`](../class/lib/sequelize.js~Sequelize.html#static-met
 Model.findAll({
   attributes: [
     'foo',
-    [sequelize.fn('COUNT', sequelize.col('hats')), 'n_hats']
+    [sequelize.fn('COUNT', sequelize.col('hats')), 'n_hats'],
     'bar'
   ]
 });
