@@ -167,14 +167,12 @@ class AbstractQuery {
   }
 
   isInsertQuery(results, metaData) {
-    let result = true;
-
     if (this.options.type === QueryTypes.INSERT) {
       return true;
     }
 
     // is insert query if sql contains insert into
-    result = result && this.sql.toLowerCase().startsWith('insert into');
+    let result = this.sql.toLowerCase().startsWith('insert into');
 
     // is insert query if no results are passed or if the result has the inserted id
     result = result && (!results || Object.prototype.hasOwnProperty.call(results, this.getInsertIdField()));
