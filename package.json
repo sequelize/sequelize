@@ -40,7 +40,7 @@
     "moment-timezone": "^0.5.21",
     "retry-as-promised": "^3.2.0",
     "semver": "^6.3.0",
-    "sequelize-pool": "^2.3.0",
+    "sequelize-pool": "^6.1.0",
     "toposort-class": "^1.0.1",
     "uuid": "^3.3.3",
     "validator": "^10.11.0",
