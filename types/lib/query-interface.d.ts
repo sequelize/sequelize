@@ -304,7 +304,7 @@ export class QueryInterface {
    * @param tableName Table name.
    * @param options   Query options, particularly "force".
    */
-  public dropTable(tableName: string, options?: QueryInterfaceDropTableOptions): Promise<void>;
+  public dropTable(tableName: string | { schema?: string; tableName?: string }, options?: QueryInterfaceDropTableOptions): Promise<void>;
 
   /**
    * Drops all tables.
