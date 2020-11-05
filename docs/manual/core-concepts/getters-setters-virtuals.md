@@ -15,7 +15,7 @@ const User = sequelize.define('user', {
   username: {
     type: DataTypes.STRING,
     get() {
-      const rawValue = this.getDataValue(username);
+      const rawValue = this.getDataValue('username');
       return rawValue ? rawValue.toUpperCase() : null;
     }
   }
@@ -27,10 +27,10 @@ This getter, just like a standard JavaScript getter, is called automatically whe
 ```js
 const user = User.build({ username: 'SuperUser123' });
 console.log(user.username); // 'SUPERUSER123'
-console.log(user.getDataValue(username)); // 'SuperUser123'
+console.log(user.getDataValue('username')); // 'SuperUser123'
 ```
 
-Note that, although `SUPERUSER123` was logged above, the value truly stored in the database is still `SuperUser123`. We used `this.getDataValue(username)` to obtain this value, and converted it to uppercase.
+Note that, although `SUPERUSER123` was logged above, the value truly stored in the database is still `SuperUser123`. We used `this.getDataValue('username')` to obtain this value, and converted it to uppercase.
 
 Had we tried to use `this.username` in the getter instead, we would have gotten an infinite loop! This is why Sequelize provides the `getDataValue` method.
 
@@ -55,7 +55,7 @@ const User = sequelize.define('user', {
 ```js
 const user = User.build({ username: 'someone', password: 'NotSo§tr0ngP4$SW0RD!' });
 console.log(user.password); // '7cfc84b8ea898bb72462e78b4643cfccd77e9f05678ec2ce78754147ba947acc'
-console.log(user.getDataValue(password)); // '7cfc84b8ea898bb72462e78b4643cfccd77e9f05678ec2ce78754147ba947acc'
+console.log(user.getDataValue('password')); // '7cfc84b8ea898bb72462e78b4643cfccd77e9f05678ec2ce78754147ba947acc'
 ```
 
 Observe that Sequelize called the setter automatically, before even sending data to the database. The only data the database ever saw was the already hashed value.
