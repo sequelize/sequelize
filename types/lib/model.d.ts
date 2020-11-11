@@ -1825,6 +1825,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findAll<M extends Model>(
     this: ModelStatic<M>,
+    options?: NonNullFindOptions<M['_attributes']>): Promise<M[]>;
+  public static findAll<M extends Model>(
+    this: ModelStatic<M>,
     options?: FindOptions<M['_attributes']>): Promise<M[]>;
 
   /**
