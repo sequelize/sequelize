@@ -98,7 +98,7 @@ Note that `t.commit()` and `t.rollback()` were not called directly (which is cor
 When using the managed transaction you should *never* commit or rollback the transaction manually. If all queries are successful (in the sense of not throwing any error), but you still want to rollback the transaction, you should throw an error yourself:
 
 ```js
-await sequelize.transaction(t => {
+await sequelize.transaction((async (t) => {
   const user = await User.create({
     firstName: 'Abraham',
     lastName: 'Lincoln'
