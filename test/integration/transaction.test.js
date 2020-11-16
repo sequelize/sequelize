@@ -424,13 +424,60 @@ if (current.dialect.supports.transactions) {
 
     if (dialect === 'mysql' || dialect === 'mariadb') {
       describe('deadlock handling', () => {
-        it('should treat deadlocked transaction as rollback', async function() {
-          const Task = this.sequelize.define('task', {
+        // Create the `Task` table and ensure it's initialized with 2 rows
+        const getAndInitializeTaskModel = async sequelize => {
+          const Task = sequelize.define('task', {
             id: {
               type: Sequelize.INTEGER,
               primaryKey: true
             }
           });
+
+          await sequelize.sync({ force: true });
+          await Task.create({ id: 0 });
+          await Task.create({ id: 1 });
+          return Task;
+        };
+
+        // Lock the row with id of `from`, and then try to update the row
+        // with id of `to`
+        const update = async (sequelize, Task, from, to) => {
+          await sequelize
+            .transaction(async transaction => {
+              try {
+                try {
+                  await Task.findAll({
+                    where: { id: { [Sequelize.Op.eq]: from } },
+                    lock: transaction.LOCK.UPDATE,
+                    transaction
+                  });
+
+                  await delay(10);
+
+                  await Task.update(
+                    { id: to },
+                    {
+                      where: { id: { [Sequelize.Op.ne]: to } },
+                      lock: transaction.LOCK.UPDATE,
+                      transaction
+                    }
+                  );
+                } catch (e) {
+                  console.log(e.message);
+                }
+
+                await Task.create({ id: 2 }, { transaction });
+              } catch (e) {
+                console.log(e.message);
+              }
+
+              throw new Error('Rollback!');
+            })
+            .catch(() => {});
+        };
+
+        it('should treat deadlocked transaction as rollback', async function() {
+          const Task = await getAndInitializeTaskModel(this.sequelize);
 
           // This gets called twice simultaneously, and we expect at least one of the calls to encounter a
           // deadlock (which effectively rolls back the active transaction).
@@ -439,54 +486,42 @@ if (current.dialect.supports.transactions) {
           // execute a query, we expect the newly-created rows to be destroyed when we forcibly rollback by
           // throwing an error.
           // tl;dr; This test is designed to ensure that this function never inserts and commits a new row.
-          const update = async (from, to) => this.sequelize.transaction(async transaction => {
-            try {
-              try {
-                await Task.findAll({
-                  where: {
-                    id: {
-                      [Sequelize.Op.eq]: from
-                    }
-                  },
-                  lock: 'UPDATE',
-                  transaction
-                });
-
-                await delay(10);
-
-                await Task.update({ id: to }, {
-                  where: {
-                    id: {
-                      [Sequelize.Op.ne]: to
-                    }
-                  },
-                  lock: transaction.LOCK.UPDATE,
-                  transaction
-                });
-              } catch (e) {
-                console.log(e.message);
-              }
-
-              await Task.create({ id: 2 }, { transaction });
-            } catch (e) {
-              console.log(e.message);
-            }
-
-            throw new Error('Rollback!');
-          }).catch(() => {});
-
-          await this.sequelize.sync({ force: true });
-          await Task.create({ id: 0 });
-          await Task.create({ id: 1 });
-
-          await Promise.all([
-            update(1, 0),
-            update(0, 1)
-          ]);
+          await Promise.all([update(this.sequelize, Task, 1, 0), update(this.sequelize, Task, 0, 1)]);
 
           const count = await Task.count();
           // If we were actually inside a transaction when we called `Task.create({ id: 2 })`, no new rows should be added.
           expect(count).to.equal(2, 'transactions were fully rolled-back, and no new rows were added');
+        });
+
+        it('should release the connection for a deadlocked transaction', async function() {
+          const Task = await getAndInitializeTaskModel(this.sequelize);
+
+          // 1 of 2 queries should deadlock and be rolled back by InnoDB
+          this.sinon.spy(this.sequelize.connectionManager, 'releaseConnection');
+          await Promise.all([update(this.sequelize, Task, 1, 0), update(this.sequelize, Task, 0, 1)]);
+
+          // Verify that both of the connections were released
+          expect(this.sequelize.connectionManager.releaseConnection.callCount).to.equal(2);
+
+          // Verify that a follow-up READ_COMMITTED works as expected.
+          // For unknown reasons, we need to explicitly rollback on MariaDB,
+          // even though the transaction should've automatically been rolled
+          // back.
+          // Otherwise, this READ_COMMITTED doesn't work as expected.
+          const User = this.sequelize.define('user', {
+            username: Support.Sequelize.STRING
+          });
+          await this.sequelize.sync({ force: true });
+          await this.sequelize.transaction(
+            { isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED },
+            async transaction => {
+              const users0 = await User.findAll({ transaction });
+              expect(users0).to.have.lengthOf(0);
+              await User.create({ username: 'jan' }); // Create a User outside of the transaction
+              const users = await User.findAll({ transaction });
+              expect(users).to.have.lengthOf(1); // We SHOULD see the created user inside the transaction
+            }
+          );
         });
       });
     }
