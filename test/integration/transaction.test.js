@@ -611,13 +611,16 @@ if (current.dialect.supports.transactions) {
 
         await expect(
           this.sequelize.sync({ force: true }).then(() => {
-            return this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED }, async transaction => {
-              const users0 = await User.findAll({ transaction });
-              await expect( users0 ).to.have.lengthOf(0);
-              await User.create({ username: 'jan' }); // Create a User outside of the transaction
-              const users = await User.findAll({ transaction });
-              return expect( users ).to.have.lengthOf(1); // We SHOULD see the created user inside the transaction
-            });
+            return this.sequelize.transaction(
+              { isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED },
+              async transaction => {
+                const users0 = await User.findAll({ transaction });
+                expect(users0).to.have.lengthOf(0);
+                await User.create({ username: 'jan' }); // Create a User outside of the transaction
+                const users = await User.findAll({ transaction });
+                expect(users).to.have.lengthOf(1); // We SHOULD see the created user inside the transaction
+              }
+            );
           })
         ).to.eventually.be.fulfilled;
       });
