@@ -60,3 +60,4 @@
 * [sequelize-deep-update](https://www.npmjs.com/package/sequelize-deep-update) - Update a sequelize instance and its included associated instances with new properties.
 * [sequelize-noupdate-attributes](https://www.npmjs.com/package/sequelize-noupdate-attributes) - Adds no update/readonly attributes support to models.
 * [sequelize-joi](https://www.npmjs.com/package/sequelize-joi) - Allows specifying [Joi](https://github.com/hapijs/joi) validation schema for JSONB model attributes in Sequelize.
+* [sequelize-stream](https://github.com/onhernandes/sequelize-stream) - Wrappers Model.findAll() as a stream
