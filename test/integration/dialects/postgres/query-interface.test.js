@@ -1,6 +1,5 @@
 'use strict';
 
-/* jshint -W030 */
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require(__dirname + '/../../support');
@@ -35,10 +34,17 @@ if (dialect.match(/^postgres/)) {
           });
       });
 
-      it('errors if the schema exists', function() {
+      it('works even when schema exists', function() {
         return this.queryInterface.createSchema('testschema')
-          .catch(err => {
-            expect(err.message).to.be.equal('schema "testschema" already exists');
+          .then(() => this.queryInterface.createSchema('testschema'))
+          .then(() => this.sequelize.query(`
+            SELECT schema_name
+            FROM information_schema.schemata
+            WHERE schema_name = 'testschema';
+          `, { type: this.sequelize.QueryTypes.SELECT }))
+          .then(res => {
+            expect(res, 'query results').to.not.be.empty;
+            expect(res[0].schema_name).to.be.equal('testschema');
           });
       });
     });
@@ -203,6 +209,21 @@ if (dialect.match(/^postgres/)) {
             isAdmin: DataTypes.BOOLEAN,
             from: DataTypes.STRING
           }));
+      });
+
+      it('supports newlines', function() {
+        return this.queryInterface.addIndex('Group', [this.sequelize.literal(`(
+            CASE "username"
+              WHEN 'foo' THEN 'bar'
+              ELSE 'baz'
+            END
+          )`)], { name: 'group_username_case' })
+          .then(() => this.queryInterface.showIndex('Group'))
+          .then(indexes => {
+            const indexColumns = _.uniq(indexes.map(index => index.name));
+
+            expect(indexColumns).to.include('group_username_case');
+          });
       });
 
       it('adds, reads and removes a named functional index to the table', function() {

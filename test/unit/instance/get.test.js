@@ -1,16 +1,15 @@
 'use strict';
 
-/* jshint -W030 */
-var chai = require('chai')
-  , sinon = require('sinon')
-  , expect = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , current   = Support.sequelize;
+const chai = require('chai'),
+  sinon = require('sinon'),
+  expect = chai.expect,
+  Support   = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('Instance'), function() {
-  describe('get', function () {
-    beforeEach(function () {
+describe(Support.getTestDialectTeaser('Instance'), () => {
+  describe('get', () => {
+    beforeEach(function() {
       this.getSpy = sinon.spy();
       this.User = current.define('User', {
         name: {
@@ -20,13 +19,13 @@ describe(Support.getTestDialectTeaser('Instance'), function() {
       });
     });
 
-    it('invokes getter if raw: false', function () {
+    it('invokes getter if raw: false', function() {
       this.User.build().get('name');
 
       expect(this.getSpy).to.have.been.called;
     });
 
-    it('does not invoke getter if raw: true', function () {
+    it('does not invoke getter if raw: true', function() {
       expect(this.getSpy, { raw: true }).not.to.have.been.called;
     });
   });

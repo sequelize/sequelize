@@ -1,13 +1,13 @@
 'use strict';
 
-/* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support   = require(__dirname + '/../support')
-  , current   = Support.sequelize;
+const chai = require('chai'),
+  expect = chai.expect,
+  _         = require('lodash'),
+  Support   = require(__dirname + '/../support'),
+  current   = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('belongsTo'), function() {
-  it('should not override custom methods with association mixin', function(){
+describe(Support.getTestDialectTeaser('belongsTo'), () => {
+  it('should not override custom methods with association mixin', () => {
     const methods = {
       getTask : 'get',
       setTask: 'set',
@@ -16,8 +16,8 @@ describe(Support.getTestDialectTeaser('belongsTo'), function() {
     const User = current.define('User');
     const Task = current.define('Task');
 
-    current.Utils._.each(methods, (alias, method) => {
-      User.prototype[method] = function () {
+    _.each(methods, (alias, method) => {
+      User.prototype[method] = function() {
         const realMethod = this.constructor.associations.task[alias];
         expect(realMethod).to.be.a('function');
         return realMethod;
@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), function() {
 
     const user = User.build();
 
-    current.Utils._.each(methods, (alias, method) => {
+    _.each(methods, (alias, method) => {
       expect(user[method]()).to.be.a('function');
     });
   });

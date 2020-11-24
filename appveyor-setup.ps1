@@ -20,7 +20,7 @@ $config = @{
   username = "sa"
   password = "Password12!"
   port = $port
-  database = "master"
+  database = "sequelize_test"
   dialectOptions = @{
     requestTimeout = 25000
     cryptoCredentialsDetails = @{
@@ -34,6 +34,9 @@ $config = @{
 }
 
 $json = $config | ConvertTo-Json -Depth 3
+
+# Create sequelize_test database
+sqlcmd -S "(local)" -U "sa" -P "Password12!" -d "master" -Q "CREATE DATABASE [sequelize_test]; ALTER DATABASE [sequelize_test] SET READ_COMMITTED_SNAPSHOT ON;"
 
 # cannot use Out-File because it outputs a BOM
 [IO.File]::WriteAllLines((Join-Path $pwd "test\config\mssql.json"), $json)

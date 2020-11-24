@@ -1,23 +1,30 @@
 version: '2'
 
 services:
+  sequelize:
+    build: .
+    links:
+     - mysql-57
+     - postgres-95
+     - mssql
+     - oracle-12c
+    volumes:
+      - .:/sequelize
+    environment:
+      SEQ_DB: sequelize_test
+      SEQ_USER: sequelize_test
+      SEQ_PW: sequelize_test
+
   # PostgreSQL
   postgres-95:
-    image: mdillon/postgis:9.5
+    image: camptocamp/postgis:9.5
     environment:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
+      POSTGRES_DB: sequelize_test
     ports:
       - "127.0.0.1:8998:5432"
     container_name: postgres-95
-  postgres-94:
-    image: mdillon/postgis:9.4
-    environment:
-      POSTGRES_USER: sequelize_test
-      POSTGRES_PASSWORD: sequelize_test
-    ports:
-      - "127.0.0.1:8998:5432"
-    container_name: postgres-94
 
   # MySQL
   mysql-57:
@@ -30,23 +37,19 @@ services:
     ports:
       - "127.0.0.1:8999:3306"
     container_name: mysql-57
-  mysql-56:
-    image: mysql:5.6
-    environment:
-      MYSQL_ROOT_PASSWORD: lollerskates
-      MYSQL_DATABASE: sequelize_test
-      MYSQL_USER: sequelize_test
-      MYSQL_PASSWORD: sequelize_test
+
+  oracle-12c:
+    image: konnecteam/oracle12c-database-sequelize
     ports:
-      - "127.0.0.1:8999:3306"
-    container_name: mysql-56
-  mysql-55:
-    image: mysql:5.5
+      - "127.0.0.1:1521:1521"
+    container_name: oracle-12c
+    
+  # MSSQL
+  mssql:
+    image: microsoft/mssql-server-linux:latest
     environment:
-      MYSQL_ROOT_PASSWORD: lollerskates
-      MYSQL_DATABASE: sequelize_test
-      MYSQL_USER: sequelize_test
-      MYSQL_PASSWORD: sequelize_test
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: yourStrong(!)Password
     ports:
-      - "127.0.0.1:8999:3306"
-    container_name: mysql-55
+      - "127.0.0.1:8997:1433"
+    container_name: mssql

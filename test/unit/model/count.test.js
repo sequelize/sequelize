@@ -1,13 +1,12 @@
 'use strict';
 
-/* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , current = Support.sequelize
-  , sinon = require('sinon')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , Promise = require('bluebird');
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../support'),
+  current = Support.sequelize,
+  sinon = require('sinon'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method count', () => {

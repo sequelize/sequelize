@@ -13,5 +13,11 @@ coverage-*
 site
 docs/api/tmp.md
 ssce.js
+sscce.js
 coverage
 .vscode/
+*.sublime*
+esdoc
+.history
+package-lock.json
+yarn.lock

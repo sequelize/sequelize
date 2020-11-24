@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "4.0.0-2",
+  "version": "0.0.0-development",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -38,50 +38,57 @@
   "dependencies": {
     "bluebird": "^3.4.6",
     "cls-bluebird": "^2.0.1",
-    "debug": "^2.3.0",
+    "debug": "^3.0.0",
     "depd": "^1.1.0",
-    "dottie": "^1.0.0",
-    "env-cmd": "^2.1.0",
-    "generic-pool": "^2.4.4",
-    "inflection": "1.10.0",
+    "dottie": "^2.0.0",
+    "generic-pool": "^3.1.8",
+    "inflection": "1.12.0",
+    "js-crc": "^0.1.0",
     "lodash": "^4.17.1",
     "moment": "^2.13.0",
     "moment-timezone": "^0.5.4",
-    "uuid": "^3.0.0",
-    "retry-as-promised": "^2.0.0",
+    "retry-as-promised": "^2.3.1",
     "semver": "^5.0.1",
     "terraformer-wkt-parser": "^1.1.2",
     "toposort-class": "^1.0.1",
-    "validator": "^5.6.0",
-    "wkx": "^0.3.0"
+    "uuid": "^3.0.0",
+    "validator": "^9.1.0",
+    "wkx": "^0.4.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
     "chai-as-promised": "^5.3.0",
     "chai-datetime": "^1.4.1",
     "chai-spies": "^0.7.1",
-    "commander": "^2.9.0",
+    "cheerio": "^1.0.0-rc.2",
+    "commitizen": "^2.9.6",
     "continuation-local-storage": "^3.2.0",
-    "cross-env": "^3.0.0",
-    "dox": "^0.9.0",
-    "eslint": "^3.6.0",
-    "git": "^0.1.5",
+    "cross-env": "^5.0.5",
+    "cz-conventional-changelog": "^2.0.0",
+    "env-cmd": "^7.0.0",
+    "esdoc": "^0.5.2",
+    "eslint": "^4.6.0",
+    "eslint-plugin-mocha": "^4.11.0",
     "hints": "^1.1.0",
+    "husky": "^0.14.2",
     "istanbul": "^0.4.5",
-    "jshint": "^2.9.3",
     "lcov-result-merger": "^1.2.0",
     "mocha": "^3.0.2",
-    "mysql2": "^1.1.0",
+    "mysql2": "^1.4.1",
     "pg": "^6.1.0",
     "pg-hstore": "^2.3.2",
-    "pg-native": "^1.8.0",
+    "pg-native": "^1.10.0",
     "pg-types": "^1.11.0",
     "rimraf": "^2.5.4",
     "sinon": "^1.17.6",
-    "sinon-chai": "^2.8.0",
+    "sinon-chai": "^2.13.0",
     "sqlite3": "^3.1.4",
-    "tedious": "^1.14.0",
-    "uuid-validate": "^0.0.2"
+    "tedious": "1.14.0",
+    "uuid-validate": "^0.0.2",
+    "validate-commit-msg": "^2.12.2"
+  },
+  "optionalDependencies": {
+    "oracledb": "^1.11.0"
   },
   "keywords": [
     "mysql",
@@ -95,36 +102,38 @@
   ],
   "main": "index",
   "scripts": {
-    "lint": "eslint lib test",
-    "test": "npm run jshint && npm run teaser && npm run test-unit && npm run test-integration",
+    "lint": "eslint lib test --quiet",
+    "test": "npm run teaser && npm run test-unit && npm run test-integration",
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
     "test-docker-unit": "env-cmd ./test/config/.docker.env npm run test-unit",
     "test-docker-integration": "env-cmd ./test/config/.docker.env npm run test-integration",
-    "docs": "node docs/docs-generator.js",
-    "jshint": "jshint lib test",
+    "docs": "esdoc && cp docs/ROUTER esdoc/ROUTER",
     "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",
     "test-unit": "mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
     "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",
     "test-unit-postgres": "cross-env DIALECT=postgres npm run test-unit",
     "test-unit-postgres-native": "cross-env DIALECT=postgres-native npm run test-unit",
+    "test-unit-oracle": "cross-env DIALECT=oracle npm run test-unit",
     "test-unit-sqlite": "cross-env DIALECT=sqlite npm run test-unit",
     "test-unit-mssql": "cross-env DIALECT=mssql npm run test-unit",
     "test-unit-all": "npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite",
     "test-integration": "mocha --globals setImmediate,clearImmediate --ui tdd --check-leaks --colors -t 30000 --reporter spec \"test/integration/**/*.test.js\"",
     "test-integration-mysql": "cross-env DIALECT=mysql npm run test-integration",
+    "test-integration-oracle": "cross-env DIALECT=oracle npm run test-integration",
     "test-integration-postgres": "cross-env DIALECT=postgres npm run test-integration",
     "test-integration-postgres-native": "cross-env DIALECT=postgres-native npm run test-integration",
     "test-integration-sqlite": "cross-env DIALECT=sqlite npm run test-integration",
     "test-integration-mssql": "cross-env DIALECT=mssql npm run test-integration",
     "test-integration-all": "npm run test-integration-mysql && npm run test-integration-postgres && npm run test-integration-postgres-native && npm run test-integration-mssql && npm run test-integration-sqlite",
     "test-mysql": "cross-env DIALECT=mysql npm test",
+    "test-oracle": "cross-env DIALECT=oracle npm test",
     "test-sqlite": "cross-env DIALECT=sqlite npm test",
     "test-postgres": "cross-env DIALECT=postgres npm test",
     "test-pgsql": "npm run test-postgres",
     "test-postgres-native": "cross-env DIALECT=postgres-native npm test",
     "test-postgresn": "npm run test-postgres-native",
     "test-mssql": "cross-env DIALECT=mssql npm test",
-    "test-all": "npm run test-mysql && npm run test-sqlite && npm run test-postgres && npm run test-postgres-native && npm run test-mssql",
+    "test-all": "npm run test-mysql && npm run test-sqlite && npm run test-postgres && npm run test-postgres-native && npm run test-mssql && npm run test-oracle",
     "cover": "rimraf coverage && npm run teaser && npm run cover-integration && npm run cover-unit && npm run merge-coverage",
     "cover-integration": "cross-env COVERAGE=true node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -t 60000 --ui tdd \"test/integration/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
     "cover-unit": "cross-env COVERAGE=true node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -t 30000 --ui tdd \"test/unit/**/*.test.js\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",
@@ -132,10 +141,29 @@
     "sscce": "docker-compose run sequelize /bin/sh -c \"node sscce.js\"",
     "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
     "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
-    "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce"
+    "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
+    "commitmsg": "validate-commit-msg"
   },
   "engines": {
-    "node": ">=0.6.21"
+    "node": ">=4.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    },
+    "commitTypeMap": {
+      "docs": "patch",
+      "fix": "patch",
+      "perf": "patch",
+      "feat": "minor",
+      "refactor": "minor",
+      "release": "minor",
+      "ci": null,
+      "tests": null
+    }
+  },
+  "release": {
+    "analyzeCommits": "@bubltechnology/customizable-commit-analyzer"
+  }
 }

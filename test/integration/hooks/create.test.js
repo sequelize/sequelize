@@ -1,15 +1,14 @@
 'use strict';
 
-/* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , Sequelize = Support.Sequelize
-  , sinon = require('sinon')
-  , Promise = require('bluebird');
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  Sequelize = Support.Sequelize,
+  sinon = require('sinon'),
+  Promise = require('bluebird');
 
-describe(Support.getTestDialectTeaser('Hooks'), function() {
+describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
       username: {
@@ -24,20 +23,20 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     return this.sequelize.sync({ force: true });
   });
 
-  describe('#create', function() {
-    describe('on success', function() {
+  describe('#create', () => {
+    describe('on success', () => {
       it('should run hooks', function() {
-        var beforeHook = sinon.spy()
-          , afterHook = sinon.spy()
-          , beforeSave = sinon.spy()
-          , afterSave = sinon.spy();
+        const beforeHook = sinon.spy(),
+          afterHook = sinon.spy(),
+          beforeSave = sinon.spy(),
+          afterSave = sinon.spy();
 
         this.User.beforeCreate(beforeHook);
         this.User.afterCreate(afterHook);
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return this.User.create({username: 'Toni', mood: 'happy'}).then(function() {
+        return this.User.create({username: 'Toni', mood: 'happy'}).then(() => {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
           expect(beforeSave).to.have.been.calledOnce;
@@ -46,14 +45,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
 
-    describe('on error', function() {
+    describe('on error', () => {
       it('should return an error from before', function() {
-        var beforeHook = sinon.spy()
-          , beforeSave = sinon.spy()
-          , afterHook = sinon.spy()
-          , afterSave = sinon.spy();
+        const beforeHook = sinon.spy(),
+          beforeSave = sinon.spy(),
+          afterHook = sinon.spy(),
+          afterSave = sinon.spy();
 
-        this.User.beforeCreate(function(user, options) {
+        this.User.beforeCreate(() => {
           beforeHook();
           throw new Error('Whoops!');
         });
@@ -61,7 +60,7 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejected.then(function(err) {
+        return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejected.then(() => {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).not.to.have.been.called;
           expect(beforeSave).not.to.have.been.called;
@@ -70,21 +69,21 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should return an error from after', function() {
-        var beforeHook = sinon.spy()
-          , beforeSave = sinon.spy()
-          , afterHook = sinon.spy()
-          , afterSave = sinon.spy();
+        const beforeHook = sinon.spy(),
+          beforeSave = sinon.spy(),
+          afterHook = sinon.spy(),
+          afterSave = sinon.spy();
 
 
         this.User.beforeCreate(beforeHook);
-        this.User.afterCreate(function(user, options) {
+        this.User.afterCreate(() => {
           afterHook();
           throw new Error('Whoops!');
         });
         this.User.beforeSave(beforeSave);
         this.User.afterSave(afterSave);
 
-        return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejected.then(function(err) {
+        return expect(this.User.create({username: 'Toni', mood: 'happy'})).to.be.rejected.then(() => {
           expect(beforeHook).to.have.been.calledOnce;
           expect(afterHook).to.have.been.calledOnce;
           expect(beforeSave).to.have.been.calledOnce;
@@ -94,16 +93,16 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     });
 
     it('should not trigger hooks on parent when using N:M association setters', function() {
-      var A = this.sequelize.define('A', {
+      const A = this.sequelize.define('A', {
         name: Sequelize.STRING
       });
-      var B = this.sequelize.define('B', {
+      const B = this.sequelize.define('B', {
         name: Sequelize.STRING
       });
 
-      var hookCalled = 0;
+      let hookCalled = 0;
 
-      A.addHook('afterCreate', function(instance, options) {
+      A.addHook('afterCreate', () => {
         hookCalled++;
         return Promise.resolve();
       });
@@ -115,24 +114,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
         return this.sequelize.Promise.all([
           A.create({name: 'a'}),
           B.create({name: 'b'})
-        ]).spread(function(a, b) {
-          return a.addB(b).then(function() {
+        ]).spread((a, b) => {
+          return a.addB(b).then(() => {
             expect(hookCalled).to.equal(1);
           });
         });
       });
     });
 
-    describe('preserves changes to instance', function() {
-      it('beforeValidate', function(){
-        var hookCalled = 0;
+    describe('preserves changes to instance', () => {
+      it('beforeValidate', function() {
+        let hookCalled = 0;
 
-        this.User.beforeValidate(function(user, options) {
+        this.User.beforeValidate(user => {
           user.mood = 'happy';
           hookCalled++;
         });
 
-        return this.User.create({mood: 'sad', username: 'leafninja'}).then(function(user) {
+        return this.User.create({mood: 'sad', username: 'leafninja'}).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('leafninja');
           expect(hookCalled).to.equal(1);
@@ -140,14 +139,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('afterValidate', function() {
-        var hookCalled = 0;
+        let hookCalled = 0;
 
-        this.User.afterValidate(function(user, options) {
+        this.User.afterValidate(user => {
           user.mood = 'neutral';
           hookCalled++;
         });
 
-        return this.User.create({mood: 'sad', username: 'fireninja'}).then(function(user) {
+        return this.User.create({mood: 'sad', username: 'fireninja'}).then(user => {
           expect(user.mood).to.equal('neutral');
           expect(user.username).to.equal('fireninja');
           expect(hookCalled).to.equal(1);
@@ -155,14 +154,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('beforeCreate', function() {
-        var hookCalled = 0;
+        let hookCalled = 0;
 
-        this.User.beforeCreate(function(user, options) {
+        this.User.beforeCreate(user => {
           user.mood = 'happy';
           hookCalled++;
         });
 
-        return this.User.create({username: 'akira'}).then(function(user) {
+        return this.User.create({username: 'akira'}).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('akira');
           expect(hookCalled).to.equal(1);
@@ -170,14 +169,14 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('beforeSave', function() {
-        var hookCalled = 0;
+        let hookCalled = 0;
 
-        this.User.beforeSave(function(user, options) {
+        this.User.beforeSave(user => {
           user.mood = 'happy';
           hookCalled++;
         });
 
-        return this.User.create({username: 'akira'}).then(function(user) {
+        return this.User.create({username: 'akira'}).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('akira');
           expect(hookCalled).to.equal(1);
@@ -185,28 +184,24 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('beforeSave with beforeCreate', function() {
-        var hookCalled = 0;
+        let hookCalled = 0;
 
-        this.User.beforeCreate(function(user, options) {
+        this.User.beforeCreate(user => {
           user.mood = 'sad';
           hookCalled++;
         });
 
-        this.User.beforeSave(function(user, options) {
+        this.User.beforeSave(user => {
           user.mood = 'happy';
           hookCalled++;
         });
 
-        return this.User.create({username: 'akira'}).then(function(user) {
+        return this.User.create({username: 'akira'}).then(user => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('akira');
           expect(hookCalled).to.equal(2);
         });
       });
-
-
     });
-
   });
-
 });

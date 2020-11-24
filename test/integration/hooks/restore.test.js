@@ -1,13 +1,12 @@
 'use strict';
 
-/* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , DataTypes = require(__dirname + '/../../../lib/data-types')
-  , sinon = require('sinon');
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../support'),
+  DataTypes = require(__dirname + '/../../../lib/data-types'),
+  sinon = require('sinon');
 
-describe(Support.getTestDialectTeaser('Hooks'), function() {
+describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function() {
     this.User = this.sequelize.define('User', {
       username: {
@@ -33,18 +32,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
     return this.sequelize.sync({ force: true });
   });
 
-  describe('#restore', function() {
-    describe('on success', function() {
+  describe('#restore', () => {
+    describe('on success', () => {
       it('should run hooks', function() {
-        var beforeHook = sinon.spy()
-          , afterHook = sinon.spy();
+        const beforeHook = sinon.spy(),
+          afterHook = sinon.spy();
 
         this.ParanoidUser.beforeRestore(beforeHook);
         this.ParanoidUser.afterRestore(afterHook);
 
-        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(function(user) {
-          return user.destroy().then(function() {
-            return user.restore().then(function(user) {
+        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(user => {
+          return user.destroy().then(() => {
+            return user.restore().then(() => {
               expect(beforeHook).to.have.been.calledOnce;
               expect(afterHook).to.have.been.calledOnce;
             });
@@ -53,20 +52,20 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
     });
 
-    describe('on error', function() {
+    describe('on error', () => {
       it('should return an error from before', function() {
-        var beforeHook = sinon.spy()
-          , afterHook = sinon.spy();
+        const beforeHook = sinon.spy(),
+          afterHook = sinon.spy();
 
-        this.ParanoidUser.beforeRestore(function(user, options) {
+        this.ParanoidUser.beforeRestore(() => {
           beforeHook();
           throw new Error('Whoops!');
         });
         this.ParanoidUser.afterRestore(afterHook);
 
-        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(function(user) {
-          return user.destroy().then(function() {
-            return expect(user.restore()).to.be.rejected.then(function() {
+        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(user => {
+          return user.destroy().then(() => {
+            return expect(user.restore()).to.be.rejected.then(() => {
               expect(beforeHook).to.have.been.calledOnce;
               expect(afterHook).not.to.have.been.called;
             });
@@ -75,18 +74,18 @@ describe(Support.getTestDialectTeaser('Hooks'), function() {
       });
 
       it('should return an error from after', function() {
-        var beforeHook = sinon.spy()
-          , afterHook = sinon.spy();
+        const beforeHook = sinon.spy(),
+          afterHook = sinon.spy();
 
         this.ParanoidUser.beforeRestore(beforeHook);
-        this.ParanoidUser.afterRestore(function(user, options) {
+        this.ParanoidUser.afterRestore(() => {
           afterHook();
           throw new Error('Whoops!');
         });
 
-        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(function(user) {
-          return user.destroy().then(function() {
-            return expect(user.restore()).to.be.rejected.then(function() {
+        return this.ParanoidUser.create({username: 'Toni', mood: 'happy'}).then(user => {
+          return user.destroy().then(() => {
+            return expect(user.restore()).to.be.rejected.then(() => {
               expect(beforeHook).to.have.been.calledOnce;
               expect(afterHook).to.have.been.calledOnce;
             });

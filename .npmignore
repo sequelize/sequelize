@@ -1,4 +1,5 @@
 docs
+esdoc
 examples
 test
 README.md
@@ -16,4 +17,5 @@ mkdocs.yml
 .dockerignore
 .editorconfig
 .travis.yml
+package-lock.json
 

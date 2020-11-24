@@ -1,65 +1,64 @@
 'use strict';
 
-/* jshint -W030 */
-var chai = require('chai')
-  , expect = chai.expect
-  , Support = require(__dirname + '/../support')
-  , current = Support.sequelize
-  , sinon = require('sinon')
-  , Promise = current.Promise
-  , DataTypes = require('../../../lib/data-types')
-  , _ = require('lodash');
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/../support'),
+  current = Support.sequelize,
+  sinon = require('sinon'),
+  Promise = current.Promise,
+  DataTypes = require('../../../lib/data-types'),
+  _ = require('lodash');
 
-describe(Support.getTestDialectTeaser('Model'), function() {
+describe(Support.getTestDialectTeaser('Model'), () => {
 
-  describe('method update', function () {
-    var User = current.define('User', {
+  describe('method update', () => {
+    const User = current.define('User', {
       name: DataTypes.STRING,
       secretValue: DataTypes.INTEGER
     });
 
-    before(function () {
-      this.stubUpdate = sinon.stub(current.getQueryInterface(), 'bulkUpdate', function () {
+    before(function() {
+      this.stubUpdate = sinon.stub(current.getQueryInterface(), 'bulkUpdate', () => {
         return Promise.resolve([]);
       });
     });
 
-    beforeEach(function () {
+    beforeEach(function() {
       this.updates = { name: 'Batman', secretValue: '7' };
       this.cloneUpdates = _.clone(this.updates);
       this.stubUpdate.reset();
     });
 
-    afterEach(function () {
+    afterEach(function() {
       delete this.updates;
       delete this.cloneUpdates;
     });
 
-    after(function () {
+    after(function() {
       this.stubUpdate.restore();
     });
 
-    describe('properly clones input values', function () {
+    describe('properly clones input values', () => {
       it('with default options', function() {
-        var self = this;
-        return User.update(self.updates, {where: {secretValue: '1'}}).bind(this).then(function(e) {
+        const self = this;
+        return User.update(self.updates, {where: {secretValue: '1'}}).bind(this).then(() => {
           expect(self.updates).to.be.deep.eql(self.cloneUpdates);
         });
       });
 
       it('when using fields option', function() {
-        var self = this;
-        return User.update(self.updates, {where: {secretValue: '1'}, fields: ['name']}).bind(this).then(function() {
+        const self = this;
+        return User.update(self.updates, {where: {secretValue: '1'}, fields: ['name']}).bind(this).then(() => {
           expect(self.updates).to.be.deep.eql(self.cloneUpdates);
         });
       });
     });
 
     it('can detect complexe objects', function() {
-      var self = this;
-      var Where = function () { this.secretValue = '1'; };
+      const self = this;
+      const Where = function() { this.secretValue = '1'; };
 
-      expect(function () {
+      expect(() => {
         User.update(self.updates, {where:new Where()});
       }).to.throw();
 
