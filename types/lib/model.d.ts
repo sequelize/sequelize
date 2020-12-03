@@ -2846,7 +2846,8 @@ export type ModelType = typeof Model;
 
 // Do not switch the order of `typeof Model` and `{ new(): M }`. For
 // instances created by `sequelize.define` to typecheck well, `typeof Model`
-// must come first for unknown reasons.
+// must come first since constructor's intersection type is not commutative.
+// e.g https://gist.github.com/HerringtonDarkholme/293fc9fcc868aab2aa8a39e46eb8b6e5
 export type ModelCtor<M extends Model> = typeof Model & { new(): M };
 
 export type ModelDefined<S, T> = ModelCtor<Model<S, T>>;
