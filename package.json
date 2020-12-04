@@ -33,7 +33,7 @@
     "debug": "^4.1.1",
     "dottie": "^2.0.0",
     "inflection": "1.12.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.20",
     "moment": "^2.26.0",
     "moment-timezone": "^0.5.31",
     "retry-as-promised": "^3.2.0",
@@ -79,11 +79,11 @@
     "nyc": "^15.0.0",
     "p-map": "^4.0.0",
     "p-props": "^4.0.0",
-    "p-timeout": "^3.2.0",
+    "p-timeout": "^4.0.0",
     "pg": "^8.2.1",
     "pg-hstore": "^2.x",
     "rimraf": "^3.0.2",
-    "semantic-release": "^17.0.7",
+    "semantic-release": "^17.3.0",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.3.0",
     "sqlite3": "^4.2.0",
@@ -139,7 +139,9 @@
     }
   },
   "release": {
-    "branches": ["v6"],
+    "branches": [
+      "v6"
+    ],
     "verifyConditions": [
       "@semantic-release/npm",
       "@semantic-release/github"
