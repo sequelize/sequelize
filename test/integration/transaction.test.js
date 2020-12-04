@@ -578,14 +578,21 @@ if (current.dialect.supports.transactions) {
           const transaction = await this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE });
           await User.findAll( { transaction } );
 
-          await Promise.all([// Update should not succeed before transaction has committed
+          await Promise.all([
+            // Update should not succeed before transaction has committed
             User.update({ username: 'joe' }, {
               where: {
                 username: 'jan'
               }
-            }).then(() => expect(transactionSpy).to.have.been.called ), delay(2000)
+            }).then(() => {
+              expect(transactionSpy).to.have.been.called;
+              expect(transaction.finished).to.equal('commit');
+            }),
+
+            delay(4000)
+              .then(transactionSpy)
               .then(() => transaction.commit())
-              .then(transactionSpy)]);
+          ]);
         });
       }
 
