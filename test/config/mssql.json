@@ -1,0 +1,17 @@
+{
+  "host": "localhost",
+  "username": "SA",
+  "password": "Password12!",
+  "port": 1433,
+  "database": "sequelize_test",
+  "dialectOptions": {
+    "options": {
+      "encrypt": false,
+      "requestTimeout": 25000
+    }
+  },
+  "pool": {
+    "max": 5,
+    "idle": 3000
+  }
+}

@@ -20,8 +20,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
     it('when we don\'t have the correct server details', async () => {
       const options = {
         logging: false,
-        host: '0.0.0.1',
-        port: config[dialect].port,
+        host: 'localhost',
+        port: 19999, // Wrong port
         dialect
       };
 
@@ -47,8 +47,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
 
     it('when we don\'t have the correct login information', async () => {
       if (dialect === 'mssql') {
-        // NOTE: Travis seems to be having trouble with this test against the
-        //       AWS instance. Works perfectly fine on a local setup.
+        // TODO: GitHub Actions seems to be having trouble with this test. Works perfectly fine on a local setup.
         expect(true).to.be.true;
         return;
       }
