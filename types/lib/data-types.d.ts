@@ -49,7 +49,7 @@ export type DataType = string | AbstractDataTypeConstructor | AbstractDataType;
 
 export const ABSTRACT: AbstractDataTypeConstructor;
 
-interface AbstractDataTypeConstructor {
+interface AbstractDataTypeConstructor<T = void> {
   key: string;
   warn(link: string, text: string): void;
 }
@@ -102,7 +102,7 @@ export interface CharDataType extends StringDataType {
 }
 
 export interface CharDataTypeOptions extends StringDataTypeOptions {}
-   
+
 export type TextLength = 'tiny' | 'medium' | 'long';
 
 /**
@@ -315,12 +315,12 @@ export interface DecimalDataTypeOptions {
 /**
  * A boolean / tinyint column, depending on dialect
  */
-export const BOOLEAN: AbstractDataTypeConstructor;
+export const BOOLEAN: AbstractDataTypeConstructor<"boolean">;
 
 /**
  * A time column
  */
-export const TIME: AbstractDataTypeConstructor;
+export const TIME: AbstractDataTypeConstructor<"time">;
 
 /**
  * A datetime column
@@ -359,22 +359,22 @@ export interface DateOnlyDataType extends AbstractDataType {
 /**
  * A key / value column. Only available in postgres.
  */
-export const HSTORE: AbstractDataTypeConstructor;
+export const HSTORE: AbstractDataTypeConstructor<"hstore">;
 
 /**
  * A JSON string column. Only available in postgres.
  */
-export const JSON: AbstractDataTypeConstructor;
+export const JSON: AbstractDataTypeConstructor<"json">;
 
 /**
  * A pre-processed JSON data column. Only available in postgres.
  */
-export const JSONB: AbstractDataTypeConstructor;
+export const JSONB: AbstractDataTypeConstructor<"jsonb">;
 
 /**
  * A default value of the current timestamp
  */
-export const NOW: AbstractDataTypeConstructor;
+export const NOW: AbstractDataTypeConstructor<"now">;
 
 /**
  * Binary storage. Available lengths: `tiny`, `medium`, `long`
@@ -438,17 +438,17 @@ export interface RangeDataTypeOptions<T extends RangeableDataType> {
 /**
  * A column storing a unique universal identifier. Use with `UUIDV1` or `UUIDV4` for default values.
  */
-export const UUID: AbstractDataTypeConstructor;
+export const UUID: AbstractDataTypeConstructor<"uuid">;
 
 /**
  * A default unique universal identifier generated following the UUID v1 standard
  */
-export const UUIDV1: AbstractDataTypeConstructor;
+export const UUIDV1: AbstractDataTypeConstructor<"uuidv1">;
 
 /**
  * A default unique universal identifier generated following the UUID v4 standard
  */
-export const UUIDV4: AbstractDataTypeConstructor;
+export const UUIDV4: AbstractDataTypeConstructor<"uuidv4">;
 
 /**
  * A virtual value that is not stored in the DB. This could for example be useful if you want to provide a default value in your model that is returned to the user but not stored in the DB.
@@ -595,16 +595,16 @@ export interface GeographyDataTypeOptions {
   srid?: number;
 }
 
-export const CIDR: AbstractDataTypeConstructor;
+export const CIDR: AbstractDataTypeConstructor<"cidr">;
 
-export const INET: AbstractDataTypeConstructor;
+export const INET: AbstractDataTypeConstructor<"inet">;
 
-export const MACADDR: AbstractDataTypeConstructor;
+export const MACADDR: AbstractDataTypeConstructor<"macaddr">;
 
 /**
  * Case incenstive text
  */
-export const CITEXT: AbstractDataTypeConstructor;
+export const CITEXT: AbstractDataTypeConstructor<"citext">;
 
 // umzug compatibility
 export type DataTypeAbstract = AbstractDataTypeConstructor;

@@ -1,5 +1,5 @@
 import { INTEGER, IntegerDataType, TINYINT } from 'sequelize';
-import { SmallIntegerDataType, SMALLINT, MEDIUMINT, MediumIntegerDataType, BigIntDataType, BIGINT } from '../lib/data-types';
+import { AbstractDataTypeConstructor, BIGINT, CIDR, INET, MACADDR, CITEXT, BigIntDataType, BOOLEAN, HSTORE, JSON, JSONB, MEDIUMINT, MediumIntegerDataType, NOW, SMALLINT, SmallIntegerDataType, TIME, UUID, UUIDV1, UUIDV4 } from '../lib/data-types';
 
 let tinyint: IntegerDataType;
 tinyint = TINYINT();
@@ -30,3 +30,24 @@ bigint = BIGINT();
 bigint = new BIGINT();
 bigint = BIGINT.UNSIGNED.ZEROFILL();
 bigint = new BIGINT.UNSIGNED.ZEROFILL();
+
+const validateAbstractDataTypeConstructorLabel =
+  <T>(obj: T extends AbstractDataTypeConstructor<infer Label> ? Label : never) =>
+    undefined
+
+validateAbstractDataTypeConstructorLabel<typeof BOOLEAN>("boolean")
+validateAbstractDataTypeConstructorLabel<typeof TIME>("time")
+validateAbstractDataTypeConstructorLabel<typeof HSTORE>("hstore")
+
+validateAbstractDataTypeConstructorLabel<typeof JSON>("json")
+validateAbstractDataTypeConstructorLabel<typeof JSONB>("jsonb")
+validateAbstractDataTypeConstructorLabel<typeof NOW>("now")
+
+validateAbstractDataTypeConstructorLabel<typeof UUID>("uuid")
+validateAbstractDataTypeConstructorLabel<typeof UUIDV1>("uuidv1")
+validateAbstractDataTypeConstructorLabel<typeof UUIDV4>("uuidv4")
+
+validateAbstractDataTypeConstructorLabel<typeof CIDR>("cidr")
+validateAbstractDataTypeConstructorLabel<typeof INET>("inet")
+validateAbstractDataTypeConstructorLabel<typeof MACADDR>("macaddr")
+validateAbstractDataTypeConstructorLabel<typeof CITEXT>("citext")
