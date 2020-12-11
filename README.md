@@ -16,6 +16,13 @@ New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.or
 
 You can find detailed changelog [here](https://github.com/sequelize/sequelize/blob/master/docs/manual/other-topics/upgrade-to-v6.md).
 
+## Looking for maintainers
+Due to personal reasons a bigger part of the former core maintainers (thanks to all your hard work!) have been rather busy recently. Hence, the available time to look after our beloved ORM has been shrinking and shrinking drastically, generating a great chance for you:
+
+We are looking for more core maintainers who are interested in finishing the current TypeScript migration, extending the documentation for v6, organizing issues, reviewing PRs, streamlining the overall code base and planning the future roadmap.
+
+If that sounds interesting to you, please reach out to us on [Slack](https://sequelize.slack.com/). We are looking forward to meet you!
+
 ## Installation
 
 ```sh
