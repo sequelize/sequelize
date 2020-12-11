@@ -25,7 +25,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       intVal: DataTypes.INTEGER,
       theDate: DataTypes.DATE,
       aBool: DataTypes.BOOLEAN,
-      uniqueName: { type: DataTypes.STRING, unique: true }
+      uniqueName: { type: DataTypes.STRING, unique: true },
+      uniqueName2: { type: DataTypes.STRING, unique: true }
     });
     this.Account = this.sequelize.define('Account', {
       accountName: DataTypes.STRING
