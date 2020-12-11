@@ -12,6 +12,13 @@ Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite an
 
 New to Sequelize? Take a look at the [Tutorials and Guides](https://sequelize.org/master). You might also be interested in the [API Reference](https://sequelize.org/master/identifiers).
 
+## Looking for maintainers
+Due to personal reasons a bigger part of the former core maintainers (thanks to all your hard work!) have been rather busy recently. Hence, the available time to look after our beloved ORM has been shrinking and shrinking drastically, generating a great chance for you:
+
+We are looking for more core maintainers who are interested in finishing the current TypeScript migration, extending the documentation for v6, organizing issues, reviewing PRs, streamlining the overall code base and planning the future roadmap.
+
+If that sounds interesting to you, please reach out to us on [Slack](http://sequelize-slack.herokuapp.com/). We are looking forward to meet you!
+
 ## Release
 
 **v6** release is now available under `@latest` tag. You can find detailed changelog [here](https://github.com/sequelize/sequelize/blob/v6/docs/manual/other-topics/upgrade-to-v6.md).
