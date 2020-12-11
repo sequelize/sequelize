@@ -180,9 +180,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('properly handles disparate field lists', async function () {
       const data = [
-        { username: 'Peter', secretValue: '42', uniqueName: '1' },
-        { username: 'Paul', uniqueName: '2' },
-        { username: 'Steve', uniqueName: '3' }
+        { username: 'Peter', secretValue: '42', uniqueName: '1', uniqueName2: '1a' },
+        { username: 'Paul', uniqueName: '2', uniqueName2: '2a' },
+        { username: 'Steve', uniqueName: '3', uniqueName2: '3a' }
       ];
 
       await this.User.bulkCreate(data);
@@ -194,8 +194,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('inserts multiple values respecting the white list', async function () {
       const data = [
-        { username: 'Peter', secretValue: '42', uniqueName: '1' },
-        { username: 'Paul', secretValue: '23', uniqueName: '2' }
+        { username: 'Peter', secretValue: '42', uniqueName: '1', uniqueName2: '1a' },
+        { username: 'Paul', secretValue: '23', uniqueName: '2', uniqueName2: '2a' }
       ];
 
       await this.User.bulkCreate(data, { fields: ['username', 'uniqueName'] });
@@ -209,8 +209,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should store all values if no whitelist is specified', async function () {
       const data = [
-        { username: 'Peter', secretValue: '42', uniqueName: '1' },
-        { username: 'Paul', secretValue: '23', uniqueName: '2' }
+        { username: 'Peter', secretValue: '42', uniqueName: '1', uniqueName2: '1a' },
+        { username: 'Paul', secretValue: '23', uniqueName: '2', uniqueName2: '2a' }
       ];
 
       await this.User.bulkCreate(data);
@@ -224,8 +224,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should set isNewRecord = false', async function () {
       const data = [
-        { username: 'Peter', secretValue: '42', uniqueName: '1' },
-        { username: 'Paul', secretValue: '23', uniqueName: '2' }
+        { username: 'Peter', secretValue: '42', uniqueName: '1', uniqueName2: '1a' },
+        { username: 'Paul', secretValue: '23', uniqueName: '2', uniqueName2: '2a' }
       ];
 
       await this.User.bulkCreate(data);
@@ -239,8 +239,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('saves data with single quote', async function () {
       const quote = "Single'Quote",
         data = [
-          { username: 'Peter', data: quote, uniqueName: '1' },
-          { username: 'Paul', data: quote, uniqueName: '2' }
+          { username: 'Peter', data: quote, uniqueName: '1', uniqueName2: '1a' },
+          { username: 'Paul', data: quote, uniqueName: '2', uniqueName2: '2a' }
         ];
 
       await this.User.bulkCreate(data);
@@ -255,8 +255,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('saves data with double quote', async function () {
       const quote = 'Double"Quote',
         data = [
-          { username: 'Peter', data: quote, uniqueName: '1' },
-          { username: 'Paul', data: quote, uniqueName: '2' }
+          { username: 'Peter', data: quote, uniqueName: '1', uniqueName2: '1a' },
+          { username: 'Paul', data: quote, uniqueName: '2', uniqueName2: '2a' }
         ];
 
       await this.User.bulkCreate(data);
@@ -271,8 +271,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('saves stringified JSON data', async function () {
       const json = JSON.stringify({ key: 'value' }),
         data = [
-          { username: 'Peter', data: json, uniqueName: '1' },
-          { username: 'Paul', data: json, uniqueName: '2' }
+          { username: 'Peter', data: json, uniqueName: '1', uniqueName2: '1a' },
+          { username: 'Paul', data: json, uniqueName: '2', uniqueName2: '2a' }
         ];
 
       await this.User.bulkCreate(data);
@@ -296,8 +296,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('stores the current date in createdAt', async function () {
       const data = [
-        { username: 'Peter', uniqueName: '1' },
-        { username: 'Paul', uniqueName: '2' }
+        { username: 'Peter', uniqueName: '1', uniqueName2: '1a' },
+        { username: 'Paul', uniqueName: '2', uniqueName2: '2a' }
       ];
 
       await this.User.bulkCreate(data);
@@ -425,17 +425,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.inserts.ignoreDuplicates || current.dialect.supports.inserts.onConflictDoNothing) {
       it('should support the ignoreDuplicates option', async function () {
         const data = [
-          { uniqueName: 'Peter', secretValue: '42' },
-          { uniqueName: 'Paul', secretValue: '23' }
+          { uniqueName: 'Peter', secretValue: '42', uniqueName2: '1a' },
+          { uniqueName: 'Paul', secretValue: '23', uniqueName2: '2a' }
         ];
 
         await this.User.bulkCreate(data, {
-          fields: ['uniqueName', 'secretValue']
+          fields: ['uniqueName', 'secretValue', 'uniqueName2']
         });
-        data.push({ uniqueName: 'Michael', secretValue: '26' });
+        data.push({ uniqueName: 'Michael', secretValue: '26', uniqueName2: '3a' });
 
         await this.User.bulkCreate(data, {
-          fields: ['uniqueName', 'secretValue'],
+          fields: ['uniqueName', 'secretValue', 'uniqueName2'],
           ignoreDuplicates: true
         });
         const users = await this.User.findAll({ order: ['id'] });
@@ -450,18 +450,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     } else {
       it('should throw an error when the ignoreDuplicates option is passed', async function () {
         const data = [
-          { uniqueName: 'Peter', secretValue: '42' },
-          { uniqueName: 'Paul', secretValue: '23' }
+          { uniqueName: 'Peter', secretValue: '42', uniqueName2: '1a' },
+          { uniqueName: 'Paul', secretValue: '23', uniqueName2: '2a' }
         ];
 
         await this.User.bulkCreate(data, {
-          fields: ['uniqueName', 'secretValue']
+          fields: ['uniqueName', 'secretValue', 'uniqueName2']
         });
-        data.push({ uniqueName: 'Michael', secretValue: '26' });
+        data.push({ uniqueName: 'Michael', secretValue: '26', uniqueName2: '3a' });
 
         try {
           await this.User.bulkCreate(data, {
-            fields: ['uniqueName', 'secretValue'],
+            fields: ['uniqueName', 'secretValue', 'uniqueName2'],
             ignoreDuplicates: true
           });
         } catch (err) {
@@ -474,21 +474,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       describe('updateOnDuplicate', () => {
         it('should support the updateOnDuplicate option', async function () {
           const data = [
-            { uniqueName: 'Peter', secretValue: '42' },
-            { uniqueName: 'Paul', secretValue: '23' }
+            { uniqueName: 'Peter', secretValue: '42', uniqueName2: '1a' },
+            { uniqueName: 'Paul', secretValue: '23', uniqueName2: '2a' }
           ];
 
           await this.User.bulkCreate(data, {
-            fields: ['uniqueName', 'secretValue'],
+            fields: ['uniqueName', 'secretValue', 'uniqueName2'],
             updateOnDuplicate: ['secretValue']
           });
           const new_data = [
-            { uniqueName: 'Peter', secretValue: '43' },
-            { uniqueName: 'Paul', secretValue: '24' },
-            { uniqueName: 'Michael', secretValue: '26' }
+            { uniqueName: 'Peter', secretValue: '43', uniqueName2: '1ab' },
+            { uniqueName: 'Paul', secretValue: '24', uniqueName2: '2ab' },
+            { uniqueName: 'Michael', secretValue: '26', uniqueName2: '3ab' }
           ];
           await this.User.bulkCreate(new_data, {
-            fields: ['uniqueName', 'secretValue'],
+            fields: ['uniqueName', 'secretValue', 'uniqueName2'],
             updateOnDuplicate: ['secretValue']
           });
           const users = await this.User.findAll({ order: ['id'] });
@@ -711,8 +711,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should reject for non array updateOnDuplicate option', async function () {
           const data = [
-            { uniqueName: 'Peter', secretValue: '42' },
-            { uniqueName: 'Paul', secretValue: '23' }
+            { uniqueName: 'Peter', secretValue: '42', uniqueName2: '1a' },
+            { uniqueName: 'Paul', secretValue: '23', uniqueName2: '2a' }
           ];
 
           await expect(this.User.bulkCreate(data, { updateOnDuplicate: true })).to.be.rejectedWith(
@@ -722,8 +722,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should reject for empty array updateOnDuplicate option', async function () {
           const data = [
-            { uniqueName: 'Peter', secretValue: '42' },
-            { uniqueName: 'Paul', secretValue: '23' }
+            { uniqueName: 'Peter', secretValue: '42', uniqueName2: '1a' },
+            { uniqueName: 'Paul', secretValue: '23', uniqueName2: '2a' }
           ];
 
           await expect(this.User.bulkCreate(data, { updateOnDuplicate: [] })).to.be.rejectedWith(
