@@ -10,7 +10,7 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method count', () => {
-    before(function() {
+    before(function () {
       this.oldFindAll = Sequelize.Model.findAll;
       this.oldAggregate = Sequelize.Model.aggregate;
 
@@ -28,44 +28,39 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Project.belongsTo(this.User);
     });
 
-    after(function() {
+    after(function () {
       Sequelize.Model.findAll = this.oldFindAll;
       Sequelize.Model.aggregate = this.oldAggregate;
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.stub = Sequelize.Model.aggregate = sinon.stub().resolves();
     });
 
     describe('should pass the same options to model.aggregate as findAndCountAll', () => {
-      it('with includes', function() {
+      it('with includes', async function () {
         const queryObject = {
           include: [this.Project]
         };
-        return this.User.count(queryObject)
-          .then(() => this.User.findAndCountAll(queryObject))
-          .then(() => {
-            const count = this.stub.getCall(0).args;
-            const findAndCountAll = this.stub.getCall(1).args;
-            expect(count).to.eql(findAndCountAll);
-          });
+        await this.User.count(queryObject);
+        await this.User.findAndCountAll(queryObject);
+        const count = this.stub.getCall(0).args;
+        const findAndCountAll = this.stub.getCall(1).args;
+        expect(count).to.eql(findAndCountAll);
       });
 
-      it('attributes should be stripped in case of findAndCountAll', function() {
+      it('attributes should be stripped in case of findAndCountAll', async function () {
         const queryObject = {
           attributes: ['username']
         };
-        return this.User.count(queryObject)
-          .then(() => this.User.findAndCountAll(queryObject))
-          .then(() => {
-            const count = this.stub.getCall(0).args;
-            const findAndCountAll = this.stub.getCall(1).args;
-            expect(count).not.to.eql(findAndCountAll);
-            count[2].attributes = undefined;
-            expect(count).to.eql(findAndCountAll);
-          });
+        await this.User.count(queryObject);
+        await this.User.findAndCountAll(queryObject);
+        const count = this.stub.getCall(0).args;
+        const findAndCountAll = this.stub.getCall(1).args;
+        expect(count).not.to.eql(findAndCountAll);
+        count[2].attributes = undefined;
+        expect(count).to.eql(findAndCountAll);
       });
     });
-
   });
 });

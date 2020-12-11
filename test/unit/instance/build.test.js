@@ -2,41 +2,45 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
+  Support = require('../support'),
   DataTypes = require('../../../lib/data-types'),
-  current   = Support.sequelize;
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('build', () => {
-    it('should populate NOW default values', () => {
-      const Model = current.define('Model', {
-          created_time: {
-            type: DataTypes.DATE,
-            allowNull: true,
-            defaultValue: DataTypes.NOW
-          },
-          updated_time: {
-            type: DataTypes.DATE,
-            allowNull: true,
-            defaultValue: DataTypes.NOW
-          },
-          ip: {
-            type: DataTypes.STRING,
-            validate: {
-              isIP: true
-            }
-          },
-          ip2: {
-            type: DataTypes.STRING,
-            validate: {
-              isIP: {
-                msg: 'test'
+    it('should populate NOW default values', async () => {
+      const Model = current.define(
+          'Model',
+          {
+            created_time: {
+              type: DataTypes.DATE,
+              allowNull: true,
+              defaultValue: DataTypes.NOW
+            },
+            updated_time: {
+              type: DataTypes.DATE,
+              allowNull: true,
+              defaultValue: DataTypes.NOW
+            },
+            ip: {
+              type: DataTypes.STRING,
+              validate: {
+                isIP: true
+              }
+            },
+            ip2: {
+              type: DataTypes.STRING,
+              validate: {
+                isIP: {
+                  msg: 'test'
+                }
               }
             }
+          },
+          {
+            timestamp: false
           }
-        }, {
-          timestamp: false
-        }),
+        ),
         instance = Model.build({ ip: '127.0.0.1', ip2: '0.0.0.0' });
 
       expect(instance.get('created_time')).to.be.ok;
@@ -45,7 +49,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(instance.get('updated_time')).to.be.ok;
       expect(instance.get('updated_time')).to.be.an.instanceof(Date);
 
-      return instance.validate();
+      await instance.validate();
     });
 
     it('should populate explicitly undefined UUID primary keys', () => {
@@ -57,7 +61,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             defaultValue: DataTypes.UUIDV4
           }
         }),
-        instance  = Model.build({
+        instance = Model.build({
           id: undefined
         });
 

@@ -5,43 +5,40 @@ const chai = require('chai'),
   Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require('../../../lib/data-types'),
-  _ = require('lodash');
+  DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-
   describe('method destroy', () => {
     const User = current.define('User', {
       name: DataTypes.STRING,
       secretValue: DataTypes.INTEGER
     });
 
-    before(function() {
+    before(function () {
       this.stubDelete = sinon.stub(current.getQueryInterface(), 'bulkDelete').resolves([]);
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
       this.deloptions = { where: { secretValue: '1' } };
-      this.cloneOptions = _.clone(this.deloptions);
+      this.cloneOptions = { ...this.deloptions };
       this.stubDelete.resetHistory();
     });
 
-    afterEach(function() {
+    afterEach(function () {
       delete this.deloptions;
       delete this.cloneOptions;
     });
 
-    after(function() {
+    after(function () {
       this.stubDelete.restore();
     });
 
-    it('can detect complex objects', () => {
-      const Where = function() { this.secretValue = '1'; };
+    it('can detect complex objects', async () => {
+      const Where = function () {
+        this.secretValue = '1';
+      };
 
-      expect(() => {
-        User.destroy({ where: new Where() });
-      }).to.throw();
-
+      await expect(User.destroy({ where: new Where() })).to.be.rejected;
     });
   });
 });

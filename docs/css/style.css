@@ -12,24 +12,6 @@ div.sequelize {
   font-family: 'Titillium Web', sans-serif;
 }
 
-a[href="source.html"],
-a[href^="file/lib/"] {
-  display: none;
-}
-
-.slack-logo {
-  height: 20px;
-  position: relative;
-  top: 3px;
-  padding: 0 5px;
-}
-
-.header-logo {
-  height: 25px;
-  position: relative;
-  top: 6px;
-}
-
 .center {
   text-align: center;
 }
@@ -39,8 +21,158 @@ a[href^="file/lib/"] {
   max-width: 300px;
 }
 
-.navigation {
-  margin-top: 40px !important;
+.layout-container {
+  display: flex;
+  flex-wrap: wrap;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.layout-container .navigation {
+  position: initial;
+  margin: 0;
+  padding: 0 0.25em;
+  flex-grow: 1;
+  flex-shrink: 1;
+  max-width: 18em;
+  height: calc(100% - 4.6em - 40px);
+  overflow: auto;
+}
+
+.layout-container header {
+  position: initial;
+  flex-basis: 100%;
+  display: flex;
+}
+
+.layout-container header .search-box {
+  position: initial;
+  flex-grow: 1;
+  flex-shrink: 1;
+  text-align: right;
+  order: 1;
+  margin-top: 0.75em;
+  padding-bottom: 0;
+}
+
+.search-box>span {
+  display:block;
+  width: 100%;
+}
+
+.search-box.active .search-input {
+  width: calc(100% - 29px);
+  max-width: 300px;
+}
+
+.search-result {
+  right: 0;
+}
+
+.content {
+  position: initial;
+  margin: 0;
+  flex-grow: 1;
+  flex-basis: 50%;
+  height: calc(100% - 4.6em - 40px);
+  overflow: auto;
   padding-top: 0;
-  height: calc(100% - 40px);
+}
+
+.navigation .hamburger {
+  display: none;
+  background-color: #eee;
+  width: 2.3em;
+  border: none;
+  padding: 0.25em;
+  cursor: pointer;
+  margin: 0.5em 0.25em;
+}
+
+.navigation .hamburger .line {
+  display: block;
+  width: 100%;
+  height: 0.25em;
+  background-color: #666;
+  margin: 0.3em 0;
+  pointer-events: none;
+}
+
+.footer {
+  flex-basis: 100%;
+  margin-top: 1em;
+  padding: 1em 0;
+  height: 1.6em;
+}
+
+code {
+  overflow: auto;
+}
+
+@media only screen and (max-width: 660px) {
+  .layout-container .navigation {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    position: absolute;
+    background-color: #fff;
+    top: 40px;
+    z-index: 1;
+    box-shadow: 1px 2px 4px #aaa;
+  }
+
+  .layout-container .navigation.open {
+    height: calc(100% - 40px);
+  }
+
+  .layout-container .navigation .hamburger {
+    display: inline-block;
+  }
+
+  .layout-container .navigation>div {
+    display: none;
+  }
+
+  .layout-container .navigation.open>div {
+    display: block;
+  }
+
+  .footer {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+.manual-toc a:hover {
+  color: #999 !important;
+}
+
+.manual-group {
+  font-weight: 600;
+  margin: 9.6px 0 3.2px 0;
+  color: black !important;
+  font-size: 17px;
+}
+
+.no-mouse {
+  pointer-events: none;
+}
+
+.api-reference-link {
+  white-space: nowrap;
+  font-weight: bold;
+  padding: 0 20px;
+}
+.api-reference-link:hover {
+  color: rgb(3, 155, 229);
+}
+
+header a {
+  display: flex;
+  align-items: center;
+}
+
+a[href="source.html"],
+a[href^="file/lib/"] {
+  display: none;
 }

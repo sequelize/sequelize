@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require('../support'),
-  current   = Support.sequelize,
+  Support = require('../support'),
+  current = Support.sequelize,
   Sequelize = Support.Sequelize,
-  sinon     = require('sinon');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('decrement', () => {
@@ -20,12 +20,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       before(() => {
-        stub = sinon.stub(current, 'query').resolves(
-          {
-            _previousDataValues: { id: 3 },
-            dataValues: { id: 1 }
-          }
-        );
+        stub = sinon.stub(current, 'query').resolves({
+          _previousDataValues: { id: 3 },
+          dataValues: { id: 1 }
+        });
       });
 
       after(() => {

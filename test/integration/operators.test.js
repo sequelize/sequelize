@@ -3,7 +3,6 @@
 const chai = require('chai'),
   Sequelize = require('../../index'),
   Op = Sequelize.Op,
-  Promise = Sequelize.Promise,
   expect = chai.expect,
   Support = require('../support'),
   DataTypes = require('../../lib/data-types'),
@@ -11,163 +10,115 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Operators'), () => {
   describe('REGEXP', () => {
-    beforeEach(function() {
-      this.User = this.sequelize.define('user', {
-        id: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-          primaryKey: true,
-          autoIncrement: true,
-          field: 'userId'
-        },
-        name: {
-          type: DataTypes.STRING,
-          field: 'full_name'
-        }
-      }, {
-        tableName: 'users',
-        timestamps: false
-      });
-
-      return Promise.all([
-        this.sequelize.getQueryInterface().createTable('users', {
-          userId: {
+    beforeEach(async function () {
+      this.User = this.sequelize.define(
+        'user',
+        {
+          id: {
             type: DataTypes.INTEGER,
             allowNull: false,
             primaryKey: true,
-            autoIncrement: true
+            autoIncrement: true,
+            field: 'userId'
           },
-          full_name: {
-            type: DataTypes.STRING
+          name: {
+            type: DataTypes.STRING,
+            field: 'full_name'
           }
-        })
-      ]);
+        },
+        {
+          tableName: 'users',
+          timestamps: false
+        }
+      );
+
+      await this.sequelize.getQueryInterface().createTable('users', {
+        userId: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          primaryKey: true,
+          autoIncrement: true
+        },
+        full_name: {
+          type: DataTypes.STRING
+        }
+      });
     });
 
     if (dialect === 'mysql' || dialect === 'postgres') {
       describe('case sensitive', () => {
-        it('should work with a regexp where', function() {
-          return this.User.create({
-            name: 'Foobar'
-          }).then(() => {
-            return this.User.findOne({
-              where: {
-                name: {
-                  [Op.regexp]: '^Foo'
-                }
-              }
-            });
-          }).then(user => {
-            expect(user).to.be.ok;
+        it('should work with a regexp where', async function () {
+          await this.User.create({ name: 'Foobar' });
+          const user = await this.User.findOne({
+            where: {
+              name: { [Op.regexp]: '^Foo' }
+            }
           });
+          expect(user).to.be.ok;
         });
 
-        it('should work with a not regexp where', function() {
-          return this.User.create({
-            name: 'Foobar'
-          }).then(() => {
-            return this.User.findOne({
-              where: {
-                name: {
-                  [Op.notRegexp]: '^Foo'
-                }
-              }
-            });
-          }).then(user => {
-            expect(user).to.not.be.ok;
+        it('should work with a not regexp where', async function () {
+          await this.User.create({ name: 'Foobar' });
+          const user = await this.User.findOne({
+            where: {
+              name: { [Op.notRegexp]: '^Foo' }
+            }
           });
+          expect(user).to.not.be.ok;
         });
 
-        it('should properly escape regular expressions', function() {
-          return this.User.bulkCreate([{
-            name: 'John'
-          }, {
-            name: 'Bob'
-          }]).then(() => {
-            return this.User.findAll({
-              where: {
-                name: {
-                  [Op.notRegexp]: "Bob'; drop table users --"
-                }
-              }
-            });
-          }).then(() => {
-            return this.User.findAll({
-              where: {
-                name: {
-                  [Op.regexp]: "Bob'; drop table users --"
-                }
-              }
-            });
-          }).then(() => {
-            return this.User.findAll();
-          }).then(users => {
-            expect(users).length(2);
+        it('should properly escape regular expressions', async function () {
+          await this.User.bulkCreate([{ name: 'John' }, { name: 'Bob' }]);
+          await this.User.findAll({
+            where: {
+              name: { [Op.notRegexp]: "Bob'; drop table users --" }
+            }
           });
+          await this.User.findAll({
+            where: {
+              name: { [Op.regexp]: "Bob'; drop table users --" }
+            }
+          });
+          expect(await this.User.findAll()).to.have.length(2);
         });
       });
     }
 
     if (dialect === 'postgres') {
       describe('case insensitive', () => {
-        it('should work with a case-insensitive regexp where', function() {
-          return this.User.create({
-            name: 'Foobar'
-          }).then(() => {
-            return this.User.findOne({
-              where: {
-                name: {
-                  [Op.iRegexp]: '^foo'
-                }
-              }
-            });
-          }).then(user => {
-            expect(user).to.be.ok;
+        it('should work with a case-insensitive regexp where', async function () {
+          await this.User.create({ name: 'Foobar' });
+          const user = await this.User.findOne({
+            where: {
+              name: { [Op.iRegexp]: '^foo' }
+            }
           });
+          expect(user).to.be.ok;
         });
 
-        it('should work with a case-insensitive not regexp where', function() {
-          return this.User.create({
-            name: 'Foobar'
-          }).then(() => {
-            return this.User.findOne({
-              where: {
-                name: {
-                  [Op.notIRegexp]: '^foo'
-                }
-              }
-            });
-          }).then(user => {
-            expect(user).to.not.be.ok;
+        it('should work with a case-insensitive not regexp where', async function () {
+          await this.User.create({ name: 'Foobar' });
+          const user = await this.User.findOne({
+            where: {
+              name: { [Op.notIRegexp]: '^foo' }
+            }
           });
+          expect(user).to.not.be.ok;
         });
 
-        it('should properly escape regular expressions', function() {
-          return this.User.bulkCreate([{
-            name: 'John'
-          }, {
-            name: 'Bob'
-          }]).then(() => {
-            return this.User.findAll({
-              where: {
-                name: {
-                  [Op.iRegexp]: "Bob'; drop table users --"
-                }
-              }
-            });
-          }).then(() => {
-            return this.User.findAll({
-              where: {
-                name: {
-                  [Op.notIRegexp]: "Bob'; drop table users --"
-                }
-              }
-            });
-          }).then(() => {
-            return this.User.findAll();
-          }).then(users => {
-            expect(users).length(2);
+        it('should properly escape regular expressions', async function () {
+          await this.User.bulkCreate([{ name: 'John' }, { name: 'Bob' }]);
+          await this.User.findAll({
+            where: {
+              name: { [Op.iRegexp]: "Bob'; drop table users --" }
+            }
           });
+          await this.User.findAll({
+            where: {
+              name: { [Op.notIRegexp]: "Bob'; drop table users --" }
+            }
+          });
+          expect(await this.User.findAll()).to.have.length(2);
         });
       });
     }

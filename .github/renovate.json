@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base", ":semanticCommits", ":preserveSemverRanges"],
+  "timezone": "Asia/Kolkata",
+  "prConcurrentLimit": 4,
+  "rangeStrategy": "auto",
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "depTypeList": ["devDependencies"],
+      "automerge": true
+    },
+    {
+      "depTypeList": ["devDependencies"],
+      "packagePatterns": ["eslint", "prettier"],
+      "groupName": "lint packages"
+    }
+  ]
+}

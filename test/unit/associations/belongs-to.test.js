@@ -3,10 +3,10 @@
 const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
-  _         = require('lodash'),
+  _ = require('lodash'),
   DataTypes = require('../../../lib/data-types'),
-  Support   = require('../support'),
-  current   = Support.sequelize;
+  Support = require('../support'),
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('belongsTo'), () => {
   it('throws when invalid model is passed', () => {
@@ -14,7 +14,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
     expect(() => {
       User.belongsTo();
-    }).to.throw('User.belongsTo called with something that\'s not a subclass of Sequelize.Model');
+    }).to.throw("User.belongsTo called with something that's not a subclass of Sequelize.Model");
   });
 
   it('warn on invalid options', () => {
@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
     const Task = current.define('Task');
 
     _.each(methods, (alias, method) => {
-      User.prototype[method] = function() {
+      User.prototype[method] = function () {
         const realMethod = this.constructor.associations.task[alias];
         expect(realMethod).to.be.a('function');
         return realMethod;
@@ -52,12 +52,14 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
     });
   });
   describe('association hooks', () => {
-    beforeEach(function() {
-      this.Projects = this.sequelize.define('Project', { title: DataTypes.STRING });
+    beforeEach(function () {
+      this.Projects = this.sequelize.define('Project', {
+        title: DataTypes.STRING
+      });
       this.Tasks = this.sequelize.define('Task', { title: DataTypes.STRING });
     });
     describe('beforeBelongsToAssociate', () => {
-      it('should trigger', function() {
+      it('should trigger', function () {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
         this.Projects.belongsTo(this.Tasks, { hooks: true });
@@ -75,7 +77,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
         expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
-      it('should not trigger association hooks', function() {
+      it('should not trigger association hooks', function () {
         const beforeAssociate = sinon.spy();
         this.Projects.beforeAssociate(beforeAssociate);
         this.Projects.belongsTo(this.Tasks, { hooks: false });
@@ -83,7 +85,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
       });
     });
     describe('afterBelongsToAssociate', () => {
-      it('should trigger', function() {
+      it('should trigger', function () {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
         this.Projects.belongsTo(this.Tasks, { hooks: true });
@@ -103,7 +105,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
 
         expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
-      it('should not trigger association hooks', function() {
+      it('should not trigger association hooks', function () {
         const afterAssociate = sinon.spy();
         this.Projects.afterAssociate(afterAssociate);
         this.Projects.belongsTo(this.Tasks, { hooks: false });

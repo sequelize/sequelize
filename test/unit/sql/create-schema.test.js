@@ -3,7 +3,7 @@
 const Support = require('../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const sql = current.dialect.QueryGenerator;
+const sql = current.dialect.queryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   if (current.dialect.name === 'postgres') {
@@ -16,11 +16,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('createSchema', () => {
-      before(function() {
+      before(function () {
         this.version = current.options.databaseVersion;
       });
 
-      after(function() {
+      after(function () {
         current.options.databaseVersion = this.version;
       });
 

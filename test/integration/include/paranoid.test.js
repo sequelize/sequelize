@@ -4,19 +4,16 @@ const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
   Support = require('../support'),
-  Sequelize = require('../../../index'),
   DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Paranoid'), () => {
-
-  beforeEach(function( ) {
+  beforeEach(async function () {
     const S = this.sequelize,
       DT = DataTypes,
-
-      A = this.A = S.define('A', { name: DT.STRING }, { paranoid: true }),
-      B = this.B = S.define('B', { name: DT.STRING }, { paranoid: true }),
-      C = this.C = S.define('C', { name: DT.STRING }, { paranoid: true }),
-      D = this.D = S.define('D', { name: DT.STRING }, { paranoid: true });
+      A = (this.A = S.define('A', { name: DT.STRING }, { paranoid: true })),
+      B = (this.B = S.define('B', { name: DT.STRING }, { paranoid: true })),
+      C = (this.C = S.define('C', { name: DT.STRING }, { paranoid: true })),
+      D = (this.D = S.define('D', { name: DT.STRING }, { paranoid: true }));
 
     A.belongsTo(B);
     A.belongsToMany(D, { through: 'a_d' });
@@ -30,32 +27,36 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
     D.belongsToMany(A, { through: 'a_d' });
 
-    return S.sync({ force: true });
+    await S.sync({ force: true });
   });
 
-  before(function() {
+  before(function () {
     this.clock = sinon.useFakeTimers();
   });
 
-  after(function() {
+  after(function () {
     this.clock.restore();
   });
 
-  it('paranoid with timestamps: false should be ignored / not crash', function() {
+  it('paranoid with timestamps: false should be ignored / not crash', async function () {
     const S = this.sequelize,
-      Test = S.define('Test', {
-        name: DataTypes.STRING
-      }, {
-        timestamps: false,
-        paranoid: true
-      });
+      Test = S.define(
+        'Test',
+        {
+          name: DataTypes.STRING
+        },
+        {
+          timestamps: false,
+          paranoid: true
+        }
+      );
 
-    return S.sync({ force: true }).then(() => {
-      return Test.findByPk(1);
-    });
+    await S.sync({ force: true });
+
+    await Test.findByPk(1);
   });
 
-  it('test if non required is marked as false', function( ) {
+  it('test if non required is marked as false', async function () {
     const A = this.A,
       B = this.B,
       options = {
@@ -67,12 +68,11 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
         ]
       };
 
-    return A.findOne(options).then(() => {
-      expect(options.include[0].required).to.be.equal(false);
-    });
+    await A.findOne(options);
+    expect(options.include[0].required).to.be.equal(false);
   });
 
-  it('test if required is marked as true', function( ) {
+  it('test if required is marked as true', async function () {
     const A = this.A,
       B = this.B,
       options = {
@@ -84,48 +84,51 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
         ]
       };
 
-    return A.findOne(options).then(() => {
-      expect(options.include[0].required).to.be.equal(true);
-    });
+    await A.findOne(options);
+    expect(options.include[0].required).to.be.equal(true);
   });
 
-  it('should not load paranoid, destroyed instances, with a non-paranoid parent', function() {
-    const X = this.sequelize.define('x', {
-      name: DataTypes.STRING
-    }, {
-      paranoid: false
-    });
+  it('should not load paranoid, destroyed instances, with a non-paranoid parent', async function () {
+    const X = this.sequelize.define(
+      'x',
+      {
+        name: DataTypes.STRING
+      },
+      {
+        paranoid: false
+      }
+    );
 
-    const Y = this.sequelize.define('y', {
-      name: DataTypes.STRING
-    }, {
-      timestamps: true,
-      paranoid: true
-    });
+    const Y = this.sequelize.define(
+      'y',
+      {
+        name: DataTypes.STRING
+      },
+      {
+        timestamps: true,
+        paranoid: true
+      }
+    );
 
     X.hasMany(Y);
 
-    return this.sequelize.sync({ force: true }).then(() => {
-      return Sequelize.Promise.all([
-        X.create(),
-        Y.create()
-      ]);
-    }).then(([x, y]) => {
-      this.x = x;
-      this.y = y;
+    await this.sequelize.sync({ force: true });
 
-      return x.addY(y);
-    }).then(() => {
-      return this.y.destroy();
-    }).then(() => {
-      //prevent CURRENT_TIMESTAMP to be same
-      this.clock.tick(1000);
+    const [x0, y] = await Promise.all([X.create(), Y.create()]);
 
-      return X.findAll({
-        include: [Y]
-      }).get(0);
-    }).then(x => {
-      expect(x.ys).to.have.length(0);
+    this.x = x0;
+    this.y = y;
+
+    await x0.addY(y);
+    await this.y.destroy();
+    //prevent CURRENT_TIMESTAMP to be same
+    this.clock.tick(1000);
+
+    const obj = await X.findAll({
+      include: [Y]
     });
+
+    const x = await obj[0];
+    expect(x.ys).to.have.length(0);
   });
 });
