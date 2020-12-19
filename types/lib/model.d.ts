@@ -1825,7 +1825,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindOptions<M['_attributes']>): Promise<M[]>;
+    options?: FindOptions<M['_attributes']> & { raw?: false }): Promise<M[]>;
+  public static findAll<M extends Model, R extends any = M['_attributes']>(
+    this: ModelStatic<M>,
+    options?: FindOptions<M['_attributes']> & { raw: true }): Promise<R[]>;
 
   /**
    * Search for a single instance by its primary key. This applies LIMIT 1, so the listener will
@@ -1847,12 +1850,20 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   public static findOne<M extends Model>(
     this: ModelStatic<M>,
-    options: NonNullFindOptions<M['_attributes']>
+    options: NonNullFindOptions<M['_attributes']> & { raw?: false }
   ): Promise<M>;
+  public static findOne<M extends Model, R extends any = M['_attributes']>(
+    this: ModelStatic<M>,
+    options: NonNullFindOptions<M['_attributes']> & { raw: true }
+  ): Promise<R>;
   public static findOne<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindOptions<M['_attributes']>
+    options?: FindOptions<M['_attributes']> & { raw?: false }
   ): Promise<M | null>;
+  public static findOne<M extends Model, R extends any = M['_attributes']>(
+    this: ModelStatic<M>,
+    options?: FindOptions<M['_attributes']> & { raw: true }
+  ): Promise<R | null>;
 
   /**
    * Run an aggregation method on the specified field
