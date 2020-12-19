@@ -1837,13 +1837,23 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier: Identifier,
-    options: Omit<NonNullFindOptions<M['_attributes']>, 'where'>
+    options: Omit<NonNullFindOptions<M['_attributes']>, 'where'> & { raw?: false }
   ): Promise<M>;
+  public static findByPk<M extends Model, R extends any = M['_attributes']>(
+    this: ModelStatic<M>,
+    identifier: Identifier,
+    options: Omit<NonNullFindOptions<M['_attributes']>, 'where'> & { raw: true }
+  ): Promise<R>;
   public static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier?: Identifier,
-    options?: Omit<FindOptions<M['_attributes']>, 'where'>
+    options?: Omit<FindOptions<M['_attributes']>, 'where'> & { raw?: false }
   ): Promise<M | null>;
+  public static findByPk<M extends Model, R extends any = M['_attributes']>(
+    this: ModelStatic<M>,
+    identifier?: Identifier,
+    options?: Omit<FindOptions<M['_attributes']>, 'where'> & { raw: true }
+  ): Promise<R | null>;
 
   /**
    * Search for a single instance. Returns the first instance found, or null if none can be found.
