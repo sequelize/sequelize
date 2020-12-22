@@ -105,13 +105,13 @@ class Query extends AbstractQuery {
           this.model.autoIncrementAttribute === this.model.primaryKeyAttribute &&
           this.model.rawAttributes[this.model.primaryKeyAttribute]
         ) {
-          //ONLY TRUE IF @auto_increment_increment is set to 1 !!
-          //Doesn't work with GALERA => each node will reserve increment (x for first server, x+1 for next node ...
+          const autoIncrementIncrement = this.sequelize.options.autoIncrementIncrement || 1;
+
           const startId = data[this.getInsertIdField()];
           result = new Array(data.affectedRows);
           const pkField = this.model.rawAttributes[this.model.primaryKeyAttribute].field;
           for (let i = 0; i < data.affectedRows; i++) {
-            result[i] = { [pkField]: startId + i };
+            result[i] = { [pkField]: startId + i * autoIncrementIncrement };
           }
           return [result, data.affectedRows];
         }
