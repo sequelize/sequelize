@@ -6,14 +6,14 @@ language: node_js
 branches:
   only:
     - master
-    - /^greenkeeper/.*$/
+    - v6
   except:
     - /^v\d+\.\d+\.\d+$/
 
 cache: npm
 
 install:
-  - npm install
+  - npm ci
   - |-
     if [ "$DIALECT" = "postgres-native" ]; then npm install pg-native; fi
 
@@ -27,16 +27,17 @@ env:
 
 before_script:
   # setup docker
-  - "if [ $MARIADB_VER ]; then export MARIADB_ENTRYPOINT=$TRAVIS_BUILD_DIR/test/config/mariadb; fi"
-  - "if [ $MYSQL_VER ]; then export MYSQLDB_ENTRYPOINT=$TRAVIS_BUILD_DIR/test/config/mysql; fi"
-  - "if [ $POSTGRES_VER ] || [ $MARIADB_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MARIADB_VER} ${MYSQL_VER}; fi"
-  - "if [ $MARIADB_VER ]; then docker run --link ${MARIADB_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
-  - "if [ $MYSQL_VER ]; then docker run --link ${MYSQL_VER}:db -e CHECK_PORT=3306 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
-  - "if [ $POSTGRES_VER ]; then docker run --link ${POSTGRES_VER}:db -e CHECK_PORT=5432 -e CHECK_HOST=db --net sequelize_default giorgos/takis; fi"
+  - if [ $MARIADB_VER ]; then export MARIADB_ENTRYPOINT=$TRAVIS_BUILD_DIR/test/config/mariadb; fi
+  - if [ $MYSQL_VER ]; then export MYSQLDB_ENTRYPOINT=$TRAVIS_BUILD_DIR/test/config/mysql; fi
+  - if [ $POSTGRES_VER ] || [ $MARIADB_VER ] || [ $MYSQL_VER ]; then docker-compose up -d ${POSTGRES_VER} ${MARIADB_VER} ${MYSQL_VER}; fi
+  - wait_for() { docker run --net sequelize_default jwilder/dockerize -timeout 2m -wait "$1"; }
+  - if [ $POSTGRES_VER ]; then wait_for tcp://${POSTGRES_VER}:5432; fi
+  - if [ $MARIADB_VER ]; then wait_for tcp://${MARIADB_VER}:3306; fi
+  - if [ $MYSQL_VER ]; then wait_for tcp://${MYSQL_VER}:3306; fi
 
 script:
   - |-
-    if [ "$COVERAGE" = true ]; then npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info; else npm run test; fi
+    npm run cover && bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info
 
 jobs:
   include:
@@ -74,17 +75,10 @@ jobs:
     - stage: release
       node_js: '10'
       script:
-        - npm run lint-docs #change after v6 released
-      before_deploy:
-        - npm run docs
-      deploy:
-        provider: surge
-        project: ./esdoc/
-        domain: docs.sequelizejs.com
-        skip_cleanup: true
+        - npm run semantic-release
 
 stages:
   - lint
   - test
   - name: release
-    if: branch = master AND type = push AND fork = false
+    if: branch = v6 AND type = push AND fork = false

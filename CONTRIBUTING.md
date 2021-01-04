@@ -1,46 +1,50 @@
-_Please note!_ The github issue tracker should only be used for feature requests and bugs with a clear description of the issue and the expected behaviour (see below). All questions belong on [Slack](https://sequelize.slack.com), [StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js) or [Google groups](https://groups.google.com/forum/#!forum/sequelize).
+_Please note!_ The github issue tracker should only be used for feature requests and bugs with a clear description of the issue and the expected behaviour (see below). All questions belong on [Slack](https://sequelize.slack.com) & [StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js).
 
 # Issues
+
 Issues are always very welcome - after all, they are a big part of making sequelize better. However, there are a couple of things you can do to make the lives of the developers _much, much_ easier:
 
 ### Tell us:
 
-* What you are doing?
-  * Post a _minimal_ code sample that reproduces the issue, including models and associations
-  * What do you expect to happen?
-  * What is actually happening?
-* Which dialect you are using (postgres, mysql etc)?
-* Which sequelize version you are using?
+- What you are doing?
+  - Post a _minimal_ code sample that reproduces the issue, including models and associations
+  - What do you expect to happen?
+  - What is actually happening?
+- Which dialect you are using (postgres, mysql etc)?
+- Which sequelize version you are using?
 
 When you post code, please use [Github flavored markdown](https://help.github.com/articles/github-flavored-markdown), in order to get proper syntax highlighting!
 
 If you can even provide a pull request with a failing unit test, we will love you long time! Plus your issue will likely be fixed much faster.
 
 # Pull requests
+
 We're glad to get pull request if any functionality is missing or something is buggy. However, there are a couple of things you can do to make life easier for the maintainers:
 
-* Explain the issue that your PR is solving - or link to an existing issue
-* Make sure that all existing tests pass
-* Make sure you followed [coding guidelines](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md#coding-guidelines)
-* Add some tests for your new functionality or a test exhibiting the bug you are solving. Ideally all new tests should not pass _without_ your changes.
-  - Use [promise style](http://bluebirdjs.com/docs/why-promises.html) in all new tests. Specifically this means:
+- Explain the issue that your PR is solving - or link to an existing issue
+- Make sure that all existing tests pass
+- Make sure you followed [coding guidelines](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md#coding-guidelines)
+- Add some tests for your new functionality or a test exhibiting the bug you are solving. Ideally all new tests should not pass _without_ your changes.
+  - Use [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) in all new tests. Specifically this means:
     - don't use `EventEmitter`, `QueryChainer` or the `success`, `done` and `error` events
     - don't use a done callback in your test, just return the promise chain.
   - Small bugfixes and direct backports to the 4.x branch are accepted without tests.
-* If you are adding to / changing the public API, remember to add API docs, in the form of [JSDoc style](http://usejsdoc.org/about-getting-started.html) comments. See [section 4a](#4a-check-the-documentation) for the specifics.
+- If you are adding to / changing the public API, remember to add API docs, in the form of [JSDoc style](http://usejsdoc.org/about-getting-started.html) comments. See [section 4a](#4a-check-the-documentation) for the specifics.
 
 Interested? Coolio! Here is how to get started:
 
 ### 1. Prepare your environment
+
 Here comes a little surprise: You need [Node.JS](http://nodejs.org).
 
 ### 2. Install the dependencies
 
-Just "cd" into sequelize directory and run `npm install`, see an example below:
+Just "cd" into sequelize directory and run `npm ci`, see an example below:
 
 ```sh
 $ cd path/to/sequelize
-$ npm install
+$ npm ci
+$ npm run tsc
 ```
 
 ### 3. Database
@@ -72,6 +76,7 @@ You may need to specify credentials using the environment variables `SEQ_PG_USER
 For Postgres you may also need to install the `postgresql-postgis` package (an optional component of some Postgres distributions, e.g. Ubuntu). The package will be named something like: `postgresql-<pg_version_number>-postgis-<postgis_version_number>`, e.g. `postgresql-9.5-postgis-2.2`. You should be able to find the exact package name on a Debian/Ubuntu system by running the command: `apt-cache search -- -postgis`.
 
 Create the following extensions in the test database:
+
 ```
 CREATE EXTENSION postgis;
 CREATE EXTENSION hstore;
@@ -92,20 +97,23 @@ $ docker-compose up postgres-95 mysql-57 mssql
 ```
 
 > **_NOTE:_** If you get the following output:
->```
->...
->Creating mysql-57 ... error
 >
->ERROR: for mysql-57  Cannot create container for service mysql-57: b'create .: volume name is too short, names should be at least two alphanumeric characters'
+> ```
+> ...
+> Creating mysql-57 ... error
 >
->ERROR: for mysql-57  Cannot create container for service mysql-57: b'create .: volume name is too short, names should be at least two alphanumeric characters'
->ERROR: Encountered errors while bringing up the project.
->```
->You need to set the variables `MARIADB_ENTRYPOINT` and `MYSQLDB_ENTRYPOINT` accordingly:
->```sh
->$ export MARIADB_ENTRYPOINT="$PATH_TO_PROJECT/test/config/mariadb"
->$ export MYSQLDB_ENTRYPOINT="$PATH_TO_PROJECT/test/config/mysql"
->```
+> ERROR: for mysql-57  Cannot create container for service mysql-57: b'create .: volume name is too short, names should be at least two alphanumeric characters'
+>
+> ERROR: for mysql-57  Cannot create container for service mysql-57: b'create .: volume name is too short, names should be at least two alphanumeric characters'
+> ERROR: Encountered errors while bringing up the project.
+> ```
+>
+> You need to set the variables `MARIADB_ENTRYPOINT` and `MYSQLDB_ENTRYPOINT` accordingly:
+>
+> ```sh
+> $ export MARIADB_ENTRYPOINT="$PATH_TO_PROJECT/test/config/mariadb"
+> $ export MYSQLDB_ENTRYPOINT="$PATH_TO_PROJECT/test/config/mysql"
+> ```
 
 **MSSQL:** Please run `npm run setup-mssql` to create the test database.
 

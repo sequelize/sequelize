@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     this.clock.restore();
   });
 
-  beforeEach(function() {
+  beforeEach(async function() {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
       uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
@@ -53,20 +53,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       }
     });
 
-    return this.User.sync({ force: true });
+    await this.User.sync({ force: true });
   });
 
   describe('Escaping', () => {
-    it('is done properly for special characters', function() {
+    it('is done properly for special characters', async function() {
       // Ideally we should test more: "\0\n\r\b\t\\\'\"\x1a"
       // But this causes sqlite to fail and exits the entire test suite immediately
       const bio = `${dialect}'"\n`; // Need to add the dialect here so in case of failure I know what DB it failed for
 
-      return this.User.create({ username: bio }).then(u1 => {
-        return this.User.findByPk(u1.id).then(u2 => {
-          expect(u2.username).to.equal(bio);
-        });
-      });
+      const u1 = await this.User.create({ username: bio });
+      const u2 = await this.User.findByPk(u1.id);
+      expect(u2.username).to.equal(bio);
     });
   });
 
@@ -77,41 +75,40 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.isNewRecord).to.be.ok;
     });
 
-    it('returns false for saved objects', function() {
-      return this.User.build({ username: 'user' }).save().then(user => {
-        expect(user.isNewRecord).to.not.be.ok;
-      });
+    it('returns false for saved objects', async function() {
+      const user = await this.User.build({ username: 'user' }).save();
+      expect(user.isNewRecord).to.not.be.ok;
     });
 
-    it('returns false for created objects', function() {
-      return this.User.create({ username: 'user' }).then(user => {
-        expect(user.isNewRecord).to.not.be.ok;
-      });
+    it('returns false for created objects', async function() {
+      const user = await this.User.create({ username: 'user' });
+      expect(user.isNewRecord).to.not.be.ok;
     });
 
-    it('returns false for objects found by find method', function() {
-      return this.User.create({ username: 'user' }).then(() => {
-        return this.User.create({ username: 'user' }).then(user => {
-          return this.User.findByPk(user.id).then(user => {
-            expect(user.isNewRecord).to.not.be.ok;
-          });
-        });
-      });
+    it('returns false for upserted objects', async function() {
+      // adding id here so MSSQL doesn't fail. It needs a primary key to upsert
+      const [user] = await this.User.upsert({ id: 2, username: 'user' });
+      expect(user.isNewRecord).to.not.be.ok;
     });
 
-    it('returns false for objects found by findAll method', function() {
+    it('returns false for objects found by find method', async function() {
+      await this.User.create({ username: 'user' });
+      const user = await this.User.create({ username: 'user' });
+      const user0 = await this.User.findByPk(user.id);
+      expect(user0.isNewRecord).to.not.be.ok;
+    });
+
+    it('returns false for objects found by findAll method', async function() {
       const users = [];
 
       for (let i = 0; i < 10; i++) {
         users[i] = { username: 'user' };
       }
 
-      return this.User.bulkCreate(users).then(() => {
-        return this.User.findAll().then(users => {
-          users.forEach(u => {
-            expect(u.isNewRecord).to.not.be.ok;
-          });
-        });
+      await this.User.bulkCreate(users);
+      const users0 = await this.User.findAll();
+      users0.forEach(u => {
+        expect(u.isNewRecord).to.not.be.ok;
       });
     });
   });
@@ -174,260 +171,225 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('allowNull date', () => {
-      it('should be just "null" and not Date with Invalid Date', function() {
-        return this.User.build({ username: 'a user' }).save().then(() => {
-          return this.User.findOne({ where: { username: 'a user' } }).then(user => {
-            expect(user.dateAllowNullTrue).to.be.null;
-          });
-        });
+      it('should be just "null" and not Date with Invalid Date', async function() {
+        await this.User.build({ username: 'a user' }).save();
+        const user = await this.User.findOne({ where: { username: 'a user' } });
+        expect(user.dateAllowNullTrue).to.be.null;
       });
 
-      it('should be the same valid date when saving the date', function() {
+      it('should be the same valid date when saving the date', async function() {
         const date = new Date();
-        return this.User.build({ username: 'a user', dateAllowNullTrue: date }).save().then(() => {
-          return this.User.findOne({ where: { username: 'a user' } }).then(user => {
-            expect(user.dateAllowNullTrue.toString()).to.equal(date.toString());
-          });
-        });
+        await this.User.build({ username: 'a user', dateAllowNullTrue: date }).save();
+        const user = await this.User.findOne({ where: { username: 'a user' } });
+        expect(user.dateAllowNullTrue.toString()).to.equal(date.toString());
       });
     });
 
     describe('super user boolean', () => {
-      it('should default to false', function() {
-        return this.User.build({
+      it('should default to false', async function() {
+        await this.User.build({
           username: 'a user'
         })
-          .save()
-          .then(() => {
-            return this.User.findOne({
-              where: {
-                username: 'a user'
-              }
-            })
-              .then(user => {
-                expect(user.isSuperUser).to.be.false;
-              });
-          });
+          .save();
+
+        const user = await this.User.findOne({
+          where: {
+            username: 'a user'
+          }
+        });
+
+        expect(user.isSuperUser).to.be.false;
       });
 
-      it('should override default when given truthy boolean', function() {
-        return this.User.build({
+      it('should override default when given truthy boolean', async function() {
+        await this.User.build({
           username: 'a user',
           isSuperUser: true
         })
-          .save()
-          .then(() => {
-            return this.User.findOne({
-              where: {
-                username: 'a user'
-              }
-            })
-              .then(user => {
-                expect(user.isSuperUser).to.be.true;
-              });
-          });
+          .save();
+
+        const user = await this.User.findOne({
+          where: {
+            username: 'a user'
+          }
+        });
+
+        expect(user.isSuperUser).to.be.true;
       });
 
-      it('should override default when given truthy boolean-string ("true")', function() {
-        return this.User.build({
+      it('should override default when given truthy boolean-string ("true")', async function() {
+        await this.User.build({
           username: 'a user',
           isSuperUser: 'true'
         })
-          .save()
-          .then(() => {
-            return this.User.findOne({
-              where: {
-                username: 'a user'
-              }
-            })
-              .then(user => {
-                expect(user.isSuperUser).to.be.true;
-              });
-          });
+          .save();
+
+        const user = await this.User.findOne({
+          where: {
+            username: 'a user'
+          }
+        });
+
+        expect(user.isSuperUser).to.be.true;
       });
 
-      it('should override default when given truthy boolean-int (1)', function() {
-        return this.User.build({
+      it('should override default when given truthy boolean-int (1)', async function() {
+        await this.User.build({
           username: 'a user',
           isSuperUser: 1
         })
-          .save()
-          .then(() => {
-            return this.User.findOne({
-              where: {
-                username: 'a user'
-              }
-            })
-              .then(user => {
-                expect(user.isSuperUser).to.be.true;
-              });
-          });
+          .save();
+
+        const user = await this.User.findOne({
+          where: {
+            username: 'a user'
+          }
+        });
+
+        expect(user.isSuperUser).to.be.true;
       });
 
-      it('should throw error when given value of incorrect type', function() {
+      it('should throw error when given value of incorrect type', async function() {
         let callCount = 0;
 
-        return this.User.build({
-          username: 'a user',
-          isSuperUser: 'INCORRECT_VALUE_TYPE'
-        })
-          .save()
-          .then(() => {
-            callCount += 1;
+        try {
+          await this.User.build({
+            username: 'a user',
+            isSuperUser: 'INCORRECT_VALUE_TYPE'
           })
-          .catch(err => {
-            expect(callCount).to.equal(0);
-            expect(err).to.exist;
-            expect(err.message).to.exist;
-          });
+            .save();
+
+          callCount += 1;
+        } catch (err) {
+          expect(callCount).to.equal(0);
+          expect(err).to.exist;
+          expect(err.message).to.exist;
+        }
       });
     });
   });
 
   describe('complete', () => {
-    it('gets triggered if an error occurs', function() {
-      return this.User.findOne({ where: ['asdasdasd'] }).catch(err => {
+    it('gets triggered if an error occurs', async function() {
+      try {
+        await this.User.findOne({ where: ['asdasdasd'] });
+      } catch (err) {
         expect(err).to.exist;
         expect(err.message).to.exist;
-      });
+      }
     });
 
-    it('gets triggered if everything was ok', function() {
-      return this.User.count().then(result => {
-        expect(result).to.exist;
-      });
+    it('gets triggered if everything was ok', async function() {
+      const result = await this.User.count();
+      expect(result).to.exist;
     });
   });
 
   describe('findAll', () => {
-    beforeEach(function() {
+    beforeEach(async function() {
       this.ParanoidUser = this.sequelize.define('ParanoidUser', {
         username: { type: DataTypes.STRING }
       }, { paranoid: true });
 
       this.ParanoidUser.hasOne(this.ParanoidUser);
-      return this.ParanoidUser.sync({ force: true });
+      await this.ParanoidUser.sync({ force: true });
     });
 
-    it('sql should have paranoid condition', function() {
-      return this.ParanoidUser.create({ username: 'cuss' })
-        .then(() => {
-          return this.ParanoidUser.findAll();
-        })
-        .then(users => {
-          expect(users).to.have.length(1);
-          return users[0].destroy();
-        })
-        .then(() => {
-          return this.ParanoidUser.findAll();
-        })
-        .then(users => {
-          expect(users).to.have.length(0);
-        });
+    it('sql should have paranoid condition', async function() {
+      await this.ParanoidUser.create({ username: 'cuss' });
+      const users0 = await this.ParanoidUser.findAll();
+      expect(users0).to.have.length(1);
+      await users0[0].destroy();
+      const users = await this.ParanoidUser.findAll();
+      expect(users).to.have.length(0);
     });
 
-    it('sequelize.and as where should include paranoid condition', function() {
-      return this.ParanoidUser.create({ username: 'cuss' })
-        .then(() => {
-          return this.ParanoidUser.findAll({
-            where: this.sequelize.and({
-              username: 'cuss'
-            })
-          });
-        })
-        .then(users => {
-          expect(users).to.have.length(1);
-          return users[0].destroy();
-        })
-        .then(() => {
-          return this.ParanoidUser.findAll({
-            where: this.sequelize.and({
-              username: 'cuss'
-            })
-          });
-        })
-        .then(users => {
-          expect(users).to.have.length(0);
-        });
-    });
+    it('sequelize.and as where should include paranoid condition', async function() {
+      await this.ParanoidUser.create({ username: 'cuss' });
 
-    it('sequelize.or as where should include paranoid condition', function() {
-      return this.ParanoidUser.create({ username: 'cuss' })
-        .then(() => {
-          return this.ParanoidUser.findAll({
-            where: this.sequelize.or({
-              username: 'cuss'
-            })
-          });
+      const users0 = await this.ParanoidUser.findAll({
+        where: this.sequelize.and({
+          username: 'cuss'
         })
-        .then(users => {
-          expect(users).to.have.length(1);
-          return users[0].destroy();
-        })
-        .then(() => {
-          return this.ParanoidUser.findAll({
-            where: this.sequelize.or({
-              username: 'cuss'
-            })
-          });
-        })
-        .then(users => {
-          expect(users).to.have.length(0);
-        });
-    });
-
-    it('escapes a single single quotes properly in where clauses', function() {
-      return this.User
-        .create({ username: "user'name" })
-        .then(() => {
-          return this.User.findAll({
-            where: { username: "user'name" }
-          }).then(users => {
-            expect(users.length).to.equal(1);
-            expect(users[0].username).to.equal("user'name");
-          });
-        });
-    });
-
-    it('escapes two single quotes properly in where clauses', function() {
-      return this.User
-        .create({ username: "user''name" })
-        .then(() => {
-          return this.User.findAll({
-            where: { username: "user''name" }
-          }).then(users => {
-            expect(users.length).to.equal(1);
-            expect(users[0].username).to.equal("user''name");
-          });
-        });
-    });
-
-    it('returns the timestamps if no attributes have been specified', function() {
-      return this.User.create({ username: 'fnord' }).then(() => {
-        return this.User.findAll().then(users => {
-          expect(users[0].createdAt).to.exist;
-        });
       });
-    });
 
-    it('does not return the timestamps if the username attribute has been specified', function() {
-      return this.User.create({ username: 'fnord' }).then(() => {
-        return this.User.findAll({ attributes: ['username'] }).then(users => {
-          expect(users[0].createdAt).not.to.exist;
-          expect(users[0].username).to.exist;
-        });
+      expect(users0).to.have.length(1);
+      await users0[0].destroy();
+
+      const users = await this.ParanoidUser.findAll({
+        where: this.sequelize.and({
+          username: 'cuss'
+        })
       });
+
+      expect(users).to.have.length(0);
     });
 
-    it('creates the deletedAt property, when defining paranoid as true', function() {
-      return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return this.ParanoidUser.findAll().then(users => {
-          expect(users[0].deletedAt).to.be.null;
-        });
+    it('sequelize.or as where should include paranoid condition', async function() {
+      await this.ParanoidUser.create({ username: 'cuss' });
+
+      const users0 = await this.ParanoidUser.findAll({
+        where: this.sequelize.or({
+          username: 'cuss'
+        })
       });
+
+      expect(users0).to.have.length(1);
+      await users0[0].destroy();
+
+      const users = await this.ParanoidUser.findAll({
+        where: this.sequelize.or({
+          username: 'cuss'
+        })
+      });
+
+      expect(users).to.have.length(0);
     });
 
-    it('destroys a record with a primary key of something other than id', function() {
+    it('escapes a single single quotes properly in where clauses', async function() {
+      await this.User
+        .create({ username: "user'name" });
+
+      const users = await this.User.findAll({
+        where: { username: "user'name" }
+      });
+
+      expect(users.length).to.equal(1);
+      expect(users[0].username).to.equal("user'name");
+    });
+
+    it('escapes two single quotes properly in where clauses', async function() {
+      await this.User
+        .create({ username: "user''name" });
+
+      const users = await this.User.findAll({
+        where: { username: "user''name" }
+      });
+
+      expect(users.length).to.equal(1);
+      expect(users[0].username).to.equal("user''name");
+    });
+
+    it('returns the timestamps if no attributes have been specified', async function() {
+      await this.User.create({ username: 'fnord' });
+      const users = await this.User.findAll();
+      expect(users[0].createdAt).to.exist;
+    });
+
+    it('does not return the timestamps if the username attribute has been specified', async function() {
+      await this.User.create({ username: 'fnord' });
+      const users = await this.User.findAll({ attributes: ['username'] });
+      expect(users[0].createdAt).not.to.exist;
+      expect(users[0].username).to.exist;
+    });
+
+    it('creates the deletedAt property, when defining paranoid as true', async function() {
+      await this.ParanoidUser.create({ username: 'fnord' });
+      const users = await this.ParanoidUser.findAll();
+      expect(users[0].deletedAt).to.be.null;
+    });
+
+    it('destroys a record with a primary key of something other than id', async function() {
       const UserDestroy = this.sequelize.define('UserDestroy', {
         newId: {
           type: DataTypes.STRING,
@@ -436,77 +398,58 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         email: DataTypes.STRING
       });
 
-      return UserDestroy.sync().then(() => {
-        return UserDestroy.create({ newId: '123ABC', email: 'hello' }).then(() => {
-          return UserDestroy.findOne({ where: { email: 'hello' } }).then(user => {
-            return user.destroy();
-          });
-        });
-      });
+      await UserDestroy.sync();
+      await UserDestroy.create({ newId: '123ABC', email: 'hello' });
+      const user = await UserDestroy.findOne({ where: { email: 'hello' } });
+
+      await user.destroy();
     });
 
-    it('sets deletedAt property to a specific date when deleting an instance', function() {
-      return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return this.ParanoidUser.findAll().then(users => {
-          return users[0].destroy().then(() => {
-            expect(users[0].deletedAt.getMonth).to.exist;
+    it('sets deletedAt property to a specific date when deleting an instance', async function() {
+      await this.ParanoidUser.create({ username: 'fnord' });
+      const users = await this.ParanoidUser.findAll();
+      await users[0].destroy();
+      expect(users[0].deletedAt.getMonth).to.exist;
 
-            return users[0].reload({ paranoid: false }).then(user => {
-              expect(user.deletedAt.getMonth).to.exist;
-            });
-          });
-        });
-      });
+      const user = await users[0].reload({ paranoid: false });
+      expect(user.deletedAt.getMonth).to.exist;
     });
 
-    it('keeps the deletedAt-attribute with value null, when running update', function() {
-      return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return this.ParanoidUser.findAll().then(users => {
-          return users[0].update({ username: 'newFnord' }).then(user => {
-            expect(user.deletedAt).not.to.exist;
-          });
-        });
-      });
+    it('keeps the deletedAt-attribute with value null, when running update', async function() {
+      await this.ParanoidUser.create({ username: 'fnord' });
+      const users = await this.ParanoidUser.findAll();
+      const user = await users[0].update({ username: 'newFnord' });
+      expect(user.deletedAt).not.to.exist;
     });
 
-    it('keeps the deletedAt-attribute with value null, when updating associations', function() {
-      return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return this.ParanoidUser.findAll().then(users => {
-          return this.ParanoidUser.create({ username: 'linkedFnord' }).then(linkedUser => {
-            return users[0].setParanoidUser(linkedUser).then(user => {
-              expect(user.deletedAt).not.to.exist;
-            });
-          });
-        });
-      });
+    it('keeps the deletedAt-attribute with value null, when updating associations', async function() {
+      await this.ParanoidUser.create({ username: 'fnord' });
+      const users = await this.ParanoidUser.findAll();
+      const linkedUser = await this.ParanoidUser.create({ username: 'linkedFnord' });
+      const user = await users[0].setParanoidUser(linkedUser);
+      expect(user.deletedAt).not.to.exist;
     });
 
-    it('can reuse query option objects', function() {
-      return this.User.create({ username: 'fnord' }).then(() => {
-        const query = { where: { username: 'fnord' } };
-        return this.User.findAll(query).then(users => {
-          expect(users[0].username).to.equal('fnord');
-          return this.User.findAll(query).then(users => {
-            expect(users[0].username).to.equal('fnord');
-          });
-        });
-      });
+    it('can reuse query option objects', async function() {
+      await this.User.create({ username: 'fnord' });
+      const query = { where: { username: 'fnord' } };
+      const users = await this.User.findAll(query);
+      expect(users[0].username).to.equal('fnord');
+      const users0 = await this.User.findAll(query);
+      expect(users0[0].username).to.equal('fnord');
     });
   });
 
   describe('findOne', () => {
-    it('can reuse query option objects', function() {
-      return this.User.create({ username: 'fnord' }).then(() => {
-        const query = { where: { username: 'fnord' } };
-        return this.User.findOne(query).then(user => {
-          expect(user.username).to.equal('fnord');
-          return this.User.findOne(query).then(user => {
-            expect(user.username).to.equal('fnord');
-          });
-        });
-      });
+    it('can reuse query option objects', async function() {
+      await this.User.create({ username: 'fnord' });
+      const query = { where: { username: 'fnord' } };
+      const user = await this.User.findOne(query);
+      expect(user.username).to.equal('fnord');
+      const user0 = await this.User.findOne(query);
+      expect(user0.username).to.equal('fnord');
     });
-    it('returns null for null, undefined, and unset boolean values', function() {
+    it('returns null for null, undefined, and unset boolean values', async function() {
       const Setting = this.sequelize.define('SettingHelper', {
         setting_key: DataTypes.STRING,
         bool_value: { type: DataTypes.BOOLEAN, allowNull: true },
@@ -514,28 +457,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         bool_value3: { type: DataTypes.BOOLEAN, allowNull: true }
       }, { timestamps: false, logging: false });
 
-      return Setting.sync({ force: true }).then(() => {
-        return Setting.create({ setting_key: 'test', bool_value: null, bool_value2: undefined }).then(() => {
-          return Setting.findOne({ where: { setting_key: 'test' } }).then(setting => {
-            expect(setting.bool_value).to.equal(null);
-            expect(setting.bool_value2).to.equal(null);
-            expect(setting.bool_value3).to.equal(null);
-          });
-        });
-      });
+      await Setting.sync({ force: true });
+      await Setting.create({ setting_key: 'test', bool_value: null, bool_value2: undefined });
+      const setting = await Setting.findOne({ where: { setting_key: 'test' } });
+      expect(setting.bool_value).to.equal(null);
+      expect(setting.bool_value2).to.equal(null);
+      expect(setting.bool_value3).to.equal(null);
     });
   });
 
   describe('equals', () => {
-    it('can compare records with Date field', function() {
-      return this.User.create({ username: 'fnord' }).then(user1 => {
-        return this.User.findOne({ where: { username: 'fnord' } }).then(user2 => {
-          expect(user1.equals(user2)).to.be.true;
-        });
-      });
+    it('can compare records with Date field', async function() {
+      const user1 = await this.User.create({ username: 'fnord' });
+      const user2 = await this.User.findOne({ where: { username: 'fnord' } });
+      expect(user1.equals(user2)).to.be.true;
     });
 
-    it('does not compare the existence of associations', function() {
+    it('does not compare the existence of associations', async function() {
       this.UserAssociationEqual = this.sequelize.define('UserAssociationEquals', {
         username: DataTypes.STRING,
         age: DataTypes.INTEGER
@@ -549,80 +487,65 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       this.UserAssociationEqual.hasMany(this.ProjectAssociationEqual, { as: 'Projects', foreignKey: 'userId' });
       this.ProjectAssociationEqual.belongsTo(this.UserAssociationEqual, { as: 'Users', foreignKey: 'userId' });
 
-      return this.UserAssociationEqual.sync({ force: true }).then(() => {
-        return this.ProjectAssociationEqual.sync({ force: true }).then(() => {
-          return this.UserAssociationEqual.create({ username: 'jimhalpert' }).then(user1 => {
-            return this.ProjectAssociationEqual.create({ title: 'A Cool Project' }).then(project1 => {
-              return user1.setProjects([project1]).then(() => {
-                return this.UserAssociationEqual.findOne({ where: { username: 'jimhalpert' }, include: [{ model: this.ProjectAssociationEqual, as: 'Projects' }] }).then(user2 => {
-                  return this.UserAssociationEqual.create({ username: 'pambeesly' }).then(user3 => {
-                    expect(user1.get('Projects')).to.not.exist;
-                    expect(user2.get('Projects')).to.exist;
-                    expect(user1.equals(user2)).to.be.true;
-                    expect(user2.equals(user1)).to.be.true;
-                    expect(user1.equals(user3)).to.not.be.true;
-                    expect(user3.equals(user1)).to.not.be.true;
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
+      await this.UserAssociationEqual.sync({ force: true });
+      await this.ProjectAssociationEqual.sync({ force: true });
+      const user1 = await this.UserAssociationEqual.create({ username: 'jimhalpert' });
+      const project1 = await this.ProjectAssociationEqual.create({ title: 'A Cool Project' });
+      await user1.setProjects([project1]);
+      const user2 = await this.UserAssociationEqual.findOne({ where: { username: 'jimhalpert' }, include: [{ model: this.ProjectAssociationEqual, as: 'Projects' }] });
+      const user3 = await this.UserAssociationEqual.create({ username: 'pambeesly' });
+      expect(user1.get('Projects')).to.not.exist;
+      expect(user2.get('Projects')).to.exist;
+      expect(user1.equals(user2)).to.be.true;
+      expect(user2.equals(user1)).to.be.true;
+      expect(user1.equals(user3)).to.not.be.true;
+      expect(user3.equals(user1)).to.not.be.true;
     });
   });
 
   describe('values', () => {
-    it('returns all values', function() {
+    it('returns all values', async function() {
       const User = this.sequelize.define('UserHelper', {
         username: DataTypes.STRING
       }, { timestamps: false, logging: false });
 
-      return User.sync().then(() => {
-        const user = User.build({ username: 'foo' });
-        expect(user.get({ plain: true })).to.deep.equal({ username: 'foo', id: null });
-      });
+      await User.sync();
+      const user = User.build({ username: 'foo' });
+      expect(user.get({ plain: true })).to.deep.equal({ username: 'foo', id: null });
     });
   });
 
   describe('isSoftDeleted', () => {
-    beforeEach(function() {
+    beforeEach(async function() {
       this.ParanoidUser = this.sequelize.define('ParanoidUser', {
         username: { type: DataTypes.STRING }
       }, { paranoid: true });
 
-      return this.ParanoidUser.sync({ force: true });
+      await this.ParanoidUser.sync({ force: true });
     });
 
-    it('should return false when model is just created', function() {
-      return this.ParanoidUser.create({ username: 'foo' }).then(user => {
-        expect(user.isSoftDeleted()).to.be.false;
-      });
+    it('should return false when model is just created', async function() {
+      const user = await this.ParanoidUser.create({ username: 'foo' });
+      expect(user.isSoftDeleted()).to.be.false;
     });
 
-    it('returns false if user is not soft deleted', function() {
-      return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return this.ParanoidUser.findAll().then(users => {
-          expect(users[0].isSoftDeleted()).to.be.false;
-        });
-      });
+    it('returns false if user is not soft deleted', async function() {
+      await this.ParanoidUser.create({ username: 'fnord' });
+      const users = await this.ParanoidUser.findAll();
+      expect(users[0].isSoftDeleted()).to.be.false;
     });
 
-    it('returns true if user is soft deleted', function() {
-      return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return this.ParanoidUser.findAll().then(users => {
-          return users[0].destroy().then(() => {
-            expect(users[0].isSoftDeleted()).to.be.true;
+    it('returns true if user is soft deleted', async function() {
+      await this.ParanoidUser.create({ username: 'fnord' });
+      const users = await this.ParanoidUser.findAll();
+      await users[0].destroy();
+      expect(users[0].isSoftDeleted()).to.be.true;
 
-            return users[0].reload({ paranoid: false }).then(user => {
-              expect(user.isSoftDeleted()).to.be.true;
-            });
-          });
-        });
-      });
+      const user = await users[0].reload({ paranoid: false });
+      expect(user.isSoftDeleted()).to.be.true;
     });
 
-    it('works with custom `deletedAt` field name', function() {
+    it('works with custom `deletedAt` field name', async function() {
       this.ParanoidUserWithCustomDeletedAt = this.sequelize.define('ParanoidUserWithCustomDeletedAt', {
         username: { type: DataTypes.STRING }
       }, {
@@ -632,32 +555,26 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       this.ParanoidUserWithCustomDeletedAt.hasOne(this.ParanoidUser);
 
-      return this.ParanoidUserWithCustomDeletedAt.sync({ force: true }).then(() => {
-        return this.ParanoidUserWithCustomDeletedAt.create({ username: 'fnord' }).then(() => {
-          return this.ParanoidUserWithCustomDeletedAt.findAll().then(users => {
-            expect(users[0].isSoftDeleted()).to.be.false;
+      await this.ParanoidUserWithCustomDeletedAt.sync({ force: true });
+      await this.ParanoidUserWithCustomDeletedAt.create({ username: 'fnord' });
+      const users = await this.ParanoidUserWithCustomDeletedAt.findAll();
+      expect(users[0].isSoftDeleted()).to.be.false;
 
-            return users[0].destroy().then(() => {
-              expect(users[0].isSoftDeleted()).to.be.true;
+      await users[0].destroy();
+      expect(users[0].isSoftDeleted()).to.be.true;
 
-              return users[0].reload({ paranoid: false }).then(user => {
-                expect(user.isSoftDeleted()).to.be.true;
-              });
-            });
-          });
-        });
-      });
+      const user = await users[0].reload({ paranoid: false });
+      expect(user.isSoftDeleted()).to.be.true;
     });
   });
 
   describe('restore', () => {
-    it('returns an error if the model is not paranoid', function() {
-      return this.User.create({ username: 'Peter', secretValue: '42' }).then(user => {
-        expect(() => {user.restore();}).to.throw(Error, 'Model is not paranoid');
-      });
+    it('returns an error if the model is not paranoid', async function() {
+      const user = await this.User.create({ username: 'Peter', secretValue: '42' });
+      await expect(user.restore()).to.be.rejectedWith(Error, 'Model is not paranoid');
     });
 
-    it('restores a previously deleted model', function() {
+    it('restores a previously deleted model', async function() {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
           username: DataTypes.STRING,
           secretValue: DataTypes.STRING,
@@ -670,124 +587,106 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           { username: 'Paul', secretValue: '43' },
           { username: 'Bob', secretValue: '44' }];
 
-      return ParanoidUser.sync({ force: true }).then(() => {
-        return ParanoidUser.bulkCreate(data);
-      }).then(() => {
-        return ParanoidUser.findOne({ where: { secretValue: '42' } });
-      }).then(user => {
-        return user.destroy().then(() => {
-          return user.restore();
-        });
-      }).then(() => {
-        return ParanoidUser.findOne({ where: { secretValue: '42' } });
-      }).then(user => {
-        expect(user).to.be.ok;
-        expect(user.username).to.equal('Peter');
-      });
+      await ParanoidUser.sync({ force: true });
+      await ParanoidUser.bulkCreate(data);
+      const user0 = await ParanoidUser.findOne({ where: { secretValue: '42' } });
+      await user0.destroy();
+      await user0.restore();
+      const user = await ParanoidUser.findOne({ where: { secretValue: '42' } });
+      expect(user).to.be.ok;
+      expect(user.username).to.equal('Peter');
     });
 
-    it('supports custom deletedAt field', function() {
+    it('supports custom deletedAt field', async function() {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
         username: DataTypes.STRING,
         destroyTime: DataTypes.DATE
       }, { paranoid: true, deletedAt: 'destroyTime' });
 
-      return ParanoidUser.sync({ force: true }).then(() => {
-        return ParanoidUser.create({
-          username: 'username'
-        });
-      }).then(user => {
-        return user.destroy();
-      }).then(user => {
-        expect(user.destroyTime).to.be.ok;
-        expect(user.deletedAt).to.not.be.ok;
-        return user.restore();
-      }).then(user => {
-        expect(user.destroyTime).to.not.be.ok;
-        return ParanoidUser.findOne({ where: { username: 'username' } });
-      }).then(user => {
-        expect(user).to.be.ok;
-        expect(user.destroyTime).to.not.be.ok;
-        expect(user.deletedAt).to.not.be.ok;
+      await ParanoidUser.sync({ force: true });
+
+      const user2 = await ParanoidUser.create({
+        username: 'username'
       });
+
+      const user1 = await user2.destroy();
+      expect(user1.destroyTime).to.be.ok;
+      expect(user1.deletedAt).to.not.be.ok;
+      const user0 = await user1.restore();
+      expect(user0.destroyTime).to.not.be.ok;
+      const user = await ParanoidUser.findOne({ where: { username: 'username' } });
+      expect(user).to.be.ok;
+      expect(user.destroyTime).to.not.be.ok;
+      expect(user.deletedAt).to.not.be.ok;
     });
 
-    it('supports custom deletedAt field name', function() {
+    it('supports custom deletedAt field name', async function() {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
         username: DataTypes.STRING,
         deletedAt: { type: DataTypes.DATE, field: 'deleted_at' }
       }, { paranoid: true });
 
-      return ParanoidUser.sync({ force: true }).then(() => {
-        return ParanoidUser.create({
-          username: 'username'
-        });
-      }).then(user => {
-        return user.destroy();
-      }).then(user => {
-        expect(user.dataValues.deletedAt).to.be.ok;
-        expect(user.dataValues.deleted_at).to.not.be.ok;
-        return user.restore();
-      }).then(user => {
-        expect(user.dataValues.deletedAt).to.not.be.ok;
-        expect(user.dataValues.deleted_at).to.not.be.ok;
-        return ParanoidUser.findOne({ where: { username: 'username' } });
-      }).then(user => {
-        expect(user).to.be.ok;
-        expect(user.deletedAt).to.not.be.ok;
-        expect(user.deleted_at).to.not.be.ok;
+      await ParanoidUser.sync({ force: true });
+
+      const user2 = await ParanoidUser.create({
+        username: 'username'
       });
+
+      const user1 = await user2.destroy();
+      expect(user1.dataValues.deletedAt).to.be.ok;
+      expect(user1.dataValues.deleted_at).to.not.be.ok;
+      const user0 = await user1.restore();
+      expect(user0.dataValues.deletedAt).to.not.be.ok;
+      expect(user0.dataValues.deleted_at).to.not.be.ok;
+      const user = await ParanoidUser.findOne({ where: { username: 'username' } });
+      expect(user).to.be.ok;
+      expect(user.deletedAt).to.not.be.ok;
+      expect(user.deleted_at).to.not.be.ok;
     });
 
-    it('supports custom deletedAt field and database column', function() {
+    it('supports custom deletedAt field and database column', async function() {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
         username: DataTypes.STRING,
         destroyTime: { type: DataTypes.DATE, field: 'destroy_time' }
       }, { paranoid: true, deletedAt: 'destroyTime' });
 
-      return ParanoidUser.sync({ force: true }).then(() => {
-        return ParanoidUser.create({
-          username: 'username'
-        });
-      }).then(user => {
-        return user.destroy();
-      }).then(user => {
-        expect(user.dataValues.destroyTime).to.be.ok;
-        expect(user.dataValues.deletedAt).to.not.be.ok;
-        expect(user.dataValues.destroy_time).to.not.be.ok;
-        return user.restore();
-      }).then(user => {
-        expect(user.dataValues.destroyTime).to.not.be.ok;
-        expect(user.dataValues.destroy_time).to.not.be.ok;
-        return ParanoidUser.findOne({ where: { username: 'username' } });
-      }).then(user => {
-        expect(user).to.be.ok;
-        expect(user.destroyTime).to.not.be.ok;
-        expect(user.destroy_time).to.not.be.ok;
+      await ParanoidUser.sync({ force: true });
+
+      const user2 = await ParanoidUser.create({
+        username: 'username'
       });
+
+      const user1 = await user2.destroy();
+      expect(user1.dataValues.destroyTime).to.be.ok;
+      expect(user1.dataValues.deletedAt).to.not.be.ok;
+      expect(user1.dataValues.destroy_time).to.not.be.ok;
+      const user0 = await user1.restore();
+      expect(user0.dataValues.destroyTime).to.not.be.ok;
+      expect(user0.dataValues.destroy_time).to.not.be.ok;
+      const user = await ParanoidUser.findOne({ where: { username: 'username' } });
+      expect(user).to.be.ok;
+      expect(user.destroyTime).to.not.be.ok;
+      expect(user.destroy_time).to.not.be.ok;
     });
 
-    it('supports custom default value', function() {
+    it('supports custom default value', async function() {
       const ParanoidUser = this.sequelize.define('ParanoidUser', {
         username: DataTypes.STRING,
         deletedAt: { type: DataTypes.DATE, defaultValue: new Date(0) }
       }, { paranoid: true });
 
-      return ParanoidUser.sync({ force: true }).then(() => {
-        return ParanoidUser.create({
-          username: 'username'
-        });
-      }).then(user => {
-        return user.destroy();
-      }).then(user => {
-        return user.restore();
-      }).then(user => {
-        expect(user.dataValues.deletedAt.toISOString()).to.equal(new Date(0).toISOString());
-        return ParanoidUser.findOne({ where: { username: 'username' } });
-      }).then(user => {
-        expect(user).to.be.ok;
-        expect(user.deletedAt.toISOString()).to.equal(new Date(0).toISOString());
+      await ParanoidUser.sync({ force: true });
+
+      const user2 = await ParanoidUser.create({
+        username: 'username'
       });
+
+      const user1 = await user2.destroy();
+      const user0 = await user1.restore();
+      expect(user0.dataValues.deletedAt.toISOString()).to.equal(new Date(0).toISOString());
+      const user = await ParanoidUser.findOne({ where: { username: 'username' } });
+      expect(user).to.be.ok;
+      expect(user.deletedAt.toISOString()).to.equal(new Date(0).toISOString());
     });
   });
 });

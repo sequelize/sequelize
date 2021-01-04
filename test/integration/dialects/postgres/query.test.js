@@ -12,7 +12,7 @@ if (dialect.match(/^postgres/)) {
     const taskAlias = 'AnActualVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
     const teamAlias = 'Toto';
 
-    const executeTest = (options, test) => {
+    const executeTest = async (options, test) => {
       const sequelize = Support.createSequelizeInstance(options);
 
       const User = sequelize.define('User', { name: DataTypes.STRING, updatedAt: DataTypes.DATE }, { underscored: true });
@@ -23,44 +23,83 @@ if (dialect.match(/^postgres/)) {
       User.belongsToMany(Team, { as: teamAlias, foreignKey: 'teamId', through: 'UserTeam' });
       Team.belongsToMany(User, { foreignKey: 'userId', through: 'UserTeam' });
 
-      return sequelize.sync({ force: true }).then(() => {
-        return Team.create({ name: 'rocket' }).then(team => {
-          return Task.create({ title: 'SuperTask' }).then(task => {
-            return User.create({ name: 'test', task_id: task.id, updatedAt: new Date() }).then(user => {
-              return user[`add${teamAlias}`](team).then(() => {
-                return User.findOne({
-                  include: [
-                    {
-                      model: Task,
-                      as: taskAlias
-                    },
-                    {
-                      model: Team,
-                      as: teamAlias
-                    }
-                  ]
-                }).then(test);
-              });
-            });
-          });
-        });
-      });
+      await sequelize.sync({ force: true });
+      const team = await Team.create({ name: 'rocket' });
+      const task = await Task.create({ title: 'SuperTask' });
+      const user = await User.create({ name: 'test', task_id: task.id, updatedAt: new Date() });
+      await user[`add${teamAlias}`](team);
 
+      return test(await User.findOne({
+        include: [
+          {
+            model: Task,
+            as: taskAlias
+          },
+          {
+            model: Team,
+            as: teamAlias
+          }
+        ]
+      }));
     };
 
-    it('should throw due to alias being truncated', function() {
-      const options = Object.assign({}, this.sequelize.options, { minifyAliases: false });
+    it('should throw due to alias being truncated', async function() {
+      const options = { ...this.sequelize.options, minifyAliases: false };
 
-      return executeTest(options, res => {
+      await executeTest(options, res => {
         expect(res[taskAlias]).to.not.exist;
       });
     });
 
-    it('should be able to retrieve include due to alias minifying', function() {
-      const options = Object.assign({}, this.sequelize.options, { minifyAliases: true });
+    it('should be able to retrieve include due to alias minifying', async function() {
+      const options = { ...this.sequelize.options, minifyAliases: true };
 
-      return executeTest(options, res => {
+      await executeTest(options, res => {
         expect(res[taskAlias].title).to.be.equal('SuperTask');
+      });
+    });
+
+    it('should throw due to table name being truncated', async () => {
+      const sequelize = Support.createSequelizeInstance({ minifyAliases: true });
+
+      const User = sequelize.define('user_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
+        {
+          name: DataTypes.STRING,
+          email: DataTypes.STRING
+        },
+        {
+          tableName: 'user'
+        }
+      );
+      const Project = sequelize.define('project_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
+        {
+          name: DataTypes.STRING
+        },
+        {
+          tableName: 'project'
+        }
+      );
+      const Company = sequelize.define('company_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
+        {
+          name: DataTypes.STRING
+        },
+        {
+          tableName: 'company'
+        }
+      );
+      User.hasMany(Project, { foreignKey: 'userId' });
+      Project.belongsTo(Company, { foreignKey: 'companyId' });
+
+      await sequelize.sync({ force: true });
+      const comp = await Company.create({ name: 'Sequelize' });
+      const user = await User.create({ name: 'standard user' });
+      await Project.create({ name: 'Manhattan', companyId: comp.id, userId: user.id });
+
+      await User.findAll({
+        include: {
+          model: Project,
+          include: Company
+        }
       });
     });
   });

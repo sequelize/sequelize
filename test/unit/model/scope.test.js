@@ -207,6 +207,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should be keep original scope definition clean', () => {
+      expect(Company.scope('projects', 'users', 'alsoUsers')._scope).to.deep.equal({
+        include: [
+          { model: Project },
+          { model: User, where: { something: 42 } }
+        ]
+      });
+
+      expect(Company.options.scopes.alsoUsers).to.deep.equal({
+        include: [
+          { model: User, where: { something: 42 } }
+        ]
+      });
+
+      expect(Company.options.scopes.users).to.deep.equal({
+        include: [
+          { model: User }
+        ]
+      });
+    });
+
     it('should be able to override the default scope', () => {
       expect(Company.scope('somethingTrue')._scope).to.deep.equal(scopes.somethingTrue);
     });

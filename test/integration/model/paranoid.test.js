@@ -17,7 +17,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.clock.restore();
     });
 
-    it('should be able to soft delete with timestamps', function() {
+    it('should be able to soft delete with timestamps', async function() {
       const Account = this.sequelize.define('Account', {
         ownerId: {
           type: DataTypes.INTEGER,
@@ -32,32 +32,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         timestamps: true
       });
 
-      return Account.sync({ force: true })
-        .then(() => Account.create({ ownerId: 12 }))
-        .then(() => Account.count())
-        .then(count => {
-          expect(count).to.be.equal(1);
-          return Account.destroy({ where: { ownerId: 12 } })
-            .then(result => {
-              expect(result).to.be.equal(1);
-            });
-        })
-        .then(() => Account.count())
-        .then(count => {
-          expect(count).to.be.equal(0);
-          return Account.count({ paranoid: false });
-        })
-        .then(count => {
-          expect(count).to.be.equal(1);
-          return Account.restore({ where: { ownerId: 12 } });
-        })
-        .then(() => Account.count())
-        .then(count => {
-          expect(count).to.be.equal(1);
-        });
+      await Account.sync({ force: true });
+      await Account.create({ ownerId: 12 });
+      const count2 = await Account.count();
+      expect(count2).to.be.equal(1);
+      const result = await Account.destroy({ where: { ownerId: 12 } });
+      expect(result).to.be.equal(1);
+      const count1 = await Account.count();
+      expect(count1).to.be.equal(0);
+      const count0 = await Account.count({ paranoid: false });
+      expect(count0).to.be.equal(1);
+      await Account.restore({ where: { ownerId: 12 } });
+      const count = await Account.count();
+      expect(count).to.be.equal(1);
     });
 
-    it('should be able to soft delete without timestamps', function() {
+    it('should be able to soft delete without timestamps', async function() {
       const Account = this.sequelize.define('Account', {
         ownerId: {
           type: DataTypes.INTEGER,
@@ -80,26 +70,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         updatedAt: false
       });
 
-      return Account.sync({ force: true })
-        .then(() => Account.create({ ownerId: 12 }))
-        .then(() => Account.count())
-        .then(count => {
-          expect(count).to.be.equal(1);
-          return Account.destroy({ where: { ownerId: 12 } });
-        })
-        .then(() => Account.count())
-        .then(count => {
-          expect(count).to.be.equal(0);
-          return Account.count({ paranoid: false });
-        })
-        .then(count => {
-          expect(count).to.be.equal(1);
-          return Account.restore({ where: { ownerId: 12 } });
-        })
-        .then(() => Account.count())
-        .then(count => {
-          expect(count).to.be.equal(1);
-        });
+      await Account.sync({ force: true });
+      await Account.create({ ownerId: 12 });
+      const count2 = await Account.count();
+      expect(count2).to.be.equal(1);
+      await Account.destroy({ where: { ownerId: 12 } });
+      const count1 = await Account.count();
+      expect(count1).to.be.equal(0);
+      const count0 = await Account.count({ paranoid: false });
+      expect(count0).to.be.equal(1);
+      await Account.restore({ where: { ownerId: 12 } });
+      const count = await Account.count();
+      expect(count).to.be.equal(1);
     });
 
     if (current.dialect.supports.JSON) {
@@ -124,12 +106,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        beforeEach(function() {
-          return this.Model.sync({ force: true });
+        beforeEach(async function() {
+          await this.Model.sync({ force: true });
         });
 
-        it('should soft delete with JSON condition', function() {
-          return this.Model.bulkCreate([{
+        it('should soft delete with JSON condition', async function() {
+          await this.Model.bulkCreate([{
             name: 'One',
             data: {
               field: {
@@ -143,7 +125,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 deep: false
               }
             }
-          }]).then(() => this.Model.destroy({
+          }]);
+
+          await this.Model.destroy({
             where: {
               data: {
                 field: {
@@ -151,10 +135,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 }
               }
             }
-          })).then(() => this.Model.findAll()).then(records => {
-            expect(records.length).to.equal(1);
-            expect(records[0].get('name')).to.equal('Two');
           });
+
+          const records = await this.Model.findAll();
+          expect(records.length).to.equal(1);
+          expect(records[0].get('name')).to.equal('Two');
         });
       });
     }

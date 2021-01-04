@@ -7,7 +7,7 @@ const Support = require('../support'),
   _ = require('lodash'),
   expectsql = Support.expectsql,
   current = Support.sequelize,
-  sql = current.dialect.QueryGenerator,
+  sql = current.dialect.queryGenerator,
   Op = Support.Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
@@ -54,8 +54,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       default: 'WHERE [User].[id] = 1'
     });
 
-    it("{ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, {schema: 'yolo', tableName: 'User'})) }", () => {
-      expectsql(sql.whereQuery({ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, { schema: 'yolo', tableName: 'User' })) }), {
+    it("{ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.queryGenerator, {schema: 'yolo', tableName: 'User'})) }", () => {
+      expectsql(sql.whereQuery({ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.queryGenerator, { schema: 'yolo', tableName: 'User' })) }), {
         default: 'WHERE [yolo.User].[id] = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
         mariadb: 'WHERE `yolo`.`User`.`id` = 1',
@@ -441,6 +441,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: "[username] LIKE 'swagger%'",
         mssql: "[username] LIKE N'swagger%'"
       });
+
+      testsql('username', {
+        [Op.startsWith]: current.literal('swagger')
+      }, {
+        default: "[username] LIKE 'swagger%'",
+        mssql: "[username] LIKE N'swagger%'"
+      });
     });
 
     describe('Op.endsWith', () => {
@@ -450,11 +457,25 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: "[username] LIKE '%swagger'",
         mssql: "[username] LIKE N'%swagger'"
       });
+
+      testsql('username', {
+        [Op.endsWith]: current.literal('swagger')
+      }, {
+        default: "[username] LIKE '%swagger'",
+        mssql: "[username] LIKE N'%swagger'"
+      });
     });
 
     describe('Op.substring', () => {
       testsql('username', {
         [Op.substring]: 'swagger'
+      }, {
+        default: "[username] LIKE '%swagger%'",
+        mssql: "[username] LIKE N'%swagger%'"
+      });
+
+      testsql('username', {
+        [Op.substring]: current.literal('swagger')
       }, {
         default: "[username] LIKE '%swagger%'",
         mssql: "[username] LIKE N'%swagger%'"
@@ -919,7 +940,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           field: {
             type: new DataTypes.JSONB()
           },
-          prefix: current.literal(sql.quoteTable.call(current.dialect.QueryGenerator, { tableName: 'User' }))
+          prefix: current.literal(sql.quoteTable.call(current.dialect.queryGenerator, { tableName: 'User' }))
         }, {
           mariadb: "(json_unquote(json_extract(`User`.`data`,'$.nested.attribute')) = 'value' AND json_unquote(json_extract(`User`.`data`,'$.nested.prop')) != 'None')",
           mysql: "(json_unquote(json_extract(`User`.`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) = 'value' AND json_unquote(json_extract(`User`.`data`,'$.\\\"nested\\\".\\\"prop\\\"')) != 'None')",

@@ -30,7 +30,6 @@
     "new-cap": [
       "error",
       {
-        "capIsNewExceptionPattern": "^BigInt",
         "properties": false
       }
     ],
@@ -95,16 +94,25 @@
     "no-unused-expressions": "error",
     "no-sequences": "error",
     "no-self-compare": "error",
-    "no-case-declarations": "off"
+    "no-case-declarations": "off",
+    "prefer-object-spread": "error"
+  },
+  "settings": {
+    "jsdoc": {
+      "tagNamePreference": {
+        "augments": "extends"
+      }
+    }
   },
   "parserOptions": {
-    "ecmaVersion": 2018,
+    "ecmaVersion": 2020,
     "sourceType": "script"
   },
   "plugins": ["mocha", "jsdoc"],
   "env": {
     "node": true,
     "mocha": true,
-    "es6": true
+    "es6": true,
+    "es2020": true
   }
 }

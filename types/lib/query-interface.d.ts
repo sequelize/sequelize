@@ -1,9 +1,20 @@
 import { DataType } from './data-types';
-import { Logging, Model, ModelAttributeColumnOptions, ModelAttributes, Transactionable, WhereOptions, Filterable, Poolable } from './model';
-import { Promise } from './promise';
+import {
+  Logging,
+  Model,
+  ModelAttributeColumnOptions,
+  ModelAttributes,
+  Transactionable,
+  WhereOptions,
+  Filterable,
+  Poolable,
+  ModelCtor, ModelStatic
+} from './model';
 import QueryTypes = require('./query-types');
 import { Sequelize, RetryOptions } from './sequelize';
 import { Transaction } from './transaction';
+import { SetRequired } from './../type-helpers/set-required';
+import { Fn, Literal } from './utils';
 
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
@@ -70,15 +81,15 @@ export interface QueryOptions extends Logging, Transactionable, Poolable {
   fieldMap?: FieldMap;
 }
 
-export interface QueryOptionsWithWhere extends QueryOptions, Filterable {
+export interface QueryOptionsWithWhere extends QueryOptions, Filterable<any> {
 
 }
 
-export interface QueryOptionsWithModel extends QueryOptions {
+export interface QueryOptionsWithModel<M extends Model> extends QueryOptions {
   /**
    * A sequelize model used to build the returned model instances (used to be called callee)
    */
-  model: typeof Model;
+  model: ModelStatic<M>;
 }
 
 export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions {
@@ -170,9 +181,9 @@ export interface IndexesOptions {
    * An array of the fields to index. Each field can either be a string containing the name of the field,
    * a sequelize object (e.g `sequelize.fn`), or an object with the following attributes: `name`
    * (field name), `length` (create a prefix index of length chars), `order` (the direction the column
-   * should be sorted in), `collate` (the collation (sort order) for the column)
+   * should be sorted in), `collate` (the collation (sort order) for the column), `operator` (likes IndexesOptions['operator'])
    */
-  fields?: (string | { name: string; length?: number; order?: 'ASC' | 'DESC'; collate?: string })[];
+  fields?: (string | { name: string; length?: number; order?: 'ASC' | 'DESC'; collate?: string; operator?: string } | Fn | Literal)[];
 
   /**
    * The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and
@@ -188,7 +199,7 @@ export interface IndexesOptions {
   /**
    * Optional where parameter for index. Can be used to limit the index to certain rows.
    */
-  where?: WhereOptions;
+  where?: WhereOptions<any>;
 
   /**
    * Prefix to append to the index name.
@@ -198,31 +209,31 @@ export interface IndexesOptions {
 
 export interface QueryInterfaceIndexOptions extends IndexesOptions, QueryInterfaceOptions {}
 
-export interface AddUniqueConstraintOptions {
-  type: 'unique';
+export interface BaseConstraintOptions {
   name?: string;
+  fields: string[];
 }
 
-export interface AddDefaultConstraintOptions {
+export interface AddUniqueConstraintOptions extends BaseConstraintOptions {
+  type: 'unique';
+}
+
+export interface AddDefaultConstraintOptions extends BaseConstraintOptions {
   type: 'default';
-  name?: string;
   defaultValue?: unknown;
 }
 
-export interface AddCheckConstraintOptions {
+export interface AddCheckConstraintOptions extends BaseConstraintOptions {
   type: 'check';
-  name?: string;
-  where?: WhereOptions;
+  where?: WhereOptions<any>;
 }
 
-export interface AddPrimaryKeyConstraintOptions {
+export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
   type: 'primary key';
-  name?: string;
 }
 
-export interface AddForeignKeyConstraintOptions {
+export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
   type: 'foreign key';
-  name?: string;
   references?: {
     table: string;
     field: string;
@@ -248,10 +259,23 @@ export interface FunctionParam {
   direction?: string;
 }
 
+export interface ColumnDescription {
+  type: string;
+  allowNull: boolean;
+  defaultValue: string;
+  primaryKey: boolean;
+  autoIncrement: boolean;
+  comment: string | null;
+}
+
+export interface ColumnsDescription {
+  [key: string]: ColumnDescription;
+}
+
 /**
 * The interface that Sequelize uses to talk to all databases.
 *
-* This interface is available through sequelize.QueryInterface. It should not be commonly used, but it's
+* This interface is available through sequelize.queryInterface. It should not be commonly used, but it's
 * referenced anyway, so it can be used.
 */
 export class QueryInterface {
@@ -307,9 +331,9 @@ export class QueryInterface {
    * @param attributes    Hash of attributes, key is attribute name, value is data type
    * @param options       Table options.
    */
-  public createTable(
+  public createTable<M extends Model>(
     tableName: string | { schema?: string; tableName?: string },
-    attributes: ModelAttributes,
+    attributes: ModelAttributes<M, M['_creationAttributes']>,
     options?: QueryInterfaceCreateTableOptions
   ): Promise<void>;
 
@@ -326,7 +350,7 @@ export class QueryInterface {
    *
    * @param options
    */
-  public dropAllTables(options?: QueryInterfaceDropTableOptions): Promise<void>;
+  public dropAllTables(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
 
   /**
    * Drops all defined enums
@@ -351,7 +375,7 @@ export class QueryInterface {
   public describeTable(
     tableName: string | { schema?: string; tableName?: string },
     options?: string | { schema?: string; schemaDelimiter?: string } & Logging
-  ): Promise<object>;
+  ): Promise<ColumnsDescription>;
 
   /**
    * Adds a new column to a table
@@ -403,7 +427,7 @@ export class QueryInterface {
   ): Promise<void>;
   public addIndex(
     tableName: string,
-    options: QueryInterfaceIndexOptions & { fields: string[] },
+    options: SetRequired<QueryInterfaceIndexOptions, 'fields'>,
     rawTablename?: string
   ): Promise<void>;
 
@@ -418,7 +442,6 @@ export class QueryInterface {
    */
   public addConstraint(
     tableName: string,
-    attributes: string[],
     options?: AddConstraintOptions & QueryInterfaceOptions
   ): Promise<void>;
 
@@ -438,9 +461,9 @@ export class QueryInterface {
   public nameIndexes(indexes: string[], rawTablename: string): Promise<void>;
 
   /**
-   * Returns all foreign key constraints of a table
+   * Returns all foreign key constraints of requested tables
    */
-  public getForeignKeysForTables(tableNames: string, options?: QueryInterfaceOptions): Promise<object>;
+  public getForeignKeysForTables(tableNames: string[], options?: QueryInterfaceOptions): Promise<object>;
 
   /**
    * Get foreign key references details for the table
@@ -450,7 +473,7 @@ export class QueryInterface {
   /**
    * Inserts a new record
    */
-  public insert(instance: Model, tableName: string, values: object, options?: QueryOptions): Promise<object>;
+  public insert(instance: Model | null, tableName: string, values: object, options?: QueryOptions): Promise<object>;
 
   /**
    * Inserts or Updates a record in the database
@@ -472,16 +495,16 @@ export class QueryInterface {
     records: object[],
     options?: QueryOptions,
     attributes?: string[] | string
-  ): Promise<object>;
+  ): Promise<object | number>;
 
   /**
    * Updates a row
    */
-  public update(
-    instance: Model,
+  public update<M extends Model>(
+    instance: M,
     tableName: TableName,
     values: object,
-    identifier: WhereOptions,
+    identifier: WhereOptions<M['_attributes']>,
     options?: QueryOptions
   ): Promise<object>;
 
@@ -491,7 +514,7 @@ export class QueryInterface {
   public bulkUpdate(
     tableName: TableName,
     values: object,
-    identifier: WhereOptions,
+    identifier: WhereOptions<any>,
     options?: QueryOptions,
     attributes?: string[] | string
   ): Promise<object>;
@@ -499,14 +522,19 @@ export class QueryInterface {
   /**
    * Deletes a row
    */
-  public delete(instance: Model | null, tableName: TableName, identifier: WhereOptions, options?: QueryOptions): Promise<object>;
+  public delete(
+    instance: Model | null,
+    tableName: TableName,
+    identifier: WhereOptions<any>,
+    options?: QueryOptions
+  ): Promise<object>;
 
   /**
    * Deletes multiple rows at once
    */
   public bulkDelete(
     tableName: TableName,
-    identifier: WhereOptions,
+    identifier: WhereOptions<any>,
     options?: QueryOptions,
     model?: typeof Model
   ): Promise<object>;
@@ -519,11 +547,11 @@ export class QueryInterface {
   /**
    * Increments a row value
    */
-  public increment(
+  public increment<M extends Model>(
     instance: Model,
     tableName: TableName,
     values: object,
-    identifier: WhereOptions,
+    identifier: WhereOptions<M['_attributes']>,
     options?: QueryOptions
   ): Promise<object>;
 

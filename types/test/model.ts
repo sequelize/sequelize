@@ -1,4 +1,4 @@
-import { Association, DataTypes, HasOne, Model, Sequelize } from 'sequelize';
+import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Sequelize } from 'sequelize';
 
 class MyModel extends Model {
   public num!: number;
@@ -99,7 +99,54 @@ UserModel.findCreateFind({
 })
 
 /**
+ * Tests for findOrCreate() type.
+ */
+
+ UserModel.findOrCreate({
+  fields: [ "jane.doe" ],
+  where: {
+    username: "jane.doe"
+  },
+  defaults: {
+    username: "jane.doe"
+  }
+})
+
+/**
  * Test for primaryKeyAttributes.
  */
 class TestModel extends Model {};
 TestModel.primaryKeyAttributes;
+
+/**
+ * Test for joinTableAttributes on BelongsToManyGetAssociationsMixin
+ */
+class SomeModel extends Model {
+    public getOthers!: BelongsToManyGetAssociationsMixin<OtherModel>
+}
+
+const someInstance = new SomeModel()
+someInstance.getOthers({
+    joinTableAttributes: { include: [ 'id' ] }
+})
+
+/**
+ * Test for through options in creating a BelongsToMany association
+ */
+class Film extends Model {}
+
+class Actor extends Model {}
+
+Film.belongsToMany(Actor, {
+  through: {
+    model: 'FilmActors',
+    paranoid: true
+  }
+})
+
+Actor.belongsToMany(Film, {
+  through: {
+    model: 'FilmActors',
+    paranoid: true
+  }
+})

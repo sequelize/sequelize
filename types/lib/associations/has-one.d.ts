@@ -1,6 +1,5 @@
 import { DataType } from '../data-types';
 import { CreateOptions, FindOptions, Model, ModelCtor, SaveOptions } from '../model';
-import { Promise } from '../promise';
 import { Association, AssociationOptions, SingleAssociationAccessors } from './base';
 
 /**
@@ -29,7 +28,7 @@ export class HasOne<S extends Model = Model, T extends Model = Model> extends As
  * The options for the getAssociation mixin of the hasOne association.
  * @see HasOneGetAssociationMixin
  */
-export interface HasOneGetAssociationMixinOptions extends FindOptions {
+export interface HasOneGetAssociationMixinOptions extends FindOptions<any> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -60,7 +59,7 @@ export type HasOneGetAssociationMixin<TModel> = (options?: HasOneGetAssociationM
  * The options for the setAssociation mixin of the hasOne association.
  * @see HasOneSetAssociationMixin
  */
-export interface HasOneSetAssociationMixinOptions extends HasOneGetAssociationMixinOptions, SaveOptions {
+export interface HasOneSetAssociationMixinOptions extends HasOneGetAssociationMixinOptions, SaveOptions<any> {
   /**
    * Skip saving this after setting the foreign key if false.
    */
@@ -94,7 +93,7 @@ export type HasOneSetAssociationMixin<TModel, TModelPrimaryKey> = (
  * The options for the createAssociation mixin of the hasOne association.
  * @see HasOneCreateAssociationMixin
  */
-export interface HasOneCreateAssociationMixinOptions extends HasOneSetAssociationMixinOptions, CreateOptions {}
+export interface HasOneCreateAssociationMixinOptions extends HasOneSetAssociationMixinOptions, CreateOptions<any> {}
 
 /**
  * The createAssociation mixin applied to models with hasOne.

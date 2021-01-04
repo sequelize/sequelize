@@ -25,13 +25,28 @@ where = {
   date: new Date()
 };
 
+// Optional values
+let whereWithOptionals: { needed: number; optional?: number } = { needed: 2 };
+where = whereWithOptionals;
+
+// Misusing optional values (typings allow this, sequelize will throw an error during runtime)
+// This might be solved by updates to typescript itself (https://github.com/microsoft/TypeScript/issues/13195)
+whereWithOptionals = { needed: 2, optional: undefined };
+where = whereWithOptionals;
+
 // Operators
 
 const and: AndOperator = {
     [Op.and]: { a: 5 }, // AND (a = 5)
 };
+const typedAnd: AndOperator<{ a: number }> = {
+    [Op.and]: { a: 5 }, // AND (a = 5)
+};
 
 const or: OrOperator = {
+    [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
+};
+const typedOr: OrOperator<{ a: number }> = {
     [Op.or]: [{ a: 5 }, { a: 6 }], // (a = 5 OR a = 6)
 };
 
@@ -164,31 +179,22 @@ MyModel.update({ hi: 1 }, { where });
 
 // From https://sequelize.org/master/en/v4/docs/models-usage/
 
-// find multiple entries
-MyModel.findAll().then(projects => {
-    // projects will be an array of all MyModel instances
-});
+async function test() {
+  // find multiple entries
+  let projects: MyModel[] = await MyModel.findAll();
 
-// search for specific attributes - hash usage
-MyModel.findAll({ where: { name: 'A MyModel', enabled: true } }).then(projects => {
-    // projects will be an array of MyModel instances with the specified name
-});
+  // search for specific attributes - hash usage
+  projects = await MyModel.findAll({ where: { name: 'A MyModel', enabled: true } })
 
-// search within a specific range
-MyModel.findAll({ where: { id: [1, 2, 3] } }).then(projects => {
-    // projects will be an array of MyModels having the id 1, 2 or 3
-    // this is actually doing an IN query
-});
+  // search within a specific range
+  projects = await MyModel.findAll({ where: { id: [1, 2, 3] } });
 
-// locks
-MyModel.findAll({ lock: Transaction.LOCK.KEY_SHARE }).then(projects => {
-    // noop
-});
+  // locks
+  projects = await MyModel.findAll({ lock: Transaction.LOCK.KEY_SHARE });
 
-// locks on model
-MyModel.findAll({ lock: { level: Transaction.LOCK.KEY_SHARE, of: MyModel} }).then(projects => {
-    // noop
-});
+  // locks on model
+  projects = await MyModel.findAll({ lock: { level: Transaction.LOCK.KEY_SHARE, of: MyModel} });
+}
 
 MyModel.findAll({
     where: {
@@ -201,7 +207,7 @@ MyModel.findAll({
             [Op.lt]: 10, // id < 10
             [Op.lte]: 10, // id <= 10
             [Op.ne]: 20, // id != 20
-            [Op.between]: [6, 10], // BETWEEN 6 AND 10
+            [Op.between]: [6, 10] || [new Date(), new Date()], // BETWEEN 6 AND 10
             [Op.notBetween]: [11, 15], // NOT BETWEEN 11 AND 15
             [Op.in]: [1, 2], // IN [1, 2]
             [Op.notIn]: [1, 2], // NOT IN [1, 2]
@@ -291,6 +297,8 @@ where = whereFn('test', {
 // Literal as where
 where = literal('true')
 
+where = fn('LOWER', 'asd')
+
 MyModel.findAll({
     where: literal('true')
 })
@@ -322,6 +330,16 @@ Sequelize.where(
         [Op.contains]: Sequelize.literal('LIT'),
         [Op.contained]: Sequelize.literal('LIT'),
         [Op.gt]: Sequelize.literal('LIT'),
-        [Op.notILike]: Sequelize.literal('LIT')
+        [Op.notILike]: Sequelize.literal('LIT'),
     }
 )
+
+Sequelize.where(Sequelize.col("ABS"), Op.is, null);
+
+Sequelize.where(
+  Sequelize.fn("ABS", Sequelize.col("age")),
+  Op.like,
+  Sequelize.fn("ABS", Sequelize.col("age"))
+);
+
+Sequelize.where(Sequelize.col("ABS"), null);

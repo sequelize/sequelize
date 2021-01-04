@@ -7,11 +7,26 @@ import {
   FindOptions,
   Model,
   ModelCtor,
-  Op
+  Op,
+  Optional
 } from 'sequelize';
 import { sequelize } from '../connection';
 
-export class User extends Model {
+export interface UserAttributes {
+  id: number;
+  username: string;
+  firstName: string;
+  lastName: string;
+  groupId: number;
+}
+
+/**
+ * In this case, we make most fields optional. In real cases,
+ * only fields that have default/autoincrement values should be made optional.
+ */
+export interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'username' | 'lastName' | 'groupId'> {}
+
+export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public static associations: {
     group: BelongsTo<User, UserGroup>;
   };
@@ -20,11 +35,11 @@ export class User extends Model {
   public username!: string;
   public firstName!: string;
   public lastName!: string;
+  public groupId!: number;
   public createdAt!: Date;
   public updatedAt!: Date;
 
   // mixins for association (optional)
-  public groupId!: number;
   public group?: UserGroup;
   public getGroup!: BelongsToGetAssociationMixin<UserGroup>;
   public setGroup!: BelongsToSetAssociationMixin<UserGroup, number>;
@@ -33,9 +48,14 @@ export class User extends Model {
 
 User.init(
   {
+    id: {
+      type: DataTypes.NUMBER,
+      primaryKey: true,
+    },
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
     username: DataTypes.STRING,
+    groupId: DataTypes.NUMBER,
   },
   {
     version: true,
@@ -46,7 +66,7 @@ User.init(
     },
     setterMethods: {
       b(val: string) {
-        (<User>this).username = val;
+        this.username = val;
       },
     },
     scopes: {
@@ -86,7 +106,7 @@ User.afterFind((users, options) => {
 });
 
 // TODO: VSCode shows the typing being correctly narrowed but doesn't do it correctly
-User.addHook('beforeFind', 'test', (options: FindOptions) => {
+User.addHook('beforeFind', 'test', (options: FindOptions<UserAttributes>) => {
   return undefined;
 });
 

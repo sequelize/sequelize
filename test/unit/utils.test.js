@@ -240,33 +240,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  describe('stack', () => {
-    it('stack trace starts after call to Util.stack()', function this_here_test() { // eslint-disable-line
-      // We need a named function to be able to capture its trace
-      function a() {
-        return b();
-      }
-
-      function b() {
-        return c();
-      }
-
-      function c() {
-        return Utils.stack();
-      }
-
-      const stack = a();
-
-      expect(stack[0].getFunctionName()).to.eql('c');
-      expect(stack[1].getFunctionName()).to.eql('b');
-      expect(stack[2].getFunctionName()).to.eql('a');
-      expect(stack[3].getFunctionName()).to.eql('this_here_test');
-    });
-  });
-
   describe('Sequelize.cast', () => {
     const sql = Support.sequelize;
-    const generator = sql.queryInterface.QueryGenerator;
+    const generator = sql.queryInterface.queryGenerator;
     const run = generator.handleSequelizeMethod.bind(generator);
     const expectsql = Support.expectsql;
 

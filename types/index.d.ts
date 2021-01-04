@@ -15,6 +15,11 @@ export * from './lib/associations/index';
 export * from './lib/errors';
 export { BaseError as Error } from './lib/errors';
 export { useInflection } from './lib/utils';
-export { Promise } from './lib/promise';
 export { Utils, QueryTypes, Op, TableHints, IndexHints, DataTypes, Deferrable };
 export { Validator as validator } from './lib/utils/validator-extras';
+
+/**
+ * Type helper for making certain fields of an object optional. This is helpful
+ * for creating the `CreationAttributes` from your `Attributes` for a Model.
+ */
+export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;

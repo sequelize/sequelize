@@ -1,75 +1,73 @@
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model, fn, literal, col } from 'sequelize';
 // tslint:disable-next-line:no-submodule-imports
 import { QueryInterface } from 'sequelize/lib/query-interface';
 
 declare let queryInterface: QueryInterface;
 
-queryInterface.createTable(
-  'nameOfTheNewTable',
-  {
-    attr1: DataTypes.STRING,
-    attr2: DataTypes.INTEGER,
-    attr3: {
-      allowNull: false,
-      defaultValue: false,
-      type: DataTypes.BOOLEAN,
-    },
-    // foreign key usage
-    attr4: {
-      onDelete: 'cascade',
-      onUpdate: 'cascade',
-      references: {
-        key: 'id',
-        model: 'another_table_name',
+async function test() {
+  await queryInterface.createTable(
+    'nameOfTheNewTable',
+    {
+      attr1: DataTypes.STRING,
+      attr2: DataTypes.INTEGER,
+      attr3: {
+        allowNull: false,
+        defaultValue: false,
+        type: DataTypes.BOOLEAN,
       },
-      type: DataTypes.INTEGER,
+      // foreign key usage
+      attr4: {
+        onDelete: 'cascade',
+        onUpdate: 'cascade',
+        references: {
+          key: 'id',
+          model: 'another_table_name',
+        },
+        type: DataTypes.INTEGER,
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+      },
+      id: {
+        autoIncrement: true,
+        primaryKey: true,
+        type: DataTypes.INTEGER,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+      },
     },
-    createdAt: {
-      type: DataTypes.DATE,
-    },
-    id: {
-      autoIncrement: true,
-      primaryKey: true,
-      type: DataTypes.INTEGER,
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-    },
-  },
-  {
-    charset: 'latin1', // default: null
-    collate: 'latin1_general_ci',
-    engine: 'MYISAM', // default: 'InnoDB'
-    uniqueKeys: {
-      test: {
-        customIndex: true,
-        fields: ['attr2', 'attr3'],
+    {
+      charset: 'latin1', // default: null
+      collate: 'latin1_general_ci',
+      engine: 'MYISAM', // default: 'InnoDB'
+      uniqueKeys: {
+        test: {
+          customIndex: true,
+          fields: ['attr2', 'attr3'],
+        }
       }
     }
-  }
-);
+  );
 
-queryInterface.dropTable('nameOfTheExistingTable');
+  await queryInterface.dropTable('nameOfTheExistingTable');
 
-queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
+  await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
 
-queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
+  const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
 
-queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar', as: 'baz', name: 'quz' }, {}, {});
+  await queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar', as: 'baz', name: 'quz' }, {}, {});
 
-queryInterface.dropTrigger({ tableName: 'foo', as: 'bar', name: 'baz' }, 'foo', {});
+  await queryInterface.dropTrigger({ tableName: 'foo', as: 'bar', name: 'baz' }, 'foo', {});
 
-queryInterface.quoteTable({ tableName: 'foo', delimiter: 'bar' });
+  await queryInterface.quoteTable({ tableName: 'foo', delimiter: 'bar' });
 
-queryInterface.dropAllTables();
+  await queryInterface.dropAllTables();
 
-queryInterface.renameTable('Person', 'User');
+  await queryInterface.renameTable('Person', 'User');
 
-queryInterface.showAllTables().then(tableNames => {
-  // do nothing
-});
+  const tableNames: string[] = await queryInterface.showAllTables();
 
-queryInterface.describeTable('Person').then(attributes => {
   /*
   attributes will be something like:
 
@@ -86,89 +84,116 @@ queryInterface.describeTable('Person').then(attributes => {
     }
   }
   */
-});
+  const attributes: object = await queryInterface.describeTable('Person');
 
-queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', DataTypes.STRING);
+  await queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', DataTypes.STRING);
 
-// or
+  // or
 
-queryInterface.addColumn(
-  { tableName: 'nameOfAnExistingTable', schema: 'nameOfSchema' },
-  'nameOfTheNewAttribute',
-  DataTypes.STRING
-);
+  await queryInterface.addColumn(
+    { tableName: 'nameOfAnExistingTable', schema: 'nameOfSchema' },
+    'nameOfTheNewAttribute',
+    DataTypes.STRING
+  );
 
-// or
+  // or
 
-queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', {
-  allowNull: false,
-  type: DataTypes.STRING,
-});
+  await queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', {
+    allowNull: false,
+    type: DataTypes.STRING,
+  });
 
-queryInterface.removeColumn('Person', 'signature');
+  await queryInterface.removeColumn('Person', 'signature');
 
-// or
+  // or
 
-queryInterface.removeColumn({ tableName: 'Person', schema: 'nameOfSchema' }, 'signature');
+  await queryInterface.removeColumn({ tableName: 'Person', schema: 'nameOfSchema' }, 'signature');
 
-queryInterface.changeColumn('nameOfAnExistingTable', 'nameOfAnExistingAttribute', {
-  allowNull: false,
-  defaultValue: 0.0,
-  type: DataTypes.FLOAT,
-});
-
-// or
-
-queryInterface.changeColumn(
-  { tableName: 'nameOfAnExistingTable', schema: 'nameOfSchema' },
-  'nameOfAnExistingAttribute',
-  {
+  await queryInterface.changeColumn('nameOfAnExistingTable', 'nameOfAnExistingAttribute', {
     allowNull: false,
     defaultValue: 0.0,
     type: DataTypes.FLOAT,
-  }
-);
+  });
 
-queryInterface.renameColumn('Person', 'signature', 'sig');
+  // or
 
-// This example will create the index person_firstname_lastname
-queryInterface.addIndex('Person', ['firstname', 'lastname']);
+  await queryInterface.changeColumn(
+    { tableName: 'nameOfAnExistingTable', schema: 'nameOfSchema' },
+    'nameOfAnExistingAttribute',
+    {
+      allowNull: false,
+      defaultValue: 0.0,
+      type: DataTypes.FLOAT,
+    }
+  );
 
-// This example will create a unique index with the name SuperDuperIndex using the optional 'options' field.
-// Possible options:
-// - indexName: The name of the index. Default is __
-// - parser: For FULLTEXT columns set your parser
-// - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect
-// - logging: A function that receives the sql query, e.g. console.log
-queryInterface.addIndex('Person', ['firstname', 'lastname'], {
-  name: 'SuperDuperIndex',
-  type: 'UNIQUE',
-});
+  await queryInterface.renameColumn('Person', 'signature', 'sig');
 
-queryInterface.removeIndex('Person', 'SuperDuperIndex');
+  // This example will create the index person_firstname_lastname
+  await queryInterface.addIndex('Person', ['firstname', 'lastname']);
 
-// or
+  // This example will create a unique index with the name SuperDuperIndex using the optional 'options' field.
+  // Possible options:
+  // - indexName: The name of the index. Default is __
+  // - parser: For FULLTEXT columns set your parser
+  // - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect
+  // - logging: A function that receives the sql query, e.g. console.log
+  await queryInterface.addIndex('Person', ['firstname', 'lastname'], {
+    name: 'SuperDuperIndex',
+    type: 'UNIQUE',
+  });
 
-queryInterface.removeIndex('Person', ['firstname', 'lastname']);
+  await queryInterface.addIndex('Foo', {
+    name: 'foo_a',
+    fields: [
+      { name: 'foo_b', order: 'DESC' },
+      'foo_c',
+      { name: 'foo_d', order: 'ASC', collate: 'foobar', length: 42 }
+    ],
+  });
 
-queryInterface.sequelize.transaction(trx => queryInterface.addConstraint('Person', ['firstname', 'lastname'], {
-  name: 'firstnamexlastname',
-  type: 'unique',
-  transaction: trx,
-}))
+  await queryInterface.addIndex('Foo', {
+    name: 'foo_b_lower',
+    fields: [
+      fn('lower', col('foo_b'))
+    ],
+  });
 
-queryInterface.removeConstraint('Person', 'firstnamexlastname');
+  await queryInterface.addIndex('Foo', {
+    name: 'foo_c_lower',
+    fields: [
+      literal('LOWER(foo_c)')
+    ]
+  })
 
-queryInterface.select(null, 'Person', {
-  where: {
-    a: 1,
-  },
-});
+  await queryInterface.removeIndex('Person', 'SuperDuperIndex');
 
-queryInterface.delete(null, 'Person', {
-  where: {
-    a: 1,
-  },
-});
+  // or
 
-queryInterface.upsert("test", {"a": 1}, {"b": 2}, {"c": 3}, Model, {});
+  await queryInterface.removeIndex('Person', ['firstname', 'lastname']);
+
+  await queryInterface.sequelize.transaction(trx => queryInterface.addConstraint('Person', {
+    name: 'firstnamexlastname',
+    fields: ['firstname', 'lastname'],
+    type: 'unique',
+    transaction: trx,
+  }))
+
+  await queryInterface.removeConstraint('Person', 'firstnamexlastname');
+
+  await queryInterface.select(null, 'Person', {
+    where: {
+      a: 1,
+    },
+  });
+
+  await queryInterface.delete(null, 'Person', {
+    where: {
+      a: 1,
+    },
+  });
+
+  await queryInterface.upsert("test", {"a": 1}, {"b": 2}, {"c": 3}, Model, {});
+
+  await queryInterface.insert(null, 'test', {});
+}
