@@ -1,5 +1,5 @@
 {
-  "name": "sequelize",
+  "name": "@ptibv/sequelize",
   "description": "Multi dialect ORM for Node.JS",
   "version": "6.1.0",
   "maintainers": [
