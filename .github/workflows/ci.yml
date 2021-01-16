@@ -48,8 +48,9 @@ jobs:
       fail-fast: false
       matrix:
         postgres-version: [9.5, 10] # Does not work with 12
+        minify-aliases: [true, false]
         native: [true, false]
-    name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }}
+    name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }}${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -63,6 +64,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     env:
       DIALECT: ${{ matrix.native && 'postgres-native' || 'postgres' }}
+      SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
     steps:
       - run: PGPASSWORD=sequelize_test psql -h localhost -p 5432 -U sequelize_test sequelize_test -c '\l'
       - uses: actions/checkout@v2
@@ -74,6 +76,7 @@ jobs:
         if: matrix.native
       - name: Unit Tests
         run: npm run test-unit
+        if: ${{ !matrix.minify-aliases }}
       - name: Integration Tests
         run: npm run test-integration
   test-mysql-mariadb:
