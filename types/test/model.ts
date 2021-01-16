@@ -1,5 +1,7 @@
+import { expectTypeOf } from "expect-type";
 import { Association, BelongsToManyGetAssociationsMixin, DataTypes, HasOne, Model, Sequelize } from 'sequelize';
 
+expectTypeOf<HasOne>().toMatchTypeOf<Association>();
 class MyModel extends Model {
   public num!: number;
   public static associations: {
@@ -12,10 +14,9 @@ class MyModel extends Model {
 
 class OtherModel extends Model {}
 
-const assoc: Association = MyModel.associations.other;
-
 const Instance: MyModel = new MyModel({ int: 10 });
-const num: number = Instance.get('num');
+
+expectTypeOf(Instance.get('num')).toEqualTypeOf<number>();
 
 MyModel.findOne({
   include: [
@@ -102,7 +103,7 @@ UserModel.findCreateFind({
  * Tests for findOrCreate() type.
  */
 
- UserModel.findOrCreate({
+UserModel.findOrCreate({
   fields: [ "jane.doe" ],
   where: {
     username: "jane.doe"
@@ -122,13 +123,13 @@ TestModel.primaryKeyAttributes;
  * Test for joinTableAttributes on BelongsToManyGetAssociationsMixin
  */
 class SomeModel extends Model {
-    public getOthers!: BelongsToManyGetAssociationsMixin<OtherModel>
+  public getOthers!: BelongsToManyGetAssociationsMixin<OtherModel>
 }
 
-const someInstance = new SomeModel()
+const someInstance = new SomeModel();
 someInstance.getOthers({
-    joinTableAttributes: { include: [ 'id' ] }
-})
+  joinTableAttributes: { include: ['id'] }
+});
 
 /**
  * Test for through options in creating a BelongsToMany association
@@ -142,11 +143,11 @@ Film.belongsToMany(Actor, {
     model: 'FilmActors',
     paranoid: true
   }
-})
+});
 
 Actor.belongsToMany(Film, {
   through: {
     model: 'FilmActors',
     paranoid: true
   }
-})
+});
