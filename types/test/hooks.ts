@@ -1,46 +1,48 @@
-import {Model, SaveOptions, Sequelize, FindOptions} from "sequelize"
+import { expectTypeOf } from "expect-type";
+import { Model, SaveOptions, Sequelize, FindOptions } from "sequelize";
 import { ModelHooks } from "../lib/hooks";
 
-/*
- * covers types/lib/sequelize.d.ts
- */
-
-Sequelize.beforeSave((t: TestModel, options: SaveOptions) => {});
-Sequelize.afterSave((t: TestModel, options: SaveOptions) => {});
-Sequelize.afterFind((t: TestModel[] | TestModel | null, options: FindOptions) => {});
-Sequelize.afterFind('namedAfterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => {});
+class TestModel extends Model {}
 
 /*
  * covers types/lib/hooks.d.ts
  */
 
-export const sequelize = new Sequelize('uri', {
-  hooks: {
-    beforeSave (m: Model, options: SaveOptions) {},
-    afterSave (m: Model, options: SaveOptions) {},
-    afterFind (m: Model[] | Model | null, options: FindOptions) {},
-  }
-});
-
-class TestModel extends Model {
-}
-
 const hooks: Partial<ModelHooks> = {
-  beforeSave(t: TestModel, options: SaveOptions) { },
-  afterSave(t: TestModel, options: SaveOptions) { },
-  afterFind(t: TestModel | TestModel[] | null, options: FindOptions) { },
+  beforeSave(m, options) {
+    expectTypeOf(m).toEqualTypeOf<TestModel>();
+    expectTypeOf(options).toMatchTypeOf<SaveOptions>(); // TODO consider `.toEqualTypeOf` instead ?
+  },
+  afterSave(m, options) {
+    expectTypeOf(m).toEqualTypeOf<TestModel>();
+    expectTypeOf(options).toMatchTypeOf<SaveOptions>(); // TODO consider `.toEqualTypeOf` instead ?
+  },
+  afterFind(m, options) {
+    expectTypeOf(m).toEqualTypeOf<readonly TestModel[] | TestModel | null>();
+    expectTypeOf(options).toEqualTypeOf<FindOptions>();
+  }
 };
 
-TestModel.init({}, {sequelize, hooks })
+export const sequelize = new Sequelize('uri', { hooks });
+TestModel.init({}, { sequelize, hooks });
 
-TestModel.addHook('beforeSave', (t: TestModel, options: SaveOptions) => { });
-TestModel.addHook('afterSave', (t: TestModel, options: SaveOptions) => { });
-TestModel.addHook('afterFind', (t: TestModel[] | TestModel | null, options: FindOptions) => { });
+TestModel.addHook('beforeSave', hooks.beforeSave!);
+TestModel.addHook('afterSave', hooks.afterSave!);
+TestModel.addHook('afterFind', hooks.afterFind!);
 
 /*
  * covers types/lib/model.d.ts
  */
 
-TestModel.beforeSave((t: TestModel, options: SaveOptions) => { });
-TestModel.afterSave((t: TestModel, options: SaveOptions) => { });
-TestModel.afterFind((t: TestModel | TestModel[] | null, options: FindOptions) => { });
+TestModel.beforeSave(hooks.beforeSave!);
+TestModel.afterSave(hooks.afterSave!);
+TestModel.afterFind(hooks.afterFind!);
+
+/*
+ * covers types/lib/sequelize.d.ts
+ */
+
+Sequelize.beforeSave(hooks.beforeSave!);
+Sequelize.afterSave(hooks.afterSave!);
+Sequelize.afterFind(hooks.afterFind!);
+Sequelize.afterFind('namedAfterFind', hooks.afterFind!);
