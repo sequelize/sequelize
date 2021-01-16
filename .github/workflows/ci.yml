@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: [3.6, 3.7, 3.8, 3.9, 4.0, 4.1]
+        ts-version: [3.9, 4.0, 4.1]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     steps:
