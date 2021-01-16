@@ -1185,27 +1185,6 @@ export class Sequelize extends Hooks {
   public isDefined(modelName: string): boolean;
 
   /**
-   * Imports a model defined in another file
-   *
-   * Imported models are cached, so multiple calls to import with the same path will not load the file
-   * multiple times
-   *
-   * See https://github.com/sequelize/sequelize/blob/master/examples/using-multiple-model-files/Task.js for a
-   * short example of how to define your models in separate files so that they can be imported by
-   * sequelize.import
-   *
-   * @param path The path to the file that holds the model you want to import. If the part is relative, it
-   *   will be resolved relatively to the calling file
-   *
-   * @param defineFunction An optional function that provides model definitions. Useful if you do not
-   *   want to use the module root as the define function
-   */
-  public import<T extends typeof Model>(
-    path: string,
-    defineFunction?: (sequelize: Sequelize, dataTypes: typeof DataTypes) => T
-  ): T;
-
-  /**
    * Execute a query on the DB, optionally bypassing all the Sequelize goodness.
    *
    * By default, the function will return two arguments: an array of results, and a metadata object,
