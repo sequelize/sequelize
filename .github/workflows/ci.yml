@@ -19,7 +19,11 @@ jobs:
       - run: npm run lint
       - run: npm run lint-docs
   test-typings:
-    name: TS Typings
+    strategy:
+      fail-fast: false
+      matrix:
+        ts-version: [3.6, 3.7, 3.8, 3.9, 4.0, 4.1]
+    name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -27,6 +31,7 @@ jobs:
         with:
           node-version: 12.x
       - run: npm install
+      - run: npm install --save-dev typescript@~${{ matrix.ts-version }}
       - run: npm run test-typings
   test-sqlite:
     name: SQLite
