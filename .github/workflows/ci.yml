@@ -160,10 +160,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, test-typings, test-sqlite, test-postgres, test-mysql-mariadb, test-mssql]
     if: github.event_name == 'push' && github.ref == 'refs/heads/v6'
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
-      # - uses: actions/checkout@v2
-      # - uses: actions/setup-node@v1
-      #   with:
-      #     node-version: 12.x
-      # - run: npm run semantic-release
-      - run: echo 'Auto-release would happen!'
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - run: npm run semantic-release
