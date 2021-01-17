@@ -34,7 +34,11 @@ jobs:
       - run: npm install --save-dev typescript@~${{ matrix.ts-version }}
       - run: npm run test-typings
   test-sqlite:
-    name: SQLite
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [10, 12]
+    name: SQLite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
       DIALECT: sqlite
@@ -42,7 +46,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: ${{ matrix.node-version }}
       - run: npm install
       - name: Unit Tests
         run: npm run test-unit
@@ -52,10 +56,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        node-version: [10, 12]
         postgres-version: [9.5, 10] # Does not work with 12
         minify-aliases: [true, false]
         native: [true, false]
-    name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }}${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
+    name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -75,7 +80,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: ${{ matrix.node-version }}
       - run: npm install
       - run: npm install pg-native
         if: matrix.native
@@ -92,10 +97,20 @@ jobs:
           - name: MySQL 5.7
             image: mysql:5.7
             dialect: mysql
+            node-version: 10
+          - name: MySQL 5.7
+            image: mysql:5.7
+            dialect: mysql
+            node-version: 12
           - name: MariaDB 10.3
             image: mariadb:10.3
             dialect: mariadb
-    name: ${{ matrix.name }}
+            node-version: 10
+          - name: MariaDB 10.3
+            image: mariadb:10.3
+            dialect: mariadb
+            node-version: 12
+    name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -115,7 +130,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: ${{ matrix.node-version }}
       - run: npm install
       - name: Unit Tests
         run: npm run test-unit
@@ -125,8 +140,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        node-version: [10, 12]
         mssql-version: [2017, 2019]
-    name: MSSQL ${{ matrix.mssql-version }}
+    name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     services:
       mssql:
@@ -149,7 +165,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: ${{ matrix.node-version }}
       - run: npm install
       - name: Unit Tests
         run: npm run test-unit
