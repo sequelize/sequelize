@@ -124,8 +124,11 @@ if (current.dialect.supports.transactions) {
             return this.sequelize.transaction({
               isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE
             }, async t => {
+              await delay(1000);
               await SumSumSum.sum('value', { transaction: t });
+              await delay(1000);
               await SumSumSum.create({ value: -val }, { transaction: t });
+              await delay(1000);
             });
           };
 
