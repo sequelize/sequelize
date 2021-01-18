@@ -12,7 +12,7 @@ import BaseError from './base-error';
 class ValidationError extends BaseError {
   errors: Array<ValidationErrorItem>;
 
-  constructor(message: string, errors: Array<ValidationErrorItem>) {
+  constructor(message: string, errors?: Array<ValidationErrorItem>) {
     super(message);
     this.name = 'SequelizeValidationError';
     this.message = 'Validation Error';

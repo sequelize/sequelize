@@ -5,6 +5,11 @@ import moment from 'moment';
 type ValidatorFn = (arg0: string) => boolean;
 type RegExpValidatorFn = (str: string, pattern: RegExp, modifiers: string) => boolean;
 
+interface ValidatorMissingDef {
+  // TODO: @types/validator missing isIPRange definition
+  isIPRange(str: string): boolean;
+}
+
 interface ValidatorCustom extends ValidatorJS.ValidatorStatic {
   extend: <T extends Function>(name: string, fn: T) => void;
   contains: (str: string, elem: string) => boolean;
@@ -28,7 +33,7 @@ interface ValidatorCustom extends ValidatorJS.ValidatorStatic {
   regex: RegExpValidatorFn;
 }
 
-const clonedValidator = _.cloneDeep(Validator);
+const clonedValidator = _.cloneDeep(Validator) as ValidatorJS.ValidatorStatic & ValidatorMissingDef;
 
 export const extensions = {
   extend<T extends Function>(name: string, fn: T): void {
@@ -131,4 +136,8 @@ const extraValidator = {
   }
 };
 
-export const validator: ValidatorCustom = { ...clonedValidator, ...extensions, ...extraValidator };
+export const validator: ValidatorCustom & ValidatorMissingDef = {
+  ...clonedValidator,
+  ...extensions,
+  ...extraValidator
+};

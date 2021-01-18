@@ -49,13 +49,13 @@ export function escape(val: unknown, timeZone: string | null, dialect: string, f
       return (dataTypes as any)[dialect].BLOB.prototype.stringify(val);
     }
 
-    return dataTypes.BLOB.prototype.stringify(val, undefined); // TODO: Remove unknown
+    return (dataTypes as any).BLOB.prototype.stringify(val, undefined); // TODO: Remove unknown
   }
 
   if (Array.isArray(val)) {
     const partialEscape = (escVal: string) => escape(escVal, timeZone, dialect, format);
     if (dialect === 'postgres' && !format) {
-      return dataTypes.ARRAY.prototype.stringify(val, {
+      return (dataTypes as any).ARRAY.prototype.stringify(val, {
         escape: partialEscape
       });
     }
