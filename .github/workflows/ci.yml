@@ -160,6 +160,8 @@ jobs:
           --health-retries 10
     env:
       DIALECT: mssql
+      SEQ_USER: SA
+      SEQ_PW: Password12!
     steps:
       - run: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
       - uses: actions/checkout@v2
