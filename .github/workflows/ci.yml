@@ -179,6 +179,7 @@ jobs:
     needs: [lint, test-typings, test-sqlite, test-postgres, test-mysql-mariadb, test-mssql]
     if: github.event_name == 'push' && github.ref == 'refs/heads/v6'
     env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v2
