@@ -17,7 +17,17 @@ if (dialect === 'sqlite') {
 describe(Support.getTestDialectTeaser('Configuration'), () => {
   describe('Connections problems should fail with a nice message', () => {
     it('when we don\'t have the correct server details', () => {
-      const seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, { storage: '/path/to/no/where/land', logging: false, host: '0.0.0.1', port: config[dialect].port, dialect });
+      const seq = new Sequelize(
+        config[dialect].database,
+        config[dialect].username,
+        config[dialect].password,
+        {
+          storage: '/path/to/no/where/land',
+          logging: false,
+          host: 'localhost',
+          port: 19999, // Wrong port
+          dialect
+        });
       if (dialect === 'sqlite') {
         // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
         return expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionError, 'SQLITE_CANTOPEN: unable to open database file');
@@ -27,8 +37,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
 
     it('when we don\'t have the correct login information', () => {
       if (dialect === 'mssql') {
-        // NOTE: Travis seems to be having trouble with this test against the
-        //       AWS instance. Works perfectly fine on a local setup.
+        // TODO: GitHub Actions seems to be having trouble with this test. Works perfectly fine on a local setup.
         expect(true).to.be.true;
         return;
       }

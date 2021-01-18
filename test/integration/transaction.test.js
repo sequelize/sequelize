@@ -559,7 +559,7 @@ if (current.dialect.supports.transactions) {
                 return User.findAll({ transaction })
                   .then(users => expect( users ).to.have.lengthOf(0))
                   .then(() => User.create({ username: 'jan' })) // Create a User outside of the transaction
-                  .then(() => User.findAll({ transaction })) 
+                  .then(() => User.findAll({ transaction }))
                   .then(users => expect( users ).to.have.lengthOf(0)); // We SHOULD NOT see the created user inside the transaction
               });
             })
@@ -579,17 +579,23 @@ if (current.dialect.supports.transactions) {
             return User.create({ username: 'jan' });
           }).then(() => {
             return this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE }).then(transaction => {
-              return User.findAll( { transaction } )
-                .then(() => Promise.join(
+              return User.findAll({ transaction }).then(() => {
+                return Promise.all([
+                  // Update should not succeed before transaction has committed
                   User.update({ username: 'joe' }, {
                     where: {
                       username: 'jan'
                     }
-                  }).then(() => expect(transactionSpy).to.have.been.called ), // Update should not succeed before transaction has committed
-                  Promise.delay(2000)
-                    .then(() => transaction.commit())
+                  }).then(() => {
+                    expect(transactionSpy).to.have.been.called;
+                    expect(transaction.finished).to.equal('commit');
+                  }),
+
+                  Promise.delay(4000)
                     .then(transactionSpy)
-                ));
+                    .then(() => transaction.commit())
+                ]);
+              });
             });
           });
         });

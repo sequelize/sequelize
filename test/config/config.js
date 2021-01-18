@@ -1,12 +1,5 @@
 'use strict';
 
-const fs = require('fs');
-let mssqlConfig;
-try {
-  mssqlConfig = JSON.parse(fs.readFileSync(`${__dirname}/mssql.json`, 'utf8'));
-} catch (e) {
-  // ignore
-}
 const env = process.env;
 
 module.exports = {
@@ -23,15 +16,16 @@ module.exports = {
     return parseInt(Math.random() * 999, 10);
   },
 
-  mssql: mssqlConfig || {
-    database: env.SEQ_MSSQL_DB || env.SEQ_DB || 'sequelize_test',
-    username: env.SEQ_MSSQL_USER || env.SEQ_USER || 'sequelize',
-    password: env.SEQ_MSSQL_PW || env.SEQ_PW || 'nEGkLma26gXVHFUAHJxcmsrK',
-    host: env.SEQ_MSSQL_HOST || env.SEQ_HOST || '127.0.0.1',
+  mssql: {
+    host: env.SEQ_MSSQL_HOST || env.SEQ_HOST || 'localhost',
+    username: env.SEQ_MSSQL_USER || env.SEQ_USER || 'SA',
+    password: env.SEQ_MSSQL_PW || env.SEQ_PW || 'Password12!',
     port: env.SEQ_MSSQL_PORT || env.SEQ_PORT || 1433,
+    database: env.SEQ_MSSQL_DB || env.SEQ_DB || 'sequelize_test',
     dialectOptions: {
       options: {
-        requestTimeout: 60000
+        encrypt: false,
+        requestTimeout: 25000
       }
     },
     pool: {
