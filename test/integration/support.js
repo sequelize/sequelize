@@ -4,7 +4,7 @@
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
 const { setTimeout, clearTimeout } = global;
 
-const pTimeout = require('p-timeout');
+const pTimeout = require('./__patched_p-timeout__');
 const Support = require('../support');
 
 const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT, 10) || 10000;
@@ -20,11 +20,11 @@ before(function() {
   });
 });
 
-beforeEach(async function() {
-  await Support.clearDatabase(this.sequelize);
+beforeEach(function() {
+  return Support.clearDatabase(this.sequelize);
 });
 
-afterEach(async function() {
+afterEach(function() {
   // Note: recall that throwing an error from a `beforeEach` or `afterEach` hook in Mocha causes the entire test suite to abort.
 
   let runningQueriesProblem;
@@ -40,14 +40,14 @@ afterEach(async function() {
 
   runningQueries = new Set();
 
-  try {
-    await pTimeout(
+  return Promise.resolve().then(() => {
+    return pTimeout(
       Support.clearDatabase(this.sequelize),
       CLEANUP_TIMEOUT,
       `Could not clear database after this test in less than ${CLEANUP_TIMEOUT}ms. This test crashed the DB, and testing cannot continue. Aborting.`,
       { customTimers: { setTimeout, clearTimeout } }
     );
-  } catch (error) {
+  }).catch(error => {
     let message = error.message;
     if (runningQueriesProblem) {
       message += `\n\n     Also, ${runningQueriesProblem}`;
@@ -56,17 +56,17 @@ afterEach(async function() {
 
     // Throw, aborting the entire Mocha execution
     throw new Error(message);
-  }
-
-  if (runningQueriesProblem) {
-    if (this.test.ctx.currentTest.state === 'passed') {
-      // `this.test.error` is an obscure Mocha API that allows failing a test from the `afterEach` hook
-      // This is better than throwing because throwing would cause the entire Mocha execution to abort
-      this.test.error(new Error(`This test passed, but ${runningQueriesProblem}`));
-    } else {
-      console.log(`     ${runningQueriesProblem}`);
+  }).then(() => {
+    if (runningQueriesProblem) {
+      if (this.test.ctx.currentTest.state === 'passed') {
+        // `this.test.error` is an obscure Mocha API that allows failing a test from the `afterEach` hook
+        // This is better than throwing because throwing would cause the entire Mocha execution to abort
+        this.test.error(new Error(`This test passed, but ${runningQueriesProblem}`));
+      } else {
+        console.log(`     ${runningQueriesProblem}`);
+      }
     }
-  }
+  });
 });
 
 module.exports = Support;

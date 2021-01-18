@@ -1,4 +1,5 @@
 {
+  "ignorePatterns": ["**/__patched_p-timeout__.js"],
   "rules": {
     "no-invalid-this": 0,
     "no-unused-expressions": 0,
