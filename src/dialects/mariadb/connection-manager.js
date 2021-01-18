@@ -93,6 +93,12 @@ class ConnectionManager extends AbstractConnectionManager {
             this.pool.destroy(connection);
         }
       });
+
+      const [{ autoIncrementIncrement }] = await connection.query(
+        'SELECT @@auto_increment_increment AS autoIncrementIncrement'
+      );
+      this.sequelize.options.autoIncrementIncrement = autoIncrementIncrement;
+
       return connection;
     } catch (err) {
       switch (err.code) {
