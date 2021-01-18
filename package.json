@@ -197,6 +197,6 @@
     "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce",
     "sscce-mssql": "cross-env DIALECT=mssql npm run sscce",
     "setup-mssql": "env-cmd $npm_package_options_env_cmd ./scripts/setup-mssql",
-    "//semantic-release": "semantic-release"
+    "semantic-release": "semantic-release"
   }
 }
