@@ -31,19 +31,27 @@ class Transaction {
       ...options
     };
 
-    this.parent = this.options.transaction;
+    this.parent = this.options.transaction && this.options.transaction.getActiveSavepoint();
 
     if (this.parent) {
       this.id = this.parent.id;
       this.parent.savepoints.push(this);
-      this.name = `${this.id}-sp-${this.parent.savepoints.length}`;
+      this.name = `${this.parent.name}-sp-${this.parent.savepoints.length}`;
     } else {
       this.id = this.name = generateTransactionId();
     }
 
     delete this.options.transaction;
   }
-
+  /**
+   * Return transaction object that was created last and it active or current transaction either
+   *
+   * @returns {Transaction}
+   */
+  getActiveSavepoint() {
+    const sp = this.savepoints.length && this.savepoints[this.savepoints.length - 1];
+    return sp && !sp.finished ? sp.getActiveSavepoint() : this;
+  }
   /**
    * Commit the transaction
    *
@@ -95,24 +103,22 @@ class Transaction {
   }
 
   async prepareEnvironment(useCLS) {
-    let connectionPromise;
-
     if (useCLS === undefined) {
       useCLS = true;
     }
 
+    let connection;
     if (this.parent) {
-      connectionPromise = Promise.resolve(this.parent.connection);
+      connection = this.parent.connection;
     } else {
       const acquireOptions = { uuid: this.id };
       if (this.options.readOnly) {
         acquireOptions.type = 'SELECT';
       }
-      connectionPromise = this.sequelize.connectionManager.getConnection(acquireOptions);
+      connection = await this.sequelize.connectionManager.getConnection(acquireOptions);
     }
 
     let result;
-    const connection = await connectionPromise;
     this.connection = connection;
     this.connection.uuid = this.id;
 

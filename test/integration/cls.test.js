@@ -63,6 +63,23 @@ if (current.dialect.supports.transactions) {
         });
       });
 
+      it('supports nested transaction chains', async function () {
+        await this.sequelize.transaction(async () => {
+          const t1 = this.ns.get('transaction');
+          await this.sequelize.query('SELECT 1+1', {
+            type: Sequelize.QueryTypes.SELECT
+          });
+          await this.sequelize.transaction(async () => {
+            const t2 = this.ns.get('transaction');
+            await this.sequelize.query('SELECT 1+1', {
+              type: Sequelize.QueryTypes.SELECT
+            });
+            expect(t1.name).to.not.equal(t2.name);
+            expect(t2.id).to.equal(t1.id);
+          });
+        });
+      });
+
       it('does not leak variables to the outer scope', async function () {
         // This is a little tricky. We want to check the values in the outer scope, when the transaction has been successfully set up, but before it has been comitted.
         // We can't just call another function from inside that transaction, since that would transfer the context to that function - exactly what we are trying to prevent;
