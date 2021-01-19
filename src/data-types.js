@@ -778,7 +778,7 @@ class ARRAY extends ABSTRACT {
  * GeoJSON is accepted as input and returned as output.
  *
  * In PostGIS, the GeoJSON is parsed using the PostGIS function `ST_GeomFromGeoJSON`.
- * In MySQL it is parsed using the function `GeomFromText`.
+ * In MySQL it is parsed using the function `ST_GeomFromText`.
  *
  * Therefore, one can just follow the [GeoJSON spec](http://geojson.org/geojson-spec.html) for handling geometry objects.  See the following examples:
  *
@@ -830,10 +830,16 @@ class GEOMETRY extends ABSTRACT {
     this.srid = options.srid;
   }
   _stringify(value, options) {
-    return `GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
+    if (this.srid) {
+      return `ST_GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())}, ${this.srid})`;
+    }
+    return `ST_GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
   _bindParam(value, options) {
-    return `GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
+    if (this.srid) {
+      return `ST_GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())}, ${this.srid})`;
+    }
+    return `ST_GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
 }
 
@@ -873,10 +879,16 @@ class GEOGRAPHY extends ABSTRACT {
     this.srid = options.srid;
   }
   _stringify(value, options) {
-    return `GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
+    if (this.srid) {
+      return `ST_GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())}, ${this.srid})`;
+    }
+    return `ST_GeomFromText(${options.escape(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
   _bindParam(value, options) {
-    return `GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
+    if (this.srid) {
+      return `ST_GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())}, ${this.srid})`;
+    }
+    return `ST_GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())})`;
   }
 }
 

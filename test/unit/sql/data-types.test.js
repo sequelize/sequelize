@@ -1463,7 +1463,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         testsql("GEOMETRY('POINT',4326)", DataTypes.GEOMETRY('POINT', 4326), {
           postgres: 'GEOMETRY(POINT,4326)',
           mariadb: 'POINT',
-          mysql: 'POINT'
+          mysql: 'POINT /*!80003 SRID 4326 */'
         });
       });
     }
