@@ -3764,7 +3764,7 @@ class Model {
    * @see
    * {@link Model.findAll} for more information about includes
    *
-   * @param {string|object} key key to set, it can be string or object. When string it will set that key, for object it will loop over all object properties nd set them.
+   * @param {string|object} key key to set, it can be string or object. When string it will set that key, for object it will loop over all object properties and set them.
    * @param {any} value value to set
    * @param {object} [options] set options
    * @param {boolean} [options.raw=false] If set to true, field and virtual setters will be ignored
