@@ -161,6 +161,10 @@ class Sequelize {
    * @param {object}   [options.retry] Set of flags that control when a query is automatically retried. Accepts all options for [`retry-as-promised`](https://github.com/mickhansen/retry-as-promised).
    * @param {Array}    [options.retry.match] Only retry a query if the error matches one of these strings.
    * @param {number}   [options.retry.max] How many times a failing query is automatically retried.  Set to 0 to disable retrying on SQL_BUSY error.
+   * @param {boolean}  [options.typeValidation=false] Run built in type validators on insert and update, e.g. validate that arguments passed to integer fields are integer-like.
+   * @param {Object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
+   * @param {Object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()` and `afterConnect()` hooks may be defined here.
+   * @param {Function} [options.whereMerge] A function to change the default Object.assign merge strategy for where and having parameters when combining scopes.
    * @param {boolean}  [options.typeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
    * @param {object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
    * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
@@ -270,6 +274,7 @@ class Sequelize {
       databaseVersion: 0,
       typeValidation: false,
       benchmark: false,
+      whereMerge: false,
       minifyAliases: false,
       logQueryParameters: false,
       ...options

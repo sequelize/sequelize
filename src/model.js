@@ -229,7 +229,9 @@ class Model {
     // otherwise this code will never run on includes of a already conditionable where
     if (options.include) {
       for (const include of options.include) {
-        this._paranoidClause(include.model, include);
+        if (!include.sql) {
+          this._paranoidClause(include.model, include);
+        }
       }
     }
 
@@ -407,6 +409,10 @@ class Model {
       }
 
       if (_.isPlainObject(include)) {
+        if (include.sql) {
+          this._conformIncludes(include, include.model);
+          return include;
+        }
         if (include.association) {
           include.association = this._transformStringAssociation(include.association, self);
 
@@ -634,8 +640,11 @@ class Model {
   }
 
   static _validateIncludedElement(include, tableNames, options) {
-    tableNames[include.model.getTableName()] = true;
 
+    if (include.sql && include.on && include.as) {
+      return Object.assign(include, { association: {} });
+    }
+    tableNames[include.model.getTableName()] = true;
     if (include.attributes && !options.raw) {
       include.model._expandAttributes(include);
 
@@ -872,7 +881,9 @@ class Model {
         srcValue = { [Op.and]: srcValue };
       }
       if (_.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
-        return Object.assign(objValue, srcValue);
+        return (this && this.options && this.options.whereMerge)
+          ? this.options.whereMerge(objValue, srcValue)
+          : Object.assign(objValue, srcValue);
       }
     } else if (key === 'attributes' && _.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
       return _.assignWith(objValue, srcValue, (objValue, srcValue) => {
@@ -986,6 +997,9 @@ class Model {
    * @param {string}                  [options.comment] Specify comment for model's table
    * @param {string}                  [options.collate] Specify collation for model's table
    * @param {string}                  [options.initialAutoIncrement] Set the initial AUTO_INCREMENT value for the table in MySQL.
+   * @param {Object}                  [options.hooks] An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, validationFailed, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, beforeSave, afterDestroy, afterUpdate, afterBulkCreate, afterSave, afterBulkDestroy and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions.
+   * @param {Object}                  [options.validate] An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error.
+   * @param {Object}                  [options.whereMerge] A function that overwrites the default Object.assign merge strategy for where parameters when merging scopes
    * @param {object}                  [options.hooks] An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, validationFailed, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, beforeSave, afterDestroy, afterUpdate, afterBulkCreate, afterSave, afterBulkDestroy and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions.
    * @param {object}                  [options.validate] An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error.
    *
@@ -1039,6 +1053,7 @@ class Model {
       defaultScope: {},
       scopes: {},
       indexes: [],
+      whereMerge: false,
       ...options
     };
 
@@ -1615,7 +1630,7 @@ class Model {
    * @returns {Model} A reference to the model, with the scope(s) applied. Calling scope again on the returned model will clear the previous scope.
    */
   static scope(option) {
-    const self = class extends this {};
+    const self = class extends this { };
     let scope;
     let scopeName;
 
@@ -4278,7 +4293,6 @@ class Model {
                       }
                       values0[attr] = instance[include.association.through.model.name][attr];
                     }
-                  }
 
                   await include.association.throughModel.create(values0, includeOptions);
                 } else {
@@ -4676,7 +4690,7 @@ class Model {
    * @example
    * User.hasMany(Profile) // This will add userId to the profile table
    */
-  static hasMany(target, options) {} // eslint-disable-line
+  static hasMany(target, options) { } // eslint-disable-line
 
   /**
    * Create an N:M association with a join table. Defining `through` is required.
@@ -4711,7 +4725,7 @@ class Model {
    * User.belongsToMany(Project, { through: UserProjects })
    * Project.belongsToMany(User, { through: UserProjects })
    */
-  static belongsToMany(target, options) {} // eslint-disable-line
+  static belongsToMany(target, options) { } // eslint-disable-line
 
   /**
    * Creates an association between this (the source) and the provided target. The foreign key is added on the target.
@@ -4732,7 +4746,7 @@ class Model {
    * @example
    * User.hasOne(Profile) // This will add userId to the profile table
    */
-  static hasOne(target, options) {} // eslint-disable-line
+  static hasOne(target, options) { } // eslint-disable-line
 
   /**
    * Creates an association between this (the source) and the provided target. The foreign key is added on the source.
@@ -4752,7 +4766,7 @@ class Model {
    * @example
    * Profile.belongsTo(User) // This will add userId to the profile table
    */
-  static belongsTo(target, options) {} // eslint-disable-line
+  static belongsTo(target, options) { } // eslint-disable-line
 }
 
 Object.assign(Model, associationsMixin);

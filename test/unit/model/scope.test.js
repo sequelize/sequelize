@@ -440,6 +440,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should be able to merge scope and using custom whereMerge function', () => {
+      const test = current.define('user', {}, {
+        whereMerge: (where1, where2) => {
+          return { [Sequelize.Op.and]: [where1, where2] };
+        }
+      });
+      test._scope = {
+        where: {
+          age: 5,
+        }
+      };
+
+      const options = {
+        where: {
+          age: 6
+        }
+      };
+
+      test._injectScope(options);
+
+      expect(options).to.deep.equal({
+        where: {
+          [Sequelize.Op.and]: [
+            {
+              age: 5
+            },
+            {
+              age: 6
+            }
+          ]
+        }
+      });
+    });
+
     it('should be able to merge scopes with the same include', () => {
       Sequelize.Model._scope = {
         include: [

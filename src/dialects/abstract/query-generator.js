@@ -689,7 +689,7 @@ class QueryGenerator {
         constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_df`);
         constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue)}) FOR ${
           fieldsSql[0]
-        }`;
+          }`;
         break;
       case 'PRIMARY KEY':
         constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_pk`);
@@ -1208,10 +1208,10 @@ class QueryGenerator {
     mainTable.quotedName = !Array.isArray(mainTable.name)
       ? this.quoteTable(mainTable.name)
       : tableName
-          .map(t => {
-            return Array.isArray(t) ? this.quoteTable(t[0], t[1]) : this.quoteTable(t, true);
-          })
-          .join(', ');
+        .map(t => {
+          return Array.isArray(t) ? this.quoteTable(t[0], t[1]) : this.quoteTable(t, true);
+        })
+        .join(', ');
 
     if (subQuery && attributes.main) {
       for (const keyAtt of mainTable.model.primaryKeyAttributes) {
@@ -1471,7 +1471,9 @@ class QueryGenerator {
       });
       query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) AS ${
         mainTable.as
-      }${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+        }${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+      query = `SELECT ${options.straightJoin ? `STRAIGHT_JOIN` : ``} ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) AS ${mainTable.as}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+
     } else {
       query = mainQueryItems.join('');
     }
@@ -1581,46 +1583,70 @@ class QueryGenerator {
       includeAs.internalAs = `${parentTableName.internalAs}->${include.as}`;
       includeAs.externalAs = `${parentTableName.externalAs}.${include.as}`;
     }
+    if (!include.sql) {
 
-    // includeIgnoreAttributes is used by aggregate functions
-    if (topLevelInfo.options.includeIgnoreAttributes !== false) {
-      include.model._expandAttributes(include);
-      Utils.mapFinderOptions(include, include.model);
+      // includeIgnoreAttributes is used by aggregate functions
+      if (topLevelInfo.options.includeIgnoreAttributes !== false) {
+        include.model._expandAttributes(include);
+        Utils.mapFinderOptions(include, include.model);
 
-      const includeAttributes = include.attributes.map(attr => {
-        let attrAs = attr;
-        let verbatim = false;
+        const includeAttributes = include.attributes.map(attr => {
+          let attrAs = attr;
+          let verbatim = false;
 
-        if (Array.isArray(attr) && attr.length === 2) {
-          if (
-            attr[0] instanceof Utils.SequelizeMethod &&
-            (attr[0] instanceof Utils.Literal || attr[0] instanceof Utils.Cast || attr[0] instanceof Utils.Fn)
-          ) {
-            verbatim = true;
+          if (Array.isArray(attr) && attr.length === 2) {
+            if (
+              attr[0] instanceof Utils.SequelizeMethod &&
+              (attr[0] instanceof Utils.Literal || attr[0] instanceof Utils.Cast || attr[0] instanceof Utils.Fn)
+            ) {
+              verbatim = true;
+            }
+
+            attr = attr.map(attr => (attr instanceof Utils.SequelizeMethod ? this.handleSequelizeMethod(attr) : attr));
+
+            attrAs = attr[1];
+            attr = attr[0];
+          }
+          if (attr instanceof Utils.Literal) {
+            return attr.val; // We trust the user to rename the field correctly
+          }
+          if (attr instanceof Utils.Cast || attr instanceof Utils.Fn) {
+            throw new Error(
+              'Tried to select attributes using Sequelize.cast or Sequelize.fn without specifying an alias for the result, during eager loading. ' +
+              'This means the attribute will not be added to the returned instance'
+            );
           }
 
-          attr = attr.map(attr => (attr instanceof Utils.SequelizeMethod ? this.handleSequelizeMethod(attr) : attr));
 
           attrAs = attr[1];
           attr = attr[0];
-        }
-        if (attr instanceof Utils.Literal) {
-          return attr.val; // We trust the user to rename the field correctly
-        }
-        if (attr instanceof Utils.Cast || attr instanceof Utils.Fn) {
-          throw new Error(
-            'Tried to select attributes using Sequelize.cast or Sequelize.fn without specifying an alias for the result, during eager loading. ' +
-              'This means the attribute will not be added to the returned instance'
-          );
-        }
 
-        let prefix;
-        if (verbatim === true) {
-          prefix = attr;
-        } else if (/#>>|->>/.test(attr)) {
-          prefix = `(${this.quoteIdentifier(includeAs.internalAs)}.${attr.replace(/\(|\)/g, '')})`;
-        } else if (/json_extract\(/.test(attr)) {
-          prefix = attr.replace(/json_extract\(/i, `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`);
+          if (attr instanceof Utils.Literal) {
+            return attr.val; // We trust the user to rename the field correctly
+          }
+          if (attr instanceof Utils.Cast || attr instanceof Utils.Fn) {
+            throw new Error(
+              'Tried to select attributes using Sequelize.cast or Sequelize.fn without specifying an alias for the result, during eager loading. ' +
+              'This means the attribute will not be added to the returned instance'
+            );
+          }
+
+          let prefix;
+          if (verbatim === true) {
+            prefix = attr;
+          } else if (/#>>|->>/.test(attr)) {
+            prefix = `(${this.quoteIdentifier(includeAs.internalAs)}.${attr.replace(/\(|\)/g, '')})`;
+          } else if (/json_extract\(/.test(attr)) {
+            prefix = attr.replace(/json_extract\(/i, `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`);
+          } else {
+            prefix = `${this.quoteIdentifier(includeAs.internalAs)}.${this.quoteIdentifier(attr)}`;
+          }
+          return `${prefix} AS ${this.quoteIdentifier(`${includeAs.externalAs}.${attrAs}`, true)}`;
+        });
+        if (include.subQuery && topLevelInfo.subQuery) {
+          for (const attr of includeAttributes) {
+            attributes.subQuery.push(attr);
+          }
         } else {
           prefix = `${this.quoteIdentifier(includeAs.internalAs)}.${this.quoteIdentifier(attr)}`;
         }
@@ -1755,25 +1781,28 @@ class QueryGenerator {
       !!parent && !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
     let $parent;
     let joinWhere;
-    /* Attributes for the left side */
-    const left = association.source;
-    const attrLeft =
-      association instanceof BelongsTo
-        ? association.identifier
-        : association.sourceKeyAttribute || left.primaryKeyAttribute;
-    const fieldLeft =
-      association instanceof BelongsTo
-        ? association.identifierField
-        : left.rawAttributes[association.sourceKeyAttribute || left.primaryKeyAttribute].field;
-    let asLeft;
-    /* Attributes for the right side */
-    const right = include.model;
-    const tableRight = right.getTableName();
-    const fieldRight =
-      association instanceof BelongsTo
-        ? right.rawAttributes[association.targetIdentifier || right.primaryKeyAttribute].field
-        : association.identifierField;
-    let asRight = include.as;
+
+    let attrLeft, fieldLeft, asLeft, tableRight, fieldRight, asRight;
+    if (!include.sql) {
+      /* Attributes for the left side */
+      const left = association.source;
+      attrLeft = association instanceof BelongsTo ?
+        association.identifier :
+        association.sourceKeyAttribute || left.primaryKeyAttribute;
+      fieldLeft = association instanceof BelongsTo ?
+        association.identifierField :
+        left.rawAttributes[association.sourceKeyAttribute || left.primaryKeyAttribute].field;
+      asLeft;
+      /* Attributes for the right side */
+      const right = include.model;
+      tableRight = right.getTableName();
+      fieldRight = association instanceof BelongsTo ?
+        right.rawAttributes[association.targetIdentifier || right.primaryKeyAttribute].field :
+        association.identifierField;
+      asRight = include.as;
+    } else {
+      asRight = include.as;
+    }
 
     while (($parent = ($parent && $parent.parent) || include.parent) && $parent.association) {
       if (asLeft) {
@@ -1786,34 +1815,38 @@ class QueryGenerator {
     if (!asLeft) asLeft = parent.as || parent.model.name;
     else asRight = `${asLeft}->${asRight}`;
 
-    let joinOn = `${this.quoteTable(asLeft)}.${this.quoteIdentifier(fieldLeft)}`;
-    const subqueryAttributes = [];
+    let joinOn;
+    if (!include.sql) {
 
-    if (
-      (topLevelInfo.options.groupedLimit && parentIsTop) ||
-      (topLevelInfo.subQuery && include.parent.subQuery && !include.subQuery)
-    ) {
-      if (parentIsTop) {
-        // The main model attributes is not aliased to a prefix
-        const tableName = this.quoteTable(parent.as || parent.model.name);
+      joinOn = `${this.quoteTable(asLeft)}.${this.quoteIdentifier(fieldLeft)}`;
+      const subqueryAttributes = [];
 
-        // Check for potential aliased JOIN condition
-        joinOn =
-          this._getAliasForField(tableName, attrLeft, topLevelInfo.options) ||
-          `${tableName}.${this.quoteIdentifier(attrLeft)}`;
+      if (
+        (topLevelInfo.options.groupedLimit && parentIsTop) ||
+        (topLevelInfo.subQuery && include.parent.subQuery && !include.subQuery)
+      ) {
+        if (parentIsTop) {
+          // The main model attributes is not aliased to a prefix
+          const tableName = this.quoteTable(parent.as || parent.model.name);
 
-        if (topLevelInfo.subQuery) {
-          subqueryAttributes.push(`${tableName}.${this.quoteIdentifier(fieldLeft)}`);
+          // Check for potential aliased JOIN condition
+          joinOn =
+            this._getAliasForField(tableName, attrLeft, topLevelInfo.options) ||
+            `${tableName}.${this.quoteIdentifier(attrLeft)}`;
+
+          if (topLevelInfo.subQuery) {
+            subqueryAttributes.push(`${tableName}.${this.quoteIdentifier(fieldLeft)}`);
+          }
+        } else {
+          const joinSource = `${asLeft.replace(/->/g, '.')}.${attrLeft}`;
+
+          // Check for potential aliased JOIN condition
+          joinOn = this._getAliasForField(asLeft, joinSource, topLevelInfo.options) || this.quoteIdentifier(joinSource);
         }
-      } else {
-        const joinSource = `${asLeft.replace(/->/g, '.')}.${attrLeft}`;
 
-        // Check for potential aliased JOIN condition
-        joinOn = this._getAliasForField(asLeft, joinSource, topLevelInfo.options) || this.quoteIdentifier(joinSource);
+        joinOn += ` = ${this.quoteIdentifier(asRight)}.${this.quoteIdentifier(fieldRight)}`;
       }
     }
-
-    joinOn += ` = ${this.quoteIdentifier(asRight)}.${this.quoteIdentifier(fieldRight)}`;
 
     if (include.on) {
       joinOn = this.whereItemsQuery(include.on, {
@@ -1822,7 +1855,7 @@ class QueryGenerator {
       });
     }
 
-    if (include.where) {
+    if (include.where && !include.sql) {
       joinWhere = this.whereItemsQuery(include.where, {
         prefix: this.sequelize.literal(this.quoteIdentifier(asRight)),
         model: include.model
@@ -1846,9 +1879,9 @@ class QueryGenerator {
       join: include.required
         ? 'INNER JOIN'
         : include.right && this._dialect.supports['RIGHT JOIN']
-        ? 'RIGHT OUTER JOIN'
-        : 'LEFT OUTER JOIN',
-      body: this.quoteTable(tableRight, asRight),
+          ? 'RIGHT OUTER JOIN'
+          : 'LEFT OUTER JOIN',
+      body: include.sql ? `${(include.sql.val || include.sql)} AS \`${include.as}\`` : this.quoteTable(tableRight, asRight),
       condition: joinOn,
       attributes: {
         main: [],
@@ -1934,8 +1967,8 @@ class QueryGenerator {
     const joinType = include.required
       ? 'INNER JOIN'
       : include.right && this._dialect.supports['RIGHT JOIN']
-      ? 'RIGHT OUTER JOIN'
-      : 'LEFT OUTER JOIN';
+        ? 'RIGHT OUTER JOIN'
+        : 'LEFT OUTER JOIN';
     let joinBody;
     let joinCondition;
     const attributes = {
@@ -2240,7 +2273,7 @@ class QueryGenerator {
       as: mainTableAs
     });
 
-    let fragment = `SELECT ${attributes.join(', ')} FROM ${tables}`;
+    let fragment = `SELECT ${options.straightJoin ? `STRAIGHT_JOIN` : ``}  ${attributes.join(', ')} FROM ${tables}`;
 
     if (mainTableAs) {
       fragment += ` AS ${mainTableAs}`;

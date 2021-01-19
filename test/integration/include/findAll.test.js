@@ -210,8 +210,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should accept nested `where` and `limit` at the same time', async function () {
       const Product = this.sequelize.define('Product', {
-          title: DataTypes.STRING
-        }),
+        title: DataTypes.STRING
+      }),
         Tag = this.sequelize.define('Tag', {
           name: DataTypes.STRING
         }),
@@ -648,8 +648,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should include attributes from through models', async function () {
       const Product = this.sequelize.define('Product', {
-          title: DataTypes.STRING
-        }),
+        title: DataTypes.STRING
+      }),
         Tag = this.sequelize.define('Tag', {
           name: DataTypes.STRING
         }),
@@ -1035,8 +1035,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should be possible to extend the on clause with a where option on a hasMany include with a through model', async function () {
       const Product = this.sequelize.define('Product', {
-          title: DataTypes.STRING
-        }),
+        title: DataTypes.STRING
+      }),
         Tag = this.sequelize.define('Tag', {
           name: DataTypes.STRING
         }),
@@ -1077,8 +1077,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should be possible to extend the on clause with a where option on nested includes', async function () {
       const User = this.sequelize.define('User', {
-          name: DataTypes.STRING
-        }),
+        name: DataTypes.STRING
+      }),
         Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
         }),
@@ -1728,8 +1728,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should ignore include with attributes: [] (used for aggregates)', async function () {
       const Post = this.sequelize.define('Post', {
-          title: DataTypes.STRING
-        }),
+        title: DataTypes.STRING
+      }),
         Comment = this.sequelize.define('Comment', {
           content: DataTypes.TEXT
         });
@@ -1813,8 +1813,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should not add primary key when including and aggregating with raw: true', async function () {
       const Post = this.sequelize.define('Post', {
-          title: DataTypes.STRING
-        }),
+        title: DataTypes.STRING
+      }),
         Comment = this.sequelize.define('Comment', {
           content: DataTypes.TEXT
         });
