@@ -113,7 +113,14 @@ class Sequelize {
    *     idle: 30000,
    *     acquire: 60000,
    *   },
-   *
+   *   // dataTypes configuration: you can conver datatpye parser function
+   *   dataTypes: {
+   *     geometry: {
+   *      parser: function(value) {
+   *        return value
+   *      }
+   *    }
+   *   }
    *   // isolation level of each transaction
    *   // defaults to dialect default
    *   isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ
