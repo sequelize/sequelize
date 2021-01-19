@@ -1008,7 +1008,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     if (dialect === 'postgres') {
-      it('allows the creation of a TSVECTOR field', async function () {
+      it('allows the creation of a TSVECTOR field', async function() {
         const User = this.sequelize.define('UserWithTSVECTOR', {
           name: Sequelize.TSVECTOR
         });
@@ -1017,7 +1017,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.create({ name: 'John Doe' });
       });
 
-      it('TSVECTOR only allow string', async function () {
+      it('TSVECTOR only allow string', async function() {
         const User = this.sequelize.define('UserWithTSVECTOR', {
           username: { type: Sequelize.TSVECTOR }
         });
