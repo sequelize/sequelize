@@ -45,6 +45,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           instance.reload();
         }).to.not.throw();
       });
+
+      it('should mark reloaded records as non-new / persisted', async () => {
+        instance = Model.build({ id: 1 }, { isNewRecord: true });
+        await instance.reload();
+        expect(instance.isNewRecord).to.be.false;
+      });
     });
   });
 });
