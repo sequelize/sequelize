@@ -38,10 +38,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       plateNumber: {
         type: DataTypes.STRING,
         primaryKey: true,
-        field: 'plate_number'
+        field: 'plate_number',
+        unique: true
       },
       color: {
         type: DataTypes.TEXT
+      },
+      vin: {
+        type: DataTypes.STRING,
+        unique: true
       }
     });
 
@@ -532,21 +537,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('when the primary key column names and model field names are different', async function () {
             const data = [
-              { plateNumber: 'abc', color: 'Grey' },
-              { plateNumber: 'def', color: 'White' }
+              { plateNumber: 'abc', color: 'Grey', vin: 'v1' },
+              { plateNumber: 'def', color: 'White', vin: 'v2' }
             ];
 
             await this.Car.bulkCreate(data, {
-              fields: ['plateNumber', 'color'],
+              fields: ['plateNumber', 'color', 'vin'],
               updateOnDuplicate: ['color']
             });
             const new_data = [
-              { plateNumber: 'abc', color: 'Red' },
-              { plateNumber: 'def', color: 'Green' },
-              { plateNumber: 'ghi', color: 'Blue' }
+              { plateNumber: 'abc', color: 'Red', vin: 'v1' },
+              { plateNumber: 'def', color: 'Green', vin: 'v2' },
+              { plateNumber: 'ghi', color: 'Blue', vin: 'v3' }
             ];
             await this.Car.bulkCreate(new_data, {
-              fields: ['plateNumber', 'color'],
+              fields: ['plateNumber', 'color', 'vin'],
               updateOnDuplicate: ['color']
             });
             const cars = await this.Car.findAll({ order: ['plateNumber'] });
