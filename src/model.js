@@ -1772,7 +1772,7 @@ class Model {
    *
    * @returns {Promise<Array<Model>>}
    */
-  static async findAll(options) {
+  static async findAll(options = {}) {
     if (options !== undefined && !_.isPlainObject(options)) {
       throw new sequelizeErrors.QueryError(
         'The argument passed to findAll must be an options object, use findByPk if you wish to pass a single primary key value'
@@ -1988,7 +1988,7 @@ class Model {
    *
    * @returns {Promise<Model|null>}
    */
-  static async findOne(options) {
+  static async findOne(options = {}) {
     if (options !== undefined && !_.isPlainObject(options)) {
       throw new Error(
         'The argument passed to findOne must be an options object, use findByPk if you wish to pass a single primary key value'

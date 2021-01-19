@@ -57,6 +57,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should not crash without options', async function () {
+      await this.User.findAll();
+    });
+
     it('should throw on an attempt to fetch no attributes', async function () {
       await expect(this.User.findAll({ attributes: [] })).to.be.rejectedWith(
         Sequelize.QueryError,

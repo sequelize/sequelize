@@ -873,6 +873,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
+    it('should not fail when has no options', async function () {
+      const User = this.sequelize.define('User', { username: Sequelize.STRING }, { paranoid: true });
+
+      await User.sync({ force: true });
+      await User.create({ username: 'A fancy name' });
+      expect((await User.findOne()).username).to.equal('A fancy name');
+    });
+
     it('should not fail if model is paranoid and where is an empty array', async function () {
       const User = this.sequelize.define('User', { username: Sequelize.STRING }, { paranoid: true });
 

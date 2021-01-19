@@ -306,6 +306,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(users).to.have.length(0);
     });
 
+    it('should work without options', async function () {
+      await this.ParanoidUser.create({ username: 'cuss' });
+      const users = await this.ParanoidUser.findAll();
+      expect(users).to.have.length(1);
+    });
+
     it('sequelize.and as where should include paranoid condition', async function () {
       await this.ParanoidUser.create({ username: 'cuss' });
 
@@ -450,6 +456,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.username).to.equal('fnord');
       const user0 = await this.User.findOne(query);
       expect(user0.username).to.equal('fnord');
+    });
+    it('can use function without optoins', async function () {
+      await this.User.create({ username: 'fnord' });
+      const user = await this.User.findOne();
+      expect(user.username).to.equal('fnord');
     });
     it('returns null for null, undefined, and unset boolean values', async function () {
       const Setting = this.sequelize.define(
