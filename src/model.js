@@ -2641,6 +2641,8 @@ class Model {
     const dialect = this.sequelize.options.dialect;
     const now = Utils.now(this.sequelize.options.dialect);
 
+    options = Utils.cloneDeep(options);
+
     options.model = this;
 
     if (!options.includeValidated) {
