@@ -33,6 +33,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(DAO.options.underscored).to.be.ok;
     });
 
+    it('should change charset when came from model options', () => {
+      const sequelize = Support.createSequelizeInstance({
+          define: { charset: 'utf8' }
+        }),
+        DAO = sequelize.define('dao', { name: DataTypes.STRING }, { charset: 'utf8mb4' });
+
+      expect(DAO.options.charset).to.equal('utf8mb4');
+    });
+
     it('should correctly set the host and the port', () => {
       const sequelize = Support.createSequelizeInstance({
         host: '127.0.0.1',

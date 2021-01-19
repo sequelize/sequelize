@@ -29,6 +29,12 @@ if (dialect === 'mysql') {
           arguments: ['myDatabase', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
           expectation:
             "CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET 'utf8mb4' DEFAULT COLLATE 'utf8mb4_unicode_ci';"
+        },
+        {
+          context: { options: { charset: 'utf8' } },
+          arguments: ['myDatabase', { charset: 'utf8mb4', collate: 'utf8mb4_general_ci' }],
+          expectation:
+            "CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET 'utf8mb4' DEFAULT COLLATE 'utf8mb4_general_ci';"
         }
       ],
       dropDatabaseQuery: [

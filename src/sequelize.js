@@ -436,6 +436,7 @@ class Sequelize {
   define(modelName, attributes, options = {}) {
     options.modelName = modelName;
     options.sequelize = this;
+    options.sequelize.options.charset = options.charset;
 
     const model = class extends Model {};
 
