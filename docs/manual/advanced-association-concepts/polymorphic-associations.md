@@ -111,8 +111,10 @@ Comment.addHook("afterFind", findResult => {
   for (const instance of findResult) {
     if (instance.commentableType === "image" && instance.image !== undefined) {
       instance.commentable = instance.image;
+      instance.dataValues.commentable = instance.image;
     } else if (instance.commentableType === "video" && instance.video !== undefined) {
       instance.commentable = instance.video;
+      instance.dataValues.commentable = instance.video;
     }
     // To prevent mistakes:
     delete instance.image;
