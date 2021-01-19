@@ -63,7 +63,8 @@ AbstractDialect.prototype.supports = {
   groupedLimit: true,
   indexViaAlter: false,
   JSON: false,
-  deferrableConstraints: false
+  deferrableConstraints: false,
+  truncateCascade: false
 };
 
 module.exports = AbstractDialect;

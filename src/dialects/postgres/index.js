@@ -56,7 +56,8 @@ PostgresDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototy
   JSONB: true,
   HSTORE: true,
   deferrableConstraints: true,
-  searchPath: true
+  searchPath: true,
+  truncateCascade: true
 });
 
 PostgresDialect.prototype.defaultVersion = '9.5.0';
