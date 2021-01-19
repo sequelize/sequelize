@@ -31,7 +31,7 @@ export class Logger {
   }
 
   public inspect(value: any): string {
-    return inspect(value, false, 3);
+    return inspect(value, false, 1);
   }
 
   public debugContext(name: string): debug.Debugger {
