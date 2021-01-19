@@ -159,7 +159,7 @@ class ConnectionManager {
     let reads = 0;
     this.pool = {
       release: client => {
-        if (client.queryType === 'read') {
+        if (client.queryType === 'read' || client.queryType === 'SELECT') {
           this.pool.read.release(client);
         } else {
           this.pool.write.release(client);
@@ -167,7 +167,7 @@ class ConnectionManager {
       },
       acquire: (queryType, useMaster) => {
         useMaster = useMaster === undefined ? false : useMaster;
-        if (queryType === 'SELECT' && !useMaster) {
+        if ((queryType === 'SELECT' || queryType === 'read') && !useMaster) {
           return this.pool.read.acquire();
         }
         return this.pool.write.acquire();
