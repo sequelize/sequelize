@@ -59,7 +59,6 @@ AbstractDialect.prototype.supports = {
     functionBased: false,
     operator: false
   },
-  joinTableDependent: true,
   groupedLimit: true,
   indexViaAlter: false,
   JSON: false,

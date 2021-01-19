@@ -41,7 +41,6 @@ SqliteDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototype
     addConstraint: false,
     dropConstraint: false
   },
-  joinTableDependent: false,
   groupedLimit: false,
   JSON: true
 });
