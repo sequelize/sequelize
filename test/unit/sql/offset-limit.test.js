@@ -31,6 +31,19 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql(
       {
+        limit: 0,
+        order: [
+          ['email', 'DESC'] // for MSSQL
+        ]
+      },
+      {
+        default: ' LIMIT 0',
+        mssql: ' OFFSET 0 ROWS FETCH NEXT 0 ROWS ONLY'
+      }
+    );
+
+    testsql(
+      {
         limit: 10,
         order: [
           ['email', 'DESC'] // for MSSQL

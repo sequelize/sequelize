@@ -410,7 +410,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
 
   updateQuery(tableName, attrValueHash, where, options, attributes) {
     const sql = super.updateQuery(tableName, attrValueHash, where, options, attributes);
-    if (options.limit) {
+    if (options.limit != null) {
       const updateArgs = `UPDATE TOP(${this.escape(options.limit)})`;
       sql.query = sql.query.replace('UPDATE', updateArgs);
     }
@@ -540,7 +540,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
 
     return Utils.joinSQLFragments([
       'DELETE',
-      options.limit && `TOP(${this.escape(options.limit)})`,
+      options.limit != null && `TOP(${this.escape(options.limit)})`,
       'FROM',
       table,
       whereClause && `WHERE ${whereClause}`,
@@ -884,7 +884,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
         'FROM (',
         [
           'SELECT',
-          options.limit && `TOP ${options.limit}`,
+          options.limit != null && `TOP ${options.limit}`,
           '* FROM (',
           [
             'SELECT ROW_NUMBER() OVER (',
@@ -900,7 +900,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
 
     return Utils.joinSQLFragments([
       'SELECT',
-      isSQLServer2008 && options.limit && `TOP ${options.limit}`,
+      isSQLServer2008 && options.limit != null && `TOP ${options.limit}`,
       attributes.join(', '),
       `FROM ${tables}`,
       mainTableAs && `AS ${mainTableAs}`,
@@ -930,7 +930,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       orders = this.getQueryOrders(options, model, isSubQuery);
     }
 
-    if (options.limit || options.offset) {
+    if (options.limit != null || options.offset != null) {
       if (!options.order || !options.order.length || (options.include && !orders.subQueryOrder.length)) {
         const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(
           model.primaryKeyField
@@ -948,11 +948,11 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
         }
       }
 
-      if (options.offset || options.limit) {
+      if (options.offset != null || options.limit != null) {
         fragment += ` OFFSET ${this.escape(offset)} ROWS`;
       }
 
-      if (options.limit) {
+      if (options.limit != null) {
         fragment += ` FETCH NEXT ${this.escape(options.limit)} ROWS ONLY`;
       }
     }
